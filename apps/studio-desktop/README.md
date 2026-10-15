@@ -8,7 +8,7 @@ cargo run -p studio-desktop
 
 This native egui/eframe app edits and validates MotionScript YAML, selects dialogue,
 submits bounded background generation/import jobs, previews duration and waveform,
-and scrubs a sample-based symbolic mouth display. It does not play device audio,
+and scrubs a sample-based symbolic mouth display. macOS device playback is available as the next stage below; it does not
 render character rigs or export video. macOS GUI execution and real Kokoro
 synthesis require local platform testing.
 
@@ -33,4 +33,20 @@ Open/Save buttons for UTF-8 YAML (100 KB limit); Save replaces that path. Runtim
 settings and preview offsets remain session-only.
 
 The UI deliberately labels these boundaries. No native Rust TTS, Metal acceleration,
-physical audio synchronization or perceptual alignment validation is claimed.
+hardware latency calibration or perceptual alignment validation is claimed.
+
+## Playback stage
+
+On macOS, prepare a dialogue WAV and use Play from cursor, Pause, Resume, Stop,
+or the scene playhead slider. A bounded worker opens the current default output
+device and retains the stream. PCM stays shared; seek replaces the source at an
+exact clip-local frame. Mouth preview reads Rodio's consumed source position,
+including the seek offset, rather than advancing a separate wall-clock timer.
+This does not measure hardware latency; perceptual synchronization requires
+listening and visual validation on a real Mac. The UI continues polling while a
+device opens or reports an error. Linux offers waveform scrubbing and an explicit
+unsupported-device message; audio-device output is currently macOS-only.
+
+Device-open errors appear in the UI and Play can retry. Rodio runtime device
+faults currently go to stderr; an unplugged/stalled device may require restarting
+the app. No hardware playback or GUI runtime test has been performed here.

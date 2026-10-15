@@ -44,22 +44,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 provider.synthesize(job.request.clone())?
             };
             let clip = motion_voice::timeline::DialogueClip::prepare(job, &result, None)?;
-            if clip.start_frame as f64 / 24000.0 + clip.audio.duration_seconds() > scene.duration {
-                return Err(format!(
-                    "{} dialogue exceeds scene; adjust timing or duration",
-                    job.actor
-                )
-                .into());
-            }
             eprintln!("{}: {:.3}s", job.actor, clip.audio.duration_seconds());
-            clips.push(clip.mix_clip());
+            clips.push(clip);
         }
-        let frames = scene.duration * 24000.0;
-        if frames > 24000.0 * 3600.0 {
-            return Err("scene exceeds one hour export budget".into());
-        }
-        let mixed = motion_audio::mix_timeline(&clips, 24000, 1, frames.round() as usize)?;
-        motion_audio::write_wav(output.join(format!("scene-{index}.wav")), &mixed)?;
+        let rendered = motion_voice::export::render_scene(&scene.id, scene.duration, &clips)?;
+        motion_audio::write_wav(output.join(format!("scene-{index}.wav")), &rendered.audio)?;
+        std::fs::write(
+            output.join(format!("scene-{index}.json")),
+            serde_json::to_vec_pretty(&rendered.manifest)?,
+        )?;
     }
     Ok(())
 }

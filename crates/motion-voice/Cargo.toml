@@ -8,3 +8,5 @@ motion-tts = { path = "../motion-tts" }
 motion-audio = { path = "../motion-audio" }
 motion-lipsync = { path = "../motion-lipsync" }
 hound = "3.5"
+serde.workspace = true
+serde_json.workspace = true
