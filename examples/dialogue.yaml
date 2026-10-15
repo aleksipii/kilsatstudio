@@ -1,0 +1,29 @@
+characters:
+  EMMA:
+    asset: characters/emma
+    voice:
+      provider: kokoro
+      preset: af_heart
+      language: en-us
+      speed: 1.0
+  ALEX:
+    asset: characters/alex
+    voice:
+      provider: kokoro
+      preset: am_michael
+      language: en-us
+      speed: 1.0
+scenes:
+  - id: intro
+    duration: 12.0
+    events:
+      - type: speak
+        at: 1.0
+        actor: EMMA
+        text: Hello Alex! Welcome to Kilsat Studio.
+        emotion: happy
+      - type: speak
+        at: 5.0
+        actor: ALEX
+        text: This is incredible!
+        emotion: surprised
