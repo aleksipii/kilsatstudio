@@ -142,3 +142,19 @@ encoder is downloaded or searched on PATH. Choose a new absolute output director
 MP4 retains the PNG/WAV/timing interchange files. Rendering and encoding run on the
 existing bounded export worker and can be cancelled. When all frame images are
 ready, the UI reports finalizing/encoding until the worker confirms completion.
+
+
+## Artwork and actor transform tracks
+
+The editor now supports foreground pen/rectangle/ellipse and PNG/JPEG image
+layers with rectangular clips, visibility, order and opacity. Resources decode on
+a bounded worker; Reload images refreshes same-path edits. Save `.kilsat` v2 to
+retain artwork; v1 files migrate without losing source/assets. YAML save refuses
+artwork loss. Artwork history is separate/bounded and reference-safe; it is not
+full project Undo. Actor attachments follow translation only.
+
+A detached keyframe editor stores actor root offsets, radians, scales and easing
+in MotionScript. Procedural actor geometry and faces use the same evaluated root
+transform as export. Per-bone textures, arbitrary masks, advanced image editing
+and Mac visual acceptance remain open. See `docs/art-format.md`,
+`docs/art-rendering.md`, `docs/keyframe-editor.md` and `docs/art-acceptance.md`.

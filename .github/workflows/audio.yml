@@ -33,4 +33,6 @@ jobs:
         env:
           KILSAT_TEST_FFMPEG: /usr/bin/ffmpeg
           KILSAT_TEST_FFPROBE: /usr/bin/ffprobe
-        run: cargo test --locked -p motion-export real_ffmpeg_encodes_h264_aac -- --ignored
+        run: |
+          cargo test --locked -p motion-export real_ffmpeg_encodes_h264_aac -- --ignored
+          cargo test --locked -p motion-export embedded_art_is_retained_in_real_mp4_pipeline -- --ignored

@@ -180,3 +180,15 @@ relink/remove, parallel ordered frame workers and an exact-audio alignment cache
 See the master tracker for implementation and acceptance boundaries. Scene-edge
 fades are not transitions between scenes; inventory is not a texture renderer;
 cache storage is not automatic forced alignment.
+
+
+## Artwork and actor transform editing
+
+The next increment persists typed foreground artwork in `.kilsat` v2, with
+explicit migration of v1 source/assets. Pen, rectangle and ellipse layers support
+visibility, opacity, order and rectangular clipping. PNG/JPEG resources decode
+on a bounded worker and embed in SVG/PNG/MP4; actor attachments inherit translation
+only. Per-actor transform tracks persist in MotionScript and expose a detached
+keyframe editor using existing deterministic interpolation. This does not add
+textured per-bone rigs, arbitrary masks, image retouching, GPU export or actual Mac
+visual/perceptual acceptance.

@@ -14,6 +14,9 @@ source code or dependencies are used.
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
 - Add, duplicate, edit and remove events in the Inspector; drag start times on the
   project frame grid, and undo/redo screenplay changes.
+- Draw pen strokes, rectangles and ellipses on persisted foreground layers with rectangular clips.
+- Display imported PNG/JPEG layers in preview and SVG/PNG/MP4 export.
+- Edit persistent actor transform keyframes (offset, rotation, scale and easing).
 - Edit validated camera pan/zoom keys, actor layer order/visibility, background colors and scene-edge fades.
 - Import, relink and remove explicit asset references on a bounded background worker.
 - Render frames with bounded fixed workers and deterministic ordered output.
@@ -42,8 +45,8 @@ source code or dependencies are used.
 
 Missing alignment keeps mouths at rest. Kokoro phoneme strings are **not** treated
 as accurate timestamps. Facial emotion affects the visual preview; acoustic emotion
-conditioning is not implemented. The current artwork and backdrop are procedural
-placeholders, not loaded texture rigs.
+conditioning is not implemented. Procedural characters remain placeholders; explicit foreground image/drawing
+layers can now be loaded, but textured skeletal character rigs are not implemented.
 
 ## Practical macOS test build
 
@@ -199,6 +202,11 @@ remain enabled in CI.
 ## Project guides
 
 - [Master plan implementation checklist](docs/master-progress.md)
+- [Artwork and project v2](docs/art-format.md)
+- [Artwork rendering](docs/art-rendering.md)
+- [Actor keyframes](docs/actor-keyframes.md)
+- [Keyframe editor](docs/keyframe-editor.md)
+- [Artwork acceptance](docs/art-acceptance.md)
 - [Composition and camera](docs/composition.md)
 - [Asset inventory management](docs/asset-management.md)
 - [Bounded jobs and benchmark](docs/jobs-performance.md)

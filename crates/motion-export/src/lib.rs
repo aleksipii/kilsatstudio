@@ -1,7 +1,7 @@
 //! Bounded, cancellable SVG/audio interchange export on the shared sample clock.
 //! SVG, PNG and explicitly configured local FFmpeg video share the same scene clock.
 mod media;
-pub use media::export_mp4_scene;
+pub use media::{export_mp4_scene, export_mp4_scene_with_art};
 use motion_lipsync::{AlignmentSource, Viseme};
 use motion_script::Script;
 use motion_tts::CancellationToken;
@@ -13,6 +13,12 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
 };
+
+#[derive(Debug, Clone, Default)]
+pub struct ArtContext {
+    pub document: motion_art::Document,
+    pub images: BTreeMap<String, motion_art::ImageResource>,
+}
 
 pub const MAX_FRAMES: u64 = 10_000;
 const MAX_BYTES: u64 = 256 * 1024 * 1024;
@@ -97,6 +103,18 @@ fn validate(script: &Script, index: usize, rendered: &RenderedScene) -> Result<u
             > 1_000_000
     {
         return Err(invalid("frame, actor or event work budget exceeded"));
+    }
+    let keys = scene
+        .composition
+        .actor_tracks
+        .values()
+        .map(Vec::len)
+        .sum::<usize>()
+        + scene.composition.camera.len();
+    if count.saturating_mul(keys as u64) > 1_000_000 {
+        return Err(invalid(
+            "keyframe evaluation exceeds one million key visits",
+        ));
     }
     let expected_samples = (scene.duration * SAMPLE_RATE as f64).round() as u64;
     let m = &rendered.manifest;
@@ -216,6 +234,7 @@ pub fn export_scene(
         cancel,
         &mut progress,
         false,
+        None,
     )
 }
 
@@ -236,6 +255,49 @@ pub fn export_png_scene(
         cancel,
         &mut progress,
         true,
+        None,
+    )
+}
+
+/// Export foreground artwork using the shared frame scheduler and sample clock.
+pub fn export_scene_with_art(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    destination: &Path,
+    cancel: &CancellationToken,
+    mut progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_sequence(
+        script,
+        scene_index,
+        rendered,
+        destination,
+        cancel,
+        &mut progress,
+        false,
+        Some(art),
+    )
+}
+pub fn export_png_scene_with_art(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    destination: &Path,
+    cancel: &CancellationToken,
+    mut progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_sequence(
+        script,
+        scene_index,
+        rendered,
+        destination,
+        cancel,
+        &mut progress,
+        true,
+        Some(art),
     )
 }
 
@@ -264,6 +326,7 @@ fn encode_frame(
     i: u64,
     png: bool,
     cancel: &CancellationToken,
+    art: Option<&ArtContext>,
 ) -> Result<(u64, f64, Vec<u8>), Error> {
     check(cancel)?;
     let sample = i
@@ -273,12 +336,19 @@ fn encode_frame(
     let time = sample as f64 / SAMPLE_RATE as f64;
     let pose =
         motion_scene::evaluate(script, scene_index, time).map_err(|e| invalid(e.to_string()))?;
-    let svg = motion_render::render_svg_with_mouths(
-        &pose,
-        pose.width,
-        pose.height,
-        &mouths_at(&rendered.manifest, sample),
-    )
+    let mouths = mouths_at(&rendered.manifest, sample);
+    let svg = match art {
+        Some(art) => motion_render::render_svg_with_art(
+            &pose,
+            pose.width,
+            pose.height,
+            &mouths,
+            &script.scenes[scene_index].id,
+            &art.document,
+            &art.images,
+        ),
+        None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
+    }
     .map_err(|e| invalid(e.to_string()))?;
     check(cancel)?;
     let encoded = if png {
@@ -290,6 +360,7 @@ fn encode_frame(
     Ok((sample, time, encoded))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn export_sequence(
     script: &Script,
     scene_index: usize,
@@ -298,9 +369,55 @@ fn export_sequence(
     cancel: &CancellationToken,
     progress: &mut impl FnMut(Progress),
     png: bool,
+    art: Option<&ArtContext>,
 ) -> Result<Report, Error> {
     check(cancel)?;
     let total = validate(script, scene_index, rendered)?;
+    if let Some(art) = art {
+        art.document
+            .validate()
+            .map_err(|e| invalid(e.to_string()))?;
+        let geometry = art
+            .document
+            .layers
+            .iter()
+            .filter(|l| l.scene_id == script.scenes[scene_index].id)
+            .map(|l| match &l.content {
+                motion_art::Content::Stroke { points, .. } => points.len() as u64,
+                _ => 1,
+            })
+            .sum::<u64>();
+        if geometry.saturating_mul(total) > 4_000_000 {
+            return Err(invalid(
+                "artwork exceeds four million layer/point frame visits",
+            ));
+        }
+        let image_bytes = art.images.values().try_fold(0usize, |n, i| {
+            n.checked_add(i.png().len())
+                .ok_or_else(|| invalid("image byte overflow"))
+        })?;
+        let pixels = art.images.values().try_fold(0u64, |n, i| {
+            n.checked_add(u64::from(i.width()) * u64::from(i.height()))
+                .ok_or_else(|| invalid("image pixel overflow"))
+        })?;
+        if image_bytes > 32 * 1024 * 1024 || pixels > 16_000_000 {
+            return Err(invalid(
+                "artwork exceeds 32 MiB encoded / 16 million decoded pixel budget",
+            ));
+        }
+        let pose =
+            motion_scene::evaluate(script, scene_index, 0.0).map_err(|e| invalid(e.to_string()))?;
+        motion_render::render_svg_with_art(
+            &pose,
+            pose.width,
+            pose.height,
+            &[],
+            &script.scenes[scene_index].id,
+            &art.document,
+            &art.images,
+        )
+        .map_err(|e| invalid(e.to_string()))?;
+    }
     check(cancel)?;
     if png && u64::from(script.project.width) * u64::from(script.project.height) > 16_000_000 {
         return Err(invalid("raster frame exceeds 16 million pixel budget"));
@@ -336,7 +453,7 @@ fn export_sequence(
             total as usize,
             config,
             || cancel.is_cancelled(),
-            |i| encode_frame(script, scene_index, rendered, i as u64, png, cancel),
+            |i| encode_frame(script, scene_index, rendered, i as u64, png, cancel, art),
             |i, (sample, time, encoded)| {
                 check(cancel)?;
                 let i = i as u64;
@@ -376,6 +493,8 @@ fn export_sequence(
                 "width":script.project.width,"height":script.project.height,"frames":frames,
                 "audio_file":"scene.wav","audio_manifest_file":"scene.json",
                 "source_project":serde_json::from_slice::<serde_json::Value>(&source)?,
+                "artwork":art.map(|a| &a.document),
+                "artwork_composition":"foreground_document_order_translation_only_attachments",
                 "clock":"floor(frame * 24000 / fps)","video_encoded":false
             }),
             8 * 1024 * 1024,
@@ -512,11 +631,13 @@ mod tests {
                 &token,
                 &mut |p| completed.push(p.completed_frames),
                 png,
+                None,
             )
             .unwrap();
             assert_eq!(completed, (0..=13).collect::<Vec<_>>());
             for i in 0..13 {
-                let (_, _, expected) = encode_frame(&script, 0, &rendered, i, png, &token).unwrap();
+                let (_, _, expected) =
+                    encode_frame(&script, 0, &rendered, i, png, &token, None).unwrap();
                 let extension = if png { "png" } else { "svg" };
                 assert_eq!(
                     fs::read(dest.join(format!("frame_{i:06}.{extension}"))).unwrap(),
@@ -842,5 +963,184 @@ mod tests {
         )
         .is_err());
         assert!(!dest.exists());
+    }
+}
+
+#[cfg(test)]
+mod artwork_tests {
+    use super::*;
+    use motion_art::{Color, Content, Document, ImageResource, Layer, Point, Rect};
+    fn layer(id: &str, content: Content) -> Layer {
+        Layer {
+            id: id.into(),
+            scene_id: "intro".into(),
+            name: id.into(),
+            visible: true,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            content,
+        }
+    }
+    #[test]
+    fn embedded_png_mask_and_stroke_survive_real_sequence_rasterization() {
+        let (script, rendered) = super::tests::fixture();
+        let rect = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 32.0,
+            height: 32.0,
+        };
+        let mut image = layer(
+            "image",
+            Content::Image {
+                asset_id: "red".into(),
+                rect,
+            },
+        );
+        image.clip = Some(Rect {
+            width: 16.0,
+            ..rect
+        });
+        let stroke = layer(
+            "stroke",
+            Content::Stroke {
+                points: vec![Point { x: 40.0, y: 4.0 }, Point { x: 55.0, y: 4.0 }],
+                color: Color {
+                    r: 0,
+                    g: 255,
+                    b: 0,
+                    a: 255,
+                },
+                width: 4.0,
+            },
+        );
+        let art = ArtContext {
+            document: Document {
+                layers: vec![image, stroke],
+            },
+            images: BTreeMap::from([(
+                "red".into(),
+                ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
+            )]),
+        };
+        let destination = super::tests::destination();
+        export_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        let svg = fs::read_to_string(destination.join("frame_000000.svg")).unwrap();
+        assert!(svg.contains("data:image/png;base64,"));
+        assert!(svg.contains("clip-path=\"url(#art0)\""));
+        assert!(svg.contains("<polyline"));
+        fs::remove_dir_all(&destination).unwrap();
+        export_png_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        let png = fs::read(destination.join("frame_000000.png")).unwrap();
+        let pix = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+        assert_eq!(pix.pixel(4, 4).unwrap().red(), 255);
+        assert_ne!(pix.pixel(24, 4).unwrap().red(), 255);
+        assert_eq!(pix.pixel(45, 4).unwrap().green(), 255);
+        fs::remove_dir_all(destination).unwrap();
+    }
+    #[test]
+    #[ignore = "requires explicit local KILSAT_TEST_FFMPEG"]
+    fn embedded_art_is_retained_in_real_mp4_pipeline() {
+        let (script, rendered) = super::tests::fixture();
+        let art = ArtContext {
+            document: Document {
+                layers: vec![layer(
+                    "image",
+                    Content::Image {
+                        asset_id: "red".into(),
+                        rect: Rect {
+                            x: 0.0,
+                            y: 0.0,
+                            width: 32.0,
+                            height: 32.0,
+                        },
+                    },
+                )],
+            },
+            images: BTreeMap::from([(
+                "red".into(),
+                ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
+            )]),
+        };
+        let destination = super::tests::destination();
+        let ffmpeg = PathBuf::from(std::env::var_os("KILSAT_TEST_FFMPEG").expect("set FFmpeg"));
+        export_mp4_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &ffmpeg,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        assert!(fs::metadata(destination.join("scene.mp4")).unwrap().len() > 0);
+        let png = fs::read(destination.join("frame_000000.png")).unwrap();
+        assert_eq!(
+            resvg::tiny_skia::Pixmap::decode_png(&png)
+                .unwrap()
+                .pixel(4, 4)
+                .unwrap()
+                .red(),
+            255
+        );
+        let manifest: serde_json::Value =
+            serde_json::from_slice(&fs::read(destination.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(manifest["video_encoded"], true);
+        assert_eq!(manifest["artwork"]["layers"][0]["id"], "image");
+        fs::remove_dir_all(destination).unwrap();
+    }
+    #[test]
+    fn missing_resource_fails_before_creating_output() {
+        let (script, rendered) = super::tests::fixture();
+        let art = ArtContext {
+            document: Document {
+                layers: vec![layer(
+                    "missing",
+                    Content::Image {
+                        asset_id: "absent".into(),
+                        rect: Rect {
+                            x: 0.0,
+                            y: 0.0,
+                            width: 1.0,
+                            height: 1.0,
+                        },
+                    },
+                )],
+            },
+            images: BTreeMap::new(),
+        };
+        let destination = super::tests::destination();
+        assert!(export_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        assert!(!destination.exists());
     }
 }

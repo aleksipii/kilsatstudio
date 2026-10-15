@@ -212,3 +212,22 @@ removal on a bounded worker. Imported files remain on disk when a reference is
 removed. Inventory changes are marked unsaved and have a separate one-step Undo;
 save `.kilsat` to persist them. These controls do not render imported textures.
 See [composition](composition.md) and [asset management](asset-management.md).
+
+
+### Foreground artwork and actor keyframes
+
+The artwork panel adds pen strokes, rectangles, ellipses and PNG/JPEG image layers
+to the selected scene. Layers support visibility, opacity, order, geometry and
+rectangular clipping. Actor attachments follow translation only. Artwork paints
+after procedural actors and remains inside the shared camera/canvas/fade.
+Image decode runs on a bounded worker; use **Reload images** for same-path file
+changes. Image data is shared between preview and export.
+
+Save artwork in `.kilsat` v2; v1 projects migrate preserving source/assets. YAML
+save refuses to discard artwork. Artwork has bounded separate history; source
+and inventory context changes invalidate unsafe snapshots, and reference-breaking
+Undo/edits are rejected. This is not full unified project history.
+
+The per-actor keyframe editor stores time, Move-relative position offsets, root
+rotation/positive scales and linear/smoothstep/hold interpolation in MotionScript.
+Apply is atomic and source Undo/Redo restores exact text. See [keyframe editor](keyframe-editor.md), [art format](art-format.md) and [art acceptance](art-acceptance.md) for limits and manual platform checks.

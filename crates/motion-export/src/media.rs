@@ -34,6 +34,52 @@ pub fn export_mp4_scene(
     cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
 ) -> Result<Report, Error> {
+    export_mp4_inner(
+        script,
+        scene_index,
+        rendered,
+        None,
+        destination,
+        ffmpeg,
+        cancel,
+        &mut progress,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn export_mp4_scene_with_art(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    destination: &Path,
+    ffmpeg: &Path,
+    cancel: &CancellationToken,
+    mut progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_mp4_inner(
+        script,
+        scene_index,
+        rendered,
+        Some(art),
+        destination,
+        ffmpeg,
+        cancel,
+        &mut progress,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn export_mp4_inner(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: Option<&ArtContext>,
+    destination: &Path,
+    ffmpeg: &Path,
+    cancel: &CancellationToken,
+    progress: &mut impl FnMut(Progress),
+) -> Result<Report, Error> {
     check(cancel)?;
     if !ffmpeg.is_absolute() || !ffmpeg.is_file() {
         return Err(invalid(
@@ -44,13 +90,15 @@ pub fn export_mp4_scene(
     if !script.project.width.is_multiple_of(2) || !script.project.height.is_multiple_of(2) {
         return Err(invalid("MP4 requires even project width and height"));
     }
-    let report = export_png_scene(
+    let report = export_sequence(
         script,
         scene_index,
         rendered,
         destination,
         cancel,
-        &mut progress,
+        progress,
+        true,
+        art,
     )?;
     let result = encode(script, destination, ffmpeg, cancel).map(|()| report);
     if result.is_err() {

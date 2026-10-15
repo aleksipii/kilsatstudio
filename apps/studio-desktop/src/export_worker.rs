@@ -17,6 +17,7 @@ pub enum Format {
 }
 
 pub struct Request {
+    pub art: motion_export::ArtContext,
     pub format: Format,
     pub ffmpeg: PathBuf,
     pub script: Script,
@@ -56,26 +57,29 @@ impl Worker {
             };
             request.cancel.check().map_err(|error| error.to_string())?;
             match request.format {
-                Format::Svg => motion_export::export_scene(
+                Format::Svg => motion_export::export_scene_with_art(
                     &request.script,
                     request.scene_index,
                     &rendered,
+                    &request.art,
                     &request.destination,
                     &request.cancel,
                     progress,
                 ),
-                Format::Png => motion_export::export_png_scene(
+                Format::Png => motion_export::export_png_scene_with_art(
                     &request.script,
                     request.scene_index,
                     &rendered,
+                    &request.art,
                     &request.destination,
                     &request.cancel,
                     progress,
                 ),
-                Format::Mp4 => motion_export::export_mp4_scene(
+                Format::Mp4 => motion_export::export_mp4_scene_with_art(
                     &request.script,
                     request.scene_index,
                     &rendered,
+                    &request.art,
                     &request.destination,
                     &request.ffmpeg,
                     &request.cancel,
@@ -187,6 +191,7 @@ mod tests {
     fn request() -> Request {
         let rendered = motion_voice::export::render_scene("test", 0.1, &[]).unwrap();
         Request {
+            art: Default::default(),
             format: Format::Svg,
             ffmpeg: PathBuf::new(),
             script: Script {
