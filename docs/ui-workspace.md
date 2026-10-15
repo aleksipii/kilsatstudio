@@ -168,3 +168,18 @@ identity matches. Undo/Redo restore screenplay text and clear pasted timing data
 as described above. No-op or invalid voice Apply leaves the document/history and
 prepared state unchanged. Native Mac listening and perceptual lip-sync quality
 remain separate acceptance checks.
+
+
+### Project and scene settings
+
+In the Project tab, expand **Project / scene settings** to edit the project title,
+frame rate and dimensions, or the selected scene ID and duration. **Apply settings**
+validates the whole screenplay and records one Undo action; **Reset settings draft**
+discards pending settings. Event times remain in seconds and coordinates are not
+rescaled. Dimensions apply to every scene. Shortening rejects events or known
+prepared dialogue extending past the new end; speech not yet generated is checked
+on preparation. Accepted changes invalidate prepared audio and pending editor
+drafts while preserving pasted timing maps. Undo restores exact source text
+and clears timing maps under the existing history policy. YAML is normalized and
+comments removed on Apply. Script dimensions permit 16384 per side, while SVG
+export supports 8192; audio export supports one hour.

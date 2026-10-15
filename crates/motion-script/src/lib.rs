@@ -194,6 +194,31 @@ fn missing_event() -> Error {
     Error::Validation("selected scene or event no longer exists".into())
 }
 
+/// Update project settings and one scene's identity/duration as one transaction.
+///
+/// The whole candidate screenplay is validated, including events in other scenes
+/// affected by project dimensions. Imported audio is not loaded or measured.
+/// YAML formatting is normalized and comments are not preserved. Input/output
+/// are bounded to one MiB; this function has no file side effects.
+pub fn apply_scene_settings(
+    source: &str,
+    scene_index: usize,
+    project: Project,
+    scene_id: &str,
+    duration_seconds: f64,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(|| Error::Validation("selected scene no longer exists".into()))?;
+        scene.id = scene_id.into();
+        scene.duration = duration_seconds;
+        candidate.project = project;
+        Ok(())
+    })
+}
+
 fn edit_source(
     source: &str,
     edit: impl FnOnce(&mut Script) -> Result<(), Error>,
@@ -632,5 +657,114 @@ mod voice_edit_tests {
         let mut v = voice();
         v.preset = "a".repeat(128);
         assert!(apply_voice(&bounded, "EMMA", Some(v)).is_err());
+    }
+}
+
+#[cfg(test)]
+mod scene_settings_tests {
+    use super::*;
+
+    const SOURCE: &str = "project: {title: Studio, fps: 24, width: 1920, height: 1080}\ncharacters:\n  EMMA:\n    asset: characters/emma\n    default_pose: idle\n    voice: {provider: kokoro, preset: af_heart, language: en-us, speed: 1.0}\nscenes:\n  - id: intro\n    duration: 5\n    background: backgrounds/studio.svg\n    events:\n      - {type: speak, actor: EMMA, at: 1, text: Hello, audio: imported.wav}\n      - {type: gesture, actor: EMMA, at: 2, value: wave, duration: 2}\n  - id: outro\n    duration: 8\n    background: backgrounds/outro.svg\n    events:\n      - {type: move, actor: EMMA, at: 1, x: 800, y: 500, duration: 2}\n";
+
+    #[test]
+    fn settings_transaction_preserves_scenes_characters_and_audio() {
+        let before = parse(SOURCE).unwrap();
+        let project = Project {
+            title: "Revised Studio".into(),
+            fps: 60,
+            width: 1280,
+            height: 720,
+        };
+        let after =
+            parse(&apply_scene_settings(SOURCE, 0, project.clone(), "opening", 6.0).unwrap())
+                .unwrap();
+        assert_eq!(
+            serde_yaml::to_value(&after.project).unwrap(),
+            serde_yaml::to_value(project).unwrap()
+        );
+        assert_eq!(after.scenes[0].id, "opening");
+        assert_eq!(after.scenes[0].duration, 6.0);
+        assert_eq!(after.scenes[0].background, before.scenes[0].background);
+        assert_eq!(
+            serde_yaml::to_value(&after.scenes[0].events).unwrap(),
+            serde_yaml::to_value(&before.scenes[0].events).unwrap()
+        );
+        assert_eq!(
+            serde_yaml::to_value(&after.scenes[1]).unwrap(),
+            serde_yaml::to_value(&before.scenes[1]).unwrap()
+        );
+        assert_eq!(
+            serde_yaml::to_value(&after.characters).unwrap(),
+            serde_yaml::to_value(&before.characters).unwrap()
+        );
+    }
+
+    #[test]
+    fn invalid_settings_reject_the_entire_transaction() {
+        let original = SOURCE.to_owned();
+        let base = parse(SOURCE).unwrap().project;
+        let mut projects = Vec::new();
+        let mut p = base.clone();
+        p.title = "  ".into();
+        projects.push(p);
+        for fps in [0, 241] {
+            let mut p = base.clone();
+            p.fps = fps;
+            projects.push(p);
+        }
+        for (width, height) in [
+            (0, 1080),
+            (1920, 0),
+            (16385, 1080),
+            (1920, 16385),
+            (799, 1080),
+            (1920, 499),
+        ] {
+            let mut p = base.clone();
+            p.width = width;
+            p.height = height;
+            projects.push(p);
+        }
+        for p in projects {
+            assert!(apply_scene_settings(&original, 0, p, "changed", 6.0).is_err());
+        }
+        for id in ["", " ", "outro"] {
+            assert!(apply_scene_settings(&original, 0, base.clone(), id, 6.0).is_err());
+        }
+        for duration in [
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            -1.0,
+            0.0,
+            1.0,
+            3.99,
+        ] {
+            assert!(apply_scene_settings(&original, 0, base.clone(), "changed", duration).is_err());
+        }
+        for index in [2, usize::MAX] {
+            assert!(apply_scene_settings(&original, index, base.clone(), "changed", 6.0).is_err());
+        }
+        assert_eq!(original, SOURCE);
+        assert_eq!(parse(&original).unwrap().project.title, "Studio");
+        // An exact event-end boundary and the FPS endpoints are valid.
+        for fps in [1, 240] {
+            let mut p = base.clone();
+            p.fps = fps;
+            assert!(apply_scene_settings(SOURCE, 0, p, "opening", 4.0).is_ok());
+        }
+    }
+
+    #[test]
+    fn settings_transactions_share_input_and_output_size_limits() {
+        let project = parse(SOURCE).unwrap().project;
+        assert!(
+            apply_scene_settings(&" ".repeat(1_048_577), 0, project.clone(), "opening", 6.0)
+                .is_err()
+        );
+        let mut huge_project = project.clone();
+        huge_project.title = "a".repeat(1_048_577);
+        assert!(apply_scene_settings(SOURCE, 0, huge_project, "opening", 6.0).is_err());
+        assert!(apply_scene_settings(SOURCE, 0, project, &"a".repeat(1_048_577), 6.0).is_err());
     }
 }
