@@ -40,8 +40,10 @@ See the [practical test guide](docs/practical-testing.md) for download and launc
 instructions. The app includes a **Load sound-check demo (synthetic tones)**
 button to test scene movement, mixed audio and illustrative mouth cues without
 Python, Kokoro assets or a network download. These tones are not speech or Kokoro
-output. Preview builds are ad-hoc signed and not notarized; GUI/hardware behavior
-still requires a real-Mac test.
+output. Preview builds are ad-hoc signed and not notarized. A user has confirmed
+that the preview opens on their Mac; chip, macOS version, audio playback and
+Kokoro inference have not yet been recorded. The guide describes the scoped
+macOS **Open Anyway** launch procedure.
 
 ## Quick start
 
@@ -84,9 +86,15 @@ revision. Use **Prepare full scene audio** for the selected scene, then the mixe
 scene playback controls. Imported `speak.audio` paths resolve from the configured
 project root; imported audio must be nonempty 24 kHz mono PCM16 WAV.
 
+Choose **Check local Kokoro setup** to inspect configured assets and dependency
+metadata on a background worker. This hashes local files without loading a model,
+generating speech or downloading anything. The equivalent `doctor.py` command
+emits JSON prerequisite evidence; see the runtime guide.
+
 For explicit local-only macOS inference verification, use
 `services/kokoro-runtime/smoke_macos.py --help`. The runner requires preinstalled
-assets and does not download them. Model weights, voice assets and a fully audited
+assets and does not download them. Add `--report /absolute/reports/kokoro.json`
+to save evidence. Model weights, voice assets and a fully audited
 runtime distribution are not included.
 
 ## Headless workflows
@@ -130,11 +138,9 @@ or video**. Pose export refuses an existing output path and caps frame/actor wor
 
 ## Validation and remaining work
 
-Latest executed local validation: **47 Rust tests plus doc tests** and **11 Python
-tests** passed. Formatting, workspace compilation and strict all-target Clippy
-passed. Imported-audio CLI checks verified waveform contents, silence and dialogue
-placements against the exported manifest. Pose sampling checked 288 demo frames
-and selected interpolation values.
+Validation results are recorded per commit in GitHub Actions. Automated checks
+cover protocol boundaries, cache integrity, cancellation, mixing and packaging;
+stub inference tests do not establish real speech quality.
 
 GitHub Actions runs formatting, compilation, strict Clippy, Rust tests and Python
 tests on Linux and macOS. CI compilation/test harnesses do not establish that a
@@ -145,7 +151,7 @@ for the result associated with each exact commit.
 Still unverified or unfinished:
 
 - Real Kokoro CPU synthesis on macOS/Apple Silicon with the approved local assets.
-- Actual GUI/device operation, hardware latency and perceptual lip-sync quality.
+- GUI/audio interaction beyond confirmed launch, hardware latency and perceptual lip-sync quality.
 - Practical macOS cancellation validation and robust runtime device-loss recovery.
 - Textured character rigs, production frame rendering, video encoding and packaging.
 - Complete model/voice/dependency redistribution audit and locked Python environment.
@@ -188,4 +194,4 @@ implemented behavior from platform acceptance that still needs real evidence.
 
 While dialogue or scene preparation is running, choose **Cancel generation**. The interface stays responsive and waits for the worker to stop before allowing a retry. Kokoro terminates and reaps its active sidecar and removes partial staging files; completed cache entries remain available. Imported audio and mixing stop at processing boundaries. Custom speech providers using the default cancellation implementation stop before or after their synthesis call.
 
-To check cancellation, start a long uncached dialogue, cancel it, wait for the cancellation message, and generate again. No cancelled result should replace the preview. This interaction still requires a practical macOS GUI test.
+See the [practical test guide](docs/practical-testing.md) for cancellation and retry.

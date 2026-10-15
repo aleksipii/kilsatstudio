@@ -19,6 +19,7 @@ def stage_bundle(repo, binary, destination, commit, arch, profile):
     if destination.exists():
         raise ValueError('bundle destination already exists')
     required = ['examples', 'services/kokoro-runtime/runtime.py',
+                'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
                 'services/kokoro-runtime/requirements.txt', 'services/kokoro-runtime/README.md',
                 'docs/practical-testing.md']
     for relative in required:

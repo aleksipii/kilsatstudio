@@ -1,6 +1,7 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
 mod demo;
 mod playback;
+mod runtime_check;
 mod scene_worker;
 
 use eframe::egui;
@@ -77,6 +78,9 @@ struct Studio {
     scene_preview: Option<ScenePreview>,
     scene_alignment: String,
     scene_audio_active: bool,
+    diagnostics: runtime_check::Worker,
+    diagnostics_busy: bool,
+    diagnostics_report: Option<Result<String, String>>,
 }
 impl Default for Studio {
     fn default() -> Self {
@@ -157,6 +161,9 @@ impl Default for Studio {
             scene_preview: None,
             scene_alignment: String::new(),
             scene_audio_active: false,
+            diagnostics: runtime_check::Worker::new(),
+            diagnostics_busy: false,
+            diagnostics_report: None,
         }
     }
 }
@@ -537,7 +544,52 @@ impl Studio {
             Err(e) => self.status = e.to_string(),
         }
     }
+    fn check_runtime(&mut self) {
+        let script = motion_script::parse(&self.source);
+        let mut presets = std::collections::BTreeSet::new();
+        if let Ok(script) = script {
+            for character in script.characters.values() {
+                if let Some(voice) = &character.voice {
+                    presets.insert(voice.preset.clone());
+                }
+            }
+        }
+        if presets.is_empty() {
+            presets.insert("af_heart".into());
+        }
+        if presets
+            .iter()
+            .any(|p| p.is_empty() || !p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
+        {
+            self.diagnostics_report = Some(Err(
+                "Invalid voice preset in screenplay; validate it before checking local assets."
+                    .into(),
+            ));
+            return;
+        }
+        let request = runtime_check::Request {
+            python: self.python.clone(),
+            doctor: Path::new(&self.runtime).with_file_name("doctor.py"),
+            config: self.config.clone().into(),
+            model: self.weights.clone().into(),
+            voices: presets
+                .into_iter()
+                .map(|p| Path::new(&self.voices).join(format!("{p}.pt")))
+                .collect(),
+        };
+        match self.diagnostics.submit(request) {
+            Ok(()) => {
+                self.diagnostics_busy = true;
+                self.diagnostics_report = None;
+            }
+            Err(error) => self.diagnostics_report = Some(Err(error)),
+        }
+    }
     fn poll(&mut self) {
+        if let Some(report) = self.diagnostics.poll() {
+            self.diagnostics_busy = false;
+            self.diagnostics_report = Some(report);
+        }
         while let Some(update) = self.scene_worker.poll() {
             match update {
                 scene_worker::Update::Progress(p) => {
@@ -719,6 +771,7 @@ impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         self.poll();
         if self.busy
+            || self.diagnostics_busy
             || self.playback.is_some()
             || self
                 .scene_transport
@@ -732,13 +785,17 @@ impl eframe::App for Studio {
             ui.label(
                 "Local Kokoro CPU synthesis · imported audio fallback · sample-based mouth preview",
             );
-            if ui.add_enabled(!self.busy, egui::Button::new("Load sound-check demo")).clicked() {
+            if ui.add_enabled(!self.busy && !self.diagnostics_busy, egui::Button::new("Load sound-check demo")).clicked() {
                 self.load_sound_check();
             }
             if self.demo_assets.is_some() {
                 ui.label("Sound-check assets: synthetic tones, not Kokoro speech. Mouth cues are illustrative manual poses, not measured alignment. Demo files are temporary; copy assets before saving a lasting project.");
             }
             ui.label(&self.status);
+            if self.diagnostics_busy { ui.spinner(); ui.label("Checking local Kokoro setup (up to 30 seconds)…"); }
+            if let Some(report) = &self.diagnostics_report {
+                match report { Ok(message) => { ui.label(message); }, Err(message) => { ui.colored_label(egui::Color32::LIGHT_RED, message); } }
+            }
             if self.busy {
                 ui.spinner();
                 if let Some(cancel) = &self.active_cancel {
@@ -753,7 +810,7 @@ impl eframe::App for Studio {
         });
         egui::SidePanel::left("settings").min_width(300.0).show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.add_enabled_ui(!self.busy, |ui| {
+                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                     let previous_runtime = format!("{:?}", self.kokoro_config());
                     ui.heading("Offline runtime");
                     ui.label("Supply previously installed local assets. This app never downloads model files.");
@@ -764,6 +821,8 @@ impl eframe::App for Studio {
                     field(ui, "Voice .pt directory", &mut self.voices);
                     field(ui, "Cache directory", &mut self.cache);
                     field(ui, "Immutable model + dependency revision", &mut self.revision);
+                    if ui.button("Check local Kokoro setup").clicked() { self.check_runtime(); }
+                    ui.label("Preflight checks local packages and files only; it does not run inference or prove compatibility.");
                     if format!("{:?}", self.kokoro_config()) != previous_runtime { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; }
                     let previous_root = self.project_root.clone();
                     field(ui, "Project root (imported WAV paths)", &mut self.project_root);
@@ -784,11 +843,11 @@ impl eframe::App for Studio {
         });
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.add_enabled_ui(!self.busy, |ui| self.scene_ui(ui));
+                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| self.scene_ui(ui));
                 ui.separator();
                 ui.heading("MotionScript");
                 ui.label("Configure character voice preset / language / speed in YAML; optional speak.audio imports 24 kHz mono PCM16 WAV.");
-                ui.add_enabled_ui(!self.busy, |ui| {
+                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                     field(ui, "Screenplay path (Save replaces this file)", &mut self.script_path);
                     ui.horizontal(|ui| {
                         if ui.button("Open screenplay").clicked() { self.open_script(); }

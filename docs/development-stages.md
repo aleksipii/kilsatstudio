@@ -11,7 +11,7 @@ kilsatstudio1.0 without force-pushing or discarding changes when synchronizing.
 | 3: playback and export | macOS output worker, frame transport, scene WAV + sample-viseme JSON | Merged PR #4; Linux/macOS CI passed; actual device validation remains required |
 | 4: scene foundation | MotionScript movement/expressions/wave, deterministic evaluator, original Emma preview and complete Kokoro master prompt | Merged PR #5; Linux/macOS CI passed; actual GUI test remains pending |
 | 5: full-scene dialogue | Prepare all lines off UI, mix leading silence/overlaps, source-clock scene playback and all actor mouths | Merged PR #6; Linux/macOS CI passed; real device validation remains pending |
-| 6: real Mac acceptance | Run local Kokoro CPU smoke with approved preinstalled assets, exercise device/seek/pause and measure mouth boundaries | Record machine/runtime versions, WAV and timing evidence; never infer success from mocks |
+| 6: real Mac acceptance | Offline prerequisite diagnostics, opt-in CPU smoke evidence, device/seek/pause and measured mouth boundaries | Preview launch user-confirmed; real synthesis, audio and alignment still need machine/WAV/listening evidence |
 | 7: rendered output | Connect character mouth rig and frame renderer to the same sample clock; encode synchronized video | Compare rendered frame boundaries and exported audio; test cancellation and errors |
 
 Stages 1–5 were reviewed as sequential PRs and merged in dependency order after
@@ -56,3 +56,17 @@ IDs and overlapping lines for a single actor are errors. Different actors may
 overlap in the shared sample-clock mix. Missing timed alignment closes the mouth.
 No partial scene is published after an error. Actual model quality, hardware
 latency and perceptual synchronization are still separate acceptance gates.
+
+## Current acceptance preparation
+
+Preview packaging and cancellable generation are integrated stages. A user has
+opened the preview on a Mac using the normal per-app macOS approval; the machine
+identity and audio result have not been recorded. This is launch evidence only.
+
+The next increment adds an offline setup inspector and background desktop check,
+plus optional JSON smoke evidence with asset identity and WAV signal statistics.
+Diagnostics never download assets or perform inference. Opt-in real CPU synthesis
+still requires a separately installed, approved local environment. Follow
+[practical testing](practical-testing.md) to record both English voices, listening,
+cache reuse, cancellation and retry. No inference, hardware synchronization or
+perceptual alignment acceptance is established by metadata, hashes or stub tests.

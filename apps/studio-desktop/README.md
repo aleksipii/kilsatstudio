@@ -18,6 +18,13 @@ downloaded. Voice preset, language, speed and imported `audio` path come from YA
 Imported WAV must be nonempty 24 kHz mono PCM16. Paths resolve from the configured
 project root. Screenplay edits invalidate event selections until revalidation.
 
+Before generation, choose **Check local Kokoro setup**. A background check reads
+local asset hashes and installed package metadata using the configured Python.
+Missing files or packages are reported without freezing the editor. It performs
+no inference or download; successful diagnostics do not prove voice quality,
+G2P operation or license compliance. See the [runtime guide](../../services/kokoro-runtime/README.md)
+for JSON reports and the opt-in real macOS smoke test.
+
 Paste optional alignment JSON before generation/import:
 
 ```json
@@ -48,7 +55,8 @@ unsupported-device message; audio-device output is currently macOS-only.
 
 Device-open errors appear in the UI and Play can retry. Rodio runtime device
 faults currently go to stderr; an unplugged/stalled device may require restarting
-the app. No hardware playback or GUI runtime test has been performed here.
+the app. The user has confirmed opening the preview on a Mac. Hardware playback and
+interaction beyond launch have not yet been confirmed.
 
 
 ## Scene preview stage
@@ -92,4 +100,5 @@ available for retry. No model assets are downloaded and no timestamps are invent
 
 While dialogue or scene preparation is running, choose **Cancel generation**. The interface stays responsive and waits for the worker to stop before allowing a retry. Kokoro terminates and reaps its active sidecar and removes partial staging files; completed cache entries remain available. Imported audio and mixing stop at processing boundaries. Custom speech providers using the default cancellation implementation stop before or after their synthesis call.
 
-To check cancellation, start a long uncached dialogue, cancel it, wait for the cancellation message, and generate again. No cancelled result should replace the preview. This interaction still requires a practical macOS GUI test.
+See the [practical test guide](../../docs/practical-testing.md) for cancellation,
+retry, voice listening and cache checks.

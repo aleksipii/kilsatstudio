@@ -64,6 +64,22 @@ A real offline macOS CPU WAV smoke test and release dependency/license audit are
 still required. This component therefore does not satisfy milestone 2 by itself.
 
 
+## Offline prerequisite report
+
+Run with the same Python executable configured in the app. A different interpreter
+can have a different dependency environment. Create the report directory first:
+
+```sh
+/absolute/venv/bin/python services/kokoro-runtime/doctor.py --config /absolute/models/config.json --model /absolute/models/kokoro-v1_0.pth --voice /absolute/models/voices/af_heart.pt --voice /absolute/models/voices/am_michael.pt > /absolute/reports/kokoro-setup.json
+```
+
+JSON stdout includes OS/architecture, Python and distribution versions, local
+asset sizes/SHA-256 hashes and actionable errors. The command exits nonzero when
+prerequisites are missing or incompatible. It imports no inference model and never
+installs or downloads assets. Metadata and readable files do not prove valid model
+tensors, functioning G2P, native library compatibility or licensed redistribution.
+The desktop's **Check local Kokoro setup** runs this inspection off the UI thread.
+
 ## Opt-in macOS CPU smoke test
 
 After consenting to and separately installing the dependencies and approved model,
@@ -74,14 +90,21 @@ python services/kokoro-runtime/smoke_macos.py --allow-local-inference \
   --config /absolute/models/config.json \
   --model /absolute/models/kokoro-v1_0.pth \
   --voice /absolute/models/voices/af_heart.pt \
-  --output /absolute/audio/kokoro-smoke.wav
+  --output /absolute/audio/kokoro-smoke.wav --report /absolute/reports/kokoro-af-heart.json
 ```
+
+WAV and report paths must be new. If report publication fails after the WAV was
+published, that valid WAV remains; inspect the error and use new paths on retry.
 
 The runner refuses non-macOS platforms and existing outputs, uses a bounded
 runtime timeout, checks the mono PCM16 WAV, and reports the actual machine
 architecture and CPU backend. It never installs dependencies or assets. Runtime
 network guards are defense in depth inside Python, not an OS network sandbox;
 release verification should additionally run with external network access denied.
-Listen to the WAV and record the exact installed asset/dependency revisions before
-reporting speech quality or Apple Silicon compatibility. This runner does not
+The optional JSON report records environment/asset identity and WAV evidence,
+including nonzero samples, RMS and peak. A nonzero waveform is not a listening
+quality result. Repeat with `am_michael.pt` and new WAV/report filenames. Listen
+to each WAV and record the exact installed asset/dependency revisions before
+reporting speech quality or Apple Silicon compatibility. Reports contain local
+paths and environment details: review them before sharing; never upload weights. This runner does not
 validate lip synchronization, playback devices or video export.
