@@ -44,8 +44,8 @@ and export use that same clock and clip offset; lipsync queries subtract the
 clip start and add the same source trim used by mixing. Dialogue duration comes
 from decoded audio. Waveform min/max bins preserve transients. Mixing supports
 overlap and gain, clips only at PCM export, and requires explicit prior sample
-rate/channel conversion. Sample-based contracts and a native waveform/scrub workbench are implemented; no
-physical audio device output, rig mouth renderer or video encoder exists yet.
+rate/channel conversion. Sample-based contracts and a native waveform/scrub workbench are implemented; a macOS device worker is now available but unverified on hardware. Rig mouth
+rendering and video encoding remain unfinished.
 Those adapters must use the audio device clock, reset/flush on seek and pause,
 and apply the same evaluated clip data during frame export. No independent
 wall-clock animation timer should accumulate drift.
@@ -100,7 +100,7 @@ user-managed path; the application never starts a download.
 | Individual cached audio asset | Implemented; cache tests passed on Linux |
 | Correct scene placement / mixing | Implemented; sample-placement tests passed on Linux |
 | Validated mouth timing | Structural/manual alignment only; perceptual quality pending |
-| Playback / UI preview selection / physical device sync | Native selection/scrub UI available; device playback/sync pending |
+| Playback / UI preview selection / physical device sync | Native selection/scrub UI and macOS source-clock playback adapter; hardware validation pending |
 | Waveform preview | Native waveform and duration preview available; GUI runtime untested |
 | Synchronized video export | WAV mix and mouth clock available; renderer/encoder pending |
 | Clear failures / off-UI work | Structured protocol, bounded worker and timeout implemented |

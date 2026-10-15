@@ -11,3 +11,6 @@ motion-tts = { path = "../../crates/motion-tts" }
 motion-audio = { path = "../../crates/motion-audio" }
 motion-lipsync = { path = "../../crates/motion-lipsync" }
 serde_json.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+rodio = { version = "=0.20.1", default-features = false }

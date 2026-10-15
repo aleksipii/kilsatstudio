@@ -1,4 +1,6 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
+mod playback;
+
 use eframe::egui;
 use motion_audio::WaveformPeak;
 use motion_lipsync::{Alignment, Viseme};
@@ -22,6 +24,7 @@ struct Preview {
     clip: DialogueClip,
     peaks: Vec<WaveformPeak>,
     result: SpeechResult,
+    playback_audio: Arc<motion_audio::AudioBuffer>,
 }
 struct Prepare {
     job: DialogueJob,
@@ -51,6 +54,8 @@ struct Studio {
     prepare_tx: mpsc::SyncSender<Prepare>,
     prepare_rx: mpsc::Receiver<PreviewResult>,
     busy: bool,
+    playback: Option<playback::Playback>,
+    playback_error: Option<String>,
 }
 impl Default for Studio {
     fn default() -> Self {
@@ -72,7 +77,9 @@ impl Default for Studio {
                     let bin = (clip.audio.frames() / 700).max(1);
                     let peaks = motion_audio::waveform_peaks(&clip.audio, bin)
                         .map_err(|e| e.to_string())?;
+                    let playback_audio = Arc::new(clip.audio.clone());
                     Ok(Preview {
+                        playback_audio,
                         clip,
                         peaks,
                         result: task.result,
@@ -105,11 +112,19 @@ impl Default for Studio {
             prepare_tx,
             prepare_rx,
             busy: false,
+            playback: None,
+            playback_error: None,
         }
     }
 }
 impl Studio {
+    fn stop_playback(&mut self) {
+        if let Some(player) = &self.playback {
+            let _ = player.stop();
+        }
+    }
     fn open_script(&mut self) {
+        self.stop_playback();
         use std::io::Read;
         let result = (|| -> Result<String, String> {
             let file = std::fs::File::open(&self.script_path)
@@ -144,6 +159,7 @@ impl Studio {
         };
     }
     fn validate(&mut self) {
+        self.stop_playback();
         match motion_script::parse(&self.source)
             .map_err(|e| e.to_string())
             .and_then(|script| {
@@ -166,6 +182,7 @@ impl Studio {
         }
     }
     fn generate(&mut self) {
+        self.stop_playback();
         let Some(job) = self.jobs.get(self.selected).cloned() else {
             return;
         };
@@ -195,6 +212,22 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        if let Some(player) = &self.playback {
+            let state = player.snapshot();
+            if state.loaded {
+                if let Some(preview) = &self.preview {
+                    self.playhead = (preview
+                        .clip
+                        .start_frame
+                        .saturating_add(state.position_frame))
+                        as f64
+                        / 24000.0;
+                }
+            }
+            if let Some(error) = state.error {
+                self.playback_error = Some(error);
+            }
+        }
         let update = self.worker.as_ref().and_then(VoiceWorker::poll);
         match update {
             Some(VoiceUpdate::Started(_)) => {
@@ -255,7 +288,7 @@ fn field(ui: &mut egui::Ui, label: &str, value: &mut String) {
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         self.poll();
-        if self.busy {
+        if self.busy || self.playback.is_some() {
             ctx.request_repaint_after(Duration::from_millis(50));
         }
         egui::TopBottomPanel::top("header").show(ctx, |ui| {
@@ -283,7 +316,7 @@ impl eframe::App for Studio {
                     let previous_root = self.project_root.clone();
                     field(ui, "Project root (imported WAV paths)", &mut self.project_root);
                     if self.project_root != previous_root {
-                        self.jobs.clear(); self.preview = None;
+                        self.stop_playback(); self.jobs.clear(); self.preview = None;
                         self.status = "Project root changed; validate screenplay to resolve imported paths again.".into();
                     }
                     ui.separator();
@@ -304,7 +337,7 @@ impl eframe::App for Studio {
                         if ui.button("Save screenplay").clicked() { self.save_script(); }
                     });
                     if ui.add(egui::TextEdit::multiline(&mut self.source).desired_rows(17).desired_width(f32::INFINITY).char_limit(100_000).code_editor()).changed() {
-                        self.jobs.clear(); self.preview = None;
+                        self.stop_playback(); self.jobs.clear(); self.preview = None;
                         self.status = "Screenplay changed; validate before generation.".into();
                     }
                     if ui.button("Validate screenplay").clicked() { self.validate(); }
@@ -312,7 +345,7 @@ impl eframe::App for Studio {
                         .map(|j| format!("{} / {} @ {:.2}s", j.scene, j.actor, j.at)).unwrap_or_else(|| "Validate first".into()))
                         .show_ui(ui, |ui| {
                             for (index, job) in self.jobs.iter().enumerate() {
-                                if ui.selectable_value(&mut self.selected, index, format!("{} / {}: {}", job.scene, job.actor, job.request.text)).changed() { self.preview = None; }
+                                if ui.selectable_value(&mut self.selected, index, format!("{} / {}: {}", job.scene, job.actor, job.request.text)).changed() { if let Some(p) = &self.playback { let _ = p.stop(); } self.preview = None; }
                             }
                         });
                     if let Some(job) = self.jobs.get_mut(self.selected) {
@@ -327,13 +360,41 @@ impl eframe::App for Studio {
                     ui.label(format!("Duration {:.3}s · {} Hz · {} frames", preview.result.duration_seconds(), preview.result.sample_rate, preview.result.sample_count));
                     let start = preview.clip.start_frame as f64 / 24000.0;
                     let end = start + preview.clip.audio.duration_seconds();
-                    ui.add(egui::Slider::new(&mut self.playhead, 0.0..=end.max(0.01)).text("Scene playhead (s)"));
+                    if let Some(player) = &self.playback {
+                        let state = player.snapshot();
+                        ui.label(if state.finished { "Playback ended" } else if state.playing { "Playing" } else { "Paused / stopped" });
+                    }
+                    ui.horizontal(|ui| {
+                        if ui.button("Play from cursor").clicked() {
+                            self.playback_error = None;
+                            if self.playback.is_none() {
+                                match playback::Playback::new() {
+                                    Ok(player) => self.playback = Some(player),
+                                    Err(error) => self.playback_error = Some(error),
+                                }
+                            }
+                            if let Some(player) = &self.playback {
+                                let local_frame = ((self.playhead - start).max(0.0) * 24000.0).round() as u64;
+                                if let Err(error) = player.play(Arc::clone(&preview.playback_audio), local_frame) { self.playback_error = Some(error); }
+                            }
+                        }
+                        if ui.button("Pause").clicked() { if let Some(p) = &self.playback { if let Err(e) = p.pause() { self.playback_error = Some(e); } } }
+                        if ui.button("Resume").clicked() { if let Some(p) = &self.playback { if let Err(e) = p.resume() { self.playback_error = Some(e); } } }
+                        if ui.button("Stop").clicked() { if let Some(p) = &self.playback { if let Err(e) = p.stop() { self.playback_error = Some(e); } } self.playhead = start; }
+                    });
+                    if ui.add(egui::Slider::new(&mut self.playhead, start..=end.max(start + 0.01)).text("Scene playhead (s)")).changed() {
+                        if let Some(p) = &self.playback {
+                            let local_frame = ((self.playhead - start).max(0.0) * 24000.0).round() as u64;
+                            if let Err(error) = p.seek(local_frame) { self.playback_error = Some(error); }
+                        }
+                    }
                     let scene_frame = (self.playhead * 24000.0).round() as u64;
                     let mouth = preview.clip.mouth_at(scene_frame).unwrap_or(Viseme::Rest);
                     ui.label(format!("Sample frame {scene_frame} · mouth {mouth:?}"));
                     waveform(ui, &preview.peaks, (self.playhead - start) / (end - start));
                     mouth_preview(ui, mouth);
-                    ui.label("Scrub-only visual preview. Audio-device playback and synchronized video export are not implemented here.");
+                    ui.label("macOS playback uses the source playback position for mouth preview. Device latency and perceptual sync require Mac validation. Video export is not implemented.");
+                    if let Some(error) = &self.playback_error { ui.colored_label(egui::Color32::LIGHT_RED, error); }
                     if preview.clip.alignment.is_none() { ui.label("No timed alignment: mouth stays at rest. Kokoro tokens are not timestamps."); }
                 }
             });
