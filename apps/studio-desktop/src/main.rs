@@ -6,6 +6,7 @@ mod export_worker;
 mod playback;
 mod runtime_check;
 mod scene_worker;
+mod timeline_edit;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
@@ -58,6 +59,9 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    timeline_drag: Option<timeline_edit::Drag>,
+    timeline_drag_source: Option<String>,
+    timeline_seek_drag: bool,
     history: edit_history::History,
     pending_text_edit: Option<String>,
     event_draft: Option<event_editor::Draft>,
@@ -144,6 +148,9 @@ impl Default for Studio {
             }
         });
         Self {
+            timeline_drag: None,
+            timeline_drag_source: None,
+            timeline_seek_drag: false,
             history: edit_history::History::new(include_str!("../../../examples/hello-emma.yaml")),
             pending_text_edit: None,
             event_draft: None,
@@ -204,6 +211,45 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn cancel_timeline_drag(&mut self) {
+        self.timeline_drag = None;
+        self.timeline_drag_source = None;
+        self.timeline_seek_drag = false;
+    }
+    fn finish_timeline_drag(&mut self, drag: timeline_edit::Drag) {
+        let original_source = self.timeline_drag_source.take();
+        if self.busy
+            || self.diagnostics_busy
+            || original_source.as_deref() != Some(self.source.as_str())
+        {
+            return;
+        }
+        if drag.proposed_at == drag.original_at {
+            return;
+        }
+        let Some(script) = &self.script else {
+            return;
+        };
+        if self.scene_index != drag.scene_index {
+            return;
+        }
+        let Some(event) = script
+            .scenes
+            .get(drag.scene_index)
+            .and_then(|scene| scene.events.get(drag.event_index))
+        else {
+            return;
+        };
+        self.event_draft = Some(event_editor::Draft {
+            scene_index: drag.scene_index,
+            event_index: drag.event_index,
+            event: drag.replacement(event),
+        });
+        self.apply_event_draft();
+        if let Some(error) = &self.event_edit_error {
+            self.status = format!("Timeline edit rejected: {error}");
+        }
+    }
     fn flush_text_edit(&mut self) {
         if let Some(before) = self.pending_text_edit.take() {
             self.history.record(&before, &self.source);
@@ -330,6 +376,7 @@ impl Studio {
         }
     }
     fn invalidate_scene(&mut self) {
+        self.cancel_timeline_drag();
         self.event_draft = None;
         self.event_edit_error = None;
         self.selected_event = None;
@@ -340,6 +387,7 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.cancel_timeline_drag();
         self.event_draft = None;
         self.event_edit_error = None;
         self.selected_event = None;
@@ -1534,6 +1582,14 @@ impl Studio {
     }
 
     fn timeline_ui(&mut self, ui: &mut egui::Ui) {
+        if self.busy || self.diagnostics_busy {
+            self.cancel_timeline_drag();
+        } else if (self.timeline_drag.is_some() || self.timeline_seek_drag)
+            && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
+        {
+            self.cancel_timeline_drag();
+            self.status = "Timeline edit cancelled.".into();
+        }
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new("TIMELINE").strong());
             ui.add_enabled_ui(
@@ -1669,6 +1725,8 @@ impl Studio {
         }
         let mut seek = None;
         let mut selection = None;
+        let mut commit_drag = None;
+        let mut pause_drag = false;
         ui.add_space(4.0);
         egui::ScrollArea::vertical().id_salt("actor_tracks").max_height((ui.available_height() - 26.0).max(60.0)).show(ui, |ui| {
             let width = ui.available_width().max(180.0);
@@ -1705,21 +1763,64 @@ impl Studio {
             let cursor = x_at(self.playhead);
             painter.line_segment([egui::pos2(cursor,rect.top()+20.0), egui::pos2(cursor,rect.bottom())], egui::Stroke::new(2.0_f32, ACCENT));
             painter.circle_filled(egui::pos2(cursor,rect.top()+20.0), 3.5, ACCENT);
-            if !self.busy && !self.diagnostics_busy && (response.clicked() || response.dragged()) {
-                if let Some(position) = response.interact_pointer_pos() {
-                    if position.x >= track_left {
-                        seek = Some(timeline_seek(position.x, track_left, track_width, duration));
-                        if response.clicked() { selection = timeline_event_at(position, &hit_boxes); }
-                    } else if position.y >= rect.top()+26.0 {
-                        let track = ((position.y-rect.top()-26.0)/track_height) as usize;
-                        if let Some(actor) = actor_ids.get(track) { self.selected_actor = Some(actor.clone()); self.selected_event = None; }
+            if !self.busy && !self.diagnostics_busy {
+                if response.drag_started_by(egui::PointerButton::Primary) {
+                    if let Some(origin) = ui.input(|input| input.pointer.press_origin()) {
+                        if let Some(index) = timeline_event_at(origin, &hit_boxes) {
+                            self.timeline_drag = timeline_edit::Drag::new(self.scene_index, index, &scene.events[index], origin.x);
+                            self.timeline_drag_source = self.timeline_drag.as_ref().map(|_| self.source.clone());
+                            self.timeline_seek_drag = false;
+                            selection = Some(index);
+                            pause_drag = self.timeline_drag.is_some();
+                        } else {
+                            self.timeline_seek_drag = origin.x >= track_left;
+                        }
+                    }
+                }
+                if response.dragged_by(egui::PointerButton::Primary) || response.drag_stopped_by(egui::PointerButton::Primary) {
+                    if let Some(position) = ui.input(|input| input.pointer.latest_pos()) {
+                        if let Some(drag) = &mut self.timeline_drag {
+                            if let Err(error) = drag.update(position.x, track_width, duration, script.project.fps) {
+                                self.status = format!("Timeline edit: {error}");
+                                self.timeline_drag = None;
+                                self.timeline_drag_source = None;
+                            }
+                        } else if self.timeline_seek_drag {
+                            seek = Some(timeline_seek(position.x, track_left, track_width, duration));
+                        }
+                    }
+                }
+                if let Some(drag) = &self.timeline_drag {
+                    if let Some((_,track,_,_,length,lane,_,_)) = events.iter().find(|(index,..)|*index==drag.event_index) {
+                        let y=rect.top()+26.0+*track as f32*track_height+*lane as f32*18.0+3.0;
+                        let start=x_at(drag.proposed_at);
+                        let end=x_at(drag.proposed_at+*length).max(start+8.0).min(track_left+track_width);
+                        let ghost=egui::Rect::from_min_max(egui::pos2(start.min(end-2.0),y),egui::pos2(end,y+15.0));
+                        painter.rect_filled(ghost,3.0,ACCENT.gamma_multiply(0.25));
+                        painter.rect_stroke(ghost,3.0,egui::Stroke::new(2.0_f32,ACCENT),egui::StrokeKind::Inside);
+                        painter.text(egui::pos2(start,rect.top()+2.0),egui::Align2::LEFT_TOP,format!("{:.3}s · release to apply",drag.proposed_at),egui::FontId::monospace(11.0),ACCENT);
+                    }
+                }
+                if response.drag_stopped_by(egui::PointerButton::Primary) {
+                    commit_drag = self.timeline_drag.take();
+                    self.timeline_seek_drag = false;
+                }
+                if response.clicked_by(egui::PointerButton::Primary) {
+                    if let Some(position) = response.interact_pointer_pos() {
+                        if position.x >= track_left {
+                            seek = Some(timeline_seek(position.x, track_left, track_width, duration));
+                            selection = timeline_event_at(position, &hit_boxes);
+                        } else if position.y >= rect.top()+26.0 {
+                            let track = ((position.y-rect.top()-26.0)/track_height) as usize;
+                            if let Some(actor) = actor_ids.get(track) { self.selected_actor = Some(actor.clone()); self.selected_event = None; }
+                        }
                     }
                 }
             }
             if let Some(position) = response.hover_pos() {
                 if let Some((index,_)) = hit_boxes.iter().rev().find(|(_,bar)|bar.contains(position)) {
                     if let Some((_,_,actor,at,length,_,label,_)) = events.iter().find(|(i,..)|i==index) {
-                        response.on_hover_text(format!("{actor} · {label}\n{at:.3}s{}\nClick to inspect. Edit MotionScript to change.", if *length > 0.0 { format!(" · {length:.3}s duration") } else { " · point marker / duration not prepared".into() }));
+                        response.on_hover_text(format!("{actor} · {label}\n{at:.3}s{}\nClick to inspect. Drag to retime; Escape cancels.", if *length > 0.0 { format!(" · {length:.3}s duration") } else { " · point marker / duration not prepared".into() }));
                     }
                 }
             }
@@ -1737,6 +1838,12 @@ impl Studio {
                     }
                 }
             }
+        }
+        if pause_drag {
+            self.stop_playback();
+        }
+        if let Some(drag) = commit_drag {
+            self.finish_timeline_drag(drag);
         }
         if let Some(time) = seek {
             self.seek_scene(time);
@@ -2193,6 +2300,61 @@ mod scene_preview_tests {
                 });
             });
         }
+    }
+    #[test]
+    fn timeline_retime_commits_once_and_undo_restores_source() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        let event = &studio.script.as_ref().unwrap().scenes[0].events[0];
+        let mut drag = timeline_edit::Drag::new(0, 0, event, 0.0).unwrap();
+        drag.update(200.0, 1200.0, 12.0, 24).unwrap();
+        studio.timeline_drag_source = Some(original.clone());
+        studio.finish_timeline_drag(drag);
+        let edited = studio.source.clone();
+        assert_ne!(edited, original);
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0].events[0]
+                .actor_time()
+                .0,
+            2.0
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+    }
+    #[test]
+    fn timeline_retime_rejects_overlap_stale_source_and_noop() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        let event = studio.script.as_ref().unwrap().scenes[0].events[0].clone();
+        let no_op = timeline_edit::Drag::new(0, 0, &event, 0.0).unwrap();
+        studio.timeline_drag_source = Some(original.clone());
+        studio.finish_timeline_drag(no_op);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        let mut overlapping = timeline_edit::Drag::new(0, 0, &event, 0.0).unwrap();
+        overlapping.update(800.0, 1200.0, 12.0, 24).unwrap();
+        studio.timeline_drag_source = Some(original.clone());
+        studio.finish_timeline_drag(overlapping);
+        assert_eq!(studio.source, original);
+        assert!(studio.status.contains("Timeline edit rejected"));
+        assert!(!studio.history.can_undo());
+        let mut stale = timeline_edit::Drag::new(0, 0, &event, 0.0).unwrap();
+        stale.update(100.0, 1200.0, 12.0, 24).unwrap();
+        studio.timeline_drag_source = Some(original.clone());
+        studio.source.push_str("\n# external edit\n");
+        let current = studio.source.clone();
+        studio.finish_timeline_drag(stale);
+        assert_eq!(studio.source, current);
+        assert!(!studio.history.can_undo());
+        studio.timeline_drag = Some(timeline_edit::Drag::new(0, 0, &event, 0.0).unwrap());
+        studio.reset_scene();
+        assert!(studio.timeline_drag.is_none());
+        assert!(studio.timeline_drag_source.is_none());
     }
     #[test]
     fn native_workspace_headless_layout_and_optional_capture() {

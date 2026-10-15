@@ -12,9 +12,10 @@ source code or dependencies are used.
 ## Current capabilities
 
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
-- Apply validated event edits in the Inspector and undo/redo screenplay changes.
+- Apply validated event edits in the Inspector, drag event start times on the
+  project frame grid, and undo/redo screenplay changes.
 - Navigate a resizable studio workspace with a project/asset browser, YAML editor,
-  central preview, read-only inspector and scrubbable actor/event timeline.
+  central preview, editable event Inspector and scrubbable actor/event timeline.
 - Preview Emma/Alex placeholders with deterministic movement, expressions and wave
   gestures. Play, pause, restart and scrub a silent scene.
 - Configure per-character Kokoro presets, English language and speech speed.
