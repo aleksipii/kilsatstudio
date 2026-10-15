@@ -12,7 +12,8 @@ kilsatstudio1.0 without force-pushing or discarding changes when synchronizing.
 | 4: scene foundation | MotionScript movement/expressions/wave, deterministic evaluator, original Emma preview and complete Kokoro master prompt | Merged PR #5; Linux/macOS CI passed; actual GUI test remains pending |
 | 5: full-scene dialogue | Prepare all lines off UI, mix leading silence/overlaps, source-clock scene playback and all actor mouths | Merged PR #6; Linux/macOS CI passed; real device validation remains pending |
 | 6: real Mac acceptance | Offline prerequisite diagnostics, opt-in CPU smoke evidence, device/seek/pause and measured mouth boundaries | Preview launch user-confirmed; real synthesis, audio and alignment still need machine/WAV/listening evidence |
-| 7: rendered output | Connect character mouth rig and frame renderer to the same sample clock; encode synchronized video | Compare rendered frame boundaries and exported audio; test cancellation and errors |
+| 7a: SVG frame output | Deterministic procedural character frames with neutral mouths | Frame clock, bounded work and output safety; record checks for the exact commit |
+| 7b: encoded video | Encode frames and mux scene WAV on the same clock | Not implemented by SVG export; verify duration, audio sync and failure recovery |
 
 Stages 1–5 were reviewed as sequential PRs and merged in dependency order after
 approval. Recheck branch heads before advancing the release branch. Later stages
@@ -63,10 +64,25 @@ Preview packaging and cancellable generation are integrated stages. A user has
 opened the preview on a Mac using the normal per-app macOS approval; the machine
 identity and audio result have not been recorded. This is launch evidence only.
 
-The next increment adds an offline setup inspector and background desktop check,
+The integrated diagnostic increment provides an offline setup inspector and background desktop check,
 plus optional JSON smoke evidence with asset identity and WAV signal statistics.
 Diagnostics never download assets or perform inference. Opt-in real CPU synthesis
 still requires a separately installed, approved local environment. Follow
 [practical testing](practical-testing.md) to record both English voices, listening,
 cache reuse, cancellation and retry. No inference, hardware synchronization or
 perceptual alignment acceptance is established by metadata, hashes or stub tests.
+
+## SVG frame-output stage
+
+The next rendered-output increment is a bounded headless SVG sequence, documented
+in [frame export](frame-export.md). It uses the existing scene evaluator and
+project frame rate with procedural character artwork. Mouths remain neutral;
+audio/viseme manifest import is not connected to this exporter. Rendering neither
+performs Kokoro inference nor produces phoneme timestamps.
+
+Individual SVG files and their JSON index permit inspection of movement and
+frame timing. They do not constitute encoded video, audio muxing, a production
+texture rig, verified visual parity with the desktop renderer, or perceptual
+lip-sync acceptance. Real Kokoro, physical audio playback and listening evidence
+remain Stage 6 gates while encoding and synchronized media acceptance remain
+Stage 7b work. No test result is implied by this roadmap.

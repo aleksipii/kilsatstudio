@@ -1,0 +1,13 @@
+[package]
+name = "motion-render"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+motion-scene = { path = "../motion-scene" }
+motion-lipsync = { path = "../motion-lipsync" }
+thiserror.workspace = true
+
+[dev-dependencies]
+motion-script = { path = "../motion-script" }
+serde_json.workspace = true
