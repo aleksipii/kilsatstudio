@@ -32,6 +32,17 @@ as accurate timestamps. Facial emotion affects the visual preview; acoustic emot
 conditioning is not implemented. The current artwork and backdrop are procedural
 placeholders, not loaded texture rigs.
 
+## Practical macOS test build
+
+Preview builds for Apple Silicon, macOS 13+, are available from the
+[macOS practical preview workflow](https://github.com/aleksipii/kilsatstudio/actions/workflows/macos-preview.yml).
+See the [practical test guide](docs/practical-testing.md) for download and launch
+instructions. The app includes a **Load sound-check demo (synthetic tones)**
+button to test scene movement, mixed audio and illustrative mouth cues without
+Python, Kokoro assets or a network download. These tones are not speech or Kokoro
+output. Preview builds are ad-hoc signed and not notarized; GUI/hardware behavior
+still requires a real-Mac test.
+
 ## Quick start
 
 Install stable Rust and the macOS developer command-line tools, then:
@@ -119,7 +130,7 @@ or video**. Pose export refuses an existing output path and caps frame/actor wor
 
 ## Validation and remaining work
 
-Latest executed local validation: **43 Rust tests plus doc tests** and **11 Python
+Latest executed local validation: **47 Rust tests plus doc tests** and **11 Python
 tests** passed. Formatting, workspace compilation and strict all-target Clippy
 passed. Imported-audio CLI checks verified waveform contents, silence and dialogue
 placements against the exported manifest. Pose sampling checked 288 demo frames
@@ -153,6 +164,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 python3 -m pip install numpy==2.3.5
 python3 -m unittest discover -s services/kokoro-runtime/tests -v
+python3 -m unittest discover -s tests -p 'test_package_macos.py' -v
 ```
 
 The Python synthesis-path tests use NumPy and stub inference modules. They do not

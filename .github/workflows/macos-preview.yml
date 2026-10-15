@@ -1,0 +1,49 @@
+name: macOS practical preview
+on:
+  pull_request:
+  push:
+    branches: [main, kilsatstudio1.0]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apple-silicon-preview:
+    runs-on: macos-15
+    timeout-minutes: 35
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Apple Silicon runner
+        run: |
+          test "$(uname -m)" = arm64
+          xcodebuild -version
+          rustc --version
+          cargo --version
+      - name: Install Apple Silicon target
+        run: rustup target add aarch64-apple-darwin
+      - name: Test packaging
+        run: python3 -m unittest discover -s tests -p 'test_package_macos.py' -v
+      - name: Build desktop preview
+        run: cargo build --locked -p studio-desktop --target aarch64-apple-darwin
+      - name: Package ad-hoc signed app
+        run: |
+          binary=target/aarch64-apple-darwin/debug/studio-desktop
+          test "$(lipo -archs "$binary")" = arm64
+          otool -L "$binary"
+          python3 - "$binary" <<'PY'
+          import subprocess, sys
+          lines = subprocess.check_output(["otool", "-L", sys.argv[1]], text=True).splitlines()[1:]
+          for line in lines:
+              library = line.strip().split(" (", 1)[0]
+              if not library.startswith(("/System/Library/", "/usr/lib/")):
+                  raise SystemExit(f"Unexpected non-system runtime dependency: {library}")
+          PY
+          strip -x "$binary"
+          python3 scripts/package_macos.py --binary "$binary" --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kilsat-Studio-Preview-arm64
+          path: dist/Kilsat-Studio-Preview-arm64.zip
+          if-no-files-found: error
+          retention-days: 14

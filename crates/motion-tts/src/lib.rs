@@ -316,13 +316,18 @@ mod tests {
         assert!(r.validate().is_err());
     }
     fn mock_provider() -> KokoroProvider {
+        static NEXT_FIXTURE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let sequence = NEXT_FIXTURE.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let nonce = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let root =
-            std::env::temp_dir().join(format!("motion-tts-test-{}-{nonce}", std::process::id()));
-        fs::create_dir_all(root.join("voices")).unwrap();
+        let root = std::env::temp_dir().join(format!(
+            "motion-tts-test-{}-{nonce}-{sequence}",
+            std::process::id()
+        ));
+        fs::create_dir(&root).unwrap();
+        fs::create_dir(root.join("voices")).unwrap();
         for name in ["config.json", "weights.pth", "voices/af_heart.pt"] {
             fs::write(root.join(name), b"fixture").unwrap();
         }
@@ -385,6 +390,23 @@ json.dump({'ok':True,'protocol':1,'phonemes':'hɛloʊ'},open(a.response,'w'))
         assert!(result.audio_path.is_file());
         fs::remove_dir_all(provider.config.cache_directory.parent().unwrap()).unwrap();
         fs::remove_dir_all(provider.config.model_config.parent().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn parallel_fixtures_never_share_a_directory() {
+        let threads: Vec<_> = (0..16).map(|_| std::thread::spawn(mock_provider)).collect();
+        let providers: Vec<_> = threads
+            .into_iter()
+            .map(|thread| thread.join().unwrap())
+            .collect();
+        let roots: std::collections::BTreeSet<_> = providers
+            .iter()
+            .map(|p| p.config.model_config.parent().unwrap().to_path_buf())
+            .collect();
+        assert_eq!(roots.len(), providers.len());
+        for root in roots {
+            fs::remove_dir_all(root).unwrap();
+        }
     }
 
     #[test]
