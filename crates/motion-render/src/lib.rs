@@ -14,6 +14,8 @@ const MAX_LABEL_BYTES: usize = 1024;
 pub enum Error {
     #[error("scene and output dimensions must be between 1 and 8192 pixels")]
     InvalidDimensions,
+    #[error("invalid evaluated camera, background color or scene opacity")]
+    InvalidComposition,
     #[error("scene exceeds the 256 actor limit")]
     TooManyActors,
     #[error("actor {0} has invalid coordinates, wave envelope, or label")]
@@ -37,6 +39,21 @@ pub fn render_svg_with_mouths(
         .any(|&v| v == 0 || v > MAX_DIMENSION)
     {
         return Err(Error::InvalidDimensions);
+    }
+    let color = scene.background_color.as_bytes();
+    if color.len() != 7
+        || color[0] != b'#'
+        || !color[1..].iter().all(u8::is_ascii_hexdigit)
+        || !scene.opacity.is_finite()
+        || !(0.0..=1.0).contains(&scene.opacity)
+        || !scene.camera.x.is_finite()
+        || !scene.camera.y.is_finite()
+        || scene.camera.x.abs() > 1_000_000.0
+        || scene.camera.y.abs() > 1_000_000.0
+        || !scene.camera.zoom.is_finite()
+        || !(0.05..=20.0).contains(&scene.camera.zoom)
+    {
+        return Err(Error::InvalidComposition);
     }
     if scene.actors.len() > MAX_ACTORS {
         return Err(Error::TooManyActors);
@@ -68,8 +85,10 @@ pub fn render_svg_with_mouths(
     let scale = (width as f64 / scene.width as f64).min(height as f64 / scene.height as f64);
     let ox = (width as f64 - scene.width as f64 * scale) * 0.5;
     let oy = (height as f64 - scene.height as f64 * scale) * 0.5;
+    let (camera_x, camera_y) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
     let mut svg = format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\"><rect width=\"100%\" height=\"100%\" fill=\"#181f2c\"/><g transform=\"translate({ox:.6} {oy:.6}) scale({scale:.6})\">"
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\"><defs><clipPath id=\"canvas\"><rect width=\"{}\" height=\"{}\"/></clipPath></defs><rect width=\"100%\" height=\"100%\" fill=\"black\"/><g transform=\"translate({ox:.6} {oy:.6}) scale({scale:.6})\" clip-path=\"url(#canvas)\" opacity=\"{:.6}\"><rect width=\"{}\" height=\"{}\" fill=\"{}\"/><g transform=\"translate({camera_x:.6} {camera_y:.6}) scale({:.6})\">",
+        scene.width, scene.height, scene.opacity, scene.width, scene.height, scene.background_color, scene.camera.zoom
     );
     for actor in &scene.actors {
         write!(
@@ -129,7 +148,7 @@ pub fn render_svg_with_mouths(
         svg.push_str("</g>");
         write!(svg, "<text y=\"45\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"sans-serif\" font-size=\"12\" fill=\"white\">{} · {}</text></g>", escape(&actor.id), escape(&actor.emotion)).unwrap();
     }
-    svg.push_str("</g></svg>\n");
+    svg.push_str("</g></g></svg>\n");
     Ok(svg)
 }
 
@@ -147,6 +166,9 @@ mod tests {
     use motion_scene::ActorPose;
     fn scene() -> EvaluatedScene {
         EvaluatedScene {
+            camera: motion_scene::CameraPose::default(),
+            background_color: "#181f2c".into(),
+            opacity: 1.0,
             width: 640,
             height: 360,
             actors: vec![ActorPose {
@@ -222,5 +244,43 @@ mod tests {
         s = scene();
         s.actors = vec![s.actors[0].clone(); MAX_ACTORS + 1];
         assert_eq!(render_svg(&s, 640, 360), Err(Error::TooManyActors));
+    }
+}
+
+#[cfg(test)]
+mod composition_tests {
+    use super::*;
+    #[test]
+    fn evaluated_composition_has_clipped_camera_and_canvas_fade() {
+        let scene = EvaluatedScene {
+            width: 640,
+            height: 360,
+            actors: vec![],
+            camera: motion_scene::CameraPose {
+                x: 50.0,
+                y: 20.0,
+                zoom: 2.0,
+            },
+            background_color: "#12abef".into(),
+            opacity: 0.5,
+        };
+        let svg = render_svg(&scene, 640, 360).unwrap();
+        assert!(svg.contains("translate(-420.000000 -220.000000) scale(2.000000)"));
+        assert!(svg.contains("clip-path=\"url(#canvas)\" opacity=\"0.500000\""));
+        assert!(svg.contains("fill=\"#12abef\""));
+        assert_eq!(svg, include_str!("../tests/golden/composition.svg"));
+        assert_eq!(svg, render_svg(&scene, 640, 360).unwrap());
+        let mut invalid = scene;
+        invalid.camera.zoom = f64::NAN;
+        assert_eq!(
+            render_svg(&invalid, 640, 360),
+            Err(Error::InvalidComposition)
+        );
+        invalid.camera.zoom = 1.0;
+        invalid.background_color = "red\"/>".into();
+        assert_eq!(
+            render_svg(&invalid, 640, 360),
+            Err(Error::InvalidComposition)
+        );
     }
 }

@@ -14,6 +14,9 @@ source code or dependencies are used.
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
 - Add, duplicate, edit and remove events in the Inspector; drag start times on the
   project frame grid, and undo/redo screenplay changes.
+- Edit validated camera pan/zoom keys, actor layer order/visibility, background colors and scene-edge fades.
+- Import, relink and remove explicit asset references on a bounded background worker.
+- Render frames with bounded fixed workers and deterministic ordered output.
 - Navigate a resizable studio workspace with a project/asset browser, YAML editor,
   central preview, editable event Inspector and scrubbable actor/event timeline.
 - Preview Emma/Alex placeholders with deterministic movement, expressions and wave
@@ -196,6 +199,11 @@ remain enabled in CI.
 ## Project guides
 
 - [Master plan implementation checklist](docs/master-progress.md)
+- [Composition and camera](docs/composition.md)
+- [Asset inventory management](docs/asset-management.md)
+- [Bounded jobs and benchmark](docs/jobs-performance.md)
+- [Alignment cache](docs/alignment-cache.md)
+- [Open-feature acceptance review](docs/open-feature-review.md)
 - [PNG/MP4 export](docs/media-export.md)
 - [Project format](docs/project-format.md)
 - [Rig and animation primitives](docs/character-animation.md)

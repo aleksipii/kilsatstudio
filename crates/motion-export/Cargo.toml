@@ -3,6 +3,7 @@ name = "motion-export"
 version.workspace = true
 edition.workspace = true
 [dependencies]
+motion-jobs = { path = "../motion-jobs" }
 motion-audio = { path = "../motion-audio" }
 motion-script = { path = "../motion-script" }
 motion-scene = { path = "../motion-scene" }

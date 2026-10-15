@@ -12,14 +12,14 @@ hardware, real-model or perceptual gate with mocked success.
 | Workstream | Owner in this increment | Integration boundary |
 | --- | --- | --- |
 | Architecture/integration | Parent agent | Workspace, shared interfaces, final checks |
-| Compiler / project | `project` + parent | Validated script/schema integration |
-| Rigging/animation | `rig` | Original rig and animation modules |
-| Rendering | `rig` + `media` | Shared deterministic frame path |
-| Desktop UX | `desktop` | Native controls and integration |
-| Speech | `speech` | Offline asset/alignment tools and evidence |
-| Export | `media` | PNG/MP4, CLI, resource/error handling |
-| Scheduling | Parent / existing bounded workers | Bounded execution and cancellation |
-| QA/release | `tracker_release` + parent | Packaging tests, integrated checks |
+| Compiler / project | `composition` + `assets` + parent | Validated script/schema integration |
+| Rigging/animation | Parent / existing rig | Original rig and animation modules |
+| Rendering | `composition` + `jobs` | Shared deterministic frame path |
+| Desktop UX | `desktop_compose` | Native controls and integration |
+| Speech | `alignment_cache` | Offline asset/alignment tools and evidence |
+| Export | `jobs` | PNG/MP4, CLI, resource/error handling |
+| Scheduling | `jobs` | Bounded execution and cancellation |
+| QA/release | `acceptance_review` + parent | Packaging tests, integrated checks |
 | Documentation | All owners + parent | This tracker and feature documentation |
 
 Owners describe responsibilities, not completed acceptance. Agent assignment is
@@ -45,7 +45,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Explicit unsupported-command errors and documented examples.
 - [x] Atomic event/voice/settings source edits and tests.
 - [x] Scene add/duplicate/delete and character add/delete with reference/final-scene protection.
-- [ ] Camera commands and camera evaluation.
+- [x] Validated scene camera keyframes and deterministic pan/zoom evaluation.
+- [ ] Camera event commands or cinematic rule presets beyond scene camera tracks.
 - [ ] Scene transitions and timed background changes.
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
@@ -72,10 +73,14 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Shared evaluated scene and deterministic SVG frame renderer.
 - [x] Basic background and original procedural character composition.
 - [ ] Image textures and character sprites.
-- [ ] Editable layers and z-order.
-- [ ] Camera positioning and camera-aware preview/export.
+- [x] Actor z-order/visibility composition metadata and editor.
+- [ ] Image/drawing layers, groups and masks.
+- [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
+- [x] Solid background color and scene-edge fades to black.
+- [ ] Timed background images and true cross-scene transitions.
 - [ ] Offscreen GPU renderer using a verified macOS Metal path.
-- [ ] Golden-frame regression coverage for stable rendering.
+- [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
+- [ ] Wider image/texture golden coverage as rendering grows.
 
 ## 5. Desktop UI/UX
 
@@ -89,9 +94,13 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] `.kilsat` exact-source persistence and portable asset inventory preservation.
 - [x] SVG/PNG/MP4 background export selection and explicit FFmpeg path.
 - [x] Audio waveform display and prepared-dialogue preview controls.
-- [ ] Asset browser with import, references and resource management.
-- [ ] Layers, keyframe editing and basic drawing/masking tools.
-- [ ] Camera controls and scene transitions.
+- [x] Explicit local asset import/relink/remove-reference UI and bounded worker.
+- [x] `.kilsat` inventory dirty tracking and one-step inventory Undo.
+- [ ] Asset thumbnails, image decoding/rendering and full asset history.
+- [x] Actor layer order/visibility and composition camera-key editor.
+- [ ] Character transform keyframe editing and drawing/masking tools.
+- [x] Camera controls and scene-edge fades.
+- [ ] Cross-scene transitions and multi-scene composition.
 - [ ] Full project/asset history and shortcut/accessibility coverage.
 - [ ] Comprehensive interactive macOS workflow acceptance.
 
@@ -111,7 +120,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Consented pinned asset provisioning with exact hashes and licenses.
 - [ ] Real local English Kokoro CPU WAV on Apple Silicon.
 - [ ] Offline synthesis after provisioning with networking disabled.
-- [ ] Separate alignment cache keyed by audio/transcript/tool/manual edits.
+- [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
+- [ ] Connect alignment cache to desktop preparation and automatic aligner.
 - [ ] Validated forced-aligner integration and editable timing tools.
 - [ ] Annotated real-audio corpus and measured timing error.
 - [ ] Perceptual mouth-quality assessment across voices/speeds/pauses.
@@ -136,11 +146,15 @@ maintained by the parent; shared files are changed only by their assigned owner.
 
 - [x] Background speech preparation/export work with UI status.
 - [x] Existing bounded speech worker and cancellation controls.
-- [ ] Shared bounded motion-jobs scheduler and dependency handling.
-- [ ] Background asset loading and parallel frame rendering.
-- [ ] Explicit memory/resource budgeting across workers.
-- [ ] Thread-safety and deterministic scheduling tests.
-- [ ] Reproducible rendering/performance benchmarks.
+- [x] `motion-jobs` fixed scoped pool, bounded queues/batches and ordered consumption used by export.
+- [ ] Explicit dependency-DAG scheduling beyond frame batches.
+- [x] Background asset copying/relink checks and bounded parallel frame rendering.
+- [ ] Background image decode/texture loading.
+- [x] Estimated raster frame working-set budget limits worker count; byte/work caps remain.
+- [ ] Process-wide measured memory/resource budgeting across all workers.
+- [x] Ordered 10,000-job stress, worker cap, cancellation/failure/panic and byte-identical serial/parallel tests.
+- [x] Runnable JSON export benchmark with debug Linux smoke measurement.
+- [ ] Production release-profile and Apple Silicon benchmark series.
 - [ ] UI responsiveness measurements under real workloads.
 
 ## 9. QA and release
@@ -164,7 +178,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Kokoro dependency review with explicit outstanding obligations.
 - [x] Development stages distinguish implementation from hardware acceptance.
 - [x] Rigging, versioned project format and CPU media-export implementation guides.
-- [ ] Final GPU renderer and shared scheduler decision records.
+- [x] Shared scheduler, resource estimates and benchmark design documented.
+- [ ] Final GPU renderer decision and actual implementation.
 - [ ] Forced-alignment quality research and documented corpus results.
 - [ ] Exact pinned asset/dependency redistribution review and notices.
 - [x] Local CPU raster/FFmpeg design, limits and integer/fractional test results documented.
@@ -185,9 +200,11 @@ These gates remain open until all constituent work and acceptance are evidenced.
 - [ ] **M3 — Dialogue/lip sync:** import/tracks/mouth/timing foundations implemented;
   real local Kokoro, Speech Stages 2–4 and quality/hardware gates remain open.
 - [ ] **M4 — Professional editing:** timeline and source Undo/Redo implemented;
-  layers, keyframes, drawing, assets, cameras and transitions remain open.
+  actor order/visibility, camera tracks and inventory tools implemented; transform
+  keyframe/drawing/image layers, complete assets and transitions remain open.
 - [ ] **M5 — Production rendering:** SVG/audio baseline implemented; GPU offscreen,
-  parallel scheduling and benchmarks remain open; CPU PNG/MP4 implemented/tested.
+  CPU PNG/MP4 and bounded parallel frame jobs implemented/tested; GPU rendering
+  and production performance/hardware acceptance remain open.
 - [ ] **M6 — macOS distribution:** preview bundle, generated icon and metadata implemented; actual Finder,
   release packaging and Apple Silicon release acceptance remain open.
 
@@ -220,9 +237,35 @@ limitations here. Do not mark whole milestones complete from module presence.
 | 2026-10-16 | PR #18 integrated implementation | `.kilsat` persistence, source lifecycle, shared procedural rig/keyframe API, desktop controls, PNG/MP4 and speech-evidence tooling implemented. Six agents: media, rig, project, desktop, speech, tracker_release. |
 | 2026-10-16 | Local validation | 150 Rust tests passed, one real-encoder test separately passed (1.0s and0.9s cases), 29 runtime +8 packaging Python tests passed; strict Clippy and direct rustfmt passed. Linux evidence only; GitHub CI result belongs to its exact head commit. |
 
-Master prompt completion remains **open**. Image/sprite assets, layer/drawing/mask
-tools, cameras/transitions, custom rig/keyframe editor, blending, automatic forced
-alignment, GPU/parallel rendering, performance evidence, final distribution and
+Master prompt completion remains **open**. Image/sprite rendering, drawing/masks, true cross-scene transitions,
+custom rig/transform-keyframe editor, blending, automatic forced alignment,
+GPU rendering, production performance evidence, final distribution and
 real Mac/model/device/perceptual acceptance are still unchecked above. No agent
 continues running after the reported task completes; future increments must be
 explicitly resumed and validated.
+
+
+## Composition increment — completed implementation checks
+
+Six agents inspected and implemented this pass: composition, assets,
+desktop_compose, jobs, alignment_cache and acceptance_review. The attached
+tracker was the input; this repository copy is the maintained implementation
+record. PR #18 Linux/macOS CI passed at aa2f137; it remains unmerged.
+
+Library/headless alignment caching is complete; automatic forced alignment and
+desktop cache integration remain separate. Imported images are inventory files,
+not rendered character textures. Camera fades do not implement scene transitions.
+
+
+| Date | Completed implementation | Actual evidence |
+| --- | --- | --- |
+| 2026-10-16 | Camera/layer/fade composition and native controls | Shared evaluator, clipped SVG golden, atomic invalid-edit rollback and source Undo tests. |
+| 2026-10-16 | Asset import/relink/reference removal and UI | Bounded background copy, canonical-root and stale-result guards, inventory dirty/one-step Undo; source files preserved. |
+| 2026-10-16 | Bounded parallel frame jobs and benchmark | Serial/parallel PNG/SVG byte equivalence, ordered stress/cancel/panic tests, documented debug Linux measurement. |
+| 2026-10-16 | Exact-audio alignment cache | PCM/transcript/config/edit invalidation, integrity, provenance, concurrent writes and offline example; no automatic aligner or desktop preparation integration. |
+| 2026-10-16 | Integrated local validation | 169 Rust tests passed; separate real FFmpeg/ffprobe test passed; strict workspace Clippy, cargo check, all46-file direct rustfmt and diff check passed. |
+
+Remaining items stay unchecked. Image/rig-part rendering, transform keyframe
+editor, drawing/masks, full project history, true scene transitions, automatic
+alignment, GPU rendering and hardware/model acceptance are not supplied by this
+composition increment.

@@ -46,9 +46,54 @@ pub enum Event {
         audio: Option<String>,
     },
 }
+/// Scene-local composition; camera coordinates are offsets from the canvas center.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Composition {
+    pub background_color: String,
+    pub camera: Vec<CameraKey>,
+    pub layers: BTreeMap<String, Layer>,
+    pub fade_in: f64,
+    pub fade_out: f64,
+}
+impl Default for Composition {
+    fn default() -> Self {
+        Self {
+            background_color: "#181f2c".into(),
+            camera: vec![],
+            layers: BTreeMap::new(),
+            fade_in: 0.0,
+            fade_out: 0.0,
+        }
+    }
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CameraKey {
+    pub at: f64,
+    pub x: f64,
+    pub y: f64,
+    pub zoom: f64,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Layer {
+    pub z: i32,
+    pub visible: bool,
+}
+impl Default for Layer {
+    fn default() -> Self {
+        Self {
+            z: 0,
+            visible: true,
+        }
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Scene {
+    #[serde(default)]
+    pub composition: Composition,
     #[serde(default)]
     pub background: Option<String>,
     pub id: String,
@@ -219,6 +264,23 @@ pub fn apply_scene_settings(
     })
 }
 
+/// Replace scene composition atomically; validate all camera keys and actor references.
+/// YAML formatting is normalized and comments are removed; no files are changed.
+pub fn apply_composition(
+    source: &str,
+    scene_index: usize,
+    composition: Composition,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?
+            .composition = composition;
+        Ok(())
+    })
+}
+
 /// Append a scene after validating the complete candidate screenplay.
 pub fn add_scene(source: &str, scene: Scene) -> Result<String, Error> {
     edit_source(source, |script| {
@@ -266,13 +328,17 @@ pub fn add_character(source: &str, id: &str, character: Character) -> Result<Str
     })
 }
 
-/// Remove an unused character. References in any scene reject the transaction.
+/// Remove an unused character and its layer metadata atomically.
+/// Event references in any scene reject the transaction.
 pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
     edit_source(source, |script| {
         if script.characters.remove(id).is_none() {
             return Err(Error::Validation(format!(
                 "character {id} no longer exists"
             )));
+        }
+        for scene in &mut script.scenes {
+            scene.composition.layers.remove(id);
         }
         Ok(())
     })
@@ -350,6 +416,47 @@ impl Script {
             }
             if s.background.as_ref().is_some_and(|b| b.trim().is_empty()) {
                 return Err(fail(format!("{}: background must not be empty", s.id)));
+            }
+            let composition = &s.composition;
+            let color = composition.background_color.as_bytes();
+            if color.len() != 7 || color[0] != b'#' || !color[1..].iter().all(u8::is_ascii_hexdigit)
+            {
+                return Err(fail(format!("{}: background color requires #RRGGBB", s.id)));
+            }
+            if [composition.fade_in, composition.fade_out]
+                .iter()
+                .any(|v| !v.is_finite() || *v < 0.0)
+                || composition.fade_in + composition.fade_out > s.duration
+            {
+                return Err(fail(format!(
+                    "{}: fades must be finite, nonnegative, and fit the scene",
+                    s.id
+                )));
+            }
+            if composition.camera.len() > 4096 {
+                return Err(fail("camera exceeds 4096 keys".into()));
+            }
+            let mut previous = None;
+            for key in &composition.camera {
+                if !key.at.is_finite()
+                    || key.at < 0.0
+                    || key.at > s.duration
+                    || previous.is_some_and(|at| key.at <= at)
+                    || !key.x.is_finite()
+                    || !key.y.is_finite()
+                    || key.x.abs() > 1_000_000.0
+                    || key.y.abs() > 1_000_000.0
+                    || !key.zoom.is_finite()
+                    || !(0.05..=20.0).contains(&key.zoom)
+                {
+                    return Err(fail(format!("{}: camera keys require increasing scene times, finite offsets and zoom 0.05..20", s.id)));
+                }
+                previous = Some(key.at);
+            }
+            for actor in composition.layers.keys() {
+                if !self.characters.contains_key(actor) {
+                    return Err(fail(format!("unknown layer actor {actor}")));
+                }
             }
             let mut moves: BTreeMap<&str, Vec<(f64, f64)>> = BTreeMap::new();
             for e in &s.events {
@@ -851,6 +958,7 @@ mod lifecycle_tests {
         assert!(add_scene(
             SOURCE,
             Scene {
+                composition: Composition::default(),
                 background: None,
                 id: "next".into(),
                 duration: 0.,
@@ -869,5 +977,97 @@ mod lifecycle_tests {
         let removed = remove_character(&added, "ALEX").unwrap();
         assert_eq!(parse(&removed).unwrap().characters.len(), 1);
         assert_eq!(parse(SOURCE).unwrap().scenes.len(), 1);
+    }
+}
+
+#[cfg(test)]
+mod composition_tests {
+    use super::*;
+    const SOURCE: &str =
+        "characters: {EMMA: {asset: emma}}\nscenes: [{id: intro, duration: 4, events: []}]";
+    #[test]
+    fn deleting_unused_character_removes_layers_but_preserves_event_safety() {
+        let mut composition = Composition::default();
+        composition.layers.insert("EMMA".into(), Layer::default());
+        let source = apply_composition(SOURCE, 0, composition).unwrap();
+        let removed = parse(&remove_character(&source, "EMMA").unwrap()).unwrap();
+        assert!(removed.characters.is_empty());
+        assert!(removed.scenes[0].composition.layers.is_empty());
+        let with_event = insert_event(
+            &source,
+            0,
+            0,
+            Event::Emotion {
+                at: 0.0,
+                actor: "EMMA".into(),
+                value: "happy".into(),
+            },
+        )
+        .unwrap();
+        assert!(remove_character(&with_event, "EMMA").is_err());
+        assert_eq!(
+            parse(&with_event).unwrap().scenes[0]
+                .composition
+                .layers
+                .len(),
+            1
+        );
+    }
+    #[test]
+    fn composition_transaction_preserves_events_and_rejects_invalid_keys() {
+        let mut composition = Composition {
+            camera: vec![
+                CameraKey {
+                    at: 0.0,
+                    x: 0.0,
+                    y: 0.0,
+                    zoom: 1.0,
+                },
+                CameraKey {
+                    at: 4.0,
+                    x: 100.0,
+                    y: 50.0,
+                    zoom: 2.0,
+                },
+            ],
+            background_color: "#12abEF".into(),
+            fade_in: 1.0,
+            fade_out: 1.0,
+            ..Composition::default()
+        };
+        composition.layers.insert(
+            "EMMA".into(),
+            Layer {
+                z: -1,
+                visible: false,
+            },
+        );
+        let updated = apply_composition(SOURCE, 0, composition.clone()).unwrap();
+        assert_eq!(parse(&updated).unwrap().scenes[0].composition, composition);
+        assert!(parse(&updated).unwrap().scenes[0].events.is_empty());
+        for at in [0.0, -1.0, 5.0, f64::NAN] {
+            let mut invalid = composition.clone();
+            invalid.camera[1].at = at;
+            assert!(apply_composition(SOURCE, 0, invalid).is_err());
+        }
+        for zoom in [0.0, 21.0, f64::INFINITY] {
+            let mut invalid = composition.clone();
+            invalid.camera[1].zoom = zoom;
+            assert!(apply_composition(SOURCE, 0, invalid).is_err());
+        }
+        let mut invalid = composition.clone();
+        invalid.layers.insert("MISSING".into(), Layer::default());
+        assert!(apply_composition(SOURCE, 0, invalid).is_err());
+        let mut invalid = composition.clone();
+        invalid.background_color = "#ffffff\"/>".into();
+        assert!(apply_composition(SOURCE, 0, invalid).is_err());
+        let mut invalid = composition.clone();
+        invalid.fade_out = 4.0;
+        assert!(apply_composition(SOURCE, 0, invalid).is_err());
+        assert!(apply_composition(SOURCE, 1, composition).is_err());
+        assert_eq!(
+            parse(SOURCE).unwrap().scenes[0].composition,
+            Composition::default()
+        );
     }
 }

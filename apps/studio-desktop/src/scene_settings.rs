@@ -7,6 +7,8 @@ pub struct Draft {
     pub project: Project,
     pub scene_id: String,
     pub duration_seconds: f64,
+    pub composition: motion_script::Composition,
+    actors: Vec<String>,
 }
 
 impl Draft {
@@ -17,6 +19,8 @@ impl Draft {
             project: script.project.clone(),
             scene_id: scene.id.clone(),
             duration_seconds: scene.duration,
+            composition: scene.composition.clone(),
+            actors: script.characters.keys().cloned().collect(),
         })
     }
 
@@ -51,6 +55,15 @@ impl Draft {
         ui.small("Duration must be finite and positive. Audio export supports up to one hour.");
         ui.small("Shortening a scene is rejected if an event extends beyond its end.");
         ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
+        ui.separator();
+        egui::CollapsingHeader::new("Camera, layers and fades").show(ui, |ui| {
+            crate::composition_editor::ui(
+                ui,
+                &mut self.composition,
+                &self.actors,
+                self.duration_seconds,
+            );
+        });
         ui.button("Apply settings").clicked()
     }
 }

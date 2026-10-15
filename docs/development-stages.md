@@ -170,3 +170,13 @@ creation and deletion, PNG/MP4 controls, local speech evidence auditing and
 macOS icon/document declarations. Implementation is distinct from full product
 acceptance: texture rigs, layers/drawing, cameras/transitions, forced alignment,
 GPU rendering and real Mac speech/device evidence remain open.
+
+
+## Composition, asset inventory and bounded jobs
+
+A subsequent increment adds scene camera tracks, actor z-order/visibility, solid
+backgrounds and edge fades, editor composition drafts, local inventory import/
+relink/remove, parallel ordered frame workers and an exact-audio alignment cache.
+See the master tracker for implementation and acceptance boundaries. Scene-edge
+fades are not transitions between scenes; inventory is not a texture renderer;
+cache storage is not automatic forced alignment.

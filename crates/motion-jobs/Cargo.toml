@@ -1,0 +1,4 @@
+[package]
+name = "motion-jobs"
+version.workspace = true
+edition.workspace = true

@@ -13,8 +13,60 @@ pub struct ActorPose {
     /// Evaluated local-space skeletal joints shared by preview and export.
     pub skeleton: [Vec2; 7],
 }
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CameraPose {
+    pub x: f64,
+    pub y: f64,
+    pub zoom: f64,
+}
+impl Default for CameraPose {
+    fn default() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            zoom: 1.0,
+        }
+    }
+}
+impl CameraPose {
+    /// Transform a world point into canvas coordinates; preview and export share this rule.
+    pub fn project(self, x: f64, y: f64, width: u32, height: u32) -> (f64, f64) {
+        let cx = width as f64 * 0.5;
+        let cy = height as f64 * 0.5;
+        (
+            cx + (x - cx - self.x) * self.zoom,
+            cy + (y - cy - self.y) * self.zoom,
+        )
+    }
+}
+fn camera_at(keys: &[motion_script::CameraKey], time: f64) -> CameraPose {
+    let Some(first) = keys.first() else {
+        return CameraPose::default();
+    };
+    let mut left = first;
+    for right in keys.iter().skip(1) {
+        if time <= right.at {
+            let t = ((time - left.at) / (right.at - left.at)).clamp(0.0, 1.0);
+            return CameraPose {
+                x: left.x + (right.x - left.x) * t,
+                y: left.y + (right.y - left.y) * t,
+                zoom: left.zoom + (right.zoom - left.zoom) * t,
+            };
+        }
+        left = right;
+    }
+    CameraPose {
+        x: left.x,
+        y: left.y,
+        zoom: left.zoom,
+    }
+}
 #[derive(Debug, Clone, PartialEq)]
 pub struct EvaluatedScene {
+    pub camera: CameraPose,
+    pub background_color: String,
+    /// Whole-canvas opacity over black, for fades at scene edges.
+    pub opacity: f64,
     pub width: u32,
     pub height: u32,
     pub actors: Vec<ActorPose>,
@@ -74,9 +126,16 @@ pub fn evaluate(
     let mut events: Vec<_> = scene.events.iter().collect();
     // Stable ordering preserves source order for simultaneous expression events.
     events.sort_by(|a, b| a.actor_time().0.total_cmp(&b.actor_time().0));
-    let actors = script
+    let mut actors: Vec<_> = script
         .characters
         .keys()
+        .filter(|id| {
+            scene
+                .composition
+                .layers
+                .get(*id)
+                .is_none_or(|layer| layer.visible)
+        })
         .map(|id| {
             let mut pose = ActorPose {
                 id: id.clone(),
@@ -123,7 +182,28 @@ pub fn evaluate(
             pose
         })
         .collect();
+    actors.sort_by_key(|actor| {
+        scene
+            .composition
+            .layers
+            .get(&actor.id)
+            .map_or(0, |layer| layer.z)
+    });
+    let composition = &scene.composition;
+    let fade_in = if composition.fade_in > 0.0 {
+        (time_seconds / composition.fade_in).clamp(0.0, 1.0)
+    } else {
+        1.0
+    };
+    let fade_out = if composition.fade_out > 0.0 {
+        ((scene.duration - time_seconds) / composition.fade_out).clamp(0.0, 1.0)
+    } else {
+        1.0
+    };
     Ok(EvaluatedScene {
+        camera: camera_at(&composition.camera, time_seconds),
+        background_color: composition.background_color.clone(),
+        opacity: fade_in.min(fade_out),
         width: script.project.width,
         height: script.project.height,
         actors,
@@ -205,5 +285,58 @@ scenes:
             frame_count(1.0, 24, 0),
             Err(Error::InvalidFrameClock)
         ));
+    }
+}
+
+#[cfg(test)]
+mod composition_tests {
+    use super::*;
+    #[test]
+    fn camera_layers_fades_seek_deterministically_on_scene_clock() {
+        let script = motion_script::parse(
+            r##"
+project: {width: 640, height: 360}
+characters: {A: {asset: a}, B: {asset: b}, C: {asset: c}}
+scenes:
+- id: shot
+  duration: 4
+  events: []
+  composition:
+    background_color: '#aabbcc'
+    fade_in: 1
+    fade_out: 1
+    camera: [{at: 0, x: 0, y: 0, zoom: 1}, {at: 4, x: 100, y: 40, zoom: 3}]
+    layers: {A: {z: 2}, B: {z: -1}, C: {visible: false}}
+"##,
+        )
+        .unwrap();
+        let middle = evaluate(&script, 0, 2.0).unwrap();
+        assert_eq!(
+            middle
+                .actors
+                .iter()
+                .map(|a| a.id.as_str())
+                .collect::<Vec<_>>(),
+            vec!["B", "A"]
+        );
+        assert_eq!(
+            middle.camera,
+            CameraPose {
+                x: 50.0,
+                y: 20.0,
+                zoom: 2.0
+            }
+        );
+        assert_eq!(
+            middle.camera.project(320.0, 180.0, 640, 360),
+            (220.0, 140.0)
+        );
+        assert_eq!(middle.background_color, "#aabbcc");
+        assert_eq!(middle.opacity, 1.0);
+        assert_eq!(evaluate(&script, 0, 0.0).unwrap().opacity, 0.0);
+        assert_eq!(evaluate(&script, 0, 0.5).unwrap().opacity, 0.5);
+        assert_eq!(evaluate(&script, 0, 3.5).unwrap().opacity, 0.5);
+        assert_eq!(evaluate(&script, 0, 4.0).unwrap().opacity, 0.0);
+        assert_eq!(middle, evaluate(&script, 0, 2.0).unwrap());
     }
 }
