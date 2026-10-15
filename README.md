@@ -30,6 +30,10 @@ source code or dependencies are used.
 - Import explicit timed IPA/ARPAbet alignment with provenance and audio checks.
 - Export mixed scene WAV and sample-timed dialogue/viseme JSON; sample actor poses
   through the same scene evaluator used by the preview.
+- Save versioned `.kilsat` projects with exact screenplay source and portable asset metadata.
+- Add, duplicate and delete scenes; add or delete unreferenced characters with source Undo/Redo.
+- Evaluate original hierarchical rigs, procedural walking/waving and reusable keyframe curves.
+- Export PNG sequences or H.264/AAC MP4 via an explicitly selected local FFmpeg.
 - Render deterministic procedural SVG frame sequences, including a scene-bundle
   path with matching WAV and explicit timed mouth tracks on a shared sample clock.
 
@@ -163,7 +167,8 @@ Still unverified or unfinished:
 - Real Kokoro CPU synthesis on macOS/Apple Silicon with the approved local assets.
 - GUI/audio interaction beyond confirmed launch, hardware latency and perceptual lip-sync quality.
 - Practical macOS cancellation validation and robust runtime device-loss recovery.
-- Textured character rigs, production rendering, encoded video/audio muxing and release packaging.
+- Textured character rigs, offscreen GPU rendering, parallel rendering and production release packaging.
+- Real-Mac validation of the new local MP4 path and media synchronization with actual speech.
 - Complete model/voice/dependency redistribution audit and locked Python environment.
 
 No native Rust TTS, Metal, MPS or Core ML acceleration is claimed. Rodio startup
@@ -189,6 +194,14 @@ Cargo formatter/Clippy wrappers may need direct-tool equivalents; standard check
 remain enabled in CI.
 
 ## Project guides
+
+- [Master plan implementation checklist](docs/master-progress.md)
+- [PNG/MP4 export](docs/media-export.md)
+- [Project format](docs/project-format.md)
+- [Rig and animation primitives](docs/character-animation.md)
+- [Speech evidence](docs/speech-acceptance.md)
+- [macOS distribution](docs/macos-distribution.md)
+
 
 - [Supported MotionScript subset](docs/motionscript.md)
 - [Audio architecture and acceptance gates](docs/audio.md)

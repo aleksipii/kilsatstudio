@@ -56,9 +56,31 @@ impl Worker {
             };
             request.cancel.check().map_err(|error| error.to_string())?;
             match request.format {
-                Format::Svg => motion_export::export_scene(&request.script, request.scene_index, &rendered, &request.destination, &request.cancel, progress),
-                Format::Png => motion_export::export_png_scene(&request.script, request.scene_index, &rendered, &request.destination, &request.cancel, progress),
-                Format::Mp4 => motion_export::export_mp4_scene(&request.script, request.scene_index, &rendered, &request.destination, &request.ffmpeg, &request.cancel, progress),
+                Format::Svg => motion_export::export_scene(
+                    &request.script,
+                    request.scene_index,
+                    &rendered,
+                    &request.destination,
+                    &request.cancel,
+                    progress,
+                ),
+                Format::Png => motion_export::export_png_scene(
+                    &request.script,
+                    request.scene_index,
+                    &rendered,
+                    &request.destination,
+                    &request.cancel,
+                    progress,
+                ),
+                Format::Mp4 => motion_export::export_mp4_scene(
+                    &request.script,
+                    request.scene_index,
+                    &rendered,
+                    &request.destination,
+                    &request.ffmpeg,
+                    &request.cancel,
+                    progress,
+                ),
             }
             .map_err(|error| error.to_string())
         })
@@ -189,6 +211,30 @@ mod tests {
             assert!(Instant::now() < deadline, "worker did not finish");
             std::thread::sleep(Duration::from_millis(1));
         }
+    }
+
+    #[test]
+    fn png_dispatch_writes_real_image_on_worker() {
+        let worker = Worker::new();
+        let mut request = request();
+        request.format = Format::Png;
+        request.script = motion_script::parse("project: {fps: 10, width: 64, height: 64}\ncharacters: {}\nscenes: [{id: test, duration: 0.1, events: []}]\n").unwrap();
+        request.destination = std::env::temp_dir().join(format!(
+            "kilsat-worker-png-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let destination = request.destination.clone();
+        worker.submit(request).unwrap();
+        let report = finished(&worker).unwrap();
+        assert_eq!(report.frame_count, 1);
+        let frame = destination.join("frame_000000.png");
+        let bytes = std::fs::read(frame).unwrap();
+        assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+        std::fs::remove_dir_all(destination).unwrap();
     }
 
     #[test]

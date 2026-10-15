@@ -183,3 +183,18 @@ drafts while preserving pasted timing maps. Undo restores exact source text
 and clears timing maps under the existing history policy. YAML is normalized and
 comments removed on Apply. Script dimensions permit 16384 per side, while SVG
 export supports 8192; audio export supports one hour.
+
+
+### Production tools increment
+
+The Project tab can create/duplicate/delete scenes and create/delete characters.
+Deletion confirms in the editor; referenced characters and the final scene are
+protected. Changes validate and enter source Undo/Redo. Save as `.kilsat` to retain
+exact source and the explicit asset inventory; referenced media is not embedded.
+See [project-format](project-format.md) for project-root relocation restrictions.
+
+Export offers SVG, PNG or MP4. MP4 requires an explicit local FFmpeg path and
+uses the prepared scene WAV. Frame work completes before video encoding; wait
+for the finished status. See [media-export](media-export.md) for budgets and
+fractional-final-frame behavior. The preview and export now use evaluated
+procedural skeleton points; no texture-rig editor is implied.

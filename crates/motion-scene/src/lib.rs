@@ -1,6 +1,6 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
-use motion_script::{Event, Script};
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
+use motion_script::{Event, Script};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ActorPose {
@@ -97,7 +97,11 @@ pub fn evaluate(
                         // Overlapping moves are rejected by validation, so each starting
                         // pose is the completed endpoint of the preceding movement.
                         let progress = ((time_seconds - at) / duration).clamp(0.0, 1.0);
-                        walk_seconds = if progress < 1.0 && (pose.x != *x || pose.y != *y) { Some(time_seconds - at) } else { None };
+                        walk_seconds = if progress < 1.0 && (pose.x != *x || pose.y != *y) {
+                            Some(time_seconds - at)
+                        } else {
+                            None
+                        };
                         pose.x += (x - pose.x) * progress;
                         pose.y += (y - pose.y) * progress;
                     }
@@ -159,7 +163,10 @@ scenes:
         assert_eq!(evaluate(&script, 0, 5.0).unwrap().actors[0].x, 600.0);
         assert_eq!(evaluate(&script, 0, 8.0).unwrap().actors[0].x, 800.0);
         assert_eq!(middle, evaluate(&script, 0, 3.0).unwrap());
-        assert_ne!(evaluate(&script, 0, 1.0 / 6.0).unwrap().actors[0].skeleton, evaluate(&script, 0, 2.0).unwrap().actors[0].skeleton);
+        assert_ne!(
+            evaluate(&script, 0, 1.0 / 6.0).unwrap().actors[0].skeleton,
+            evaluate(&script, 0, 2.0).unwrap().actors[0].skeleton
+        );
         assert_eq!(middle.actors[0].skeleton[RIGHT_HAND].y, -85.0);
         assert!(evaluate(&script, 0, f64::NAN).is_err());
         assert!(evaluate(&script, 1, 0.0).is_err());

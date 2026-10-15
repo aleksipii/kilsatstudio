@@ -37,7 +37,9 @@ fn main() -> eframe::Result {
             if let Some(path) = std::env::args().nth(1) {
                 studio.script_path = path;
                 studio.open_script();
-            } else { studio.validate(); }
+            } else {
+                studio.validate();
+            }
             Ok(Box::new(studio))
         }),
     )
@@ -248,7 +250,9 @@ impl Default for Studio {
 }
 impl Studio {
     fn apply_structure(&mut self, result: Result<String, motion_script::Error>) {
-        if self.busy || self.diagnostics_busy || self.export_busy { return; }
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
         match result {
             Ok(source) if source.len() <= 100_000 => {
                 self.flush_text_edit();
@@ -822,9 +826,13 @@ impl Studio {
         }
     }
     fn load_sound_check(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
         self.stop_playback();
         match demo::DemoAssets::create() {
             Ok(assets) => {
+                self.project_document = None;
                 self.source = assets.source.clone();
                 self.history.reset(&self.source);
                 self.pending_text_edit = None;
@@ -907,13 +915,24 @@ impl Studio {
         }
     }
     fn open_script(&mut self) {
-        if self.busy || self.diagnostics_busy || self.export_busy { return; }
-        if Path::new(&self.script_path).extension().is_some_and(|s| s == "kilsat") {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        if Path::new(&self.script_path)
+            .extension()
+            .is_some_and(|s| s == "kilsat")
+        {
             let result = (|| -> Result<(motion_project::ProjectDocument, String), String> {
                 let path = std::fs::canonicalize(&self.script_path).map_err(|e| e.to_string())?;
                 let doc = motion_project::load(&path).map_err(|e| e.to_string())?;
-                if doc.source.len() > 100_000 { return Err("Project source exceeds 100 KB editor limit".into()); }
-                let root = path.parent().ok_or("Project has no parent directory")?.to_string_lossy().into_owned();
+                if doc.source.len() > 100_000 {
+                    return Err("Project source exceeds 100 KB editor limit".into());
+                }
+                let root = path
+                    .parent()
+                    .ok_or("Project has no parent directory")?
+                    .to_string_lossy()
+                    .into_owned();
                 Ok((doc, root))
             })();
             match result {
@@ -923,7 +942,8 @@ impl Studio {
                     self.project_root = root;
                     self.history.reset(&self.source);
                     self.pending_text_edit = None;
-                    self.alignment.clear(); self.scene_alignment.clear();
+                    self.alignment.clear();
+                    self.scene_alignment.clear();
                     self.preview = None;
                     self.scene_index = 0;
                     self.validate();
@@ -963,20 +983,44 @@ impl Studio {
         }
     }
     fn save_script(&mut self) {
-        if self.busy || self.diagnostics_busy || self.export_busy { return; }
-        if Path::new(&self.script_path).extension().is_some_and(|s| s == "kilsat") {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        if Path::new(&self.script_path)
+            .extension()
+            .is_some_and(|s| s == "kilsat")
+        {
             let result = (|| -> Result<motion_project::ProjectDocument, String> {
-                if self.source.len() > 100_000 { return Err("Project source exceeds 100 KB editor limit".into()); }
-                let parent = Path::new(&self.script_path).parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+                if self.source.len() > 100_000 {
+                    return Err("Project source exceeds 100 KB editor limit".into());
+                }
+                let parent = Path::new(&self.script_path)
+                    .parent()
+                    .filter(|p| !p.as_os_str().is_empty())
+                    .unwrap_or(Path::new("."));
                 let root = std::fs::canonicalize(parent).map_err(|e| e.to_string())?;
-                let configured = std::fs::canonicalize(&self.project_root).map_err(|e| e.to_string())?;
-                if root != configured { return Err("Save .kilsat beside the configured project root to preserve relative asset/audio paths. Copy assets explicitly before relocation.".into()); }
-                let mut doc = self.project_document.clone().unwrap_or(motion_project::ProjectDocument::new(self.source.clone()).map_err(|e| e.to_string())?);
+                let configured =
+                    std::fs::canonicalize(&self.project_root).map_err(|e| e.to_string())?;
+                if root != configured {
+                    return Err("Save .kilsat beside the configured project root to preserve relative asset/audio paths. Copy assets explicitly before relocation.".into());
+                }
+                let mut doc = self.project_document.clone().unwrap_or(
+                    motion_project::ProjectDocument::new(self.source.clone())
+                        .map_err(|e| e.to_string())?,
+                );
                 doc.source = self.source.clone();
-                motion_project::save_atomic(Path::new(&self.script_path), &doc).map_err(|e| e.to_string())?;
+                motion_project::save_atomic(Path::new(&self.script_path), &doc)
+                    .map_err(|e| e.to_string())?;
                 Ok(doc)
             })();
-            match result { Ok(doc) => {self.project_document = Some(doc); self.flush_text_edit(); self.status = "Saved versioned project and asset inventory.".into();}, Err(error) => self.status = format!("Save project: {error}") }
+            match result {
+                Ok(doc) => {
+                    self.project_document = Some(doc);
+                    self.flush_text_edit();
+                    self.status = "Saved versioned project and asset inventory.".into();
+                }
+                Err(error) => self.status = format!("Save project: {error}"),
+            }
             return;
         }
         self.flush_text_edit();
@@ -1266,7 +1310,8 @@ impl Studio {
                     self.export_progress = None;
                     self.status = match result {
                         Ok(report) => format!(
-                            "Exported {} SVG frames, scene.wav and timing manifests to {}",
+                            "Exported {:?} ({} frames), scene.wav and timing manifests to {}",
+                            self.export_format,
                             report.frame_count,
                             report.output_directory.display()
                         ),
@@ -1832,6 +1877,12 @@ impl Studio {
                 ui.label(egui::RichText::new(asset).small().color(egui::Color32::from_gray(140)));
                 ui.add_space(5.0);
             }
+            if let Some(document) = &self.project_document {
+                egui::CollapsingHeader::new("Project asset inventory").show(ui, |ui| {
+                    for asset in &document.assets { ui.label(format!("{} · {:?} · {}", asset.id, asset.kind, asset.path)); }
+                    ui.weak("Inventory references are preserved. Image assets are not yet rendered.");
+                });
+            }
             if self.script.is_none() {
                 ui.label("Validate MotionScript to populate the project browser.");
             }
@@ -2126,7 +2177,9 @@ impl Studio {
             return;
         }
         let cancel = CancellationToken::new();
-        if self.export_format == export_worker::Format::Mp4 && !Path::new(self.ffmpeg_path.trim()).is_absolute() {
+        if self.export_format == export_worker::Format::Mp4
+            && !Path::new(self.ffmpeg_path.trim()).is_absolute()
+        {
             self.status = "Choose an absolute path to a local FFmpeg executable.".into();
             return;
         }
@@ -2150,7 +2203,10 @@ impl Studio {
                 self.busy = true;
                 self.active_cancel = Some(cancel);
                 self.export_progress = None;
-                self.status = format!("Exporting {:?} and prepared scene audio…", self.export_format);
+                self.status = format!(
+                    "Exporting {:?} and prepared scene audio…",
+                    self.export_format
+                );
             }
             Err(error) => self.status = error,
         }
@@ -2643,26 +2699,31 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
             (5.0 * scale).max(1.0),
             egui::Color32::from_rgb(126, 185, 226),
         );
+        use motion_scene::{CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
         for (a, b) in [
-            ((0.0, -65.0), (0.0, -10.0)),
-            ((0.0, -10.0), (-20.0, 25.0)),
-            ((0.0, -10.0), (20.0, 25.0)),
-            ((0.0, -50.0), (-30.0, -20.0)),
-            ((0.0, -50.0), (30.0, -30.0 - actor.wave as f32 * 35.0)),
+            (CHEST, HIP),
+            (CHEST, HEAD),
+            (HIP, LEFT_FOOT),
+            (HIP, RIGHT_FOOT),
+            (CHEST, LEFT_HAND),
+            (CHEST, RIGHT_HAND),
         ] {
-            painter.line_segment([point(a.0, a.1), point(b.0, b.1)], stroke);
+            let a = actor.skeleton[a];
+            let b = actor.skeleton[b];
+            painter.line_segment(
+                [point(a.x as f32, a.y as f32), point(b.x as f32, b.y as f32)],
+                stroke,
+            );
         }
+        let head = actor.skeleton[HEAD];
+        let face = |dx: f32, dy: f32| point(head.x as f32 + dx, head.y as f32 + dy);
         painter.circle_filled(
-            point(0.0, -90.0),
+            face(0.0, 0.0),
             25.0 * scale,
             egui::Color32::from_rgb(245, 200, 162),
         );
         for x in [-8.0, 8.0] {
-            painter.circle_filled(
-                point(x, -94.0),
-                (2.5 * scale).max(1.0),
-                egui::Color32::BLACK,
-            );
+            painter.circle_filled(face(x, -4.0), (2.5 * scale).max(1.0), egui::Color32::BLACK);
         }
         let viseme = mouths
             .iter()
@@ -2677,24 +2738,24 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
             _ => (12.0, 5.0),
         };
         painter.rect_filled(
-            egui::Rect::from_center_size(point(0.0, -80.0), egui::vec2(w, h) * scale),
+            egui::Rect::from_center_size(face(0.0, 10.0), egui::vec2(w, h) * scale),
             2.0,
             egui::Color32::from_rgb(125, 45, 57),
         );
         if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
             painter.line_segment(
-                [point(-8.0, -81.0), point(0.0, -76.0)],
+                [face(-8.0, 9.0), face(0.0, 14.0)],
                 egui::Stroke::new((2.0 * scale).max(1.0), egui::Color32::from_rgb(125, 45, 57)),
             );
             painter.line_segment(
-                [point(0.0, -76.0), point(8.0, -81.0)],
+                [face(0.0, 14.0), face(8.0, 9.0)],
                 egui::Stroke::new((2.0 * scale).max(1.0), egui::Color32::from_rgb(125, 45, 57)),
             );
         }
         if actor.emotion == "surprised" {
             for x in [-8.0, 8.0] {
                 painter.line_segment(
-                    [point(x - 4.0, -103.0), point(x + 4.0, -105.0)],
+                    [face(x - 4.0, -13.0), face(x + 4.0, -15.0)],
                     egui::Stroke::new(scale.max(1.0), egui::Color32::BLACK),
                 );
             }
@@ -2742,6 +2803,82 @@ mod scene_preview_tests {
             trim_start_frame: 0,
         }
     }
+    #[test]
+    fn structure_transactions_undo_and_reject_dangling_character() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        studio.apply_structure(motion_script::duplicate_scene(&studio.source, 0, "copy"));
+        assert_eq!(studio.script.as_ref().unwrap().scenes.len(), 2);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        let actor = studio
+            .script
+            .as_ref()
+            .unwrap()
+            .characters
+            .keys()
+            .next()
+            .unwrap()
+            .clone();
+        studio.apply_structure(motion_script::remove_character(&studio.source, &actor));
+        assert_eq!(studio.source, original);
+        assert!(studio
+            .script
+            .as_ref()
+            .unwrap()
+            .characters
+            .contains_key(&actor));
+        studio.busy = true;
+        studio.apply_structure(motion_script::duplicate_scene(&studio.source, 0, "blocked"));
+        assert_eq!(studio.source, original);
+    }
+
+    #[test]
+    fn versioned_project_preserves_inventory_source_and_blocks_relocation() {
+        let mut studio = Studio::default();
+        let root = std::env::temp_dir().join(format!(
+            "kilsat-desktop-project-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        let path = root.join("studio.kilsat");
+        let mut doc = motion_project::ProjectDocument::new(studio.source.clone()).unwrap();
+        doc.assets.push(motion_project::AssetReference {
+            id: "sound".into(),
+            path: "sound.wav".into(),
+            kind: motion_project::AssetKind::Audio,
+        });
+        motion_project::save_atomic(&path, &doc).unwrap();
+        studio.script_path = path.to_string_lossy().into_owned();
+        studio.open_script();
+        assert_eq!(studio.source, doc.source);
+        assert_eq!(
+            Path::new(&studio.project_root),
+            std::fs::canonicalize(&root).unwrap()
+        );
+        studio.source.push_str("\n# retained exact source\n");
+        studio.save_script();
+        let saved = motion_project::load(&path).unwrap();
+        assert_eq!(saved.source, studio.source);
+        assert_eq!(saved.assets, doc.assets);
+        let other = root.join("other");
+        std::fs::create_dir(&other).unwrap();
+        studio.script_path = other.join("moved.kilsat").to_string_lossy().into_owned();
+        studio.save_script();
+        assert!(!Path::new(&studio.script_path).exists());
+        assert!(studio.status.contains("relative asset/audio"));
+        studio.busy = true;
+        studio.script_path = path.to_string_lossy().into_owned();
+        studio.open_script();
+        assert_eq!(studio.source, saved.source);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn later_actor_line_is_not_masked_by_earlier_rest() {
         let clips = vec![clip(0, "EMMA"), clip(48000, "EMMA"), clip(48000, "ALEX")];

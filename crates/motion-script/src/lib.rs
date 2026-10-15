@@ -221,13 +221,19 @@ pub fn apply_scene_settings(
 
 /// Append a scene after validating the complete candidate screenplay.
 pub fn add_scene(source: &str, scene: Scene) -> Result<String, Error> {
-    edit_source(source, |script| { script.scenes.push(scene); Ok(()) })
+    edit_source(source, |script| {
+        script.scenes.push(scene);
+        Ok(())
+    })
 }
 
 /// Duplicate one scene, preserving its events and requiring a unique new identifier.
 pub fn duplicate_scene(source: &str, index: usize, new_id: &str) -> Result<String, Error> {
     edit_source(source, |script| {
-        let mut scene = script.scenes.get(index).cloned()
+        let mut scene = script
+            .scenes
+            .get(index)
+            .cloned()
             .ok_or_else(|| Error::Validation("selected scene no longer exists".into()))?;
         scene.id = new_id.into();
         script.scenes.insert(index + 1, scene);
@@ -264,7 +270,9 @@ pub fn add_character(source: &str, id: &str, character: Character) -> Result<Str
 pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
     edit_source(source, |script| {
         if script.characters.remove(id).is_none() {
-            return Err(Error::Validation(format!("character {id} no longer exists")));
+            return Err(Error::Validation(format!(
+                "character {id} no longer exists"
+            )));
         }
         Ok(())
     })
@@ -829,12 +837,27 @@ mod lifecycle_tests {
         let copy = duplicate_scene(SOURCE, 0, "copy").unwrap();
         let script = parse(&copy).unwrap();
         assert_eq!(script.scenes.len(), 2);
-        assert_eq!(serde_yaml::to_value(&script.scenes[0].events).unwrap(), serde_yaml::to_value(&script.scenes[1].events).unwrap());
+        assert_eq!(
+            serde_yaml::to_value(&script.scenes[0].events).unwrap(),
+            serde_yaml::to_value(&script.scenes[1].events).unwrap()
+        );
         assert!(duplicate_scene(SOURCE, 0, "intro").is_err());
         assert!(duplicate_scene(SOURCE, usize::MAX, "copy").is_err());
         assert!(remove_scene(SOURCE, 0).is_err());
-        assert_eq!(parse(&remove_scene(&copy, 0).unwrap()).unwrap().scenes[0].id, "copy");
-        assert!(add_scene(SOURCE, Scene {background: None,id:"next".into(),duration:0.,events:vec![]}).is_err());
+        assert_eq!(
+            parse(&remove_scene(&copy, 0).unwrap()).unwrap().scenes[0].id,
+            "copy"
+        );
+        assert!(add_scene(
+            SOURCE,
+            Scene {
+                background: None,
+                id: "next".into(),
+                duration: 0.,
+                events: vec![]
+            }
+        )
+        .is_err());
     }
     #[test]
     fn character_removal_rejects_dangling_references() {

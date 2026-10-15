@@ -34,10 +34,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     let destination = Path::new(&args[4]);
     let cancel = motion_tts::CancellationToken::new();
     let report = match args.get(5).map(String::as_str).unwrap_or("svg") {
-        "svg" if args.len() <= 6 => motion_export::export_scene(&script, index, &rendered, destination, &cancel, |_| {}),
-        "png" if args.len() <= 6 => motion_export::export_png_scene(&script, index, &rendered, destination, &cancel, |_| {}),
-        "mp4" if args.len() == 7 => motion_export::export_mp4_scene(&script, index, &rendered, destination, Path::new(&args[6]), &cancel, |_| {}),
-        _ => return Err("format must be svg/png, or mp4 with an explicit absolute FFmpeg path".into()),
+        "svg" if args.len() <= 6 => {
+            motion_export::export_scene(&script, index, &rendered, destination, &cancel, |_| {})
+        }
+        "png" if args.len() <= 6 => {
+            motion_export::export_png_scene(&script, index, &rendered, destination, &cancel, |_| {})
+        }
+        "mp4" if args.len() == 7 => motion_export::export_mp4_scene(
+            &script,
+            index,
+            &rendered,
+            destination,
+            Path::new(&args[6]),
+            &cancel,
+            |_| {},
+        ),
+        _ => {
+            return Err(
+                "format must be svg/png, or mp4 with an explicit absolute FFmpeg path".into(),
+            )
+        }
     }?;
     println!("Exported {} frames, scene.wav, scene.json and manifest.json to {}. Supplied WAV/alignment pairing is not certified.", report.frame_count, report.output_directory.display());
     Ok(())

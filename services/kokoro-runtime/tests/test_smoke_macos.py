@@ -64,6 +64,20 @@ class SmokeTests(unittest.TestCase):
         self.assertEqual(report['alignment'], 'not_aligned')
         self.assertIn('torch', report['packages'])
 
+    def test_corpus_parameters_are_forwarded_and_recorded(self):
+        def inspect_request(command, **kwargs):
+            request = json.loads(Path(command[command.index('--request') + 1]).read_text())
+            self.assertEqual(request['request']['text'], 'A different sentence.')
+            self.assertEqual(request['request']['voice']['language'], 'en-gb')
+            self.assertEqual(request['request']['voice']['speed'], 1.2)
+            return self.runtime(command, **kwargs)
+        self.assertEqual(self.run_main(side_effect=inspect_request, args=self.args +
+                         ['--text', 'A different sentence.', '--language', 'en-gb',
+                          '--speed', '1.2', '--corpus-id', 'short-02']), 0)
+        report = json.loads(self.report.read_text())
+        self.assertEqual(report['corpus']['id'], 'short-02')
+        self.assertEqual(report['provenance']['kind'], 'recorded_local_model')
+
     def test_non_mac_missing_assets_and_existing_files_rejected_before_process(self):
         with self.assertRaises(SystemExit):
             self.run_main(system='Linux')
