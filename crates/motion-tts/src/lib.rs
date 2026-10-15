@@ -6,6 +6,10 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
     process::{Command, Stdio},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
     thread,
     time::{Duration, Instant},
 };
@@ -91,8 +95,41 @@ impl From<serde_json::Error> for SpeechError {
         Self(e.to_string())
     }
 }
+/// Cooperative cancellation shared by the UI job and its speech worker.
+#[derive(Clone, Default)]
+pub struct CancellationToken(Arc<AtomicBool>);
+impl CancellationToken {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn cancel(&self) {
+        self.0.store(true, Ordering::Release);
+    }
+    pub fn is_cancelled(&self) -> bool {
+        self.0.load(Ordering::Acquire)
+    }
+    pub fn check(&self) -> Result<(), SpeechError> {
+        if self.is_cancelled() {
+            Err(SpeechError("Speech generation cancelled".into()))
+        } else {
+            Ok(())
+        }
+    }
+}
 pub trait SpeechProvider: Send + Sync {
     fn synthesize(&self, request: SpeechRequest) -> Result<SpeechResult, SpeechError>;
+    /// Providers should override this to interrupt active inference. The default
+    /// checks at the boundary, but cannot interrupt a custom blocking provider.
+    fn synthesize_cancellable(
+        &self,
+        request: SpeechRequest,
+        cancel: &CancellationToken,
+    ) -> Result<SpeechResult, SpeechError> {
+        cancel.check()?;
+        let result = self.synthesize(request)?;
+        cancel.check()?;
+        Ok(result)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -164,6 +201,14 @@ fn validate_wav(path: &Path) -> Result<(u32, u64), SpeechError> {
 }
 impl SpeechProvider for KokoroProvider {
     fn synthesize(&self, request: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+        self.synthesize_cancellable(request, &CancellationToken::new())
+    }
+    fn synthesize_cancellable(
+        &self,
+        request: SpeechRequest,
+        cancel: &CancellationToken,
+    ) -> Result<SpeechResult, SpeechError> {
+        cancel.check()?;
         request.validate()?;
         let c = &self.config;
         if c.timeout.is_zero() || c.model_version.trim().is_empty() {
@@ -193,6 +238,7 @@ impl SpeechProvider for KokoroProvider {
         let cache_directory = fs::canonicalize(&c.cache_directory)?;
         let audio_path = cache_directory.join(format!("{key}.wav"));
         let metadata_path = cache_directory.join(format!("{key}.json"));
+        cancel.check()?;
         if let Ok(bytes) = read_bounded(&metadata_path) {
             if let Ok(entry) = serde_json::from_slice::<CacheEntry>(&bytes) {
                 let mut result = entry.result;
@@ -202,6 +248,7 @@ impl SpeechProvider for KokoroProvider {
                         && result.sample_count == count
                         && fingerprint(&audio_path).is_ok_and(|digest| digest == entry.audio_sha256)
                     {
+                        cancel.check()?;
                         result.audio_path = audio_path;
                         result.cached = true;
                         return Ok(result);
@@ -226,6 +273,7 @@ impl SpeechProvider for KokoroProvider {
                     &serde_json::json!({"protocol":1,"request":request,"config_path":model_config,"model_path":model_weights,"voice_path":voice,"output_path":output}),
                 )?,
             )?;
+            cancel.check()?;
             let mut child = Command::new(&c.python)
                 .arg(&runtime_script)
                 .arg("--request")
@@ -242,6 +290,11 @@ impl SpeechProvider for KokoroProvider {
                 .map_err(|e| SpeechError(format!("cannot launch Kokoro runtime: {e}")))?;
             let start = Instant::now();
             let status = loop {
+                if let Err(error) = cancel.check() {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err(error);
+                }
                 match child.try_wait() {
                     Ok(Some(status)) => break status,
                     Ok(None) if start.elapsed() < c.timeout => {
@@ -259,6 +312,7 @@ impl SpeechProvider for KokoroProvider {
                     }
                 }
             };
+            cancel.check()?;
             let bytes = read_bounded(&response_path).map_err(|e| {
                 SpeechError(format!("runtime exited {status} without a response: {e}"))
             })?;
@@ -284,13 +338,16 @@ impl SpeechProvider for KokoroProvider {
                 cached: false,
             };
             let audio_sha256 = fingerprint(&output)?;
-            fs::rename(&output, &audio_path)?;
             let mut meta = fs::File::create(staging.join("metadata.json"))?;
             meta.write_all(&serde_json::to_vec(&CacheEntry {
                 result: result.clone(),
                 audio_sha256,
             })?)?;
             meta.sync_all()?;
+            // Publication is a short commit boundary: once begun, finish it so
+            // cancellation cannot invalidate a previously successful cache entry.
+            cancel.check()?;
+            fs::rename(&output, &audio_path)?;
             fs::rename(staging.join("metadata.json"), &metadata_path)?;
             Ok(result)
         })();
@@ -446,6 +503,109 @@ json.dump({'ok':True,'protocol':1,'phonemes':'hɛloʊ'},open(a.response,'w'))
             .unwrap();
         assert!(!provider.synthesize(request).unwrap().cached);
         fs::remove_dir_all(provider.config.model_config.parent().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn cancellation_terminates_running_sidecar_and_cleans_staging() {
+        let provider = mock_provider();
+        let root = provider.config.model_config.parent().unwrap().to_path_buf();
+        let started = root.join("started");
+        let finished = root.join("finished");
+        fs::write(
+            &provider.config.runtime_script,
+            "import pathlib,time\np=pathlib.Path(__file__).parent\n(p/'started').write_text('ready')\ntime.sleep(30)\n(p/'finished').write_text('unexpected')\n",
+        ).unwrap();
+        let cancel = CancellationToken::new();
+        let worker_cancel = cancel.clone();
+        let cache = provider.config.cache_directory.clone();
+        let worker = thread::spawn(move || {
+            provider.synthesize_cancellable(
+                SpeechRequest {
+                    text: "hello".into(),
+                    voice: VoiceSettings::default(),
+                },
+                &worker_cancel,
+            )
+        });
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !started.exists() && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(10));
+        }
+        let did_start = started.exists();
+        cancel.cancel();
+        let error = worker.join().unwrap().unwrap_err();
+        assert!(did_start, "sidecar must start before cancellation");
+        assert_eq!(error.0, "Speech generation cancelled");
+        assert!(!finished.exists());
+        assert_eq!(
+            fs::read_dir(&cache).unwrap().count(),
+            0,
+            "cancelled work must leave neither staging nor published cache entries"
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cancelled_cache_hit_preserves_success_and_does_not_launch_sidecar() {
+        let provider = mock_provider();
+        let root = provider.config.model_config.parent().unwrap().to_path_buf();
+        // The sentinel is part of an unchanged runtime identity for both calls.
+        let script = fs::read_to_string(&provider.config.runtime_script).unwrap();
+        fs::write(
+            &provider.config.runtime_script,
+            format!(
+            "import pathlib\n(pathlib.Path(__file__).parent/'launched').write_text('yes')\n{script}"
+        ),
+        )
+        .unwrap();
+        let request = SpeechRequest {
+            text: "hello".into(),
+            voice: VoiceSettings::default(),
+        };
+        let first = provider.synthesize(request.clone()).unwrap();
+        let original = fs::read(&first.audio_path).unwrap();
+        fs::remove_file(root.join("launched")).unwrap();
+        let cancel = CancellationToken::new();
+        cancel.cancel();
+        let error = provider
+            .synthesize_cancellable(request.clone(), &cancel)
+            .unwrap_err();
+        assert_eq!(error.0, "Speech generation cancelled");
+        assert!(!root.join("launched").exists());
+        assert_eq!(fs::read(&first.audio_path).unwrap(), original);
+        assert!(provider.synthesize(request).unwrap().cached);
+        assert!(!root.join("launched").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn default_provider_checks_cancellation_after_blocking_synthesis() {
+        struct BoundaryProvider(CancellationToken);
+        impl SpeechProvider for BoundaryProvider {
+            fn synthesize(&self, _: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+                self.0.cancel();
+                Ok(SpeechResult {
+                    audio_path: PathBuf::new(),
+                    sample_rate: 24000,
+                    sample_count: 1,
+                    cache_key: "fixture".into(),
+                    phonemes: String::new(),
+                    cached: false,
+                })
+            }
+        }
+        let cancel = CancellationToken::new();
+        let provider = BoundaryProvider(cancel.clone());
+        let error = provider
+            .synthesize_cancellable(
+                SpeechRequest {
+                    text: "hello".into(),
+                    voice: VoiceSettings::default(),
+                },
+                &cancel,
+            )
+            .unwrap_err();
+        assert_eq!(error.0, "Speech generation cancelled");
     }
 
     #[test]

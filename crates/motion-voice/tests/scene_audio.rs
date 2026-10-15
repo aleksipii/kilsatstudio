@@ -269,3 +269,62 @@ fn rejects_oversized_scene_before_inference_and_same_actor_overlap() {
         .to_string()
         .contains("overlapping dialogue for the same actor"));
 }
+
+#[test]
+fn cancellation_stops_scene_preparation_and_fresh_retry_succeeds() {
+    use motion_tts::CancellationToken;
+    use motion_voice::scene_audio::prepare_scene_with_cancellation;
+    let provider = Fixture::new();
+    let cancel = CancellationToken::new();
+    cancel.cancel();
+    let prepare = |cancel: &CancellationToken| {
+        prepare_scene_with_cancellation(
+            &script(),
+            1,
+            std::path::Path::new("."),
+            &provider,
+            &BTreeMap::new(),
+            cancel,
+            |_| {},
+        )
+    };
+    assert!(prepare(&cancel).err().unwrap().0.contains("cancel"));
+    assert_eq!(provider.calls.load(Ordering::SeqCst), 0);
+    let cancel = CancellationToken::new();
+    let result = prepare_scene_with_cancellation(
+        &script(),
+        1,
+        std::path::Path::new("."),
+        &provider,
+        &BTreeMap::new(),
+        &cancel,
+        |_| cancel.cancel(),
+    );
+    assert!(result.err().unwrap().0.contains("cancel"));
+    assert_eq!(provider.calls.load(Ordering::SeqCst), 1);
+    assert!(prepare(&CancellationToken::new()).is_ok());
+    assert_eq!(provider.calls.load(Ordering::SeqCst), 3);
+}
+
+#[test]
+fn cancellation_after_final_progress_prevents_publishing_scene() {
+    use motion_tts::CancellationToken;
+    use motion_voice::scene_audio::prepare_scene_with_cancellation;
+    let provider = Fixture::new();
+    let cancel = CancellationToken::new();
+    let result = prepare_scene_with_cancellation(
+        &script(),
+        1,
+        std::path::Path::new("."),
+        &provider,
+        &BTreeMap::new(),
+        &cancel,
+        |p| {
+            if p.completed == p.total {
+                cancel.cancel();
+            }
+        },
+    );
+    assert!(result.err().unwrap().0.contains("cancel"));
+    assert_eq!(provider.calls.load(Ordering::SeqCst), 2);
+}

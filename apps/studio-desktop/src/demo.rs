@@ -3,6 +3,7 @@ use motion_lipsync::{Alignment, AlignmentSource, TimedPhoneme};
 use std::{
     collections::BTreeMap,
     path::{Path, PathBuf},
+    sync::atomic::{AtomicU64, Ordering},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -17,10 +18,8 @@ impl DemoAssets {
             .duration_since(UNIX_EPOCH)
             .map_err(|e| e.to_string())?
             .as_nanos();
-        let root =
-            std::env::temp_dir().join(format!("kilsat-sound-check-{}-{nonce}", std::process::id()));
-        // create_dir deliberately refuses to reuse any existing directory.
-        std::fs::create_dir(&root).map_err(|e| format!("Create sound-check directory: {e}"))?;
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        let root = create_directory(&std::env::temp_dir(), nonce, &NEXT)?;
         let demo = Self {
             root,
             source: SOURCE.into(),
@@ -50,6 +49,26 @@ impl DemoAssets {
         Ok(demo)
     }
 }
+// Exclusive creation retains ownership even when timestamps repeat or stale folders exist.
+fn create_directory(parent: &Path, nonce: u128, next: &AtomicU64) -> Result<PathBuf, String> {
+    for _ in 0..128 {
+        let sequence = next.fetch_add(1, Ordering::Relaxed);
+        let root = parent.join(format!(
+            "kilsat-sound-check-{}-{nonce}-{sequence}",
+            std::process::id()
+        ));
+        match std::fs::create_dir(&root) {
+            Ok(()) => return Ok(root),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(format!("Create sound-check directory: {error}")),
+        }
+    }
+    Err(
+        "Create sound-check directory: could not reserve a unique directory after 128 attempts"
+            .into(),
+    )
+}
+
 impl Drop for DemoAssets {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
@@ -142,6 +161,38 @@ mod tests {
         }
         drop(demo);
         assert!(!root.exists());
+    }
+    #[test]
+    fn collision_is_retried_without_reusing_or_removing_existing_assets() {
+        let owner = DemoAssets::create().unwrap();
+        let next = AtomicU64::new(0);
+        let occupied = create_directory(&owner.root, 42, &next).unwrap();
+        std::fs::write(occupied.join("owned"), b"keep").unwrap();
+        next.store(0, Ordering::Relaxed);
+        let fresh = create_directory(&owner.root, 42, &next).unwrap();
+        assert_ne!(occupied, fresh);
+        assert_eq!(std::fs::read(occupied.join("owned")).unwrap(), b"keep");
+    }
+    #[test]
+    fn simultaneous_demos_have_independent_lifetimes() {
+        let handles: Vec<_> = (0..8)
+            .map(|_| std::thread::spawn(DemoAssets::create))
+            .collect();
+        let mut demos: Vec<_> = handles
+            .into_iter()
+            .map(|h| h.join().unwrap().unwrap())
+            .collect();
+        let paths: std::collections::BTreeSet<_> = demos.iter().map(|d| d.root.clone()).collect();
+        assert_eq!(paths.len(), demos.len());
+        let removed = demos.pop().unwrap();
+        let removed_path = removed.root.clone();
+        drop(removed);
+        assert!(!removed_path.exists());
+        for demo in &demos {
+            assert!(demo.root.join("emma.wav").is_file());
+        }
+        let recreated = DemoAssets::create().unwrap();
+        assert!(!paths.contains(&recreated.root));
     }
     #[test]
     fn bundled_runtime_is_resolved_without_working_directory() {

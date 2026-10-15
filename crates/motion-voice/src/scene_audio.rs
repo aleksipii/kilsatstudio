@@ -2,7 +2,7 @@
 use crate::{dialogue_jobs, export, timeline::DialogueClip};
 use motion_lipsync::Alignment;
 use motion_script::Script;
-use motion_tts::{SpeechError, SpeechProvider};
+use motion_tts::{CancellationToken, SpeechError, SpeechProvider};
 use std::{collections::BTreeMap, path::Path};
 
 pub struct PreparedScene {
@@ -29,8 +29,31 @@ pub fn prepare_scene(
     project_root: &Path,
     provider: &dyn SpeechProvider,
     alignments: &BTreeMap<u64, Alignment>,
+    progress: impl FnMut(SceneProgress),
+) -> Result<PreparedScene, SpeechError> {
+    prepare_scene_with_cancellation(
+        script,
+        scene_index,
+        project_root,
+        provider,
+        alignments,
+        &CancellationToken::default(),
+        progress,
+    )
+}
+
+/// Cancellation is checked at stage boundaries; partial scenes are never returned.
+#[allow(clippy::too_many_arguments)]
+pub fn prepare_scene_with_cancellation(
+    script: &Script,
+    scene_index: usize,
+    project_root: &Path,
+    provider: &dyn SpeechProvider,
+    alignments: &BTreeMap<u64, Alignment>,
+    cancel: &CancellationToken,
     mut progress: impl FnMut(SceneProgress),
 ) -> Result<PreparedScene, SpeechError> {
+    cancel.check()?;
     let scene = script
         .scenes
         .get(scene_index)
@@ -56,6 +79,7 @@ pub fn prepare_scene(
     let total = jobs.len();
     let mut clips = Vec::with_capacity(total);
     for job in jobs {
+        cancel.check()?;
         let context = |error: SpeechError| {
             SpeechError(format!(
                 "scene {} dialogue {} ({}): {}",
@@ -65,11 +89,12 @@ pub fn prepare_scene(
         let result = match &job.imported_audio {
             Some(path) => super::imported(path),
             None => std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                provider.synthesize(job.request.clone())
+                provider.synthesize_cancellable(job.request.clone(), cancel)
             }))
             .unwrap_or_else(|_| Err(SpeechError("speech provider panicked; job failed".into()))),
         }
         .map_err(context)?;
+        cancel.check()?;
         let clip = DialogueClip::prepare(&job, &result, alignments.get(&job.id).cloned())
             .map_err(context)?;
         if clips.iter().any(|existing: &DialogueClip| {
@@ -90,7 +115,9 @@ pub fn prepare_scene(
             actor: job.actor,
         });
     }
+    cancel.check()?;
     let rendered = export::render_scene(&scene.id, scene.duration, &clips)?;
+    cancel.check()?;
     Ok(PreparedScene {
         scene_id: scene.id.clone(),
         rendered,
