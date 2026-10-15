@@ -93,10 +93,10 @@ user-managed path; the application never starts a download.
 
 | Requirement | Status |
 | --- | --- |
-| MotionScript → local synthesis request | Implemented; Rust not compiled here |
+| MotionScript → local synthesis request | Implemented; Rust checks/tests passed on Linux |
 | Kokoro English WAV on macOS CPU | Backend authored; not executed |
-| Individual cached audio asset | Implemented; Rust cache tests unexecuted |
-| Correct scene placement / mixing | Implemented sample math and tests; Rust tests unexecuted |
+| Individual cached audio asset | Implemented; cache tests passed on Linux |
+| Correct scene placement / mixing | Implemented; sample-placement tests passed on Linux |
 | Validated mouth timing | Structural/manual alignment only; perceptual quality pending |
 | Playback / UI preview selection / physical device sync | Adapter and UI pending |
 | Waveform preview | Peak extraction only; UI pending |

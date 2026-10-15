@@ -64,14 +64,12 @@ cargo test --workspace
 python3 -m unittest discover -s services/kokoro-runtime/tests -v
 ```
 
-Python protocol tests: **4 passed** in the supplied Linux environment. Rust
-checks were attempted but could not run: the downloaded toolchain requires
-`/proc/self/exe`, unavailable here, and its compiler could not load LLVM. Rust
-source has not been compiler-verified or rustfmt-verified. Run formatting and
-checks before committing. Cargo.lock was generated successfully against crates.io;
-this confirms dependency resolution, not compilation.
-The included CI runs on Linux and macOS once the source is pushed; no CI result
-is claimed.
+Python protocol tests: **4 passed**. After repairing a truncated local LLVM
+library, `cargo check --workspace` and `cargo test --workspace` passed on Linux
+(**13 Rust tests**, plus doc tests). Source was formatted with the toolchain's
+`rustfmt` directly; Cargo's formatter wrapper requires `/proc/self/exe`, which is
+unavailable in this sandbox. Cargo.lock was generated against crates.io.
+Linux/macOS CI provides the standard wrapper checks once pushed.
 
 Actual Kokoro synthesis and macOS/Apple Silicon execution have not been tested.
 No native Rust inference, Metal, MPS or Core ML acceleration is claimed. See the
