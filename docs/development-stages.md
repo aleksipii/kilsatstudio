@@ -7,15 +7,16 @@ kilsatstudio1.0 without force-pushing or discarding changes when synchronizing.
 | Stage | Deliverable | Verification gate |
 | --- | --- | --- |
 | 1: audio foundation | Provider, CPU sidecar, cache, YAML dialogue, frame mix and manual mouth tracks | Merged PR #2; Linux/macOS CI passed |
-| 2: dialogue workbench | Editor Open/Save, waveform/scrub preview, external alignment import, stronger cache/runtime checks | PR #3; Linux/macOS CI passed; awaiting merge approval |
-| 3: playback and export | macOS output worker, frame transport, scene WAV + sample-viseme JSON | Local tests and platform CI; actual device validation remains required |
-| 4: scene foundation | MotionScript movement/expressions/wave, deterministic evaluator, original Emma preview and complete Kokoro master prompt | Compiler/scene/dialogue tests and platform CI; actual GUI test remains pending |
-| 5: full-scene dialogue | Prepare all lines off UI, mix leading silence/overlaps, source-clock scene playback and all actor mouths | Synthetic/imported pipeline tests and platform CI; real device validation remains pending |
+| 2: dialogue workbench | Editor Open/Save, waveform/scrub preview, external alignment import, stronger cache/runtime checks | Merged PR #3; Linux/macOS CI passed |
+| 3: playback and export | macOS output worker, frame transport, scene WAV + sample-viseme JSON | Merged PR #4; Linux/macOS CI passed; actual device validation remains required |
+| 4: scene foundation | MotionScript movement/expressions/wave, deterministic evaluator, original Emma preview and complete Kokoro master prompt | Merged PR #5; Linux/macOS CI passed; actual GUI test remains pending |
+| 5: full-scene dialogue | Prepare all lines off UI, mix leading silence/overlaps, source-clock scene playback and all actor mouths | Merged PR #6; Linux/macOS CI passed; real device validation remains pending |
 | 6: real Mac acceptance | Run local Kokoro CPU smoke with approved preinstalled assets, exercise device/seek/pause and measure mouth boundaries | Record machine/runtime versions, WAV and timing evidence; never infer success from mocks |
 | 7: rendered output | Connect character mouth rig and frame renderer to the same sample clock; encode synchronized video | Compare rendered frame boundaries and exported audio; test cancellation and errors |
 
-Stage 3 is built on the Stage 2 branch while its review is pending. Merge stages
-in order after approval. Recheck branch heads before advancing the release branch.
+Stages 1–5 were reviewed as sequential PRs and merged in dependency order after
+approval. Recheck branch heads before advancing the release branch. Later stages
+remain subject to their own implementation, validation and merge approval.
 
 ## Stage 3 contracts
 
