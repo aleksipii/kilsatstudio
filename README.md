@@ -130,7 +130,7 @@ or video**. Pose export refuses an existing output path and caps frame/actor wor
 
 ## Validation and remaining work
 
-Latest executed local validation: **46 Rust tests plus doc tests** and **11 Python
+Latest executed local validation: **47 Rust tests plus doc tests** and **11 Python
 tests** passed. Formatting, workspace compilation and strict all-target Clippy
 passed. Imported-audio CLI checks verified waveform contents, silence and dialogue
 placements against the exported manifest. Pose sampling checked 288 demo frames
