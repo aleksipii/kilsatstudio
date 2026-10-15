@@ -239,6 +239,57 @@ pub fn export_png_scene(
     )
 }
 
+// Conservative raster working-set estimate: pixmap, encoder buffers and retained
+// result. Large frames automatically reduce concurrency; no frame-sized thread fanout.
+fn frame_jobs(script: &Script, png: bool) -> motion_jobs::Config {
+    let bytes = if png {
+        u64::from(script.project.width) * u64::from(script.project.height) * 16 + 1024 * 1024
+    } else {
+        4 * 1024 * 1024
+    };
+    let workers = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .min(4)
+        .min((320 * 1024 * 1024 / bytes).max(1) as usize);
+    motion_jobs::Config {
+        workers,
+        batch_size: workers,
+    }
+}
+
+fn encode_frame(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    i: u64,
+    png: bool,
+    cancel: &CancellationToken,
+) -> Result<(u64, f64, Vec<u8>), Error> {
+    check(cancel)?;
+    let sample = i
+        .checked_mul(SAMPLE_RATE as u64)
+        .ok_or_else(|| invalid("frame clock overflow"))?
+        / script.project.fps as u64;
+    let time = sample as f64 / SAMPLE_RATE as f64;
+    let pose =
+        motion_scene::evaluate(script, scene_index, time).map_err(|e| invalid(e.to_string()))?;
+    let svg = motion_render::render_svg_with_mouths(
+        &pose,
+        pose.width,
+        pose.height,
+        &mouths_at(&rendered.manifest, sample),
+    )
+    .map_err(|e| invalid(e.to_string()))?;
+    check(cancel)?;
+    let encoded = if png {
+        media::rasterize(&svg)?
+    } else {
+        svg.into_bytes()
+    };
+    check(cancel)?;
+    Ok((sample, time, encoded))
+}
+
 fn export_sequence(
     script: &Script,
     scene_index: usize,
@@ -280,49 +331,43 @@ fn export_sequence(
             total_frames: total,
         });
         let mut frames = Vec::with_capacity(total as usize);
-        for i in 0..total {
-            check(cancel)?;
-            let sample = i
-                .checked_mul(SAMPLE_RATE as u64)
-                .ok_or_else(|| invalid("frame clock overflow"))?
-                / script.project.fps as u64;
-            // A sub-sample final visual frame may fall at rounded audio EOF.
-            // At EOF no dialogue mouth is active; the pose still uses this clock.
-            let time = sample as f64 / SAMPLE_RATE as f64;
-            let pose = motion_scene::evaluate(script, scene_index, time)
-                .map_err(|e| invalid(e.to_string()))?;
-            let svg = motion_render::render_svg_with_mouths(
-                &pose,
-                pose.width,
-                pose.height,
-                &mouths_at(&rendered.manifest, sample),
-            )
-            .map_err(|e| invalid(e.to_string()))?;
-            let encoded = if png {
-                media::rasterize(&svg)?
-            } else {
-                svg.into_bytes()
-            };
-            bytes = bytes
-                .checked_add(encoded.len() as u64)
-                .ok_or_else(|| invalid("byte budget overflow"))?;
-            if bytes > MAX_BYTES {
-                return Err(invalid("output exceeds 256 MiB byte budget"));
-            }
-            let extension = if png { "png" } else { "svg" };
-            let file = format!("frame_{i:06}.{extension}");
-            write_new(&destination.join(&file), &encoded)?;
-            frames.push(Frame {
-                frame: i,
-                sample_frame: sample,
-                time_seconds: time,
-                file,
-            });
-            progress(Progress {
-                completed_frames: i + 1,
-                total_frames: total,
-            });
-        }
+        let config = frame_jobs(script, png);
+        motion_jobs::ordered_map(
+            total as usize,
+            config,
+            || cancel.is_cancelled(),
+            |i| encode_frame(script, scene_index, rendered, i as u64, png, cancel),
+            |i, (sample, time, encoded)| {
+                check(cancel)?;
+                let i = i as u64;
+                bytes = bytes
+                    .checked_add(encoded.len() as u64)
+                    .ok_or_else(|| invalid("byte budget overflow"))?;
+                if bytes > MAX_BYTES {
+                    return Err(invalid("output exceeds 256 MiB byte budget"));
+                }
+                let extension = if png { "png" } else { "svg" };
+                let file = format!("frame_{i:06}.{extension}");
+                write_new(&destination.join(&file), &encoded)?;
+                frames.push(Frame {
+                    frame: i,
+                    sample_frame: sample,
+                    time_seconds: time,
+                    file,
+                });
+                progress(Progress {
+                    completed_frames: i + 1,
+                    total_frames: total,
+                });
+                Ok(())
+            },
+        )
+        .map_err(|error| match error {
+            motion_jobs::JobError::Cancelled => Error::Cancelled,
+            motion_jobs::JobError::Task(error) => error,
+            motion_jobs::JobError::Panic => invalid("frame worker panicked"),
+            motion_jobs::JobError::InvalidConfig => invalid("invalid frame worker budget"),
+        })?;
         check(cancel)?;
         let manifest = bounded_json(
             &serde_json::json!({
@@ -451,6 +496,47 @@ mod tests {
         };
         (script, rendered)
     }
+    #[test]
+    fn parallel_sequences_match_serial_frame_bytes_and_progress() {
+        let (mut script, rendered) = fixture();
+        script.project.fps = 13;
+        for png in [false, true] {
+            let dest = destination();
+            let token = CancellationToken::new();
+            let mut completed = Vec::new();
+            export_sequence(
+                &script,
+                0,
+                &rendered,
+                &dest,
+                &token,
+                &mut |p| completed.push(p.completed_frames),
+                png,
+            )
+            .unwrap();
+            assert_eq!(completed, (0..=13).collect::<Vec<_>>());
+            for i in 0..13 {
+                let (_, _, expected) = encode_frame(&script, 0, &rendered, i, png, &token).unwrap();
+                let extension = if png { "png" } else { "svg" };
+                assert_eq!(
+                    fs::read(dest.join(format!("frame_{i:06}.{extension}"))).unwrap(),
+                    expected
+                );
+            }
+            fs::remove_dir_all(dest).unwrap();
+        }
+    }
+
+    #[test]
+    fn raster_working_set_reduces_concurrency_for_large_frames() {
+        let (mut script, _) = fixture();
+        script.project.width = 4000;
+        script.project.height = 4000;
+        let config = frame_jobs(&script, true);
+        assert_eq!(config.workers, 1);
+        assert_eq!(config.batch_size, 1);
+    }
+
     #[test]
     fn png_decodes_dimensions_and_cancellation_cleans_output() {
         let (mut s, r) = fixture();

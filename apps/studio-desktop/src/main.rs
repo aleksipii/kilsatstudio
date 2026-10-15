@@ -1,4 +1,6 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
+mod asset_worker;
+mod composition_editor;
 mod demo;
 mod edit_history;
 mod event_editor;
@@ -67,6 +69,13 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    asset_worker: asset_worker::Worker,
+    asset_pending: Option<(String, String, motion_project::ProjectDocument)>,
+    asset_undo: Option<motion_project::ProjectDocument>,
+    asset_id: String,
+    asset_path: String,
+    asset_kind: usize,
+    asset_dirty: bool,
     lifecycle_id: String,
     lifecycle_asset: String,
     lifecycle_delete: Option<(bool, String, String)>,
@@ -171,6 +180,13 @@ impl Default for Studio {
             }
         });
         Self {
+            asset_worker: asset_worker::Worker::new(),
+            asset_pending: None,
+            asset_undo: None,
+            asset_id: String::new(),
+            asset_path: String::new(),
+            asset_kind: 0,
+            asset_dirty: false,
             lifecycle_id: String::new(),
             lifecycle_asset: "procedural".into(),
             lifecycle_delete: None,
@@ -278,7 +294,7 @@ impl Studio {
                 ui.weak("Asset references are preserved; this preview renders procedural rigs.");
                 let id = self.lifecycle_id.trim().to_string();
                 if ui.button("Add scene").clicked() {
-                    let result = motion_script::add_scene(&self.source, motion_script::Scene { id: id.clone(), duration: 5.0, background: None, events: vec![] });
+                    let result = motion_script::add_scene(&self.source, motion_script::Scene { composition: Default::default(), id: id.clone(), duration: 5.0, background: None, events: vec![] });
                     self.apply_structure(result);
                 }
                 if ui.button("Duplicate selected scene").clicked() {
@@ -343,7 +359,9 @@ impl Studio {
             && script.project.width == draft.project.width
             && script.project.height == draft.project.height
             && scene.id == draft.scene_id
-            && scene.duration == draft.duration_seconds;
+            && scene.duration == draft.duration_seconds
+            && serde_json::to_value(&scene.composition).ok()
+                == serde_json::to_value(&draft.composition).ok();
         if unchanged {
             self.settings_error = None;
             self.status = "Project and scene settings unchanged.".into();
@@ -355,7 +373,10 @@ impl Studio {
             draft.project.clone(),
             &draft.scene_id,
             draft.duration_seconds,
-        ) {
+        )
+        .and_then(|source| {
+            motion_script::apply_composition(&source, draft.scene_index, draft.composition.clone())
+        }) {
             Ok(source) => source,
             Err(error) => {
                 self.settings_error = Some(error.to_string());
@@ -833,6 +854,8 @@ impl Studio {
         match demo::DemoAssets::create() {
             Ok(assets) => {
                 self.project_document = None;
+                self.asset_undo = None;
+                self.asset_dirty = false;
                 self.source = assets.source.clone();
                 self.history.reset(&self.source);
                 self.pending_text_edit = None;
@@ -939,6 +962,8 @@ impl Studio {
                 Ok((doc, root)) => {
                     self.source = doc.source.clone();
                     self.project_document = Some(doc);
+                    self.asset_undo = None;
+                    self.asset_dirty = false;
                     self.project_root = root;
                     self.history.reset(&self.source);
                     self.pending_text_edit = None;
@@ -969,6 +994,8 @@ impl Studio {
         match result {
             Ok(source) => {
                 self.project_document = None;
+                self.asset_undo = None;
+                self.asset_dirty = false;
                 self.source = source;
                 self.history.reset(&self.source);
                 self.pending_text_edit = None;
@@ -1016,7 +1043,10 @@ impl Studio {
             match result {
                 Ok(doc) => {
                     self.project_document = Some(doc);
+                    self.asset_undo = None;
+                    self.asset_dirty = false;
                     self.flush_text_edit();
+                    self.asset_dirty = false;
                     self.status = "Saved versioned project and asset inventory.".into();
                 }
                 Err(error) => self.status = format!("Save project: {error}"),
@@ -1294,6 +1324,22 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        if let Some(result) = self.asset_worker.poll() {
+            self.busy = false;
+            if let Some((source, path, previous)) = self.asset_pending.take() {
+                match result {
+                    Ok(document) if self.source == source && self.script_path == path => {
+                        self.asset_undo = Some(previous);
+                        self.project_document = Some(document);
+                        self.asset_dirty = true;
+                        self.status = "Asset inventory updated; Save .kilsat to persist. Physical files are never removed by inventory removal.".into();
+                    }
+                    Ok(_) => self.status = "Project changed during asset operation; inventory result discarded. Imported files remain available on disk.".into(),
+                    Err(error) => self.status = format!("Asset operation: {error}"),
+                }
+            }
+        }
+
         while let Some(update) = self.exporter.poll() {
             match update {
                 export_worker::Update::Progress(progress) => {
@@ -1817,6 +1863,74 @@ impl Studio {
             });
     }
 
+    fn start_asset(&mut self, operation: asset_worker::Operation) {
+        if self.busy || self.export_busy || self.diagnostics_busy {
+            return;
+        }
+        if Path::new(&self.script_path)
+            .extension()
+            .is_none_or(|e| e != "kilsat")
+            || self.project_document.is_none()
+        {
+            self.status = "Save this project as .kilsat before managing local assets.".into();
+            return;
+        }
+        let parent = Path::new(&self.script_path)
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+            .unwrap_or(Path::new("."));
+        let roots_match = std::fs::canonicalize(parent)
+            .ok()
+            .zip(std::fs::canonicalize(&self.project_root).ok())
+            .is_some_and(|(root, configured)| root == configured);
+        if !roots_match {
+            self.status = "Asset operations require the .kilsat path beside the configured project root. Open or save the intended project first.".into();
+            return;
+        }
+        let mut document = self.project_document.clone().unwrap();
+        document.source = self.source.clone();
+        if let Err(error) = document.validate() {
+            self.status = error.to_string();
+            return;
+        }
+        let task = asset_worker::Task {
+            project_path: self.script_path.clone().into(),
+            document: document.clone(),
+            operation,
+        };
+        match self.asset_worker.start(task) {
+            Ok(()) => {
+                self.asset_pending =
+                    Some((self.source.clone(), self.script_path.clone(), document));
+                self.busy = true;
+                self.status = "Updating local assets on background worker…".into();
+            }
+            Err(error) => self.status = error,
+        }
+    }
+    fn assets_ui(&mut self, ui: &mut egui::Ui) {
+        egui::CollapsingHeader::new("Project asset inventory").show(ui, |ui| {
+            if let Some(document) = &self.project_document {
+                for asset in &document.assets { ui.label(format!("{} · {:?} · {}", asset.id, asset.kind, asset.path)); }
+            }
+            if self.asset_dirty { ui.label("Unsaved inventory changes"); }
+            ui.weak("Import copies a local file into the project. Relink uses a project-relative path. Remove only forgets the reference. Images are not rendered yet.");
+            ui.add_enabled_ui(!self.busy && !self.export_busy && !self.diagnostics_busy, |ui| {
+                field(ui, "Asset ID", &mut self.asset_id);
+                field(ui, "Import local path / relink project-relative path", &mut self.asset_path);
+                ui.horizontal(|ui| { ui.selectable_value(&mut self.asset_kind, 0, "Image"); ui.selectable_value(&mut self.asset_kind, 1, "Audio"); ui.selectable_value(&mut self.asset_kind, 2, "Other"); });
+                if ui.button("Import local file").clicked() {
+                    let kind = match self.asset_kind { 0 => motion_project::AssetKind::Image, 1 => motion_project::AssetKind::Audio, _ => motion_project::AssetKind::Other };
+                    self.start_asset(asset_worker::Operation::Import { source: self.asset_path.clone().into(), id: self.asset_id.clone(), kind });
+                }
+                if ui.button("Relink reference").clicked() { self.start_asset(asset_worker::Operation::Relink { id: self.asset_id.clone(), path: self.asset_path.clone() }); }
+                if ui.button("Remove reference (keeps file)").clicked() { self.start_asset(asset_worker::Operation::Remove { id: self.asset_id.clone() }); }
+                if ui.add_enabled(self.asset_undo.is_some(), egui::Button::new("Undo last inventory change")).clicked() {
+                    if let Some(mut previous) = self.asset_undo.take() { previous.source = self.source.clone(); self.project_document = Some(previous); self.asset_dirty = true; self.status = "Inventory restored; imported physical files remain on disk.".into(); }
+                }
+            });
+        });
+    }
     fn project_ui(&mut self, ui: &mut egui::Ui) {
         let previous_tab = self.editor_tab;
         ui.horizontal(|ui| {
@@ -1877,12 +1991,7 @@ impl Studio {
                 ui.label(egui::RichText::new(asset).small().color(egui::Color32::from_gray(140)));
                 ui.add_space(5.0);
             }
-            if let Some(document) = &self.project_document {
-                egui::CollapsingHeader::new("Project asset inventory").show(ui, |ui| {
-                    for asset in &document.assets { ui.label(format!("{} · {:?} · {}", asset.id, asset.kind, asset.path)); }
-                    ui.weak("Inventory references are preserved. Image assets are not yet rendered.");
-                });
-            }
+            self.assets_ui(ui);
             if self.script.is_none() {
                 ui.label("Validate MotionScript to populate the project browser.");
             }
@@ -2686,15 +2795,26 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
     let height = (width * scene.height as f32 / scene.width.max(1) as f32)
         .clamp(120.0, (ui.available_height() - 35.0).max(120.0));
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
-    let painter = ui.painter_at(rect);
-    painter.rect_filled(rect, 5.0, egui::Color32::from_rgb(24, 31, 44));
+    let mut painter = ui.painter_at(rect);
+    painter.rect_filled(rect, 5.0, egui::Color32::BLACK);
+    painter.set_opacity(scene.opacity as f32);
+    let background = egui::Color32::from_hex(&scene.background_color)
+        .unwrap_or(egui::Color32::from_rgb(24, 31, 44));
+    painter.rect_filled(rect, 5.0, background);
     let scale =
         (rect.width() / scene.width.max(1) as f32).min(rect.height() / scene.height.max(1) as f32);
     let origin = rect.center() - egui::vec2(scene.width as f32, scene.height as f32) * scale * 0.5;
     for actor in &scene.actors {
         let point = |dx: f32, dy: f32| {
-            origin + egui::vec2(actor.x as f32 + dx, actor.y as f32 + dy) * scale
+            let (x, y) = scene.camera.project(
+                actor.x + dx as f64,
+                actor.y + dy as f64,
+                scene.width,
+                scene.height,
+            );
+            origin + egui::vec2(x as f32, y as f32) * scale
         };
+        let scale = scale * scene.camera.zoom as f32;
         let stroke = egui::Stroke::new(
             (5.0 * scale).max(1.0),
             egui::Color32::from_rgb(126, 185, 226),
@@ -2764,7 +2884,7 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
             point(0.0, 45.0),
             egui::Align2::CENTER_CENTER,
             format!("{} · {}", actor.id, actor.emotion),
-            egui::FontId::proportional(12.0),
+            egui::FontId::proportional((12.0 * scene.camera.zoom as f32).max(1.0)),
             egui::Color32::WHITE,
         );
     }
@@ -2781,6 +2901,110 @@ impl Drop for Studio {
 #[cfg(test)]
 mod scene_preview_tests {
     use super::*;
+    #[test]
+    fn composition_apply_is_atomic_and_undoable() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+        studio.settings_draft_source = Some(original.clone());
+        let draft = studio.settings_draft.as_mut().unwrap();
+        draft.composition.camera.push(motion_script::CameraKey {
+            at: 0.0,
+            x: 20.0,
+            y: 10.0,
+            zoom: 1.5,
+        });
+        draft.composition.layers.insert(
+            "EMMA".into(),
+            motion_script::Layer {
+                z: 2,
+                visible: false,
+            },
+        );
+        draft.composition.background_color = "#123456".into();
+        studio.apply_settings_draft();
+        assert_ne!(studio.source, original);
+        let script = studio.script.as_ref().unwrap();
+        assert_eq!(script.scenes[0].composition.camera[0].zoom, 1.5);
+        assert!(!script.scenes[0].composition.layers["EMMA"].visible);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+        studio.settings_draft_source = Some(original.clone());
+        studio
+            .settings_draft
+            .as_mut()
+            .unwrap()
+            .composition
+            .camera
+            .push(motion_script::CameraKey {
+                at: 0.0,
+                x: 0.0,
+                y: 0.0,
+                zoom: -1.0,
+            });
+        studio.apply_settings_draft();
+        assert_eq!(studio.source, original);
+        assert!(studio.settings_error.is_some());
+    }
+    #[test]
+    fn asset_worker_remove_keeps_source_and_physical_file() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let root = std::env::temp_dir().join(format!("studio-asset-worker-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let file = root.join("image.dat");
+        std::fs::write(&file, b"retained").unwrap();
+        studio.project_root = root.to_string_lossy().into();
+        studio.script_path = root.join("project.kilsat").to_string_lossy().into();
+        let mut doc = motion_project::ProjectDocument::new(studio.source.clone()).unwrap();
+        doc.assets.push(motion_project::AssetReference {
+            id: "image".into(),
+            path: "image.dat".into(),
+            kind: motion_project::AssetKind::Other,
+        });
+        studio.project_document = Some(doc);
+        let original = studio.source.clone();
+        studio.start_asset(asset_worker::Operation::Remove { id: "image".into() });
+        assert!(studio.busy);
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.busy && Instant::now() < deadline {
+            studio.poll();
+            std::thread::yield_now();
+        }
+        assert!(!studio.busy);
+        assert!(studio.asset_dirty);
+        assert!(studio.project_document.as_ref().unwrap().assets.is_empty());
+        assert_eq!(studio.source, original);
+        assert_eq!(std::fs::read(file).unwrap(), b"retained");
+        assert_eq!(studio.asset_undo.as_ref().unwrap().assets.len(), 1);
+        studio.project_document = studio.asset_undo.take();
+        studio.asset_dirty = false;
+        studio.start_asset(asset_worker::Operation::Remove { id: "image".into() });
+        assert!(studio.busy);
+        studio.script_path = root.join("different.kilsat").to_string_lossy().into();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.busy && Instant::now() < deadline {
+            studio.poll();
+            std::thread::yield_now();
+        }
+        assert!(!studio.busy);
+        assert_eq!(studio.project_document.as_ref().unwrap().assets.len(), 1);
+        assert!(studio.asset_undo.is_none());
+        assert!(!studio.asset_dirty);
+        assert!(studio.status.contains("discarded"));
+        studio.project_root = root.join("missing-root").to_string_lossy().into();
+        studio.start_asset(asset_worker::Operation::Import {
+            source: root.join("image.dat"),
+            id: "new".into(),
+            kind: motion_project::AssetKind::Other,
+        });
+        assert!(!root.join("resources").exists());
+        assert!(!studio.busy);
+        assert!(studio.status.contains("configured project root"));
+        std::fs::remove_dir_all(root).unwrap();
+    }
     fn clip(start_frame: u64, actor: &str) -> DialogueClip {
         DialogueClip {
             actor: actor.into(),

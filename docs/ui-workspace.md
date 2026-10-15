@@ -198,3 +198,17 @@ uses the prepared scene WAV. Frame work completes before video encoding; wait
 for the finished status. See [media-export](media-export.md) for budgets and
 fractional-final-frame behavior. The preview and export now use evaluated
 procedural skeleton points; no texture-rig editor is implied.
+
+
+### Camera, layer and asset controls
+
+The composition draft edits camera keys (scene time, offsets and zoom), actor
+z-order/visibility, solid background and scene-edge fades. Apply validates the
+whole screenplay and records source history. Invalid keys leave source intact.
+The native preview and exported frames consume the same evaluated composition.
+
+The asset inventory provides explicit local import, relink and reference-only
+removal on a bounded worker. Imported files remain on disk when a reference is
+removed. Inventory changes are marked unsaved and have a separate one-step Undo;
+save `.kilsat` to persist them. These controls do not render imported textures.
+See [composition](composition.md) and [asset management](asset-management.md).

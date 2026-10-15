@@ -1,0 +1,45 @@
+# Scene composition
+
+MotionScript scenes optionally contain `composition`. Existing files default to the
+original dark background, identity camera, visible actors in ID order, and no fade.
+
+```yaml
+composition:
+  background_color: '#203040'
+  camera:
+    - {at: 0, x: 0, y: 0, zoom: 1}
+    - {at: 4, x: 100, y: 30, zoom: 1.5}
+  layers:
+    EMMA: {z: 1, visible: true}
+    ALEX: {z: -1, visible: false}
+  fade_in: 0.5
+  fade_out: 0.5
+```
+
+The camera uses scene seconds, linear interpolation and endpoint holds. Positive
+camera offsets move the viewport right/down; zoom is centered on the canvas.
+For each world point the shared transformation is:
+`canvas_center + (world_point - canvas_center - camera_offset) * zoom`.
+Camera motion affects character geometry, not the solid background color. Native
+preview and SVG/PNG/MP4 export use the same evaluated camera and actor ordering.
+Canvas clipping prevents camera motion from drawing into letterboxing.
+
+Keys must be strictly increasing within the closed scene interval, with finite
+positions bounded to one million pixels and zoom between 0.05 and 20. There are
+at most 4096 keys per scene. Layer entries must reference existing character IDs;
+actors draw in ascending z order, with ID order resolving ties. Hidden actors
+still retain their screenplay events and dialogue; visibility does not mute audio.
+
+Colors require exactly `#RRGGBB`. Fade durations must be finite, nonnegative, and
+their sum cannot exceed scene duration. Fades affect the entire visual canvas over
+black; they do not fade audio or crossfade two scenes. No independent clock or
+randomness is introduced, so seeking produces the same evaluated result as export.
+
+`motion_script::apply_composition` validates a complete candidate and returns
+normalized YAML atomically. Like the other structured editing helpers, it removes
+comments, enforces one MiB input/output bounds, and has no file side effects.
+Background asset paths remain metadata; this feature renders a solid color and
+does not load background images, masks, or external SVG files.
+
+Deleting an unused character removes its layer metadata atomically. Event references
+continue to reject deletion; no dialogue or movement events are silently removed.

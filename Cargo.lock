@@ -1594,6 +1594,7 @@ name = "motion-export"
 version = "0.1.0"
 dependencies = [
  "motion-audio",
+ "motion-jobs",
  "motion-lipsync",
  "motion-render",
  "motion-scene",
@@ -1607,11 +1608,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "motion-jobs"
+version = "0.1.0"
+
+[[package]]
 name = "motion-lipsync"
 version = "0.1.0"
 dependencies = [
+ "motion-audio",
  "serde",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]

@@ -1,4 +1,6 @@
-//! Versioned project documents. Asset resolution never downloads or copies assets.
+//! Versioned project documents and explicit, bounded local asset management.
+mod assets;
+pub use assets::{import_asset, relink_asset, remove_asset, MAX_IMPORT_BYTES};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeSet,
@@ -199,11 +201,11 @@ pub fn resolve_asset(project_path: &Path, asset: &AssetReference) -> Result<Path
 #[cfg(test)]
 mod tests {
     use super::*;
-    const SOURCE: &str =
+    pub(super) const SOURCE: &str =
         "# preserve this comment\ncharacters: {}\nscenes: [{id: intro, duration: 2, events: []}]\n";
-    struct Dir(PathBuf);
+    pub(super) struct Dir(pub(super) PathBuf);
     impl Dir {
-        fn new() -> Self {
+        pub(super) fn new() -> Self {
             let p = std::env::temp_dir().join(format!(
                 "kilsat-project-test-{}-{}",
                 std::process::id(),
