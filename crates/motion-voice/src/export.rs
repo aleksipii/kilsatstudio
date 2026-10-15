@@ -7,7 +7,7 @@ use motion_tts::SpeechError;
 use serde::{Deserialize, Serialize};
 
 pub const SAMPLE_RATE: u32 = 24_000;
-const MAX_SCENE_SECONDS: f64 = 3600.0;
+pub const MAX_SCENE_SECONDS: f64 = 3600.0;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SceneManifest {

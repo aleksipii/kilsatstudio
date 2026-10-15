@@ -66,3 +66,24 @@ drives the scene and matching actor mouth instead. Scene controls stop that sour
 before switching to silent transport; silent playback does not automatically mix
 or play all dialogue events. The waveform and standalone mouth detail remain
 available. Alignment quality and device latency still require real Mac testing.
+
+## Full-scene dialogue stage
+
+After validating a screenplay, choose a scene and prepare its dialogue. Preparation
+runs on one bounded background worker and reports completed lines. Generated and
+imported WAVs are mixed using the same `prepare_scene`/`render_scene` pipeline as
+the headless exporter. Different actors may overlap; overlapping lines from the
+same actor fail explicitly because one mouth cannot follow two tracks reliably.
+The complete scene, including leading silence, has one source clock for playback,
+movement, waveform cursor and actor mouth states. Pause/resume and seek use that
+same mixed track. macOS hardware latency and perceptual sync remain unverified.
+
+Optional scene alignment JSON maps global dialogue IDs to `Alignment` objects.
+IDs are the source-order IDs from `dialogue_jobs`, including prior scenes. Use only
+IDs belonging to the selected scene; unknown IDs fail instead of being ignored.
+Missing alignments keep the relevant mouth at rest. The single-line alignment
+field remains separate from full-scene alignments.
+
+Preparation errors include scene, dialogue ID and actor where applicable. Failed
+preparation publishes no partial playable scene; completed cached speech remains
+available for retry. No model assets are downloaded and no timestamps are invented.

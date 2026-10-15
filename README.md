@@ -14,8 +14,8 @@ and a wave gesture. No Storytold source or dependencies are used.
   content-addressed cache, corrupt-cache regeneration and subprocess timeout.
 - `motion-audio`: WAV I/O, waveform peak data and deterministic sample-frame mixing.
 - `motion-lipsync`: timed IPA alignment validation, mouth shapes and seek evaluation.
-- `motion-voice`: bounded background worker, dialogue jobs and shared audio/mouth
-  timeline placement, manual offset/trim/gain through prepared clips.
+- `motion-voice`: bounded background workers, dialogue jobs, full-scene preparation
+  and shared audio/mouth timeline placement, manual offset/trim/gain through clips.
 - `services/kokoro-runtime`: local CPU inference service with explicit asset paths and
   an opt-in macOS smoke runner.
 - `studio-desktop`: native dialogue workbench with screenplay Open/Save, validation,
@@ -87,7 +87,7 @@ python3 -m unittest discover -s services/kokoro-runtime/tests -v
 Python runtime tests: **11 passed**, including synthetic inference/WAV tests with
 stub Kokoro/PyTorch modules. No actual model was loaded. After repairing a truncated local LLVM
 library, `cargo check --workspace` and `cargo test --workspace` passed on Linux
-(**36 Rust tests**, plus doc tests across the expanded workspace). The expanded workspace also includes regression tests for external alignment import,
+(see the current stage PR for expanded test counts and platform results). The expanded workspace also includes regression tests for external alignment import,
 worker failure recovery and cache corruption. Source was formatted with the toolchain's
 `rustfmt` directly; Cargo's formatter wrapper requires `/proc/self/exe`, which is
 unavailable in this sandbox. Cargo.lock was generated against crates.io.
