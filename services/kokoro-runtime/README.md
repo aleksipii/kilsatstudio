@@ -55,8 +55,33 @@ use the separate alignment stage, never assume upstream timing is ground truth.
 ## Verification status
 
 `python3 -m unittest discover -s services/kokoro-runtime/tests -v` validates the
-stdlib protocol, malformed requests and missing assets without downloading a
-model. It does not synthesize speech. No macOS/Apple Silicon machine, model assets
+stdlib protocol, malformed requests, protected asset paths, missing G2P assets,
+network guards and the synthesis-to-WAV path. Synthesis tests use real NumPy
+with stub Torch/Kokoro modules; they verify PCM samples and CPU arguments,
+not actual speech inference. These tests skip explicitly when NumPy is absent. No macOS/Apple Silicon machine, model assets
 or audio listening/phoneme timing validation were available in this environment.
 A real offline macOS CPU WAV smoke test and release dependency/license audit are
 still required. This component therefore does not satisfy milestone 2 by itself.
+
+
+## Opt-in macOS CPU smoke test
+
+After consenting to and separately installing the dependencies and approved model,
+voice and English G2P assets, run with a new output filename:
+
+```sh
+python services/kokoro-runtime/smoke_macos.py --allow-local-inference \
+  --config /absolute/models/config.json \
+  --model /absolute/models/kokoro-v1_0.pth \
+  --voice /absolute/models/voices/af_heart.pt \
+  --output /absolute/audio/kokoro-smoke.wav
+```
+
+The runner refuses non-macOS platforms and existing outputs, uses a bounded
+runtime timeout, checks the mono PCM16 WAV, and reports the actual machine
+architecture and CPU backend. It never installs dependencies or assets. Runtime
+network guards are defense in depth inside Python, not an OS network sandbox;
+release verification should additionally run with external network access denied.
+Listen to the WAV and record the exact installed asset/dependency revisions before
+reporting speech quality or Apple Silicon compatibility. This runner does not
+validate lip synchronization, playback devices or video export.

@@ -44,8 +44,8 @@ and export use that same clock and clip offset; lipsync queries subtract the
 clip start and add the same source trim used by mixing. Dialogue duration comes
 from decoded audio. Waveform min/max bins preserve transients. Mixing supports
 overlap and gain, clips only at PCM export, and requires explicit prior sample
-rate/channel conversion. Sample-based contracts are implemented; no physical
-audio device, desktop transport, rig mouth renderer or video encoder exists yet.
+rate/channel conversion. Sample-based contracts and a native waveform/scrub workbench are implemented; no
+physical audio device output, rig mouth renderer or video encoder exists yet.
 Those adapters must use the audio device clock, reset/flush on seek and pause,
 and apply the same evaluated clip data during frame export. No independent
 wall-clock animation timer should accumulate drift.
@@ -63,8 +63,10 @@ Montreal Forced Aligner is a candidate for offline forced alignment of a known
 transcript and generated WAV; its acoustic models/dictionaries require separate
 installation, consent and license checks. See
 https://montreal-forced-aligner.readthedocs.io/en/latest/ . It has not been installed
-or benchmarked here. Importing its TextGrid/ARPAbet output requires a future
-adapter and explicit inventory conversion. Energy envelopes can drive a rough
+or benchmarked here. A strict external JSON importer now accepts declared IPA or English ARPAbet with
+explicit inventory conversion, tool/version provenance and exact audio identity,
+sample rate and frame matching. See crates/motion-lipsync/README.md. TextGrid
+conversion itself remains external. Energy envelopes can drive a rough
 open/closed mouth but cannot validate phoneme timing; not used as a substitute.
 
 Before declaring timing validated, generate an English test corpus with both
@@ -98,14 +100,14 @@ user-managed path; the application never starts a download.
 | Individual cached audio asset | Implemented; cache tests passed on Linux |
 | Correct scene placement / mixing | Implemented; sample-placement tests passed on Linux |
 | Validated mouth timing | Structural/manual alignment only; perceptual quality pending |
-| Playback / UI preview selection / physical device sync | Adapter and UI pending |
-| Waveform preview | Peak extraction only; UI pending |
+| Playback / UI preview selection / physical device sync | Native selection/scrub UI available; device playback/sync pending |
+| Waveform preview | Native waveform and duration preview available; GUI runtime untested |
 | Synchronized video export | WAV mix and mouth clock available; renderer/encoder pending |
 | Clear failures / off-UI work | Structured protocol, bounded worker and timeout implemented |
 | Apple Silicon / acceleration | Not tested; no acceleration enabled |
 | Redistribution audit / dependency lock | Cargo.lock generated; Python full lock and audit pending |
 
-Milestone 1 is a source-level foundation. Milestones 2–5 are not accepted as
+The audio foundation and native workbench are available as source. Milestones 2–5 are not accepted as
 complete; no generated speech, validated automatic alignment or desktop playback
 is claimed. This is appropriate for the currently empty repository, with explicit
 interfaces available for the other engineering workstreams.

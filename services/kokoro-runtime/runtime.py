@@ -12,15 +12,20 @@ import os
 from pathlib import Path
 import socket
 import sys
+import tempfile
 import wave
 
 MAX_TEXT = 16000
 
 
 def validate(payload):
-    if payload.get('protocol') != 1:
+    if not isinstance(payload, dict):
+        raise ValueError('request payload must be an object')
+    if type(payload.get('protocol')) is not int or payload.get('protocol') != 1:
         raise ValueError('unsupported protocol version')
     request = payload['request']
+    if not isinstance(request, dict) or not isinstance(request.get('voice'), dict):
+        raise ValueError('request and voice must be objects')
     text = request['text']
     if not isinstance(text, str) or not text.strip() or len(text.encode('utf-8')) > MAX_TEXT:
         raise ValueError('text must contain 1..16000 UTF-8 bytes')
@@ -38,6 +43,11 @@ def validate(payload):
             raise ValueError(f'missing local asset: {key}; install approved assets before synthesis')
     if not isinstance(payload['output_path'], str) or not Path(payload['output_path']).parent.is_dir():
         raise ValueError('output directory does not exist')
+    output = Path(payload['output_path'])
+    if output.exists() and not output.is_file():
+        raise ValueError('output path must be a file')
+    if any(output.resolve() == Path(payload[key]).resolve() for key in ('config_path', 'model_path', 'voice_path')):
+        raise ValueError('output path must not overwrite a local asset')
     return request
 
 
@@ -74,13 +84,20 @@ def synthesize(payload):
     voice = torch.load(payload['voice_path'], map_location='cpu', weights_only=True)
     if not isinstance(voice, torch.Tensor) or voice.dtype != torch.float32:
         raise ValueError('voice asset must be a float32 tensor')
+    if voice.ndim != 3 or voice.shape[0] < 1 or tuple(voice.shape[1:]) != (1, 256) or not torch.isfinite(voice).all():
+        raise ValueError('voice asset must contain finite [N, 1, 256] embeddings')
     chunks, phonemes = [], []
     with torch.inference_mode():
         for result in pipeline(request['text'], voice=voice, speed=request['voice']['speed']):
             audio = result.audio
             if audio is None:
                 raise ValueError('Kokoro returned no audio')
-            chunks.append(audio.detach().cpu().numpy().reshape(-1))
+            chunk = audio.detach().cpu().numpy()
+            if chunk.ndim != 1 or not len(chunk) or not np.isfinite(chunk).all():
+                raise ValueError('Kokoro returned invalid mono audio')
+            if not isinstance(result.phonemes, str):
+                raise ValueError('Kokoro returned invalid phonemes')
+            chunks.append(chunk)
             phonemes.append(result.phonemes)
     if not chunks:
         raise ValueError('Kokoro returned empty audio')
@@ -88,11 +105,19 @@ def synthesize(payload):
     if not len(audio) or not np.isfinite(audio).all():
         raise ValueError('Kokoro returned empty or nonfinite audio')
     pcm = (np.clip(audio, -1.0, 1.0) * 32767).astype('<i2')
-    with wave.open(payload['output_path'], 'wb') as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(24000)
-        wav.writeframes(pcm.tobytes())
+    output = Path(payload['output_path'])
+    # Publish only a complete WAV, preserving an existing asset on failure.
+    fd, temporary = tempfile.mkstemp(prefix='.kokoro-', suffix='.wav', dir=output.parent)
+    os.close(fd)
+    try:
+        with wave.open(temporary, 'wb') as wav:
+            wav.setnchannels(1)
+            wav.setsampwidth(2)
+            wav.setframerate(24000)
+            wav.writeframes(pcm.tobytes())
+        os.replace(temporary, output)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
     return {'ok': True, 'protocol': 1, 'sample_rate': 24000, 'sample_count': len(audio),
             'phonemes': ' '.join(phonemes), 'alignment': 'not_aligned',
             'warnings': ['Speaking style is metadata only; no emotion conditioning is applied.'] if request['voice'].get('style') else []}
