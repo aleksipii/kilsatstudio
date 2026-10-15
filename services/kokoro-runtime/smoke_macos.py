@@ -120,9 +120,13 @@ def main(argv=None):
                 raise ValueError('runtime returned a malformed response object')
             if process.returncode or not result['ok']:
                 raise ValueError(str(result.get('error', 'local inference failed; inspect runtime logs')))
+            if type(result.get('protocol')) is not int or result['protocol'] != 1:
+                raise ValueError('runtime response requires protocol version 1')
+            if type(result.get('sample_rate')) is not int or result['sample_rate'] != 24000:
+                raise ValueError('runtime response requires sample_rate 24000')
             signal = analyze_wav(staged, result.get('sample_count'))
             versions = {}
-            for package in ('kokoro', 'torch', 'numpy', 'misaki', 'huggingface-hub'):
+            for package in ('kokoro', 'torch', 'numpy', 'misaki', 'huggingface-hub', 'spacy', 'en-core-web-sm'):
                 try:
                     versions[package] = metadata.version(package)
                 except metadata.PackageNotFoundError:

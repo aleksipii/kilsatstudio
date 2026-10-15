@@ -38,7 +38,7 @@ class SmokeTests(unittest.TestCase):
     def runtime(self, command, **kwargs):
         request = json.loads(Path(command[command.index('--request') + 1]).read_text())
         wav(Path(request['output_path']))
-        Path(command[command.index('--response') + 1]).write_text(json.dumps(dict(ok=True, sample_count=4)))
+        Path(command[command.index('--response') + 1]).write_text(json.dumps(dict(protocol=1, ok=True, sample_rate=24000, sample_count=4)))
         return SimpleNamespace(returncode=0)
 
     def run_main(self, side_effect=None, system='Darwin', args=None):
@@ -90,7 +90,15 @@ class SmokeTests(unittest.TestCase):
                 self.assertFalse(self.report.exists())
 
     def test_invalid_response_shape_and_sample_count(self):
-        for result in ([], {'ok': 'yes'}, {'ok': True, 'sample_count': True}, {'ok': True, 'sample_count': 5}):
+        for result in ([], {'ok': 'yes'},
+                       {'protocol': 1, 'ok': True, 'sample_rate': 24000, 'sample_count': True},
+                       {'protocol': 1, 'ok': True, 'sample_rate': 24000, 'sample_count': 5},
+                       {'ok': True, 'sample_count': 4},
+                       {'protocol': True, 'ok': True, 'sample_rate': 24000, 'sample_count': 4},
+                       {'protocol': 2, 'ok': True, 'sample_rate': 24000, 'sample_count': 4},
+                       {'protocol': 1, 'ok': True, 'sample_count': 4},
+                       {'protocol': 1, 'ok': True, 'sample_rate': True, 'sample_count': 4},
+                       {'protocol': 1, 'ok': True, 'sample_rate': 22050, 'sample_count': 4}):
             def respond(command, **kwargs):
                 request = json.loads(Path(command[command.index('--request') + 1]).read_text())
                 wav(Path(request['output_path']))
