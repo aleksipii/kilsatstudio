@@ -1,0 +1,552 @@
+//! Bounded, cancellable SVG/audio interchange export on the shared sample clock.
+//! This is a frame sequence, not an encoded video or alignment quality certification.
+use motion_lipsync::{AlignmentSource, Viseme};
+use motion_script::Script;
+use motion_tts::CancellationToken;
+use motion_voice::export::{RenderedScene, SceneManifest, SAMPLE_RATE};
+use serde::Serialize;
+use std::{
+    collections::BTreeMap,
+    fs,
+    io::Write,
+    path::{Path, PathBuf},
+};
+
+pub const MAX_FRAMES: u64 = 10_000;
+const MAX_BYTES: u64 = 256 * 1024 * 1024;
+const MAX_SOURCE: usize = 1024 * 1024;
+const MAX_DIALOGUE: usize = 10_000;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Progress {
+    pub completed_frames: u64,
+    pub total_frames: u64,
+}
+#[derive(Debug)]
+pub struct Report {
+    pub frame_count: u64,
+    pub output_directory: PathBuf,
+}
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("scene export cancelled")]
+    Cancelled,
+    #[error("invalid scene export: {0}")]
+    Invalid(String),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
+}
+fn invalid(message: impl Into<String>) -> Error {
+    Error::Invalid(message.into())
+}
+fn check(cancel: &CancellationToken) -> Result<(), Error> {
+    if cancel.is_cancelled() {
+        Err(Error::Cancelled)
+    } else {
+        Ok(())
+    }
+}
+
+/// Select already-trimmed, scene-relative half-open viseme intervals. Validation
+/// happens before export; gaps, pre-roll and clip ends always evaluate to Rest.
+fn mouths_at(manifest: &SceneManifest, sample: u64) -> Vec<(&str, Viseme)> {
+    manifest
+        .dialogue
+        .iter()
+        .filter_map(|clip| {
+            if sample < clip.start_frame || sample >= clip.start_frame + clip.duration_frames {
+                return None;
+            }
+            let mouth = clip
+                .visemes
+                .iter()
+                .find(|v| v.start_frame <= sample && sample < v.end_frame)
+                .map(|v| v.viseme)
+                .unwrap_or(Viseme::Rest);
+            Some((clip.actor.as_str(), mouth))
+        })
+        .collect()
+}
+
+fn validate(script: &Script, index: usize, rendered: &RenderedScene) -> Result<u64, Error> {
+    let events = script
+        .scenes
+        .iter()
+        .fold(0usize, |n, scene| n.saturating_add(scene.events.len()));
+    if events > 10_000 || script.characters.len() > 256 || script.scenes.len() > 10_000 {
+        return Err(invalid("actor, scene or event count budget exceeded"));
+    }
+    bounded_json(script, MAX_SOURCE)?;
+    script.validate().map_err(|e| invalid(e.to_string()))?;
+    let scene = script
+        .scenes
+        .get(index)
+        .ok_or_else(|| invalid("missing scene index"))?;
+    let count = motion_scene::frame_count(scene.duration, script.project.fps, MAX_FRAMES)
+        .map_err(|e| invalid(e.to_string()))?;
+    if events > 10_000
+        || script.characters.len() > 256
+        || count.saturating_mul(script.characters.len() as u64) > 100_000
+        || count
+            .saturating_mul(events as u64)
+            .saturating_mul(script.characters.len() as u64 + 1)
+            > 1_000_000
+    {
+        return Err(invalid("frame, actor or event work budget exceeded"));
+    }
+    let expected_samples = (scene.duration * SAMPLE_RATE as f64).round() as u64;
+    let m = &rendered.manifest;
+    if scene.duration > motion_voice::export::MAX_SCENE_SECONDS
+        || expected_samples == 0
+        || m.schema_version != 1
+        || m.scene_id != scene.id
+        || m.sample_rate != SAMPLE_RATE
+        || m.channels != 1
+        || m.total_frames != expected_samples
+        || rendered.audio.sample_rate != SAMPLE_RATE
+        || rendered.audio.channels != 1
+        || rendered.audio.frames() as u64 != expected_samples
+    {
+        return Err(invalid(
+            "scene identity, duration, schema or 24 kHz mono audio mismatch",
+        ));
+    }
+    rendered
+        .audio
+        .validate()
+        .map_err(|e| invalid(e.to_string()))?;
+    if m.dialogue.len() > MAX_DIALOGUE {
+        return Err(invalid("too many dialogue clips"));
+    }
+    let mut tracks: BTreeMap<&str, Vec<(u64, u64)>> = BTreeMap::new();
+    let mut interval_count = 0usize;
+    for clip in &m.dialogue {
+        let end = clip
+            .start_frame
+            .checked_add(clip.duration_frames)
+            .ok_or_else(|| invalid("clip end overflow"))?;
+        if !script.characters.contains_key(&clip.actor)
+            || !clip.gain.is_finite()
+            || end > expected_samples
+            || clip
+                .trim_start_frame
+                .checked_add(clip.duration_frames)
+                .is_none()
+        {
+            return Err(invalid("unknown actor, gain, clip bounds or trim overflow"));
+        }
+        if !clip.visemes.is_empty() && clip.alignment_source.is_none() {
+            return Err(invalid("visemes require alignment provenance"));
+        }
+        if let Some(AlignmentSource::Forced { tool, version }) = &clip.alignment_source {
+            if tool.trim().is_empty()
+                || version.trim().is_empty()
+                || tool.len() > 1024
+                || version.len() > 1024
+            {
+                return Err(invalid(
+                    "forced alignment provenance requires bounded tool and version",
+                ));
+            }
+        }
+        interval_count = interval_count
+            .checked_add(clip.visemes.len())
+            .ok_or_else(|| invalid("viseme count overflow"))?;
+        if interval_count > 100_000 {
+            return Err(invalid("too many viseme intervals"));
+        }
+        let mut previous = clip.start_frame;
+        for v in &clip.visemes {
+            if v.start_frame < previous || v.start_frame >= v.end_frame || v.end_frame > end {
+                return Err(invalid(
+                    "visemes must be ordered half-open intervals inside their clip",
+                ));
+            }
+            previous = v.end_frame;
+        }
+        if clip.duration_frames > 0 {
+            tracks
+                .entry(&clip.actor)
+                .or_default()
+                .push((clip.start_frame, end));
+        }
+    }
+    if count.saturating_mul((interval_count + m.dialogue.len()) as u64) > 1_000_000 {
+        return Err(invalid("dialogue/viseme frame work budget exceeded"));
+    }
+    for track in tracks.values_mut() {
+        track.sort_unstable();
+        if track.windows(2).any(|p| p[1].0 < p[0].1) {
+            return Err(invalid("overlapping dialogue for the same actor"));
+        }
+    }
+    let first = motion_scene::evaluate(script, index, 0.0).map_err(|e| invalid(e.to_string()))?;
+    motion_render::render_svg(&first, first.width, first.height)
+        .map_err(|e| invalid(e.to_string()))?;
+    Ok(count)
+}
+
+#[derive(Serialize)]
+struct Frame {
+    frame: u64,
+    sample_frame: u64,
+    time_seconds: f64,
+    file: String,
+}
+
+/// Creates a new directory only; removes only its own partial directory on error.
+/// The caller must run this blocking operation off the UI thread.
+pub fn export_scene(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    destination: &Path,
+    cancel: &CancellationToken,
+    mut progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    check(cancel)?;
+    let total = validate(script, scene_index, rendered)?;
+    check(cancel)?;
+    let scene_json = bounded_json(&rendered.manifest, 8 * 1024 * 1024)?;
+    let source = bounded_json(script, MAX_SOURCE)?;
+    let mut bytes = (rendered.audio.frames() as u64)
+        .checked_mul(2)
+        .and_then(|v| v.checked_add(44 + scene_json.len() as u64))
+        .ok_or_else(|| invalid("byte budget overflow"))?;
+    if bytes > MAX_BYTES {
+        return Err(invalid("output exceeds 256 MiB byte budget"));
+    }
+    fs::create_dir(destination)?;
+    let result = (|| {
+        progress(Progress {
+            completed_frames: 0,
+            total_frames: total,
+        });
+        let mut frames = Vec::with_capacity(total as usize);
+        for i in 0..total {
+            check(cancel)?;
+            let sample = i
+                .checked_mul(SAMPLE_RATE as u64)
+                .ok_or_else(|| invalid("frame clock overflow"))?
+                / script.project.fps as u64;
+            // A sub-sample final visual frame may fall at rounded audio EOF.
+            // At EOF no dialogue mouth is active; the pose still uses this clock.
+            let time = sample as f64 / SAMPLE_RATE as f64;
+            let pose = motion_scene::evaluate(script, scene_index, time)
+                .map_err(|e| invalid(e.to_string()))?;
+            let svg = motion_render::render_svg_with_mouths(
+                &pose,
+                pose.width,
+                pose.height,
+                &mouths_at(&rendered.manifest, sample),
+            )
+            .map_err(|e| invalid(e.to_string()))?;
+            bytes = bytes
+                .checked_add(svg.len() as u64)
+                .ok_or_else(|| invalid("byte budget overflow"))?;
+            if bytes > MAX_BYTES {
+                return Err(invalid("output exceeds 256 MiB byte budget"));
+            }
+            let file = format!("frame_{i:06}.svg");
+            write_new(&destination.join(&file), svg.as_bytes())?;
+            frames.push(Frame {
+                frame: i,
+                sample_frame: sample,
+                time_seconds: time,
+                file,
+            });
+            progress(Progress {
+                completed_frames: i + 1,
+                total_frames: total,
+            });
+        }
+        check(cancel)?;
+        let manifest = bounded_json(
+            &serde_json::json!({
+                "schema_version":1,"format":"svg_audio_sequence","scene_id":rendered.manifest.scene_id,
+                "fps":script.project.fps,"sample_rate":SAMPLE_RATE,"frame_count":total,
+                "width":script.project.width,"height":script.project.height,"frames":frames,
+                "audio_file":"scene.wav","audio_manifest_file":"scene.json",
+                "source_project":serde_json::from_slice::<serde_json::Value>(&source)?,
+                "clock":"floor(frame * 24000 / fps)","video_encoded":false
+            }),
+            8 * 1024 * 1024,
+        )?;
+        bytes = bytes
+            .checked_add(manifest.len() as u64)
+            .ok_or_else(|| invalid("manifest byte overflow"))?;
+        if bytes > MAX_BYTES {
+            return Err(invalid("output exceeds 256 MiB byte budget"));
+        }
+        write_new(&destination.join("scene.json"), &scene_json)?;
+        // Directory is private to this invocation; reserve the WAV filename first.
+        write_new(&destination.join("scene.wav"), &[])?;
+        motion_audio::write_wav(destination.join("scene.wav"), &rendered.audio)
+            .map_err(|e| invalid(e.to_string()))?;
+        check(cancel)?;
+        write_new(&destination.join("manifest.json"), &manifest)?;
+        Ok(Report {
+            frame_count: total,
+            output_directory: destination.to_path_buf(),
+        })
+    })();
+    if result.is_err() {
+        fs::remove_dir_all(destination)
+            .map_err(|e| invalid(format!("export failed; partial-output cleanup failed: {e}")))?;
+    }
+    result
+}
+fn write_new(path: &Path, bytes: &[u8]) -> Result<(), Error> {
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)?;
+    file.write_all(bytes)?;
+    file.flush()?;
+    Ok(())
+}
+
+/// Serialize with a hard cap during writing, rather than allocating an arbitrary
+/// source/manifest and checking its size afterwards.
+fn bounded_json(value: &impl Serialize, limit: usize) -> Result<Vec<u8>, Error> {
+    struct Limited {
+        bytes: Vec<u8>,
+        limit: usize,
+    }
+    impl Write for Limited {
+        fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+            if bytes.len() > self.limit.saturating_sub(self.bytes.len()) {
+                return Err(std::io::Error::other(
+                    "JSON input/output byte budget exceeded",
+                ));
+            }
+            self.bytes.extend_from_slice(bytes);
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    let mut writer = Limited {
+        bytes: Vec::new(),
+        limit,
+    };
+    serde_json::to_writer(&mut writer, value)?;
+    Ok(writer.bytes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use motion_audio::AudioBuffer;
+    use motion_voice::export::{DialogueManifest, SampleViseme};
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    fn destination() -> PathBuf {
+        std::env::temp_dir().join(format!(
+            "kilsat-export-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ))
+    }
+    fn fixture() -> (Script, RenderedScene) {
+        let script = motion_script::parse("project: {fps: 4, width: 640, height: 360}\ncharacters:\n  EMMA: {asset: characters/emma}\n  ALEX: {asset: characters/alex}\nscenes:\n  - id: intro\n    duration: 1.0\n    events: []\n").unwrap();
+        let clip = DialogueManifest {
+            actor: "EMMA".into(),
+            start_frame: 6000,
+            duration_frames: 12000,
+            trim_start_frame: 2400,
+            gain: 1.0,
+            alignment_source: Some(AlignmentSource::Manual),
+            visemes: vec![
+                SampleViseme {
+                    start_frame: 6000,
+                    end_frame: 12000,
+                    viseme: Viseme::A,
+                },
+                SampleViseme {
+                    start_frame: 12000,
+                    end_frame: 18000,
+                    viseme: Viseme::O,
+                },
+            ],
+        };
+        let rendered = RenderedScene {
+            audio: AudioBuffer {
+                sample_rate: 24000,
+                channels: 1,
+                samples: vec![0.0; 24000],
+            },
+            manifest: SceneManifest {
+                schema_version: 1,
+                scene_id: "intro".into(),
+                sample_rate: 24000,
+                channels: 1,
+                total_frames: 24000,
+                dialogue: vec![clip],
+            },
+        };
+        (script, rendered)
+    }
+    #[test]
+    fn sample_clock_visemes_silence_and_trim_are_scene_relative() {
+        let (s, r) = fixture();
+        assert!(mouths_at(&r.manifest, 5999).is_empty());
+        assert_eq!(mouths_at(&r.manifest, 6000), vec![("EMMA", Viseme::A)]);
+        assert_eq!(mouths_at(&r.manifest, 11999), vec![("EMMA", Viseme::A)]);
+        assert_eq!(mouths_at(&r.manifest, 12000), vec![("EMMA", Viseme::O)]);
+        assert!(mouths_at(&r.manifest, 18000).is_empty());
+        let dest = destination();
+        let mut progress = vec![];
+        let report = export_scene(&s, 0, &r, &dest, &CancellationToken::new(), |p| {
+            progress.push(p)
+        })
+        .unwrap();
+        assert_eq!(report.frame_count, 4);
+        assert_eq!(progress.last().unwrap().completed_frames, 4);
+        let manifest: serde_json::Value =
+            serde_json::from_slice(&fs::read(dest.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(manifest["frames"][1]["sample_frame"], 6000);
+        assert_eq!(manifest["frames"][1]["time_seconds"], 0.25);
+        let open = fs::read_to_string(dest.join("frame_000001.svg")).unwrap();
+        assert!(open.contains("width=\"14\" height=\"14\""));
+        assert_eq!(
+            motion_audio::read_wav(dest.join("scene.wav"))
+                .unwrap()
+                .frames(),
+            24000
+        );
+        assert!(dest.join("scene.json").is_file());
+        fs::remove_dir_all(dest).unwrap();
+    }
+    #[test]
+    fn cancellation_before_and_during_export_cleans_only_owned_output() {
+        let (s, r) = fixture();
+        let dest = destination();
+        let token = CancellationToken::new();
+        token.cancel();
+        assert!(matches!(
+            export_scene(&s, 0, &r, &dest, &token, |_| {}),
+            Err(Error::Cancelled)
+        ));
+        assert!(!dest.exists());
+        let token = CancellationToken::new();
+        assert!(matches!(
+            export_scene(&s, 0, &r, &dest, &token, |p| if p.completed_frames == 1 {
+                token.cancel();
+            }),
+            Err(Error::Cancelled)
+        ));
+        assert!(!dest.exists());
+        fs::create_dir(&dest).unwrap();
+        fs::write(dest.join("keep"), b"original").unwrap();
+        assert!(export_scene(&s, 0, &r, &dest, &CancellationToken::new(), |_| {}).is_err());
+        assert_eq!(fs::read(dest.join("keep")).unwrap(), b"original");
+        fs::remove_dir_all(dest).unwrap();
+    }
+    #[test]
+    fn malformed_identity_duration_and_intervals_fail_before_output() {
+        for case in 0..10 {
+            let (s, mut r) = fixture();
+            match case {
+                0 => r.manifest.scene_id = "wrong".into(),
+                1 => r.manifest.schema_version = 2,
+                2 => {
+                    r.audio.samples.pop();
+                }
+                3 => r.manifest.dialogue[0].actor = "UNKNOWN".into(),
+                4 => r.manifest.dialogue[0].gain = f32::NAN,
+                5 => r.manifest.dialogue[0].visemes[0].start_frame = 5999,
+                6 => r.manifest.dialogue[0].visemes[1].end_frame = 18001,
+                7 => r.manifest.dialogue[0].alignment_source = None,
+                8 => r.manifest.dialogue[0].visemes[1].start_frame = 11999,
+                _ => r.manifest.dialogue[0].trim_start_frame = u64::MAX,
+            }
+            let dest = destination();
+            assert!(
+                export_scene(&s, 0, &r, &dest, &CancellationToken::new(), |_| {}).is_err(),
+                "case {case}"
+            );
+            assert!(!dest.exists());
+        }
+    }
+    #[test]
+    fn overlap_rejected_for_same_actor_but_other_actor_allowed() {
+        let (s, mut r) = fixture();
+        let mut extra: DialogueManifest =
+            serde_json::from_value(serde_json::to_value(&r.manifest.dialogue[0]).unwrap()).unwrap();
+        extra.actor = "ALEX".into();
+        r.manifest.dialogue.push(extra);
+        assert_eq!(validate(&s, 0, &r).unwrap(), 4);
+        r.manifest.dialogue[1].actor = "EMMA".into();
+        assert!(validate(&s, 0, &r).is_err());
+        r.manifest.dialogue.pop();
+        r.manifest.dialogue[0].visemes.clear();
+        assert_eq!(mouths_at(&r.manifest, 6000), vec![("EMMA", Viseme::Rest)]);
+    }
+    #[test]
+    fn non_divisor_fps_uses_integer_sample_floor() {
+        let (mut s, r) = fixture();
+        s.project.fps = 29;
+        let dest = destination();
+        export_scene(&s, 0, &r, &dest, &CancellationToken::new(), |_| {}).unwrap();
+        let m: serde_json::Value =
+            serde_json::from_slice(&fs::read(dest.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(m["frames"][1]["sample_frame"], 827);
+        assert_eq!(m["frames"][1]["time_seconds"], 827.0 / 24000.0);
+        fs::remove_dir_all(dest).unwrap();
+    }
+    #[test]
+    fn rounded_audio_eof_is_silent_for_final_visual_frame() {
+        let (mut script, mut rendered) = fixture();
+        script.project.fps = 24;
+        script.scenes[0].duration = 0.04167;
+        rendered.audio.samples.truncate(1000);
+        rendered.manifest.total_frames = 1000;
+        let clip = &mut rendered.manifest.dialogue[0];
+        clip.start_frame = 0;
+        clip.duration_frames = 1000;
+        clip.trim_start_frame = 0;
+        clip.visemes = vec![SampleViseme {
+            start_frame: 0,
+            end_frame: 1000,
+            viseme: Viseme::A,
+        }];
+        let dest = destination();
+        let report = export_scene(
+            &script,
+            0,
+            &rendered,
+            &dest,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        assert_eq!(report.frame_count, 2);
+        assert!(fs::read_to_string(dest.join("frame_000000.svg"))
+            .unwrap()
+            .contains("width=\"14\" height=\"14\""));
+        assert!(!fs::read_to_string(dest.join("frame_000001.svg"))
+            .unwrap()
+            .contains("width=\"14\" height=\"14\""));
+        fs::remove_dir_all(dest).unwrap();
+    }
+    #[test]
+    fn bounded_project_serialization_stops_before_output() {
+        let (mut script, rendered) = fixture();
+        script.project.title = "x".repeat(MAX_SOURCE + 1);
+        let dest = destination();
+        assert!(export_scene(
+            &script,
+            0,
+            &rendered,
+            &dest,
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        assert!(!dest.exists());
+    }
+}

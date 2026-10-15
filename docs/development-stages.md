@@ -12,7 +12,7 @@ kilsatstudio1.0 without force-pushing or discarding changes when synchronizing.
 | 4: scene foundation | MotionScript movement/expressions/wave, deterministic evaluator, original Emma preview and complete Kokoro master prompt | Merged PR #5; Linux/macOS CI passed; actual GUI test remains pending |
 | 5: full-scene dialogue | Prepare all lines off UI, mix leading silence/overlaps, source-clock scene playback and all actor mouths | Merged PR #6; Linux/macOS CI passed; real device validation remains pending |
 | 6: real Mac acceptance | Offline prerequisite diagnostics, opt-in CPU smoke evidence, device/seek/pause and measured mouth boundaries | Preview launch user-confirmed; real synthesis, audio and alignment still need machine/WAV/listening evidence |
-| 7a: SVG frame output | Deterministic procedural character frames with neutral mouths | Frame clock, bounded work and output safety; record checks for the exact commit |
+| 7a: SVG frame output | Deterministic procedural frames; movement-only and sample-clock audio/mouth bundle paths | Frame/sample clock, bounded work, cancellation and output safety; record checks for the exact commit |
 | 7b: encoded video | Encode frames and mux scene WAV on the same clock | Not implemented by SVG export; verify duration, audio sync and failure recovery |
 
 Stages 1–5 were reviewed as sequential PRs and merged in dependency order after
@@ -76,9 +76,11 @@ perceptual alignment acceptance is established by metadata, hashes or stub tests
 
 The next rendered-output increment is a bounded headless SVG sequence, documented
 in [frame export](frame-export.md). It uses the existing scene evaluator and
-project frame rate with procedural character artwork. Mouths remain neutral;
-audio/viseme manifest import is not connected to this exporter. Rendering neither
-performs Kokoro inference nor produces phoneme timestamps.
+project frame rate with procedural character artwork. The movement-only example
+keeps mouths neutral. A separate `motion-export` path joins prepared scene audio
+and explicit mouth intervals at `floor(frame × 24000 / fps)` samples, with bounded
+work, progress and cancellation. Rendering neither performs Kokoro inference nor
+produces phoneme timestamps.
 
 Individual SVG files and their JSON index permit inspection of movement and
 frame timing. They do not constitute encoded video, audio muxing, a production
@@ -86,3 +88,12 @@ texture rig, verified visual parity with the desktop renderer, or perceptual
 lip-sync acceptance. Real Kokoro, physical audio playback and listening evidence
 remain Stage 6 gates while encoding and synchronized media acceptance remain
 Stage 7b work. No test result is implied by this roadmap.
+
+## Studio workspace increment
+
+The [workspace guide](ui-workspace.md) describes the screenplay/asset area, scene
+preview, inspector/settings and actor timeline. Panel reorganization does not
+establish hardware playback, texture loading, a complete project asset manager or
+a production animation suite. Scene bundles preserve the existing alignment
+provenance; external WAV/JSON checks establish structure, not recording identity
+or perceptual mouth accuracy. Video encoding remains Stage 7b.

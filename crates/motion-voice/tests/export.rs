@@ -78,3 +78,33 @@ fn empty_scene_and_absent_alignment_are_explicit() {
     assert!(rendered.manifest.dialogue[0].alignment_source.is_none());
     assert!(rendered.manifest.dialogue[0].visemes.is_empty());
 }
+
+#[test]
+fn exact_sample_boundaries_match_preview_despite_float_multiplication() {
+    // 7 / 24000 * 24000 rounds slightly above 7 on IEEE doubles. Uncorrected
+    // ceil delayed both phoneme onset and release by one sample.
+    for trim in [0, 3, 7] {
+        let mut clip = clip();
+        clip.trim_start_frame = trim;
+        clip.start_frame = 2;
+        clip.alignment.as_mut().unwrap().phonemes = vec![TimedPhoneme {
+            phoneme: "a".into(),
+            start_seconds: 7.0 / 24000.0,
+            end_seconds: 14.0 / 24000.0,
+        }];
+        let rendered = render_scene("intro", 32.0 / 24000.0, std::slice::from_ref(&clip)).unwrap();
+        for frame in 0..32 {
+            let exported = rendered.manifest.dialogue[0]
+                .visemes
+                .iter()
+                .find(|v| v.start_frame <= frame && frame < v.end_frame)
+                .map(|v| v.viseme)
+                .unwrap_or(Viseme::Rest);
+            assert_eq!(
+                exported,
+                clip.mouth_at(frame).unwrap(),
+                "trim {trim}, frame {frame}"
+            );
+        }
+    }
+}

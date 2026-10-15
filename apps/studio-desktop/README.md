@@ -1,4 +1,4 @@
-# Native dialogue workbench
+# Native studio workspace
 
 Run from the repository root:
 
@@ -8,7 +8,7 @@ cargo run -p studio-desktop
 
 This native egui/eframe app edits and validates MotionScript YAML, selects dialogue,
 submits bounded background generation/import jobs, previews duration and waveform,
-and scrubs a sample-based symbolic mouth display. macOS device playback is available as the next stage below; it also renders original procedural characters with deterministic scene movement, expressions and waves. It does not export video. macOS GUI execution and real Kokoro
+and scrubs a sample-based symbolic mouth display. macOS device playback is available as described below; it also renders original procedural characters with deterministic scene movement, expressions and waves. It does not export video. macOS GUI execution and real Kokoro
 synthesis require local platform testing.
 
 Install the Kokoro CPU runtime separately following `services/kokoro-runtime`.
@@ -102,3 +102,17 @@ While dialogue or scene preparation is running, choose **Cancel generation**. Th
 
 See the [practical test guide](../../docs/practical-testing.md) for cancellation,
 retry, voice listening and cache checks.
+
+## Workspace guide
+
+See [Studio workspace](../../docs/ui-workspace.md) for screenplay, preview and
+timeline navigation, and [frame export](../../docs/frame-export.md) for rendered
+SVG output and the distinction between a frame sequence and encoded video.
+
+To export a complete prepared scene, open **Scene export · SVG + WAV** in the
+Inspector, enter a new absolute output directory, and choose **Export scene
+bundle**. Its parent must exist; existing directories are rejected. Progress and
+**Cancel export** are shown in the Inspector/status strip and toolbar respectively. Cancelling preserves prepared scene
+audio and removes partial output where possible. The sound-check demo can test
+this path without speech assets. Output is SVG frames, WAV and JSON, not encoded
+video.

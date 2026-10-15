@@ -1,5 +1,6 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
 mod demo;
+mod export_worker;
 mod playback;
 mod runtime_check;
 mod scene_worker;
@@ -17,9 +18,19 @@ use std::{
 
 fn main() -> eframe::Result {
     eframe::run_native(
-        "Kilsat Studio — Dialogue",
-        eframe::NativeOptions::default(),
-        Box::new(|_| Ok(Box::new(Studio::default()))),
+        "Kilsat Studio",
+        eframe::NativeOptions {
+            viewport: egui::ViewportBuilder::default()
+                .with_inner_size([1440.0, 900.0])
+                .with_min_inner_size([1000.0, 700.0]),
+            ..Default::default()
+        },
+        Box::new(|cc| {
+            studio_theme(&cc.egui_ctx);
+            let mut studio = Studio::default();
+            studio.validate();
+            Ok(Box::new(studio))
+        }),
     )
 }
 
@@ -34,6 +45,7 @@ struct ScenePreview {
     scene: String,
     clips: Vec<DialogueClip>,
     audio: Arc<motion_audio::AudioBuffer>,
+    manifest: Arc<motion_voice::export::SceneManifest>,
     peaks: Vec<WaveformPeak>,
 }
 struct Prepare {
@@ -44,6 +56,13 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    exporter: export_worker::Worker,
+    export_busy: bool,
+    export_path: String,
+    export_progress: Option<motion_export::Progress>,
+    selected_actor: Option<String>,
+    selected_event: Option<usize>,
+    editor_tab: bool,
     demo_assets: Option<demo::DemoAssets>,
     source: String,
     script: Option<motion_script::Script>,
@@ -119,6 +138,9 @@ impl Default for Studio {
             }
         });
         Self {
+            selected_actor: None,
+            selected_event: None,
+            editor_tab: false,
             demo_assets: None,
             source: include_str!("../../../examples/hello-emma.yaml").into(),
             script: None,
@@ -164,6 +186,10 @@ impl Default for Studio {
             diagnostics: runtime_check::Worker::new(),
             diagnostics_busy: false,
             diagnostics_report: None,
+            exporter: export_worker::Worker::new(),
+            export_busy: false,
+            export_path: String::new(),
+            export_progress: None,
         }
     }
 }
@@ -192,6 +218,7 @@ impl Studio {
         }
     }
     fn invalidate_scene(&mut self) {
+        self.selected_event = None;
         self.scene_preview = None;
         self.scene_audio_active = false;
         self.script = None;
@@ -199,6 +226,7 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.selected_event = None;
         self.stop_playback();
         self.scene_preview = None;
         self.scene_audio_active = false;
@@ -292,15 +320,6 @@ impl Studio {
         }
     }
     fn scene_audio_ui(&mut self, ui: &mut egui::Ui) {
-        if ui
-            .add_enabled(
-                self.script.is_some(),
-                egui::Button::new("Prepare full scene audio"),
-            )
-            .clicked()
-        {
-            self.prepare_scene_audio();
-        }
         let Some(preview) = &self.scene_preview else {
             return;
         };
@@ -372,75 +391,18 @@ impl Studio {
         }
     }
     fn scene_ui(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Scene preview");
-        self.scene_audio_ui(ui);
-        let mut selected = self.scene_index;
-        if let Some(script) = &self.script {
-            egui::ComboBox::from_label("Scene")
-                .selected_text(
-                    script
-                        .scenes
-                        .get(selected)
-                        .map(|s| s.id.as_str())
-                        .unwrap_or("No scene"),
-                )
-                .show_ui(ui, |ui| {
-                    for (index, scene) in script.scenes.iter().enumerate() {
-                        ui.selectable_value(&mut selected, index, &scene.id);
-                    }
-                });
-        }
-        if selected != self.scene_index {
-            self.scene_index = selected;
-            self.reset_scene();
-            self.preview = None;
-        }
-        ui.add_enabled_ui(self.scene_transport.is_some(), |ui| {
-            ui.horizontal(|ui| {
-                if ui.button("Play scene (silent)").clicked() {
-                    self.scene_audio_active = false;
-                    self.stop_playback();
-                    if let Some(t) = &mut self.scene_transport {
-                        t.seek_frame((self.playhead * 24000.0).round() as u64);
-                        t.play();
-                    }
-                    self.scene_tick = Instant::now();
-                }
-                if ui.button("Pause scene").clicked() {
-                    self.stop_playback();
-                    if let Some(t) = &mut self.scene_transport {
-                        t.pause();
-                    }
-                }
-                if ui.button("Restart scene").clicked() {
-                    self.reset_scene();
-                    if let Some(t) = &mut self.scene_transport {
-                        t.restart();
-                    }
-                }
-            });
-            if let Some(t) = &mut self.scene_transport {
-                let duration = t.duration_seconds();
-                if ui
-                    .add(
-                        egui::Slider::new(&mut self.playhead, 0.0..=duration)
-                            .text("Scene time (s)"),
-                    )
-                    .changed()
-                {
-                    t.pause();
-                    let _ = t.seek_seconds(self.playhead);
-                    if let Some(player) = &self.playback {
-                        if self.scene_audio_active {
-                            let _ = player.seek((self.playhead * 24000.0).round() as u64);
-                        } else {
-                            let _ = player.stop();
-                        }
-                    }
-                    self.scene_fraction = 0.0;
+        ui.horizontal(|ui| {
+            ui.heading("Scene");
+            if let Some(script) = &self.script {
+                if let Some(scene) = script.scenes.get(self.scene_index) {
+                    ui.weak(format!(
+                        "{}  /  {} × {}  /  {} fps",
+                        scene.id, script.project.width, script.project.height, script.project.fps
+                    ));
                 }
             }
         });
+        ui.add_space(12.0);
         if let Some(script) = &self.script {
             match motion_scene::evaluate(script, self.scene_index, self.playhead) {
                 Ok(scene) => {
@@ -469,7 +431,8 @@ impl Studio {
         } else {
             ui.label("Validate screenplay to enable deterministic scene preview.");
         }
-        ui.label("Original procedural character preview. Silent scene playback uses quantized sample time; loaded dialogue playback supplies the source clock. Device latency remains unverified.");
+        ui.add_space(8.0);
+        ui.weak("Procedural preview · sample-clock mouth animation");
     }
     fn kokoro_config(&self) -> KokoroConfig {
         KokoroConfig {
@@ -586,6 +549,31 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        while let Some(update) = self.exporter.poll() {
+            match update {
+                export_worker::Update::Progress(progress) => {
+                    self.export_progress = Some(progress);
+                    self.status = format!(
+                        "Export: {}/{} frames",
+                        progress.completed_frames, progress.total_frames
+                    );
+                }
+                export_worker::Update::Finished(result) => {
+                    self.export_busy = false;
+                    self.busy = false;
+                    self.active_cancel = None;
+                    self.export_progress = None;
+                    self.status = match result {
+                        Ok(report) => format!(
+                            "Exported {} SVG frames, scene.wav and timing manifests to {}",
+                            report.frame_count,
+                            report.output_directory.display()
+                        ),
+                        Err(error) => format!("Scene export: {error}"),
+                    };
+                }
+            }
+        }
         if let Some(report) = self.diagnostics.poll() {
             self.diagnostics_busy = false;
             self.diagnostics_report = Some(report);
@@ -628,6 +616,7 @@ impl Studio {
                                 scene: prepared.scene_id,
                                 clips: prepared.clips,
                                 audio: Arc::new(audio),
+                                manifest: Arc::new(prepared.rendered.manifest),
                                 peaks: ready.peaks,
                             });
                             self.playhead = 0.0;
@@ -767,50 +756,9 @@ fn field(ui: &mut egui::Ui, label: &str, value: &mut String) {
     ui.label(label);
     ui.text_edit_singleline(value);
 }
-impl eframe::App for Studio {
-    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
-        self.poll();
-        if self.busy
-            || self.diagnostics_busy
-            || self.playback.is_some()
-            || self
-                .scene_transport
-                .as_ref()
-                .is_some_and(|t| t.is_playing())
-        {
-            ctx.request_repaint_after(Duration::from_millis(50));
-        }
-        egui::TopBottomPanel::top("header").show(ctx, |ui| {
-            ui.heading("Kilsat Studio / Dialogue workbench");
-            ui.label(
-                "Local Kokoro CPU synthesis · imported audio fallback · sample-based mouth preview",
-            );
-            if ui.add_enabled(!self.busy && !self.diagnostics_busy, egui::Button::new("Load sound-check demo")).clicked() {
-                self.load_sound_check();
-            }
-            if self.demo_assets.is_some() {
-                ui.label("Sound-check assets: synthetic tones, not Kokoro speech. Mouth cues are illustrative manual poses, not measured alignment. Demo files are temporary; copy assets before saving a lasting project.");
-            }
-            ui.label(&self.status);
-            if self.diagnostics_busy { ui.spinner(); ui.label("Checking local Kokoro setup (up to 30 seconds)…"); }
-            if let Some(report) = &self.diagnostics_report {
-                match report { Ok(message) => { ui.label(message); }, Err(message) => { ui.colored_label(egui::Color32::LIGHT_RED, message); } }
-            }
-            if self.busy {
-                ui.spinner();
-                if let Some(cancel) = &self.active_cancel {
-                    if cancel.is_cancelled() {
-                        ui.label("Cancellation requested; waiting for the worker to stop safely…");
-                    } else if ui.button("Cancel generation").clicked() {
-                        cancel.cancel();
-                        self.status = "Cancellation requested…".into();
-                    }
-                }
-            }
-        });
-        egui::SidePanel::left("settings").min_width(300.0).show(ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+impl Studio {
+    fn runtime_ui(&mut self, ui: &mut egui::Ui) {
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                     let previous_runtime = format!("{:?}", self.kokoro_config());
                     ui.heading("Offline runtime");
                     ui.label("Supply previously installed local assets. This app never downloads model files.");
@@ -838,26 +786,10 @@ impl eframe::App for Studio {
                     ui.heading("Selected-line alignment JSON");
                     ui.label("Paste manual or external forced-alignment JSON. Blank keeps mouth at rest. Timings are structurally checked, never claimed perceptually validated.");
                     ui.add(egui::TextEdit::multiline(&mut self.alignment).desired_rows(7).char_limit(100_000).code_editor());
-                });
-            });
         });
-        egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| self.scene_ui(ui));
-                ui.separator();
-                ui.heading("MotionScript");
-                ui.label("Configure character voice preset / language / speed in YAML; optional speak.audio imports 24 kHz mono PCM16 WAV.");
-                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
-                    field(ui, "Screenplay path (Save replaces this file)", &mut self.script_path);
-                    ui.horizontal(|ui| {
-                        if ui.button("Open screenplay").clicked() { self.open_script(); }
-                        if ui.button("Save screenplay").clicked() { self.save_script(); }
-                    });
-                    if ui.add(egui::TextEdit::multiline(&mut self.source).desired_rows(17).desired_width(f32::INFINITY).char_limit(100_000).code_editor()).changed() {
-                        self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
-                        self.status = "Screenplay changed; validate before generation.".into();
-                    }
-                    if ui.button("Validate screenplay").clicked() { self.validate(); }
+    }
+    fn dialogue_ui(&mut self, ui: &mut egui::Ui) {
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                     egui::ComboBox::from_label("Dialogue event").selected_text(self.jobs.get(self.selected)
                         .map(|j| format!("{} / {} @ {:.2}s", j.scene, j.actor, j.at)).unwrap_or_else(|| "Validate first".into()))
                         .show_ui(ui, |ui| {
@@ -870,56 +802,844 @@ impl eframe::App for Studio {
                         ui.label("Offset changes apply to the next generation/import; edit YAML to persist them.");
                     }
                     if ui.add_enabled(!self.jobs.is_empty(), egui::Button::new("Generate / load selected dialogue")).clicked() { self.generate(); }
+        });
+    }
+    fn line_preview_ui(&mut self, ui: &mut egui::Ui) {
+        if let Some(preview) = &self.preview {
+            ui.separator();
+            ui.label(format!(
+                "Audio asset: {}",
+                preview.result.audio_path.display()
+            ));
+            ui.label(format!(
+                "Duration {:.3}s · {} Hz · {} frames",
+                preview.result.duration_seconds(),
+                preview.result.sample_rate,
+                preview.result.sample_count
+            ));
+            let start = preview.clip.start_frame as f64 / 24000.0;
+            let end = start + preview.clip.audio.duration_seconds();
+            if let Some(player) = &self.playback {
+                let state = player.snapshot();
+                ui.label(if state.finished {
+                    "Playback ended"
+                } else if state.playing {
+                    "Playing"
+                } else {
+                    "Paused / stopped"
                 });
-                if let Some(preview) = &self.preview {
-                    ui.separator();
-                    ui.label(format!("Audio asset: {}", preview.result.audio_path.display()));
-                    ui.label(format!("Duration {:.3}s · {} Hz · {} frames", preview.result.duration_seconds(), preview.result.sample_rate, preview.result.sample_count));
-                    let start = preview.clip.start_frame as f64 / 24000.0;
-                    let end = start + preview.clip.audio.duration_seconds();
-                    if let Some(player) = &self.playback {
-                        let state = player.snapshot();
-                        ui.label(if state.finished { "Playback ended" } else if state.playing { "Playing" } else { "Paused / stopped" });
+            }
+            ui.horizontal(|ui| {
+                if ui.button("Play from cursor").clicked() {
+                    self.scene_audio_active = false;
+                    self.playback_error = None;
+                    if let Some(clock) = &mut self.scene_transport {
+                        clock.pause();
                     }
-                    ui.horizontal(|ui| {
-                        if ui.button("Play from cursor").clicked() {
-                            self.scene_audio_active = false;
-                            self.playback_error = None;
-                            if let Some(clock) = &mut self.scene_transport { clock.pause(); }
-                            if self.playback.is_none() {
-                                match playback::Playback::new() {
-                                    Ok(player) => self.playback = Some(player),
-                                    Err(error) => self.playback_error = Some(error),
+                    if self.playback.is_none() {
+                        match playback::Playback::new() {
+                            Ok(player) => self.playback = Some(player),
+                            Err(error) => self.playback_error = Some(error),
+                        }
+                    }
+                    if let Some(player) = &self.playback {
+                        let local_frame =
+                            ((self.playhead - start).max(0.0) * 24000.0).round() as u64;
+                        if let Err(error) =
+                            player.play(Arc::clone(&preview.playback_audio), local_frame)
+                        {
+                            self.playback_error = Some(error);
+                        }
+                    }
+                }
+                if ui.button("Pause").clicked() {
+                    if let Some(p) = &self.playback {
+                        if let Err(e) = p.pause() {
+                            self.playback_error = Some(e);
+                        }
+                    }
+                }
+                if ui.button("Resume").clicked() {
+                    if let Some(p) = &self.playback {
+                        if let Err(e) = p.resume() {
+                            self.playback_error = Some(e);
+                        }
+                    }
+                }
+                if ui.button("Stop").clicked() {
+                    if let Some(p) = &self.playback {
+                        if let Err(e) = p.stop() {
+                            self.playback_error = Some(e);
+                        }
+                    }
+                    self.playhead = start;
+                }
+            });
+            if ui
+                .add(
+                    egui::Slider::new(&mut self.playhead, start..=end.max(start + 0.01))
+                        .text("Scene playhead (s)"),
+                )
+                .changed()
+            {
+                if let Some(p) = &self.playback {
+                    let local_frame = ((self.playhead - start).max(0.0) * 24000.0).round() as u64;
+                    if let Err(error) = p.seek(local_frame) {
+                        self.playback_error = Some(error);
+                    }
+                }
+            }
+            let scene_frame = (self.playhead * 24000.0).round() as u64;
+            let mouth = preview.clip.mouth_at(scene_frame).unwrap_or(Viseme::Rest);
+            ui.label(format!("Sample frame {scene_frame} · mouth {mouth:?}"));
+            waveform(ui, &preview.peaks, (self.playhead - start) / (end - start));
+            mouth_preview(ui, mouth);
+            ui.label("macOS playback uses the source playback position for mouth preview. Device latency and perceptual sync require Mac validation. Video export is not implemented.");
+            if let Some(error) = &self.playback_error {
+                ui.colored_label(egui::Color32::LIGHT_RED, error);
+            }
+            if preview.clip.alignment.is_none() {
+                ui.label(
+                    "No timed alignment: mouth stays at rest. Kokoro tokens are not timestamps.",
+                );
+            }
+        }
+    }
+    fn workspace_ui(&mut self, ctx: &egui::Context) {
+        egui::TopBottomPanel::top("studio_toolbar")
+            .exact_height(48.0)
+            .frame(
+                egui::Frame::new()
+                    .fill(egui::Color32::from_rgb(25, 29, 36))
+                    .inner_margin(10.0),
+            )
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(egui::RichText::new("K").strong().size(20.0).color(ACCENT));
+                    ui.label(egui::RichText::new("KILSAT STUDIO").strong().size(14.0));
+                    ui.separator();
+                    ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                        if ui
+                            .button("Open")
+                            .on_hover_text("Open the screenplay path in the MotionScript tab")
+                            .clicked()
+                        {
+                            self.open_script();
+                        }
+                        if ui
+                            .button("Save")
+                            .on_hover_text("Replace the screenplay file at the configured path")
+                            .clicked()
+                        {
+                            self.save_script();
+                        }
+                        if ui.button("Validate").clicked() {
+                            self.validate();
+                        }
+                        if ui
+                            .button("Load sound-check demo")
+                            .on_hover_text(
+                                "Synthetic tones and illustrative mouth cues; no model download",
+                            )
+                            .clicked()
+                        {
+                            self.load_sound_check();
+                        }
+                    });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.weak("OFFLINE / CPU");
+                        if self.busy || self.diagnostics_busy {
+                            ui.spinner();
+                        }
+                        if self.busy {
+                            if let Some(cancel) = &self.active_cancel {
+                                if cancel.is_cancelled() {
+                                    ui.label("Stopping…");
+                                } else if ui
+                                    .button(if self.export_busy {
+                                        "Cancel export"
+                                    } else {
+                                        "Cancel generation"
+                                    })
+                                    .clicked()
+                                {
+                                    cancel.cancel();
+                                    self.status = "Cancellation requested…".into();
                                 }
                             }
-                            if let Some(player) = &self.playback {
-                                let local_frame = ((self.playhead - start).max(0.0) * 24000.0).round() as u64;
-                                if let Err(error) = player.play(Arc::clone(&preview.playback_audio), local_frame) { self.playback_error = Some(error); }
+                        }
+                    });
+                });
+            });
+        egui::TopBottomPanel::bottom("studio_status")
+            .exact_height(27.0)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.colored_label(
+                        if self.script.is_some() {
+                            ACCENT
+                        } else {
+                            egui::Color32::from_rgb(238, 185, 107)
+                        },
+                        "●",
+                    );
+                    ui.add(egui::Label::new(&self.status).truncate())
+                        .on_hover_text(&self.status);
+                });
+            });
+        egui::TopBottomPanel::bottom("studio_timeline")
+            .resizable(true)
+            .default_height(245.0)
+            .min_height(150.0)
+            .max_height(480.0)
+            .show(ctx, |ui| {
+                self.timeline_ui(ui);
+            });
+        egui::SidePanel::left("studio_project")
+            .resizable(true)
+            .default_width(280.0)
+            .min_width(210.0)
+            .max_width(500.0)
+            .show(ctx, |ui| {
+                self.project_ui(ui);
+            });
+        egui::SidePanel::right("studio_inspector")
+            .resizable(true)
+            .default_width(310.0)
+            .min_width(260.0)
+            .max_width(480.0)
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("inspector_scroll")
+                    .show(ui, |ui| {
+                        self.inspector_ui(ui);
+                    });
+            });
+        egui::CentralPanel::default()
+            .frame(
+                egui::Frame::new()
+                    .fill(egui::Color32::from_rgb(16, 19, 25))
+                    .inner_margin(18.0),
+            )
+            .show(ctx, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("viewport_scroll")
+                    .show(ui, |ui| {
+                        self.scene_ui(ui);
+                    });
+            });
+    }
+
+    fn project_ui(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.selectable_value(&mut self.editor_tab, false, "Project");
+            ui.selectable_value(&mut self.editor_tab, true, "MotionScript");
+        });
+        ui.separator();
+        egui::ScrollArea::vertical().id_salt("project_scroll").show(ui, |ui| {
+            if self.editor_tab {
+                ui.weak("English YAML · changes require validation");
+                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                    field(ui, "Screenplay path · Save replaces this file", &mut self.script_path);
+                    ui.add_space(6.0);
+                    if ui.add(egui::TextEdit::multiline(&mut self.source)
+                        .desired_rows(32).desired_width(f32::INFINITY).char_limit(100_000)
+                        .font(egui::TextStyle::Monospace).code_editor()).changed()
+                    {
+                        self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
+                        self.status = "Screenplay changed; validate before generation.".into();
+                    }
+                });
+                return;
+            }
+            ui.add_space(6.0);
+            if let Some(script) = &self.script { ui.label(egui::RichText::new(&script.project.title).strong().size(16.0)); }
+            ui.add_space(12.0);
+            section_label(ui, "SCENES");
+            let scenes: Vec<_> = self.script.as_ref().map(|s| s.scenes.iter().enumerate()
+                .map(|(i, scene)| (i, scene.id.clone(), scene.duration)).collect()).unwrap_or_default();
+            ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                for (index, id, duration) in scenes {
+                    if ui.selectable_label(self.scene_index == index, format!("{id}     {duration:.2}s")).clicked()
+                        && self.scene_index != index
+                    {
+                        self.scene_index = index; self.reset_scene(); self.preview = None;
+                    }
+                }
+            });
+            ui.add_space(16.0);
+            section_label(ui, "CHARACTERS / ASSETS");
+            let characters: Vec<_> = self.script.as_ref().map(|s| s.characters.iter()
+                .map(|(id, c)| (id.clone(), c.asset.clone())).collect()).unwrap_or_default();
+            for (id, asset) in characters {
+                if ui.selectable_label(self.selected_actor.as_deref() == Some(id.as_str()), &id).clicked() {
+                    self.selected_actor = Some(id); self.selected_event = None;
+                }
+                ui.label(egui::RichText::new(asset).small().color(egui::Color32::from_gray(140)));
+                ui.add_space(5.0);
+            }
+            if self.script.is_none() {
+                ui.label("Validate MotionScript to populate the project browser.");
+            }
+            ui.add_space(16.0);
+            ui.weak("Assets are screenplay references. This preview uses original procedural characters.");
+            if self.demo_assets.is_some() {
+                ui.add_space(8.0);
+                ui.colored_label(egui::Color32::from_rgb(238, 185, 107), "SYNTHETIC SOUND CHECK");
+                ui.weak("Tones, not Kokoro speech. Temporary assets; copy them before saving a lasting project. Mouth cues are illustrative.");
+            }
+        });
+    }
+
+    fn inspector_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Inspector");
+        ui.weak("Select a character or timeline event");
+        ui.separator();
+        if let Some(script) = &self.script {
+            let actor = self
+                .selected_actor
+                .as_deref()
+                .or_else(|| script.characters.keys().next().map(String::as_str));
+            if let Some((id, character)) = actor.and_then(|id| script.characters.get_key_value(id))
+            {
+                ui.label(egui::RichText::new(id).size(18.0).strong());
+                ui.weak(format!("Asset: {}", character.asset));
+                if let Some(pose) = &character.default_pose {
+                    ui.label(format!("Default pose: {pose}"));
+                }
+                if let Some(voice) = &character.voice {
+                    egui::Grid::new("voice_info")
+                        .num_columns(2)
+                        .spacing([12.0, 5.0])
+                        .show(ui, |ui| {
+                            ui.weak("Provider");
+                            ui.label(&voice.provider);
+                            ui.end_row();
+                            ui.weak("Voice preset");
+                            ui.label(&voice.preset);
+                            ui.end_row();
+                            ui.weak("Language");
+                            ui.label(&voice.language);
+                            ui.end_row();
+                            ui.weak("Speed");
+                            ui.label(format!("{:.2}×", voice.speed));
+                            ui.end_row();
+                        });
+                    ui.weak("Edit voice settings in MotionScript.");
+                } else {
+                    ui.weak(
+                        "No TTS voice configured; imported audio is available through speak.audio.",
+                    );
+                }
+            }
+            if let Some(event) = self
+                .selected_event
+                .and_then(|index| script.scenes.get(self.scene_index)?.events.get(index))
+            {
+                ui.add_space(10.0);
+                section_label(ui, "SELECTED EVENT · READ ONLY");
+                if let Ok(json) = serde_json::to_string_pretty(event) {
+                    ui.add(
+                        egui::Label::new(egui::RichText::new(json).monospace().size(11.0)).wrap(),
+                    );
+                }
+                ui.weak("Edit the source to change event timing or content.");
+            }
+        }
+        ui.add_space(12.0);
+        section_label(ui, "DIALOGUE");
+        self.dialogue_ui(ui);
+        ui.add_space(8.0);
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+            if ui
+                .add_enabled(
+                    self.script.is_some(),
+                    egui::Button::new("Prepare full scene audio"),
+                )
+                .clicked()
+            {
+                self.prepare_scene_audio();
+            }
+        });
+        if let Some(preview) = &self.scene_preview {
+            ui.colored_label(
+                ACCENT,
+                format!(
+                    "{} clips · {:.3}s mixed",
+                    preview.clips.len(),
+                    preview.audio.duration_seconds()
+                ),
+            );
+        }
+        ui.add_space(10.0);
+        egui::CollapsingHeader::new("Scene export · SVG + WAV")
+            .default_open(true)
+            .show(ui, |ui| self.export_ui(ui));
+        egui::CollapsingHeader::new("Selected audio / waveform")
+            .default_open(self.preview.is_some())
+            .show(ui, |ui| {
+                ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                    self.line_preview_ui(ui)
+                });
+            });
+        ui.separator();
+        egui::CollapsingHeader::new("Kokoro runtime / alignment").show(ui, |ui| {
+            self.runtime_ui(ui);
+        });
+        if self.diagnostics_busy {
+            ui.horizontal(|ui| {
+                ui.spinner();
+                ui.label("Checking local setup…");
+            });
+        }
+        if let Some(report) = &self.diagnostics_report {
+            egui::CollapsingHeader::new("Local setup report")
+                .default_open(true)
+                .show(ui, |ui| match report {
+                    Ok(message) => {
+                        ui.label(message);
+                    }
+                    Err(message) => {
+                        ui.colored_label(egui::Color32::LIGHT_RED, message);
+                    }
+                });
+        }
+    }
+
+    fn export_ui(&mut self, ui: &mut egui::Ui) {
+        ui.weak(
+            "Export prepared scene audio with sample-timed mouths and SVG frames. No MP4 encoding.",
+        );
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+            field(
+                ui,
+                "New output directory (absolute path)",
+                &mut self.export_path,
+            );
+            if ui
+                .add_enabled(
+                    self.scene_preview.is_some() && !self.export_path.trim().is_empty(),
+                    egui::Button::new("Export scene bundle"),
+                )
+                .clicked()
+            {
+                self.start_export();
+            }
+        });
+        if self.scene_preview.is_none() {
+            ui.weak("Prepare full scene audio first, or load the sound-check demo.");
+        }
+        if let Some(progress) = self.export_progress {
+            ui.add(
+                egui::ProgressBar::new(
+                    progress.completed_frames as f32 / progress.total_frames.max(1) as f32,
+                )
+                .show_percentage(),
+            );
+            ui.label(format!(
+                "{} / {} frames",
+                progress.completed_frames, progress.total_frames
+            ));
+        }
+        ui.weak("The directory must not exist. Missing alignment keeps mouths at rest.");
+    }
+
+    fn start_export(&mut self) {
+        if self.busy || self.diagnostics_busy {
+            return;
+        }
+        let destination = std::path::PathBuf::from(self.export_path.trim());
+        if !destination.is_absolute() {
+            self.status = "Export requires a new absolute output directory path.".into();
+            return;
+        }
+        let (Some(script), Some(preview)) = (self.script.as_ref(), self.scene_preview.as_ref())
+        else {
+            return;
+        };
+        if !script
+            .scenes
+            .get(self.scene_index)
+            .is_some_and(|scene| scene.id == preview.scene)
+        {
+            self.status = "Prepare audio for the selected scene before export.".into();
+            return;
+        }
+        let cancel = CancellationToken::new();
+        let request = export_worker::Request {
+            script: script.clone(),
+            scene_index: self.scene_index,
+            audio: Arc::clone(&preview.audio),
+            manifest: Arc::clone(&preview.manifest),
+            destination,
+            cancel: cancel.clone(),
+        };
+        self.stop_playback();
+        if let Some(clock) = &mut self.scene_transport {
+            clock.pause();
+        }
+        match self.exporter.submit(request) {
+            Ok(()) => {
+                self.export_busy = true;
+                self.busy = true;
+                self.active_cancel = Some(cancel);
+                self.export_progress = None;
+                self.status = "Exporting SVG frames and prepared scene audio…".into();
+            }
+            Err(error) => self.status = error,
+        }
+    }
+
+    fn seek_scene(&mut self, seconds: f64) {
+        let Some(duration) = self
+            .script
+            .as_ref()
+            .and_then(|s| s.scenes.get(self.scene_index))
+            .map(|s| s.duration)
+        else {
+            return;
+        };
+        self.playhead = quantized_seek(seconds, duration);
+        self.scene_fraction = 0.0;
+        if let Some(clock) = &mut self.scene_transport {
+            clock.pause();
+            let _ = clock.seek_seconds(self.playhead);
+        }
+        if let Some(player) = &self.playback {
+            let frame = if self.scene_audio_active {
+                (self.playhead * 24000.0).round() as u64
+            } else if let Some(preview) = &self.preview {
+                ((self.playhead * 24000.0).round() as u64).saturating_sub(preview.clip.start_frame)
+            } else {
+                let _ = player.stop();
+                return;
+            };
+            if let Err(error) = player.seek(frame) {
+                self.playback_error = Some(error);
+            }
+        }
+    }
+
+    fn play_scene_audio(&mut self) {
+        let Some(preview) = &self.scene_preview else {
+            return;
+        };
+        let audio = Arc::clone(&preview.audio);
+        if let Some(clock) = &mut self.scene_transport {
+            clock.pause();
+        }
+        self.playback_error = None;
+        if self.playback.is_none() {
+            match playback::Playback::new() {
+                Ok(player) => self.playback = Some(player),
+                Err(error) => self.playback_error = Some(error),
+            }
+        }
+        if let Some(player) = &self.playback {
+            match player.play(audio, (self.playhead * 24000.0).round() as u64) {
+                Ok(()) => self.scene_audio_active = true,
+                Err(error) => self.playback_error = Some(error),
+            }
+        }
+    }
+
+    fn timeline_ui(&mut self, ui: &mut egui::Ui) {
+        ui.horizontal(|ui| {
+            ui.label(egui::RichText::new("TIMELINE").strong());
+            ui.add_enabled_ui(
+                self.script.is_some() && !self.busy && !self.diagnostics_busy,
+                |ui| {
+                    if ui.button("Play scene (silent)").clicked() {
+                        self.scene_audio_active = false;
+                        self.stop_playback();
+                        if let Some(clock) = &mut self.scene_transport {
+                            clock.seek_frame((self.playhead * 24000.0).round() as u64);
+                            clock.play();
+                        }
+                        self.scene_tick = Instant::now();
+                    }
+                    if ui
+                        .add_enabled(
+                            self.scene_preview.is_some(),
+                            egui::Button::new("Play scene audio"),
+                        )
+                        .clicked()
+                    {
+                        self.play_scene_audio();
+                    }
+                    if ui.button("Pause").clicked() {
+                        if let Some(clock) = &mut self.scene_transport {
+                            clock.pause();
+                        }
+                        if let Some(player) = &self.playback {
+                            if let Err(error) = player.pause() {
+                                self.playback_error = Some(error);
                             }
                         }
-                        if ui.button("Pause").clicked() { if let Some(p) = &self.playback { if let Err(e) = p.pause() { self.playback_error = Some(e); } } }
-                        if ui.button("Resume").clicked() { if let Some(p) = &self.playback { if let Err(e) = p.resume() { self.playback_error = Some(e); } } }
-                        if ui.button("Stop").clicked() { if let Some(p) = &self.playback { if let Err(e) = p.stop() { self.playback_error = Some(e); } } self.playhead = start; }
-                    });
-                    if ui.add(egui::Slider::new(&mut self.playhead, start..=end.max(start + 0.01)).text("Scene playhead (s)")).changed() {
-                        if let Some(p) = &self.playback {
-                            let local_frame = ((self.playhead - start).max(0.0) * 24000.0).round() as u64;
-                            if let Err(error) = p.seek(local_frame) { self.playback_error = Some(error); }
+                    }
+                    if ui.button("Resume").clicked() {
+                        if self.scene_audio_active {
+                            if let Some(player) = &self.playback {
+                                if let Err(error) = player.resume() {
+                                    self.playback_error = Some(error);
+                                }
+                            }
+                        } else if let Some(clock) = &mut self.scene_transport {
+                            clock.play();
+                            self.scene_tick = Instant::now();
                         }
                     }
-                    let scene_frame = (self.playhead * 24000.0).round() as u64;
-                    let mouth = preview.clip.mouth_at(scene_frame).unwrap_or(Viseme::Rest);
-                    ui.label(format!("Sample frame {scene_frame} · mouth {mouth:?}"));
-                    waveform(ui, &preview.peaks, (self.playhead - start) / (end - start));
-                    mouth_preview(ui, mouth);
-                    ui.label("macOS playback uses the source playback position for mouth preview. Device latency and perceptual sync require Mac validation. Video export is not implemented.");
-                    if let Some(error) = &self.playback_error { ui.colored_label(egui::Color32::LIGHT_RED, error); }
-                    if preview.clip.alignment.is_none() { ui.label("No timed alignment: mouth stays at rest. Kokoro tokens are not timestamps."); }
+                    if ui.button("Restart").clicked() {
+                        self.stop_playback();
+                        self.seek_scene(0.0);
+                    }
+                },
+            );
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                let fps = self.script.as_ref().map(|s| s.project.fps).unwrap_or(24);
+                ui.monospace(format!(
+                    "{:04}f  /  {:07.3}s",
+                    (self.playhead * fps as f64).floor() as u64,
+                    self.playhead
+                ));
+                for (name, color) in [
+                    ("Speak", SPEAK),
+                    ("Gesture", GESTURE),
+                    ("Emotion", EMOTION),
+                    ("Move", MOVE),
+                ] {
+                    ui.colored_label(color, name);
                 }
+            });
+        });
+        if let Some(error) = &self.playback_error {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
+        let Some(script) = &self.script else {
+            ui.weak("Validate a screenplay to show its actor tracks.");
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let duration = scene.duration;
+        let actor_ids: Vec<_> = script.characters.keys().cloned().collect();
+        let mut events = Vec::new();
+        for (index, event) in scene.events.iter().enumerate() {
+            let (at, actor) = event.actor_time();
+            let (lane, label, color, duration) = match event {
+                motion_script::Event::Move { duration, .. } => {
+                    (0usize, "Move".to_string(), MOVE, *duration)
+                }
+                motion_script::Event::Emotion { value, .. } => (1, value.clone(), EMOTION, 0.0),
+                motion_script::Event::Gesture {
+                    value, duration, ..
+                } => (2, value.clone(), GESTURE, *duration),
+                motion_script::Event::Speak { text, .. } => {
+                    let clip_duration = self
+                        .scene_preview
+                        .as_ref()
+                        .and_then(|p| {
+                            p.clips.iter().find(|c| {
+                                c.actor == actor
+                                    && (c.start_frame as f64 / 24000.0 - at).abs() < 1.0 / 24000.0
+                            })
+                        })
+                        .or_else(|| {
+                            self.preview
+                                .as_ref()
+                                .filter(|p| {
+                                    p.scene == scene.id
+                                        && p.clip.actor == actor
+                                        && (p.clip.start_frame as f64 / 24000.0 - at).abs()
+                                            < 1.0 / 24000.0
+                                })
+                                .map(|p| &p.clip)
+                        })
+                        .map(|c| {
+                            (c.audio.frames() as u64).saturating_sub(c.trim_start_frame) as f64
+                                / 24000.0
+                        })
+                        .unwrap_or(0.0);
+                    (3, text.clone(), SPEAK, clip_duration)
+                }
+            };
+            if let Some(track) = actor_ids.iter().position(|id| id == actor) {
+                events.push((
+                    index,
+                    track,
+                    actor.to_string(),
+                    at,
+                    duration,
+                    lane,
+                    label,
+                    color,
+                ));
+            }
+        }
+        let mut seek = None;
+        let mut selection = None;
+        ui.add_space(4.0);
+        egui::ScrollArea::vertical().id_salt("actor_tracks").max_height((ui.available_height() - 26.0).max(60.0)).show(ui, |ui| {
+            let width = ui.available_width().max(180.0);
+            let label_width = 112.0;
+            let track_height = 82.0;
+            let (rect, response) = ui.allocate_exact_size(egui::vec2(width, 26.0 + actor_ids.len() as f32 * track_height), egui::Sense::click_and_drag());
+            let painter = ui.painter_at(rect);
+            let track_left = rect.left() + label_width;
+            let track_width = (rect.width() - label_width - 10.0).max(1.0);
+            let x_at = |time: f64| track_left + (time / duration).clamp(0.0, 1.0) as f32 * track_width;
+            painter.rect_filled(rect, 4.0, egui::Color32::from_rgb(21, 25, 32));
+            for i in 0..=10 {
+                let time = duration * i as f64 / 10.0;
+                let x = x_at(time);
+                painter.line_segment([egui::pos2(x, rect.top() + 22.0), egui::pos2(x, rect.bottom())], egui::Stroke::new(1.0_f32, egui::Color32::from_gray(48)));
+                painter.text(egui::pos2(x, rect.top() + 3.0), egui::Align2::CENTER_TOP, format!("{time:.1}s"), egui::FontId::monospace(10.0), egui::Color32::from_gray(150));
+            }
+            for (track, actor) in actor_ids.iter().enumerate() {
+                let y = rect.top() + 26.0 + track as f32 * track_height;
+                painter.text(egui::pos2(rect.left()+10.0, y+8.0), egui::Align2::LEFT_TOP, actor, egui::FontId::proportional(12.0), if self.selected_actor.as_ref() == Some(actor) { ACCENT } else { egui::Color32::from_gray(210) });
+                painter.line_segment([egui::pos2(rect.left(),y+track_height), egui::pos2(rect.right(),y+track_height)], egui::Stroke::new(1.0_f32, egui::Color32::from_gray(47)));
+            }
+            let mut hit_boxes = Vec::new();
+            for (index, track, _, at, length, lane, label, color) in &events {
+                let y = rect.top()+26.0+*track as f32*track_height+*lane as f32*18.0+3.0;
+                let start = x_at(*at);
+                let end = x_at(*at+*length).max(start+8.0).min(track_left+track_width);
+                let bar = egui::Rect::from_min_max(egui::pos2(start.min(end-2.0),y), egui::pos2(end,y+15.0));
+                painter.rect_filled(bar, 3.0, color.gamma_multiply(if self.selected_event == Some(*index) { 1.0 } else { 0.65 }));
+                if self.selected_event == Some(*index) { painter.rect_stroke(bar, 3.0, egui::Stroke::new(1.0_f32, egui::Color32::WHITE), egui::StrokeKind::Inside); }
+                if bar.width() > 38.0 { painter.with_clip_rect(bar.shrink2(egui::vec2(4.0,0.0))).text(bar.left_center()+egui::vec2(4.0,0.0), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(10.0), egui::Color32::WHITE); }
+                hit_boxes.push((*index, bar));
+            }
+            let cursor = x_at(self.playhead);
+            painter.line_segment([egui::pos2(cursor,rect.top()+20.0), egui::pos2(cursor,rect.bottom())], egui::Stroke::new(2.0_f32, ACCENT));
+            painter.circle_filled(egui::pos2(cursor,rect.top()+20.0), 3.5, ACCENT);
+            if !self.busy && !self.diagnostics_busy && (response.clicked() || response.dragged()) {
+                if let Some(position) = response.interact_pointer_pos() {
+                    if position.x >= track_left {
+                        seek = Some(timeline_seek(position.x, track_left, track_width, duration));
+                        if response.clicked() { selection = timeline_event_at(position, &hit_boxes); }
+                    } else if position.y >= rect.top()+26.0 {
+                        let track = ((position.y-rect.top()-26.0)/track_height) as usize;
+                        if let Some(actor) = actor_ids.get(track) { self.selected_actor = Some(actor.clone()); self.selected_event = None; }
+                    }
+                }
+            }
+            if let Some(position) = response.hover_pos() {
+                if let Some((index,_)) = hit_boxes.iter().rev().find(|(_,bar)|bar.contains(position)) {
+                    if let Some((_,_,actor,at,length,_,label,_)) = events.iter().find(|(i,..)|i==index) {
+                        response.on_hover_text(format!("{actor} · {label}\n{at:.3}s{}\nClick to inspect. Edit MotionScript to change.", if *length > 0.0 { format!(" · {length:.3}s duration") } else { " · point marker / duration not prepared".into() }));
+                    }
+                }
+            }
+        });
+        if let Some(index) = selection {
+            self.selected_event = Some(index);
+            if let Some((_, _, actor, at, _, _, _, _)) = events.iter().find(|(i, ..)| *i == index) {
+                self.selected_actor = Some(actor.clone());
+                if let Some(job_index) = self.jobs.iter().position(|j| {
+                    j.scene == scene.id && j.actor == *actor && (j.at - *at).abs() < 1e-9
+                }) {
+                    if self.selected != job_index {
+                        self.selected = job_index;
+                        self.preview = None;
+                    }
+                }
+            }
+        }
+        if let Some(time) = seek {
+            self.seek_scene(time);
+        }
+        egui::CollapsingHeader::new("Scene audio / mixed waveform").show(ui, |ui| {
+            ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                self.scene_audio_ui(ui);
             });
         });
     }
 }
+const ACCENT: egui::Color32 = egui::Color32::from_rgb(111, 219, 178);
+const MOVE: egui::Color32 = egui::Color32::from_rgb(91, 158, 226);
+const EMOTION: egui::Color32 = egui::Color32::from_rgb(208, 151, 93);
+const GESTURE: egui::Color32 = egui::Color32::from_rgb(162, 132, 216);
+const SPEAK: egui::Color32 = egui::Color32::from_rgb(71, 172, 152);
+
+fn section_label(ui: &mut egui::Ui, text: &str) {
+    ui.label(
+        egui::RichText::new(text)
+            .small()
+            .strong()
+            .color(egui::Color32::from_gray(150)),
+    );
+    ui.add_space(4.0);
+}
+fn studio_theme(ctx: &egui::Context) {
+    let mut visuals = egui::Visuals::dark();
+    visuals.panel_fill = egui::Color32::from_rgb(27, 31, 39);
+    visuals.window_fill = egui::Color32::from_rgb(30, 35, 43);
+    visuals.extreme_bg_color = egui::Color32::from_rgb(18, 22, 29);
+    visuals.faint_bg_color = egui::Color32::from_rgb(33, 39, 48);
+    visuals.selection.bg_fill = egui::Color32::from_rgb(39, 89, 76);
+    visuals.selection.stroke = egui::Stroke::new(1.0_f32, ACCENT);
+    visuals.widgets.active.bg_fill = egui::Color32::from_rgb(40, 95, 80);
+    visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(49, 62, 70);
+    ctx.set_visuals(visuals);
+    let mut style = (*ctx.style()).clone();
+    style.spacing.item_spacing = egui::vec2(8.0, 7.0);
+    style.spacing.button_padding = egui::vec2(9.0, 5.0);
+    style
+        .text_styles
+        .insert(egui::TextStyle::Body, egui::FontId::proportional(12.0));
+    style
+        .text_styles
+        .insert(egui::TextStyle::Button, egui::FontId::proportional(12.0));
+    style
+        .text_styles
+        .insert(egui::TextStyle::Heading, egui::FontId::proportional(17.0));
+    ctx.set_style(style);
+}
+
+/// All timeline gestures quantize to the same 24 kHz source clock as playback.
+fn quantized_seek(seconds: f64, duration: f64) -> f64 {
+    if !seconds.is_finite() || !duration.is_finite() || duration <= 0.0 {
+        return 0.0;
+    }
+    ((seconds.clamp(0.0, duration) * 24000.0).round() / 24000.0).min(duration)
+}
+fn timeline_event_at(position: egui::Pos2, boxes: &[(usize, egui::Rect)]) -> Option<usize> {
+    boxes
+        .iter()
+        .rev()
+        .find(|(_, rect)| rect.contains(position))
+        .map(|(index, _)| *index)
+}
+fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
+    if !pointer_x.is_finite() || !left.is_finite() || !width.is_finite() || width <= 0.0 {
+        return 0.0;
+    }
+    quantized_seek(
+        ((pointer_x - left) / width).clamp(0.0, 1.0) as f64 * duration,
+        duration,
+    )
+}
+
+impl eframe::App for Studio {
+    fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        self.poll();
+        if self.busy
+            || self.diagnostics_busy
+            || self.playback.is_some()
+            || self
+                .scene_transport
+                .as_ref()
+                .is_some_and(|t| t.is_playing())
+        {
+            ctx.request_repaint_after(Duration::from_millis(50));
+        }
+        self.workspace_ui(ctx);
+    }
+}
+
 fn waveform(ui: &mut egui::Ui, peaks: &[WaveformPeak], position: f64) {
     let (rect, _) = ui.allocate_exact_size(
         egui::vec2(ui.available_width(), 110.0),
@@ -978,7 +1698,8 @@ fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
 
 fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &[(&str, Viseme)]) {
     let width = ui.available_width().max(1.0);
-    let height = (width * scene.height as f32 / scene.width.max(1) as f32).clamp(120.0, 420.0);
+    let height = (width * scene.height as f32 / scene.width.max(1) as f32)
+        .clamp(120.0, (ui.available_height() - 35.0).max(120.0));
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
     let painter = ui.painter_at(rect);
     painter.rect_filled(rect, 5.0, egui::Color32::from_rgb(24, 31, 44));
@@ -1109,5 +1830,134 @@ mod scene_preview_tests {
         assert!(scene_mouths(&clips, 23999).is_empty());
         assert_eq!(scene_mouths(&clips, 35999), vec![("EMMA", Viseme::A)]);
         assert!(scene_mouths(&clips, 36000).is_empty());
+    }
+    #[test]
+    fn timeline_seeking_clamps_and_uses_audio_sample_clock() {
+        assert_eq!(timeline_seek(-50.0, 100.0, 200.0, 8.0), 0.0);
+        assert_eq!(timeline_seek(500.0, 100.0, 200.0, 8.0), 8.0);
+        assert_eq!(timeline_seek(200.0, 100.0, 200.0, 8.0), 4.0);
+        let seek = timeline_seek(123.45, 100.0, 200.0, 8.0);
+        assert!((seek * 24000.0 - (seek * 24000.0).round()).abs() < 1e-8);
+        assert_eq!(timeline_seek(f32::NAN, 0.0, 1.0, 8.0), 0.0);
+        assert_eq!(timeline_seek(1.0, 0.0, 0.0, 8.0), 0.0);
+        assert_eq!(quantized_seek(f64::NAN, 8.0), 0.0);
+    }
+    #[test]
+    fn timeline_selection_matches_topmost_bar_and_ignores_other_lanes() {
+        let bar = egui::Rect::from_min_max(egui::pos2(100.0, 10.0), egui::pos2(200.0, 25.0));
+        let boxes = [(3, bar), (5, bar.translate(egui::vec2(20.0, 0.0)))];
+        assert_eq!(timeline_event_at(egui::pos2(110.0, 15.0), &boxes), Some(3));
+        assert_eq!(timeline_event_at(egui::pos2(150.0, 15.0), &boxes), Some(5));
+        assert_eq!(timeline_event_at(egui::pos2(150.0, 35.0), &boxes), None);
+    }
+    #[test]
+    fn prepared_demo_exports_off_thread_and_rejects_stale_scene() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.busy && Instant::now() < deadline {
+            studio.poll();
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert!(!studio.busy, "{}", studio.status);
+        let root = studio.demo_assets.as_ref().unwrap().root.clone();
+        studio.export_path = root.join("exported-scene").to_string_lossy().into_owned();
+        let preview = studio
+            .scene_preview
+            .as_mut()
+            .expect("model-free scene prepared");
+        let scene = preview.scene.clone();
+        preview.scene = "stale-scene".into();
+        studio.start_export();
+        assert!(!studio.export_busy);
+        assert!(!Path::new(&studio.export_path).exists());
+        studio.scene_preview.as_mut().unwrap().scene = scene;
+        studio.start_export();
+        assert!(studio.export_busy && studio.busy);
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.busy && Instant::now() < deadline {
+            studio.poll();
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert!(!studio.busy, "{}", studio.status);
+        assert!(
+            Path::new(&studio.export_path)
+                .join("manifest.json")
+                .is_file(),
+            "{}",
+            studio.status
+        );
+        assert!(Path::new(&studio.export_path).join("scene.wav").is_file());
+        studio.invalidate_scene();
+        assert!(studio.scene_preview.is_none());
+        studio.export_path = root
+            .join("after-invalidation")
+            .to_string_lossy()
+            .into_owned();
+        studio.start_export();
+        assert!(!studio.export_busy);
+        assert!(!Path::new(&studio.export_path).exists());
+    }
+    #[test]
+    fn native_workspace_headless_layout_and_optional_capture() {
+        let ctx = egui::Context::default();
+        studio_theme(&ctx);
+        let mut studio = Studio::default();
+        studio.validate();
+        let mut textures = Vec::new();
+        let mut final_output = None;
+        for time in [0.0, 0.1] {
+            let output = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(1440.0, 900.0),
+                    )),
+                    time: Some(time),
+                    ..Default::default()
+                },
+                |ctx| {
+                    studio.workspace_ui(ctx);
+                },
+            );
+            for (id, delta) in &output.textures_delta.set {
+                let pixels: Vec<[u8; 4]> = match &delta.image {
+                    egui::ImageData::Color(image) => {
+                        image.pixels.iter().map(|p| p.to_array()).collect()
+                    }
+                    egui::ImageData::Font(image) => {
+                        image.srgba_pixels(None).map(|p| p.to_array()).collect()
+                    }
+                };
+                textures.push(serde_json::json!({"id": format!("{id:?}"), "size": delta.image.size(), "pos": delta.pos, "pixels": pixels}));
+            }
+            assert!(!output.shapes.is_empty());
+            final_output = Some(output);
+        }
+        if let Ok(path) = std::env::var("KILSAT_UI_CAPTURE") {
+            let output = final_output.unwrap();
+            let meshes: Vec<_> = ctx.tessellate(output.shapes, output.pixels_per_point).into_iter().filter_map(|primitive| {
+                if let egui::epaint::Primitive::Mesh(mesh) = primitive.primitive {
+                    let vertices: Vec<_> = mesh.vertices.iter().map(|v| serde_json::json!({"pos": [v.pos.x,v.pos.y],"uv": [v.uv.x,v.uv.y],"color":v.color.to_array()})).collect();
+                    Some(serde_json::json!({"texture":format!("{:?}",mesh.texture_id),"vertices":vertices,"indices":mesh.indices,"clip":[primitive.clip_rect.min.x,primitive.clip_rect.min.y,primitive.clip_rect.max.x,primitive.clip_rect.max.y]}))
+                } else { None }
+            }).collect();
+            std::fs::write(path, serde_json::to_vec(&serde_json::json!({"width":1440,"height":900,"pixels_per_point":output.pixels_per_point,"textures":textures,"meshes":meshes})).unwrap()).unwrap();
+        }
+        // Minimum window size and editor tab must remain runnable without a GPU.
+        studio.editor_tab = true;
+        let output = ctx.run(
+            egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(1000.0, 700.0),
+                )),
+                ..Default::default()
+            },
+            |ctx| {
+                studio.workspace_ui(ctx);
+            },
+        );
+        assert!(!output.shapes.is_empty());
     }
 }
