@@ -10,3 +10,6 @@ motion-lipsync = { path = "../motion-lipsync" }
 hound = "3.5"
 serde.workspace = true
 serde_json.workspace = true
+
+[dev-dependencies]
+motion-scene = { path = "../motion-scene" }

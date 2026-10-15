@@ -2,7 +2,9 @@
 
 Independently authored offline voice infrastructure for the repository's Agent 6
 workstream. This includes a native dialogue workbench and headless audio pipeline. It is
-not yet a complete animation workstation. No Storytold source or dependencies are used.
+not yet a complete animation workstation. The combined scene foundation adds
+original procedural Emma/Alex previews with deterministic movement, expressions
+and a wave gesture. No Storytold source or dependencies are used.
 
 ## Components
 
@@ -25,13 +27,17 @@ See [runtime setup](services/kokoro-runtime/README.md) and
 See the [staged development gates](docs/development-stages.md) for delivery order
 and platform acceptance requirements.
 
+The complete [master build prompt with Kokoro](docs/master-build-prompt.md) and
+[current MotionScript subset](docs/motionscript.md) describe the target and actual
+supported behavior separately.
+
 ## Desktop workbench
 
 Run `cargo run -p studio-desktop` from the repository root. See
 [workbench instructions](apps/studio-desktop/README.md). The workbench previews
 waveforms and timed mouth states. macOS audio-device playback is implemented
-behind a bounded worker, but real hardware playback remains unverified. Character
-rendering and video export are not implemented. No model assets download automatically.
+behind a bounded worker, but real hardware playback remains unverified. Procedural character preview is available; textured rigs, frame rendering and
+video export remain unfinished. No model assets download automatically.
 
 ## Run headless synthesis on macOS
 
@@ -81,7 +87,7 @@ python3 -m unittest discover -s services/kokoro-runtime/tests -v
 Python runtime tests: **11 passed**, including synthetic inference/WAV tests with
 stub Kokoro/PyTorch modules. No actual model was loaded. After repairing a truncated local LLVM
 library, `cargo check --workspace` and `cargo test --workspace` passed on Linux
-(**33 Rust tests**, plus doc tests across the expanded workspace). The expanded workspace also includes regression tests for external alignment import,
+(**36 Rust tests**, plus doc tests across the expanded workspace). The expanded workspace also includes regression tests for external alignment import,
 worker failure recovery and cache corruption. Source was formatted with the toolchain's
 `rustfmt` directly; Cargo's formatter wrapper requires `/proc/self/exe`, which is
 unavailable in this sandbox. Cargo.lock was generated against crates.io.

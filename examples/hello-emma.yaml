@@ -1,0 +1,68 @@
+project:
+  title: Hello Emma — Kokoro dialogue and movement
+  fps: 24
+  width: 1920
+  height: 1080
+characters:
+  EMMA:
+    asset: characters/emma
+    default_pose: idle
+    voice:
+      provider: kokoro
+      preset: af_heart
+      language: en-us
+      speed: 1.0
+  ALEX:
+    asset: characters/alex
+    default_pose: idle
+    voice:
+      provider: kokoro
+      preset: am_michael
+      language: en-us
+      speed: 1.0
+scenes:
+  - id: intro
+    duration: 12.0
+    background: studio
+    events:
+      - type: move
+        at: 0.0
+        actor: EMMA
+        x: 500
+        y: 740
+        duration: 2.0
+      - type: move
+        at: 0.0
+        actor: ALEX
+        x: 1400
+        y: 740
+        duration: 2.0
+      - type: emotion
+        at: 2.0
+        actor: EMMA
+        value: happy
+      - type: gesture
+        at: 2.0
+        actor: EMMA
+        value: wave
+        duration: 1.0
+      - type: speak
+        at: 3.0
+        actor: EMMA
+        text: Hello Alex! Welcome to Kilsat Studio.
+        emotion: happy
+      - type: emotion
+        at: 6.0
+        actor: ALEX
+        value: surprised
+      - type: speak
+        at: 6.0
+        actor: ALEX
+        text: This is incredible!
+        emotion: surprised
+      - type: move
+        at: 8.0
+        actor: EMMA
+        x: 850
+        y: 740
+        duration: 2.0

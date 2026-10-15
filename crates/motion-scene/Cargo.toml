@@ -1,0 +1,9 @@
+[package]
+name = "motion-scene"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+motion-script = { path = "../motion-script" }
+thiserror.workspace = true
+[dev-dependencies]
+serde_json.workspace = true

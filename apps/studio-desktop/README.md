@@ -8,8 +8,7 @@ cargo run -p studio-desktop
 
 This native egui/eframe app edits and validates MotionScript YAML, selects dialogue,
 submits bounded background generation/import jobs, previews duration and waveform,
-and scrubs a sample-based symbolic mouth display. macOS device playback is available as the next stage below; it does not
-render character rigs or export video. macOS GUI execution and real Kokoro
+and scrubs a sample-based symbolic mouth display. macOS device playback is available as the next stage below; it also renders original procedural characters with deterministic scene movement, expressions and waves. It does not export video. macOS GUI execution and real Kokoro
 synthesis require local platform testing.
 
 Install the Kokoro CPU runtime separately following `services/kokoro-runtime`.
@@ -50,3 +49,20 @@ unsupported-device message; audio-device output is currently macOS-only.
 Device-open errors appear in the UI and Play can retry. Rodio runtime device
 faults currently go to stderr; an unplugged/stalled device may require restarting
 the app. No hardware playback or GUI runtime test has been performed here.
+
+
+## Scene preview stage
+
+The default screenplay is `examples/hello-emma.yaml`. Validate it, select a scene,
+and use Play scene (silent), Pause scene, Restart scene or the scene slider.
+Movement, expressions and wave gestures are evaluated from the same scene time
+on every frame. Scene selection, screenplay edits and validation failures discard
+stale state. The preview uses simple original procedural characters rather than
+loading external character assets.
+
+Silent playback advances a quantized 24 kHz scene clock using elapsed time. While
+a prepared dialogue source is loaded for this scene, its source sample position
+drives the scene and matching actor mouth instead. Scene controls stop that source
+before switching to silent transport; silent playback does not automatically mix
+or play all dialogue events. The waveform and standalone mouth detail remain
+available. Alignment quality and device latency still require real Mac testing.
