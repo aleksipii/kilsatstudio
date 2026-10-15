@@ -8,6 +8,7 @@ mod playback;
 mod runtime_check;
 mod scene_worker;
 mod timeline_edit;
+mod voice_editor;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
@@ -60,6 +61,9 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    voice_draft: Option<voice_editor::Draft>,
+    voice_draft_source: Option<String>,
+    voice_edit_error: Option<String>,
     inserting_event: bool,
     event_draft_source: Option<String>,
     pending_event_delete: Option<(usize, usize, String)>,
@@ -152,6 +156,9 @@ impl Default for Studio {
             }
         });
         Self {
+            voice_draft: None,
+            voice_draft_source: None,
+            voice_edit_error: None,
             inserting_event: false,
             event_draft_source: None,
             pending_event_delete: None,
@@ -218,6 +225,137 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn apply_voice_draft(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        let (Some(draft), Some(script)) = (self.voice_draft.as_ref(), self.script.as_ref()) else {
+            return;
+        };
+        let actor = draft.actor.clone();
+        let selected = self
+            .selected_actor
+            .as_deref()
+            .filter(|id| script.characters.contains_key(*id))
+            .or_else(|| script.characters.keys().next().map(String::as_str));
+        if self.voice_draft_source.as_deref() != Some(self.source.as_str())
+            || selected != Some(actor.as_str())
+        {
+            self.voice_edit_error =
+                Some("Screenplay or character changed; reopen its voice settings.".into());
+            return;
+        }
+        let unchanged = match (
+            script.characters[&actor].voice.as_ref(),
+            draft.voice.as_ref(),
+        ) {
+            (None, None) => true,
+            (Some(old), Some(new)) => {
+                old.provider == new.provider
+                    && old.preset == new.preset
+                    && old.language == new.language
+                    && old.speed == new.speed
+            }
+            _ => false,
+        };
+        if unchanged {
+            self.voice_edit_error = None;
+            self.status = "Voice settings unchanged.".into();
+            return;
+        }
+        match motion_script::apply_voice(&self.source, &actor, draft.voice.clone()) {
+            Ok(source) => {
+                if source.len() > 100_000 {
+                    self.voice_edit_error =
+                        Some("Edited screenplay exceeds the 100 KB desktop limit.".into());
+                    return;
+                }
+                self.flush_text_edit();
+                self.history.record(&self.source, &source);
+                let affected: Vec<_> = self
+                    .jobs
+                    .iter()
+                    .filter(|job| job.actor == actor && job.imported_audio.is_none())
+                    .map(|job| job.id)
+                    .collect();
+                if self
+                    .jobs
+                    .get(self.selected)
+                    .is_none_or(|job| job.actor == actor && job.imported_audio.is_none())
+                {
+                    self.alignment.clear();
+                }
+                if !self.scene_alignment.trim().is_empty() {
+                    match serde_json::from_str::<std::collections::BTreeMap<u64, serde_json::Value>>(
+                        &self.scene_alignment,
+                    ) {
+                        Ok(mut alignments) => {
+                            for id in affected {
+                                alignments.remove(&id);
+                            }
+                            self.scene_alignment =
+                                serde_json::to_string(&alignments).unwrap_or_default();
+                        }
+                        Err(_) => self.scene_alignment.clear(),
+                    }
+                }
+                self.source = source;
+                self.selected_actor = Some(actor.clone());
+                self.validate();
+                if let Some(script) = &self.script {
+                    self.voice_draft = voice_editor::Draft::new(script, &actor);
+                    self.voice_draft_source = Some(self.source.clone());
+                }
+                self.status = "Voice applied. Reprepare scene audio; affected synthesized-speech alignment was cleared. Cache entries are retained.".into();
+            }
+            Err(error) => self.voice_edit_error = Some(error.to_string()),
+        }
+    }
+    fn voice_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .filter(|id| script.characters.contains_key(*id))
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+            .map(str::to_owned)
+        else {
+            return;
+        };
+        if !self
+            .voice_draft
+            .as_ref()
+            .is_some_and(|draft| draft.actor == actor)
+        {
+            self.voice_draft = voice_editor::Draft::new(script, &actor);
+            self.voice_draft_source = Some(self.source.clone());
+            self.voice_edit_error = None;
+        }
+        let mut apply = false;
+        let mut reset = false;
+        egui::CollapsingHeader::new("Character voice · Kokoro").default_open(true).show(ui, |ui| {
+            ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
+                if let Some(draft) = &mut self.voice_draft { apply = draft.ui(ui); }
+                reset = ui.button("Reset voice draft").clicked();
+            });
+            ui.weak("Apply resets pending event edits and prepared scene audio. Reprepare to hear this voice.");
+        });
+        if reset {
+            self.voice_draft = self
+                .script
+                .as_ref()
+                .and_then(|script| voice_editor::Draft::new(script, &actor));
+            self.voice_draft_source = Some(self.source.clone());
+            self.voice_edit_error = None;
+        } else if apply {
+            self.apply_voice_draft();
+        }
+        if let Some(error) = &self.voice_edit_error {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
+    }
     fn begin_event_draft(&mut self, kind: Option<event_factory::Kind>) {
         if self.busy || self.diagnostics_busy || self.export_busy {
             return;
@@ -496,6 +634,9 @@ impl Studio {
         }
     }
     fn invalidate_scene(&mut self) {
+        self.voice_draft = None;
+        self.voice_draft_source = None;
+        self.voice_edit_error = None;
         self.inserting_event = false;
         self.event_draft_source = None;
         self.pending_event_delete = None;
@@ -510,6 +651,9 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.voice_draft = None;
+        self.voice_draft_source = None;
+        self.voice_edit_error = None;
         self.inserting_event = false;
         self.event_draft_source = None;
         self.pending_event_delete = None;
@@ -1454,32 +1598,9 @@ impl Studio {
                 if let Some(pose) = &character.default_pose {
                     ui.label(format!("Default pose: {pose}"));
                 }
-                if let Some(voice) = &character.voice {
-                    egui::Grid::new("voice_info")
-                        .num_columns(2)
-                        .spacing([12.0, 5.0])
-                        .show(ui, |ui| {
-                            ui.weak("Provider");
-                            ui.label(&voice.provider);
-                            ui.end_row();
-                            ui.weak("Voice preset");
-                            ui.label(&voice.preset);
-                            ui.end_row();
-                            ui.weak("Language");
-                            ui.label(&voice.language);
-                            ui.end_row();
-                            ui.weak("Speed");
-                            ui.label(format!("{:.2}×", voice.speed));
-                            ui.end_row();
-                        });
-                    ui.weak("Edit voice settings in MotionScript.");
-                } else {
-                    ui.weak(
-                        "No TTS voice configured; imported audio is available through speak.audio.",
-                    );
-                }
             }
         }
+        self.voice_inspector_ui(ui);
         self.event_inspector_ui(ui);
         ui.add_space(12.0);
         section_label(ui, "DIALOGUE");
@@ -2700,6 +2821,124 @@ mod scene_preview_tests {
             count
         );
         assert!(!studio.inserting_event);
+    }
+    #[test]
+    fn voice_apply_updates_jobs_and_undo_restores_source() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        studio.selected_actor = Some("EMMA".into());
+        studio.voice_draft = voice_editor::Draft::new(studio.script.as_ref().unwrap(), "EMMA");
+        studio.voice_draft_source = Some(original.clone());
+        let voice = studio.voice_draft.as_mut().unwrap().voice.as_mut().unwrap();
+        voice.preset = "am_michael".into();
+        voice.speed = 1.25;
+        studio.scene_alignment = r#"{"0":{"fixture":"changed"},"1":{"fixture":"keep"}}"#.into();
+        studio.alignment = "old selected line".into();
+        studio.apply_voice_draft();
+        let edited = studio.source.clone();
+        assert_ne!(edited, original);
+        assert!(
+            studio
+                .jobs
+                .iter()
+                .filter(|job| job.actor == "EMMA")
+                .all(|job| job.request.voice.preset == "am_michael"
+                    && job.request.voice.speed == 1.25)
+        );
+        let alignment: serde_json::Value = serde_json::from_str(&studio.scene_alignment).unwrap();
+        assert!(alignment.get("0").is_none());
+        assert_eq!(alignment["1"]["fixture"], "keep");
+        assert!(studio.alignment.is_empty());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+    }
+    #[test]
+    fn invalid_stale_and_noop_voice_apply_preserve_source_history_and_pending_text() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        studio.selected_actor = Some("EMMA".into());
+        studio.voice_draft = voice_editor::Draft::new(studio.script.as_ref().unwrap(), "EMMA");
+        studio.voice_draft_source = Some(original.clone());
+        studio.pending_text_edit = Some(original.clone());
+        studio.apply_voice_draft();
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        assert!(studio.pending_text_edit.is_some());
+        studio
+            .voice_draft
+            .as_mut()
+            .unwrap()
+            .voice
+            .as_mut()
+            .unwrap()
+            .speed = f32::NAN;
+        studio.apply_voice_draft();
+        assert!(studio.voice_edit_error.is_some());
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        assert!(studio.pending_text_edit.is_some());
+        studio.voice_draft = voice_editor::Draft::new(studio.script.as_ref().unwrap(), "EMMA");
+        studio.voice_draft.as_mut().unwrap().voice = None;
+        studio.apply_voice_draft();
+        assert!(studio.voice_edit_error.is_some());
+        assert_eq!(studio.source, original);
+        studio.voice_draft.as_mut().unwrap().voice = Some(motion_script::VoiceConfig {
+            provider: "kokoro".into(),
+            preset: "am_michael".into(),
+            language: "en-us".into(),
+            speed: 1.0,
+        });
+        studio.export_busy = true;
+        studio.apply_voice_draft();
+        assert_eq!(studio.source, original);
+        studio.export_busy = false;
+        studio.selected_actor = Some("ALEX".into());
+        studio.apply_voice_draft();
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+    }
+    #[test]
+    fn voice_apply_invalidates_generated_alignment_across_scenes_but_preserves_imported_audio() {
+        let mut studio = Studio::default();
+        let source = format!("{}\n  - id: next\n    duration: 2.0\n    events:\n      - {{type: speak, at: 0.0, actor: EMMA, text: More speech}}\n",studio.source);
+        let script = motion_script::parse(&source).unwrap();
+        let index = script.scenes[0]
+            .events
+            .iter()
+            .position(|event| matches!(event, motion_script::Event::Speak { .. }))
+            .unwrap();
+        let mut imported = script.scenes[0].events[index].clone();
+        if let motion_script::Event::Speak { audio, .. } = &mut imported {
+            *audio = Some("recorded.wav".into());
+        }
+        studio.source = motion_script::apply_event(&source, 0, index, imported).unwrap();
+        studio.history.reset(&studio.source);
+        studio.validate();
+        studio.selected_actor = Some("EMMA".into());
+        studio.voice_draft = voice_editor::Draft::new(studio.script.as_ref().unwrap(), "EMMA");
+        studio.voice_draft_source = Some(studio.source.clone());
+        studio
+            .voice_draft
+            .as_mut()
+            .unwrap()
+            .voice
+            .as_mut()
+            .unwrap()
+            .speed = 1.5;
+        studio.scene_alignment=r#"{"0":{"fixture":"imported"},"1":{"fixture":"other"},"2":{"fixture":"changed-next-scene"}}"#.into();
+        studio.selected = 0;
+        studio.alignment = "imported selected line".into();
+        studio.apply_voice_draft();
+        let alignment: serde_json::Value = serde_json::from_str(&studio.scene_alignment).unwrap();
+        assert_eq!(alignment["0"]["fixture"], "imported");
+        assert_eq!(alignment["1"]["fixture"], "other");
+        assert!(alignment.get("2").is_none());
+        assert_eq!(studio.alignment, "imported selected line");
+        assert!(studio.jobs[0].imported_audio.is_some());
     }
     #[test]
     fn native_workspace_headless_layout_and_optional_capture() {

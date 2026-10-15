@@ -24,7 +24,7 @@ audio when a source is active. Drag an event bar or marker horizontally to chang
 its start time on the project frame grid. Before dialogue is prepared, Speak
 events have point markers rather than measured duration bars.
 
-The Inspector displays voice preset, language and speed; edit them in YAML.
+The Inspector edits voice preset, language and speed through a detached character voice draft.
 Expand **Kokoro runtime / alignment** for local paths, diagnostics and timing JSON,
 **Selected audio / waveform** for a single prepared line, or **Scene audio / mixed
 waveform** under the timeline for the full scene. **Resume** continues the active
@@ -143,3 +143,28 @@ Generated audio cache entries remain available; reprepare the scene to reuse val
 entries. Undo restores exact source text, not alignment paste data or prepared
 assets. All Apply/add/remove operations normalize YAML and remove comments, as
 described above. Full speech duration is still checked during audio preparation.
+
+## Character voice settings
+
+Select a character and expand **Character voice · Kokoro**. **Enable Kokoro voice**
+controls whether the character has a synthesis configuration. Edit the preset name,
+English language and speed (0.5–2.0), then choose **Apply voice**. Quick choices
+`af_heart` and `am_michael` set American English; other presets must already exist
+in the configured local voice directory. The editor accepts preset identifiers of
+1–128 ASCII letters, digits or underscores. Validation does not establish that an
+asset is installed or licensed. No assets are downloaded or scanned by this panel.
+
+**Reset voice draft** discards uncommitted voice changes. Accepted voice edits use
+the same whole-screenplay validation and Undo/Redo as event edits. Removing a voice
+is rejected when any of the character's dialogue still needs synthesis; explicit
+imported audio remains available. Applying a changed voice resets pending event
+edits and prepared scene audio. Prepare the scene or generate a selected line again
+to hear the configured voice; real Kokoro synthesis still requires local assets.
+
+Pasted alignments for that character's synthesized lines are cleared across all
+scenes. Other characters and explicit imported-WAV alignments are preserved.
+Generated cache entries remain on disk and are reused only when their content
+identity matches. Undo/Redo restore screenplay text and clear pasted timing data,
+as described above. No-op or invalid voice Apply leaves the document/history and
+prepared state unchanged. Native Mac listening and perceptual lip-sync quality
+remain separate acceptance checks.
