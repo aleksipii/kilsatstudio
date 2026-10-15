@@ -114,3 +114,32 @@ length is known only after audio preparation: dragging a Speak event does not
 analyze its duration or guarantee that the generated/imported line will fit.
 Scene preparation can reject speech that overruns the scene or overlaps another
 line from the same actor. Mouth timing still requires explicit alignment.
+
+## Add, duplicate and remove events
+
+In the Inspector, choose **+ Event** and then **Move**, **Expression**,
+**Gesture** or **Dialogue**. A new draft starts at the frame nearest the playhead,
+within the selected scene. Choose its actor and properties, then **Apply event**.
+**Cancel draft** discards it without changing the screenplay. The event is appended
+to the scene's source list; timing determines playback, while simultaneous events
+retain source order. New moves use the evaluated actor position. New dialogue uses
+the configured voice; characters without a voice need an explicit imported-audio
+path before Apply can succeed.
+
+Select an existing event and choose **Duplicate** to create a detached copy at the
+playhead. Its fields are preserved, but the start is frame-snapped. Choose a valid
+start/duration before applying: copied movement can overlap and a copied duration
+can exceed the scene. No duplicate is committed until validation succeeds.
+
+**Delete event** requests removal. **Confirm delete** performs one undoable edit;
+**Cancel delete** leaves the source unchanged. Changing the source, scene or event
+selection cancels a stale confirmation. No keyboard Delete action removes events.
+These actions are disabled during generation, diagnostics and export.
+
+Each accepted add or removal invalidates prepared scene audio. Adding/removing
+**Dialogue** also clears all pasted alignments because sequential dialogue IDs may
+shift, including in later scenes. Other event kinds preserve the timing maps.
+Generated audio cache entries remain available; reprepare the scene to reuse valid
+entries. Undo restores exact source text, not alignment paste data or prepared
+assets. All Apply/add/remove operations normalize YAML and remove comments, as
+described above. Full speech duration is still checked during audio preparation.

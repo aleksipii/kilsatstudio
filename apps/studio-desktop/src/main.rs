@@ -2,6 +2,7 @@
 mod demo;
 mod edit_history;
 mod event_editor;
+mod event_factory;
 mod export_worker;
 mod playback;
 mod runtime_check;
@@ -59,6 +60,9 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    inserting_event: bool,
+    event_draft_source: Option<String>,
+    pending_event_delete: Option<(usize, usize, String)>,
     timeline_drag: Option<timeline_edit::Drag>,
     timeline_drag_source: Option<String>,
     timeline_seek_drag: bool,
@@ -148,6 +152,9 @@ impl Default for Studio {
             }
         });
         Self {
+            inserting_event: false,
+            event_draft_source: None,
+            pending_event_delete: None,
             timeline_drag: None,
             timeline_drag_source: None,
             timeline_seek_drag: false,
@@ -211,6 +218,102 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn begin_event_draft(&mut self, kind: Option<event_factory::Kind>) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        self.flush_text_edit();
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let actor = self
+            .selected_actor
+            .as_deref()
+            .filter(|id| script.characters.contains_key(*id))
+            .or_else(|| script.characters.keys().next().map(String::as_str));
+        let result = if let Some(kind) = kind {
+            match actor {
+                Some(actor) => {
+                    event_factory::create(script, self.scene_index, actor, self.playhead, kind)
+                }
+                None => Err("Add a character to MotionScript before adding events.".into()),
+            }
+        } else if let Some(index) = self.selected_event {
+            event_factory::duplicate_at(script, self.scene_index, index, self.playhead)
+        } else {
+            return;
+        };
+        let index = scene.events.len();
+        match result {
+            Ok(event) => {
+                self.stop_playback();
+                self.cancel_timeline_drag();
+                self.selected_event = None;
+                self.inserting_event = true;
+                self.event_draft_source = Some(self.source.clone());
+                self.pending_event_delete = None;
+                self.event_edit_error = None;
+                self.event_draft = Some(event_editor::Draft {
+                    scene_index: self.scene_index,
+                    event_index: index,
+                    event,
+                });
+                self.status =
+                    "New event draft: edit its timing/properties, then choose Apply event.".into();
+            }
+            Err(error) => self.status = error,
+        }
+    }
+    fn request_event_delete(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        if let Some(index) = self.selected_event {
+            self.pending_event_delete = Some((self.scene_index, index, self.source.clone()));
+        }
+    }
+    fn confirm_event_delete(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        let Some((scene, event, original)) = self.pending_event_delete.take() else {
+            return;
+        };
+        if self.scene_index != scene
+            || self.selected_event != Some(event)
+            || self.source != original
+        {
+            self.status = "Event selection changed; delete cancelled.".into();
+            return;
+        }
+        self.flush_text_edit();
+        let speech = self
+            .script
+            .as_ref()
+            .and_then(|script| script.scenes.get(scene))
+            .and_then(|scene| scene.events.get(event))
+            .is_some_and(|event| matches!(event, motion_script::Event::Speak { .. }));
+        match motion_script::remove_event(&self.source, scene, event) {
+            Ok(source) => {
+                if source.len() > 100_000 {
+                    self.status = "Edited screenplay exceeds 100 KB.".into();
+                    return;
+                }
+                self.history.record(&self.source, &source);
+                self.source = source;
+                if speech {
+                    self.alignment.clear();
+                    self.scene_alignment.clear();
+                }
+                self.validate();
+                self.status = "Event deleted. Undo restores the previous screenplay. Prepare scene audio again.".into();
+            }
+            Err(error) => self.status = format!("Delete event: {error}"),
+        }
+    }
     fn cancel_timeline_drag(&mut self) {
         self.timeline_drag = None;
         self.timeline_drag_source = None;
@@ -240,6 +343,9 @@ impl Studio {
         else {
             return;
         };
+        self.inserting_event = false;
+        self.event_draft_source = None;
+        self.pending_event_delete = None;
         self.event_draft = Some(event_editor::Draft {
             scene_index: drag.scene_index,
             event_index: drag.event_index,
@@ -277,7 +383,7 @@ impl Studio {
         }
     }
     fn apply_event_draft(&mut self) {
-        if self.busy || self.diagnostics_busy {
+        if self.busy || self.diagnostics_busy || self.export_busy {
             return;
         }
         self.flush_text_edit();
@@ -287,7 +393,18 @@ impl Studio {
         let scene = draft.scene_index;
         let event = draft.event_index;
         let edits_speech = matches!(draft.event, motion_script::Event::Speak { .. });
-        match motion_script::apply_event(&self.source, scene, event, draft.event.clone()) {
+        if self.inserting_event && self.event_draft_source.as_deref() != Some(self.source.as_str())
+        {
+            self.event_edit_error = Some("Screenplay changed; create a new event draft.".into());
+            return;
+        }
+        let insertion = self.inserting_event;
+        let result = if insertion {
+            motion_script::insert_event(&self.source, scene, event, draft.event.clone())
+        } else {
+            motion_script::apply_event(&self.source, scene, event, draft.event.clone())
+        };
+        match result {
             Ok(source) => {
                 if source.len() > 100_000 {
                     self.event_edit_error =
@@ -295,7 +412,10 @@ impl Studio {
                     return;
                 }
                 self.history.record(&self.source, &source);
-                if edits_speech {
+                if edits_speech && insertion {
+                    self.alignment.clear();
+                    self.scene_alignment.clear();
+                } else if edits_speech {
                     self.clear_event_alignment(scene, event);
                 }
                 self.source = source;
@@ -376,6 +496,9 @@ impl Studio {
         }
     }
     fn invalidate_scene(&mut self) {
+        self.inserting_event = false;
+        self.event_draft_source = None;
+        self.pending_event_delete = None;
         self.cancel_timeline_drag();
         self.event_draft = None;
         self.event_edit_error = None;
@@ -387,6 +510,9 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.inserting_event = false;
+        self.event_draft_source = None;
+        self.pending_event_delete = None;
         self.cancel_timeline_drag();
         self.event_draft = None;
         self.event_edit_error = None;
@@ -1454,27 +1580,127 @@ impl Studio {
     }
 
     fn event_inspector_ui(&mut self, ui: &mut egui::Ui) {
-        let (Some(script), Some(index)) = (self.script.as_ref(), self.selected_event) else {
+        let mut create = None;
+        let mut duplicate = false;
+        let mut delete = false;
+        ui.add_enabled_ui(
+            self.script.is_some() && !self.busy && !self.diagnostics_busy && !self.export_busy,
+            |ui| {
+                ui.horizontal(|ui| {
+                    ui.menu_button("+ Event", |ui| {
+                        for (label, kind) in [
+                            ("Move", event_factory::Kind::Move),
+                            ("Expression", event_factory::Kind::Emotion),
+                            ("Gesture", event_factory::Kind::Gesture),
+                            ("Dialogue", event_factory::Kind::Speak),
+                        ] {
+                            if ui.button(label).clicked() {
+                                create = Some(kind);
+                                ui.close_menu();
+                            }
+                        }
+                    });
+                    let existing = self.selected_event.is_some() && !self.inserting_event;
+                    duplicate = ui
+                        .add_enabled(existing, egui::Button::new("Duplicate"))
+                        .clicked();
+                    delete = ui
+                        .add_enabled(existing, egui::Button::new("Delete event"))
+                        .clicked();
+                });
+            },
+        );
+        if let Some(kind) = create {
+            self.begin_event_draft(Some(kind));
+        }
+        if duplicate {
+            self.begin_event_draft(None);
+        }
+        if delete {
+            self.request_event_delete();
+        }
+        if self
+            .pending_event_delete
+            .as_ref()
+            .is_some_and(|(scene, event, source)| {
+                *scene != self.scene_index
+                    || Some(*event) != self.selected_event
+                    || source != &self.source
+            })
+        {
+            self.pending_event_delete = None;
+        }
+        if self.pending_event_delete.is_some() {
+            ui.label("Remove this event? Undo can restore it.");
+            ui.add_enabled_ui(
+                !self.busy && !self.diagnostics_busy && !self.export_busy,
+                |ui| {
+                    ui.horizontal(|ui| {
+                        if ui.button("Confirm delete").clicked() {
+                            self.confirm_event_delete();
+                        }
+                        if ui.button("Cancel delete").clicked() {
+                            self.pending_event_delete = None;
+                        }
+                    });
+                },
+            );
+        }
+        if self.inserting_event && self.selected_event.is_some() {
+            self.inserting_event = false;
+            self.event_draft_source = None;
             self.event_draft = None;
+        }
+        let Some(script) = self.script.as_ref() else {
+            self.event_draft = None;
+            self.inserting_event = false;
+            self.event_draft_source = None;
             self.event_edit_error = None;
             return;
         };
-        if !self.event_draft.as_ref().is_some_and(|draft| {
-            draft.scene_index == self.scene_index && draft.event_index == index
-        }) {
-            self.event_draft = event_editor::Draft::new(script, self.scene_index, index);
-            self.event_edit_error = None;
+        if !self.inserting_event {
+            let Some(index) = self.selected_event else {
+                self.event_draft = None;
+                self.event_edit_error = None;
+                return;
+            };
+            if !self.event_draft.as_ref().is_some_and(|draft| {
+                draft.scene_index == self.scene_index && draft.event_index == index
+            }) {
+                self.event_draft = event_editor::Draft::new(script, self.scene_index, index);
+                self.event_edit_error = None;
+            }
         }
         let actors: Vec<_> = script.characters.keys().cloned().collect();
         let mut apply = false;
+        let mut cancel = false;
         ui.add_space(10.0);
-        section_label(ui, "SELECTED EVENT");
-        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
-            if let Some(draft) = &mut self.event_draft {
-                apply = draft.ui(ui, &actors);
-            }
-        });
-        if apply {
+        section_label(
+            ui,
+            if self.inserting_event {
+                "NEW EVENT · UNSAVED DRAFT"
+            } else {
+                "SELECTED EVENT"
+            },
+        );
+        ui.add_enabled_ui(
+            !self.busy && !self.diagnostics_busy && !self.export_busy,
+            |ui| {
+                if self.inserting_event {
+                    cancel = ui.button("Cancel draft").clicked();
+                }
+                if let Some(draft) = &mut self.event_draft {
+                    apply = draft.ui(ui, &actors);
+                }
+            },
+        );
+        if cancel {
+            self.inserting_event = false;
+            self.event_draft_source = None;
+            self.event_draft = None;
+            self.event_edit_error = None;
+            self.status = "Event draft cancelled; screenplay unchanged.".into();
+        } else if apply {
             self.apply_event_draft();
         }
         if let Some(error) = &self.event_edit_error {
@@ -2355,6 +2581,125 @@ mod scene_preview_tests {
         studio.reset_scene();
         assert!(studio.timeline_drag.is_none());
         assert!(studio.timeline_drag_source.is_none());
+    }
+    #[test]
+    fn new_event_is_a_validated_draft_with_one_undo() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let before = studio.source.clone();
+        let count = studio.script.as_ref().unwrap().scenes[0].events.len();
+        studio.scene_alignment = r#"{"0":{"fixture":"keep"}}"#.into();
+        studio.playhead = 4.0;
+        studio.begin_event_draft(Some(event_factory::Kind::Emotion));
+        assert_eq!(studio.source, before);
+        assert!(!studio.history.can_undo());
+        assert!(studio.inserting_event);
+        if let motion_script::Event::Emotion { actor, .. } =
+            &mut studio.event_draft.as_mut().unwrap().event
+        {
+            *actor = "MISSING".into();
+        }
+        studio.apply_event_draft();
+        assert_eq!(studio.source, before);
+        assert!(studio.event_edit_error.is_some());
+        if let motion_script::Event::Emotion { actor, .. } =
+            &mut studio.event_draft.as_mut().unwrap().event
+        {
+            *actor = "EMMA".into();
+        }
+        studio.apply_event_draft();
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0].events.len(),
+            count + 1
+        );
+        assert!(studio.scene_alignment.contains("keep"));
+        assert_eq!(studio.selected_event, Some(count));
+        assert!(!studio.inserting_event);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, before);
+        assert!(!studio.history.can_undo());
+    }
+    #[test]
+    fn duplicate_speech_and_confirmed_delete_invalidate_shifted_alignment_ids() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let count = studio.script.as_ref().unwrap().scenes[0].events.len();
+        let index = studio.script.as_ref().unwrap().scenes[0]
+            .events
+            .iter()
+            .position(|event| matches!(event, motion_script::Event::Speak { .. }))
+            .unwrap();
+        studio.selected_event = Some(index);
+        studio.playhead = 10.0;
+        studio.scene_alignment = r#"{"0":{"fixture":"stale"},"1":{"fixture":"shifted"}}"#.into();
+        studio.alignment = "stale".into();
+        studio.begin_event_draft(None);
+        assert!(matches!(
+            studio.event_draft.as_ref().unwrap().event,
+            motion_script::Event::Speak { .. }
+        ));
+        studio.apply_event_draft();
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0].events.len(),
+            count + 1
+        );
+        assert!(studio.scene_alignment.is_empty() && studio.alignment.is_empty());
+        let duplicated = studio.source.clone();
+        studio.request_event_delete();
+        assert_eq!(studio.source, duplicated);
+        studio.export_busy = true;
+        studio.confirm_event_delete();
+        assert_eq!(studio.source, duplicated);
+        studio.export_busy = false;
+        studio.confirm_event_delete();
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0].events.len(),
+            count
+        );
+        assert!(studio.selected_event.is_none());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, duplicated);
+    }
+    #[test]
+    fn stale_lifecycle_actions_and_cancelled_drafts_do_not_change_source() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let before = studio.source.clone();
+        studio.begin_event_draft(Some(event_factory::Kind::Gesture));
+        studio.reset_scene();
+        assert!(!studio.inserting_event && studio.event_draft.is_none());
+        assert_eq!(studio.source, before);
+        assert!(!studio.history.can_undo());
+        studio.begin_event_draft(Some(event_factory::Kind::Emotion));
+        studio.source.push_str("\n# changed after draft\n");
+        let changed = studio.source.clone();
+        studio.apply_event_draft();
+        assert_eq!(studio.source, changed);
+        assert!(studio.event_edit_error.is_some());
+        studio.validate();
+        studio.selected_event = Some(0);
+        studio.request_event_delete();
+        studio.selected_event = Some(1);
+        studio.confirm_event_delete();
+        assert_eq!(studio.source, changed);
+        assert!(!studio.history.can_undo());
+    }
+    #[test]
+    fn retiming_existing_event_does_not_insert_an_open_creation_draft() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let count = studio.script.as_ref().unwrap().scenes[0].events.len();
+        let event = studio.script.as_ref().unwrap().scenes[0].events[0].clone();
+        studio.begin_event_draft(Some(event_factory::Kind::Emotion));
+        let mut drag = timeline_edit::Drag::new(0, 0, &event, 0.0).unwrap();
+        drag.update(200.0, 1200.0, 12.0, 24).unwrap();
+        studio.timeline_drag_source = Some(studio.source.clone());
+        studio.finish_timeline_drag(drag);
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0].events.len(),
+            count
+        );
+        assert!(!studio.inserting_event);
     }
     #[test]
     fn native_workspace_headless_layout_and_optional_capture() {

@@ -122,17 +122,72 @@ pub fn apply_event(
     event_index: usize,
     replacement: Event,
 ) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let event = candidate
+            .scenes
+            .get_mut(scene_index)
+            .and_then(|scene| scene.events.get_mut(event_index))
+            .ok_or_else(missing_event)?;
+        *event = replacement;
+        Ok(())
+    })
+}
+
+/// Insert an event before `event_index`, or append when it equals the event count.
+///
+/// The entire candidate screenplay is validated before returning normalized YAML.
+/// Comments are not preserved. Input/output are bounded to one MiB; no files change.
+pub fn insert_event(
+    source: &str,
+    scene_index: usize,
+    event_index: usize,
+    event: Event,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if event_index > scene.events.len() {
+            return Err(missing_event());
+        }
+        scene.events.insert(event_index, event);
+        Ok(())
+    })
+}
+
+/// Remove an event atomically, returning validated, normalized YAML.
+///
+/// Empty scenes remain valid. Comments are not preserved; input/output are bounded
+/// to one MiB. This function has no file side effects.
+pub fn remove_event(source: &str, scene_index: usize, event_index: usize) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if event_index >= scene.events.len() {
+            return Err(missing_event());
+        }
+        scene.events.remove(event_index);
+        Ok(())
+    })
+}
+
+fn missing_event() -> Error {
+    Error::Validation("selected scene or event no longer exists".into())
+}
+
+fn edit_source(
+    source: &str,
+    edit: impl FnOnce(&mut Script) -> Result<(), Error>,
+) -> Result<String, Error> {
     const LIMIT: usize = 1_048_576;
     if source.len() > LIMIT {
         return Err(Error::Validation("screenplay exceeds one MiB".into()));
     }
     let mut candidate = parse(source)?;
-    let event = candidate
-        .scenes
-        .get_mut(scene_index)
-        .and_then(|scene| scene.events.get_mut(event_index))
-        .ok_or_else(|| Error::Validation("selected scene or event no longer exists".into()))?;
-    *event = replacement;
+    edit(&mut candidate)?;
     candidate.validate()?;
     let output = serde_yaml::to_string(&candidate)?;
     if output.len() > LIMIT {
@@ -374,5 +429,76 @@ mod edit_tests {
             audio: Some("voice.wav".into()),
         };
         assert!(apply_event(SOURCE, 0, 0, event).is_err());
+    }
+    #[test]
+    fn lifecycle_preserves_order_and_roundtrips_fields() {
+        let appended = insert_event(SOURCE, 0, 1, movement("EMMA", 3.0)).unwrap();
+        let inserted = insert_event(
+            &appended,
+            0,
+            1,
+            Event::Speak {
+                at: 2.0,
+                actor: "EMMA".into(),
+                text: "Hello!".into(),
+                emotion: Some("happy".into()),
+                audio: Some("dialogue.wav".into()),
+            },
+        )
+        .unwrap();
+        let script = parse(&inserted).unwrap();
+        assert_eq!(
+            script.scenes[0]
+                .events
+                .iter()
+                .map(|e| e.actor_time().0)
+                .collect::<Vec<_>>(),
+            vec![0.0, 2.0, 3.0]
+        );
+        assert!(
+            matches!(&script.scenes[0].events[1], Event::Speak {text, emotion: Some(emotion), audio: Some(audio), ..} if text == "Hello!" && emotion == "happy" && audio == "dialogue.wav")
+        );
+        let removed = remove_event(&inserted, 0, 1).unwrap();
+        assert_eq!(
+            serde_yaml::to_value(parse(&removed).unwrap()).unwrap(),
+            serde_yaml::to_value(parse(&appended).unwrap()).unwrap()
+        );
+    }
+    #[test]
+    fn lifecycle_accepts_empty_scene() {
+        let empty = remove_event(SOURCE, 0, 0).unwrap();
+        assert!(parse(&empty).unwrap().scenes[0].events.is_empty());
+        let restored = insert_event(&empty, 0, 0, movement("EMMA", 0.0)).unwrap();
+        assert_eq!(parse(&restored).unwrap().scenes[0].events.len(), 1);
+        assert!(remove_event(&empty, 0, 0).is_err());
+    }
+    #[test]
+    fn lifecycle_rejects_invalid_candidates_without_mutating_source() {
+        let original = SOURCE.to_owned();
+        for event in [
+            movement("MISSING", 2.0),
+            movement("EMMA", 0.5),
+            movement("EMMA", 4.5),
+        ] {
+            assert!(insert_event(&original, 0, 1, event).is_err());
+            assert_eq!(original, SOURCE);
+        }
+        for (scene, event) in [(1, 0), (0, 2), (usize::MAX, usize::MAX)] {
+            assert!(insert_event(&original, scene, event, movement("EMMA", 2.0)).is_err());
+            assert!(remove_event(&original, scene, event).is_err());
+        }
+        assert!(remove_event(&original, 0, 1).is_err());
+        assert_eq!(original, SOURCE);
+        let oversized = " ".repeat(1_048_577);
+        assert!(insert_event(&oversized, 0, 0, movement("EMMA", 2.0)).is_err());
+        assert!(remove_event(&oversized, 0, 0).is_err());
+        let huge = Event::Speak {
+            at: 2.0,
+            actor: "EMMA".into(),
+            text: "a".repeat(1_048_577),
+            emotion: None,
+            audio: Some("voice.wav".into()),
+        };
+        assert!(insert_event(SOURCE, 0, 1, huge).is_err());
     }
 }
