@@ -112,6 +112,37 @@ pub fn parse(source: &str) -> Result<Script, Error> {
     script.validate()?;
     Ok(script)
 }
+/// Replace one event atomically after validating the entire candidate screenplay.
+///
+/// YAML is reserialized: formatting is normalized and comments are not preserved.
+/// Input and output are limited to one MiB. This function has no file side effects.
+pub fn apply_event(
+    source: &str,
+    scene_index: usize,
+    event_index: usize,
+    replacement: Event,
+) -> Result<String, Error> {
+    const LIMIT: usize = 1_048_576;
+    if source.len() > LIMIT {
+        return Err(Error::Validation("screenplay exceeds one MiB".into()));
+    }
+    let mut candidate = parse(source)?;
+    let event = candidate
+        .scenes
+        .get_mut(scene_index)
+        .and_then(|scene| scene.events.get_mut(event_index))
+        .ok_or_else(|| Error::Validation("selected scene or event no longer exists".into()))?;
+    *event = replacement;
+    candidate.validate()?;
+    let output = serde_yaml::to_string(&candidate)?;
+    if output.len() > LIMIT {
+        return Err(Error::Validation(
+            "updated screenplay exceeds one MiB".into(),
+        ));
+    }
+    Ok(output)
+}
+
 impl Script {
     pub fn validate(&self) -> Result<(), Error> {
         let fail = |s: String| Error::Validation(s);
@@ -268,5 +299,80 @@ mod tests {
         assert!(parse(&s.replace("actor: EMMA", "actor: MISSING")).is_err());
         assert!(parse(&s.replace("speed: 1.0", "speed: .nan")).is_err());
         assert!(parse(&s.replace("type: speak", "type: dance")).is_err());
+    }
+}
+
+#[cfg(test)]
+mod edit_tests {
+    use super::*;
+    const SOURCE: &str = "characters:\n  EMMA:\n    asset: characters/emma\nscenes:\n  - id: intro\n    duration: 5\n    events:\n      - type: move\n        actor: EMMA\n        at: 0\n        x: 10\n        y: 20\n        duration: 1\n";
+    fn movement(actor: &str, at: f64) -> Event {
+        Event::Move {
+            actor: actor.into(),
+            at,
+            x: 200.0,
+            y: 100.0,
+            duration: 1.0,
+        }
+    }
+    #[test]
+    fn valid_move_and_imported_dialogue_roundtrip() {
+        let moved = apply_event(SOURCE, 0, 0, movement("EMMA", 2.0)).unwrap();
+        assert!(matches!(
+            parse(&moved).unwrap().scenes[0].events[0],
+            Event::Move {
+                at: 2.0,
+                x: 200.0,
+                ..
+            }
+        ));
+        let spoken = apply_event(
+            &moved,
+            0,
+            0,
+            Event::Speak {
+                at: 1.0,
+                actor: "EMMA".into(),
+                text: "Hello, studio!".into(),
+                emotion: Some("happy".into()),
+                audio: Some("voice.wav".into()),
+            },
+        )
+        .unwrap();
+        assert!(
+            matches!(&parse(&spoken).unwrap().scenes[0].events[0], Event::Speak {text, ..} if text == "Hello, studio!")
+        );
+    }
+    #[test]
+    fn invalid_updates_leave_source_unchanged() {
+        let original = SOURCE.to_owned();
+        for event in [
+            movement("MISSING", 0.0),
+            movement("EMMA", 4.5),
+            movement("EMMA", f64::NAN),
+            Event::Emotion {
+                actor: "EMMA".into(),
+                at: 0.0,
+                value: "unsupported".into(),
+            },
+        ] {
+            assert!(apply_event(&original, 0, 0, event).is_err());
+            assert_eq!(original, SOURCE);
+            assert!(parse(&original).is_ok());
+        }
+        assert!(apply_event(SOURCE, 1, 0, movement("EMMA", 0.0)).is_err());
+        assert!(apply_event(SOURCE, 0, 1, movement("EMMA", 0.0)).is_err());
+    }
+    #[test]
+    fn bounds_input_and_output() {
+        assert!(apply_event(&" ".repeat(1_048_577), 0, 0, movement("EMMA", 0.0)).is_err());
+        let event = Event::Speak {
+            at: 0.0,
+            actor: "EMMA".into(),
+            text: "a".repeat(1_048_577),
+            emotion: None,
+            audio: Some("voice.wav".into()),
+        };
+        assert!(apply_event(SOURCE, 0, 0, event).is_err());
     }
 }

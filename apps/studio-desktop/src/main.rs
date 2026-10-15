@@ -1,5 +1,7 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
 mod demo;
+mod edit_history;
+mod event_editor;
 mod export_worker;
 mod playback;
 mod runtime_check;
@@ -56,6 +58,10 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    history: edit_history::History,
+    pending_text_edit: Option<String>,
+    event_draft: Option<event_editor::Draft>,
+    event_edit_error: Option<String>,
     exporter: export_worker::Worker,
     export_busy: bool,
     export_path: String,
@@ -138,6 +144,10 @@ impl Default for Studio {
             }
         });
         Self {
+            history: edit_history::History::new(include_str!("../../../examples/hello-emma.yaml")),
+            pending_text_edit: None,
+            event_draft: None,
+            event_edit_error: None,
             selected_actor: None,
             selected_event: None,
             editor_tab: false,
@@ -194,11 +204,113 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn flush_text_edit(&mut self) {
+        if let Some(before) = self.pending_text_edit.take() {
+            self.history.record(&before, &self.source);
+        }
+    }
+    fn undo_edit(&mut self, redo: bool) {
+        if self.busy || self.diagnostics_busy {
+            return;
+        }
+        self.flush_text_edit();
+        let source = if redo {
+            self.history.redo(&self.source)
+        } else {
+            self.history.undo(&self.source)
+        };
+        if let Some(source) = source {
+            self.source = source;
+            self.alignment.clear();
+            self.scene_alignment.clear();
+            self.stop_playback();
+            self.invalidate_scene();
+            self.jobs.clear();
+            self.preview = None;
+            self.validate();
+        }
+    }
+    fn apply_event_draft(&mut self) {
+        if self.busy || self.diagnostics_busy {
+            return;
+        }
+        self.flush_text_edit();
+        let Some(draft) = self.event_draft.as_ref() else {
+            return;
+        };
+        let scene = draft.scene_index;
+        let event = draft.event_index;
+        let edits_speech = matches!(draft.event, motion_script::Event::Speak { .. });
+        match motion_script::apply_event(&self.source, scene, event, draft.event.clone()) {
+            Ok(source) => {
+                if source.len() > 100_000 {
+                    self.event_edit_error =
+                        Some("Edited screenplay exceeds the 100 KB desktop save limit.".into());
+                    return;
+                }
+                self.history.record(&self.source, &source);
+                if edits_speech {
+                    self.clear_event_alignment(scene, event);
+                }
+                self.source = source;
+                self.scene_index = scene;
+                self.validate();
+                if let Some(script) = &self.script {
+                    self.selected_event = Some(event);
+                    self.selected_actor = script
+                        .scenes
+                        .get(scene)
+                        .and_then(|s| s.events.get(event))
+                        .map(|e| e.actor_time().1.to_owned());
+                    self.event_draft = event_editor::Draft::new(script, scene, event);
+                    self.status = "Event applied. Scene audio was invalidated; prepare it again before playback or export.".into();
+                }
+                self.event_edit_error = None;
+            }
+            Err(error) => {
+                self.event_edit_error = Some(error.to_string());
+            }
+        }
+    }
+    fn clear_event_alignment(&mut self, scene: usize, event: usize) {
+        self.alignment.clear();
+        let Some(script) = &self.script else {
+            self.scene_alignment.clear();
+            return;
+        };
+        let mut dialogue_id = 0u64;
+        for (scene_index, current_scene) in script.scenes.iter().enumerate() {
+            for (event_index, current_event) in current_scene.events.iter().enumerate() {
+                if matches!(current_event, motion_script::Event::Speak { .. }) {
+                    if (scene_index, event_index) == (scene, event) {
+                        if self.scene_alignment.trim().is_empty() {
+                            return;
+                        }
+                        match serde_json::from_str::<
+                            std::collections::BTreeMap<u64, serde_json::Value>,
+                        >(&self.scene_alignment)
+                        {
+                            Ok(mut alignments) => {
+                                alignments.remove(&dialogue_id);
+                                self.scene_alignment =
+                                    serde_json::to_string(&alignments).unwrap_or_default();
+                            }
+                            Err(_) => self.scene_alignment.clear(),
+                        }
+                        return;
+                    }
+                    dialogue_id += 1;
+                }
+            }
+        }
+    }
     fn load_sound_check(&mut self) {
         self.stop_playback();
         match demo::DemoAssets::create() {
             Ok(assets) => {
                 self.source = assets.source.clone();
+                self.history.reset(&self.source);
+                self.pending_text_edit = None;
                 self.project_root = assets.root.to_string_lossy().into_owned();
                 self.script_path = assets
                     .root
@@ -218,6 +330,8 @@ impl Studio {
         }
     }
     fn invalidate_scene(&mut self) {
+        self.event_draft = None;
+        self.event_edit_error = None;
         self.selected_event = None;
         self.scene_preview = None;
         self.scene_audio_active = false;
@@ -226,6 +340,8 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.event_draft = None;
+        self.event_edit_error = None;
         self.selected_event = None;
         self.stop_playback();
         self.scene_preview = None;
@@ -271,6 +387,10 @@ impl Studio {
         match result {
             Ok(source) => {
                 self.source = source;
+                self.history.reset(&self.source);
+                self.pending_text_edit = None;
+                self.alignment.clear();
+                self.scene_alignment.clear();
                 self.invalidate_scene();
                 self.jobs.clear();
                 self.preview = None;
@@ -280,6 +400,7 @@ impl Studio {
         }
     }
     fn save_script(&mut self) {
+        self.flush_text_edit();
         if self.source.len() > 100_000 {
             self.status = "Screenplay exceeds 100 KB save limit".into();
             return;
@@ -290,6 +411,7 @@ impl Studio {
         };
     }
     fn validate(&mut self) {
+        self.flush_text_edit();
         self.stop_playback();
         match motion_script::parse(&self.source)
             .map_err(|e| e.to_string())
@@ -906,6 +1028,23 @@ impl Studio {
         }
     }
     fn workspace_ui(&mut self, ctx: &egui::Context) {
+        if !self.busy && !self.diagnostics_busy && document_shortcuts_enabled(ctx) {
+            let redo = ctx.input_mut(|input| {
+                input.consume_shortcut(&egui::KeyboardShortcut::new(
+                    egui::Modifiers::COMMAND | egui::Modifiers::SHIFT,
+                    egui::Key::Z,
+                ))
+            });
+            let undo = ctx.input_mut(|input| {
+                input.consume_shortcut(&egui::KeyboardShortcut::new(
+                    egui::Modifiers::COMMAND,
+                    egui::Key::Z,
+                ))
+            });
+            if redo || undo {
+                self.undo_edit(redo);
+            }
+        }
         egui::TopBottomPanel::top("studio_toolbar")
             .exact_height(48.0)
             .frame(
@@ -935,6 +1074,30 @@ impl Studio {
                         }
                         if ui.button("Validate").clicked() {
                             self.validate();
+                        }
+                        let pending_change = self
+                            .pending_text_edit
+                            .as_ref()
+                            .is_some_and(|before| before != &self.source);
+                        if ui
+                            .add_enabled(
+                                pending_change || self.history.can_undo(),
+                                egui::Button::new("Undo"),
+                            )
+                            .on_hover_text("Undo screenplay edit · Cmd/Ctrl+Z")
+                            .clicked()
+                        {
+                            self.undo_edit(false);
+                        }
+                        if ui
+                            .add_enabled(
+                                !pending_change && self.history.can_redo(),
+                                egui::Button::new("Redo"),
+                            )
+                            .on_hover_text("Redo screenplay edit · Cmd/Ctrl+Shift+Z")
+                            .clicked()
+                        {
+                            self.undo_edit(true);
                         }
                         if ui
                             .button("Load sound-check demo")
@@ -1031,10 +1194,14 @@ impl Studio {
     }
 
     fn project_ui(&mut self, ui: &mut egui::Ui) {
+        let previous_tab = self.editor_tab;
         ui.horizontal(|ui| {
             ui.selectable_value(&mut self.editor_tab, false, "Project");
             ui.selectable_value(&mut self.editor_tab, true, "MotionScript");
         });
+        if previous_tab != self.editor_tab {
+            self.flush_text_edit();
+        }
         ui.separator();
         egui::ScrollArea::vertical().id_salt("project_scroll").show(ui, |ui| {
             if self.editor_tab {
@@ -1042,13 +1209,19 @@ impl Studio {
                 ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                     field(ui, "Screenplay path · Save replaces this file", &mut self.script_path);
                     ui.add_space(6.0);
-                    if ui.add(egui::TextEdit::multiline(&mut self.source)
+                    let before = self.source.clone();
+                    let response = ui.add(egui::TextEdit::multiline(&mut self.source)
+                        .id(egui::Id::new("screenplay_editor"))
                         .desired_rows(32).desired_width(f32::INFINITY).char_limit(100_000)
-                        .font(egui::TextStyle::Monospace).code_editor()).changed()
+                        .font(egui::TextStyle::Monospace).code_editor());
+                    if response.changed()
                     {
+                        if self.pending_text_edit.is_none() { self.pending_text_edit = Some(before); }
+                        self.alignment.clear(); self.scene_alignment.clear();
                         self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
                         self.status = "Screenplay changed; validate before generation.".into();
                     }
+                    if response.lost_focus() { self.flush_text_edit(); }
                 });
                 return;
             }
@@ -1132,20 +1305,8 @@ impl Studio {
                     );
                 }
             }
-            if let Some(event) = self
-                .selected_event
-                .and_then(|index| script.scenes.get(self.scene_index)?.events.get(index))
-            {
-                ui.add_space(10.0);
-                section_label(ui, "SELECTED EVENT · READ ONLY");
-                if let Ok(json) = serde_json::to_string_pretty(event) {
-                    ui.add(
-                        egui::Label::new(egui::RichText::new(json).monospace().size(11.0)).wrap(),
-                    );
-                }
-                ui.weak("Edit the source to change event timing or content.");
-            }
         }
+        self.event_inspector_ui(ui);
         ui.add_space(12.0);
         section_label(ui, "DIALOGUE");
         self.dialogue_ui(ui);
@@ -1242,6 +1403,35 @@ impl Studio {
             ));
         }
         ui.weak("The directory must not exist. Missing alignment keeps mouths at rest.");
+    }
+
+    fn event_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let (Some(script), Some(index)) = (self.script.as_ref(), self.selected_event) else {
+            self.event_draft = None;
+            self.event_edit_error = None;
+            return;
+        };
+        if !self.event_draft.as_ref().is_some_and(|draft| {
+            draft.scene_index == self.scene_index && draft.event_index == index
+        }) {
+            self.event_draft = event_editor::Draft::new(script, self.scene_index, index);
+            self.event_edit_error = None;
+        }
+        let actors: Vec<_> = script.characters.keys().cloned().collect();
+        let mut apply = false;
+        ui.add_space(10.0);
+        section_label(ui, "SELECTED EVENT");
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+            if let Some(draft) = &mut self.event_draft {
+                apply = draft.ui(ui, &actors);
+            }
+        });
+        if apply {
+            self.apply_event_draft();
+        }
+        if let Some(error) = &self.event_edit_error {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
     }
 
     fn start_export(&mut self) {
@@ -1559,6 +1749,10 @@ impl Studio {
     }
 }
 const ACCENT: egui::Color32 = egui::Color32::from_rgb(111, 219, 178);
+fn document_shortcuts_enabled(ctx: &egui::Context) -> bool {
+    !ctx.wants_keyboard_input()
+        || ctx.memory(|memory| memory.focused() == Some(egui::Id::new("screenplay_editor")))
+}
 const MOVE: egui::Color32 = egui::Color32::from_rgb(91, 158, 226);
 const EMOTION: egui::Color32 = egui::Color32::from_rgb(208, 151, 93);
 const GESTURE: egui::Color32 = egui::Color32::from_rgb(162, 132, 216);
@@ -1897,6 +2091,108 @@ mod scene_preview_tests {
         studio.start_export();
         assert!(!studio.export_busy);
         assert!(!Path::new(&studio.export_path).exists());
+    }
+    #[test]
+    fn inspector_edits_validate_atomically_and_undo_restores_exact_source() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let before = studio.source.clone();
+        let index = studio.script.as_ref().unwrap().scenes[0]
+            .events
+            .iter()
+            .position(|event| matches!(event, motion_script::Event::Move { .. }))
+            .unwrap();
+        studio.selected_event = Some(index);
+        studio.event_draft = event_editor::Draft::new(studio.script.as_ref().unwrap(), 0, index);
+        if let motion_script::Event::Move { duration, .. } =
+            &mut studio.event_draft.as_mut().unwrap().event
+        {
+            *duration = -1.0;
+        }
+        studio.apply_event_draft();
+        assert_eq!(studio.source, before);
+        assert!(studio.event_edit_error.is_some());
+        assert!(!studio.history.can_undo());
+        studio.event_draft = event_editor::Draft::new(studio.script.as_ref().unwrap(), 0, index);
+        if let motion_script::Event::Move { x, .. } =
+            &mut studio.event_draft.as_mut().unwrap().event
+        {
+            *x = 321.0;
+        }
+        studio.apply_event_draft();
+        let after = studio.source.clone();
+        assert_ne!(after, before);
+        assert_eq!(studio.selected_event, Some(index));
+        assert!(matches!(
+            studio.script.as_ref().unwrap().scenes[0].events[index],
+            motion_script::Event::Move { x: 321.0, .. }
+        ));
+        studio.undo_edit(false);
+        assert_eq!(studio.source, before);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, after);
+        studio.busy = true;
+        studio.undo_edit(false);
+        assert_eq!(studio.source, after);
+    }
+    #[test]
+    fn edited_dialogue_drops_only_its_stale_scene_alignment() {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.scene_alignment = r#"{"0":{"fixture":"edited"},"1":{"fixture":"keep"}}"#.into();
+        studio.alignment = "selected line alignment".into();
+        let index = studio.script.as_ref().unwrap().scenes[0]
+            .events
+            .iter()
+            .position(|event| matches!(event, motion_script::Event::Speak { .. }))
+            .unwrap();
+        studio.event_draft = event_editor::Draft::new(studio.script.as_ref().unwrap(), 0, index);
+        if let motion_script::Event::Speak { text, .. } =
+            &mut studio.event_draft.as_mut().unwrap().event
+        {
+            text.push_str(" Changed.");
+        }
+        studio.apply_event_draft();
+        let alignments: serde_json::Value = serde_json::from_str(&studio.scene_alignment).unwrap();
+        assert!(alignments.get("0").is_none());
+        assert_eq!(alignments["1"]["fixture"], "keep");
+        assert!(studio.alignment.is_empty());
+        studio.undo_edit(false);
+        assert!(studio.scene_alignment.is_empty());
+    }
+    #[test]
+    fn focused_screenplay_changes_form_one_history_transaction() {
+        let mut studio = Studio::default();
+        let before = studio.source.clone();
+        studio.pending_text_edit = Some(before.clone());
+        studio.source = format!("# typed comment\n{before}");
+        let edited = studio.source.clone();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, before);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+        studio.pending_text_edit = Some(edited.clone());
+        studio.flush_text_edit();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, before);
+    }
+    #[test]
+    fn document_shortcuts_leave_other_text_fields_their_own_undo() {
+        for (field, enabled) in [
+            ("inspector_dialogue", false),
+            ("export_path", false),
+            ("screenplay_editor", true),
+        ] {
+            let ctx = egui::Context::default();
+            let mut text = String::from("draft");
+            let _ = ctx.run(egui::RawInput::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    ui.add(egui::TextEdit::singleline(&mut text).id(egui::Id::new(field)))
+                        .request_focus();
+                    assert_eq!(document_shortcuts_enabled(ctx), enabled, "{field}");
+                });
+            });
+        }
     }
     #[test]
     fn native_workspace_headless_layout_and_optional_capture() {

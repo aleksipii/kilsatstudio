@@ -97,3 +97,13 @@ establish hardware playback, texture loading, a complete project asset manager o
 a production animation suite. Scene bundles preserve the existing alignment
 provenance; external WAV/JSON checks establish structure, not recording identity
 or perceptual mouth accuracy. Video encoding remains Stage 7b.
+
+## Inspector editing increment
+
+Following the integrated workspace/frame-output stages, the Inspector edits
+detached event drafts and applies only fully validated replacements. Bounded
+whole-screenplay undo/redo restores exact source text. Invalid updates preserve
+the original document; audio and alignment invalidation prevent stale prepared
+results after accepted edits. This is event-property editing, not timeline
+retiming, keyframe tooling or a complete project/asset history. See the
+[workspace guide](ui-workspace.md) for formatting and history boundaries.
