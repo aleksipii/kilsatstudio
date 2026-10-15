@@ -12,11 +12,17 @@ for the model-free checks below.
 2. Download its `Kilsat-Studio-Preview-arm64` artifact while signed into
    GitHub. Extract the artifact, then extract the contained preview ZIP.
 3. Open `Kilsat Studio Preview.app`. Keep its Contents directory together. macOS may
-   identify it as an unnotarized development app; only open a build from a commit
-   you trust, using the normal macOS Privacy & Security/Finder controls.
+   identify it as an unnotarized development app. For the specific warning that
+   Apple cannot verify the developer, and only for a build you trust, dismiss the
+   warning and open **System Settings → Privacy & Security → Open Anyway** for
+   this app, then authenticate and confirm Open. This does not disable Gatekeeper
+   globally. A damaged-app or malware warning requires separate investigation.
 4. Read the included `Contents/Resources/BUILD-INFO.txt` for the exact source commit and architecture.
    The ZIP includes test instructions, examples and the Python sidecar source,
    but no inference dependencies or model assets.
+
+A user has confirmed that the current preview opens after the normal macOS
+approval. The Mac chip, macOS version and audio behavior remain unrecorded.
 
 The build job checks bundle layout, architecture, dynamic-library references and
 ad-hoc signature. It does not launch the GUI or listen to the output device.
@@ -59,17 +65,39 @@ The bundled sidecar source is available in the app's Resources; Python and the
 model remain external. Run `smoke_macos.py --help` from the source checkout for an
 explicit local CPU test before testing full dialogue in the app.
 
-Generate the Hello Emma scene with `af_heart` and `am_michael`. Record actual WAV
-output, durations, voice quality and failures. Real speech has no validated mouth
-timestamps automatically; import or author timing separately. Do not judge
-phoneme alignment from synthetic tones or Kokoro token strings.
+1. In the app, choose **Check local Kokoro setup**. Confirm the editor remains
+   responsive during asset hashing. Resolve missing-file/dependency errors and
+   retry. This prerequisite check does not synthesize speech or certify model/G2P
+   validity. For shareable JSON use `doctor.py` as described in the runtime guide.
+2. Run the opt-in smoke test with `af_heart.pt`, a new WAV path, and
+   `--report /absolute/reports/kokoro-af-heart.json`. Repeat with `am_michael.pt`
+   and separate WAV/report paths. Keep both WAVs locally and listen: record whether
+   each line is understandable, complete and free of obvious clipping/artifacts.
+   RMS/peak and nonzero samples prove signal presence, not natural speech quality.
+3. Generate the Hello Emma scene with `af_heart` and `am_michael`. Play it and
+   exercise pause/resume and seeking. Record durations, voice quality and errors.
+4. Prepare unchanged dialogue again. Observe whether it reuses a cache entry
+   without a new synthesis process or WAV modification. Change text, preset or
+   speed and verify that it generates distinct output; preserve the model revision.
+5. Start a long uncached line and choose **Cancel generation**. Wait for completion
+   of cancellation, then retry. A cancelled result must not replace the preview.
+   Completed cache entries should remain reusable. Cancellation keeps the UI busy
+   until workers stop safely: Kokoro kills/reaps its child and removes staging;
+   imported audio/mixing stop at processing boundaries. Default custom providers
+   may only stop before/after their synthesis call.
+
+Real speech has no automatically validated mouth timestamps. Import or author
+alignment separately; do not judge phoneme timing from tones or Kokoro strings.
 
 ## Report the result
 
 Include the source commit from BUILD-INFO, macOS version, Mac model/chip, output
 device, whether the app opened, steps taken, expected versus observed behavior
 and any visible error. For Kokoro tests, include Python/runtime/model revisions
-and whether all assets were already local. Do not include model weights in reports.
+and whether all assets were already local. Attach reviewed JSON diagnostics/smoke
+reports, listening notes and errors; reports contain paths/environment details.
+Do not upload model weights or voice tensors. A successful report does not certify
+perceptual alignment, audio-device latency or video export.
 
 | Check | What to record |
 | --- | --- |
@@ -84,8 +112,3 @@ Remaining work includes practical cancellation validation, runtime output-device
 measured speech alignment, textured rigs, rendered frames/video, release signing,
 notarization, and the complete redistribution/dependency audit.
 
-### Cancel speech generation
-
-While dialogue or scene preparation is running, choose **Cancel generation**. The interface stays responsive and waits for the worker to stop before allowing a retry. Kokoro terminates and reaps its active sidecar and removes partial staging files; completed cache entries remain available. Imported audio and mixing stop at processing boundaries. Custom speech providers using the default cancellation implementation stop before or after their synthesis call.
-
-To check cancellation, start a long uncached dialogue, cancel it, wait for the cancellation message, and generate again. No cancelled result should replace the preview. This interaction still requires a practical macOS GUI test.

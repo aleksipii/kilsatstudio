@@ -17,6 +17,8 @@ class PackageTests(unittest.TestCase):
         self.repo = self.root / 'source with spaces'
         for relative in ['examples/dialogue.yaml', 'examples/model.pt',
                          'services/kokoro-runtime/runtime.py',
+                         'services/kokoro-runtime/doctor.py',
+                         'services/kokoro-runtime/smoke_macos.py',
                          'services/kokoro-runtime/requirements.txt',
                          'services/kokoro-runtime/README.md',
                          'services/kokoro-runtime/weights.pt', 'docs/practical-testing.md']:
@@ -40,6 +42,8 @@ class PackageTests(unittest.TestCase):
         resources = contents / 'Resources'
         self.assertTrue((resources / 'examples/dialogue.yaml').is_file())
         self.assertTrue((resources / 'services/kokoro-runtime/runtime.py').is_file())
+        for helper in ['doctor.py', 'smoke_macos.py']:
+            self.assertEqual((resources / 'services/kokoro-runtime' / helper).read_text(), 'fixture')
         self.assertEqual(list(resources.rglob('*.pt')), [])
         self.assertIn('abc123', (resources / 'BUILD-INFO.txt').read_text())
 
@@ -47,6 +51,15 @@ class PackageTests(unittest.TestCase):
         self.stage()
         with self.assertRaisesRegex(ValueError, 'already exists'):
             self.stage()
+
+    def test_requires_diagnostic_helpers_before_writing(self):
+        for helper in ['doctor.py', 'smoke_macos.py']:
+            path = self.repo / 'services/kokoro-runtime' / helper
+            path.unlink()
+            with self.assertRaisesRegex(ValueError, helper):
+                self.stage()
+            self.assertFalse(self.bundle.exists())
+            path.write_text('fixture')
 
     def test_requires_executable(self):
         self.binary.chmod(0o644)

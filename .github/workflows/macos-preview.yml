@@ -22,8 +22,15 @@ jobs:
           cargo --version
       - name: Install Apple Silicon target
         run: rustup target add aarch64-apple-darwin
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test runtime helpers
+        run: |
+          python3 -m pip install numpy==2.3.5
+          python3 -m unittest discover -s services/kokoro-runtime/tests -p 'test_*.py' -v
       - name: Test packaging
-        run: python3 -m unittest discover -s tests -p 'test_package_macos.py' -v
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Build desktop preview
         run: cargo build --locked -p studio-desktop --target aarch64-apple-darwin
       - name: Package ad-hoc signed app
@@ -41,6 +48,18 @@ jobs:
           PY
           strip -x "$binary"
           python3 scripts/package_macos.py --binary "$binary" --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
+      - name: Verify packaged diagnostic helpers
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+          root = 'Kilsat Studio Preview.app/Contents/Resources/services/kokoro-runtime/'
+          with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
+              for helper in ['doctor.py', 'smoke_macos.py']:
+                  source = Path('services/kokoro-runtime', helper).read_bytes()
+                  if archive.read(root + helper) != source:
+                      raise SystemExit(f'Packaged {helper} differs from source')
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: Kilsat-Studio-Preview-arm64
