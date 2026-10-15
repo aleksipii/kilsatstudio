@@ -1532,6 +1532,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "motion-export"
+version = "0.1.0"
+dependencies = [
+ "motion-audio",
+ "motion-lipsync",
+ "motion-render",
+ "motion-scene",
+ "motion-script",
+ "motion-tts",
+ "motion-voice",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "motion-lipsync"
 version = "0.1.0"
 dependencies = [
@@ -2653,6 +2669,7 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "motion-audio",
+ "motion-export",
  "motion-lipsync",
  "motion-scene",
  "motion-script",

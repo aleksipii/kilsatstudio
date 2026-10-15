@@ -12,6 +12,8 @@ source code or dependencies are used.
 ## Current capabilities
 
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
+- Navigate a resizable studio workspace with a project/asset browser, YAML editor,
+  central preview, read-only inspector and scrubbable actor/event timeline.
 - Preview Emma/Alex placeholders with deterministic movement, expressions and wave
   gestures. Play, pause, restart and scrub a silent scene.
 - Configure per-character Kokoro presets, English language and speech speed.
@@ -26,8 +28,8 @@ source code or dependencies are used.
 - Import explicit timed IPA/ARPAbet alignment with provenance and audio checks.
 - Export mixed scene WAV and sample-timed dialogue/viseme JSON; sample actor poses
   through the same scene evaluator used by the preview.
-- Render deterministic SVG frame sequences of the procedural characters at the
-  project frame rate, with a neutral mouth and a JSON frame index.
+- Render deterministic procedural SVG frame sequences, including a scene-bundle
+  path with matching WAV and explicit timed mouth tracks on a shared sample clock.
 
 Missing alignment keeps mouths at rest. Kokoro phoneme strings are **not** treated
 as accurate timestamps. Facial emotion affects the visual preview; acoustic emotion
@@ -133,7 +135,8 @@ images; they are **not encoded video** and contain no embedded audio.
 | --- | --- |
 | `motion-script` | MotionScript schema, syntax/semantic checks and unsupported-command diagnostics |
 | `motion-scene` | Stateless movement/expression/gesture evaluation shared by preview and pose export |
-| `motion-render` | Deterministic procedural SVG rendering and bounded frame-sequence example |
+| `motion-render` | Deterministic procedural SVG rendering and bounded movement-only frame example |
+| `motion-export` | Bounded, cancellable SVG/audio scene bundles with sample-timed mouth evaluation |
 | `motion-audio` | WAV I/O, waveform peaks, frame transport and deterministic mixing |
 | `motion-tts` | Replaceable speech provider, Kokoro process boundary, cache and timeout handling |
 | `motion-lipsync` | Explicit alignment provenance, IPA/ARPAbet conversion and timed visemes |
@@ -189,6 +192,7 @@ remain enabled in CI.
 - [Audio architecture and acceptance gates](docs/audio.md)
 - [Staged development](docs/development-stages.md)
 - [SVG frame export](docs/frame-export.md)
+- [Studio workspace](docs/ui-workspace.md)
 - [Complete master build prompt with Kokoro](docs/master-build-prompt.md)
 - [Agent engineering instructions](AGENTS.md)
 

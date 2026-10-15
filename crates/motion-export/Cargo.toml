@@ -1,0 +1,15 @@
+[package]
+name = "motion-export"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+motion-audio = { path = "../motion-audio" }
+motion-script = { path = "../motion-script" }
+motion-scene = { path = "../motion-scene" }
+motion-render = { path = "../motion-render" }
+motion-lipsync = { path = "../motion-lipsync" }
+motion-voice = { path = "../motion-voice" }
+motion-tts = { path = "../motion-tts" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub const SAMPLE_RATE: u32 = 24_000;
 pub const MAX_SCENE_SECONDS: f64 = 3600.0;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SceneManifest {
     pub schema_version: u32,
     pub scene_id: String,
@@ -18,7 +18,7 @@ pub struct SceneManifest {
     pub total_frames: u64,
     pub dialogue: Vec<DialogueManifest>,
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DialogueManifest {
     pub actor: String,
     pub start_frame: u64,
@@ -30,7 +30,7 @@ pub struct DialogueManifest {
     /// Half-open scene sample intervals; gaps evaluate to Rest.
     pub visemes: Vec<SampleViseme>,
 }
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SampleViseme {
     pub start_frame: u64,
     pub end_frame: u64,
@@ -100,8 +100,8 @@ pub fn render_scene(
                 .map_err(|e| SpeechError(e.to_string()))?
             {
                 // First integer sample whose time is >= the boundary, matching mouth_at.
-                let start = (interval.start_seconds * SAMPLE_RATE as f64).ceil() as u64;
-                let end = (interval.end_seconds * SAMPLE_RATE as f64).ceil() as u64;
+                let start = sample_boundary(interval.start_seconds, clip.audio.frames() as u64);
+                let end = sample_boundary(interval.end_seconds, clip.audio.frames() as u64);
                 let start = start.max(clip.trim_start_frame);
                 let end = end.min(clip.audio.frames() as u64);
                 if start < end {
@@ -144,4 +144,17 @@ pub fn render_scene(
             dialogue,
         },
     })
+}
+
+/// First source sample at or after a boundary, clipped to audio EOF. Correct the
+/// floating multiplication estimate using exactly the division used by mouth_at.
+fn sample_boundary(seconds: f64, audio_frames: u64) -> u64 {
+    let mut sample = ((seconds * SAMPLE_RATE as f64).ceil() as u64).min(audio_frames);
+    while sample > 0 && (sample - 1) as f64 / SAMPLE_RATE as f64 >= seconds {
+        sample -= 1;
+    }
+    while sample < audio_frames && (sample as f64 / SAMPLE_RATE as f64) < seconds {
+        sample += 1;
+    }
+    sample
 }

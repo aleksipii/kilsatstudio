@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/motion-audio", "crates/motion-tts", "crates/motion-lipsync", "crates/motion-voice", "crates/motion-script", "apps/studio-desktop", "crates/motion-scene", "crates/motion-render"]
+members = ["crates/motion-audio", "crates/motion-tts", "crates/motion-lipsync", "crates/motion-voice", "crates/motion-script", "apps/studio-desktop", "crates/motion-scene", "crates/motion-render", "crates/motion-export"]
 
 [workspace.package]
 version = "0.1.0"
