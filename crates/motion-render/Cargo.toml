@@ -9,5 +9,6 @@ motion-lipsync = { path = "../motion-lipsync" }
 thiserror.workspace = true
 
 [dev-dependencies]
+motion-animation = { path = "../motion-animation" }
 motion-script = { path = "../motion-script" }
 serde_json.workspace = true

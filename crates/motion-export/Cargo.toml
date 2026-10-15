@@ -13,3 +13,4 @@ motion-tts = { path = "../motion-tts" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+resvg = { version = "=0.45.1", default-features = false }

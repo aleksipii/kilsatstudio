@@ -1,0 +1,6 @@
+[package]
+name = "motion-rig"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+thiserror.workspace = true

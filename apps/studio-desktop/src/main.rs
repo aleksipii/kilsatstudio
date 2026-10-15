@@ -34,7 +34,10 @@ fn main() -> eframe::Result {
         Box::new(|cc| {
             studio_theme(&cc.egui_ctx);
             let mut studio = Studio::default();
-            studio.validate();
+            if let Some(path) = std::env::args().nth(1) {
+                studio.script_path = path;
+                studio.open_script();
+            } else { studio.validate(); }
             Ok(Box::new(studio))
         }),
     )
@@ -62,6 +65,9 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    lifecycle_id: String,
+    lifecycle_asset: String,
+    lifecycle_delete: Option<(bool, String, String)>,
     settings_draft: Option<scene_settings::Draft>,
     settings_draft_source: Option<String>,
     settings_error: Option<String>,
@@ -81,11 +87,14 @@ struct Studio {
     exporter: export_worker::Worker,
     export_busy: bool,
     export_path: String,
+    export_format: export_worker::Format,
+    ffmpeg_path: String,
     export_progress: Option<motion_export::Progress>,
     selected_actor: Option<String>,
     selected_event: Option<usize>,
     editor_tab: bool,
     demo_assets: Option<demo::DemoAssets>,
+    project_document: Option<motion_project::ProjectDocument>,
     source: String,
     script: Option<motion_script::Script>,
     scene_index: usize,
@@ -160,6 +169,9 @@ impl Default for Studio {
             }
         });
         Self {
+            lifecycle_id: String::new(),
+            lifecycle_asset: "procedural".into(),
+            lifecycle_delete: None,
             settings_draft: None,
             settings_draft_source: None,
             settings_error: None,
@@ -180,6 +192,7 @@ impl Default for Studio {
             selected_event: None,
             editor_tab: false,
             demo_assets: None,
+            project_document: None,
             source: include_str!("../../../examples/hello-emma.yaml").into(),
             script: None,
             scene_index: 0,
@@ -227,11 +240,82 @@ impl Default for Studio {
             exporter: export_worker::Worker::new(),
             export_busy: false,
             export_path: String::new(),
+            export_format: Default::default(),
+            ffmpeg_path: String::new(),
             export_progress: None,
         }
     }
 }
 impl Studio {
+    fn apply_structure(&mut self, result: Result<String, motion_script::Error>) {
+        if self.busy || self.diagnostics_busy || self.export_busy { return; }
+        match result {
+            Ok(source) if source.len() <= 100_000 => {
+                self.flush_text_edit();
+                self.history.record(&self.source, &source);
+                self.source = source;
+                self.alignment.clear();
+                self.scene_alignment.clear();
+                self.preview = None;
+                self.selected_actor = None;
+                self.validate();
+                self.status = "Project structure updated. Undo restores the previous source; prepare audio again.".into();
+            }
+            Ok(_) => self.status = "Edit exceeds the 100 KB desktop source limit.".into(),
+            Err(error) => self.status = error.to_string(),
+        }
+    }
+
+    fn structure_ui(&mut self, ui: &mut egui::Ui) {
+        egui::CollapsingHeader::new("Add / duplicate / delete").show(ui, |ui| {
+            ui.add_enabled_ui(self.script.is_some() && !self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
+                field(ui, "New stable identifier", &mut self.lifecycle_id);
+                field(ui, "New character asset reference", &mut self.lifecycle_asset);
+                ui.weak("Asset references are preserved; this preview renders procedural rigs.");
+                let id = self.lifecycle_id.trim().to_string();
+                if ui.button("Add scene").clicked() {
+                    let result = motion_script::add_scene(&self.source, motion_script::Scene { id: id.clone(), duration: 5.0, background: None, events: vec![] });
+                    self.apply_structure(result);
+                }
+                if ui.button("Duplicate selected scene").clicked() {
+                    self.apply_structure(motion_script::duplicate_scene(&self.source, self.scene_index, &id));
+                }
+                if ui.button("Delete selected scene…").clicked() {
+                    if let Some(scene) = self.script.as_ref().and_then(|s| s.scenes.get(self.scene_index)) {
+                        self.lifecycle_delete = Some((true, scene.id.clone(), self.source.clone()));
+                    }
+                }
+                if ui.button("Add character").clicked() {
+                    self.apply_structure(motion_script::add_character(&self.source, &id, motion_script::Character { asset: self.lifecycle_asset.trim().into(), default_pose: None, voice: None }));
+                }
+                if ui.button("Duplicate selected character").clicked() {
+                    if let Some(character) = self.selected_actor.as_ref().and_then(|actor| self.script.as_ref()?.characters.get(actor)).cloned() {
+                        self.apply_structure(motion_script::add_character(&self.source, &id, character));
+                    }
+                }
+                if ui.button("Delete selected character…").clicked() {
+                    if let Some(actor) = &self.selected_actor {
+                        self.lifecycle_delete = Some((false, actor.clone(), self.source.clone()));
+                    }
+                }
+                if let Some((scene, id, source)) = self.lifecycle_delete.clone() {
+                    ui.colored_label(egui::Color32::LIGHT_RED, format!("Delete {} {id}?", if scene {"scene and its events"} else {"character"}));
+                    ui.weak("Referenced characters cannot be deleted. Undo can restore successful changes.");
+                    if ui.button("Confirm deletion").clicked() {
+                        self.lifecycle_delete = None;
+                        if source != self.source { self.status = "Source changed; select deletion again.".into(); }
+                        else if scene {
+                            if let Some(index) = self.script.as_ref().and_then(|s| s.scenes.iter().position(|s| s.id == id)) {
+                                self.apply_structure(motion_script::remove_scene(&self.source, index));
+                            }
+                        } else { self.apply_structure(motion_script::remove_character(&self.source, &id)); }
+                    }
+                    if ui.button("Cancel deletion").clicked() { self.lifecycle_delete = None; }
+                }
+            });
+        });
+    }
+
     fn apply_settings_draft(&mut self) {
         if self.busy || self.diagnostics_busy || self.export_busy {
             return;
@@ -823,6 +907,31 @@ impl Studio {
         }
     }
     fn open_script(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy { return; }
+        if Path::new(&self.script_path).extension().is_some_and(|s| s == "kilsat") {
+            let result = (|| -> Result<(motion_project::ProjectDocument, String), String> {
+                let path = std::fs::canonicalize(&self.script_path).map_err(|e| e.to_string())?;
+                let doc = motion_project::load(&path).map_err(|e| e.to_string())?;
+                if doc.source.len() > 100_000 { return Err("Project source exceeds 100 KB editor limit".into()); }
+                let root = path.parent().ok_or("Project has no parent directory")?.to_string_lossy().into_owned();
+                Ok((doc, root))
+            })();
+            match result {
+                Ok((doc, root)) => {
+                    self.source = doc.source.clone();
+                    self.project_document = Some(doc);
+                    self.project_root = root;
+                    self.history.reset(&self.source);
+                    self.pending_text_edit = None;
+                    self.alignment.clear(); self.scene_alignment.clear();
+                    self.preview = None;
+                    self.scene_index = 0;
+                    self.validate();
+                }
+                Err(error) => self.status = format!("Open project: {error}"),
+            }
+            return;
+        }
         self.stop_playback();
         use std::io::Read;
         let result = (|| -> Result<String, String> {
@@ -839,6 +948,7 @@ impl Studio {
         })();
         match result {
             Ok(source) => {
+                self.project_document = None;
                 self.source = source;
                 self.history.reset(&self.source);
                 self.pending_text_edit = None;
@@ -853,6 +963,22 @@ impl Studio {
         }
     }
     fn save_script(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy { return; }
+        if Path::new(&self.script_path).extension().is_some_and(|s| s == "kilsat") {
+            let result = (|| -> Result<motion_project::ProjectDocument, String> {
+                if self.source.len() > 100_000 { return Err("Project source exceeds 100 KB editor limit".into()); }
+                let parent = Path::new(&self.script_path).parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+                let root = std::fs::canonicalize(parent).map_err(|e| e.to_string())?;
+                let configured = std::fs::canonicalize(&self.project_root).map_err(|e| e.to_string())?;
+                if root != configured { return Err("Save .kilsat beside the configured project root to preserve relative asset/audio paths. Copy assets explicitly before relocation.".into()); }
+                let mut doc = self.project_document.clone().unwrap_or(motion_project::ProjectDocument::new(self.source.clone()).map_err(|e| e.to_string())?);
+                doc.source = self.source.clone();
+                motion_project::save_atomic(Path::new(&self.script_path), &doc).map_err(|e| e.to_string())?;
+                Ok(doc)
+            })();
+            match result { Ok(doc) => {self.project_document = Some(doc); self.flush_text_edit(); self.status = "Saved versioned project and asset inventory.".into();}, Err(error) => self.status = format!("Save project: {error}") }
+            return;
+        }
         self.flush_text_edit();
         if self.source.len() > 100_000 {
             self.status = "Screenplay exceeds 100 KB save limit".into();
@@ -1469,7 +1595,7 @@ impl Studio {
             ui.label(format!("Sample frame {scene_frame} · mouth {mouth:?}"));
             waveform(ui, &preview.peaks, (self.playhead - start) / (end - start));
             mouth_preview(ui, mouth);
-            ui.label("macOS playback uses the source playback position for mouth preview. Device latency and perceptual sync require Mac validation. Video export is not implemented.");
+            ui.label("macOS playback uses the source playback position for mouth preview. Device latency and perceptual sync require Mac validation. MP4 export requires an explicitly selected local FFmpeg executable.");
             if let Some(error) = &self.playback_error {
                 ui.colored_label(egui::Color32::LIGHT_RED, error);
             }
@@ -1660,7 +1786,7 @@ impl Studio {
             if self.editor_tab {
                 ui.weak("English YAML · changes require validation");
                 ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
-                    field(ui, "Screenplay path · Save replaces this file", &mut self.script_path);
+                    field(ui, "YAML / .kilsat path · Save replaces this file", &mut self.script_path);
                     ui.add_space(6.0);
                     let before = self.source.clone();
                     let response = ui.add(egui::TextEdit::multiline(&mut self.source)
@@ -1682,6 +1808,7 @@ impl Studio {
             if let Some(script) = &self.script { ui.label(egui::RichText::new(&script.project.title).strong().size(16.0)); }
             ui.add_space(12.0);
             self.settings_ui(ui);
+            self.structure_ui(ui);
             section_label(ui, "SCENES");
             let scenes: Vec<_> = self.script.as_ref().map(|s| s.scenes.iter().enumerate()
                 .map(|(i, scene)| (i, scene.id.clone(), scene.duration)).collect()).unwrap_or_default();
@@ -1764,7 +1891,7 @@ impl Studio {
             );
         }
         ui.add_space(10.0);
-        egui::CollapsingHeader::new("Scene export · SVG + WAV")
+        egui::CollapsingHeader::new("Scene export · SVG / PNG / MP4")
             .default_open(true)
             .show(ui, |ui| self.export_ui(ui));
         egui::CollapsingHeader::new("Selected audio / waveform")
@@ -1800,9 +1927,18 @@ impl Studio {
 
     fn export_ui(&mut self, ui: &mut egui::Ui) {
         ui.weak(
-            "Export prepared scene audio with sample-timed mouths and SVG frames. No MP4 encoding.",
+            "Export prepared scene audio and sample-timed mouths. MP4 also retains PNG frames and WAV audio.",
         );
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+            ui.horizontal(|ui| {
+                ui.selectable_value(&mut self.export_format, export_worker::Format::Svg, "SVG");
+                ui.selectable_value(&mut self.export_format, export_worker::Format::Png, "PNG");
+                ui.selectable_value(&mut self.export_format, export_worker::Format::Mp4, "MP4");
+            });
+            if self.export_format == export_worker::Format::Mp4 {
+                field(ui, "Local FFmpeg executable (absolute path)", &mut self.ffmpeg_path);
+                ui.weak("Runs this local program. No encoder is downloaded. MP4 requires even dimensions.");
+            }
             field(
                 ui,
                 "New output directory (absolute path)",
@@ -1828,6 +1964,9 @@ impl Studio {
                 )
                 .show_percentage(),
             );
+            if progress.completed_frames >= progress.total_frames {
+                ui.label("Frames ready; finalizing / encoding…");
+            }
             ui.label(format!(
                 "{} / {} frames",
                 progress.completed_frames, progress.total_frames
@@ -1987,7 +2126,13 @@ impl Studio {
             return;
         }
         let cancel = CancellationToken::new();
+        if self.export_format == export_worker::Format::Mp4 && !Path::new(self.ffmpeg_path.trim()).is_absolute() {
+            self.status = "Choose an absolute path to a local FFmpeg executable.".into();
+            return;
+        }
         let request = export_worker::Request {
+            format: self.export_format,
+            ffmpeg: self.ffmpeg_path.trim().into(),
             script: script.clone(),
             scene_index: self.scene_index,
             audio: Arc::clone(&preview.audio),
@@ -2005,7 +2150,7 @@ impl Studio {
                 self.busy = true;
                 self.active_cancel = Some(cancel);
                 self.export_progress = None;
-                self.status = "Exporting SVG frames and prepared scene audio…".into();
+                self.status = format!("Exporting {:?} and prepared scene audio…", self.export_format);
             }
             Err(error) => self.status = error,
         }

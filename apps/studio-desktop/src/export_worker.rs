@@ -8,7 +8,17 @@ use std::{
     sync::{mpsc, Arc, Mutex},
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Format {
+    #[default]
+    Svg,
+    Png,
+    Mp4,
+}
+
 pub struct Request {
+    pub format: Format,
+    pub ffmpeg: PathBuf,
     pub script: Script,
     pub scene_index: usize,
     pub audio: Arc<motion_audio::AudioBuffer>,
@@ -45,14 +55,11 @@ impl Worker {
                 manifest: (*request.manifest).clone(),
             };
             request.cancel.check().map_err(|error| error.to_string())?;
-            motion_export::export_scene(
-                &request.script,
-                request.scene_index,
-                &rendered,
-                &request.destination,
-                &request.cancel,
-                progress,
-            )
+            match request.format {
+                Format::Svg => motion_export::export_scene(&request.script, request.scene_index, &rendered, &request.destination, &request.cancel, progress),
+                Format::Png => motion_export::export_png_scene(&request.script, request.scene_index, &rendered, &request.destination, &request.cancel, progress),
+                Format::Mp4 => motion_export::export_mp4_scene(&request.script, request.scene_index, &rendered, &request.destination, &request.ffmpeg, &request.cancel, progress),
+            }
             .map_err(|error| error.to_string())
         })
     }
@@ -158,6 +165,8 @@ mod tests {
     fn request() -> Request {
         let rendered = motion_voice::export::render_scene("test", 0.1, &[]).unwrap();
         Request {
+            format: Format::Svg,
+            ffmpeg: PathBuf::new(),
             script: Script {
                 project: Default::default(),
                 characters: Default::default(),

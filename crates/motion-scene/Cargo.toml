@@ -3,6 +3,7 @@ name = "motion-scene"
 version.workspace = true
 edition.workspace = true
 [dependencies]
+motion-animation = { path = "../motion-animation" }
 motion-script = { path = "../motion-script" }
 thiserror.workspace = true
 [dev-dependencies]
