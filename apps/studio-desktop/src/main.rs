@@ -1,4 +1,5 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
+mod demo;
 mod playback;
 mod scene_worker;
 
@@ -41,6 +42,7 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    demo_assets: Option<demo::DemoAssets>,
     source: String,
     script: Option<motion_script::Script>,
     scene_index: usize,
@@ -109,21 +111,30 @@ impl Default for Studio {
             }
         });
         Self {
+            demo_assets: None,
             source: include_str!("../../../examples/hello-emma.yaml").into(),
             script: None,
             scene_index: 0,
             scene_transport: None,
             scene_tick: Instant::now(),
             scene_fraction: 0.0,
-            script_path: "dialogue.yaml".into(),
+            script_path: std::env::temp_dir()
+                .join("kilsatstudio-screenplay.yaml")
+                .to_string_lossy()
+                .into_owned(),
             jobs: Vec::new(),
             selected: 0,
             python: "python3".into(),
-            runtime: "services/kokoro-runtime/runtime.py".into(),
+            runtime: demo::runtime_path(std::env::current_exe().ok().as_deref())
+                .to_string_lossy()
+                .into_owned(),
             config: String::new(),
             weights: String::new(),
             voices: String::new(),
-            cache: "voice-cache".into(),
+            cache: std::env::temp_dir()
+                .join("kilsatstudio-voice-cache")
+                .to_string_lossy()
+                .into_owned(),
             revision: String::new(),
             project_root: ".".into(),
             alignment: String::new(),
@@ -145,6 +156,29 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn load_sound_check(&mut self) {
+        self.stop_playback();
+        match demo::DemoAssets::create() {
+            Ok(assets) => {
+                self.source = assets.source.clone();
+                self.project_root = assets.root.to_string_lossy().into_owned();
+                self.script_path = assets
+                    .root
+                    .join("sound-check.yaml")
+                    .to_string_lossy()
+                    .into_owned();
+                self.scene_alignment = assets.alignments.clone();
+                self.alignment.clear();
+                self.demo_assets = Some(assets);
+                self.validate();
+                if self.script.is_some() {
+                    self.prepare_scene_audio();
+                    self.status = "Preparing synthetic sound check (tones, not Kokoro speech). Manual mouth cues are illustrative. Then use Play scene audio.".into();
+                }
+            }
+            Err(error) => self.status = format!("Sound check: {error}"),
+        }
+    }
     fn invalidate_scene(&mut self) {
         self.scene_preview = None;
         self.scene_audio_active = false;
@@ -675,6 +709,12 @@ impl eframe::App for Studio {
             ui.label(
                 "Local Kokoro CPU synthesis · imported audio fallback · sample-based mouth preview",
             );
+            if ui.add_enabled(!self.busy, egui::Button::new("Load sound-check demo")).clicked() {
+                self.load_sound_check();
+            }
+            if self.demo_assets.is_some() {
+                ui.label("Sound-check assets: synthetic tones, not Kokoro speech. Mouth cues are illustrative manual poses, not measured alignment. Demo files are temporary; copy assets before saving a lasting project.");
+            }
             ui.label(&self.status);
             if self.busy {
                 ui.spinner();
