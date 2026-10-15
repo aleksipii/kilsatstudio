@@ -80,7 +80,7 @@ and whether all assets were already local. Do not include model weights in repor
 | Real speech | Actual CPU WAV generation and voice behavior on your Mac |
 | Real alignment | Annotated boundaries and perceptual timing, separately measured |
 
-Remaining development includes cancellation, runtime output-device recovery,
+Remaining work includes practical cancellation validation, runtime output-device recovery,
 measured speech alignment, textured rigs, rendered frames/video, release signing,
 notarization, and the complete redistribution/dependency audit.
 

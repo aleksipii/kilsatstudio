@@ -146,7 +146,7 @@ Still unverified or unfinished:
 
 - Real Kokoro CPU synthesis on macOS/Apple Silicon with the approved local assets.
 - Actual GUI/device operation, hardware latency and perceptual lip-sync quality.
-- Cancellation of complete-scene preparation and robust runtime device-loss recovery.
+- Practical macOS cancellation validation and robust runtime device-loss recovery.
 - Textured character rigs, production frame rendering, video encoding and packaging.
 - Complete model/voice/dependency redistribution audit and locked Python environment.
 
