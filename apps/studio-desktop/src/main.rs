@@ -6,6 +6,7 @@ mod event_factory;
 mod export_worker;
 mod playback;
 mod runtime_check;
+mod scene_settings;
 mod scene_worker;
 mod timeline_edit;
 mod voice_editor;
@@ -61,6 +62,9 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    settings_draft: Option<scene_settings::Draft>,
+    settings_draft_source: Option<String>,
+    settings_error: Option<String>,
     voice_draft: Option<voice_editor::Draft>,
     voice_draft_source: Option<String>,
     voice_edit_error: Option<String>,
@@ -156,6 +160,9 @@ impl Default for Studio {
             }
         });
         Self {
+            settings_draft: None,
+            settings_draft_source: None,
+            settings_error: None,
             voice_draft: None,
             voice_draft_source: None,
             voice_edit_error: None,
@@ -225,6 +232,128 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn apply_settings_draft(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        let (Some(draft), Some(script)) = (self.settings_draft.as_ref(), self.script.as_ref())
+        else {
+            return;
+        };
+        if draft.scene_index != self.scene_index
+            || self.settings_draft_source.as_deref() != Some(self.source.as_str())
+        {
+            self.settings_error =
+                Some("Screenplay or scene changed; reset the settings draft.".into());
+            return;
+        }
+        let Some(scene) = script.scenes.get(draft.scene_index) else {
+            return;
+        };
+        let unchanged = script.project.title == draft.project.title
+            && script.project.fps == draft.project.fps
+            && script.project.width == draft.project.width
+            && script.project.height == draft.project.height
+            && scene.id == draft.scene_id
+            && scene.duration == draft.duration_seconds;
+        if unchanged {
+            self.settings_error = None;
+            self.status = "Project and scene settings unchanged.".into();
+            return;
+        }
+        let source = match motion_script::apply_scene_settings(
+            &self.source,
+            draft.scene_index,
+            draft.project.clone(),
+            &draft.scene_id,
+            draft.duration_seconds,
+        ) {
+            Ok(source) => source,
+            Err(error) => {
+                self.settings_error = Some(error.to_string());
+                return;
+            }
+        };
+        if source.len() > 100_000 {
+            self.settings_error =
+                Some("Edited screenplay exceeds the 100 KB desktop limit.".into());
+            return;
+        }
+        if draft.duration_seconds < scene.duration {
+            let mut required_end = 0u64;
+            let clips = self
+                .scene_preview
+                .as_ref()
+                .filter(|preview| preview.scene == scene.id)
+                .into_iter()
+                .flat_map(|preview| preview.clips.iter())
+                .chain(
+                    self.preview
+                        .as_ref()
+                        .filter(|preview| preview.scene == scene.id)
+                        .map(|preview| &preview.clip),
+                );
+            for clip in clips {
+                let Some(end) = (clip.audio.frames() as u64)
+                    .checked_sub(clip.trim_start_frame)
+                    .and_then(|length| clip.start_frame.checked_add(length))
+                else {
+                    self.settings_error = Some("Prepared dialogue timing is invalid; reprepare audio before changing duration.".into());
+                    return;
+                };
+                required_end = required_end.max(end);
+            }
+            if ((draft.duration_seconds * 24_000.0).round() as u64) < required_end {
+                self.settings_error = Some(format!("Prepared dialogue ends at {:.3}s; move or shorten the line before reducing scene duration.",required_end as f64/24_000.0));
+                return;
+            }
+        }
+        self.flush_text_edit();
+        self.history.record(&self.source, &source);
+        self.source = source;
+        self.validate();
+        if let Some(script) = &self.script {
+            self.settings_draft = scene_settings::Draft::new(script, self.scene_index);
+            self.settings_draft_source = Some(self.source.clone());
+        }
+        self.status = "Project / scene settings applied. Event times stay in seconds; prepare audio again before playback or export.".into();
+    }
+    fn settings_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        if !self
+            .settings_draft
+            .as_ref()
+            .is_some_and(|draft| draft.scene_index == self.scene_index)
+        {
+            self.settings_draft = scene_settings::Draft::new(script, self.scene_index);
+            self.settings_draft_source = Some(self.source.clone());
+            self.settings_error = None;
+        }
+        let mut apply = false;
+        let mut reset = false;
+        egui::CollapsingHeader::new("Project / scene settings").show(ui, |ui| {
+            ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
+                if let Some(draft) = &mut self.settings_draft { apply = draft.ui(ui); }
+                reset = ui.button("Reset settings draft").clicked();
+            });
+            ui.weak("Apply resets pending edits and prepared audio. Speech lengths not yet generated are checked on the next preparation.");
+        });
+        if reset {
+            self.settings_draft = self
+                .script
+                .as_ref()
+                .and_then(|script| scene_settings::Draft::new(script, self.scene_index));
+            self.settings_draft_source = Some(self.source.clone());
+            self.settings_error = None;
+        } else if apply {
+            self.apply_settings_draft();
+        }
+        if let Some(error) = &self.settings_error {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
+    }
     fn apply_voice_draft(&mut self) {
         if self.busy || self.diagnostics_busy || self.export_busy {
             return;
@@ -634,6 +763,9 @@ impl Studio {
         }
     }
     fn invalidate_scene(&mut self) {
+        self.settings_draft = None;
+        self.settings_draft_source = None;
+        self.settings_error = None;
         self.voice_draft = None;
         self.voice_draft_source = None;
         self.voice_edit_error = None;
@@ -651,6 +783,9 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.settings_draft = None;
+        self.settings_draft_source = None;
+        self.settings_error = None;
         self.voice_draft = None;
         self.voice_draft_source = None;
         self.voice_edit_error = None;
@@ -1546,6 +1681,7 @@ impl Studio {
             ui.add_space(6.0);
             if let Some(script) = &self.script { ui.label(egui::RichText::new(&script.project.title).strong().size(16.0)); }
             ui.add_space(12.0);
+            self.settings_ui(ui);
             section_label(ui, "SCENES");
             let scenes: Vec<_> = self.script.as_ref().map(|s| s.scenes.iter().enumerate()
                 .map(|(i, scene)| (i, scene.id.clone(), scene.duration)).collect()).unwrap_or_default();
@@ -2939,6 +3075,67 @@ mod scene_preview_tests {
         assert!(alignment.get("2").is_none());
         assert_eq!(studio.alignment, "imported selected line");
         assert!(studio.jobs[0].imported_audio.is_some());
+    }
+    fn settings_studio() -> Studio {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+        studio.settings_draft_source = Some(studio.source.clone());
+        studio
+    }
+    #[test]
+    fn settings_apply_preserves_timing_and_supports_exact_undo() {
+        let mut studio = settings_studio();
+        let original = studio.source.clone();
+        let events =
+            serde_json::to_string(&studio.script.as_ref().unwrap().scenes[0].events).unwrap();
+        studio.scene_alignment = "timing map fixture".into();
+        studio.alignment = "selected line timing".into();
+        let draft = studio.settings_draft.as_mut().unwrap();
+        draft.project.title = "Updated studio".into();
+        draft.project.fps = 60;
+        draft.scene_id = "renamed".into();
+        draft.duration_seconds += 2.0;
+        studio.apply_settings_draft();
+        assert!(studio.settings_error.is_none());
+        let script = studio.script.as_ref().unwrap();
+        assert_eq!(script.project.title, "Updated studio");
+        assert_eq!(script.project.fps, 60);
+        assert_eq!(script.scenes[0].id, "renamed");
+        assert_eq!(
+            serde_json::to_string(&script.scenes[0].events).unwrap(),
+            events
+        );
+        assert!(studio.jobs.iter().any(|job| job.scene == "renamed"));
+        assert_eq!(studio.scene_alignment, "timing map fixture");
+        assert_eq!(studio.alignment, "selected line timing");
+        let edited = studio.source.clone();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+    }
+    #[test]
+    fn settings_rejections_and_noop_leave_source_history_intact() {
+        let mut studio = settings_studio();
+        let original = studio.source.clone();
+        studio.apply_settings_draft();
+        assert!(!studio.history.can_undo());
+        studio.settings_draft.as_mut().unwrap().duration_seconds = 0.01;
+        studio.apply_settings_draft();
+        assert!(studio.settings_error.is_some());
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        studio.settings_draft.as_mut().unwrap().project.title = "Changed".into();
+        studio.settings_draft_source = Some("stale".into());
+        studio.apply_settings_draft();
+        assert!(studio.settings_error.as_ref().unwrap().contains("changed"));
+        assert_eq!(studio.source, original);
+        studio.settings_draft_source = Some(original.clone());
+        studio.busy = true;
+        studio.apply_settings_draft();
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
     }
     #[test]
     fn native_workspace_headless_layout_and_optional_capture() {

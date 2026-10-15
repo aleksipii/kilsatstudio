@@ -144,3 +144,18 @@ only their actor's pasted timing IDs, including later scenes; imported audio and
 other actor mappings are preserved. Voice assets remain separately installed and
 unbundled. This increment supplies configuration editing, not measured synthesis,
 a new inference backend, automatic voice installation or acoustic emotion control.
+
+
+### Project and scene settings
+
+In the Project tab, expand **Project / scene settings** to edit the project title,
+frame rate and dimensions, or the selected scene ID and duration. **Apply settings**
+validates the whole screenplay and records one Undo action; **Reset settings draft**
+discards pending settings. Event times remain in seconds and coordinates are not
+rescaled. Dimensions apply to every scene. Shortening rejects events or known
+prepared dialogue extending past the new end; speech not yet generated is checked
+on preparation. Accepted changes invalidate prepared audio and pending editor
+drafts while preserving pasted timing maps. Undo restores exact source text
+and clears timing maps under the existing history policy. YAML is normalized and
+comments removed on Apply. Script dimensions permit 16384 per side, while SVG
+export supports 8192; audio export supports one hour.
