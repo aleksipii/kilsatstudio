@@ -3,6 +3,8 @@ name = "motion-export"
 version.workspace = true
 edition.workspace = true
 [dependencies]
+motion-project = { path = "../motion-project" }
+motion-art = { path = "../motion-art" }
 motion-jobs = { path = "../motion-jobs" }
 motion-audio = { path = "../motion-audio" }
 motion-script = { path = "../motion-script" }
@@ -14,4 +16,4 @@ motion-tts = { path = "../motion-tts" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-resvg = { version = "=0.45.1", default-features = false }
+resvg = { version = "=0.45.1", default-features = false, features = ["raster-images"] }

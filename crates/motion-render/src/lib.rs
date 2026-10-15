@@ -12,6 +12,8 @@ const MAX_LABEL_BYTES: usize = 1024;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
+    #[error("invalid artwork: {0}")]
+    InvalidArtwork(String),
     #[error("scene and output dimensions must be between 1 and 8192 pixels")]
     InvalidDimensions,
     #[error("invalid evaluated camera, background color or scene opacity")]
@@ -69,6 +71,12 @@ pub fn render_svg_with_mouths(
                     || p.x.abs() > 1_000_000.0
                     || p.y.abs() > 1_000_000.0
             })
+            || !actor.rotation.is_finite()
+            || actor.rotation.abs() > 360_000.0
+            || !actor.scale.x.is_finite()
+            || !actor.scale.y.is_finite()
+            || !(0.001..=100.0).contains(&actor.scale.x)
+            || !(0.001..=100.0).contains(&actor.scale.y)
             || !actor.wave.is_finite()
             || !(0.0..=1.0).contains(&actor.wave)
             || [&actor.id, &actor.emotion].iter().any(|s| {
@@ -97,6 +105,16 @@ pub fn render_svg_with_mouths(
             actor.x, actor.y
         )
         .unwrap();
+        if actor.rotation != 0.0 || actor.scale.x != 1.0 || actor.scale.y != 1.0 {
+            write!(
+                svg,
+                "<g transform=\"rotate({:.6}) scale({:.6} {:.6})\">",
+                actor.rotation.to_degrees(),
+                actor.scale.x,
+                actor.scale.y
+            )
+            .unwrap();
+        }
         let p = &actor.skeleton;
         svg.push_str("<path d=\"");
         for (a, b) in [
@@ -146,7 +164,122 @@ pub fn render_svg_with_mouths(
             svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
         }
         svg.push_str("</g>");
+        if actor.rotation != 0.0 || actor.scale.x != 1.0 || actor.scale.y != 1.0 {
+            svg.push_str("</g>");
+        }
         write!(svg, "<text y=\"45\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"sans-serif\" font-size=\"12\" fill=\"white\">{} · {}</text></g>", escape(&actor.id), escape(&actor.emotion)).unwrap();
+    }
+    svg.push_str("</g></g></svg>\n");
+    Ok(svg)
+}
+
+/// Foreground artwork in document order, inside the same camera, canvas clip and fade.
+/// Attachments intentionally inherit actor translation only, matching native artwork.
+#[allow(clippy::too_many_arguments)]
+pub fn render_svg_with_art(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+) -> Result<String, Error> {
+    document
+        .validate()
+        .map_err(|e| Error::InvalidArtwork(e.to_string()))?;
+    let mut svg = render_svg_with_mouths(scene, width, height, mouths)?;
+    let end = svg.len() - "</g></g></svg>\n".len();
+    svg.truncate(end);
+    use motion_art::Content;
+    for (index, layer) in document
+        .layers
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| l.scene_id == scene_id && l.visible)
+    {
+        let (x, y) = match &layer.attachment {
+            Some(id) => match scene.actors.iter().find(|a| &a.id == id) {
+                Some(a) => (a.x, a.y),
+                None => continue,
+            },
+            None => (0.0, 0.0),
+        };
+        write!(
+            svg,
+            "<g transform=\"translate({x:.6} {y:.6})\" opacity=\"{:.6}\">",
+            layer.opacity
+        )
+        .unwrap();
+        if let Some(r) = layer.clip {
+            write!(svg,"<defs><clipPath id=\"art{index}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">",r.x,r.y,r.width,r.height).unwrap();
+        }
+        let paint = |color: &motion_art::Color| {
+            format!(
+                "fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{:.6}\"",
+                color.r,
+                color.g,
+                color.b,
+                f64::from(color.a) / 255.0
+            )
+        };
+        match &layer.content {
+            Content::Image { asset_id, rect: r } => {
+                let image = images.get(asset_id).ok_or_else(|| {
+                    Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
+                })?;
+                if image.png().len() > motion_art::MAX_IMAGE_BYTES as usize {
+                    return Err(Error::InvalidArtwork(
+                        "image encoded byte budget exceeded".into(),
+                    ));
+                }
+                write!(svg,"<image x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" preserveAspectRatio=\"none\" href=\"{}\"/>",r.x,r.y,r.width,r.height,image.data_uri()).unwrap();
+            }
+            Content::Rectangle { rect: r, color } => {
+                write!(
+                    svg,
+                    "<rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" {}/>",
+                    r.x,
+                    r.y,
+                    r.width,
+                    r.height,
+                    paint(color)
+                )
+                .unwrap();
+            }
+            Content::Ellipse { rect: r, color } => {
+                write!(
+                    svg,
+                    "<ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\" {}/>",
+                    r.x + r.width / 2.0,
+                    r.y + r.height / 2.0,
+                    r.width / 2.0,
+                    r.height / 2.0,
+                    paint(color)
+                )
+                .unwrap();
+            }
+            Content::Stroke {
+                points,
+                color,
+                width,
+            } => {
+                svg.push_str("<polyline points=\"");
+                for p in points {
+                    write!(svg, "{},{} ", p.x, p.y).unwrap();
+                }
+                write!(svg,"\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{:.6}\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",color.r,color.g,color.b,f64::from(color.a)/255.0).unwrap();
+            }
+        }
+        if layer.clip.is_some() {
+            svg.push_str("</g>");
+        }
+        svg.push_str("</g>");
+        if svg.len() > 48 * 1024 * 1024 {
+            return Err(Error::InvalidArtwork(
+                "SVG artwork exceeds 48 MiB frame budget".into(),
+            ));
+        }
     }
     svg.push_str("</g></g></svg>\n");
     Ok(svg)
@@ -176,6 +309,8 @@ mod tests {
                 x: 120.0,
                 y: 250.0,
                 emotion: "happy".into(),
+                rotation: 0.0,
+                scale: motion_scene::Vec2::new(1.0, 1.0),
                 wave: 1.0,
                 skeleton: motion_animation::humanoid(None, 1.0),
             }],
@@ -193,6 +328,17 @@ mod tests {
         let mut moved = s.clone();
         moved.actors[0].x = 200.0;
         assert_ne!(svg, render_svg(&moved, 640, 480).unwrap());
+    }
+    #[test]
+    fn root_rotation_and_scale_enclose_body_and_face_geometry() {
+        let mut s = scene();
+        s.actors[0].rotation = std::f64::consts::FRAC_PI_2;
+        s.actors[0].scale = motion_scene::Vec2::new(2.0, 0.5);
+        let svg = render_svg(&s, 640, 360).unwrap();
+        assert!(svg.contains("rotate(90.000000) scale(2.000000 0.500000)"));
+        assert!(svg.find("rotate(90.").unwrap() < svg.find("<circle r=\"25\"").unwrap());
+        s.actors[0].scale.x = f64::NAN;
+        assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidActor(0)));
     }
     #[test]
     fn skeletal_head_and_limbs_are_rendered_from_evaluated_points() {

@@ -12,14 +12,14 @@ hardware, real-model or perceptual gate with mocked success.
 | Workstream | Owner in this increment | Integration boundary |
 | --- | --- | --- |
 | Architecture/integration | Parent agent | Workspace, shared interfaces, final checks |
-| Compiler / project | `composition` + `assets` + parent | Validated script/schema integration |
-| Rigging/animation | Parent / existing rig | Original rig and animation modules |
-| Rendering | `composition` + `jobs` | Shared deterministic frame path |
-| Desktop UX | `desktop_compose` | Native controls and integration |
-| Speech | `alignment_cache` | Offline asset/alignment tools and evidence |
-| Export | `jobs` | PNG/MP4, CLI, resource/error handling |
-| Scheduling | `jobs` | Bounded execution and cancellation |
-| QA/release | `acceptance_review` + parent | Packaging tests, integrated checks |
+| Compiler / project | `keyframe_core` + `art_model` + parent | Validated script/schema integration |
+| Rigging/animation | `keyframe_core` | Original rig and animation modules |
+| Rendering | `art_render` | Shared deterministic frame path |
+| Desktop UX | `desktop_art` + `keyframe_ui` | Native controls and integration |
+| Speech | Existing cache; no new inference stage | Offline asset/alignment tools and evidence |
+| Export | `art_render` | PNG/MP4, CLI, resource/error handling |
+| Scheduling | Existing bounded frame/decode workers | Bounded execution and cancellation |
+| QA/release | `art_qa` + parent | Packaging tests, integrated checks |
 | Documentation | All owners + parent | This tracker and feature documentation |
 
 Owners describe responsibilities, not completed acceptance. Agent assignment is
@@ -63,7 +63,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Deterministic procedural walk/wave presets and static rest pose.
 - [ ] Expressive idle cycles and extensible artist-authored motion presets.
 - [x] Validated transform keyframe interpolation API: linear/smoothstep/hold and shortest rotation.
-- [ ] Keyframe/easing editor and persistent custom tracks.
+- [x] Persistent per-scene actor root transform tracks and detached keyframe/easing editor.
+- [ ] Per-bone custom tracks and rig editing.
 - [ ] Animation blending.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
@@ -72,9 +73,11 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native animated scene preview with scene-coordinate scaling.
 - [x] Shared evaluated scene and deterministic SVG frame renderer.
 - [x] Basic background and original procedural character composition.
-- [ ] Image textures and character sprites.
+- [x] Bounded PNG/JPEG foreground image layers shared by native preview and SVG/PNG/MP4.
+- [ ] Textured per-bone character sprites and deformation.
 - [x] Actor z-order/visibility composition metadata and editor.
-- [ ] Image/drawing layers, groups and masks.
+- [x] Persisted ordered/visible/opacity image and basic drawing layers with rectangular clip masks.
+- [ ] Layer groups, arbitrary masks and blend modes.
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color and scene-edge fades to black.
 - [ ] Timed background images and true cross-scene transitions.
@@ -92,13 +95,17 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Project title/fps/dimensions and scene ID/duration drafts.
 - [x] Scene/character structure controls, confirmed deletion and source Undo.
 - [x] `.kilsat` exact-source persistence and portable asset inventory preservation.
+- [x] Explicit v1→v2 migration preserving source/assets and persisting typed artwork.
+- [x] Bounded artwork history and source/reference guards (separate histories; not full unified Undo).
 - [x] SVG/PNG/MP4 background export selection and explicit FFmpeg path.
 - [x] Audio waveform display and prepared-dialogue preview controls.
 - [x] Explicit local asset import/relink/remove-reference UI and bounded worker.
 - [x] `.kilsat` inventory dirty tracking and one-step inventory Undo.
-- [ ] Asset thumbnails, image decoding/rendering and full asset history.
+- [x] Background PNG/JPEG decoding, texture loading and foreground image rendering.
+- [ ] Asset thumbnails and full unified asset history.
 - [x] Actor layer order/visibility and composition camera-key editor.
-- [ ] Character transform keyframe editing and drawing/masking tools.
+- [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
+- [ ] Per-bone animation editing, pressure brushes, arbitrary masks and image retouching.
 - [x] Camera controls and scene-edge fades.
 - [ ] Cross-scene transitions and multi-scene composition.
 - [ ] Full project/asset history and shortcut/accessibility coverage.
@@ -149,7 +156,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] `motion-jobs` fixed scoped pool, bounded queues/batches and ordered consumption used by export.
 - [ ] Explicit dependency-DAG scheduling beyond frame batches.
 - [x] Background asset copying/relink checks and bounded parallel frame rendering.
-- [ ] Background image decode/texture loading.
+- [x] Background-thread image decoding and native texture upload.
+- [ ] Background scene-image replacement and texture-rig loading.
 - [x] Estimated raster frame working-set budget limits worker count; byte/work caps remain.
 - [ ] Process-wide measured memory/resource budgeting across all workers.
 - [x] Ordered 10,000-job stress, worker cap, cancellation/failure/panic and byte-identical serial/parallel tests.
@@ -196,12 +204,14 @@ These gates remain open until all constituent work and acceptance are evidenced.
   established app launch only.
 - [ ] **M2 — Character animation:** hierarchy, rigging, keyframes/easing, presets,
   expressions/gestures and blending integrated and tested; procedural rig and
-  interpolation APIs are implemented but custom rigs/editor/blending remain open.
+  interpolation and root-transform editor are implemented; textured custom rigs,
+  per-bone controls and animation blending remain open.
 - [ ] **M3 — Dialogue/lip sync:** import/tracks/mouth/timing foundations implemented;
   real local Kokoro, Speech Stages 2–4 and quality/hardware gates remain open.
 - [ ] **M4 — Professional editing:** timeline and source Undo/Redo implemented;
   actor order/visibility, camera tracks and inventory tools implemented; transform
-  keyframe/drawing/image layers, complete assets and transitions remain open.
+  root-keyframe/basic drawing/image layers now implemented; advanced assets,
+  arbitrary masks/retouching, unified history and transitions remain open.
 - [ ] **M5 — Production rendering:** SVG/audio baseline implemented; GPU offscreen,
   CPU PNG/MP4 and bounded parallel frame jobs implemented/tested; GPU rendering
   and production performance/hardware acceptance remain open.
@@ -237,8 +247,8 @@ limitations here. Do not mark whole milestones complete from module presence.
 | 2026-10-16 | PR #18 integrated implementation | `.kilsat` persistence, source lifecycle, shared procedural rig/keyframe API, desktop controls, PNG/MP4 and speech-evidence tooling implemented. Six agents: media, rig, project, desktop, speech, tracker_release. |
 | 2026-10-16 | Local validation | 150 Rust tests passed, one real-encoder test separately passed (1.0s and0.9s cases), 29 runtime +8 packaging Python tests passed; strict Clippy and direct rustfmt passed. Linux evidence only; GitHub CI result belongs to its exact head commit. |
 
-Master prompt completion remains **open**. Image/sprite rendering, drawing/masks, true cross-scene transitions,
-custom rig/transform-keyframe editor, blending, automatic forced alignment,
+Master prompt completion remains **open**. Per-bone sprite rendering, advanced drawing/masks, true cross-scene transitions,
+custom rig/per-bone editor, blending, automatic forced alignment,
 GPU rendering, production performance evidence, final distribution and
 real Mac/model/device/perceptual acceptance are still unchecked above. No agent
 continues running after the reported task completes; future increments must be
@@ -250,7 +260,8 @@ explicitly resumed and validated.
 Six agents inspected and implemented this pass: composition, assets,
 desktop_compose, jobs, alignment_cache and acceptance_review. The attached
 tracker was the input; this repository copy is the maintained implementation
-record. PR #18 Linux/macOS CI passed at aa2f137; it remains unmerged.
+record. PR #18 Linux/macOS CI passed at aa2f137; it and #19 were subsequently
+merged after approval (main/release0866e31).
 
 Library/headless alignment caching is complete; automatic forced alignment and
 desktop cache integration remain separate. Imported images are inventory files,
@@ -265,7 +276,34 @@ not rendered character textures. Camera fades do not implement scene transitions
 | 2026-10-16 | Exact-audio alignment cache | PCM/transcript/config/edit invalidation, integrity, provenance, concurrent writes and offline example; no automatic aligner or desktop preparation integration. |
 | 2026-10-16 | Integrated local validation | 169 Rust tests passed; separate real FFmpeg/ffprobe test passed; strict workspace Clippy, cargo check, all46-file direct rustfmt and diff check passed. |
 
-Remaining items stay unchecked. Image/rig-part rendering, transform keyframe
-editor, drawing/masks, full project history, true scene transitions, automatic
-alignment, GPU rendering and hardware/model acceptance are not supplied by this
-composition increment.
+Remaining items stay unchecked. That composition increment did not supply artwork or actor-keyframe tools;
+the subsequent artwork increment below implements the described basic subset.
+Per-bone rig parts, advanced masks, full unified project history, true transitions,
+automatic alignment, GPU rendering and hardware/model acceptance remain open.
+
+
+## Artwork and actor keyframes increment
+
+PRs #18 and #19 were merged in order after explicit approval; both had passing
+Linux/macOS CI. `main` and `kilsatstudio1.0` were synchronized to0866e31.
+
+Six agents implement this increment: art_model, keyframe_core, art_render,
+desktop_art, keyframe_ui and art_qa. Component tests cover v1/v2 migration, image
+limits, typed edits, root interpolation, raster pixels/masks, and referenced
+source/artwork Undo safety. Final integrated results are recorded below.
+
+Scope: artwork is foreground document order; rectangular masks and translations
+for actor attachments are supported. Artwork attachments do not inherit root
+rotation/scale; procedural actors do. This is not textured bone rigging, a full
+image editor, unified project history, GPU export or real Mac acceptance.
+
+
+| Date | Artwork increment completion | Evidence |
+| --- | --- | --- |
+| 2026-10-16 | Persisted root keyframes/editor and artwork v2 | 191 workspace/all-target Rust tests passed, including gesture/history/refguards, migration, PNG/JPEG, interpolation, raster and clip tests. |
+| 2026-10-16 | Actual artwork media pipeline | Two explicit FFmpeg tests passed, including embedded artwork→PNG→H.264/AAC MP4 and integer/fractional media timing. |
+| 2026-10-16 | Code checks | Workspace check, strict installed-driver Clippy, direct rustfmt for51 Rust files and diff check passed. Linux local evidence; new GitHub CI applies to its exact head. |
+
+The current release acceptance gates remain open: no actual Mac GUI/device test,
+real Kokoro inference, GPU rendering or perceptual mouth-sync acceptance was
+performed for this artwork increment.

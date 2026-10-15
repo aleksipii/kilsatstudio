@@ -1,0 +1,10 @@
+[package]
+name = "motion-art"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+image = { version = "=0.25.10", default-features = false, features = ["png", "jpeg"] }
+base64 = "0.22"

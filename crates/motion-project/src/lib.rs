@@ -10,7 +10,7 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-pub const FORMAT_VERSION: u32 = 1;
+pub const FORMAT_VERSION: u32 = 2;
 pub const MAX_DOCUMENT_BYTES: usize = 4 * 1024 * 1024;
 pub const MAX_SOURCE_BYTES: usize = 1024 * 1024;
 pub const MAX_ASSETS: usize = 4096;
@@ -37,6 +37,7 @@ pub struct ProjectDocument {
     pub format_version: u32,
     pub source: String,
     pub assets: Vec<AssetReference>,
+    pub art: motion_art::Document,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -49,7 +50,7 @@ pub enum Error {
     Script(#[from] motion_script::Error),
     #[error("Project validation: {0}")]
     Validation(String),
-    #[error("Unsupported project format version {0}; supported version is 1")]
+    #[error("Unsupported project format version {0}; supported version is 2")]
     UnsupportedVersion(u32),
 }
 
@@ -59,6 +60,7 @@ impl ProjectDocument {
             format_version: FORMAT_VERSION,
             source: source.into(),
             assets: vec![],
+            art: motion_art::Document::default(),
         };
         document.validate()?;
         Ok(document)
@@ -73,7 +75,10 @@ impl ProjectDocument {
         if self.assets.len() > MAX_ASSETS {
             return invalid("more than 4096 asset references");
         }
-        motion_script::parse(&self.source)?;
+        let script = motion_script::parse(&self.source)?;
+        self.art
+            .validate()
+            .map_err(|e| Error::Validation(e.to_string()))?;
         let mut ids = BTreeSet::new();
         for asset in &self.assets {
             if asset.id.trim().is_empty() || asset.id.len() > 256 || !ids.insert(&asset.id) {
@@ -81,6 +86,38 @@ impl ProjectDocument {
             }
             validate_path(&asset.path)?;
         }
+        for layer in &self.art.layers {
+            if !script.scenes.iter().any(|scene| scene.id == layer.scene_id) {
+                return invalid("artwork references a scene that does not exist");
+            }
+            if layer
+                .attachment
+                .as_ref()
+                .is_some_and(|actor| !script.characters.contains_key(actor))
+            {
+                return invalid("artwork attachment references a character that does not exist");
+            }
+            if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                if !self
+                    .assets
+                    .iter()
+                    .any(|asset| asset.id == *asset_id && asset.kind == AssetKind::Image)
+                {
+                    return invalid("artwork image must reference an image asset in this project");
+                }
+            }
+        }
+        Ok(())
+    }
+    /// Apply an artwork command only when the complete project remains valid.
+    pub fn apply_art(&mut self, command: motion_art::Command) -> Result<(), Error> {
+        let mut candidate = self.clone();
+        candidate
+            .art
+            .apply(command)
+            .map_err(|e| Error::Validation(e.to_string()))?;
+        encode(&candidate)?;
+        *self = candidate;
         Ok(())
     }
 }
@@ -116,19 +153,39 @@ pub fn decode(bytes: &[u8]) -> Result<ProjectDocument, Error> {
     if bytes.len() > MAX_DOCUMENT_BYTES {
         return invalid("project exceeds four MiB");
     }
-    // Read the version before the current schema so future documents receive an actionable diagnostic.
+    // Version 1 has no artwork field. Migration is explicit and strict so an
+    // unknown/artwork field cannot be accidentally discarded by an old schema.
     let value: serde_json::Value = serde_json::from_slice(bytes)?;
-    if let Some(version) = value.get("format_version").and_then(|v| v.as_u64()) {
-        if version != u64::from(FORMAT_VERSION) {
-            return Err(match u32::try_from(version) {
-                Ok(v) => Error::UnsupportedVersion(v),
-                Err(_) => Error::Validation(format!(
-                    "unsupported project format version {version}; supported version is 1"
-                )),
-            });
+    let version = value
+        .get("format_version")
+        .and_then(|v| v.as_u64())
+        .ok_or_else(|| Error::Validation("missing or invalid format_version".into()))?;
+    let document: ProjectDocument = if version == 1 {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct V1 {
+            format_version: u32,
+            source: String,
+            assets: Vec<AssetReference>,
         }
-    }
-    let document: ProjectDocument = serde_json::from_slice(bytes)?;
+        let old: V1 = serde_json::from_slice(bytes)?;
+        debug_assert_eq!(old.format_version, 1);
+        ProjectDocument {
+            format_version: FORMAT_VERSION,
+            source: old.source,
+            assets: old.assets,
+            art: motion_art::Document::default(),
+        }
+    } else if version == u64::from(FORMAT_VERSION) {
+        serde_json::from_slice(bytes)?
+    } else {
+        return Err(match u32::try_from(version) {
+            Ok(v) => Error::UnsupportedVersion(v),
+            Err(_) => Error::Validation(format!(
+                "unsupported project format version {version}; supported version is 2"
+            )),
+        });
+    };
     document.validate()?;
     Ok(document)
 }
@@ -231,12 +288,93 @@ mod tests {
         let decoded = decode(&encode(&doc).unwrap()).unwrap();
         assert_eq!(decoded.source, SOURCE);
         assert_eq!(decoded.assets, doc.assets);
-        assert!(decode(br#"{"format_version":2,"future_field":true}"#)
+        assert!(decode(br#"{"format_version":3,"future_field":true}"#)
             .unwrap_err()
             .to_string()
-            .contains("version 2"));
+            .contains("version 3"));
         assert!(decode(&vec![b' '; MAX_DOCUMENT_BYTES + 1]).is_err());
         assert!(ProjectDocument::new("invalid yaml: [").is_err());
+    }
+    fn rectangle() -> motion_art::Layer {
+        motion_art::Layer {
+            id: "shape-1".into(),
+            scene_id: "intro".into(),
+            name: "Shape".into(),
+            visible: true,
+            opacity: 0.75,
+            attachment: None,
+            clip: None,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 1.0,
+                    y: 2.0,
+                    width: 30.0,
+                    height: 40.0,
+                },
+                color: motion_art::Color {
+                    r: 10,
+                    g: 20,
+                    b: 30,
+                    a: 128,
+                },
+            },
+        }
+    }
+    #[test]
+    fn explicit_v1_migration_preserves_source_assets_and_resaves_v2() {
+        let bytes = serde_json::to_vec(&serde_json::json!({"format_version":1,"source":SOURCE,"assets":[{"id":"room","path":"resources/room.png","kind":"image"}]})).unwrap();
+        let mut doc = decode(&bytes).unwrap();
+        assert_eq!(doc.format_version, 2);
+        assert_eq!(doc.source, SOURCE);
+        assert_eq!(doc.assets[0].id, "room");
+        assert!(doc.art.layers.is_empty());
+        doc.apply_art(motion_art::Command::Add(rectangle()))
+            .unwrap();
+        let saved = encode(&doc).unwrap();
+        let reloaded = decode(&saved).unwrap();
+        assert_eq!(reloaded.art, doc.art);
+        assert_eq!(reloaded.source, SOURCE);
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        value["art"] = serde_json::json!({"layers":[]});
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+        let mut value: serde_json::Value = serde_json::from_slice(&saved).unwrap();
+        value.as_object_mut().unwrap().remove("art");
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    #[test]
+    fn rejects_orphan_art_and_removing_referenced_images_transactionally() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let mut layer = rectangle();
+        layer.scene_id = "missing".into();
+        assert!(doc.apply_art(motion_art::Command::Add(layer)).is_err());
+        assert!(doc.art.layers.is_empty());
+        let mut layer = rectangle();
+        layer.attachment = Some("missing".into());
+        assert!(doc.apply_art(motion_art::Command::Add(layer)).is_err());
+        let mut layer = rectangle();
+        layer.content = motion_art::Content::Image {
+            asset_id: "room".into(),
+            rect: motion_art::Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 10.0,
+                height: 10.0,
+            },
+        };
+        assert!(doc
+            .apply_art(motion_art::Command::Add(layer.clone()))
+            .is_err());
+        doc.assets.push(AssetReference {
+            id: "room".into(),
+            path: "resources/room.png".into(),
+            kind: AssetKind::Image,
+        });
+        doc.apply_art(motion_art::Command::Add(layer)).unwrap();
+        assert!(remove_asset(&mut doc, "room").is_err());
+        assert_eq!(doc.assets.len(), 1);
+        assert_eq!(doc.art.layers.len(), 1);
+        doc.source = SOURCE.replace("intro", "outro");
+        assert!(doc.validate().is_err());
     }
     #[test]
     fn rejects_nonportable_paths_duplicate_ids_and_budgets() {

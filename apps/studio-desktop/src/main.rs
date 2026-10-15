@@ -1,4 +1,6 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
+mod art_editor;
+mod art_resources;
 mod asset_worker;
 mod composition_editor;
 mod demo;
@@ -6,6 +8,7 @@ mod edit_history;
 mod event_editor;
 mod event_factory;
 mod export_worker;
+mod keyframe_editor;
 mod playback;
 mod runtime_check;
 mod scene_settings;
@@ -69,6 +72,9 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    art_editor: art_editor::Editor,
+    art_resources: art_resources::Resources,
+    keyframe_draft: Option<(String, keyframe_editor::Draft)>,
     asset_worker: asset_worker::Worker,
     asset_pending: Option<(String, String, motion_project::ProjectDocument)>,
     asset_undo: Option<motion_project::ProjectDocument>,
@@ -180,6 +186,9 @@ impl Default for Studio {
             }
         });
         Self {
+            art_editor: Default::default(),
+            art_resources: Default::default(),
+            keyframe_draft: None,
             asset_worker: asset_worker::Worker::new(),
             asset_pending: None,
             asset_undo: None,
@@ -271,6 +280,16 @@ impl Studio {
         }
         match result {
             Ok(source) if source.len() <= 100_000 => {
+                if let Some(document) = &self.project_document {
+                    let mut candidate = document.clone();
+                    candidate.source = source.clone();
+                    if let Err(error) = candidate.validate() {
+                        self.status = format!(
+                            "Edit conflicts with artwork: {error}. Remove related layers first."
+                        );
+                        return;
+                    }
+                }
                 self.flush_text_edit();
                 self.history.record(&self.source, &source);
                 self.source = source;
@@ -383,6 +402,16 @@ impl Studio {
                 return;
             }
         };
+        if let Some(document) = &self.project_document {
+            let mut candidate = document.clone();
+            candidate.source = source.clone();
+            if let Err(error) = candidate.validate() {
+                self.settings_error = Some(format!(
+                    "Edit conflicts with artwork: {error}. Remove related layers first."
+                ));
+                return;
+            }
+        }
         if source.len() > 100_000 {
             self.settings_error =
                 Some("Edited screenplay exceeds the 100 KB desktop limit.".into());
@@ -748,6 +777,21 @@ impl Studio {
             self.history.undo(&self.source)
         };
         if let Some(source) = source {
+            if let Some(document) = &self.project_document {
+                let mut candidate = document.clone();
+                candidate.source = source.clone();
+                if let Err(error) = candidate.validate() {
+                    if redo {
+                        self.history.undo(&source);
+                    } else {
+                        self.history.redo(&source);
+                    }
+                    self.status = format!(
+                        "History conflicts with artwork: {error}. Remove related layers first."
+                    );
+                    return;
+                }
+            }
             self.source = source;
             self.alignment.clear();
             self.scene_alignment.clear();
@@ -853,6 +897,7 @@ impl Studio {
         self.stop_playback();
         match demo::DemoAssets::create() {
             Ok(assets) => {
+                self.art_editor.reset();
                 self.project_document = None;
                 self.asset_undo = None;
                 self.asset_dirty = false;
@@ -962,6 +1007,7 @@ impl Studio {
                 Ok((doc, root)) => {
                     self.source = doc.source.clone();
                     self.project_document = Some(doc);
+                    self.art_editor.reset();
                     self.asset_undo = None;
                     self.asset_dirty = false;
                     self.project_root = root;
@@ -993,6 +1039,7 @@ impl Studio {
         })();
         match result {
             Ok(source) => {
+                self.art_editor.reset();
                 self.project_document = None;
                 self.asset_undo = None;
                 self.asset_dirty = false;
@@ -1045,12 +1092,22 @@ impl Studio {
                     self.project_document = Some(doc);
                     self.asset_undo = None;
                     self.asset_dirty = false;
+                    self.art_editor.dirty = false;
                     self.flush_text_edit();
                     self.asset_dirty = false;
                     self.status = "Saved versioned project and asset inventory.".into();
                 }
                 Err(error) => self.status = format!("Save project: {error}"),
             }
+            return;
+        }
+        if self
+            .project_document
+            .as_ref()
+            .is_some_and(|d| !d.art.layers.is_empty())
+        {
+            self.status =
+                "Artwork requires .kilsat. Change the save path to .kilsat before saving.".into();
             return;
         }
         self.flush_text_edit();
@@ -1197,7 +1254,37 @@ impl Studio {
                             .into_iter()
                             .collect()
                     };
-                    draw_scene(ui, &scene, &mouths);
+                    let scene_id = &script.scenes[self.scene_index].id;
+                    let rect = draw_scene(ui, &scene, &mouths);
+                    if let Some(document) = &mut self.project_document {
+                        self.art_resources
+                            .sync(ui.ctx(), &self.project_root, &document.assets);
+                        art_editor::paint(
+                            &ui.painter_at(rect),
+                            rect,
+                            &scene,
+                            scene_id,
+                            &document.art,
+                            &self.art_resources.textures,
+                        );
+                        let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy;
+                        let response = ui.interact(
+                            rect,
+                            ui.id().with("art-canvas"),
+                            if enabled {
+                                egui::Sense::drag()
+                            } else {
+                                egui::Sense::hover()
+                            },
+                        );
+                        self.art_editor.gesture(
+                            &response,
+                            rect,
+                            &scene,
+                            scene_id,
+                            &mut document.art,
+                        );
+                    }
                 }
                 Err(error) => {
                     ui.colored_label(egui::Color32::LIGHT_RED, error.to_string());
@@ -1328,7 +1415,7 @@ impl Studio {
             self.busy = false;
             if let Some((source, path, previous)) = self.asset_pending.take() {
                 match result {
-                    Ok(document) if self.source == source && self.script_path == path => {
+                    Ok(document) if self.source == source && self.script_path == path && self.project_document.as_ref().is_some_and(|current|current.art==previous.art && current.assets==previous.assets) => {
                         self.asset_undo = Some(previous);
                         self.project_document = Some(document);
                         self.asset_dirty = true;
@@ -1914,7 +2001,7 @@ impl Studio {
                 for asset in &document.assets { ui.label(format!("{} · {:?} · {}", asset.id, asset.kind, asset.path)); }
             }
             if self.asset_dirty { ui.label("Unsaved inventory changes"); }
-            ui.weak("Import copies a local file into the project. Relink uses a project-relative path. Remove only forgets the reference. Images are not rendered yet.");
+            ui.weak("Import copies a local file into the project. Relink uses a project-relative path. Remove only forgets the reference. Place imported PNG/JPEG images using Artwork / layers in Inspector.");
             ui.add_enabled_ui(!self.busy && !self.export_busy && !self.diagnostics_busy, |ui| {
                 field(ui, "Asset ID", &mut self.asset_id);
                 field(ui, "Import local path / relink project-relative path", &mut self.asset_path);
@@ -2005,6 +2092,96 @@ impl Studio {
         });
     }
 
+    fn art_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        if self.project_document.is_none() {
+            self.project_document = motion_project::ProjectDocument::new(self.source.clone()).ok();
+        }
+        if let Some(document) = &mut self.project_document {
+            self.art_editor.clear_history_for_context(format!(
+                "{}:{:?}:{}",
+                self.source, document.assets, scene.id
+            ));
+            let before = document.art.clone();
+            if ui.button("Reload images from disk").clicked() {
+                self.art_resources.reload();
+            }
+            ui.add_enabled_ui(
+                !self.busy && !self.diagnostics_busy && !self.export_busy,
+                |ui| {
+                    self.art_editor.ui(
+                        ui,
+                        &mut document.art,
+                        &scene.id,
+                        &document.assets,
+                        &script.characters.keys().cloned().collect::<Vec<_>>(),
+                    )
+                },
+            );
+            let mut candidate = document.clone();
+            candidate.source = self.source.clone();
+            if let Err(error) = candidate.validate() {
+                document.art = before;
+                self.art_editor.invalidate_history();
+                self.art_editor.error = Some(error.to_string());
+            }
+            if let Some(error) = &self.art_resources.error {
+                ui.colored_label(egui::Color32::LIGHT_RED, error);
+            }
+        }
+    }
+    fn keyframe_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
+        if !self.keyframe_draft.as_ref().is_some_and(|(source, d)| {
+            source == &self.source && d.scene_index == self.scene_index && d.actor == actor
+        }) {
+            self.keyframe_draft = Some((
+                self.source.clone(),
+                keyframe_editor::Draft::new(scene, self.scene_index, actor),
+            ));
+        }
+        let mut apply = false;
+        ui.add_enabled_ui(
+            !self.busy && !self.diagnostics_busy && !self.export_busy,
+            |ui| {
+                if let Some((_, draft)) = &mut self.keyframe_draft {
+                    egui::CollapsingHeader::new("Actor transform keyframes").show(ui, |ui| {
+                        apply = draft.ui(ui);
+                    });
+                }
+            },
+        );
+        if apply {
+            if let Some((source, draft)) = &self.keyframe_draft {
+                if source == &self.source {
+                    let result = motion_script::apply_actor_track(
+                        &self.source,
+                        draft.scene_index,
+                        &draft.actor,
+                        &draft.keys,
+                    );
+                    self.apply_structure(result);
+                }
+            }
+        }
+    }
     fn inspector_ui(&mut self, ui: &mut egui::Ui) {
         ui.heading("Inspector");
         ui.weak("Select a character or timeline event");
@@ -2023,6 +2200,8 @@ impl Studio {
                 }
             }
         }
+        self.art_inspector_ui(ui);
+        self.keyframe_inspector_ui(ui);
         self.voice_inspector_ui(ui);
         self.event_inspector_ui(ui);
         ui.add_space(12.0);
@@ -2292,7 +2471,23 @@ impl Studio {
             self.status = "Choose an absolute path to a local FFmpeg executable.".into();
             return;
         }
+        if let Some(document) = &self.project_document {
+            let mut document = document.clone();
+            document.source = self.source.clone();
+            if let Err(error) = document.validate() {
+                self.status = error.to_string();
+                return;
+            }
+        }
         let request = export_worker::Request {
+            art: motion_export::ArtContext {
+                document: self
+                    .project_document
+                    .as_ref()
+                    .map(|d| d.art.clone())
+                    .unwrap_or_default(),
+                images: (*self.art_resources.images).clone(),
+            },
             format: self.export_format,
             ffmpeg: self.ffmpeg_path.trim().into(),
             script: script.clone(),
@@ -2790,7 +2985,11 @@ fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
         .collect()
 }
 
-fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &[(&str, Viseme)]) {
+fn draw_scene(
+    ui: &mut egui::Ui,
+    scene: &motion_scene::EvaluatedScene,
+    mouths: &[(&str, Viseme)],
+) -> egui::Rect {
     let width = ui.available_width().max(1.0);
     let height = (width * scene.height as f32 / scene.width.max(1) as f32)
         .clamp(120.0, (ui.available_height() - 35.0).max(120.0));
@@ -2807,8 +3006,12 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
     for actor in &scene.actors {
         let point = |dx: f32, dy: f32| {
             let (x, y) = scene.camera.project(
-                actor.x + dx as f64,
-                actor.y + dy as f64,
+                actor
+                    .local_to_world(motion_scene::Vec2::new(dx as f64, dy as f64))
+                    .x,
+                actor
+                    .local_to_world(motion_scene::Vec2::new(dx as f64, dy as f64))
+                    .y,
                 scene.width,
                 scene.height,
             );
@@ -2837,13 +3040,21 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
         }
         let head = actor.skeleton[HEAD];
         let face = |dx: f32, dy: f32| point(head.x as f32 + dx, head.y as f32 + dy);
-        painter.circle_filled(
-            face(0.0, 0.0),
-            25.0 * scale,
-            egui::Color32::from_rgb(245, 200, 162),
-        );
+        let ellipse = |cx: f32, cy: f32, rx: f32, ry: f32, color: egui::Color32| {
+            painter.add(egui::Shape::convex_polygon(
+                (0..32)
+                    .map(|i| {
+                        let angle = i as f32 * std::f32::consts::TAU / 32.0;
+                        face(cx + rx * angle.cos(), cy + ry * angle.sin())
+                    })
+                    .collect(),
+                color,
+                egui::Stroke::NONE,
+            ));
+        };
+        ellipse(0.0, 0.0, 25.0, 25.0, egui::Color32::from_rgb(245, 200, 162));
         for x in [-8.0, 8.0] {
-            painter.circle_filled(face(x, -4.0), (2.5 * scale).max(1.0), egui::Color32::BLACK);
+            ellipse(x, -4.0, 2.5, 2.5, egui::Color32::BLACK);
         }
         let viseme = mouths
             .iter()
@@ -2857,11 +3068,16 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
             Viseme::Rest | Viseme::Closed => (13.0, 2.0),
             _ => (12.0, 5.0),
         };
-        painter.rect_filled(
-            egui::Rect::from_center_size(face(0.0, 10.0), egui::vec2(w, h) * scale),
-            2.0,
+        painter.add(egui::Shape::convex_polygon(
+            vec![
+                face(-w * 0.5, 10.0 - h * 0.5),
+                face(w * 0.5, 10.0 - h * 0.5),
+                face(w * 0.5, 10.0 + h * 0.5),
+                face(-w * 0.5, 10.0 + h * 0.5),
+            ],
             egui::Color32::from_rgb(125, 45, 57),
-        );
+            egui::Stroke::NONE,
+        ));
         if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
             painter.line_segment(
                 [face(-8.0, 9.0), face(0.0, 14.0)],
@@ -2888,6 +3104,7 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
             egui::Color32::WHITE,
         );
     }
+    rect
 }
 
 impl Drop for Studio {
@@ -2900,6 +3117,94 @@ impl Drop for Studio {
 
 #[cfg(test)]
 mod scene_preview_tests {
+    #[test]
+    fn artwork_references_guard_scene_rename_and_source_undo() {
+        let mut studio = super::Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        let scene_id = studio.script.as_ref().unwrap().scenes[0].id.clone();
+        let mut document = motion_project::ProjectDocument::new(original.clone()).unwrap();
+        document.art.layers.push(motion_art::Layer {
+            id: "layer".into(),
+            scene_id: scene_id.clone(),
+            name: "Art".into(),
+            visible: true,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 50.0,
+                    height: 50.0,
+                },
+                color: motion_art::Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        });
+        studio.project_document = Some(document);
+        studio.settings_draft =
+            super::scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+        studio.settings_draft_source = Some(original.clone());
+        studio.settings_draft.as_mut().unwrap().scene_id = "renamed".into();
+        studio.apply_settings_draft();
+        assert_eq!(studio.source, original);
+        assert!(studio.settings_error.as_ref().unwrap().contains("artwork"));
+        let alternate = motion_script::apply_scene_settings(
+            &original,
+            0,
+            studio.script.as_ref().unwrap().project.clone(),
+            "other",
+            studio.script.as_ref().unwrap().scenes[0].duration,
+        )
+        .unwrap();
+        studio.history.reset(&alternate);
+        studio.history.record(&alternate, &original);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert!(studio.history.can_undo());
+        studio.project_document.as_mut().unwrap().art.layers.clear();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, alternate);
+    }
+    #[test]
+    fn yaml_save_refuses_to_drop_artwork() {
+        let mut studio = super::Studio::default();
+        studio.validate();
+        let mut document = motion_project::ProjectDocument::new(studio.source.clone()).unwrap();
+        document.art.layers.push(motion_art::Layer {
+            id: "layer".into(),
+            scene_id: studio.script.as_ref().unwrap().scenes[0].id.clone(),
+            name: "Art".into(),
+            visible: true,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 10.0,
+                    height: 10.0,
+                },
+                color: motion_art::Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        });
+        studio.project_document = Some(document);
+        studio.script_path = "/unwritable/art-loss.yaml".into();
+        studio.save_script();
+        assert!(studio.status.contains("Artwork requires .kilsat"));
+    }
     use super::*;
     #[test]
     fn composition_apply_is_atomic_and_undoable() {

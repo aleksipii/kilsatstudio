@@ -1,17 +1,19 @@
-# Kilsat project format v1
+# Kilsat project format v2 (reads v1)
 
 A `.kilsat` file is UTF-8 JSON with three required fields:
 
 ```json
-{"format_version":1,"source":"characters: {}\nscenes: [{id: intro, duration: 2, events: []}]\n","assets":[]}
+{"format_version":2,"source":"characters: {}\nscenes: [{id: intro, duration: 2, events: []}]\n","assets":[],"art":{"layers":[]}}
 ```
 
 `source` stores the exact MotionScript YAML string, including comments and
 whitespace. Saving and loading the document does not normalize this source.
 Structured screenplay edits separately normalize YAML and participate in desktop
 Undo/Redo. The shared `motion-script` parser validates every loaded/saved source.
-Unknown fields and unsupported versions fail explicitly; there is no implicit
-migration or attempt to interpret a future format.
+Version 1 documents migrate explicitly to version 2 with empty artwork while
+preserving exact source and assets. Version 2 requires the artwork field. Unknown
+fields, malformed documents and unsupported future versions fail explicitly; no
+artwork is silently discarded. See [art-format](art-format.md).
 
 Each optional inventory entry is an object with `id`, `path` and `kind`.
 Identifiers are unique, nonblank and at most 256 bytes. `kind` is `image`, `audio`
@@ -19,7 +21,7 @@ or `other`; it describes inventory rather than validating file contents. Paths
 use slash-separated relative components; absolute paths, traversal, empty
 components, backslashes, drive prefixes and control characters are rejected.
 Assets are external files, never embedded or downloaded. Inventory identifiers
-are not automatically substituted into screenplay asset strings in version 1.
+are not automatically substituted into screenplay asset strings by this metadata format.
 
 Documents are limited to four MiB, source to one MiB, and inventory to 4096
 entries; each asset path is at most 4096 bytes. Desktop editing may impose its

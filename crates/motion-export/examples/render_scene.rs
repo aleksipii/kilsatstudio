@@ -19,8 +19,48 @@ fn main() -> Result<(), Box<dyn Error>> {
             "usage: render_scene SCRIPT SCENE_INDEX WAV SCENE_MANIFEST NEW_OUTPUT_DIRECTORY [svg|png|mp4] [ABSOLUTE_FFMPEG]".into(),
         );
     }
-    let source = read_bounded(Path::new(&args[0]), 1024 * 1024)?;
-    let script = motion_script::parse(std::str::from_utf8(&source)?)?;
+    let input = Path::new(&args[0]);
+    let (source, art) = if input.extension().is_some_and(|e| e == "kilsat") {
+        let project = motion_project::load(input)?;
+        let mut images = std::collections::BTreeMap::new();
+        let mut encoded_bytes = 0usize;
+        let mut decoded_pixels = 0u64;
+        for layer in &project.art.layers {
+            if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                if !images.contains_key(asset_id) {
+                    let asset = project
+                        .assets
+                        .iter()
+                        .find(|a| &a.id == asset_id)
+                        .ok_or("missing image asset")?;
+                    let path = motion_project::resolve_asset(input, asset)?;
+                    let image = motion_art::load_image(&path)?;
+                    encoded_bytes += image.png().len();
+                    decoded_pixels += u64::from(image.width()) * u64::from(image.height());
+                    if encoded_bytes > 32 * 1024 * 1024 || decoded_pixels > 16_000_000 {
+                        return Err(
+                            "artwork exceeds aggregate 32 MiB / 16 million pixel image budget"
+                                .into(),
+                        );
+                    }
+                    images.insert(asset_id.clone(), image);
+                }
+            }
+        }
+        (
+            project.source,
+            motion_export::ArtContext {
+                document: project.art,
+                images,
+            },
+        )
+    } else {
+        (
+            String::from_utf8(read_bounded(input, 1024 * 1024)?)?,
+            motion_export::ArtContext::default(),
+        )
+    };
+    let script = motion_script::parse(&source)?;
     let manifest: motion_voice::export::SceneManifest =
         serde_json::from_slice(&read_bounded(Path::new(&args[3]), 8 * 1024 * 1024)?)?;
     // Bound WAV bytes before the PCM reader allocates. This check does not prove
@@ -34,16 +74,29 @@ fn main() -> Result<(), Box<dyn Error>> {
     let destination = Path::new(&args[4]);
     let cancel = motion_tts::CancellationToken::new();
     let report = match args.get(5).map(String::as_str).unwrap_or("svg") {
-        "svg" if args.len() <= 6 => {
-            motion_export::export_scene(&script, index, &rendered, destination, &cancel, |_| {})
-        }
-        "png" if args.len() <= 6 => {
-            motion_export::export_png_scene(&script, index, &rendered, destination, &cancel, |_| {})
-        }
-        "mp4" if args.len() == 7 => motion_export::export_mp4_scene(
+        "svg" if args.len() <= 6 => motion_export::export_scene_with_art(
             &script,
             index,
             &rendered,
+            &art,
+            destination,
+            &cancel,
+            |_| {},
+        ),
+        "png" if args.len() <= 6 => motion_export::export_png_scene_with_art(
+            &script,
+            index,
+            &rendered,
+            &art,
+            destination,
+            &cancel,
+            |_| {},
+        ),
+        "mp4" if args.len() == 7 => motion_export::export_mp4_scene_with_art(
+            &script,
+            index,
+            &rendered,
+            &art,
             destination,
             Path::new(&args[6]),
             &cancel,

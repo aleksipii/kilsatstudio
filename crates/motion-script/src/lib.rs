@@ -53,6 +53,7 @@ pub struct Composition {
     pub background_color: String,
     pub camera: Vec<CameraKey>,
     pub layers: BTreeMap<String, Layer>,
+    pub actor_tracks: BTreeMap<String, Vec<ActorKey>>,
     pub fade_in: f64,
     pub fade_out: f64,
 }
@@ -62,8 +63,60 @@ impl Default for Composition {
             background_color: "#181f2c".into(),
             camera: vec![],
             layers: BTreeMap::new(),
+            actor_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
+        }
+    }
+}
+/// Root offsets layered over movement events; rotation is in radians.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct ActorKey {
+    pub at: f64,
+    pub x: f64,
+    pub y: f64,
+    pub rotation: f64,
+    pub scale_x: f64,
+    pub scale_y: f64,
+    pub easing: ActorEasing,
+}
+impl Default for ActorKey {
+    fn default() -> Self {
+        Self {
+            at: 0.0,
+            x: 0.0,
+            y: 0.0,
+            rotation: 0.0,
+            scale_x: 1.0,
+            scale_y: 1.0,
+            easing: ActorEasing::Linear,
+        }
+    }
+}
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActorEasing {
+    #[default]
+    Linear,
+    #[serde(rename = "smoothstep")]
+    Smoothstep,
+    Hold,
+}
+impl ActorKey {
+    pub fn animation_key(&self) -> motion_animation::Keyframe {
+        motion_animation::Keyframe {
+            time: self.at,
+            value: motion_animation::Transform2 {
+                translation: motion_animation::Vec2::new(self.x, self.y),
+                rotation: self.rotation,
+                scale: motion_animation::Vec2::new(self.scale_x, self.scale_y),
+            },
+            easing: match self.easing {
+                ActorEasing::Linear => motion_animation::Easing::Linear,
+                ActorEasing::Smoothstep => motion_animation::Easing::SmoothStep,
+                ActorEasing::Hold => motion_animation::Easing::Hold,
+            },
         }
     }
 }
@@ -281,6 +334,33 @@ pub fn apply_composition(
     })
 }
 
+/// Replace or remove one actor's root track atomically, validating the entire script.
+pub fn apply_actor_track(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    keys: &[ActorKey],
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        if !candidate.characters.contains_key(actor) {
+            return Err(Error::Validation(format!("unknown track actor {actor}")));
+        }
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if keys.is_empty() {
+            scene.composition.actor_tracks.remove(actor);
+        } else {
+            scene
+                .composition
+                .actor_tracks
+                .insert(actor.into(), keys.to_vec());
+        }
+        Ok(())
+    })
+}
+
 /// Append a scene after validating the complete candidate screenplay.
 pub fn add_scene(source: &str, scene: Scene) -> Result<String, Error> {
     edit_source(source, |script| {
@@ -339,6 +419,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
         }
         for scene in &mut script.scenes {
             scene.composition.layers.remove(id);
+            scene.composition.actor_tracks.remove(id);
         }
         Ok(())
     })
@@ -456,6 +537,19 @@ impl Script {
             for actor in composition.layers.keys() {
                 if !self.characters.contains_key(actor) {
                     return Err(fail(format!("unknown layer actor {actor}")));
+                }
+            }
+            for (actor, keys) in &composition.actor_tracks {
+                if !self.characters.contains_key(actor) {
+                    return Err(fail(format!("unknown track actor {actor}")));
+                }
+                if keys.iter().any(|key| key.at > s.duration)
+                    || motion_animation::Track::new(
+                        keys.iter().map(ActorKey::animation_key).collect(),
+                    )
+                    .is_err()
+                {
+                    return Err(fail(format!("{}: actor tracks need 1..4096 increasing scene times and bounded finite transforms with positive scale", s.id)));
                 }
             }
             let mut moves: BTreeMap<&str, Vec<(f64, f64)>> = BTreeMap::new();
@@ -1069,5 +1163,67 @@ mod composition_tests {
             parse(SOURCE).unwrap().scenes[0].composition,
             Composition::default()
         );
+    }
+}
+
+#[cfg(test)]
+mod actor_track_tests {
+    use super::*;
+    const SOURCE: &str =
+        "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
+    #[test]
+    fn actor_track_transaction_roundtrip_removal_and_invalid_rollback() {
+        let keys = vec![
+            ActorKey::default(),
+            ActorKey {
+                at: 4.0,
+                x: 100.0,
+                easing: ActorEasing::Smoothstep,
+                ..Default::default()
+            },
+        ];
+        let updated = apply_actor_track(SOURCE, 0, "A", &keys).unwrap();
+        let script = parse(&updated).unwrap();
+        assert_eq!(script.scenes[0].composition.actor_tracks["A"], keys);
+        let removed = apply_actor_track(&updated, 0, "A", &[]).unwrap();
+        assert!(parse(&removed).unwrap().scenes[0]
+            .composition
+            .actor_tracks
+            .is_empty());
+        for key in [
+            ActorKey {
+                at: 4.1,
+                ..Default::default()
+            },
+            ActorKey {
+                scale_x: 0.0,
+                ..Default::default()
+            },
+            ActorKey {
+                rotation: f64::NAN,
+                ..Default::default()
+            },
+            ActorKey {
+                y: f64::INFINITY,
+                ..Default::default()
+            },
+        ] {
+            assert!(apply_actor_track(&updated, 0, "A", &[key]).is_err());
+            assert_eq!(
+                parse(&updated).unwrap().scenes[0].composition.actor_tracks["A"],
+                keys
+            );
+        }
+        assert!(apply_actor_track(SOURCE, 0, "unknown", &keys).is_err());
+        assert!(apply_actor_track(SOURCE, 1, "A", &keys).is_err());
+        assert!(
+            apply_actor_track(SOURCE, 0, "A", &[ActorKey::default(), ActorKey::default()]).is_err()
+        );
+        assert!(apply_scene_settings(&updated, 0, script.project, "shot", 3.0).is_err());
+        let deleted = remove_character(&updated, "A").unwrap();
+        assert!(parse(&deleted).unwrap().scenes[0]
+            .composition
+            .actor_tracks
+            .is_empty());
     }
 }

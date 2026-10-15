@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+motion-art = { path = "../motion-art" }
 motion-scene = { path = "../motion-scene" }
 motion-lipsync = { path = "../motion-lipsync" }
 thiserror.workspace = true

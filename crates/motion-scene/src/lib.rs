@@ -8,10 +8,24 @@ pub struct ActorPose {
     pub x: f64,
     pub y: f64,
     pub emotion: String,
+    pub rotation: f64,
+    pub scale: Vec2,
     /// Wave envelope in 0..=1; zero outside a wave event.
     pub wave: f64,
     /// Evaluated local-space skeletal joints shared by preview and export.
     pub skeleton: [Vec2; 7],
+}
+impl ActorPose {
+    /// Transform any local skeleton, facial, or artwork point through the root pose.
+    pub fn local_to_world(&self, point: Vec2) -> Vec2 {
+        motion_animation::Transform2 {
+            translation: Vec2::new(self.x, self.y),
+            rotation: self.rotation,
+            scale: self.scale,
+        }
+        .affine()
+        .point(point)
+    }
 }
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CameraPose {
@@ -142,6 +156,8 @@ pub fn evaluate(
                 x: script.project.width as f64 / 2.0,
                 y: script.project.height as f64 * 0.7,
                 emotion: "neutral".into(),
+                rotation: 0.0,
+                scale: Vec2::new(1.0, 1.0),
                 wave: 0.0,
                 skeleton: motion_animation::humanoid(None, 0.0),
             };
@@ -179,6 +195,21 @@ pub fn evaluate(
                 }
             }
             pose.skeleton = motion_animation::humanoid(walk_seconds, pose.wave);
+            if let Some(keys) = scene.composition.actor_tracks.get(id) {
+                // Validation above guarantees this track and scene-clock sample are valid.
+                let value = motion_animation::Track::new(
+                    keys.iter()
+                        .map(motion_script::ActorKey::animation_key)
+                        .collect(),
+                )
+                .expect("validated actor track")
+                .sample(time_seconds)
+                .expect("validated scene time");
+                pose.x += value.translation.x;
+                pose.y += value.translation.y;
+                pose.rotation = value.rotation;
+                pose.scale = value.scale;
+            }
             pose
         })
         .collect();
@@ -338,5 +369,47 @@ scenes:
         assert_eq!(evaluate(&script, 0, 3.5).unwrap().opacity, 0.5);
         assert_eq!(evaluate(&script, 0, 4.0).unwrap().opacity, 0.0);
         assert_eq!(middle, evaluate(&script, 0, 2.0).unwrap());
+    }
+}
+
+#[cfg(test)]
+mod actor_track_tests {
+    use super::*;
+    #[test]
+    fn root_tracks_layer_on_moves_share_clock_and_transform_face_points() {
+        let script = motion_script::parse(
+            r#"
+project: {width: 640, height: 360}
+characters: {A: {asset: a}, B: {asset: b}}
+scenes:
+- id: shot
+  duration: 4
+  events: [{type: move, at: 0, actor: A, x: 420, y: 252, duration: 4}]
+  composition:
+    actor_tracks:
+      A:
+      - {at: 0, x: 0, easing: smoothstep}
+      - {at: 4, x: 80, rotation: 3.141592653589793, scale_x: 2, scale_y: 3}
+      B:
+      - {at: 1, y: 10, easing: hold}
+      - {at: 3, y: 90}
+"#,
+        )
+        .unwrap();
+        let start = evaluate(&script, 0, 0.0).unwrap();
+        assert_eq!(start.actors[0].x, 320.0);
+        assert_eq!(start.actors[1].y, 262.0); // before first key clamps
+        let quarter = evaluate(&script, 0, 1.0).unwrap();
+        assert_eq!(quarter.actors[0].x, 345.0 + 12.5);
+        assert_eq!(quarter.actors[0].scale, Vec2::new(1.15625, 1.3125));
+        assert_eq!(evaluate(&script, 0, 2.99).unwrap().actors[1].y, 262.0);
+        assert_eq!(evaluate(&script, 0, 3.0).unwrap().actors[1].y, 342.0);
+        let end = evaluate(&script, 0, 4.0).unwrap();
+        let a = &end.actors[0];
+        assert_eq!(a.x, 500.0);
+        let face = a.local_to_world(Vec2::new(0.0, -90.0));
+        assert!((face.x - 500.0).abs() < 1e-9);
+        assert!((face.y - 522.0).abs() < 1e-9);
+        assert_eq!(quarter, evaluate(&script, 0, 1.0).unwrap());
     }
 }
