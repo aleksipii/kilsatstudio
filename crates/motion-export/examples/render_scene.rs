@@ -14,9 +14,9 @@ fn read_bounded(path: &Path, limit: u64) -> Result<Vec<u8>, Box<dyn Error>> {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if args.len() != 5 {
+    if !(5..=7).contains(&args.len()) {
         return Err(
-            "usage: render_scene SCRIPT SCENE_INDEX WAV SCENE_MANIFEST NEW_OUTPUT_DIRECTORY".into(),
+            "usage: render_scene SCRIPT SCENE_INDEX WAV SCENE_MANIFEST NEW_OUTPUT_DIRECTORY [svg|png|mp4] [ABSOLUTE_FFMPEG]".into(),
         );
     }
     let source = read_bounded(Path::new(&args[0]), 1024 * 1024)?;
@@ -30,14 +30,31 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let audio = motion_audio::read_wav(&args[2])?;
     let rendered = motion_voice::export::RenderedScene { audio, manifest };
-    let report = motion_export::export_scene(
-        &script,
-        args[1].parse()?,
-        &rendered,
-        Path::new(&args[4]),
-        &motion_tts::CancellationToken::new(),
-        |_| {},
-    )?;
-    println!("Exported {} SVG frames, scene.wav, scene.json and manifest.json to {}. No video encoded; supplied WAV/alignment pairing is not certified.",report.frame_count,report.output_directory.display());
+    let index = args[1].parse()?;
+    let destination = Path::new(&args[4]);
+    let cancel = motion_tts::CancellationToken::new();
+    let report = match args.get(5).map(String::as_str).unwrap_or("svg") {
+        "svg" if args.len() <= 6 => {
+            motion_export::export_scene(&script, index, &rendered, destination, &cancel, |_| {})
+        }
+        "png" if args.len() <= 6 => {
+            motion_export::export_png_scene(&script, index, &rendered, destination, &cancel, |_| {})
+        }
+        "mp4" if args.len() == 7 => motion_export::export_mp4_scene(
+            &script,
+            index,
+            &rendered,
+            destination,
+            Path::new(&args[6]),
+            &cancel,
+            |_| {},
+        ),
+        _ => {
+            return Err(
+                "format must be svg/png, or mp4 with an explicit absolute FFmpeg path".into(),
+            )
+        }
+    }?;
+    println!("Exported {} frames, scene.wav, scene.json and manifest.json to {}. Supplied WAV/alignment pairing is not certified.", report.frame_count, report.output_directory.display());
     Ok(())
 }

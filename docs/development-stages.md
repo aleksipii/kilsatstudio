@@ -13,7 +13,7 @@ kilsatstudio1.0 without force-pushing or discarding changes when synchronizing.
 | 5: full-scene dialogue | Prepare all lines off UI, mix leading silence/overlaps, source-clock scene playback and all actor mouths | Merged PR #6; Linux/macOS CI passed; real device validation remains pending |
 | 6: real Mac acceptance | Offline prerequisite diagnostics, opt-in CPU smoke evidence, device/seek/pause and measured mouth boundaries | Preview launch user-confirmed; real synthesis, audio and alignment still need machine/WAV/listening evidence |
 | 7a: SVG frame output | Deterministic procedural frames; movement-only and sample-clock audio/mouth bundle paths | Frame/sample clock, bounded work, cancellation and output safety; record checks for the exact commit |
-| 7b: encoded video | Encode frames and mux scene WAV on the same clock | Not implemented by SVG export; verify duration, audio sync and failure recovery |
+| 7b: encoded video | CPU PNG frames and explicit local FFmpeg H.264/AAC with the same scene WAV | Implemented; actual encoder checks cover integer/fractional duration. Real-Mac and actual-speech perceptual acceptance remain pending |
 
 Stages 1–5 were reviewed as sequential PRs and merged in dependency order after
 approval. Recheck branch heads before advancing the release branch. Later stages
@@ -159,3 +159,14 @@ drafts while preserving pasted timing maps. Undo restores exact source text
 and clears timing maps under the existing history policy. YAML is normalized and
 comments removed on Apply. Script dimensions permit 16384 per side, while SVG
 export supports 8192; audio export supports one hour.
+
+
+## Master plan production-tools increment
+
+See [the complete checked/unchecked tracker](master-progress.md) for every
+workstream. This increment adds shared procedural rig evaluation, reusable
+keyframe interpolation, versioned project source/asset metadata, scene/character
+creation and deletion, PNG/MP4 controls, local speech evidence auditing and
+macOS icon/document declarations. Implementation is distinct from full product
+acceptance: texture rigs, layers/drawing, cameras/transitions, forced alignment,
+GPU rendering and real Mac speech/device evidence remain open.

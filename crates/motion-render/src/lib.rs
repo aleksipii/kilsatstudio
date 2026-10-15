@@ -1,7 +1,9 @@
 //! Deterministic, self-contained SVG frames from evaluated scenes.
 //! Uses original procedural characters; no fonts, network assets, or video encoder.
 use motion_lipsync::Viseme;
-use motion_scene::EvaluatedScene;
+use motion_scene::{
+    EvaluatedScene, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND,
+};
 use std::fmt::Write;
 
 pub const MAX_DIMENSION: u32 = 8192;
@@ -44,6 +46,12 @@ pub fn render_svg_with_mouths(
             || !actor.y.is_finite()
             || actor.x.abs() > 1_000_000.0
             || actor.y.abs() > 1_000_000.0
+            || actor.skeleton.iter().any(|p| {
+                !p.x.is_finite()
+                    || !p.y.is_finite()
+                    || p.x.abs() > 1_000_000.0
+                    || p.y.abs() > 1_000_000.0
+            })
             || !actor.wave.is_finite()
             || !(0.0..=1.0).contains(&actor.wave)
             || [&actor.id, &actor.emotion].iter().any(|s| {
@@ -70,8 +78,27 @@ pub fn render_svg_with_mouths(
             actor.x, actor.y
         )
         .unwrap();
-        let hand_y = -30.0 - actor.wave * 35.0;
-        write!(svg, "<path d=\"M0 -65V-10M0 -10L-20 25M0 -10L20 25M0 -50L-30 -20M0 -50L30 {hand_y:.6}\" fill=\"none\" stroke=\"#7eb9e2\" stroke-width=\"5\" stroke-linecap=\"round\"/><circle cy=\"-90\" r=\"25\" fill=\"#f5c8a2\"/><g fill=\"black\"><circle cx=\"-8\" cy=\"-94\" r=\"2.5\"/><circle cx=\"8\" cy=\"-94\" r=\"2.5\"/></g>").unwrap();
+        let p = &actor.skeleton;
+        svg.push_str("<path d=\"");
+        for (a, b) in [
+            (HIP, CHEST),
+            (CHEST, HEAD),
+            (CHEST, LEFT_HAND),
+            (CHEST, RIGHT_HAND),
+            (HIP, LEFT_FOOT),
+            (HIP, RIGHT_FOOT),
+        ] {
+            write!(
+                svg,
+                "M{:.6} {:.6}L{:.6} {:.6}",
+                p[a].x, p[a].y, p[b].x, p[b].y
+            )
+            .unwrap();
+        }
+        svg.push_str(
+            "\" fill=\"none\" stroke=\"#7eb9e2\" stroke-width=\"5\" stroke-linecap=\"round\"/>",
+        );
+        write!(svg,"<g transform=\"translate({:.6} {:.6})\"><circle r=\"25\" fill=\"#f5c8a2\"/><g fill=\"black\"><circle cx=\"-8\" cy=\"-4\" r=\"2.5\"/><circle cx=\"8\" cy=\"-4\" r=\"2.5\"/></g>",p[HEAD].x,p[HEAD].y).unwrap();
         let viseme = mouths
             .iter()
             .find(|(id, _)| *id == actor.id)
@@ -88,15 +115,18 @@ pub fn render_svg_with_mouths(
             svg,
             "<rect x=\"{}\" y=\"{}\" width=\"{w}\" height=\"{h}\" rx=\"2\" fill=\"#7d2d39\"/>",
             -w / 2.0,
-            -80.0 - h / 2.0
+            10.0 - h / 2.0
         )
         .unwrap();
         if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
-            svg.push_str("<path d=\"M-8 -81L0 -76L8 -81\" fill=\"none\" stroke=\"#7d2d39\" stroke-width=\"2\"/>");
+            svg.push_str(
+                "<path d=\"M-8 9L0 14L8 9\" fill=\"none\" stroke=\"#7d2d39\" stroke-width=\"2\"/>",
+            );
         }
         if actor.emotion == "surprised" {
-            svg.push_str("<path d=\"M-12 -103L-4 -105M4 -103L12 -105\" stroke=\"black\"/>");
+            svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
         }
+        svg.push_str("</g>");
         write!(svg, "<text y=\"45\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"sans-serif\" font-size=\"12\" fill=\"white\">{} · {}</text></g>", escape(&actor.id), escape(&actor.emotion)).unwrap();
     }
     svg.push_str("</g></svg>\n");
@@ -125,6 +155,7 @@ mod tests {
                 y: 250.0,
                 emotion: "happy".into(),
                 wave: 1.0,
+                skeleton: motion_animation::humanoid(None, 1.0),
             }],
         }
     }
@@ -135,11 +166,20 @@ mod tests {
         assert_eq!(svg, render_svg(&s, 640, 480).unwrap());
         assert!(svg.contains("translate(0.000000 60.000000) scale(1.000000)"));
         assert!(svg.contains("translate(120.000000 250.000000)"));
-        assert!(svg.contains("L30 -65.000000"));
-        assert!(svg.contains("M-8 -81L0 -76L8 -81"));
+        assert!(svg.contains("L30.000000 -85.000000"));
+        assert!(svg.contains("M-8 9L0 14L8 9"));
         let mut moved = s.clone();
         moved.actors[0].x = 200.0;
         assert_ne!(svg, render_svg(&moved, 640, 480).unwrap());
+    }
+    #[test]
+    fn skeletal_head_and_limbs_are_rendered_from_evaluated_points() {
+        let mut s = scene();
+        s.actors[0].skeleton[HEAD] = motion_scene::Vec2::new(4.0, -88.0);
+        s.actors[0].skeleton[RIGHT_HAND] = motion_scene::Vec2::new(35.0, -70.0);
+        let svg = render_svg(&s, 640, 360).unwrap();
+        assert!(svg.contains("translate(4.000000 -88.000000)"));
+        assert!(svg.contains("L35.000000 -70.000000"));
     }
     #[test]
     fn escapes_untrusted_labels_and_rejects_xml_controls() {
@@ -156,7 +196,7 @@ mod tests {
         let s = scene();
         let svg = render_svg_with_mouths(&s, 640, 360, &[("EMMA", Viseme::A)]).unwrap();
         assert!(svg.contains("width=\"14\" height=\"14\""));
-        assert!(!svg.contains("M-8 -81"));
+        assert!(!svg.contains("M-8 9L0 14L8 9"));
         assert_eq!(
             render_svg_with_mouths(&s, 640, 360, &[("OTHER", Viseme::A)]).unwrap(),
             render_svg(&s, 640, 360).unwrap()
@@ -171,6 +211,9 @@ mod tests {
                 Err(Error::InvalidDimensions)
             );
         }
+        s.actors[0].skeleton[0].x = f64::NAN;
+        assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidActor(0)));
+        s = scene();
         s.actors[0].wave = f64::NAN;
         assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidActor(0)));
         s.actors[0].wave = 0.0;

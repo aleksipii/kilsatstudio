@@ -116,3 +116,29 @@ bundle**. Its parent must exist; existing directories are rejected. Progress and
 audio and removes partial output where possible. The sound-check demo can test
 this path without speech assets. Output is SVG frames, WAV and JSON, not encoded
 video.
+
+### Project files and structure
+
+Open or save a versioned `.kilsat` document using the same path field as YAML;
+launching with a file path also opens that document. A project preserves the exact
+screenplay text and its asset inventory. Imported audio resolves from the project
+file's parent directory. Saving a `.kilsat` file requires that directory to match
+the configured project root, so Save As cannot silently relocate relative paths.
+YAML retains its explicit configured root behavior. The desktop source limit is
+100 KB; project image inventory is retained but image rendering is not implemented.
+
+The Project tab's **Add / duplicate / delete** section accepts a new stable ID,
+adds or duplicates scenes and characters, and confirms deletion. Referenced
+characters and the final scene cannot be removed. Every accepted change validates
+the complete screenplay, creates one source Undo step and invalidates prepared
+audio. Character duplication preserves voice settings and asset references.
+
+### Media export
+
+The scene export section selects SVG, PNG or MP4. All formats use prepared full
+scene audio and the shared evaluated rig. MP4 requires an explicit absolute path
+to an already installed local FFmpeg executable and even project dimensions; no
+encoder is downloaded or searched on PATH. Choose a new absolute output directory.
+MP4 retains the PNG/WAV/timing interchange files. Rendering and encoding run on the
+existing bounded export worker and can be cancelled. When all frame images are
+ready, the UI reports finalizing/encoding until the worker confirms completion.

@@ -1,5 +1,7 @@
 //! Bounded, cancellable SVG/audio interchange export on the shared sample clock.
-//! This is a frame sequence, not an encoded video or alignment quality certification.
+//! SVG, PNG and explicitly configured local FFmpeg video share the same scene clock.
+mod media;
+pub use media::export_mp4_scene;
 use motion_lipsync::{AlignmentSource, Viseme};
 use motion_script::Script;
 use motion_tts::CancellationToken;
@@ -206,9 +208,62 @@ pub fn export_scene(
     cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
 ) -> Result<Report, Error> {
+    export_sequence(
+        script,
+        scene_index,
+        rendered,
+        destination,
+        cancel,
+        &mut progress,
+        false,
+    )
+}
+
+/// Rasterize the same evaluated SVG poses to PNG without external processes.
+pub fn export_png_scene(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    destination: &Path,
+    cancel: &CancellationToken,
+    mut progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_sequence(
+        script,
+        scene_index,
+        rendered,
+        destination,
+        cancel,
+        &mut progress,
+        true,
+    )
+}
+
+fn export_sequence(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    destination: &Path,
+    cancel: &CancellationToken,
+    progress: &mut impl FnMut(Progress),
+    png: bool,
+) -> Result<Report, Error> {
     check(cancel)?;
     let total = validate(script, scene_index, rendered)?;
     check(cancel)?;
+    if png && u64::from(script.project.width) * u64::from(script.project.height) > 16_000_000 {
+        return Err(invalid("raster frame exceeds 16 million pixel budget"));
+    }
+    if png
+        && u64::from(script.project.width)
+            .saturating_mul(u64::from(script.project.height))
+            .saturating_mul(total)
+            > 1_000_000_000
+    {
+        return Err(invalid(
+            "raster sequence exceeds one billion pixel work budget",
+        ));
+    }
     let scene_json = bounded_json(&rendered.manifest, 8 * 1024 * 1024)?;
     let source = bounded_json(script, MAX_SOURCE)?;
     let mut bytes = (rendered.audio.frames() as u64)
@@ -243,14 +298,20 @@ pub fn export_scene(
                 &mouths_at(&rendered.manifest, sample),
             )
             .map_err(|e| invalid(e.to_string()))?;
+            let encoded = if png {
+                media::rasterize(&svg)?
+            } else {
+                svg.into_bytes()
+            };
             bytes = bytes
-                .checked_add(svg.len() as u64)
+                .checked_add(encoded.len() as u64)
                 .ok_or_else(|| invalid("byte budget overflow"))?;
             if bytes > MAX_BYTES {
                 return Err(invalid("output exceeds 256 MiB byte budget"));
             }
-            let file = format!("frame_{i:06}.svg");
-            write_new(&destination.join(&file), svg.as_bytes())?;
+            let extension = if png { "png" } else { "svg" };
+            let file = format!("frame_{i:06}.{extension}");
+            write_new(&destination.join(&file), &encoded)?;
             frames.push(Frame {
                 frame: i,
                 sample_frame: sample,
@@ -265,7 +326,7 @@ pub fn export_scene(
         check(cancel)?;
         let manifest = bounded_json(
             &serde_json::json!({
-                "schema_version":1,"format":"svg_audio_sequence","scene_id":rendered.manifest.scene_id,
+                "schema_version":1,"format":if png {"png_audio_sequence"} else {"svg_audio_sequence"},"scene_id":rendered.manifest.scene_id,
                 "fps":script.project.fps,"sample_rate":SAMPLE_RATE,"frame_count":total,
                 "width":script.project.width,"height":script.project.height,"frames":frames,
                 "audio_file":"scene.wav","audio_manifest_file":"scene.json",
@@ -344,14 +405,14 @@ mod tests {
     use motion_voice::export::{DialogueManifest, SampleViseme};
     use std::sync::atomic::{AtomicU64, Ordering};
     static NEXT: AtomicU64 = AtomicU64::new(0);
-    fn destination() -> PathBuf {
+    pub(super) fn destination() -> PathBuf {
         std::env::temp_dir().join(format!(
             "kilsat-export-{}-{}",
             std::process::id(),
             NEXT.fetch_add(1, Ordering::Relaxed)
         ))
     }
-    fn fixture() -> (Script, RenderedScene) {
+    pub(super) fn fixture() -> (Script, RenderedScene) {
         let script = motion_script::parse("project: {fps: 4, width: 640, height: 360}\ncharacters:\n  EMMA: {asset: characters/emma}\n  ALEX: {asset: characters/alex}\nscenes:\n  - id: intro\n    duration: 1.0\n    events: []\n").unwrap();
         let clip = DialogueManifest {
             actor: "EMMA".into(),
@@ -390,6 +451,153 @@ mod tests {
         };
         (script, rendered)
     }
+    #[test]
+    fn png_decodes_dimensions_and_cancellation_cleans_output() {
+        let (mut s, r) = fixture();
+        s.project.width = 1920;
+        s.project.height = 1080;
+        let dest = destination();
+        export_png_scene(&s, 0, &r, &dest, &CancellationToken::new(), |_| {}).unwrap();
+        let image = resvg::tiny_skia::Pixmap::load_png(dest.join("frame_000001.png")).unwrap();
+        assert_eq!((image.width(), image.height()), (1920, 1080));
+        assert!(image
+            .data()
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .any(|pixel| pixel[3] > 0));
+        let m: serde_json::Value =
+            serde_json::from_slice(&fs::read(dest.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(m["frames"][1]["sample_frame"], 6000);
+        assert_eq!(m["format"], "png_audio_sequence");
+        fs::remove_dir_all(&dest).unwrap();
+        let token = CancellationToken::new();
+        assert!(matches!(
+            export_png_scene(&s, 0, &r, &dest, &token, |p| {
+                if p.completed_frames == 1 {
+                    token.cancel();
+                }
+            }),
+            Err(Error::Cancelled)
+        ));
+        assert!(!dest.exists());
+    }
+
+    #[test]
+    fn raster_budget_and_encoder_path_fail_without_output() {
+        let (mut s, r) = fixture();
+        let dest = destination();
+        assert!(export_mp4_scene(
+            &s,
+            0,
+            &r,
+            &dest,
+            Path::new("ffmpeg"),
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        s.project.width = 8192;
+        s.project.height = 8192;
+        assert!(export_png_scene(&s, 0, &r, &dest, &CancellationToken::new(), |_| {}).is_err());
+        assert!(!dest.exists());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn failed_encoder_removes_owned_frames_but_preserves_existing_output() {
+        use std::os::unix::fs::PermissionsExt;
+        let (s, r) = fixture();
+        let encoder = destination();
+        fs::write(&encoder, b"#!/bin/sh\nexit 7\n").unwrap();
+        fs::set_permissions(&encoder, fs::Permissions::from_mode(0o700)).unwrap();
+        let dest = destination();
+        assert!(export_mp4_scene(
+            &s,
+            0,
+            &r,
+            &dest,
+            &encoder,
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        assert!(!dest.exists());
+        fs::create_dir(&dest).unwrap();
+        fs::write(dest.join("keep"), b"original").unwrap();
+        assert!(export_mp4_scene(
+            &s,
+            0,
+            &r,
+            &dest,
+            &encoder,
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        assert_eq!(fs::read(dest.join("keep")).unwrap(), b"original");
+        fs::remove_dir_all(dest).unwrap();
+        fs::remove_file(encoder).unwrap();
+    }
+
+    #[test]
+    #[ignore = "requires explicit KILSAT_TEST_FFMPEG and optional KILSAT_TEST_FFPROBE local executables"]
+    fn real_ffmpeg_encodes_h264_aac() {
+        let encoder =
+            PathBuf::from(std::env::var_os("KILSAT_TEST_FFMPEG").expect("set KILSAT_TEST_FFMPEG"));
+        for seconds in [1.0, 0.9] {
+            let (mut s, mut r) = fixture();
+            s.scenes[0].duration = seconds;
+            r.manifest.total_frames = (seconds * SAMPLE_RATE as f64).round() as u64;
+            r.audio.samples.truncate(r.manifest.total_frames as usize);
+            let dest = destination();
+            let report = export_mp4_scene(
+                &s,
+                0,
+                &r,
+                &dest,
+                &encoder,
+                &CancellationToken::new(),
+                |_| {},
+            )
+            .unwrap();
+            assert!(fs::metadata(dest.join("scene.mp4")).unwrap().len() > 0);
+            if let Some(probe) = std::env::var_os("KILSAT_TEST_FFPROBE") {
+                let output = std::process::Command::new(probe)
+                    .args([
+                        "-v",
+                        "error",
+                        "-show_entries",
+                        "stream=codec_name,width,height,duration,nb_frames",
+                        "-of",
+                        "json",
+                    ])
+                    .arg(dest.join("scene.mp4"))
+                    .output()
+                    .unwrap();
+                assert!(output.status.success());
+                let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+                let streams = value["streams"].as_array().unwrap();
+                let video = streams.iter().find(|v| v["codec_name"] == "h264").unwrap();
+                assert_eq!(video["width"], 640);
+                assert_eq!(video["height"], 360);
+                assert_eq!(
+                    video["nb_frames"].as_str().unwrap().parse::<u64>().unwrap(),
+                    report.frame_count
+                );
+                let video_seconds = video["duration"].as_str().unwrap().parse::<f64>().unwrap();
+                assert!(
+                    (video_seconds - report.frame_count as f64 / s.project.fps as f64).abs()
+                        < 0.001
+                );
+                let audio = streams.iter().find(|v| v["codec_name"] == "aac").unwrap();
+                let audio_seconds = audio["duration"].as_str().unwrap().parse::<f64>().unwrap();
+                assert!((audio_seconds - seconds).abs() < 0.05);
+            }
+            fs::remove_dir_all(dest).unwrap();
+        }
+    }
+
     #[test]
     fn sample_clock_visemes_silence_and_trim_are_scene_relative() {
         let (s, r) = fixture();

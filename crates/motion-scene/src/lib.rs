@@ -1,4 +1,5 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
+pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
 use motion_script::{Event, Script};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,6 +10,8 @@ pub struct ActorPose {
     pub emotion: String,
     /// Wave envelope in 0..=1; zero outside a wave event.
     pub wave: f64,
+    /// Evaluated local-space skeletal joints shared by preview and export.
+    pub skeleton: [Vec2; 7],
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct EvaluatedScene {
@@ -81,7 +84,9 @@ pub fn evaluate(
                 y: script.project.height as f64 * 0.7,
                 emotion: "neutral".into(),
                 wave: 0.0,
+                skeleton: motion_animation::humanoid(None, 0.0),
             };
+            let mut walk_seconds = None;
             for event in &events {
                 let (at, actor) = event.actor_time();
                 if actor != id || at > time_seconds {
@@ -92,6 +97,11 @@ pub fn evaluate(
                         // Overlapping moves are rejected by validation, so each starting
                         // pose is the completed endpoint of the preceding movement.
                         let progress = ((time_seconds - at) / duration).clamp(0.0, 1.0);
+                        walk_seconds = if progress < 1.0 && (pose.x != *x || pose.y != *y) {
+                            Some(time_seconds - at)
+                        } else {
+                            None
+                        };
                         pose.x += (x - pose.x) * progress;
                         pose.y += (y - pose.y) * progress;
                     }
@@ -109,6 +119,7 @@ pub fn evaluate(
                     Event::Speak { .. } => {}
                 }
             }
+            pose.skeleton = motion_animation::humanoid(walk_seconds, pose.wave);
             pose
         })
         .collect();
@@ -152,6 +163,11 @@ scenes:
         assert_eq!(evaluate(&script, 0, 5.0).unwrap().actors[0].x, 600.0);
         assert_eq!(evaluate(&script, 0, 8.0).unwrap().actors[0].x, 800.0);
         assert_eq!(middle, evaluate(&script, 0, 3.0).unwrap());
+        assert_ne!(
+            evaluate(&script, 0, 1.0 / 6.0).unwrap().actors[0].skeleton,
+            evaluate(&script, 0, 2.0).unwrap().actors[0].skeleton
+        );
+        assert_eq!(middle.actors[0].skeleton[RIGHT_HAND].y, -85.0);
         assert!(evaluate(&script, 0, f64::NAN).is_err());
         assert!(evaluate(&script, 1, 0.0).is_err());
     }

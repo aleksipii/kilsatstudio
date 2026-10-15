@@ -219,6 +219,65 @@ pub fn apply_scene_settings(
     })
 }
 
+/// Append a scene after validating the complete candidate screenplay.
+pub fn add_scene(source: &str, scene: Scene) -> Result<String, Error> {
+    edit_source(source, |script| {
+        script.scenes.push(scene);
+        Ok(())
+    })
+}
+
+/// Duplicate one scene, preserving its events and requiring a unique new identifier.
+pub fn duplicate_scene(source: &str, index: usize, new_id: &str) -> Result<String, Error> {
+    edit_source(source, |script| {
+        let mut scene = script
+            .scenes
+            .get(index)
+            .cloned()
+            .ok_or_else(|| Error::Validation("selected scene no longer exists".into()))?;
+        scene.id = new_id.into();
+        script.scenes.insert(index + 1, scene);
+        Ok(())
+    })
+}
+
+/// Remove a scene; a screenplay must retain at least one scene.
+pub fn remove_scene(source: &str, index: usize) -> Result<String, Error> {
+    edit_source(source, |script| {
+        if index >= script.scenes.len() {
+            return Err(Error::Validation("selected scene no longer exists".into()));
+        }
+        if script.scenes.len() == 1 {
+            return Err(Error::Validation("cannot remove the final scene".into()));
+        }
+        script.scenes.remove(index);
+        Ok(())
+    })
+}
+
+/// Add a character without replacing an existing stable identifier.
+pub fn add_character(source: &str, id: &str, character: Character) -> Result<String, Error> {
+    edit_source(source, |script| {
+        if script.characters.contains_key(id) {
+            return Err(Error::Validation(format!("character {id} already exists")));
+        }
+        script.characters.insert(id.into(), character);
+        Ok(())
+    })
+}
+
+/// Remove an unused character. References in any scene reject the transaction.
+pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
+    edit_source(source, |script| {
+        if script.characters.remove(id).is_none() {
+            return Err(Error::Validation(format!(
+                "character {id} no longer exists"
+            )));
+        }
+        Ok(())
+    })
+}
+
 fn edit_source(
     source: &str,
     edit: impl FnOnce(&mut Script) -> Result<(), Error>,
@@ -766,5 +825,49 @@ mod scene_settings_tests {
         huge_project.title = "a".repeat(1_048_577);
         assert!(apply_scene_settings(SOURCE, 0, huge_project, "opening", 6.0).is_err());
         assert!(apply_scene_settings(SOURCE, 0, project, &"a".repeat(1_048_577), 6.0).is_err());
+    }
+}
+
+#[cfg(test)]
+mod lifecycle_tests {
+    use super::*;
+    const SOURCE: &str = "characters: {EMMA: {asset: emma}}\nscenes: [{id: intro, duration: 3, events: [{type: emotion, at: 0, actor: EMMA, value: happy}]}]\n";
+    #[test]
+    fn scene_lifecycle_preserves_events_and_rejects_last_or_duplicate() {
+        let copy = duplicate_scene(SOURCE, 0, "copy").unwrap();
+        let script = parse(&copy).unwrap();
+        assert_eq!(script.scenes.len(), 2);
+        assert_eq!(
+            serde_yaml::to_value(&script.scenes[0].events).unwrap(),
+            serde_yaml::to_value(&script.scenes[1].events).unwrap()
+        );
+        assert!(duplicate_scene(SOURCE, 0, "intro").is_err());
+        assert!(duplicate_scene(SOURCE, usize::MAX, "copy").is_err());
+        assert!(remove_scene(SOURCE, 0).is_err());
+        assert_eq!(
+            parse(&remove_scene(&copy, 0).unwrap()).unwrap().scenes[0].id,
+            "copy"
+        );
+        assert!(add_scene(
+            SOURCE,
+            Scene {
+                background: None,
+                id: "next".into(),
+                duration: 0.,
+                events: vec![]
+            }
+        )
+        .is_err());
+    }
+    #[test]
+    fn character_removal_rejects_dangling_references() {
+        assert!(remove_character(SOURCE, "EMMA").is_err());
+        assert!(remove_character(SOURCE, "missing").is_err());
+        let actor = parse(SOURCE).unwrap().characters["EMMA"].clone();
+        assert!(add_character(SOURCE, "EMMA", actor.clone()).is_err());
+        let added = add_character(SOURCE, "ALEX", actor).unwrap();
+        let removed = remove_character(&added, "ALEX").unwrap();
+        assert_eq!(parse(&removed).unwrap().characters.len(), 1);
+        assert_eq!(parse(SOURCE).unwrap().scenes.len(), 1);
     }
 }

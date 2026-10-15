@@ -21,3 +21,16 @@ jobs:
       - run: python3 -m pip install numpy==2.3.5
       - run: python3 -m unittest discover -s services/kokoro-runtime/tests -p 'test_*.py'
       - run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+  media-encoding:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install local test encoder
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Verify actual encoded media
+        env:
+          KILSAT_TEST_FFMPEG: /usr/bin/ffmpeg
+          KILSAT_TEST_FFPROBE: /usr/bin/ffprobe
+        run: cargo test --locked -p motion-export real_ffmpeg_encodes_h264_aac -- --ignored

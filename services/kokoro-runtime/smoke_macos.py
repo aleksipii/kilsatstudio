@@ -76,12 +76,20 @@ def main(argv=None):
     parser.add_argument('--voice', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--report', type=Path, help='optional new JSON evidence file')
+    parser.add_argument('--text', default='Hello from Kilsat Studio. This is a local CPU speech test.')
+    parser.add_argument('--language', default='en-us')
+    parser.add_argument('--speed', type=float, default=1.0)
+    parser.add_argument('--corpus-id', default='default-en-smoke')
     parser.add_argument('--timeout', type=float, default=180)
     args = parser.parse_args(argv)
     if platform.system() != 'Darwin':
         parser.error('this smoke runner requires macOS; Linux unit tests do not verify macOS support')
     if not 0 < args.timeout <= 3600:
         parser.error('timeout must be between 0 and 3600 seconds')
+    if not args.text.strip() or len(args.text) > 10000 or not args.corpus_id.strip():
+        parser.error('text must contain 1-10000 characters and corpus-id must be nonempty')
+    if args.language not in ('en-us', 'en-gb') or not math.isfinite(args.speed) or not 0.5 <= args.speed <= 2.0:
+        parser.error('language must be en-us or en-gb and speed must be within 0.5-2.0')
     # absolute() keeps final symlinks visible for exclusive-creation checks.
     output = args.output.absolute()
     report_path = args.report.absolute() if args.report else None
@@ -103,8 +111,8 @@ def main(argv=None):
         # Stage on the output filesystem, so final publication is exclusive and atomic.
         with tempfile.TemporaryDirectory(prefix='.kokoro-smoke-', dir=output.parent) as temporary:
             request, response, staged = [Path(temporary) / name for name in ('request.json', 'response.json', 'speech.wav')]
-            payload = dict(protocol=1, request=dict(text='Hello from Kilsat Studio. This is a local CPU speech test.',
-                           voice=dict(preset=args.voice.stem, language='en-us', speed=1.0)),
+            payload = dict(protocol=1, request=dict(text=args.text,
+                           voice=dict(preset=args.voice.stem, language=args.language, speed=args.speed)),
                            config_path=str(assets['config']), model_path=str(assets['model']),
                            voice_path=str(assets['voice']), output_path=str(staged))
             request.write_text(json.dumps(payload), encoding='utf-8')
@@ -133,6 +141,8 @@ def main(argv=None):
                     versions[package] = None
             evidence = dict(schema_version=1, platform=platform.platform(), os=platform.mac_ver()[0],
                             architecture=platform.machine(), chip=platform.processor() or platform.machine(), python=dict(version=platform.python_version(), executable=sys.executable),
+                            provenance=dict(kind='recorded_local_model', system=platform.system(), architecture=platform.machine()),
+                            corpus=dict(id=args.corpus_id, text=args.text, language=args.language, speed=args.speed),
                             packages=versions, backend='Python/PyTorch CPU', assets=fingerprints,
                             output=str(output), output_sha256=sha256(staged), audio=signal,
                             duration_seconds=signal['duration_seconds'], synthesis='structural_checks_passed',
