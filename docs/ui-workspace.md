@@ -18,11 +18,11 @@ system.
 | Bottom Timeline | Actor tracks with Move, Emotion, Gesture and Speak lanes, playhead and playback controls |
 
 Drag panel boundaries to resize the workspace. Click a timeline event to inspect
-its editable properties, or an actor label to select that character. Click or drag the
-time area to scrub at the shared 24 kHz scene position; this seeks audio when a
-source is active. Timeline bars are navigation aids: dragging does not edit event
-timing. Use the Inspector or edit MotionScript to change the scene. Before dialogue is
-prepared, Speak events have point markers rather than measured duration bars.
+its editable properties, or an actor label to select that character. Click or drag
+blank ruler or track space to scrub at the shared 24 kHz scene position; this seeks
+audio when a source is active. Drag an event bar or marker horizontally to change
+its start time on the project frame grid. Before dialogue is prepared, Speak
+events have point markers rather than measured duration bars.
 
 The Inspector displays voice preset, language and speed; edit them in YAML.
 Expand **Kokoro runtime / alignment** for local paths, diagnostics and timing JSON,
@@ -92,3 +92,25 @@ preserving other dialogue mappings. Free-form source edits, opening a file, Undo
 and Redo clear pasted alignments because they may no longer match the text or
 voice. History restores screenplay text, not audio assets or alignment paste data.
 Prepare audio and provide fresh timing evidence when needed.
+
+
+## Drag event timing
+
+Drag a Move, Emotion, Gesture or Speak bar/marker horizontally. The provisional
+position appears as a ghost while the screenplay remains unchanged. Release to
+validate the complete screenplay and apply one undoable edit; a rejected edit
+keeps the original source. Press **Escape** to cancel before release. A click
+selects the event without retiming it. Event dragging is disabled while a
+background task is active.
+
+Start times snap to the project's frame rate and stay within the scene. Move and
+gesture durations are preserved and included in the end-boundary clamp. Dragging
+does not trim durations, change actors, create events or delete them. Use the
+Inspector for other supported property edits.
+
+Accepted retiming invalidates prepared audio/export state through the same edit
+path as the Inspector. Prepare the scene again before playback or export. Speech
+length is known only after audio preparation: dragging a Speak event does not
+analyze its duration or guarantee that the generated/imported line will fit.
+Scene preparation can reject speech that overruns the scene or overlaps another
+line from the same actor. Mouth timing still requires explicit alignment.

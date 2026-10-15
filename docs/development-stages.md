@@ -107,3 +107,21 @@ the original document; audio and alignment invalidation prevent stale prepared
 results after accepted edits. This is event-property editing, not timeline
 retiming, keyframe tooling or a complete project/asset history. See the
 [workspace guide](ui-workspace.md) for formatting and history boundaries.
+
+
+## Timeline retiming increment
+
+The next focused editor stage adds horizontal event bar/marker dragging on the
+project frame grid. A provisional ghost leaves the document unchanged until
+release; validation then commits one screenplay history action. Escape cancels,
+click selects, and blank ruler/track space retains seeking. Active background
+work disables dragging. Move/gesture duration stays fixed and constrains the
+latest allowed start. This increment does not add duration trimming, actor
+reassignment by dragging, event creation/deletion or encoded video.
+
+Retiming uses the existing edit invalidation path, so prepared scene audio must
+be regenerated. Speech duration is not inferred during dragging: preparation
+obtains the actual length and can reject scene overrun or same-actor overlap.
+The [workspace guide](ui-workspace.md) describes the interaction. Validation
+results must be recorded for the actual commit; no GUI or Mac acceptance is
+implied by this development-stage description.
