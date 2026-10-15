@@ -123,6 +123,26 @@ fn fingerprint(path: &Path) -> Result<String, SpeechError> {
     }
     Ok(format!("{:x}", h.finalize()))
 }
+const MAX_METADATA_BYTES: u64 = 1_000_000;
+
+// Read through a bounded reader: a size check alone races concurrent writers.
+fn read_bounded(path: &Path) -> Result<Vec<u8>, SpeechError> {
+    let mut bytes = Vec::new();
+    fs::File::open(path)?
+        .take(MAX_METADATA_BYTES + 1)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() as u64 > MAX_METADATA_BYTES {
+        return Err(SpeechError("speech metadata exceeds size limit".into()));
+    }
+    Ok(bytes)
+}
+
+#[derive(Serialize, Deserialize)]
+struct CacheEntry {
+    result: SpeechResult,
+    audio_sha256: String,
+}
+
 fn validate_wav(path: &Path) -> Result<(u32, u64), SpeechError> {
     let mut wav = hound::WavReader::open(path)
         .map_err(|e| SpeechError(format!("invalid speech WAV: {e}")))?;
@@ -151,29 +171,36 @@ impl SpeechProvider for KokoroProvider {
                 "model version and positive timeout are required".into(),
             ));
         }
-        let voice = c
-            .voices_directory
-            .join(format!("{}.pt", request.voice.preset));
+        let model_config = fs::canonicalize(&c.model_config)?;
+        let model_weights = fs::canonicalize(&c.model_weights)?;
+        let runtime_script = fs::canonicalize(&c.runtime_script)?;
+        let voice = fs::canonicalize(
+            c.voices_directory
+                .join(format!("{}.pt", request.voice.preset)),
+        )?;
         // Hash file contents, so replacing an asset cannot return stale speech.
         let identity = serde_json::to_vec(&(
-            1,
+            2,
             &request,
             &c.model_version,
-            fingerprint(&c.model_config)?,
-            fingerprint(&c.model_weights)?,
+            fingerprint(&model_config)?,
+            fingerprint(&model_weights)?,
             fingerprint(&voice)?,
-            fingerprint(&c.runtime_script)?,
+            fingerprint(&runtime_script)?,
         ))?;
         let key = format!("{:x}", Sha256::digest(identity));
         fs::create_dir_all(&c.cache_directory)?;
-        let audio_path = c.cache_directory.join(format!("{key}.wav"));
-        let metadata_path = c.cache_directory.join(format!("{key}.json"));
-        if let Ok(bytes) = fs::read(&metadata_path) {
-            if let Ok(mut result) = serde_json::from_slice::<SpeechResult>(&bytes) {
+        let cache_directory = fs::canonicalize(&c.cache_directory)?;
+        let audio_path = cache_directory.join(format!("{key}.wav"));
+        let metadata_path = cache_directory.join(format!("{key}.json"));
+        if let Ok(bytes) = read_bounded(&metadata_path) {
+            if let Ok(entry) = serde_json::from_slice::<CacheEntry>(&bytes) {
+                let mut result = entry.result;
                 if let Ok((rate, count)) = validate_wav(&audio_path) {
                     if result.cache_key == key
                         && result.sample_rate == rate
                         && result.sample_count == count
+                        && fingerprint(&audio_path).is_ok_and(|digest| digest == entry.audio_sha256)
                     {
                         result.audio_path = audio_path;
                         result.cached = true;
@@ -187,9 +214,7 @@ impl SpeechProvider for KokoroProvider {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_nanos();
-        let staging = c
-            .cache_directory
-            .join(format!(".{key}-{}-{nonce}", std::process::id()));
+        let staging = cache_directory.join(format!(".{key}-{}-{nonce}", std::process::id()));
         fs::create_dir(&staging)?;
         let outcome = (|| {
             let output = staging.join("speech.wav");
@@ -198,11 +223,11 @@ impl SpeechProvider for KokoroProvider {
             fs::write(
                 &request_path,
                 serde_json::to_vec(
-                    &serde_json::json!({"protocol":1,"request":request,"config_path":c.model_config,"model_path":c.model_weights,"voice_path":voice,"output_path":output}),
+                    &serde_json::json!({"protocol":1,"request":request,"config_path":model_config,"model_path":model_weights,"voice_path":voice,"output_path":output}),
                 )?,
             )?;
             let mut child = Command::new(&c.python)
-                .arg(&c.runtime_script)
+                .arg(&runtime_script)
                 .arg("--request")
                 .arg(&request_path)
                 .arg("--response")
@@ -234,12 +259,9 @@ impl SpeechProvider for KokoroProvider {
                     }
                 }
             };
-            let bytes = fs::read(&response_path).map_err(|e| {
+            let bytes = read_bounded(&response_path).map_err(|e| {
                 SpeechError(format!("runtime exited {status} without a response: {e}"))
             })?;
-            if bytes.len() > 1_000_000 {
-                return Err(SpeechError("runtime response too large".into()));
-            }
             let response: serde_json::Value = serde_json::from_slice(&bytes)?;
             if response["protocol"] != 1 {
                 return Err(SpeechError("unsupported Kokoro response protocol".into()));
@@ -261,9 +283,13 @@ impl SpeechProvider for KokoroProvider {
                 phonemes: response["phonemes"].as_str().unwrap_or("").into(),
                 cached: false,
             };
+            let audio_sha256 = fingerprint(&output)?;
             fs::rename(&output, &audio_path)?;
             let mut meta = fs::File::create(staging.join("metadata.json"))?;
-            meta.write_all(&serde_json::to_vec(&result)?)?;
+            meta.write_all(&serde_json::to_vec(&CacheEntry {
+                result: result.clone(),
+                audio_sha256,
+            })?)?;
             meta.sync_all()?;
             fs::rename(staging.join("metadata.json"), &metadata_path)?;
             Ok(result)
@@ -338,6 +364,68 @@ json.dump({'ok':True,'protocol':1,'phonemes':'hɛloʊ'},open(a.response,'w'))
         assert_ne!(first.cache_key, changed.cache_key);
         fs::remove_dir_all(provider.config.model_config.parent().unwrap()).unwrap();
     }
+    #[test]
+    fn relative_cache_directory_produces_absolute_audio_assets() {
+        let mut provider = mock_provider();
+        let name = provider
+            .config
+            .model_config
+            .parent()
+            .unwrap()
+            .file_name()
+            .unwrap();
+        provider.config.cache_directory = PathBuf::from(name).join("cache");
+        let result = provider
+            .synthesize(SpeechRequest {
+                text: "hello".into(),
+                voice: VoiceSettings::default(),
+            })
+            .unwrap();
+        assert!(result.audio_path.is_absolute());
+        assert!(result.audio_path.is_file());
+        fs::remove_dir_all(provider.config.cache_directory.parent().unwrap()).unwrap();
+        fs::remove_dir_all(provider.config.model_config.parent().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn metadata_reads_are_bounded() {
+        let provider = mock_provider();
+        let path = provider
+            .config
+            .model_config
+            .parent()
+            .unwrap()
+            .join("oversized.json");
+        fs::File::create(&path)
+            .unwrap()
+            .set_len(MAX_METADATA_BYTES + 1)
+            .unwrap();
+        assert!(read_bounded(&path).unwrap_err().0.contains("size limit"));
+        fs::remove_dir_all(provider.config.model_config.parent().unwrap()).unwrap();
+    }
+
+    #[test]
+    fn valid_wav_tampering_and_oversized_cache_metadata_regenerate() {
+        let provider = mock_provider();
+        let request = SpeechRequest {
+            text: "hello".into(),
+            voice: VoiceSettings::default(),
+        };
+        let first = provider.synthesize(request.clone()).unwrap();
+        // Preserve the WAV header and sample count while changing its audio.
+        let mut wav = fs::read(&first.audio_path).unwrap();
+        let last = wav.len() - 1;
+        wav[last] ^= 1;
+        fs::write(&first.audio_path, wav).unwrap();
+        assert!(!provider.synthesize(request.clone()).unwrap().cached);
+        fs::File::create(first.audio_path.with_extension("json"))
+            .unwrap()
+            .set_len(MAX_METADATA_BYTES + 1)
+            .unwrap();
+        assert!(!provider.synthesize(request).unwrap().cached);
+        fs::remove_dir_all(provider.config.model_config.parent().unwrap()).unwrap();
+    }
+
     #[test]
     fn worker_timeout_is_an_error() {
         let mut provider = mock_provider();

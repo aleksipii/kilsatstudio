@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "audio": {"asset_id": "sha256:example-audio", "sample_rate": 24000, "frames": 24000},
+  "tool": "fixture-aligner",
+  "tool_version": "test-only",
+  "alphabet": "arpabet",
+  "phonemes": [
+    {"phoneme": "M", "start_seconds": 0.1, "end_seconds": 0.3},
+    {"phoneme": "AA1", "start_seconds": 0.3, "end_seconds": 0.8},
+    {"phoneme": "sil", "start_seconds": 0.8, "end_seconds": 1.0}
+  ]
+}

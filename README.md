@@ -1,8 +1,8 @@
 # Kilsat Studio — Agent 6 audio foundation
 
 Independently authored offline voice infrastructure for the repository's Agent 6
-workstream. This is a headless integration foundation, not a complete desktop
-application. No Storytold source or dependencies are used.
+workstream. This includes a native dialogue workbench and headless audio pipeline. It is
+not yet a complete animation workstation. No Storytold source or dependencies are used.
 
 ## Components
 
@@ -14,12 +14,22 @@ application. No Storytold source or dependencies are used.
 - `motion-lipsync`: timed IPA alignment validation, mouth shapes and seek evaluation.
 - `motion-voice`: bounded background worker, dialogue jobs and shared audio/mouth
   timeline placement, manual offset/trim/gain through prepared clips.
-- `services/kokoro-runtime`: local CPU inference service with explicit asset paths.
+- `services/kokoro-runtime`: local CPU inference service with explicit asset paths and
+  an opt-in macOS smoke runner.
+- `studio-desktop`: native dialogue workbench with screenplay Open/Save, validation,
+  background generation/import, waveform scrubbing and symbolic mouth-state preview.
 
 See [runtime setup](services/kokoro-runtime/README.md) and
 [architecture and verification](docs/audio.md).
 
-## Run on macOS
+## Desktop workbench
+
+Run `cargo run -p studio-desktop` from the repository root. See
+[workbench instructions](apps/studio-desktop/README.md). The workbench previews
+waveforms and timed mouth states; audio-device playback, character rendering and
+video export are not implemented. No model assets download automatically.
+
+## Run headless synthesis on macOS
 
 Install stable Rust. In a separately managed Python 3.10–3.12 virtual environment,
 install the runtime requirements and English G2P dependencies described in the
@@ -64,12 +74,16 @@ cargo test --workspace
 python3 -m unittest discover -s services/kokoro-runtime/tests -v
 ```
 
-Python protocol tests: **4 passed**. After repairing a truncated local LLVM
+Python runtime tests: **11 passed**, including synthetic inference/WAV tests with
+stub Kokoro/PyTorch modules. No actual model was loaded. After repairing a truncated local LLVM
 library, `cargo check --workspace` and `cargo test --workspace` passed on Linux
-(**13 Rust tests**, plus doc tests). Source was formatted with the toolchain's
+(**24 Rust tests**, plus doc tests across the expanded workspace). The expanded workspace also includes regression tests for external alignment import,
+worker failure recovery and cache corruption. Source was formatted with the toolchain's
 `rustfmt` directly; Cargo's formatter wrapper requires `/proc/self/exe`, which is
 unavailable in this sandbox. Cargo.lock was generated against crates.io.
-Linux/macOS CI provides the standard wrapper checks once pushed.
+The foundation passed standard checks in Linux and macOS GitHub CI. The expanded
+workspace passed local formatting, compilation, strict Clippy and tests; its PR
+has separate CI results. GUI execution itself has not been tested here.
 
 Actual Kokoro synthesis and macOS/Apple Silicon execution have not been tested.
 No native Rust inference, Metal, MPS or Core ML acceleration is claimed. See the

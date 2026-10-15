@@ -1,4 +1,6 @@
 //! Explicit alignment provenance: synthesis tokens are not phoneme timestamps.
+mod import;
+pub use import::{arpabet_to_ipa, import_alignment_json, AlignmentAudio};
 
 use serde::{Deserialize, Serialize};
 use std::fmt;

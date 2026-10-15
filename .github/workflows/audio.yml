@@ -15,4 +15,8 @@ jobs:
       - run: cargo check --workspace
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m pip install numpy==2.3.5
       - run: python3 -m unittest discover -s services/kokoro-runtime/tests -p 'test_*.py'
