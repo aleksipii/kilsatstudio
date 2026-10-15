@@ -26,6 +26,8 @@ source code or dependencies are used.
 - Import explicit timed IPA/ARPAbet alignment with provenance and audio checks.
 - Export mixed scene WAV and sample-timed dialogue/viseme JSON; sample actor poses
   through the same scene evaluator used by the preview.
+- Render deterministic SVG frame sequences of the procedural characters at the
+  project frame rate, with a neutral mouth and a JSON frame index.
 
 Missing alignment keeps mouths at rest. Kokoro phoneme strings are **not** treated
 as accurate timestamps. Facial emotion affects the visual preview; acoustic emotion
@@ -120,8 +122,10 @@ cargo run -p motion-scene --example evaluate_scene -- \
   examples/hello-emma.yaml 0 /absolute/new-poses.json
 ```
 
-Pose JSON and audio/viseme manifests are interchange data, **not rendered images
-or video**. Pose export refuses an existing output path and caps frame/actor work.
+Pose JSON and audio/viseme manifests are interchange data. Pose export refuses an
+existing output path and caps frame/actor work. For rendered SVG frames, see the
+[frame export guide](docs/frame-export.md). SVG sequences are individual vector
+images; they are **not encoded video** and contain no embedded audio.
 
 ## Components
 
@@ -129,6 +133,7 @@ or video**. Pose export refuses an existing output path and caps frame/actor wor
 | --- | --- |
 | `motion-script` | MotionScript schema, syntax/semantic checks and unsupported-command diagnostics |
 | `motion-scene` | Stateless movement/expression/gesture evaluation shared by preview and pose export |
+| `motion-render` | Deterministic procedural SVG rendering and bounded frame-sequence example |
 | `motion-audio` | WAV I/O, waveform peaks, frame transport and deterministic mixing |
 | `motion-tts` | Replaceable speech provider, Kokoro process boundary, cache and timeout handling |
 | `motion-lipsync` | Explicit alignment provenance, IPA/ARPAbet conversion and timed visemes |
@@ -153,7 +158,7 @@ Still unverified or unfinished:
 - Real Kokoro CPU synthesis on macOS/Apple Silicon with the approved local assets.
 - GUI/audio interaction beyond confirmed launch, hardware latency and perceptual lip-sync quality.
 - Practical macOS cancellation validation and robust runtime device-loss recovery.
-- Textured character rigs, production frame rendering, video encoding and packaging.
+- Textured character rigs, production rendering, encoded video/audio muxing and release packaging.
 - Complete model/voice/dependency redistribution audit and locked Python environment.
 
 No native Rust TTS, Metal, MPS or Core ML acceleration is claimed. Rodio startup
@@ -183,6 +188,7 @@ remain enabled in CI.
 - [Supported MotionScript subset](docs/motionscript.md)
 - [Audio architecture and acceptance gates](docs/audio.md)
 - [Staged development](docs/development-stages.md)
+- [SVG frame export](docs/frame-export.md)
 - [Complete master build prompt with Kokoro](docs/master-build-prompt.md)
 - [Agent engineering instructions](AGENTS.md)
 

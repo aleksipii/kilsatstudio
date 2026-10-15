@@ -12,9 +12,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         .scenes
         .get(scene_index)
         .ok_or("scene index does not exist")?;
-    let frame_count = (scene.duration * script.project.fps as f64).ceil();
+    let frame_count = motion_scene::frame_count(scene.duration, script.project.fps, 100_000)?;
     // Bound both work and output size, including high character-count scripts.
-    if frame_count > 100_000.0 || frame_count * script.characters.len() as f64 > 1_000_000.0 {
+    if frame_count as f64 * script.characters.len() as f64 > 1_000_000.0 {
         return Err("pose export exceeds budget of 100000 frames or 1000000 actor poses".into());
     }
     // Refuse to replace an existing artifact; incomplete output is removed on failure.
@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             script.project.fps,
             serde_json::to_string(&scene.id)?
         )?;
-        for frame in 0..frame_count as u64 {
+        for frame in 0..frame_count {
             let time = frame as f64 / script.project.fps as f64;
             let evaluated = motion_scene::evaluate(&script, scene_index, time)?;
             let actors: Vec<_> = evaluated.actors.iter().map(|actor| serde_json::json!({
@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     result?;
     println!(
         "Exported {} sampled pose frames to {} (not rendered images)",
-        frame_count as u64,
+        frame_count,
         output_path.display()
     );
     Ok(())

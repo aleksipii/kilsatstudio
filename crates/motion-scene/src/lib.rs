@@ -24,6 +24,35 @@ pub enum Error {
     MissingScene(usize),
     #[error("evaluation time must be finite and within scene duration")]
     InvalidTime,
+    #[error(
+        "frame clock requires a finite positive duration, positive fps, and positive frame budget"
+    )]
+    InvalidFrameClock,
+    #[error("frame count exceeds the configured export budget")]
+    FrameBudget,
+}
+
+/// Count samples at `frame / fps` strictly before the scene endpoint.
+///
+/// The explicit budget bounds allocations and work before export starts.
+/// Fractional final frames are included, while floating multiplication rounding
+/// must not introduce an extra sample exactly at the scene endpoint.
+pub fn frame_count(duration_seconds: f64, fps: u32, max_frames: u64) -> Result<u64, Error> {
+    if !duration_seconds.is_finite() || duration_seconds <= 0.0 || fps == 0 || max_frames == 0 {
+        return Err(Error::InvalidFrameClock);
+    }
+    let mut count = (duration_seconds * fps as f64).ceil();
+    if !count.is_finite() || count >= u64::MAX as f64 {
+        return Err(Error::FrameBudget);
+    }
+    if count >= 1.0 && (count - 1.0) / fps as f64 >= duration_seconds {
+        count -= 1.0;
+    }
+    let count = count as u64;
+    if count == 0 || count > max_frames {
+        return Err(Error::FrameBudget);
+    }
+    Ok(count)
 }
 
 pub fn evaluate(
@@ -133,5 +162,32 @@ scenes:
         assert!(motion_script::parse(&SCRIPT.replace("value: happy", "value: confused")).is_err());
         assert!(motion_script::parse(&SCRIPT.replace("x: 800", "x: .nan")).is_err());
         assert!(motion_script::parse(&SCRIPT.replace("duration: 8.0", "duration: 5.0")).is_err());
+    }
+    #[test]
+    fn exclusive_frame_count_handles_decimal_and_fractional_durations() {
+        assert_eq!(frame_count(0.28, 25, 1000).unwrap(), 7);
+        assert_eq!(frame_count(8.3, 30, 1000).unwrap(), 249);
+        assert_eq!(frame_count(0.3, 24, 1000).unwrap(), 8);
+        assert_eq!(frame_count(1.0, 24, 24).unwrap(), 24);
+        assert_eq!(frame_count(0.001, 24, 1).unwrap(), 1);
+        assert!(matches!(frame_count(1.0, 24, 23), Err(Error::FrameBudget)));
+        assert!(matches!(
+            frame_count(f64::MAX, 24, 1000),
+            Err(Error::FrameBudget)
+        ));
+        for duration in [f64::NAN, f64::INFINITY, 0.0, -1.0] {
+            assert!(matches!(
+                frame_count(duration, 24, 1000),
+                Err(Error::InvalidFrameClock)
+            ));
+        }
+        assert!(matches!(
+            frame_count(1.0, 0, 1000),
+            Err(Error::InvalidFrameClock)
+        ));
+        assert!(matches!(
+            frame_count(1.0, 24, 0),
+            Err(Error::InvalidFrameClock)
+        ));
     }
 }
