@@ -1,0 +1,10 @@
+[package]
+name = "motion-voice"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+motion-script = { path = "../motion-script" }
+motion-tts = { path = "../motion-tts" }
+motion-audio = { path = "../motion-audio" }
+motion-lipsync = { path = "../motion-lipsync" }
+hound = "3.5"

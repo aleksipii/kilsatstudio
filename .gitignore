@@ -1,0 +1,9 @@
+/target/
+*.wav
+*.pth
+*.pt
+*.onnx
+*.mlmodel
+__pycache__/
+.venv/
+/cache/

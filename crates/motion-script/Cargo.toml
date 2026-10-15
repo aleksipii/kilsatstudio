@@ -1,0 +1,8 @@
+[package]
+name = "motion-script"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+serde.workspace = true
+serde_yaml = "0.9"
+thiserror.workspace = true
