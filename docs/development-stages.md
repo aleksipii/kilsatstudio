@@ -135,3 +135,12 @@ records a single undoable transaction. Speech insertion/removal clears stale
 sequential-ID alignment mappings; generation cache files are preserved. This does
 not add new characters/scenes, automatically fit generated speech, change event
 durations by dragging, or provide a complete project asset editor.
+
+## Character voice Inspector increment
+
+Character-level Kokoro configuration is editable through detached Inspector
+drafts, atomic validation and source history. Changed synthesized voices invalidate
+only their actor's pasted timing IDs, including later scenes; imported audio and
+other actor mappings are preserved. Voice assets remain separately installed and
+unbundled. This increment supplies configuration editing, not measured synthesis,
+a new inference backend, automatic voice installation or acoustic emotion control.

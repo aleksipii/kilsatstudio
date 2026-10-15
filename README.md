@@ -18,7 +18,7 @@ source code or dependencies are used.
   central preview, editable event Inspector and scrubbable actor/event timeline.
 - Preview Emma/Alex placeholders with deterministic movement, expressions and wave
   gestures. Play, pause, restart and scrub a silent scene.
-- Configure per-character Kokoro presets, English language and speech speed.
+- Configure per-character Kokoro presets, English language and speech speed in the Inspector, with validation and Undo/Redo.
 - Prepare selected dialogue or a complete scene on bounded background workers,
   using local synthesis or explicitly imported WAV audio.
 - Cache generated speech by content and model/runtime identity; detect corrupted

@@ -174,6 +174,22 @@ pub fn remove_event(source: &str, scene_index: usize, event_index: usize) -> Res
     })
 }
 
+/// Set or remove a character's voice atomically after validating the whole script.
+///
+/// Removing a voice requires imported audio for every spoken line of that actor.
+/// YAML formatting is normalized and comments are not preserved. Input/output are
+/// bounded to one MiB; this function has no file side effects.
+pub fn apply_voice(source: &str, actor: &str, voice: Option<VoiceConfig>) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let character = candidate
+            .characters
+            .get_mut(actor)
+            .ok_or_else(|| Error::Validation(format!("unknown actor {actor}")))?;
+        character.voice = voice;
+        Ok(())
+    })
+}
+
 fn missing_event() -> Error {
     Error::Validation("selected scene or event no longer exists".into())
 }
@@ -226,10 +242,15 @@ impl Script {
                     || !["en-us", "en-gb"].contains(&v.language.as_str())
                     || !v.speed.is_finite()
                     || !(0.5..=2.0).contains(&v.speed)
-                    || v.preset.trim().is_empty()
+                    || v.preset.is_empty()
+                    || v.preset.len() > 128
+                    || !v
+                        .preset
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b == b'_')
                 {
                     return Err(fail(format!(
-                        "{id}: expected kokoro, English language, preset, and speed 0.5..2.0"
+                        "{id}: expected kokoro, en-us/en-gb, preset of 1..128 ASCII letters/digits/underscores, and speed 0.5..2.0"
                     )));
                 }
             }
@@ -500,5 +521,116 @@ mod edit_tests {
             audio: Some("voice.wav".into()),
         };
         assert!(insert_event(SOURCE, 0, 1, huge).is_err());
+    }
+}
+
+#[cfg(test)]
+mod voice_edit_tests {
+    use super::*;
+    const SOURCE: &str = "characters:\n  EMMA:\n    asset: characters/emma\n    voice: { provider: kokoro, preset: af_heart, language: en-us, speed: 1.0 }\n  ALEX:\n    asset: characters/alex\n    voice: { provider: kokoro, preset: am_michael, language: en-us, speed: 1.0 }\nscenes:\n  - id: intro\n    duration: 5\n    events:\n      - { type: speak, actor: EMMA, at: 0, text: Hello, audio: imported.wav }\n      - { type: speak, actor: ALEX, at: 1, text: Welcome }\n";
+    fn voice() -> VoiceConfig {
+        VoiceConfig {
+            provider: "kokoro".into(),
+            preset: "bf_emma".into(),
+            language: "en-gb".into(),
+            speed: 1.25,
+        }
+    }
+    #[test]
+    fn updates_preserve_other_characters_events_and_imports() {
+        let before = parse(SOURCE).unwrap();
+        let updated = parse(&apply_voice(SOURCE, "EMMA", Some(voice())).unwrap()).unwrap();
+        assert_eq!(
+            updated.characters["EMMA"].voice.as_ref().unwrap().preset,
+            "bf_emma"
+        );
+        assert_eq!(
+            updated.characters["EMMA"].voice.as_ref().unwrap().language,
+            "en-gb"
+        );
+        assert_eq!(
+            updated.characters["EMMA"].voice.as_ref().unwrap().speed,
+            1.25
+        );
+        assert_eq!(
+            serde_yaml::to_value(&updated.characters["ALEX"]).unwrap(),
+            serde_yaml::to_value(&before.characters["ALEX"]).unwrap()
+        );
+        assert_eq!(
+            serde_yaml::to_value(&updated.scenes).unwrap(),
+            serde_yaml::to_value(&before.scenes).unwrap()
+        );
+    }
+    #[test]
+    fn removing_voice_requires_imports_for_every_spoken_line() {
+        let updated = apply_voice(SOURCE, "EMMA", None).unwrap();
+        assert!(parse(&updated).unwrap().characters["EMMA"].voice.is_none());
+        assert!(apply_voice(SOURCE, "ALEX", None).is_err());
+        let unspoken = SOURCE.replace("actor: ALEX", "actor: EMMA");
+        assert!(apply_voice(&unspoken, "ALEX", None).is_ok());
+        assert!(apply_voice(&unspoken, "EMMA", None).is_err());
+    }
+    #[test]
+    fn invalid_configs_are_atomic_and_presets_are_safe_identifiers() {
+        let original = SOURCE.to_owned();
+        assert!(apply_voice(&original, "MISSING", Some(voice())).is_err());
+        let mut invalid = Vec::new();
+        let mut v = voice();
+        v.provider = "cloud".into();
+        invalid.push(v);
+        let mut v = voice();
+        v.language = "fi".into();
+        invalid.push(v);
+        for preset in [
+            "",
+            "../af_heart",
+            "voices/af_heart",
+            "af-heart",
+            "ä",
+            "af heart",
+            &"a".repeat(129),
+        ] {
+            let mut v = voice();
+            v.preset = preset.into();
+            invalid.push(v);
+        }
+        for speed in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, 0.49, 2.01] {
+            let mut v = voice();
+            v.speed = speed;
+            invalid.push(v);
+        }
+        for v in invalid {
+            assert!(apply_voice(&original, "EMMA", Some(v)).is_err());
+            assert_eq!(original, SOURCE);
+        }
+        for speed in [0.5, 2.0] {
+            let mut v = voice();
+            v.speed = speed;
+            v.preset = "A".repeat(128);
+            assert!(apply_voice(SOURCE, "EMMA", Some(v)).is_ok());
+        }
+        assert!(parse(&SOURCE.replace("af_heart", "../af_heart")).is_err());
+    }
+    #[test]
+    fn voice_edits_share_document_size_bounds() {
+        assert!(apply_voice(&" ".repeat(1_048_577), "EMMA", Some(voice())).is_err());
+        // Build a valid source just below the bound, then expand its short preset.
+        let mut source = parse(SOURCE).unwrap();
+        source
+            .characters
+            .get_mut("EMMA")
+            .unwrap()
+            .voice
+            .as_mut()
+            .unwrap()
+            .preset = "a".into();
+        source.project.title = "a".into();
+        let base = serde_yaml::to_string(&source).unwrap();
+        source.project.title = "a".repeat(1_048_560 - base.len() + 1);
+        let bounded = serde_yaml::to_string(&source).unwrap();
+        assert_eq!(bounded.len(), 1_048_560);
+        let mut v = voice();
+        v.preset = "a".repeat(128);
+        assert!(apply_voice(&bounded, "EMMA", Some(v)).is_err());
     }
 }
