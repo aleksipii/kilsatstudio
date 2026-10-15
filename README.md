@@ -12,7 +12,7 @@ source code or dependencies are used.
 ## Current capabilities
 
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
-- Apply validated event edits in the Inspector, drag event start times on the
+- Add, duplicate, edit and remove events in the Inspector; drag start times on the
   project frame grid, and undo/redo screenplay changes.
 - Navigate a resizable studio workspace with a project/asset browser, YAML editor,
   central preview, editable event Inspector and scrubbable actor/event timeline.

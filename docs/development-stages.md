@@ -125,3 +125,13 @@ obtains the actual length and can reject scene overrun or same-actor overlap.
 The [workspace guide](ui-workspace.md) describes the interaction. Validation
 results must be recorded for the actual commit; no GUI or Mac acceptance is
 implied by this development-stage description.
+
+## Event lifecycle increment
+
+The Inspector creates detached Move/Expression/Gesture/Dialogue drafts, duplicates
+selected events at the playhead, and removes selected events after an explicit
+in-app confirmation. Whole-document validation precedes every change and history
+records a single undoable transaction. Speech insertion/removal clears stale
+sequential-ID alignment mappings; generation cache files are preserved. This does
+not add new characters/scenes, automatically fit generated speech, change event
+durations by dragging, or provide a complete project asset editor.
