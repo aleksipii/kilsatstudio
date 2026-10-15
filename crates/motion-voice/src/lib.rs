@@ -156,3 +156,5 @@ mod tests {
 pub mod timeline;
 
 pub mod export;
+
+pub mod scene_audio;

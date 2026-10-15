@@ -35,11 +35,11 @@ the synthesis cache. Voices need preinstalled, approved local model assets; scen
 movement preview works without those assets. Kokoro tokens have no certified
 phoneme timestamps; supply manual or separately aligned timing for mouth shapes.
 
-The desktop currently plays silent scenes and selected dialogue separately.
-Selecting/generating a dialogue chooses its scene. Source playback position drives
-the scene while that dialogue is loaded; a silent transport advances quantized
-sample time otherwise. Full multi-dialogue scene audio transport remains future
-work. Device latency and actual macOS GUI execution have not been validated here.
+The desktop supports silent scene playback, selected-line previews, and prepared
+full-scene dialogue mixes. Source playback position drives movement and timed
+mouth tracks when audio is loaded; a silent transport advances quantized sample
+time otherwise. Full-scene preparation preserves leading silence and rejects
+same-actor overlapping dialogue. Device latency and actual macOS GUI execution have not been validated here.
 
 Offline pose sampling:
 

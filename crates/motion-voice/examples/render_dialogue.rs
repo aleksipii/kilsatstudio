@@ -1,5 +1,5 @@
 //! Headless dialogue synthesis and scene WAV export, using the same frame placement API as preview.
-use motion_tts::{KokoroConfig, KokoroProvider, SpeechProvider};
+use motion_tts::{KokoroConfig, KokoroProvider};
 use std::{path::PathBuf, time::Duration};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -24,30 +24,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             timeout: Duration::from_secs(180),
         },
     };
-    let jobs =
-        motion_voice::dialogue_jobs(&script, root.parent().unwrap_or(std::path::Path::new(".")))?;
-    for (index, scene) in script.scenes.iter().enumerate() {
-        let mut clips = Vec::new();
-        for job in jobs.iter().filter(|j| j.scene == scene.id) {
-            eprintln!("Generating {} / {}", scene.id, job.actor);
-            let result = if let Some(path) = &job.imported_audio {
-                // Imported speech bypasses inference; prepare validates format.
-                motion_tts::SpeechResult {
-                    audio_path: path.clone(),
-                    sample_rate: 24000,
-                    sample_count: 0,
-                    cache_key: String::new(),
-                    phonemes: String::new(),
-                    cached: false,
-                }
-            } else {
-                provider.synthesize(job.request.clone())?
-            };
-            let clip = motion_voice::timeline::DialogueClip::prepare(job, &result, None)?;
-            eprintln!("{}: {:.3}s", job.actor, clip.audio.duration_seconds());
-            clips.push(clip);
-        }
-        let rendered = motion_voice::export::render_scene(&scene.id, scene.duration, &clips)?;
+    for (index, _scene) in script.scenes.iter().enumerate() {
+        let prepared = motion_voice::scene_audio::prepare_scene(
+            &script,
+            index,
+            root.parent().unwrap_or(std::path::Path::new(".")),
+            &provider,
+            &std::collections::BTreeMap::new(),
+            |progress| {
+                eprintln!(
+                    "Prepared {}/{}: {}",
+                    progress.completed, progress.total, progress.actor
+                )
+            },
+        )?;
+        let rendered = prepared.rendered;
         motion_audio::write_wav(output.join(format!("scene-{index}.wav")), &rendered.audio)?;
         std::fs::write(
             output.join(format!("scene-{index}.json")),

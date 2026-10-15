@@ -1,5 +1,6 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
 mod playback;
+mod scene_worker;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
@@ -26,6 +27,12 @@ struct Preview {
     peaks: Vec<WaveformPeak>,
     result: SpeechResult,
     playback_audio: Arc<motion_audio::AudioBuffer>,
+}
+struct ScenePreview {
+    scene: String,
+    clips: Vec<DialogueClip>,
+    audio: Arc<motion_audio::AudioBuffer>,
+    peaks: Vec<WaveformPeak>,
 }
 struct Prepare {
     job: DialogueJob,
@@ -62,6 +69,10 @@ struct Studio {
     busy: bool,
     playback: Option<playback::Playback>,
     playback_error: Option<String>,
+    scene_worker: scene_worker::Worker,
+    scene_preview: Option<ScenePreview>,
+    scene_alignment: String,
+    scene_audio_active: bool,
 }
 impl Default for Studio {
     fn default() -> Self {
@@ -126,17 +137,25 @@ impl Default for Studio {
             busy: false,
             playback: None,
             playback_error: None,
+            scene_worker: scene_worker::Worker::new(),
+            scene_preview: None,
+            scene_alignment: String::new(),
+            scene_audio_active: false,
         }
     }
 }
 impl Studio {
     fn invalidate_scene(&mut self) {
+        self.scene_preview = None;
+        self.scene_audio_active = false;
         self.script = None;
         self.scene_transport = None;
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
         self.stop_playback();
+        self.scene_preview = None;
+        self.scene_audio_active = false;
         self.playhead = 0.0;
         self.scene_fraction = 0.0;
         self.scene_tick = Instant::now();
@@ -226,8 +245,89 @@ impl Studio {
             }
         }
     }
+    fn scene_audio_ui(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .add_enabled(
+                self.script.is_some(),
+                egui::Button::new("Prepare full scene audio"),
+            )
+            .clicked()
+        {
+            self.prepare_scene_audio();
+        }
+        let Some(preview) = &self.scene_preview else {
+            return;
+        };
+        ui.label(format!(
+            "Mixed scene {} · {} clips · {:.3}s",
+            preview.scene,
+            preview.clips.len(),
+            preview.audio.duration_seconds()
+        ));
+        let audio = Arc::clone(&preview.audio);
+        let duration = audio.duration_seconds();
+        waveform(ui, &preview.peaks, self.playhead / duration.max(0.001));
+        ui.horizontal(|ui| {
+            if ui.button("Play scene audio").clicked() {
+                if let Some(clock) = &mut self.scene_transport {
+                    clock.pause();
+                }
+                self.playback_error = None;
+                if self.playback.is_none() {
+                    match playback::Playback::new() {
+                        Ok(player) => self.playback = Some(player),
+                        Err(e) => self.playback_error = Some(e),
+                    }
+                }
+                if let Some(player) = &self.playback {
+                    match player.play(audio.clone(), (self.playhead * 24000.0).round() as u64) {
+                        Ok(()) => self.scene_audio_active = true,
+                        Err(e) => self.playback_error = Some(e),
+                    }
+                }
+            }
+            if ui.button("Pause audio").clicked() {
+                if let Some(player) = &self.playback {
+                    if let Err(e) = player.pause() {
+                        self.playback_error = Some(e);
+                    }
+                }
+            }
+            if ui.button("Resume audio").clicked() && self.scene_audio_active {
+                if let Some(player) = &self.playback {
+                    if let Err(e) = player.resume() {
+                        self.playback_error = Some(e);
+                    }
+                }
+            }
+            if ui.button("Stop audio").clicked() {
+                self.stop_playback();
+                self.playhead = 0.0;
+            }
+        });
+        if ui
+            .add(egui::Slider::new(&mut self.playhead, 0.0..=duration).text("Mixed scene seek (s)"))
+            .changed()
+        {
+            if let Some(clock) = &mut self.scene_transport {
+                clock.pause();
+            }
+            if self.scene_audio_active {
+                if let Some(player) = &self.playback {
+                    if let Err(e) = player.seek((self.playhead * 24000.0).round() as u64) {
+                        self.playback_error = Some(e);
+                    }
+                }
+            }
+        }
+        ui.label("One mixed source clock drives all actor mouths. Missing alignment keeps mouths at rest. Device latency and perceptual timing require Mac validation.");
+        if let Some(error) = &self.playback_error {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
+    }
     fn scene_ui(&mut self, ui: &mut egui::Ui) {
         ui.heading("Scene preview");
+        self.scene_audio_ui(ui);
         let mut selected = self.scene_index;
         if let Some(script) = &self.script {
             egui::ComboBox::from_label("Scene")
@@ -252,6 +352,7 @@ impl Studio {
         ui.add_enabled_ui(self.scene_transport.is_some(), |ui| {
             ui.horizontal(|ui| {
                 if ui.button("Play scene (silent)").clicked() {
+                    self.scene_audio_active = false;
                     self.stop_playback();
                     if let Some(t) = &mut self.scene_transport {
                         t.seek_frame((self.playhead * 24000.0).round() as u64);
@@ -284,7 +385,11 @@ impl Studio {
                     t.pause();
                     let _ = t.seek_seconds(self.playhead);
                     if let Some(player) = &self.playback {
-                        let _ = player.stop();
+                        if self.scene_audio_active {
+                            let _ = player.seek((self.playhead * 24000.0).round() as u64);
+                        } else {
+                            let _ = player.stop();
+                        }
                     }
                     self.scene_fraction = 0.0;
                 }
@@ -293,19 +398,23 @@ impl Studio {
         if let Some(script) = &self.script {
             match motion_scene::evaluate(script, self.scene_index, self.playhead) {
                 Ok(scene) => {
-                    let mouth = self
-                        .preview
-                        .as_ref()
-                        .filter(|p| script.scenes[self.scene_index].id == p.scene)
-                        .map(|p| {
-                            (
-                                p.clip.actor.as_str(),
+                    let frame = (self.playhead * 24000.0).round() as u64;
+                    let mouths: Vec<_> = if let Some(preview) = &self.scene_preview {
+                        scene_mouths(&preview.clips, frame)
+                    } else {
+                        self.preview
+                            .as_ref()
+                            .filter(|p| script.scenes[self.scene_index].id == p.scene)
+                            .and_then(|p| {
                                 p.clip
-                                    .mouth_at((self.playhead * 24000.0).round() as u64)
-                                    .unwrap_or(Viseme::Rest),
-                            )
-                        });
-                    draw_scene(ui, &scene, mouth);
+                                    .mouth_at(frame)
+                                    .ok()
+                                    .map(|v| (p.clip.actor.as_str(), v))
+                            })
+                            .into_iter()
+                            .collect()
+                    };
+                    draw_scene(ui, &scene, &mouths);
                 }
                 Err(error) => {
                     ui.colored_label(egui::Color32::LIGHT_RED, error.to_string());
@@ -315,6 +424,41 @@ impl Studio {
             ui.label("Validate screenplay to enable deterministic scene preview.");
         }
         ui.label("Original procedural character preview. Silent scene playback uses quantized sample time; loaded dialogue playback supplies the source clock. Device latency remains unverified.");
+    }
+    fn kokoro_config(&self) -> KokoroConfig {
+        KokoroConfig {
+            python: self.python.clone().into(),
+            runtime_script: self.runtime.clone().into(),
+            model_config: self.config.clone().into(),
+            model_weights: self.weights.clone().into(),
+            voices_directory: self.voices.clone().into(),
+            cache_directory: self.cache.clone().into(),
+            model_version: self.revision.clone(),
+            timeout: Duration::from_secs(180),
+        }
+    }
+    fn prepare_scene_audio(&mut self) {
+        self.stop_playback();
+        self.scene_audio_active = false;
+        self.scene_preview = None;
+        self.preview = None;
+        let Some(script) = self.script.clone() else {
+            return;
+        };
+        let request = scene_worker::Request {
+            script,
+            index: self.scene_index,
+            root: self.project_root.clone().into(),
+            config: self.kokoro_config(),
+            alignments: self.scene_alignment.clone(),
+        };
+        match self.scene_worker.submit(request) {
+            Ok(()) => {
+                self.busy = true;
+                self.status = "Preparing full scene on background worker…".into();
+            }
+            Err(error) => self.status = error,
+        }
     }
     fn generate(&mut self) {
         self.stop_playback();
@@ -332,17 +476,10 @@ impl Studio {
             }
         }
         let provider = KokoroProvider {
-            config: KokoroConfig {
-                python: self.python.clone().into(),
-                runtime_script: self.runtime.clone().into(),
-                model_config: self.config.clone().into(),
-                model_weights: self.weights.clone().into(),
-                voices_directory: self.voices.clone().into(),
-                cache_directory: self.cache.clone().into(),
-                model_version: self.revision.clone(),
-                timeout: Duration::from_secs(180),
-            },
+            config: self.kokoro_config(),
         };
+        self.scene_preview = None;
+        self.scene_audio_active = false;
         let worker = VoiceWorker::new(Arc::new(provider), 1);
         match worker.submit(job.clone()) {
             Ok(()) => {
@@ -357,16 +494,59 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        while let Some(update) = self.scene_worker.poll() {
+            match update {
+                scene_worker::Update::Progress(p) => {
+                    self.status = format!(
+                        "Scene audio: {}/{} · dialogue {} · {}",
+                        p.completed, p.total, p.dialogue_id, p.actor
+                    )
+                }
+                scene_worker::Update::Finished(result) => {
+                    self.busy = false;
+                    match result {
+                        Ok(ready) => {
+                            let prepared = ready.prepared;
+                            if !self
+                                .script
+                                .as_ref()
+                                .and_then(|s| s.scenes.get(self.scene_index))
+                                .is_some_and(|s| s.id == prepared.scene_id)
+                            {
+                                self.status =
+                                    "Discarded preparation for an invalidated scene.".into();
+                                continue;
+                            }
+                            let audio = prepared.rendered.audio;
+                            self.status = format!(
+                                "Scene ready: {} dialogue clips · {:.3}s",
+                                prepared.clips.len(),
+                                audio.duration_seconds()
+                            );
+                            self.scene_preview = Some(ScenePreview {
+                                scene: prepared.scene_id,
+                                clips: prepared.clips,
+                                audio: Arc::new(audio),
+                                peaks: ready.peaks,
+                            });
+                            self.playhead = 0.0;
+                        }
+                        Err(error) => self.status = format!("Scene audio: {error}"),
+                    }
+                }
+            }
+        }
         let now = Instant::now();
         let elapsed = now.duration_since(self.scene_tick).as_secs_f64();
         self.scene_tick = now;
         let audio_clock = self.playback.as_ref().is_some_and(|p| p.snapshot().loaded)
-            && self.preview.as_ref().is_some_and(|p| {
-                self.script
-                    .as_ref()
-                    .and_then(|s| s.scenes.get(self.scene_index))
-                    .is_some_and(|scene| scene.id == p.scene)
-            });
+            && (self.scene_audio_active
+                || self.preview.as_ref().is_some_and(|p| {
+                    self.script
+                        .as_ref()
+                        .and_then(|s| s.scenes.get(self.scene_index))
+                        .is_some_and(|scene| scene.id == p.scene)
+                }));
         if !audio_clock {
             if let Some(clock) = &mut self.scene_transport {
                 if clock.is_playing() {
@@ -382,7 +562,9 @@ impl Studio {
         if let Some(player) = &self.playback {
             let state = player.snapshot();
             if state.loaded && audio_clock {
-                if let Some(preview) = &self.preview {
+                if self.scene_audio_active {
+                    self.playhead = state.position_frame as f64 / 24000.0;
+                } else if let Some(preview) = &self.preview {
                     self.playhead = (preview
                         .clip
                         .start_frame
@@ -501,6 +683,7 @@ impl eframe::App for Studio {
         egui::SidePanel::left("settings").min_width(300.0).show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.add_enabled_ui(!self.busy, |ui| {
+                    let previous_runtime = format!("{:?}", self.kokoro_config());
                     ui.heading("Offline runtime");
                     ui.label("Supply previously installed local assets. This app never downloads model files.");
                     field(ui, "Python executable", &mut self.python);
@@ -510,6 +693,7 @@ impl eframe::App for Studio {
                     field(ui, "Voice .pt directory", &mut self.voices);
                     field(ui, "Cache directory", &mut self.cache);
                     field(ui, "Immutable model + dependency revision", &mut self.revision);
+                    if format!("{:?}", self.kokoro_config()) != previous_runtime { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; }
                     let previous_root = self.project_root.clone();
                     field(ui, "Project root (imported WAV paths)", &mut self.project_root);
                     if self.project_root != previous_root {
@@ -517,7 +701,11 @@ impl eframe::App for Studio {
                         self.status = "Project root changed; validate screenplay to resolve imported paths again.".into();
                     }
                     ui.separator();
-                    ui.heading("Alignment JSON");
+                    ui.heading("Scene alignments JSON");
+                    ui.label("Map dialogue IDs to Alignment objects, for example {\"0\": {...}}. Blank keeps all mouths at rest. Prepare again after editing.");
+                    if ui.add(egui::TextEdit::multiline(&mut self.scene_alignment).desired_rows(5).char_limit(100_000).code_editor()).changed() { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; }
+                    for job in self.jobs.iter().filter(|job| self.script.as_ref().and_then(|s| s.scenes.get(self.scene_index)).is_some_and(|s| s.id == job.scene)) { ui.label(format!("ID {} · {} · {}", job.id, job.actor, job.request.text)); }
+                    ui.heading("Selected-line alignment JSON");
                     ui.label("Paste manual or external forced-alignment JSON. Blank keeps mouth at rest. Timings are structurally checked, never claimed perceptually validated.");
                     ui.add(egui::TextEdit::multiline(&mut self.alignment).desired_rows(7).char_limit(100_000).code_editor());
                 });
@@ -565,6 +753,7 @@ impl eframe::App for Studio {
                     }
                     ui.horizontal(|ui| {
                         if ui.button("Play from cursor").clicked() {
+                            self.scene_audio_active = false;
                             self.playback_error = None;
                             if let Some(clock) = &mut self.scene_transport { clock.pause(); }
                             if self.playback.is_none() {
@@ -645,11 +834,19 @@ fn mouth_preview(ui: &mut egui::Ui, viseme: Viseme) {
     ui.label("Symbolic viseme detail; the scene preview applies this mouth to the matching actor.");
 }
 
-fn draw_scene(
-    ui: &mut egui::Ui,
-    scene: &motion_scene::EvaluatedScene,
-    mouth: Option<(&str, Viseme)>,
-) {
+fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
+    clips
+        .iter()
+        .filter(|clip| {
+            frame >= clip.start_frame
+                && frame - clip.start_frame
+                    < (clip.audio.frames() as u64).saturating_sub(clip.trim_start_frame)
+        })
+        .filter_map(|clip| clip.mouth_at(frame).ok().map(|v| (clip.actor.as_str(), v)))
+        .collect()
+}
+
+fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &[(&str, Viseme)]) {
     let width = ui.available_width().max(1.0);
     let height = (width * scene.height as f32 / scene.width.max(1) as f32).clamp(120.0, 420.0);
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
@@ -687,9 +884,10 @@ fn draw_scene(
                 egui::Color32::BLACK,
             );
         }
-        let viseme = mouth
-            .filter(|(id, _)| *id == actor.id)
-            .map(|(_, v)| v)
+        let viseme = mouths
+            .iter()
+            .find(|(id, _)| *id == actor.id)
+            .map(|(_, v)| *v)
             .unwrap_or(Viseme::Rest);
         let (w, h) = match viseme {
             Viseme::A => (14.0, 14.0),
@@ -728,5 +926,50 @@ fn draw_scene(
             egui::FontId::proportional(12.0),
             egui::Color32::WHITE,
         );
+    }
+}
+
+#[cfg(test)]
+mod scene_preview_tests {
+    use super::*;
+    fn clip(start_frame: u64, actor: &str) -> DialogueClip {
+        DialogueClip {
+            actor: actor.into(),
+            start_frame,
+            audio: motion_audio::AudioBuffer {
+                sample_rate: 24000,
+                channels: 1,
+                samples: vec![0.0; 24000],
+            },
+            alignment: Some(Alignment {
+                source: motion_lipsync::AlignmentSource::Manual,
+                duration_seconds: 1.0,
+                phonemes: vec![motion_lipsync::TimedPhoneme {
+                    phoneme: "ɑ".into(),
+                    start_seconds: 0.0,
+                    end_seconds: 1.0,
+                }],
+            }),
+            gain: 1.0,
+            trim_start_frame: 0,
+        }
+    }
+    #[test]
+    fn later_actor_line_is_not_masked_by_earlier_rest() {
+        let clips = vec![clip(0, "EMMA"), clip(48000, "EMMA"), clip(48000, "ALEX")];
+        assert!(scene_mouths(&clips, 24000).is_empty());
+        assert_eq!(
+            scene_mouths(&clips, 48000),
+            vec![("EMMA", Viseme::A), ("ALEX", Viseme::A)]
+        );
+        assert!(scene_mouths(&clips, 72000).is_empty());
+    }
+    #[test]
+    fn trimmed_clip_boundaries_are_half_open() {
+        let mut clips = vec![clip(24000, "EMMA")];
+        clips[0].trim_start_frame = 12000;
+        assert!(scene_mouths(&clips, 23999).is_empty());
+        assert_eq!(scene_mouths(&clips, 35999), vec![("EMMA", Viseme::A)]);
+        assert!(scene_mouths(&clips, 36000).is_empty());
     }
 }
