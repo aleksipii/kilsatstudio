@@ -9,7 +9,7 @@ use motion_voice::{dialogue_jobs, timeline::DialogueClip, DialogueJob, VoiceUpda
 use std::{
     path::Path,
     sync::{mpsc, Arc},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 fn main() -> eframe::Result {
@@ -21,6 +21,7 @@ fn main() -> eframe::Result {
 }
 
 struct Preview {
+    scene: String,
     clip: DialogueClip,
     peaks: Vec<WaveformPeak>,
     result: SpeechResult,
@@ -34,6 +35,11 @@ struct Prepare {
 type PreviewResult = Result<Preview, String>;
 struct Studio {
     source: String,
+    script: Option<motion_script::Script>,
+    scene_index: usize,
+    scene_transport: Option<motion_audio::transport::AudioTransport>,
+    scene_tick: Instant,
+    scene_fraction: f64,
     script_path: String,
     jobs: Vec<DialogueJob>,
     selected: usize,
@@ -79,6 +85,7 @@ impl Default for Studio {
                         .map_err(|e| e.to_string())?;
                     let playback_audio = Arc::new(clip.audio.clone());
                     Ok(Preview {
+                        scene: task.job.scene.clone(),
                         playback_audio,
                         clip,
                         peaks,
@@ -91,7 +98,12 @@ impl Default for Studio {
             }
         });
         Self {
-            source: include_str!("../../../examples/dialogue.yaml").into(),
+            source: include_str!("../../../examples/hello-emma.yaml").into(),
+            script: None,
+            scene_index: 0,
+            scene_transport: None,
+            scene_tick: Instant::now(),
+            scene_fraction: 0.0,
             script_path: "dialogue.yaml".into(),
             jobs: Vec::new(),
             selected: 0,
@@ -118,7 +130,32 @@ impl Default for Studio {
     }
 }
 impl Studio {
+    fn invalidate_scene(&mut self) {
+        self.script = None;
+        self.scene_transport = None;
+        self.playhead = 0.0;
+    }
+    fn reset_scene(&mut self) {
+        self.stop_playback();
+        self.playhead = 0.0;
+        self.scene_fraction = 0.0;
+        self.scene_tick = Instant::now();
+        self.scene_transport = self
+            .script
+            .as_ref()
+            .and_then(|s| s.scenes.get(self.scene_index))
+            .and_then(|scene| {
+                motion_audio::transport::AudioTransport::new(
+                    24000,
+                    (scene.duration * 24000.0).round() as u64,
+                )
+                .ok()
+            });
+    }
     fn stop_playback(&mut self) {
+        if let Some(clock) = &mut self.scene_transport {
+            clock.pause();
+        }
         if let Some(player) = &self.playback {
             let _ = player.stop();
         }
@@ -141,6 +178,7 @@ impl Studio {
         match result {
             Ok(source) => {
                 self.source = source;
+                self.invalidate_scene();
                 self.jobs.clear();
                 self.preview = None;
                 self.status = "Opened screenplay; validate before generation. Imported audio uses configured project root.".into();
@@ -163,9 +201,15 @@ impl Studio {
         match motion_script::parse(&self.source)
             .map_err(|e| e.to_string())
             .and_then(|script| {
-                dialogue_jobs(&script, Path::new(&self.project_root)).map_err(|e| e.to_string())
+                let jobs = dialogue_jobs(&script, Path::new(&self.project_root))
+                    .map_err(|e| e.to_string())?;
+                Ok((script, jobs))
             }) {
-            Ok(jobs) => {
+            Ok((script, jobs)) => {
+                self.scene_index = self.scene_index.min(script.scenes.len().saturating_sub(1));
+                self.script = Some(script);
+                self.reset_scene();
+
                 self.jobs = jobs;
                 self.selected = self.selected.min(self.jobs.len().saturating_sub(1));
                 self.preview = None;
@@ -175,17 +219,118 @@ impl Studio {
                 );
             }
             Err(e) => {
+                self.invalidate_scene();
                 self.jobs.clear();
                 self.preview = None;
                 self.status = e;
             }
         }
     }
+    fn scene_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Scene preview");
+        let mut selected = self.scene_index;
+        if let Some(script) = &self.script {
+            egui::ComboBox::from_label("Scene")
+                .selected_text(
+                    script
+                        .scenes
+                        .get(selected)
+                        .map(|s| s.id.as_str())
+                        .unwrap_or("No scene"),
+                )
+                .show_ui(ui, |ui| {
+                    for (index, scene) in script.scenes.iter().enumerate() {
+                        ui.selectable_value(&mut selected, index, &scene.id);
+                    }
+                });
+        }
+        if selected != self.scene_index {
+            self.scene_index = selected;
+            self.reset_scene();
+            self.preview = None;
+        }
+        ui.add_enabled_ui(self.scene_transport.is_some(), |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Play scene (silent)").clicked() {
+                    self.stop_playback();
+                    if let Some(t) = &mut self.scene_transport {
+                        t.seek_frame((self.playhead * 24000.0).round() as u64);
+                        t.play();
+                    }
+                    self.scene_tick = Instant::now();
+                }
+                if ui.button("Pause scene").clicked() {
+                    self.stop_playback();
+                    if let Some(t) = &mut self.scene_transport {
+                        t.pause();
+                    }
+                }
+                if ui.button("Restart scene").clicked() {
+                    self.reset_scene();
+                    if let Some(t) = &mut self.scene_transport {
+                        t.restart();
+                    }
+                }
+            });
+            if let Some(t) = &mut self.scene_transport {
+                let duration = t.duration_seconds();
+                if ui
+                    .add(
+                        egui::Slider::new(&mut self.playhead, 0.0..=duration)
+                            .text("Scene time (s)"),
+                    )
+                    .changed()
+                {
+                    t.pause();
+                    let _ = t.seek_seconds(self.playhead);
+                    if let Some(player) = &self.playback {
+                        let _ = player.stop();
+                    }
+                    self.scene_fraction = 0.0;
+                }
+            }
+        });
+        if let Some(script) = &self.script {
+            match motion_scene::evaluate(script, self.scene_index, self.playhead) {
+                Ok(scene) => {
+                    let mouth = self
+                        .preview
+                        .as_ref()
+                        .filter(|p| script.scenes[self.scene_index].id == p.scene)
+                        .map(|p| {
+                            (
+                                p.clip.actor.as_str(),
+                                p.clip
+                                    .mouth_at((self.playhead * 24000.0).round() as u64)
+                                    .unwrap_or(Viseme::Rest),
+                            )
+                        });
+                    draw_scene(ui, &scene, mouth);
+                }
+                Err(error) => {
+                    ui.colored_label(egui::Color32::LIGHT_RED, error.to_string());
+                }
+            }
+        } else {
+            ui.label("Validate screenplay to enable deterministic scene preview.");
+        }
+        ui.label("Original procedural character preview. Silent scene playback uses quantized sample time; loaded dialogue playback supplies the source clock. Device latency remains unverified.");
+    }
     fn generate(&mut self) {
         self.stop_playback();
         let Some(job) = self.jobs.get(self.selected).cloned() else {
             return;
         };
+        if let Some(index) = self
+            .script
+            .as_ref()
+            .and_then(|script| script.scenes.iter().position(|scene| scene.id == job.scene))
+        {
+            if index != self.scene_index {
+                self.scene_index = index;
+                self.reset_scene();
+            }
+        }
         let provider = KokoroProvider {
             config: KokoroConfig {
                 python: self.python.clone().into(),
@@ -212,9 +357,31 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        let now = Instant::now();
+        let elapsed = now.duration_since(self.scene_tick).as_secs_f64();
+        self.scene_tick = now;
+        let audio_clock = self.playback.as_ref().is_some_and(|p| p.snapshot().loaded)
+            && self.preview.as_ref().is_some_and(|p| {
+                self.script
+                    .as_ref()
+                    .and_then(|s| s.scenes.get(self.scene_index))
+                    .is_some_and(|scene| scene.id == p.scene)
+            });
+        if !audio_clock {
+            if let Some(clock) = &mut self.scene_transport {
+                if clock.is_playing() {
+                    self.scene_fraction += elapsed * 24000.0;
+                    let frames = self.scene_fraction.floor() as u64;
+                    self.scene_fraction -= frames as f64;
+                    clock.advance_frames(frames);
+                    self.playhead = clock.position_seconds();
+                }
+            }
+        }
+
         if let Some(player) = &self.playback {
             let state = player.snapshot();
-            if state.loaded {
+            if state.loaded && audio_clock {
                 if let Some(preview) = &self.preview {
                     self.playhead = (preview
                         .clip
@@ -264,7 +431,31 @@ impl Studio {
             self.busy = false;
             match result {
                 Ok(preview) => {
-                    self.playhead = preview.clip.start_frame as f64 / 24000.0;
+                    let fits_scene = self
+                        .script
+                        .as_ref()
+                        .and_then(|script| script.scenes.get(self.scene_index))
+                        .is_some_and(|scene| {
+                            scene.id == preview.scene
+                                && preview
+                                    .clip
+                                    .start_frame
+                                    .saturating_add(preview.clip.audio.frames() as u64)
+                                    <= (scene.duration * 24000.0).round() as u64
+                        });
+                    if !fits_scene {
+                        self.preview = None;
+                        self.status = "Dialogue extends beyond the selected scene or belongs to an invalidated scene. Increase scene duration or adjust dialogue timing, then validate and generate again.".into();
+                        return;
+                    }
+                    if self
+                        .script
+                        .as_ref()
+                        .and_then(|s| s.scenes.get(self.scene_index))
+                        .is_some_and(|scene| scene.id == preview.scene)
+                    {
+                        self.playhead = preview.clip.start_frame as f64 / 24000.0;
+                    }
                     self.status = format!(
                         "Ready: {:.3} s. {}",
                         preview.result.duration_seconds(),
@@ -288,7 +479,13 @@ fn field(ui: &mut egui::Ui, label: &str, value: &mut String) {
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         self.poll();
-        if self.busy || self.playback.is_some() {
+        if self.busy
+            || self.playback.is_some()
+            || self
+                .scene_transport
+                .as_ref()
+                .is_some_and(|t| t.is_playing())
+        {
             ctx.request_repaint_after(Duration::from_millis(50));
         }
         egui::TopBottomPanel::top("header").show(ctx, |ui| {
@@ -316,7 +513,7 @@ impl eframe::App for Studio {
                     let previous_root = self.project_root.clone();
                     field(ui, "Project root (imported WAV paths)", &mut self.project_root);
                     if self.project_root != previous_root {
-                        self.stop_playback(); self.jobs.clear(); self.preview = None;
+                        self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
                         self.status = "Project root changed; validate screenplay to resolve imported paths again.".into();
                     }
                     ui.separator();
@@ -328,6 +525,8 @@ impl eframe::App for Studio {
         });
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
+                ui.add_enabled_ui(!self.busy, |ui| self.scene_ui(ui));
+                ui.separator();
                 ui.heading("MotionScript");
                 ui.label("Configure character voice preset / language / speed in YAML; optional speak.audio imports 24 kHz mono PCM16 WAV.");
                 ui.add_enabled_ui(!self.busy, |ui| {
@@ -337,7 +536,7 @@ impl eframe::App for Studio {
                         if ui.button("Save screenplay").clicked() { self.save_script(); }
                     });
                     if ui.add(egui::TextEdit::multiline(&mut self.source).desired_rows(17).desired_width(f32::INFINITY).char_limit(100_000).code_editor()).changed() {
-                        self.stop_playback(); self.jobs.clear(); self.preview = None;
+                        self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
                         self.status = "Screenplay changed; validate before generation.".into();
                     }
                     if ui.button("Validate screenplay").clicked() { self.validate(); }
@@ -367,6 +566,7 @@ impl eframe::App for Studio {
                     ui.horizontal(|ui| {
                         if ui.button("Play from cursor").clicked() {
                             self.playback_error = None;
+                            if let Some(clock) = &mut self.scene_transport { clock.pause(); }
                             if self.playback.is_none() {
                                 match playback::Playback::new() {
                                     Ok(player) => self.playback = Some(player),
@@ -442,5 +642,91 @@ fn mouth_preview(ui: &mut egui::Ui, viseme: Viseme) {
         6.0,
         egui::Color32::from_rgb(190, 80, 100),
     );
-    ui.label("Symbolic viseme display; character rig integration remains separate.");
+    ui.label("Symbolic viseme detail; the scene preview applies this mouth to the matching actor.");
+}
+
+fn draw_scene(
+    ui: &mut egui::Ui,
+    scene: &motion_scene::EvaluatedScene,
+    mouth: Option<(&str, Viseme)>,
+) {
+    let width = ui.available_width().max(1.0);
+    let height = (width * scene.height as f32 / scene.width.max(1) as f32).clamp(120.0, 420.0);
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
+    let painter = ui.painter_at(rect);
+    painter.rect_filled(rect, 5.0, egui::Color32::from_rgb(24, 31, 44));
+    let scale =
+        (rect.width() / scene.width.max(1) as f32).min(rect.height() / scene.height.max(1) as f32);
+    let origin = rect.center() - egui::vec2(scene.width as f32, scene.height as f32) * scale * 0.5;
+    for actor in &scene.actors {
+        let point = |dx: f32, dy: f32| {
+            origin + egui::vec2(actor.x as f32 + dx, actor.y as f32 + dy) * scale
+        };
+        let stroke = egui::Stroke::new(
+            (5.0 * scale).max(1.0),
+            egui::Color32::from_rgb(126, 185, 226),
+        );
+        for (a, b) in [
+            ((0.0, -65.0), (0.0, -10.0)),
+            ((0.0, -10.0), (-20.0, 25.0)),
+            ((0.0, -10.0), (20.0, 25.0)),
+            ((0.0, -50.0), (-30.0, -20.0)),
+            ((0.0, -50.0), (30.0, -30.0 - actor.wave as f32 * 35.0)),
+        ] {
+            painter.line_segment([point(a.0, a.1), point(b.0, b.1)], stroke);
+        }
+        painter.circle_filled(
+            point(0.0, -90.0),
+            25.0 * scale,
+            egui::Color32::from_rgb(245, 200, 162),
+        );
+        for x in [-8.0, 8.0] {
+            painter.circle_filled(
+                point(x, -94.0),
+                (2.5 * scale).max(1.0),
+                egui::Color32::BLACK,
+            );
+        }
+        let viseme = mouth
+            .filter(|(id, _)| *id == actor.id)
+            .map(|(_, v)| v)
+            .unwrap_or(Viseme::Rest);
+        let (w, h) = match viseme {
+            Viseme::A => (14.0, 14.0),
+            Viseme::O | Viseme::U => (8.0, 11.0),
+            Viseme::E | Viseme::I => (18.0, 6.0),
+            Viseme::Rest | Viseme::Closed => (13.0, 2.0),
+            _ => (12.0, 5.0),
+        };
+        painter.rect_filled(
+            egui::Rect::from_center_size(point(0.0, -80.0), egui::vec2(w, h) * scale),
+            2.0,
+            egui::Color32::from_rgb(125, 45, 57),
+        );
+        if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
+            painter.line_segment(
+                [point(-8.0, -81.0), point(0.0, -76.0)],
+                egui::Stroke::new((2.0 * scale).max(1.0), egui::Color32::from_rgb(125, 45, 57)),
+            );
+            painter.line_segment(
+                [point(0.0, -76.0), point(8.0, -81.0)],
+                egui::Stroke::new((2.0 * scale).max(1.0), egui::Color32::from_rgb(125, 45, 57)),
+            );
+        }
+        if actor.emotion == "surprised" {
+            for x in [-8.0, 8.0] {
+                painter.line_segment(
+                    [point(x - 4.0, -103.0), point(x + 4.0, -105.0)],
+                    egui::Stroke::new(scale.max(1.0), egui::Color32::BLACK),
+                );
+            }
+        }
+        painter.text(
+            point(0.0, 45.0),
+            egui::Align2::CENTER_CENTER,
+            format!("{} · {}", actor.id, actor.emotion),
+            egui::FontId::proportional(12.0),
+            egui::Color32::WHITE,
+        );
+    }
 }

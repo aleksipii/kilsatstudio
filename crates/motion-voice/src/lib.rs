@@ -111,7 +111,10 @@ pub fn dialogue_jobs(
                 text,
                 emotion,
                 audio,
-            } = event;
+            } = event
+            else {
+                continue;
+            };
             let voice = script.characters[actor].voice.as_ref();
             let settings = voice
                 .map(|v| VoiceSettings {

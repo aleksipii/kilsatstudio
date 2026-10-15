@@ -1540,6 +1540,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "motion-scene"
+version = "0.1.0"
+dependencies = [
+ "motion-script",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "motion-script"
 version = "0.1.0"
 dependencies = [
@@ -1565,6 +1574,7 @@ dependencies = [
  "hound",
  "motion-audio",
  "motion-lipsync",
+ "motion-scene",
  "motion-script",
  "motion-tts",
  "serde",
@@ -2633,6 +2643,7 @@ dependencies = [
  "eframe",
  "motion-audio",
  "motion-lipsync",
+ "motion-scene",
  "motion-script",
  "motion-tts",
  "motion-voice",
