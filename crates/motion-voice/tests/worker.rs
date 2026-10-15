@@ -86,3 +86,74 @@ fn missing_import_is_a_job_error() {
         std::thread::yield_now();
     }
 }
+
+#[test]
+fn cancelled_worker_job_skips_provider_and_next_job_runs() {
+    let worker = VoiceWorker::new(Arc::new(Panics), 2);
+    let cancel = motion_tts::CancellationToken::new();
+    cancel.cancel();
+    // A missing import proves cancellation is checked before even opening the WAV.
+    let mut cancelled = job(1);
+    cancelled.imported_audio = Some("/nonexistent/cancelled.wav".into());
+    assert!(worker.submit_cancellable(cancelled, cancel).is_ok());
+    worker.submit(job(2)).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(3);
+    let mut finished = Vec::new();
+    while finished.len() < 2 && Instant::now() < deadline {
+        if let Some(VoiceUpdate::Finished { id, result }) = worker.poll() {
+            let error = result.unwrap_err();
+            assert!(error
+                .0
+                .contains(if id == 1 { "cancel" } else { "panicked" }));
+            finished.push(id);
+        }
+        std::thread::yield_now();
+    }
+    assert_eq!(finished, vec![1, 2]);
+}
+
+struct ReturnsAfterRelease(mpsc::Sender<()>, std::sync::Mutex<mpsc::Receiver<()>>);
+impl SpeechProvider for ReturnsAfterRelease {
+    fn synthesize(&self, _: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+        self.0.send(()).unwrap();
+        self.1.lock().unwrap().recv().unwrap();
+        Ok(SpeechResult {
+            audio_path: "unused.wav".into(),
+            sample_rate: 24000,
+            sample_count: 1,
+            cache_key: String::new(),
+            phonemes: String::new(),
+            cached: false,
+        })
+    }
+}
+#[test]
+fn cancelling_running_job_discards_late_success() {
+    let (started_tx, started_rx) = mpsc::channel();
+    let (release_tx, release_rx) = mpsc::channel();
+    let worker = VoiceWorker::new(
+        Arc::new(ReturnsAfterRelease(
+            started_tx,
+            std::sync::Mutex::new(release_rx),
+        )),
+        1,
+    );
+    let cancel = motion_tts::CancellationToken::new();
+    assert!(worker.submit_cancellable(job(4), cancel.clone()).is_ok());
+    started_rx.recv_timeout(Duration::from_secs(3)).unwrap();
+    cancel.cancel();
+    release_tx.send(()).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(3);
+    loop {
+        if let Some(VoiceUpdate::Finished { id, result }) = worker.poll() {
+            assert_eq!(id, 4);
+            assert!(result.unwrap_err().0.contains("cancel"));
+            break;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "worker did not report cancellation"
+        );
+        std::thread::yield_now();
+    }
+}

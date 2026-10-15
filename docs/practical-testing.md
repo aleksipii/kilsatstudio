@@ -83,3 +83,9 @@ and whether all assets were already local. Do not include model weights in repor
 Remaining development includes cancellation, runtime output-device recovery,
 measured speech alignment, textured rigs, rendered frames/video, release signing,
 notarization, and the complete redistribution/dependency audit.
+
+### Cancel speech generation
+
+While dialogue or scene preparation is running, choose **Cancel generation**. The interface stays responsive and waits for the worker to stop before allowing a retry. Kokoro terminates and reaps its active sidecar and removes partial staging files; completed cache entries remain available. Imported audio and mixing stop at processing boundaries. Custom speech providers using the default cancellation implementation stop before or after their synthesis call.
+
+To check cancellation, start a long uncached dialogue, cancel it, wait for the cancellation message, and generate again. No cancelled result should replace the preview. This interaction still requires a practical macOS GUI test.

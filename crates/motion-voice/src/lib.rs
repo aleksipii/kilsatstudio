@@ -1,6 +1,8 @@
 //! Bounded single-worker orchestration. UI submits and polls; synthesis stays off its thread.
 use motion_script::{Event, Script};
-use motion_tts::{SpeechError, SpeechProvider, SpeechRequest, SpeechResult, VoiceSettings};
+use motion_tts::{
+    CancellationToken, SpeechError, SpeechProvider, SpeechRequest, SpeechResult, VoiceSettings,
+};
 use std::sync::{mpsc, Arc};
 
 #[derive(Clone, Debug)]
@@ -22,28 +24,35 @@ pub enum VoiceUpdate {
     },
 }
 pub struct VoiceWorker {
-    sender: mpsc::SyncSender<DialogueJob>,
+    sender: mpsc::SyncSender<(DialogueJob, CancellationToken)>,
     updates: mpsc::Receiver<VoiceUpdate>,
 }
 impl VoiceWorker {
     pub fn new(provider: Arc<dyn SpeechProvider>, capacity: usize) -> Self {
-        let (sender, receiver) = mpsc::sync_channel::<DialogueJob>(capacity.clamp(1, 64));
+        let (sender, receiver) =
+            mpsc::sync_channel::<(DialogueJob, CancellationToken)>(capacity.clamp(1, 64));
         // Bound both queues; a paused UI cannot accumulate unbounded completions.
         let (progress, updates) = mpsc::sync_channel(capacity.clamp(1, 64) * 2);
         std::thread::spawn(move || {
-            while let Ok(job) = receiver.recv() {
+            while let Ok((job, cancel)) = receiver.recv() {
                 if progress.send(VoiceUpdate::Started(job.id)).is_err() {
                     break;
                 }
-                let result = match &job.imported_audio {
-                    Some(path) => imported(path),
-                    None => std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                        provider.synthesize(job.request)
-                    }))
-                    .unwrap_or_else(|_| {
-                        Err(SpeechError("speech provider panicked; job failed".into()))
-                    }),
-                };
+                let result = cancel
+                    .check()
+                    .and_then(|_| match &job.imported_audio {
+                        Some(path) => imported(path),
+                        None => std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                            provider.synthesize_cancellable(job.request, &cancel)
+                        }))
+                        .unwrap_or_else(|_| {
+                            Err(SpeechError("speech provider panicked; job failed".into()))
+                        }),
+                    })
+                    .and_then(|result| {
+                        cancel.check()?;
+                        Ok(result)
+                    });
                 if progress
                     .send(VoiceUpdate::Finished { id: job.id, result })
                     .is_err()
@@ -57,7 +66,20 @@ impl VoiceWorker {
     // Return ownership of queued work so callers can retry without cloning its text.
     #[allow(clippy::result_large_err)]
     pub fn submit(&self, job: DialogueJob) -> Result<(), mpsc::TrySendError<DialogueJob>> {
-        self.sender.try_send(job)
+        self.submit_cancellable(job, CancellationToken::default())
+            .map_err(|error| match error {
+                mpsc::TrySendError::Full((job, _)) => mpsc::TrySendError::Full(job),
+                mpsc::TrySendError::Disconnected((job, _)) => mpsc::TrySendError::Disconnected(job),
+            })
+    }
+    /// Queue a job with a caller-owned cooperative cancellation token.
+    #[allow(clippy::result_large_err)]
+    pub fn submit_cancellable(
+        &self,
+        job: DialogueJob,
+        cancel: CancellationToken,
+    ) -> Result<(), mpsc::TrySendError<(DialogueJob, CancellationToken)>> {
+        self.sender.try_send((job, cancel))
     }
     pub fn poll(&self) -> Option<VoiceUpdate> {
         self.updates.try_recv().ok()

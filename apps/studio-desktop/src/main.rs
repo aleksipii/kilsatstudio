@@ -6,7 +6,7 @@ mod scene_worker;
 use eframe::egui;
 use motion_audio::WaveformPeak;
 use motion_lipsync::{Alignment, Viseme};
-use motion_tts::{KokoroConfig, KokoroProvider, SpeechResult};
+use motion_tts::{CancellationToken, KokoroConfig, KokoroProvider, SpeechResult};
 use motion_voice::{dialogue_jobs, timeline::DialogueClip, DialogueJob, VoiceUpdate, VoiceWorker};
 use std::{
     path::Path,
@@ -39,6 +39,7 @@ struct Prepare {
     job: DialogueJob,
     result: SpeechResult,
     alignment: String,
+    cancel: CancellationToken,
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
@@ -69,6 +70,7 @@ struct Studio {
     prepare_tx: mpsc::SyncSender<Prepare>,
     prepare_rx: mpsc::Receiver<PreviewResult>,
     busy: bool,
+    active_cancel: Option<CancellationToken>,
     playback: Option<playback::Playback>,
     playback_error: Option<String>,
     scene_worker: scene_worker::Worker,
@@ -83,6 +85,7 @@ impl Default for Studio {
         std::thread::spawn(move || {
             while let Ok(task) = jobs.recv() {
                 let result = (|| {
+                    task.cancel.check().map_err(|e| e.to_string())?;
                     let alignment = if task.alignment.trim().is_empty() {
                         None
                     } else {
@@ -97,6 +100,7 @@ impl Default for Studio {
                     let peaks = motion_audio::waveform_peaks(&clip.audio, bin)
                         .map_err(|e| e.to_string())?;
                     let playback_audio = Arc::new(clip.audio.clone());
+                    task.cancel.check().map_err(|e| e.to_string())?;
                     Ok(Preview {
                         scene: task.job.scene.clone(),
                         playback_audio,
@@ -146,6 +150,7 @@ impl Default for Studio {
             prepare_tx,
             prepare_rx,
             busy: false,
+            active_cancel: None,
             playback: None,
             playback_error: None,
             scene_worker: scene_worker::Worker::new(),
@@ -479,7 +484,9 @@ impl Studio {
         let Some(script) = self.script.clone() else {
             return;
         };
+        let cancel = CancellationToken::new();
         let request = scene_worker::Request {
+            cancel: cancel.clone(),
             script,
             index: self.scene_index,
             root: self.project_root.clone().into(),
@@ -488,6 +495,7 @@ impl Studio {
         };
         match self.scene_worker.submit(request) {
             Ok(()) => {
+                self.active_cancel = Some(cancel);
                 self.busy = true;
                 self.status = "Preparing full scene on background worker…".into();
             }
@@ -515,8 +523,10 @@ impl Studio {
         self.scene_preview = None;
         self.scene_audio_active = false;
         let worker = VoiceWorker::new(Arc::new(provider), 1);
-        match worker.submit(job.clone()) {
+        let cancel = CancellationToken::new();
+        match worker.submit_cancellable(job.clone(), cancel.clone()) {
             Ok(()) => {
+                self.active_cancel = Some(cancel);
                 self.pending_job = Some(job);
                 self.worker = Some(worker);
                 self.busy = true;
@@ -538,6 +548,11 @@ impl Studio {
                 }
                 scene_worker::Update::Finished(result) => {
                     self.busy = false;
+                    if self.active_cancel.take().is_some_and(|c| c.is_cancelled()) {
+                        self.status = "Scene preparation cancelled. You can retry.".into();
+                        self.scene_preview = None;
+                        continue;
+                    }
                     match result {
                         Ok(ready) => {
                             let prepared = ready.prepared;
@@ -625,11 +640,13 @@ impl Studio {
                                 job,
                                 result,
                                 alignment: self.alignment.clone(),
+                                cancel: self.active_cancel.clone().unwrap_or_default(),
                             }) {
                                 Ok(()) => self.status = "Preparing waveform and alignment…".into(),
                                 Err(e) => {
                                     self.status = e.to_string();
                                     self.busy = false;
+                                    self.active_cancel = None;
                                 }
                             }
                         }
@@ -638,6 +655,7 @@ impl Studio {
                         self.status = e.to_string();
                         self.pending_job = None;
                         self.busy = false;
+                        self.active_cancel = None;
                     }
                 }
             }
@@ -645,6 +663,11 @@ impl Studio {
         }
         if let Ok(result) = self.prepare_rx.try_recv() {
             self.busy = false;
+            if self.active_cancel.take().is_some_and(|c| c.is_cancelled()) {
+                self.preview = None;
+                self.status = "Dialogue preparation cancelled. You can retry.".into();
+                return;
+            }
             match result {
                 Ok(preview) => {
                     let fits_scene = self
@@ -718,6 +741,14 @@ impl eframe::App for Studio {
             ui.label(&self.status);
             if self.busy {
                 ui.spinner();
+                if let Some(cancel) = &self.active_cancel {
+                    if cancel.is_cancelled() {
+                        ui.label("Cancellation requested; waiting for the worker to stop safely…");
+                    } else if ui.button("Cancel generation").clicked() {
+                        cancel.cancel();
+                        self.status = "Cancellation requested…".into();
+                    }
+                }
             }
         });
         egui::SidePanel::left("settings").min_width(300.0).show(ctx, |ui| {
@@ -966,6 +997,14 @@ fn draw_scene(ui: &mut egui::Ui, scene: &motion_scene::EvaluatedScene, mouths: &
             egui::FontId::proportional(12.0),
             egui::Color32::WHITE,
         );
+    }
+}
+
+impl Drop for Studio {
+    fn drop(&mut self) {
+        if let Some(cancel) = &self.active_cancel {
+            cancel.cancel();
+        }
     }
 }
 
