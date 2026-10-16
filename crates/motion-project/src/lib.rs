@@ -87,8 +87,15 @@ impl ProjectDocument {
             validate_path(&asset.path)?;
         }
         for layer in &self.art.layers {
-            if !script.scenes.iter().any(|scene| scene.id == layer.scene_id) {
+            let Some(scene) = script
+                .scenes
+                .iter()
+                .find(|scene| scene.id == layer.scene_id)
+            else {
                 return invalid("artwork references a scene that does not exist");
+            };
+            if layer.active.is_some_and(|range| range.end > scene.duration) {
+                return invalid("artwork active interval exceeds its scene duration");
             }
             if layer
                 .attachment
@@ -301,6 +308,8 @@ mod tests {
             scene_id: "intro".into(),
             name: "Shape".into(),
             visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
             opacity: 0.75,
             attachment: None,
             clip: None,
@@ -319,6 +328,55 @@ mod tests {
                 },
             },
         }
+    }
+    #[test]
+    fn timed_art_roundtrips_and_legacy_v2_defaults_preserve_foreground() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let mut item = rectangle();
+        item.plane = motion_art::Plane::Background;
+        item.active = Some(motion_art::TimeRange {
+            start: 0.5,
+            end: 2.0,
+        });
+        doc.apply_art(motion_art::Command::Add(item)).unwrap();
+        let bytes = encode(&doc).unwrap();
+        assert_eq!(decode(&bytes).unwrap().art, doc.art);
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(value["art"]["layers"][0]["plane"], "background");
+        let layer = value["art"]["layers"][0].as_object_mut().unwrap();
+        layer.remove("plane");
+        layer.remove("active");
+        let legacy = decode(&serde_json::to_vec(&value).unwrap()).unwrap();
+        assert_eq!(legacy.art.layers[0].plane, motion_art::Plane::Foreground);
+        assert_eq!(legacy.art.layers[0].active, None);
+        value["art"]["layers"][0]["active"] = serde_json::json!({"start":0,"end":1,"extra":true});
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+        value["art"]["layers"][0]["active"] = serde_json::Value::Null;
+        value["art"]["layers"][0]["plane"] = serde_json::json!("unknown");
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    #[test]
+    fn active_art_checks_scene_duration_references_and_atomic_replacement() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let mut item = rectangle();
+        item.active = Some(motion_art::TimeRange {
+            start: 0.0,
+            end: 2.0,
+        });
+        doc.apply_art(motion_art::Command::Add(item.clone()))
+            .unwrap();
+        let before = encode(&doc).unwrap();
+        item.active.as_mut().unwrap().end = 2.01;
+        assert!(doc
+            .apply_art(motion_art::Command::Replace(item.clone()))
+            .is_err());
+        assert_eq!(encode(&doc).unwrap(), before);
+        item.active.as_mut().unwrap().end = 1.0;
+        item.scene_id = "missing".into();
+        assert!(doc.apply_art(motion_art::Command::Replace(item)).is_err());
+        assert_eq!(encode(&doc).unwrap(), before);
+        doc.source = SOURCE.replace("duration: 2", "duration: 1");
+        assert!(doc.validate().is_err());
     }
     #[test]
     fn explicit_v1_migration_preserves_source_assets_and_resaves_v2() {

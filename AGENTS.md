@@ -137,5 +137,10 @@ cargo test --workspace
   integration can create branches or commits.
 - If GitHub denies access, retain the source and report the exact blocker. Do not
   claim a remote branch, push, commit or pull request exists without confirmation.
+- After every authorized merge, update `docs/master-progress.md` and the merged
+  PR description with completed work, actual checks and work still open. Keep
+  implementation separate from hardware/model acceptance. Continue directly with
+  the next scoped open item when the user has requested ongoing development;
+  create agents where useful.
 - Report implemented behavior, validation actually executed, remaining limitations
   and the pull request URL when one was successfully created.

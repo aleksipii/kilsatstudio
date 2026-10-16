@@ -174,7 +174,7 @@ ready, the UI reports finalizing/encoding until the worker confirms completion.
 
 ## Artwork and actor transform tracks
 
-The editor now supports foreground pen/rectangle/ellipse and PNG/JPEG image
+The editor now supports background and foreground pen/rectangle/ellipse and PNG/JPEG image
 layers with rectangular clips, visibility, order and opacity. Resources decode on
 a bounded worker; Reload images refreshes same-path edits. Save `.kilsat` v2 to
 retain artwork; v1 files migrate without losing source/assets. YAML save refuses
@@ -200,3 +200,18 @@ ascending and within the scene duration (up to 4096 keys).
 step. Invalid colors/times leave the screenplay unchanged. Preview and exported
 frames use the same background evaluation. Settings controls are disabled while
 an active operation holds the document.
+
+## Timed background artwork
+
+In **Artwork / layers**, use **Place background image** for a project-canvas-sized
+PNG/JPEG behind the actors, or **Place image** for a foreground image. The plane
+selector also moves existing drawings and images between background and foreground.
+Layer order is preserved within each plane. Camera transforms, opacity, actor
+translation attachments and rectangular masks still apply.
+
+Enable **Visible during interval** and enter scene-local start/end seconds. The
+start is included and the end excluded; disabled intervals span the whole scene.
+Use `0 ≤ start < end ≤ scene duration`. Invalid intervals leave the artwork
+unchanged. Artwork Undo/Redo includes the plane and timing; screenplay and audio
+are unaffected. Save as `.kilsat` to retain these fields. Preview and export use
+the same timing boundaries. Scene time is independent of the audio playback test.

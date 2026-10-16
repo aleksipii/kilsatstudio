@@ -7,19 +7,36 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Latest merge status
+
+PR #22 merged as 3f4d131a6b18222455f7d9fb8f53bc2392910687 after review and
+passing Linux/macOS CI, media encoding and Apple Silicon packaging. `main` and
+`kilsatstudio1.0` are synchronized at that merge.
+
+| Completed | Still open |
+| --- | --- |
+| Timed solid colors, native key editor and shared preview/export | Timed background images (current increment), cross-scene transitions |
+| Atomic duration/composition settings and source Undo | Full unified project/asset history and advanced editor tools |
+| Managed Kokoro installation and speech-test UI | Real Mac inference/listening, alignment quality and device synchronization |
+| CPU SVG/PNG/MP4 and bounded parallel frames | GPU rendering, production benchmarks and final distribution/license audit |
+
+Maintain this summary and the full checklist after each authorized merge. A new
+implementation remains pending until its relevant checks pass; hardware gates
+require actual evidence.
+
 ## Ownership and current increment
 
 | Workstream | Owner in this increment | Integration boundary |
 | --- | --- | --- |
 | Architecture/integration | Parent agent | Workspace, shared interfaces, final checks |
-| Compiler / project | `keyframe_core` + `art_model` + parent | Validated script/schema integration |
-| Rigging/animation | `keyframe_core` | Original rig and animation modules |
-| Rendering | `art_render` | Shared deterministic frame path |
-| Desktop UX | `desktop_art` + `keyframe_ui` | Native controls and integration |
+| Compiler / project | `timed_art_model` + parent | Validated script/schema integration |
+| Rigging/animation | Existing modules | Original rig and animation modules |
+| Rendering | `timed_art_render` | Shared deterministic frame path |
+| Desktop UX | `timed_art_ui` | Native controls and integration |
 | Speech | Existing cache; no new inference stage | Offline asset/alignment tools and evidence |
-| Export | `art_render` | PNG/MP4, CLI, resource/error handling |
+| Export | `timed_art_render` | PNG/MP4, CLI, resource/error handling |
 | Scheduling | Existing bounded frame/decode workers | Bounded execution and cancellation |
-| QA/release | `art_qa` + parent | Packaging tests, integrated checks |
+| QA/release | Independent review + parent | Packaging tests, integrated checks |
 | Documentation | All owners + parent | This tracker and feature documentation |
 
 Owners describe responsibilities, not completed acceptance. Agent assignment is
@@ -48,7 +65,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Validated scene camera keyframes and deterministic pan/zoom evaluation.
 - [ ] Camera event commands or cinematic rule presets beyond scene camera tracks.
 - [x] Timed solid background-color tracks shared by preview and export.
-- [ ] Cross-scene transitions and timed background images.
+- [x] Timed background image placement shared by native preview and export.
+- [ ] Cross-scene transitions.
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
 - [ ] Stable versioned editable compiled timeline representation.
@@ -81,7 +99,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Layer groups, arbitrary masks and blend modes.
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
-- [ ] Timed background images and true cross-scene transitions.
+- [x] Timed background image planes and validated half-open visibility intervals.
+- [ ] True cross-scene transitions.
 - [ ] Offscreen GPU renderer using a verified macOS Metal path.
 - [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
 - [ ] Wider image/texture golden coverage as rendering grows.
@@ -342,3 +361,24 @@ is recorded in the pull request after final checks.
 | --- | --- | --- |
 | 2026-10-16 | Timed solid background colors, PR #22 | 205 Rust workspace/all-target tests passed locally; decoded PNG/SVG color boundary coverage; strict installed-driver Clippy/workspace check, direct rustfmt and diff check passed. |
 | 2026-10-16 | Atomic settings Apply | Shrink/remove, shrink/retime, extend/add and exact source Undo regressions passed; independent review blocker resolved. Real Mac GUI and background-image/transition work remain open. |
+
+## Timed background images increment
+
+PR #22 review completed without findings. Its final head572d779 passed all CI;
+205 Rust tests passed locally. The merge status above records completed and
+remaining work. New work adds persisted background/foreground artwork planes and
+optional scene-local visibility intervals; final evidence follows in the PR.
+
+| Date | Completed implementation | Actual evidence and limits |
+| --- | --- | --- |
+| 2026-10-16 | Background/foreground artwork planes and timed images | 217 Rust workspace/all-target tests passed locally, including legacy v2 defaults, interval bounds, invalid atomic edits, Undo, shared SVG ordering and decoded PNG frame pixels. |
+| 2026-10-16 | Composition fade parity and future-resource preflight | Independent review found the native fade mismatch; one final canvas fade now follows both planes/actors. Shape-order tests and future-image/duration preflight tests passed. No physical Mac GUI test claimed. |
+
+Cross-scene transitions, textured per-bone rigs, advanced masks/blending, unified
+history, forced alignment/quality, GPU rendering, production benchmarks, license
+audits and actual Mac/Kokoro/device acceptance remain open.
+
+Final local checks: direct rustfmt and diff checks passed; strict installed-driver
+Clippy/workspace all-target check passed. The full 20-test motion-export suite
+also passed with actual /usr/bin/ffmpeg and /usr/bin/ffprobe, including both
+normally ignored real-media tests. GitHub CI applies only to its exact head.

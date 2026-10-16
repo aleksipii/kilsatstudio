@@ -1277,18 +1277,23 @@ impl Studio {
                             .collect()
                     };
                     let scene_id = &script.scenes[self.scene_index].id;
-                    let rect = draw_scene(ui, &scene, &mouths);
-                    if let Some(document) = &mut self.project_document {
+                    if let Some(document) = &self.project_document {
                         self.art_resources
                             .sync(ui.ctx(), &self.project_root, &document.assets);
-                        art_editor::paint(
-                            &ui.painter_at(rect),
-                            rect,
-                            &scene,
-                            scene_id,
-                            &document.art,
-                            &self.art_resources.textures,
-                        );
+                    }
+                    let rect = draw_scene(ui, &scene, &mouths, |painter, rect, plane| {
+                        if let Some(document) = &self.project_document {
+                            art_editor::paint(
+                                painter,
+                                rect,
+                                &scene,
+                                scene_id,
+                                &document.art,
+                                (&self.art_resources.textures, plane),
+                            );
+                        }
+                    });
+                    if let Some(document) = &mut self.project_document {
                         let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy;
                         let response = ui.interact(
                             rect,
@@ -2271,7 +2276,12 @@ impl Studio {
                     self.art_editor.ui(
                         ui,
                         &mut document.art,
-                        &scene.id,
+                        art_editor::SceneContext {
+                            id: &scene.id,
+                            duration: scene.duration,
+                            width: script.project.width,
+                            height: script.project.height,
+                        },
                         &document.assets,
                         &script.characters.keys().cloned().collect::<Vec<_>>(),
                     )
@@ -3144,17 +3154,18 @@ fn draw_scene(
     ui: &mut egui::Ui,
     scene: &motion_scene::EvaluatedScene,
     mouths: &[(&str, Viseme)],
+    paint_artwork: impl Fn(&egui::Painter, egui::Rect, motion_art::Plane),
 ) -> egui::Rect {
     let width = ui.available_width().max(1.0);
     let height = (width * scene.height as f32 / scene.width.max(1) as f32)
         .clamp(120.0, (ui.available_height() - 35.0).max(120.0));
     let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
-    let mut painter = ui.painter_at(rect);
+    let painter = ui.painter_at(rect);
     painter.rect_filled(rect, 5.0, egui::Color32::BLACK);
-    painter.set_opacity(scene.opacity as f32);
     let background = egui::Color32::from_hex(&scene.background_color)
         .unwrap_or(egui::Color32::from_rgb(24, 31, 44));
     painter.rect_filled(rect, 5.0, background);
+    paint_artwork(&painter, rect, motion_art::Plane::Background);
     let scale =
         (rect.width() / scene.width.max(1) as f32).min(rect.height() / scene.height.max(1) as f32);
     let origin = rect.center() - egui::vec2(scene.width as f32, scene.height as f32) * scale * 0.5;
@@ -3259,6 +3270,15 @@ fn draw_scene(
             egui::Color32::WHITE,
         );
     }
+    paint_artwork(&painter, rect, motion_art::Plane::Foreground);
+    // Composite the completed scene over black once, matching the exported SVG group.
+    painter.rect_filled(
+        rect,
+        0.0,
+        egui::Color32::from_black_alpha(
+            ((1.0 - scene.opacity.clamp(0.0, 1.0)) * 255.0).round() as u8
+        ),
+    );
     rect
 }
 
@@ -3273,6 +3293,53 @@ impl Drop for Studio {
 #[cfg(test)]
 mod scene_preview_tests {
     #[test]
+    fn native_scene_fade_covers_both_artwork_planes_once() {
+        let ctx = eframe::egui::Context::default();
+        let mut studio = super::Studio::default();
+        studio.validate();
+        let mut scene = motion_scene::evaluate(studio.script.as_ref().unwrap(), 0, 0.0).unwrap();
+        scene.opacity = 0.25;
+        let output = ctx.run(Default::default(), |ctx| {
+            eframe::egui::CentralPanel::default().show(ctx, |ui| {
+                super::draw_scene(ui, &scene, &[], |painter, rect, plane| {
+                    painter.rect_filled(
+                        rect,
+                        0.0,
+                        match plane {
+                            motion_art::Plane::Background => eframe::egui::Color32::RED,
+                            motion_art::Plane::Foreground => eframe::egui::Color32::GREEN,
+                        },
+                    );
+                });
+            });
+        });
+        let fills: Vec<_> = output
+            .shapes
+            .iter()
+            .filter_map(|s| {
+                if let eframe::egui::Shape::Rect(r) = &s.shape {
+                    Some(r.fill)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let background = fills
+            .iter()
+            .position(|c| *c == eframe::egui::Color32::RED)
+            .unwrap();
+        let foreground = fills
+            .iter()
+            .position(|c| *c == eframe::egui::Color32::GREEN)
+            .unwrap();
+        assert!(background < foreground);
+        assert_eq!(
+            *fills.last().unwrap(),
+            eframe::egui::Color32::from_black_alpha(191)
+        );
+    }
+
+    #[test]
     fn artwork_references_guard_scene_rename_and_source_undo() {
         let mut studio = super::Studio::default();
         studio.validate();
@@ -3284,6 +3351,8 @@ mod scene_preview_tests {
             scene_id: scene_id.clone(),
             name: "Art".into(),
             visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
             opacity: 1.0,
             attachment: None,
             clip: None,
@@ -3337,6 +3406,8 @@ mod scene_preview_tests {
             scene_id: studio.script.as_ref().unwrap().scenes[0].id.clone(),
             name: "Art".into(),
             visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
             opacity: 1.0,
             attachment: None,
             clip: None,

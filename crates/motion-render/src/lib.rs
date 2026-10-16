@@ -36,6 +36,22 @@ pub fn render_svg_with_mouths(
     height: u32,
     mouths: &[(&str, Viseme)],
 ) -> Result<String, Error> {
+    render_scene(scene, width, height, mouths, None)
+}
+
+type Artwork<'a> = (
+    &'a str,
+    &'a motion_art::Document,
+    &'a std::collections::BTreeMap<String, motion_art::ImageResource>,
+);
+
+fn render_scene(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    artwork: Option<Artwork<'_>>,
+) -> Result<String, Error> {
     if [scene.width, scene.height, width, height]
         .iter()
         .any(|&v| v == 0 || v > MAX_DIMENSION)
@@ -46,6 +62,8 @@ pub fn render_svg_with_mouths(
     if color.len() != 7
         || color[0] != b'#'
         || !color[1..].iter().all(u8::is_ascii_hexdigit)
+        || !scene.time.is_finite()
+        || scene.time < 0.0
         || !scene.opacity.is_finite()
         || !(0.0..=1.0).contains(&scene.opacity)
         || !scene.camera.x.is_finite()
@@ -98,6 +116,16 @@ pub fn render_svg_with_mouths(
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\"><defs><clipPath id=\"canvas\"><rect width=\"{}\" height=\"{}\"/></clipPath></defs><rect width=\"100%\" height=\"100%\" fill=\"black\"/><g transform=\"translate({ox:.6} {oy:.6}) scale({scale:.6})\" clip-path=\"url(#canvas)\" opacity=\"{:.6}\"><rect width=\"{}\" height=\"{}\" fill=\"{}\"/><g transform=\"translate({camera_x:.6} {camera_y:.6}) scale({:.6})\">",
         scene.width, scene.height, scene.opacity, scene.width, scene.height, scene.background_color, scene.camera.zoom
     );
+    if let Some((scene_id, document, images)) = artwork {
+        append_art(
+            &mut svg,
+            scene,
+            scene_id,
+            document,
+            images,
+            motion_art::Plane::Background,
+        )?;
+    }
     for actor in &scene.actors {
         write!(
             svg,
@@ -169,11 +197,21 @@ pub fn render_svg_with_mouths(
         }
         write!(svg, "<text y=\"45\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"sans-serif\" font-size=\"12\" fill=\"white\">{} · {}</text></g>", escape(&actor.id), escape(&actor.emotion)).unwrap();
     }
+    if let Some((scene_id, document, images)) = artwork {
+        append_art(
+            &mut svg,
+            scene,
+            scene_id,
+            document,
+            images,
+            motion_art::Plane::Foreground,
+        )?;
+    }
     svg.push_str("</g></g></svg>\n");
     Ok(svg)
 }
 
-/// Foreground artwork in document order, inside the same camera, canvas clip and fade.
+/// Timed artwork in document order within each plane, sharing camera, clip and fade.
 /// Attachments intentionally inherit actor translation only, matching native artwork.
 #[allow(clippy::too_many_arguments)]
 pub fn render_svg_with_art(
@@ -188,15 +226,29 @@ pub fn render_svg_with_art(
     document
         .validate()
         .map_err(|e| Error::InvalidArtwork(e.to_string()))?;
-    let mut svg = render_svg_with_mouths(scene, width, height, mouths)?;
-    let end = svg.len() - "</g></g></svg>\n".len();
-    svg.truncate(end);
+    render_scene(
+        scene,
+        width,
+        height,
+        mouths,
+        Some((scene_id, document, images)),
+    )
+}
+
+fn append_art(
+    svg: &mut String,
+    scene: &EvaluatedScene,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    plane: motion_art::Plane,
+) -> Result<(), Error> {
     use motion_art::Content;
     for (index, layer) in document
         .layers
         .iter()
         .enumerate()
-        .filter(|(_, l)| l.scene_id == scene_id && l.visible)
+        .filter(|(_, l)| l.scene_id == scene_id && l.plane == plane && l.is_active(scene.time))
     {
         let (x, y) = match &layer.attachment {
             Some(id) => match scene.actors.iter().find(|a| &a.id == id) {
@@ -281,8 +333,7 @@ pub fn render_svg_with_art(
             ));
         }
     }
-    svg.push_str("</g></g></svg>\n");
-    Ok(svg)
+    Ok(())
 }
 
 fn escape(text: &str) -> String {
@@ -297,8 +348,9 @@ fn escape(text: &str) -> String {
 mod tests {
     use super::*;
     use motion_scene::ActorPose;
-    fn scene() -> EvaluatedScene {
+    pub(super) fn scene() -> EvaluatedScene {
         EvaluatedScene {
+            time: 0.0,
             camera: motion_scene::CameraPose::default(),
             background_color: "#181f2c".into(),
             opacity: 1.0,
@@ -399,6 +451,7 @@ mod composition_tests {
     #[test]
     fn evaluated_composition_has_clipped_camera_and_canvas_fade() {
         let scene = EvaluatedScene {
+            time: 0.0,
             width: 640,
             height: 360,
             actors: vec![],
@@ -428,5 +481,159 @@ mod composition_tests {
             render_svg(&invalid, 640, 360),
             Err(Error::InvalidComposition)
         );
+    }
+}
+
+#[cfg(test)]
+mod timed_art_tests {
+    use super::*;
+    use motion_art::{Color, Content, Document, Layer, Plane, Rect, TimeRange};
+    use std::collections::BTreeMap;
+
+    fn layer(id: &str, plane: Plane, red: u8) -> Layer {
+        Layer {
+            id: id.into(),
+            scene_id: "s".into(),
+            name: id.into(),
+            visible: true,
+            opacity: 0.75,
+            plane,
+            active: Some(TimeRange {
+                start: 1.0,
+                end: 3.0,
+            }),
+            attachment: None,
+            clip: Some(Rect {
+                x: 1.0,
+                y: 2.0,
+                width: 30.0,
+                height: 40.0,
+            }),
+            content: Content::Rectangle {
+                rect: Rect {
+                    x: 1.0,
+                    y: 2.0,
+                    width: 30.0,
+                    height: 40.0,
+                },
+                color: Color {
+                    r: red,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+            },
+        }
+    }
+
+    #[test]
+    fn artwork_planes_keep_document_order_and_share_camera_fade_and_clip() {
+        let mut s = super::tests::scene();
+        s.time = 1.0;
+        s.camera = motion_scene::CameraPose {
+            x: 50.0,
+            y: 20.0,
+            zoom: 2.0,
+        };
+        s.opacity = 0.5;
+        // Interleaved document order must be stable independently in each plane.
+        let mut attached = layer("fg2", Plane::Foreground, 4);
+        attached.attachment = Some("EMMA".into());
+        let doc = Document {
+            layers: vec![
+                layer("fg1", Plane::Foreground, 3),
+                layer("bg1", Plane::Background, 1),
+                attached,
+                layer("bg2", Plane::Background, 2),
+            ],
+        };
+        let svg = render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).unwrap();
+        let positions = [
+            svg.find("fill=\"#181f2c\"").unwrap(),
+            svg.find("translate(-420.000000 -220.000000) scale(2.000000)")
+                .unwrap(),
+            svg.find("fill=\"#010000\"").unwrap(),
+            svg.find("fill=\"#020000\"").unwrap(),
+            svg.find("stroke=\"#7eb9e2\"").unwrap(),
+            svg.find("fill=\"#030000\"").unwrap(),
+            svg.find("fill=\"#040000\"").unwrap(),
+        ];
+        assert!(positions.windows(2).all(|pair| pair[0] < pair[1]));
+        assert!(svg.contains("clip-path=\"url(#canvas)\" opacity=\"0.500000\""));
+        assert!(svg.contains("translate(120.000000 250.000000)\" opacity=\"0.750000\""));
+        for index in 0..4 {
+            assert_eq!(svg.matches(&format!("id=\"art{index}\"")).count(), 1);
+            assert_eq!(
+                svg.matches(&format!("clip-path=\"url(#art{index})\""))
+                    .count(),
+                1
+            );
+        }
+    }
+
+    #[test]
+    fn half_open_timing_overlap_and_random_seek_are_stateless() {
+        let mut s = super::tests::scene();
+        let mut later = layer("later", Plane::Foreground, 2);
+        later.active = Some(TimeRange {
+            start: 2.0,
+            end: 4.0,
+        });
+        let mut hidden = layer("hidden", Plane::Background, 3);
+        hidden.visible = false;
+        let mut other_scene = layer("other", Plane::Background, 4);
+        other_scene.scene_id = "other".into();
+        let doc = Document {
+            layers: vec![
+                layer("first", Plane::Background, 1),
+                later,
+                hidden,
+                other_scene,
+            ],
+        };
+        for (time, first, second) in [
+            (2.5, true, true),
+            (4.0, false, false),
+            (1.0, true, false),
+            (3.0, false, true),
+            (0.999, false, false),
+            (2.0, true, true),
+        ] {
+            s.time = time;
+            let svg = render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).unwrap();
+            assert_eq!(svg.contains("fill=\"#010000\""), first, "{time}");
+            assert_eq!(svg.contains("fill=\"#020000\""), second, "{time}");
+            assert!(!svg.contains("fill=\"#030000\""));
+            assert!(!svg.contains("fill=\"#040000\""));
+            if !first && !second {
+                assert_eq!(svg, render_svg(&s, 640, 360).unwrap());
+            }
+        }
+    }
+
+    #[test]
+    fn inactive_images_need_no_decoded_resource_and_invalid_time_is_rejected() {
+        let mut s = super::tests::scene();
+        let mut image = layer("image", Plane::Background, 1);
+        image.content = Content::Image {
+            asset_id: "asset".into(),
+            rect: Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 10.0,
+                height: 10.0,
+            },
+        };
+        let doc = Document {
+            layers: vec![image],
+        };
+        assert!(render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).is_ok());
+        s.time = 1.0;
+        assert!(matches!(
+            render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()),
+            Err(Error::InvalidArtwork(_))
+        ));
+        s.time = f64::NAN;
+        assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidComposition));
     }
 }

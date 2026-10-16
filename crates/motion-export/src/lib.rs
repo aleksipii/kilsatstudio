@@ -377,6 +377,31 @@ fn export_sequence(
         art.document
             .validate()
             .map_err(|e| invalid(e.to_string()))?;
+        for layer in art
+            .document
+            .layers
+            .iter()
+            .filter(|layer| layer.scene_id == script.scenes[scene_index].id)
+        {
+            if layer
+                .active
+                .is_some_and(|range| range.end > script.scenes[scene_index].duration)
+            {
+                return Err(invalid(
+                    "artwork visibility interval exceeds scene duration",
+                ));
+            }
+            // Preflight future images too: frame zero may precede their start time.
+            if layer.visible {
+                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                    if !art.images.contains_key(asset_id) {
+                        return Err(invalid(format!(
+                            "missing artwork image resource: {asset_id}"
+                        )));
+                    }
+                }
+            }
+        }
         let geometry = art
             .document
             .layers
@@ -1030,11 +1055,167 @@ mod artwork_tests {
             name: id.into(),
             visible: true,
             opacity: 1.0,
+            plane: motion_art::Plane::Foreground,
+            active: None,
             attachment: None,
             clip: None,
             content,
         }
     }
+    #[test]
+    fn timed_background_images_and_foreground_obey_half_open_frame_intervals() {
+        let (script, rendered) = super::tests::fixture();
+        let mut background = layer(
+            "background",
+            Content::Image {
+                asset_id: "red".into(),
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 640.0,
+                    height: 360.0,
+                },
+            },
+        );
+        background.plane = motion_art::Plane::Background;
+        background.active = Some(motion_art::TimeRange {
+            start: 0.25,
+            end: 0.75,
+        });
+        let mut foreground = layer(
+            "foreground",
+            Content::Rectangle {
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 32.0,
+                    height: 32.0,
+                },
+                color: Color {
+                    r: 0,
+                    g: 255,
+                    b: 0,
+                    a: 255,
+                },
+            },
+        );
+        foreground.active = Some(motion_art::TimeRange {
+            start: 0.5,
+            end: 1.0,
+        });
+        // Put foreground first to prove plane order takes precedence over document order.
+        let art = ArtContext {
+            document: Document {
+                layers: vec![foreground, background],
+            },
+            images: BTreeMap::from([(
+                "red".into(),
+                ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
+            )]),
+        };
+        let destination = super::tests::destination();
+        export_png_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        let base = [24, 31, 44, 255];
+        let expected_background = [base, [255, 0, 0, 255], [255, 0, 0, 255], base];
+        let expected_corner = [base, [255, 0, 0, 255], [0, 255, 0, 255], [0, 255, 0, 255]];
+        for index in 0..4 {
+            let image = resvg::tiny_skia::Pixmap::load_png(
+                destination.join(format!("frame_{index:06}.png")),
+            )
+            .unwrap();
+            assert_eq!(
+                {
+                    let p = image.pixel(500, 10).unwrap();
+                    [p.red(), p.green(), p.blue(), p.alpha()]
+                },
+                expected_background[index]
+            );
+            assert_eq!(
+                {
+                    let p = image.pixel(10, 10).unwrap();
+                    [p.red(), p.green(), p.blue(), p.alpha()]
+                },
+                expected_corner[index]
+            );
+            if index == 1 || index == 2 {
+                // The procedural actor must remain visible above the full-canvas image.
+                assert!(image
+                    .data()
+                    .as_chunks::<4>()
+                    .0
+                    .contains(&[245, 200, 162, 255]));
+            }
+        }
+        fs::remove_dir_all(destination).unwrap();
+    }
+
+    #[test]
+    fn future_background_resources_and_duration_fail_before_creating_output() {
+        let (script, rendered) = super::tests::fixture();
+        let mut image = layer(
+            "future",
+            Content::Image {
+                asset_id: "missing".into(),
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 10.0,
+                    height: 10.0,
+                },
+            },
+        );
+        image.plane = motion_art::Plane::Background;
+        image.active = Some(motion_art::TimeRange {
+            start: 0.5,
+            end: 1.0,
+        });
+        let mut art = ArtContext {
+            document: Document {
+                layers: vec![image],
+            },
+            images: BTreeMap::new(),
+        };
+        let destination = super::tests::destination();
+        let error = export_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("missing artwork image"));
+        assert!(!destination.exists());
+        art.images.insert(
+            "missing".into(),
+            ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
+        );
+        art.document.layers[0].active.as_mut().unwrap().end = 1.1;
+        let error = export_png_scene_with_art(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &destination,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("exceeds scene duration"));
+        assert!(!destination.exists());
+    }
+
     #[test]
     fn embedded_png_mask_and_stroke_survive_real_sequence_rasterization() {
         let (script, rendered) = super::tests::fixture();

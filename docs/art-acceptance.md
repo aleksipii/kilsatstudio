@@ -1,6 +1,6 @@
 # Artwork and keyframe acceptance
 
-This stage adds a bounded foreground artwork editor and actor root animation. It
+This stage adds a bounded artwork editor and actor root animation. It
 is a partial implementation of the master plan, not a complete painting,
 compositing, skeletal animation or GPU rendering system.
 
@@ -20,8 +20,10 @@ compositing, skeletal animation or GPU rendering system.
 - Root keyframes add translation to the existing move result and supply rotation
   and positive scale. Interpolation uses the shared scene clock; times must be
   increasing and within the scene. This is not a per-joint keyframe editor.
-- Artwork is foreground content, painted after procedural actors. Its ordering
-  does not interleave individual artwork layers with individual actors.
+- Artwork has background and foreground planes, painted before/after procedural
+  actors. Ordering within each plane follows document order. Optional visibility
+  intervals use `[start, end)` on the shared scene clock; there is no per-actor
+  artwork interleaving.
 
 ## Review and automated evidence
 
@@ -70,3 +72,24 @@ Native GPU/offscreen acceleration, arbitrary masks, blend modes, textured joint
 rigging, vector node editing and production-scale painting remain open. Linux
 unit tests and SVG assertions do not establish native Mac visual parity,
 Apple Silicon performance, actual audio-device behavior or Kokoro speech quality.
+
+## Timed background-image workflow
+
+1. Import a local PNG/JPEG into a saved `.kilsat` project, then choose
+   **Place background image** in **Artwork / layers**. It initially fills the
+   project canvas; adjust its rectangle to change framing.
+2. Select the layer, choose **Background** and enable **Visible during interval**.
+   Enter `0 <= start < end <= scene duration`. A normal placed image remains in
+   the foreground unless changed.
+3. Scrub before start, exactly at start, just before end and exactly at end. Verify
+   the image is absent, present, present and absent respectively. Verify actors
+   remain above it and foreground artwork remains above actors.
+4. Add camera motion, clip/opacity changes and scene-edge fades. Check that a fade
+   darkens the completed composition, without the base color leaking through an
+   opaque image. Save, reload, Undo and Redo the plane and interval.
+5. Export SVG/PNG/MP4 and compare the same frame times. Missing future image
+   resources and intervals beyond scene duration must fail before creating output.
+
+These are interactive Mac acceptance steps; automated shape/pixel tests do not
+claim they were performed on a physical Mac. Image transitions/crossfades remain
+separate work.
