@@ -70,17 +70,17 @@ def build_inventory(root, metadata=None, pip_inspect=None, binaries=(), managed_
     managed = None
     if managed_profile is not None:
         profile_path = Path(managed_profile).resolve(strict=True)
-        if profile_path.stat().st_size > 1024 * 1024:
-            raise ValueError('Managed profile exceeds 1 MiB.')
         spec = importlib.util.spec_from_file_location('managed_setup_evidence', Path(__file__).resolve().parents[1] / 'services/kokoro-runtime/setup_kokoro.py')
         setup_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(setup_module)
-        profile = json.loads(profile_path.read_text())
+        profile_bytes = setup_module.read_bounded_regular(profile_path, 1024 * 1024)
+        profile = json.loads(profile_bytes)
         evidence = setup_module.validate_profile_evidence(profile, profile_path.parent)
         if evidence is None:
             raise ValueError('Selected profile predates retained evidence; do not reinstall automatically.')
         document = evidence['distributions']
-        if document.get('schema_version') != 1 or not isinstance(document.get('installed'), list):
+        if (document.get('schema_version') != 1 or not isinstance(document.get('installed'), list)
+                or len(document['installed']) > 2000):
             raise ValueError('Invalid retained distribution evidence.')
         if pip_inspect is not None:
             raise ValueError('Select either pip inspect or managed evidence, not both.')
@@ -106,7 +106,7 @@ def build_inventory(root, metadata=None, pip_inspect=None, binaries=(), managed_
             row['notices_status'] = ('partial-texts-unreviewed' if incomplete else
                                      'texts-collected-unreviewed' if row['licenses'] else 'not-collected')
             row['artifact_hash_status'] = 'installed-files-are-not-wheel-hashes'
-        managed = dict(profile_sha256=digest(profile_path), revision=profile['revision'],
+        managed = dict(profile_sha256=hashlib.sha256(profile_bytes).hexdigest(), revision=profile['revision'],
                        index_sha256=profile['license_evidence']['sha256'],
                        setup_manifest_sha256=evidence['index']['setup_manifest_sha256'],
                        current_manifest_matches=evidence['index']['setup_manifest_sha256'] == hashlib.sha256(json.dumps(setup, sort_keys=True).encode()).hexdigest(),

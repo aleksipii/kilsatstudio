@@ -10,6 +10,7 @@ import platform
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -148,6 +149,27 @@ def run(command, cancel_file, timeout=1800, max_output=MAX_LOG):
 MAX_EVIDENCE = 8 * 1024 * 1024
 
 
+def read_bounded_regular(path, limit):
+    # Nonblocking open prevents a raced FIFO from blocking before fstat.
+    flags = os.O_RDONLY | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    descriptor = os.open(path, flags)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode):
+            raise ValueError('Evidence input must be a regular file.')
+        if info.st_size > limit:
+            raise ValueError('Evidence input exceeds budget.')
+        with os.fdopen(descriptor, 'rb') as stream:
+            descriptor = None  # The stream now owns and closes the descriptor.
+            raw = stream.read(limit + 1)
+        if len(raw) > limit:
+            raise ValueError('Evidence input exceeds budget.')
+        return raw
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
 def sanitized_freeze(text):
     # Retain every requirement, but never retain credentials, fragments or queries.
     from urllib.parse import urlsplit, urlunsplit
@@ -192,8 +214,7 @@ def collect_installed_metadata(output, distributions=None, prefix=None):
             elif retained + size > 4 * 1024 * 1024:
                 entry['content_status'] = 'not-collected-total-budget'
             else:
-                with path.open('rb') as stream:
-                    raw = stream.read(256 * 1024 + 1)
+                raw = read_bounded_regular(path, 256 * 1024)
                 if len(raw) > 256 * 1024:
                     entry['content_status'] = 'not-collected-size-budget'
                     entry['size_bytes'] = path.stat().st_size
@@ -230,9 +251,7 @@ def retain_evidence(root, python, manifest, freeze, revision, cancel_file):
     references = []
     for name in ('freeze.txt', 'distributions.json'):
         path = directory / name
-        raw = path.read_bytes()
-        if len(raw) > MAX_EVIDENCE:
-            raise ValueError('Evidence file exceeds budget.')
+        raw = read_bounded_regular(path, 1024 * 1024 if name == 'freeze.txt' else MAX_EVIDENCE)
         references.append(dict(path=name, sha256=hashlib.sha256(raw).hexdigest(), size_bytes=len(raw)))
     index = dict(schema_version=1, revision=revision, setup_manifest=manifest,
                  setup_manifest_sha256=hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest(),
@@ -251,9 +270,10 @@ def validate_profile_evidence(profile, root):
     path = Path(reference['path'])
     if reference.get('schema_version') != 1 or not path.is_absolute() or path.resolve(strict=True) != root / 'evidence/index.json':
         raise ValueError('Invalid managed evidence reference.')
-    if path.stat().st_size > 1024 * 1024:
-        raise ValueError('Managed evidence index exceeds budget.')
-    raw = path.read_bytes()
+    # macOS commonly exposes the same temporary root through /var and /private/var.
+    # Compare children against the already-validated canonical index directory.
+    path = path.resolve(strict=True)
+    raw = read_bounded_regular(path, 1024 * 1024)
     if len(raw) > 1024 * 1024 or hashlib.sha256(raw).hexdigest() != reference.get('sha256'):
         raise ValueError('Managed evidence index hash mismatch.')
     index = json.loads(raw)
@@ -270,16 +290,20 @@ def validate_profile_evidence(profile, root):
     for item in files:
         selected = (path.parent / item['path']).resolve(strict=True)
         limit = 1024 * 1024 if item['path'] == 'freeze.txt' else MAX_EVIDENCE
-        if selected.parent != path.parent or selected.stat().st_size > limit:
-            raise ValueError('Managed evidence file escapes directory or exceeds budget.')
-        data = selected.read_bytes()
+        if selected.parent != path.parent:
+            raise ValueError('Managed evidence file escapes directory.')
+        data = read_bounded_regular(selected, limit)
         if len(data) != item['size_bytes'] or hashlib.sha256(data).hexdigest() != item['sha256']:
             raise ValueError('Managed evidence file hash mismatch.')
         documents[item['path']] = data
     if not profile['revision'].endswith(':' + hashlib.sha256(documents['freeze.txt']).hexdigest()):
         raise ValueError('Managed freeze revision mismatch.')
+    distributions = json.loads(documents['distributions.json'])
+    if (not isinstance(distributions, dict) or distributions.get('schema_version') != 1 or
+            not isinstance(distributions.get('installed'), list) or len(distributions['installed']) > 2000):
+        raise ValueError('Invalid retained distribution evidence or count exceeds 2000.')
     return dict(index=index, freeze=documents['freeze.txt'].decode('utf-8'),
-                distributions=json.loads(documents['distributions.json']))
+                distributions=distributions)
 
 
 def install(root, manifest, cancel_file):

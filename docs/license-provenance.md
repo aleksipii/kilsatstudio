@@ -26,7 +26,9 @@ The profile's optional `license_evidence` object has schema version 1, an absolu
 index path and the index SHA256. The index has schema version 1, the exact profile
 revision, `distribution_approved: false`, the setup manifest and its fingerprint,
 and exactly two relative file references with byte counts and SHA256 values.
-Evidence reads enforce canonical directory containment and resource budgets.
+Evidence reads enforce canonical directory containment, regular files, bounded
+reads even if a file grows after inspection, at most 2,000 distributions and
+resource budgets.
 Tampering with an evidence file fails validation instead of treating it as an
 old profile. Local hashes establish integrity relative to the selected profile;
 they do not authenticate the installer or replace a signed release attestation.

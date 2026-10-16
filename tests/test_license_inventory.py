@@ -90,7 +90,7 @@ class InventoryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             AUDIT.build_inventory(self.root, metadata={'packages': 'wrong'})
 
-    def retained_profile(self, partial=False):
+    def retained_profile(self, partial=False, count=1):
         spec = importlib.util.spec_from_file_location('setup_evidence_test', ROOT / 'services/kokoro-runtime/setup_kokoro.py')
         setup = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(setup)
@@ -106,6 +106,7 @@ class InventoryTests(unittest.TestCase):
         if partial:
             document['installed'][0]['licenses'].append(dict(path='lib/kokoro.dist-info/NOTICE',
                 size_bytes=300000, content_status='not-collected-size-budget'))
+        document['installed'] *= count
         def collector(command, *args):
             (managed / 'evidence/distributions.json').write_text(json.dumps(document))
         with mock.patch.object(setup, 'run', side_effect=collector):
@@ -124,6 +125,18 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(report['managed_evidence']['evidence_status'], 'hash-verified-local-collection-unreviewed')
         output = self.root / 'retained-inventory.json'
         self.assertEqual(AUDIT.main(['--root', str(self.root), '--managed-profile', str(profile), '--strict', '--output', str(output)]), 1)
+
+    def test_retained_distribution_count_is_bounded(self):
+        profile = self.retained_profile(count=2001)
+        with self.assertRaisesRegex(ValueError, '2000'):
+            AUDIT.build_inventory(self.root, managed_profile=profile)
+
+    def test_managed_profile_rejects_special_file(self):
+        profile = self.root / 'profile-fifo'
+        import os
+        os.mkfifo(profile)
+        with self.assertRaisesRegex(ValueError, 'regular file'):
+            AUDIT.build_inventory(self.root, managed_profile=profile)
 
     def test_partial_retained_evidence_remains_explicitly_unresolved(self):
         profile = self.retained_profile(partial=True)

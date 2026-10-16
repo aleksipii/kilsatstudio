@@ -16,7 +16,7 @@ estimated-cue import, optional GPU fixture and license inventory are integrated.
 PR #27's user-reported first M1 Kokoro speech evidence is preserved.
 
 The next increment below is implemented in the development branch and **not yet
-merged**. Its complete Rust/CI checks remain pending; do not treat these changes
+merged**. Its local Rust checks passed; final CI remains pending. Do not treat these changes
 as release or hardware acceptance.
 
 | Completed | Still open |
@@ -589,9 +589,9 @@ Audit collection is not license clearance. See [bones](per-bone-editor.md),
 and [dependency evidence](dependency-audit.md).
 
 
-## Native acceptance tooling and retained provenance (next increment, unmerged)
+## Native acceptance tooling and retained provenance (PR #31, unmerged)
 
-Implemented source is awaiting full Rust/CI validation and merge:
+Implemented source passed local validation and is awaiting final CI and merge:
 
 - [x] Selected advanced-layer canvas routes immutable snapshots through a bounded
   shared CPU compositor with generation/sample guards and speech-mouth overrides.
@@ -602,12 +602,16 @@ Implemented source is awaiting full Rust/CI validation and merge:
 - [x] New consented managed installs retain sanitized freeze bytes, installed
   distribution metadata and bounded license texts with manifest/hash binding.
   Missing or budget-omitted texts stay unresolved; distribution approval is false.
-- [ ] Full workspace Rust tests, final CI, review and merge for this increment.
+- [x] Local workspace/all-target tests: 329 passed, three explicit encoder tests ignored.
+- [x] Independent integration reviews; EOF/error retry and Mac path-alias regressions fixed.
+- [ ] Final Linux/macOS CI and merge for this increment.
 - [ ] Actual Mac compositor/device timing, real Rhubarb quality, physical Metal
   fixture results, full-scene GPU parity and final artifact-specific license clearance.
 
-Current validation: workspace/all-target check passed; 42 runtime, 14 inventory
-and 10 packaging Python tests passed. Full Rust tests are pending at this record.
+Current validation: workspace/all-target check and strict Clippy passed; 329 Rust
+tests, 44 runtime, 16 inventory and 10 packaging Python tests passed. The first
+CI checkpoint found a macOS canonical path alias regression, fixed with an alias
+and escape regression test. Final CI remains pending at this record.
 No real engine, speech inference or GPU hardware execution is claimed here.
 See [native compositor](native-compositor.md), [native alignment](native-alignment.md),
 [Metal device check](gpu-device-check.md) and [retained provenance](license-provenance.md).

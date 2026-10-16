@@ -115,6 +115,44 @@ class SetupTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'hash mismatch'):
                 setup.validate_profile_evidence(profile, root)
 
+    def test_evidence_accepts_root_directory_alias_but_rejects_child_escape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            actual = parent / 'actual'
+            actual.mkdir()
+            alias = parent / 'alias'
+            alias.symlink_to(actual, target_is_directory=True)
+            freeze = 'kokoro==0.9.4\n'
+            revision = 'a' * 40 + ':' + hashlib.sha256(freeze.encode()).hexdigest()
+            def collector(*args):
+                (actual / 'evidence/distributions.json').write_text('{"schema_version":1,"installed":[]}')
+            with mock.patch.object(setup, 'run', side_effect=collector):
+                reference = setup.retain_evidence(alias, '/not-run', manifest(), freeze, revision, None)
+            profile = dict(revision=revision, license_evidence=reference)
+            self.assertEqual(setup.validate_profile_evidence(profile, alias)['freeze'], freeze)
+            external = parent / 'external.txt'
+            external.write_text(freeze)
+            (actual / 'evidence/freeze.txt').unlink()
+            (actual / 'evidence/freeze.txt').symlink_to(external)
+            with self.assertRaisesRegex(ValueError, 'escapes'):
+                setup.validate_profile_evidence(profile, alias)
+
+    def test_evidence_reader_rejects_growth_and_special_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'growing'
+            path.write_bytes(b'four')
+            # Pretend fstat observed a smaller file before a concurrent growth.
+            with mock.patch.object(setup.os, 'fstat', return_value=mock.Mock(st_mode=0o100600, st_size=0)):
+                with self.assertRaisesRegex(ValueError, 'budget'):
+                    setup.read_bounded_regular(path, 3)
+            with self.assertRaisesRegex(ValueError, 'regular file'):
+                setup.read_bounded_regular(root, 100)
+            fifo = root / 'fifo'
+            setup.os.mkfifo(fifo)
+            with self.assertRaisesRegex(ValueError, 'regular file'):
+                setup.read_bounded_regular(fifo, 100)
+
     def test_old_profiles_and_redaction(self):
         with tempfile.TemporaryDirectory() as directory:
             self.assertIsNone(setup.validate_profile_evidence({'revision': 'old'}, directory))
