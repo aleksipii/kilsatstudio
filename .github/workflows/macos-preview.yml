@@ -33,6 +33,8 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Build desktop preview
         run: cargo build --locked -p studio-desktop --target aarch64-apple-darwin
+      - name: Build explicit Metal fixture helper
+        run: cargo build --locked -p motion-render --features gpu --example gpu_probe --target aarch64-apple-darwin
       - name: Package ad-hoc signed app
         run: |
           binary=target/aarch64-apple-darwin/debug/studio-desktop
@@ -46,8 +48,18 @@ jobs:
               if not library.startswith(("/System/Library/", "/usr/lib/")):
                   raise SystemExit(f"Unexpected non-system runtime dependency: {library}")
           PY
+          helper=target/aarch64-apple-darwin/debug/examples/gpu_probe
+          test "$(lipo -archs "$helper")" = arm64
+          python3 - "$helper" <<'PY'
+          import subprocess, sys
+          for line in subprocess.check_output(["otool", "-L", sys.argv[1]], text=True).splitlines()[1:]:
+              library = line.strip().split(" (", 1)[0]
+              if not library.startswith(("/System/Library/", "/usr/lib/")):
+                  raise SystemExit(f"Unexpected helper dependency: {library}")
+          PY
+          strip -x "$helper"
           strip -x "$binary"
-          python3 scripts/package_macos.py --binary "$binary" --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
+          python3 scripts/package_macos.py --binary "$binary" --gpu-probe "$helper" --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
       - name: Verify packaged diagnostic helpers
         run: |
           python3 - <<'PY'
@@ -55,6 +67,9 @@ jobs:
           from pathlib import Path
           root = 'Kilsat Studio Preview.app/Contents/Resources/services/kokoro-runtime/'
           with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
+              helper = archive.getinfo('Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe')
+              if not (helper.external_attr >> 16) & 0o111:
+                  raise SystemExit('GPU helper lost executable permissions')
               for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py', 'setup_kokoro.py', 'setup-manifest.json']:
                   source = Path('services/kokoro-runtime', helper).read_bytes()
                   if archive.read(root + helper) != source:

@@ -2885,6 +2885,7 @@ dependencies = [
  "motion-voice",
  "rodio",
  "serde_json",
+ "sha2",
 ]
 
 [[package]]

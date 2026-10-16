@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Consent-gated, isolated local Kokoro installer. No assets are bundled."""
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -9,6 +10,7 @@ import platform
 import re
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -101,7 +103,7 @@ def download(url, path, digest, size, cancel_file):
         raise ValueError('Downloaded asset failed size or SHA256 verification.')
 
 
-def run(command, cancel_file, timeout=1800):
+def run(command, cancel_file, timeout=1800, max_output=MAX_LOG):
     # A file avoids unbounded pipe buffering and pipe deadlocks.
     with tempfile.TemporaryFile() as log:
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
@@ -135,13 +137,173 @@ def run(command, cancel_file, timeout=1800):
         except ProcessLookupError:
             pass
         log.seek(0)
-        result = log.read(MAX_LOG + 1)
-        if len(result) > MAX_LOG:
+        result = log.read(max_output + 1)
+        if len(result) > max_output:
             raise RuntimeError('Setup command output exceeded the bounded result limit.')
         text = result.decode('utf-8', errors='replace')
         if process.returncode:
             raise RuntimeError('Setup command failed: ' + text[-4000:])
         return text
+
+
+MAX_EVIDENCE = 8 * 1024 * 1024
+
+
+def read_bounded_regular(path, limit):
+    # Nonblocking open prevents a raced FIFO from blocking before fstat.
+    flags = os.O_RDONLY | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    descriptor = os.open(path, flags)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode):
+            raise ValueError('Evidence input must be a regular file.')
+        if info.st_size > limit:
+            raise ValueError('Evidence input exceeds budget.')
+        with os.fdopen(descriptor, 'rb') as stream:
+            descriptor = None  # The stream now owns and closes the descriptor.
+            raw = stream.read(limit + 1)
+        if len(raw) > limit:
+            raise ValueError('Evidence input exceeds budget.')
+        return raw
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def sanitized_freeze(text):
+    # Retain every requirement, but never retain credentials, fragments or queries.
+    from urllib.parse import urlsplit, urlunsplit
+    def clean(match):
+        value = urlsplit(match.group(0))
+        host = value.hostname or ''
+        if value.port:
+            host += ':' + str(value.port)
+        return urlunsplit((value.scheme, host, value.path, '', ''))
+    return re.sub(r'[A-Za-z][A-Za-z0-9+.-]*://[^\s]+', clean, text)
+
+
+def collect_installed_metadata(output, distributions=None, prefix=None):
+    # Executed by the selected isolated interpreter; never import package code.
+    import importlib.metadata
+    prefix = Path(prefix or sys.prefix).resolve(strict=True)
+    rows = []
+    retained = 0
+    serialized_bytes = 0
+    for distribution in distributions if distributions is not None else importlib.metadata.distributions():
+        metadata = distribution.metadata
+        row = dict(name=metadata.get('Name'), version=metadata.get('Version'),
+                   declared_license=metadata.get('License-Expression') or metadata.get('License'),
+                   classifiers=metadata.get_all('Classifier') or [], licenses=[],
+                   artifact_hash_status='installed-files-are-not-wheel-hashes', review_status='unreviewed')
+        if not row['name'] or not row['version']:
+            raise ValueError('Installed distribution lacks name/version.')
+        files = distribution.files
+        row['files_status'] = 'available' if files is not None else 'absent'
+        for item in files or []:
+            name = str(item).replace('\\', '/')
+            basename = PurePosixPath(name).name.lower()
+            if not (basename.startswith(('license', 'licence', 'copying', 'notice')) or '.dist-info/licenses/' in name.lower()):
+                continue
+            path = Path(distribution.locate_file(item)).resolve(strict=True)
+            if not path.is_relative_to(prefix):
+                raise ValueError('Installed license escapes the selected environment.')
+            size = path.stat().st_size
+            entry = dict(path=str(path.relative_to(prefix)), size_bytes=size)
+            if size > 256 * 1024:
+                entry['content_status'] = 'not-collected-size-budget'
+            elif retained + size > 4 * 1024 * 1024:
+                entry['content_status'] = 'not-collected-total-budget'
+            else:
+                raw = read_bounded_regular(path, 256 * 1024)
+                if len(raw) > 256 * 1024:
+                    entry['content_status'] = 'not-collected-size-budget'
+                    entry['size_bytes'] = path.stat().st_size
+                elif retained + len(raw) > 4 * 1024 * 1024:
+                    entry['content_status'] = 'not-collected-total-budget'
+                else:
+                    retained += len(raw)
+                    entry.update(content_status='collected', sha256=hashlib.sha256(raw).hexdigest(),
+                                 size_bytes=len(raw), content_base64=base64.b64encode(raw).decode('ascii'))
+            row['licenses'].append(entry)
+        row['licenses'].sort(key=lambda item: item['path'])
+        if row['declared_license']:
+            row['declared_license'] = sanitized_freeze(row['declared_license'])
+        serialized_bytes += len(json.dumps(row).encode('utf-8'))
+        if serialized_bytes > MAX_EVIDENCE:
+            raise ValueError('Distribution metadata exceeds evidence budget.')
+        rows.append(row)
+        if len(rows) > 2000:
+            raise ValueError('Too many installed distributions.')
+    rows.sort(key=lambda row: (row['name'].lower(), row['version']))
+    raw = (json.dumps(dict(schema_version=1, installed=rows), sort_keys=True, indent=2) + '\n').encode()
+    if len(raw) > MAX_EVIDENCE:
+        raise ValueError('Installed metadata evidence exceeds 8 MiB.')
+    Path(output).write_bytes(raw)
+
+
+def retain_evidence(root, python, manifest, freeze, revision, cancel_file):
+    directory = root / 'evidence'
+    directory.mkdir()
+    (directory / 'freeze.txt').write_text(freeze, encoding='utf-8')
+    output = directory / 'distributions.json'
+    code = "import runpy; m=runpy.run_path(" + repr(str(Path(__file__).resolve())) + "); m['collect_installed_metadata'](" + repr(str(output)) + ")"
+    run([str(python), '-I', '-c', code], cancel_file, 120)
+    references = []
+    for name in ('freeze.txt', 'distributions.json'):
+        path = directory / name
+        raw = read_bounded_regular(path, 1024 * 1024 if name == 'freeze.txt' else MAX_EVIDENCE)
+        references.append(dict(path=name, sha256=hashlib.sha256(raw).hexdigest(), size_bytes=len(raw)))
+    index = dict(schema_version=1, revision=revision, setup_manifest=manifest,
+                 setup_manifest_sha256=hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest(),
+                 files=references, distribution_approved=False)
+    raw = (json.dumps(index, indent=2, sort_keys=True) + '\n').encode()
+    path = directory / 'index.json'
+    path.write_bytes(raw)
+    return dict(schema_version=1, path=str(path), sha256=hashlib.sha256(raw).hexdigest())
+
+
+def validate_profile_evidence(profile, root):
+    reference = profile.get('license_evidence')
+    if reference is None:
+        return None  # Existing profiles intentionally remain readable.
+    root = Path(root).resolve(strict=True)
+    path = Path(reference['path'])
+    if reference.get('schema_version') != 1 or not path.is_absolute() or path.resolve(strict=True) != root / 'evidence/index.json':
+        raise ValueError('Invalid managed evidence reference.')
+    # macOS commonly exposes the same temporary root through /var and /private/var.
+    # Compare children against the already-validated canonical index directory.
+    path = path.resolve(strict=True)
+    raw = read_bounded_regular(path, 1024 * 1024)
+    if len(raw) > 1024 * 1024 or hashlib.sha256(raw).hexdigest() != reference.get('sha256'):
+        raise ValueError('Managed evidence index hash mismatch.')
+    index = json.loads(raw)
+    if index.get('schema_version') != 1 or index.get('revision') != profile['revision'] or index.get('distribution_approved') is not False:
+        raise ValueError('Managed evidence revision/schema mismatch.')
+    manifest = validate_manifest(index.get('setup_manifest', {}))
+    manifest_hash = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()
+    if manifest_hash != index.get('setup_manifest_sha256') or not profile['revision'].startswith(manifest['model_revision'] + ':'):
+        raise ValueError('Managed evidence manifest binding mismatch.')
+    files = index.get('files')
+    if not isinstance(files, list) or sorted(item['path'] for item in files) != ['distributions.json', 'freeze.txt']:
+        raise ValueError('Managed evidence file set mismatch.')
+    documents = {}
+    for item in files:
+        selected = (path.parent / item['path']).resolve(strict=True)
+        limit = 1024 * 1024 if item['path'] == 'freeze.txt' else MAX_EVIDENCE
+        if selected.parent != path.parent:
+            raise ValueError('Managed evidence file escapes directory.')
+        data = read_bounded_regular(selected, limit)
+        if len(data) != item['size_bytes'] or hashlib.sha256(data).hexdigest() != item['sha256']:
+            raise ValueError('Managed evidence file hash mismatch.')
+        documents[item['path']] = data
+    if not profile['revision'].endswith(':' + hashlib.sha256(documents['freeze.txt']).hexdigest()):
+        raise ValueError('Managed freeze revision mismatch.')
+    distributions = json.loads(documents['distributions.json'])
+    if (not isinstance(distributions, dict) or distributions.get('schema_version') != 1 or
+            not isinstance(distributions.get('installed'), list) or len(distributions['installed']) > 2000):
+        raise ValueError('Invalid retained distribution evidence or count exceeds 2000.')
+    return dict(index=index, freeze=documents['freeze.txt'].decode('utf-8'),
+                distributions=distributions)
 
 
 def install(root, manifest, cancel_file):
@@ -173,7 +335,7 @@ def install(root, manifest, cancel_file):
         download(manifest['english_model_url'], wheel, manifest['english_model_sha256'], manifest['english_model_size_bytes'], cancel_file)
         emit('packages', 'running', 'Installing pinned packages and the verified English wheel.')
         run([str(python), '-m', 'pip', '--isolated', 'install', '--only-binary=:all:', '--index-url', 'https://pypi.org/simple', *manifest['packages'], str(wheel)], cancel_file)
-        freeze = run([str(python), '-m', 'pip', '--isolated', 'freeze', '--all'], cancel_file, 60)
+        freeze = sanitized_freeze(run([str(python), '-m', 'pip', '--isolated', 'freeze', '--all'], cancel_file, 60, max_output=1024 * 1024))
         voices = assets / 'voices'
         emit('doctor', 'running', 'Checking local prerequisites; this does not run speech inference.')
         command = [str(python), str(Path(__file__).with_name('doctor.py')), '--config', str(assets / 'config.json'), '--model', str(assets / 'kokoro-v1_0.pth')]
@@ -185,6 +347,8 @@ def install(root, manifest, cancel_file):
         cache = root / 'cache'
         cache.mkdir()
         profile = dict(schema_version=1, python=str(python), config=str(assets / 'config.json'), model=str(assets / 'kokoro-v1_0.pth'), voices=str(voices), cache=str(cache), revision=manifest['model_revision'] + ':' + hashlib.sha256(freeze.encode()).hexdigest())
+        profile['license_evidence'] = retain_evidence(root, python, manifest, freeze, profile['revision'], cancel_file)
+        validate_profile_evidence(profile, root)
         cancelled(cancel_file)
         pending = root / 'profile.json.tmp'
         pending.write_text(json.dumps(profile, indent=2) + '\n')

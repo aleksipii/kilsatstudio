@@ -205,6 +205,7 @@ fn profile(root: &Path) -> Result<Profile, String> {
         .filter(|s| !s.is_empty() && s.len() <= 512)
         .ok_or("Missing model revision")?
         .to_owned();
+    crate::managed_license_evidence::validate(&root, &value)?;
     Ok(Profile {
         python,
         config: field("config", false)?,

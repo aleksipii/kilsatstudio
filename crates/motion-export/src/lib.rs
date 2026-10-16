@@ -1,6 +1,8 @@
 //! Bounded, cancellable SVG/audio interchange export on the shared sample clock.
 //! SVG, PNG and explicitly configured local FFmpeg video share the same scene clock.
 mod media;
+mod preview_scene;
+pub use preview_scene::ScenePreview;
 mod sequence;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art};
 use motion_lipsync::{AlignmentSource, Viseme};

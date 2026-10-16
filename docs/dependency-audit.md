@@ -19,7 +19,7 @@ executes an encoder or runs Cargo/pip. No license is automatically accepted.
 - [x] Hash explicitly selected external binaries without executing them.
 - [x] Keep every entry unreviewed, distinguish absent installed evidence, and
   provide a strict exit code that fails while release-review gaps remain.
-- [x] Ten offline tests cover identity matching, determinism, input changes,
+- [x] Fourteen offline inventory tests cover retained-evidence integrity, identity matching, determinism, input changes,
   exact-pin validation, mismatched Python versions and nonexecuted binary hashes.
 
 Reproduce an inventory from the checkout:
@@ -50,6 +50,17 @@ URLs: inspect before publishing. `--strict` currently exits **1 deliberately**;
 zero means collection succeeded without strict gating, not release approval.
 Exit 2 identifies invalid inputs or file errors.
 
+For retained evidence from a new managed installation:
+
+```sh
+python3 scripts/license_inventory.py \
+  --managed-profile /absolute/managed-root/profile.json \
+  --output dependency-inventory.json --strict
+```
+
+This validates retained hashes without subprocesses, downloads or inference.
+Collected text remains unreviewed; strict mode still rejects unresolved clearance.
+
 ## Repository evidence at this checkpoint
 
 The unextended Cargo.lock contains **423 packages** (including workspace and
@@ -61,9 +72,13 @@ Generate a fresh report after dependency changes; this count is historical.
 Managed setup pins `kokoro==0.9.4`, `misaki[en]==0.9.4`, `torch==2.6.0`,
 `numpy==1.26.4`, and `spacy==3.7.5`. Development `requirements.txt` instead
 contains broad Torch/NumPy constraints. Neither is a complete transitive wheel
-lock. `setup_kokoro.py` includes the SHA256 of `pip freeze --all` in its profile
-revision; it does **not** retain the complete freeze text or wheel hashes, so
-that hash alone cannot reconstruct the environment.
+lock. New consented installs retain sanitized complete `pip freeze --all` bytes,
+distribution metadata, bounded available license/NOTICE text and the exact setup
+manifest under a profile-bound evidence index. License texts omitted by explicit
+size budgets remain unresolved. Existing profiles without evidence remain readable
+but cannot supply this inventory mode; no automatic reinstall is performed.
+Original wheel hashes and a complete transitive platform lock are still absent.
+See [retained managed-install provenance](license-provenance.md).
 
 The setup manifest identifies repository `hexgrad/Kokoro-82M`, revision
 `f3ff3571791e39611d31c381e3a41a3af07b4987`, and four hashed files: config,

@@ -92,8 +92,12 @@ class SetupTests(unittest.TestCase):
     def test_complete_profile_only_after_successful_doctor(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(setup.platform, 'system', return_value='Darwin'), mock.patch.object(setup.sys, 'version_info', (3, 11)), contextlib.redirect_stdout(io.StringIO()):
             root = Path(directory) / 'new'
-            def fake_run(command, cancel_file, timeout=1800):
+            def fake_run(command, cancel_file, timeout=1800, **kwargs):
                 self.assertFalse((root / 'profile.json').exists())
+                if '-c' in command:
+                    output = root / 'evidence/distributions.json'
+                    output.write_text(json.dumps({'schema_version': 1, 'installed': []}))
+                    return ''
                 if 'doctor.py' in ' '.join(command):
                     return '{"ok":true}'
                 return 'kokoro==0.9.4\n' if 'freeze' in command else ''
@@ -105,6 +109,124 @@ class SetupTests(unittest.TestCase):
             for field in ('python', 'config', 'model', 'voices', 'cache'):
                 self.assertTrue(Path(profile[field]).is_relative_to(root))
             self.assertTrue(profile['revision'].startswith('a' * 40 + ':'))
+            evidence = setup.validate_profile_evidence(profile, root)
+            self.assertEqual(evidence['freeze'], 'kokoro==0.9.4\n')
+            (root / 'evidence/freeze.txt').write_text('tampered')
+            with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+                setup.validate_profile_evidence(profile, root)
+
+    def test_evidence_accepts_root_directory_alias_but_rejects_child_escape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            actual = parent / 'actual'
+            actual.mkdir()
+            alias = parent / 'alias'
+            alias.symlink_to(actual, target_is_directory=True)
+            freeze = 'kokoro==0.9.4\n'
+            revision = 'a' * 40 + ':' + hashlib.sha256(freeze.encode()).hexdigest()
+            def collector(*args):
+                (actual / 'evidence/distributions.json').write_text('{"schema_version":1,"installed":[]}')
+            with mock.patch.object(setup, 'run', side_effect=collector):
+                reference = setup.retain_evidence(alias, '/not-run', manifest(), freeze, revision, None)
+            profile = dict(revision=revision, license_evidence=reference)
+            self.assertEqual(setup.validate_profile_evidence(profile, alias)['freeze'], freeze)
+            external = parent / 'external.txt'
+            external.write_text(freeze)
+            (actual / 'evidence/freeze.txt').unlink()
+            (actual / 'evidence/freeze.txt').symlink_to(external)
+            with self.assertRaisesRegex(ValueError, 'escapes'):
+                setup.validate_profile_evidence(profile, alias)
+
+    def test_evidence_reader_rejects_growth_and_special_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'growing'
+            path.write_bytes(b'four')
+            # Pretend fstat observed a smaller file before a concurrent growth.
+            with mock.patch.object(setup.os, 'fstat', return_value=mock.Mock(st_mode=0o100600, st_size=0)):
+                with self.assertRaisesRegex(ValueError, 'budget'):
+                    setup.read_bounded_regular(path, 3)
+            with self.assertRaisesRegex(ValueError, 'regular file'):
+                setup.read_bounded_regular(root, 100)
+            fifo = root / 'fifo'
+            setup.os.mkfifo(fifo)
+            with self.assertRaisesRegex(ValueError, 'regular file'):
+                setup.read_bounded_regular(fifo, 100)
+
+    def test_old_profiles_and_redaction(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.assertIsNone(setup.validate_profile_evidence({'revision': 'old'}, directory))
+        self.assertEqual(setup.sanitized_freeze('pkg @ https://user:secret@example.org/pkg.whl?token=hidden#sha256=abc\n'),
+                         'pkg @ https://example.org/pkg.whl\n')
+
+    def test_oversized_license_fails_before_read(self):
+        from email.message import Message
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'LICENSE'
+            with path.open('wb') as stream:
+                stream.truncate(256 * 1024 + 1)
+            metadata = Message()
+            metadata['Name'] = 'example'
+            metadata['Version'] = '1.0'
+            distribution = mock.Mock(metadata=metadata, files=['LICENSE'])
+            distribution.locate_file.return_value = path
+            with mock.patch.object(Path, 'read_bytes', side_effect=AssertionError('oversized file read')):
+                setup.collect_installed_metadata(root / 'metadata.json', [distribution], root)
+            entry = json.loads((root / 'metadata.json').read_text())['installed'][0]['licenses'][0]
+            self.assertEqual(entry['content_status'], 'not-collected-size-budget')
+            self.assertNotIn('sha256', entry)
+            self.assertNotIn('content_base64', entry)
+
+    def test_total_text_budget_records_remaining_license_without_content(self):
+        from email.message import Message
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = []
+            for index in range(17):
+                name = 'LICENSE-' + str(index)
+                (root / name).write_bytes(b'x' * (256 * 1024))
+                paths.append(name)
+            metadata = Message()
+            metadata['Name'] = 'example'
+            metadata['Version'] = '1.0'
+            distribution = mock.Mock(metadata=metadata, files=paths)
+            distribution.locate_file.side_effect = lambda name: root / name
+            setup.collect_installed_metadata(root / 'metadata.json', [distribution], root)
+            entries = json.loads((root / 'metadata.json').read_text())['installed'][0]['licenses']
+            skipped = [entry for entry in entries if entry['content_status'] != 'collected']
+            self.assertEqual(len(skipped), 1)
+            self.assertEqual(skipped[0]['content_status'], 'not-collected-total-budget')
+            self.assertNotIn('sha256', skipped[0])
+            self.assertNotIn('content_base64', skipped[0])
+
+    def test_metadata_collects_real_bytes_and_rejects_escape(self):
+        from email.message import Message
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            license_path = root / 'x.dist-info/LICENSE'
+            license_path.parent.mkdir()
+            license_path.write_bytes(b'copyright\nMIT\n')
+            metadata = Message()
+            metadata['Name'] = 'example'
+            metadata['Version'] = '1.2'
+            metadata['License-Expression'] = 'MIT'
+            distribution = mock.Mock(metadata=metadata, files=['x.dist-info/LICENSE'])
+            distribution.locate_file.side_effect = lambda path: root / path
+            output = root / 'metadata.json'
+            setup.collect_installed_metadata(output, [distribution], root)
+            row = json.loads(output.read_text())['installed'][0]
+            self.assertEqual(row['declared_license'], 'MIT')
+            self.assertEqual(row['licenses'][0]['sha256'], hashlib.sha256(license_path.read_bytes()).hexdigest())
+            self.assertEqual(setup.base64.b64decode(row['licenses'][0]['content_base64']), license_path.read_bytes())
+            with tempfile.TemporaryDirectory() as outside:
+                escaped = Path(outside) / 'LICENSE'
+                escaped.write_text('outside')
+                license_path.unlink()
+                license_path.symlink_to(escaped)
+                with self.assertRaisesRegex(ValueError, 'escapes'):
+                    setup.collect_installed_metadata(output, [distribution], root)
+
 
 
 if __name__ == '__main__':

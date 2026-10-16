@@ -179,10 +179,10 @@ for the result associated with each exact commit.
 
 Still unverified or unfinished:
 
-- Real Kokoro CPU synthesis on macOS/Apple Silicon with the approved local assets.
+- Broader offline/device acceptance beyond the user-reported successful M1 Kokoro CPU tests for `af_heart` and `am_michael`; see [recorded evidence](docs/kokoro-in-app-acceptance.md#recorded-mac-evidence).
 - GUI/audio interaction beyond confirmed launch, hardware latency and perceptual lip-sync quality.
 - Practical macOS cancellation validation and robust runtime device-loss recovery.
-- Textured character rigs, offscreen GPU rendering, parallel rendering and production release packaging.
+- Textured character rigs, full-scene GPU rendering/parity, physical Metal evidence, parallel rendering and production release packaging.
 - Real-Mac validation of the new local MP4 path and media synchronization with actual speech.
 - Complete model/voice/dependency redistribution audit and locked Python environment.
 
@@ -216,6 +216,10 @@ remain enabled in CI.
 - [Actor keyframes](docs/actor-keyframes.md)
 - [Keyframe editor](docs/keyframe-editor.md)
 - [Artwork acceptance](docs/art-acceptance.md)
+- [Selected-scene CPU compositor](docs/native-compositor.md)
+- [Native estimated mouth timing](docs/native-alignment.md)
+- [Packaged Metal device check](docs/gpu-device-check.md)
+- [Retained license provenance](docs/license-provenance.md)
 - [Composition and camera](docs/composition.md)
 - [Asset inventory management](docs/asset-management.md)
 - [Bounded jobs and benchmark](docs/jobs-performance.md)
@@ -260,3 +264,14 @@ drafts while preserving pasted timing maps. Undo restores exact source text
 and clears timing maps under the existing history policy. YAML is normalized and
 comments removed on Apply. Script dimensions permit 16384 per side, while SVG
 export supports 8192; audio export supports one hour.
+
+
+### Current development increment
+
+PR #30 is merged and synchronized to `kilsatstudio1.0`. The next unmerged
+increment adds selected-scene shared CPU frames for advanced masks/blending,
+explicit prepared-line Rhubarb estimation with separate Apply, a packaged Metal
+fixture check and retained managed-install license evidence. See the guides above
+and [master progress](docs/master-progress.md) for actual validation. These tools
+do not establish real recognizer quality, physical Mac device/GPU acceptance,
+full-scene GPU parity or distribution clearance.
