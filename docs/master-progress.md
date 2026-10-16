@@ -337,3 +337,8 @@ behavior. It covers solid colors; background images and cross-scene transitions
 remain open. Core, desktop and independent review agents contributed; the parent
 owns export regressions, integration and completion marking. Validation evidence
 is recorded in the pull request after final checks.
+
+| Date | Completed increment | Evidence and scope |
+| --- | --- | --- |
+| 2026-10-16 | Timed solid background colors, PR #22 | 205 Rust workspace/all-target tests passed locally; decoded PNG/SVG color boundary coverage; strict installed-driver Clippy/workspace check, direct rustfmt and diff check passed. |
+| 2026-10-16 | Atomic settings Apply | Shrink/remove, shrink/retime, extend/add and exact source Undo regressions passed; independent review blocker resolved. Real Mac GUI and background-image/transition work remain open. |
