@@ -64,6 +64,21 @@ pub enum Content {
         color: Color,
     },
 }
+/// Rendering plane; older projects retain their foreground stacking order.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Plane {
+    Background,
+    #[default]
+    Foreground,
+}
+/// Scene-local, half-open visibility interval in seconds.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TimeRange {
+    pub start: f64,
+    pub end: f64,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Layer {
@@ -71,6 +86,10 @@ pub struct Layer {
     pub scene_id: String,
     pub name: String,
     pub visible: bool,
+    #[serde(default)]
+    pub plane: Plane,
+    #[serde(default)]
+    pub active: Option<TimeRange>,
     pub opacity: f64,
     /// Actor translation only; coordinates and clipping remain actor-local.
     pub attachment: Option<String>,
@@ -104,6 +123,17 @@ impl Rect {
         Ok(())
     }
 }
+impl Layer {
+    /// Visibility at a scene-local time; an interval excludes its end boundary.
+    pub fn is_active(&self, time: f64) -> bool {
+        self.visible
+            && time.is_finite()
+            && time >= 0.0
+            && self
+                .active
+                .is_none_or(|range| range.start <= time && time < range.end)
+    }
+}
 impl Document {
     pub fn validate(&self) -> Result<(), Error> {
         if self.layers.len() > MAX_LAYERS {
@@ -125,6 +155,14 @@ impl Document {
                 || !(0.0..=1.0).contains(&layer.opacity)
             {
                 return invalid("layer name or opacity is invalid");
+            }
+            if layer.active.is_some_and(|range| {
+                !range.start.is_finite()
+                    || !range.end.is_finite()
+                    || range.start < 0.0
+                    || range.start >= range.end
+            }) {
+                return invalid("layer active interval requires finite nonnegative start < end");
             }
             if let Some(clip) = layer.clip {
                 clip.validate()?;
@@ -205,6 +243,8 @@ mod tests {
             scene_id: "intro".into(),
             name: "Ink".into(),
             visible: true,
+            plane: Plane::Foreground,
+            active: None,
             opacity: 1.0,
             attachment: None,
             clip: Some(Rect {
@@ -223,6 +263,44 @@ mod tests {
                 },
                 width: 2.0,
             },
+        }
+    }
+    #[test]
+    fn active_intervals_are_half_open_and_require_finite_nonnegative_time() {
+        let mut item = layer();
+        assert!(item.is_active(0.0));
+        for time in [-1.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            assert!(!item.is_active(time));
+        }
+        item.active = Some(TimeRange {
+            start: 1.0,
+            end: 2.0,
+        });
+        assert!(!item.is_active(0.999));
+        assert!(item.is_active(1.0));
+        assert!(item.is_active(1.999));
+        assert!(!item.is_active(2.0));
+        item.visible = false;
+        assert!(!item.is_active(1.5));
+    }
+    #[test]
+    fn invalid_intervals_are_rejected_transactionally() {
+        let mut doc = Document {
+            layers: vec![layer()],
+        };
+        let before = doc.clone();
+        for (start, end) in [
+            (-1.0, 2.0),
+            (1.0, 1.0),
+            (2.0, 1.0),
+            (f64::NAN, 2.0),
+            (0.0, f64::INFINITY),
+            (0.0, f64::NAN),
+        ] {
+            let mut item = layer();
+            item.active = Some(TimeRange { start, end });
+            assert!(doc.apply(Command::Replace(item)).is_err());
+            assert_eq!(doc, before);
         }
     }
     #[test]

@@ -77,6 +77,8 @@ fn camera_at(keys: &[motion_script::CameraKey], time: f64) -> CameraPose {
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct EvaluatedScene {
+    /// Validated scene-local evaluation time in seconds.
+    pub time: f64,
     pub camera: CameraPose,
     pub background_color: String,
     /// Whole-canvas opacity over black, for fades at scene edges.
@@ -232,6 +234,7 @@ pub fn evaluate(
         1.0
     };
     Ok(EvaluatedScene {
+        time: time_seconds,
         camera: camera_at(&composition.camera, time_seconds),
         background_color: composition
             .background_keys
@@ -274,6 +277,10 @@ scenes:
         assert_eq!(evaluate(&script, 0, 0.0).unwrap().actors[0].x, 960.0);
         assert_eq!(evaluate(&script, 0, 1.0).unwrap().actors[0].x, 680.0);
         let middle = evaluate(&script, 0, 3.0).unwrap();
+        assert_eq!(middle.time, 3.0);
+        for time in [8.0, 0.0, 1.25, 3.0] {
+            assert_eq!(evaluate(&script, 0, time).unwrap().time, time);
+        }
         assert_eq!(middle.actors[0].emotion, "happy");
         assert_eq!(middle.actors[0].wave, 1.0);
         assert_eq!(evaluate(&script, 0, 3.5).unwrap().actors[0].wave, 0.0);

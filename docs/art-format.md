@@ -8,8 +8,10 @@ and artwork smuggled into a v1 file fail rather than silently losing edits.
 
 Each layer has a stable globally unique `id`, a stable `scene_id`, editable name,
 visibility, opacity (0–1), optional actor identifier `attachment`, optional
-rectangular `clip`, and typed content. Vector order is drawing order, back to
-front. Content is an image referencing an image inventory asset, freehand stroke,
+rectangular `clip`, `plane` (`background` or `foreground`) and optional
+`active: {start, end}` in scene seconds. Missing plane/active fields in existing
+v2 projects load as foreground/always visible. Within each plane, vector order
+is drawing order, back to front. Content is an image referencing an image inventory asset, freehand stroke,
 filled rectangle, or filled ellipse. RGBA colors use integer bytes. Geometry uses
 finite scene coordinates; rectangles have positive dimensions. Attached artwork
 and its clip use actor-local coordinates translated by the actor position; this
@@ -38,3 +40,18 @@ same image interpretation. No network resource or SVG image script is loaded.
 PNG alpha is preserved. JPEG is decoded to RGBA. Unsupported, oversized, truncated
 or unavailable resources return actionable errors; callers must display those
 errors instead of treating inventory presence as successful image rendering.
+
+## Background images and visibility
+
+Background layers draw after the solid background and before actors; foreground
+layers draw after actors. This placement applies to images and vector artwork.
+There is no per-actor interleaving. Plane order takes precedence over the global
+vector order. Both planes share camera transforms, canvas clipping and fades.
+
+An active interval is half-open: `start <= time < end`. Times must be finite,
+`0 <= start < end <= scene.duration`. Omitting `active` keeps the layer visible
+throughout the scene, including endpoint inspection. `visible: false` hides a
+layer regardless of timing. Project validation rejects shortening a scene beyond
+an existing interval; retime artwork first. Save/load and artwork Undo preserve
+plane and interval. Older strict application builds may reject these new fields;
+the current loader accepts older v2 files without them.

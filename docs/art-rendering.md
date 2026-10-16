@@ -1,9 +1,10 @@
 # Artwork rendering and export
 
 The native artwork editor and scene export use the persisted `motion-art::Document`.
-Artwork is foreground content: visible layers for the selected scene are painted
-in document order after procedural characters. This initial implementation does
-not interleave art layers with character layers. Hidden actor attachments are
+Visible background layers draw before procedural characters and foreground layers
+after them, in document order within each plane. Optional half-open intervals use
+`EvaluatedScene.time` from the same validated scene/sample clock. Layers are not
+interleaved between individual characters. Hidden actor attachments are
 hidden with their actor. Attachments inherit actor translation only; root rotation
 and scale apply to procedural character bodies/faces, not attached artwork.
 
@@ -36,3 +37,10 @@ apply. Individual SVG frames have a 48 MiB artwork budget. Tests export embedded
 images, rectangular clips and strokes and inspect the resulting raster pixels.
 These checks establish deterministic compositing, not Mac GPU or physical display
 validation.
+
+Timed resources are decoded by the existing bounded background loader, not at
+each visibility transition. Export preflights visible image resources even when
+their interval begins after frame zero, and rejects intervals beyond the selected
+scene before creating output. Raster regressions inspect background, foreground
+and actor pixels on the exact start/end frames. This supplies timed scene images,
+not image crossfades or transitions between separate scenes.
