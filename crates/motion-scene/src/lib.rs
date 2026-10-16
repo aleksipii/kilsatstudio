@@ -1,6 +1,34 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
+use motion_animation::HumanoidState;
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
+pub use motion_animation::{GESTURES, POSTURE_BLEND_SECONDS};
+use motion_lipsync::Viseme;
 use motion_script::{Event, Script};
+
+/// Head dip, in local skeleton units, at a fully open mouth.
+pub const SPEECH_HEAD_DIP: f64 = 3.0;
+
+/// Rule-based mouth openness used for speech head motion; rest and closed are zero.
+pub fn viseme_openness(viseme: Viseme) -> f64 {
+    match viseme {
+        Viseme::Rest | Viseme::Closed => 0.0,
+        Viseme::A => 1.0,
+        Viseme::O | Viseme::U => 0.7,
+        Viseme::E | Viseme::I => 0.4,
+        _ => 0.3,
+    }
+}
+
+/// Applies speech head motion from the same per-actor visemes the mouth renders,
+/// so preview and export share one audio sample clock. Missing actors are ignored;
+/// actors without a viseme are unchanged.
+pub fn apply_speech(scene: &mut EvaluatedScene, mouths: &[(&str, Viseme)]) {
+    for actor in &mut scene.actors {
+        if let Some((_, viseme)) = mouths.iter().find(|(id, _)| *id == actor.id) {
+            actor.skeleton[HEAD].y += viseme_openness(*viseme) * SPEECH_HEAD_DIP;
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ActorPose {
@@ -10,7 +38,7 @@ pub struct ActorPose {
     pub emotion: String,
     pub rotation: f64,
     pub scale: Vec2,
-    /// Wave envelope in 0..=1; zero outside a wave event.
+    /// Envelope of the active gesture in 0..=1; zero outside gesture events.
     pub wave: f64,
     /// Evaluated local-space skeletal joints shared by preview and export.
     pub skeleton: [Vec2; 7],
@@ -164,6 +192,14 @@ pub fn evaluate(
                 skeleton: motion_animation::humanoid(None, 0.0),
             };
             let mut walk_seconds = None;
+            let mut emotion_changes = Vec::new();
+            let mut gesture = None;
+            let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
+                if pose.emotion != *value {
+                    pose.emotion = value.clone();
+                    emotion_changes.push((value.clone(), time_seconds - at));
+                }
+            };
             for event in &events {
                 let (at, actor) = event.actor_time();
                 if actor != id || at > time_seconds {
@@ -182,21 +218,36 @@ pub fn evaluate(
                         pose.x += (x - pose.x) * progress;
                         pose.y += (y - pose.y) * progress;
                     }
-                    Event::Emotion { value, .. } => pose.emotion = value.clone(),
+                    Event::Emotion { value, .. } => set_emotion(&mut pose, value, at),
                     Event::Speak {
                         emotion: Some(value),
                         ..
-                    } => pose.emotion = value.clone(),
-                    Event::Gesture { duration, .. } => {
+                    } => set_emotion(&mut pose, value, at),
+                    Event::Gesture {
+                        value, duration, ..
+                    } => {
+                        // Validation guarantees a known gesture. The strongest active
+                        // envelope wins; ties keep the earlier event.
                         let progress = (time_seconds - at) / duration;
-                        if (0.0..1.0).contains(&progress) {
-                            pose.wave = pose.wave.max((std::f64::consts::PI * progress).sin());
+                        let weight = motion_animation::gesture_envelope(progress);
+                        if weight > pose.wave {
+                            pose.wave = weight;
+                            gesture = motion_animation::Gesture::parse(value)
+                                .map(|g| (g, progress, weight));
                         }
                     }
                     Event::Speak { .. } => {}
                 }
             }
-            pose.skeleton = motion_animation::humanoid(walk_seconds, pose.wave);
+            let emotion_changes: Vec<_> = emotion_changes
+                .iter()
+                .map(|(emotion, since)| (emotion.as_str(), *since))
+                .collect();
+            pose.skeleton = motion_animation::evaluate_humanoid(&HumanoidState {
+                walk_seconds,
+                emotion_changes: &emotion_changes,
+                gesture,
+            });
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
                 let value = motion_animation::Track::new(
@@ -291,14 +342,71 @@ scenes:
             evaluate(&script, 0, 1.0 / 6.0).unwrap().actors[0].skeleton,
             evaluate(&script, 0, 2.0).unwrap().actors[0].skeleton
         );
-        assert_eq!(middle.actors[0].skeleton[RIGHT_HAND].y, -85.0);
+        // Wave lifts the hand 65 units; the happy posture raises the chest 3 more.
+        assert_eq!(middle.actors[0].skeleton[RIGHT_HAND].y, -88.0);
         assert!(evaluate(&script, 0, f64::NAN).is_err());
         assert!(evaluate(&script, 1, 0.0).is_err());
     }
     #[test]
+    fn rule_layers_select_gesture_clip_and_blend_posture() {
+        let script = motion_script::parse(&SCRIPT.replace("value: wave", "value: nod")).unwrap();
+        let at = |t| evaluate(&script, 0, t).unwrap().actors[0].clone();
+        // Nod moves the head, not the hand.
+        assert!(at(2.75).skeleton[HEAD].y > at(2.4).skeleton[HEAD].y);
+        assert_eq!(at(2.75).skeleton[RIGHT_HAND], at(2.4).skeleton[RIGHT_HAND]);
+        assert_eq!(at(3.5).skeleton, at(3.9).skeleton);
+        // Happy posture eases in after the emotion event at 2.0 s.
+        let before = at(1.99).skeleton[CHEST].y;
+        let during = at(2.0 + POSTURE_BLEND_SECONDS / 2.0).skeleton[CHEST].y;
+        let after = at(2.0 + POSTURE_BLEND_SECONDS).skeleton[CHEST].y;
+        assert!(before > during && during > after);
+        assert_eq!(after, at(2.4).skeleton[CHEST].y);
+        // Seeking backwards yields the same pose as evaluating directly.
+        let forward = at(2.1);
+        at(7.0);
+        assert_eq!(at(2.1), forward);
+        // A second emotion inside the blend window continues from the in-flight pose.
+        let quick = motion_script::parse(&SCRIPT.replace(
+            "      - {type: gesture",
+            "      - {type: emotion, at: 2.1, actor: EMMA, value: sad}\n      - {type: gesture",
+        ))
+        .unwrap();
+        let chest = |t| evaluate(&quick, 0, t).unwrap().actors[0].skeleton[CHEST].y;
+        assert!((chest(2.1) - chest(2.0999)).abs() < 0.01);
+        assert!(chest(2.1 + POSTURE_BLEND_SECONDS) > chest(1.99));
+        for name in motion_animation::GESTURES {
+            motion_script::parse(&SCRIPT.replace("value: wave", &format!("value: {name}")))
+                .unwrap();
+        }
+    }
+    #[test]
+    fn speech_head_motion_follows_supplied_visemes_only() {
+        let script = motion_script::parse(SCRIPT).unwrap();
+        let base = evaluate(&script, 0, 3.0).unwrap();
+        let mut open = base.clone();
+        apply_speech(&mut open, &[("EMMA", Viseme::A)]);
+        assert_eq!(
+            open.actors[0].skeleton[HEAD].y,
+            base.actors[0].skeleton[HEAD].y + SPEECH_HEAD_DIP
+        );
+        assert_eq!(
+            open.actors[0].skeleton[CHEST],
+            base.actors[0].skeleton[CHEST]
+        );
+        let mut silent = base.clone();
+        apply_speech(&mut silent, &[("EMMA", Viseme::Rest), ("OTHER", Viseme::A)]);
+        assert_eq!(silent, base);
+        let mut none = base.clone();
+        apply_speech(&mut none, &[]);
+        assert_eq!(none, base);
+    }
+    #[test]
     fn rejects_invalid_commands_and_overlapping_moves() {
         assert!(motion_script::parse(&SCRIPT.replace("at: 4.0", "at: 1.0")).is_err());
-        assert!(motion_script::parse(&SCRIPT.replace("value: wave", "value: dance")).is_err());
+        assert!(matches!(
+            motion_script::parse(&SCRIPT.replace("value: wave", "value: dance")),
+            Err(motion_script::Error::Unsupported(message)) if message.contains("wave, point, nod, shrug")
+        ));
         assert!(motion_script::parse(&SCRIPT.replace("value: happy", "value: confused")).is_err());
         assert!(motion_script::parse(&SCRIPT.replace("x: 800", "x: .nan")).is_err());
         assert!(motion_script::parse(&SCRIPT.replace("duration: 8.0", "duration: 5.0")).is_err());

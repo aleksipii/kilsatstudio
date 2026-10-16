@@ -1697,6 +1697,7 @@ name = "motion-scene"
 version = "0.1.0"
 dependencies = [
  "motion-animation",
+ "motion-lipsync",
  "motion-script",
  "serde_json",
  "thiserror 2.0.21",

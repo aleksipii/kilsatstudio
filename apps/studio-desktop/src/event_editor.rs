@@ -50,7 +50,9 @@ impl Draft {
                 egui::ComboBox::from_label("Gesture")
                     .selected_text(value.as_str())
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(value, "wave".into(), "wave");
+                        for name in motion_scene::GESTURES {
+                            ui.selectable_value(value, name.into(), name);
+                        }
                     });
                 number(ui, "Duration (s)", duration);
             }

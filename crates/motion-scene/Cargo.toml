@@ -5,6 +5,7 @@ edition.workspace = true
 [dependencies]
 motion-animation = { path = "../motion-animation" }
 motion-script = { path = "../motion-script" }
+motion-lipsync = { path = "../motion-lipsync" }
 thiserror.workspace = true
 [dev-dependencies]
 serde_json.workspace = true

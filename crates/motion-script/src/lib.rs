@@ -655,9 +655,10 @@ impl Script {
                     Event::Gesture {
                         value, duration, ..
                     } => {
-                        if value != "wave" {
+                        if motion_animation::Gesture::parse(value).is_none() {
                             return Err(Error::Unsupported(format!(
-                                "gesture {value}: supported gesture is wave"
+                                "gesture {value}: supported gestures are {}",
+                                motion_animation::GESTURES.join(", ")
                             )));
                         }
                         validate_duration(*duration, at, s.duration)?;

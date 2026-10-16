@@ -18,6 +18,7 @@ and passing Linux/macOS CI, media encoding and Apple Silicon packaging.
 | --- | --- |
 | Timed solid colors/images, native editors and shared preview/export | Cross-scene transitions |
 | Bounded joint PoseTrack sampler and weighted pose-blend API | Persisted per-bone editor, textured rigs and preview/export integration |
+| Rule-based posture, walk, gesture and speech-motion clips shared by preview/export (PR #26) | Artist-authored/persisted clips, per-bone editor and Mac visual review |
 | Atomic duration/composition settings and source Undo | Full unified project/asset history and advanced editor tools |
 | Managed Kokoro installation and speech-test UI | Real Mac inference/listening, alignment quality and device synchronization |
 | CPU SVG/PNG/MP4 and bounded parallel frames | GPU rendering, production benchmarks and final distribution/license audit |
@@ -86,6 +87,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Validated transform keyframe interpolation API: linear/smoothstep/hold and shortest rotation.
 - [x] Persistent per-scene actor root transform tracks and detached keyframe/easing editor.
 - [x] Headless per-joint PoseTrack sampler and validated weighted pose-blending API.
+- [x] Rule-based keyframe clip library in shared preview/export: emotion posture blending, walk, wave/point/nod/shrug gestures and viseme-driven speech head motion.
 - [ ] Persisted per-bone custom tracks, rig editing and preview/export integration.
 - [ ] Animation blending integrated with persisted tracks, desktop preview and export.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
@@ -441,3 +443,22 @@ Automatic alignment, phone-boundary editing, real-audio corpus quality, physical
 Mac synchronization and actual Kokoro/offline synthesis remain open alongside
 transitions, full per-bone tooling, advanced compositing, unified history, GPU
 rendering, production performance and final license/distribution audit.
+
+## Rule-based character animation increment
+
+PR #26 replaces the hand-written humanoid pose math with an additive keyframe
+clip library in `motion-animation`. Emotion postures blend over 0.25 s with
+`blend_pose`, a keyframed walk cycle plays during moves, `wave`, `point`, `nod`
+and `shrug` gestures play under a sine in/out envelope, and
+`motion_scene::apply_speech` dips the head by mouth openness from the same
+per-actor visemes the mouth renders, in desktop preview and frame export.
+Unknown gestures remain explicit unsupported errors. The master build prompt
+now also describes Rhubarb Lip Sync as a candidate offline mouth-timing backend;
+it is documentation only, not an implemented or evaluated integration.
+
+| Date | Completed increment | Executed evidence and limits |
+| --- | --- | --- |
+| 2026-10-16 | Clip library, posture/gesture/walk layers and speech head motion | Local Linux: `cargo fmt --all --check`, `cargo check --workspace`, `cargo clippy --workspace --all-targets` and `cargo test --workspace` passed on the merged head with PR #25 (238 tests passed, 2 ignored, including the interrupted posture-blend regression). No Mac GUI run, visual motion review or perceptual speech-motion check. |
+
+Persisted or artist-authored clips, per-bone editing, textured parts, a Rhubarb
+or other automatic timing backend and measured mouth-timing quality remain open.
