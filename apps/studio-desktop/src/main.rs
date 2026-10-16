@@ -1259,7 +1259,7 @@ impl Studio {
         ui.add_space(12.0);
         if let Some(script) = &self.script {
             match motion_scene::evaluate(script, self.scene_index, self.playhead) {
-                Ok(scene) => {
+                Ok(mut scene) => {
                     let frame = (self.playhead * 24000.0).round() as u64;
                     let mouths: Vec<_> = if let Some(preview) = &self.scene_preview {
                         scene_mouths(&preview.clips, frame)
@@ -1276,6 +1276,7 @@ impl Studio {
                             .into_iter()
                             .collect()
                     };
+                    motion_scene::apply_speech(&mut scene, &mouths);
                     let scene_id = &script.scenes[self.scene_index].id;
                     if let Some(document) = &self.project_document {
                         self.art_resources

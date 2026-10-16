@@ -334,9 +334,10 @@ fn encode_frame(
         .ok_or_else(|| invalid("frame clock overflow"))?
         / script.project.fps as u64;
     let time = sample as f64 / SAMPLE_RATE as f64;
-    let pose =
+    let mut pose =
         motion_scene::evaluate(script, scene_index, time).map_err(|e| invalid(e.to_string()))?;
     let mouths = mouths_at(&rendered.manifest, sample);
+    motion_scene::apply_speech(&mut pose, &mouths);
     let svg = match art {
         Some(art) => motion_render::render_svg_with_art(
             &pose,

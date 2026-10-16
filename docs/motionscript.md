@@ -20,8 +20,8 @@ what this implementation actually accepts.
 | type | Required additional fields | Behavior |
 | --- | --- | --- |
 | move | x, y, duration | Linear movement to project-space coordinates, from the last completed pose; positive duration, ending inside the scene |
-| emotion | value | neutral, happy, sad, surprised or angry |
-| gesture | value, duration | wave only, deterministic envelope over a positive duration |
+| emotion | value | neutral, happy, sad, surprised or angry; also eases the body posture over 0.25 s |
+| gesture | value, duration | wave, point, nod or shrug; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
 | speak | text | Dialogue job; requires character voice or event audio; optional emotion and audio |
 
 Move intervals for one actor cannot overlap. At time zero actors begin at the

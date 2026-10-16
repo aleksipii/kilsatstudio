@@ -1,5 +1,12 @@
-//! Deterministic keyframes and an original procedural seven-joint humanoid.
-use motion_rig::{Joint, Rig};
+//! Deterministic keyframes and an original rule-driven seven-joint humanoid.
+mod clips;
+pub use clips::{
+    evaluate_humanoid, gesture_envelope, Gesture, HumanoidState, GESTURES, POSTURE_BLEND_SECONDS,
+    WALK_CYCLE_SECONDS,
+};
+#[cfg(test)]
+use motion_rig::Joint;
+use motion_rig::Rig;
 pub use motion_rig::{Transform2, Vec2};
 pub const HIP: usize = 0;
 pub const CHEST: usize = 1;
@@ -170,50 +177,19 @@ impl Track {
         })
     }
 }
-/// Local skeleton points. Walk phase is elapsed seconds since the move began;
-/// the wave envelope is supplied by the shared scene clock.
+/// Local skeleton points with neutral posture. Walk phase is elapsed seconds
+/// since the move began; `wave` weights the wave clip at its midpoint.
 pub fn humanoid(walk_seconds: Option<f64>, wave: f64) -> [Vec2; 7] {
-    let positions = [
-        (0.0, -10.0, None),
-        (0.0, -40.0, Some(HIP)),
-        (0.0, -40.0, Some(CHEST)),
-        (-30.0, 30.0, Some(CHEST)),
-        (30.0, 30.0, Some(CHEST)),
-        (-20.0, 35.0, Some(HIP)),
-        (20.0, 35.0, Some(HIP)),
-    ];
-    let joints = positions
-        .iter()
-        .enumerate()
-        .map(|(i, &(x, y, parent))| Joint {
-            name: format!("joint_{i}"),
-            parent,
-            rest: Transform2 {
-                translation: Vec2::new(x, y),
-                ..Default::default()
-            },
-        })
-        .collect();
-    let rig = Rig::new(joints).expect("built-in rig is valid");
-    let mut pose = rig.rest_pose();
-    let stride = walk_seconds
-        .filter(|t| t.is_finite() && *t >= 0.0)
-        .map_or(0.0, |t| {
-            (t.rem_euclid(2.0 / 3.0) * std::f64::consts::TAU * 1.5).sin()
-        });
-    pose[HIP].translation.y -= stride.abs() * 2.0;
-    pose[LEFT_FOOT].translation.x += stride * 13.0;
-    pose[RIGHT_FOOT].translation.x -= stride * 13.0;
-    pose[LEFT_HAND].translation.x -= stride * 7.0;
-    pose[RIGHT_HAND].translation.x += stride * 7.0;
     let wave = if wave.is_finite() {
         wave.clamp(0.0, 1.0)
     } else {
         0.0
     };
-    pose[RIGHT_HAND].translation.y -= wave * 65.0;
-    let world = rig.evaluate(&pose).expect("bounded built-in pose");
-    std::array::from_fn(|i| world[i].point(Vec2::default()))
+    evaluate_humanoid(&HumanoidState {
+        walk_seconds,
+        gesture: Some((Gesture::Wave, 0.5, wave)),
+        ..Default::default()
+    })
 }
 #[cfg(test)]
 mod tests {
