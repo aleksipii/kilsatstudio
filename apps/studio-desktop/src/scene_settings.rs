@@ -56,7 +56,7 @@ impl Draft {
         ui.small("Shortening a scene is rejected if an event extends beyond its end.");
         ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
         ui.separator();
-        egui::CollapsingHeader::new("Camera, layers and fades").show(ui, |ui| {
+        egui::CollapsingHeader::new("Background, camera, layers and fades").show(ui, |ui| {
             crate::composition_editor::ui(
                 ui,
                 &mut self.composition,

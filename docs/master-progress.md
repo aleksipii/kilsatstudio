@@ -47,7 +47,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Scene add/duplicate/delete and character add/delete with reference/final-scene protection.
 - [x] Validated scene camera keyframes and deterministic pan/zoom evaluation.
 - [ ] Camera event commands or cinematic rule presets beyond scene camera tracks.
-- [ ] Scene transitions and timed background changes.
+- [x] Timed solid background-color tracks shared by preview and export.
+- [ ] Cross-scene transitions and timed background images.
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
 - [ ] Stable versioned editable compiled timeline representation.
@@ -79,7 +80,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persisted ordered/visible/opacity image and basic drawing layers with rectangular clip masks.
 - [ ] Layer groups, arbitrary masks and blend modes.
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
-- [x] Solid background color and scene-edge fades to black.
+- [x] Solid background color, timed step-color tracks and scene-edge fades to black.
 - [ ] Timed background images and true cross-scene transitions.
 - [ ] Offscreen GPU renderer using a verified macOS Metal path.
 - [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
@@ -106,7 +107,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Actor layer order/visibility and composition camera-key editor.
 - [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
 - [ ] Per-bone animation editing, pressure brushes, arbitrary masks and image retouching.
-- [x] Camera controls and scene-edge fades.
+- [x] Camera controls, timed background-color editor and scene-edge fades.
 - [ ] Cross-scene transitions and multi-scene composition.
 - [ ] Full project/asset history and shortcut/accessibility coverage.
 - [ ] Comprehensive interactive macOS workflow acceptance.
@@ -124,7 +125,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Clear distinction between facial emotion and acoustic conditioning.
 - [x] WAV-bound local acceptance reports and manual/candidate alignment error metrics.
 - [ ] Automatic alignment backend and actual quality acceptance; report tooling does not establish these.
-- [ ] Consented pinned asset provisioning with exact hashes and licenses.
+- [x] Consented managed Kokoro provisioning with pinned asset revisions, sizes and SHA256.
+- [ ] Complete dependency/asset license and redistribution audit.
 - [ ] Real local English Kokoro CPU WAV on Apple Silicon.
 - [ ] Offline synthesis after provisioning with networking disabled.
 - [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
@@ -322,3 +324,16 @@ performed for this artwork increment.
 Compatible host Python 3.10–3.12 is required. Model assets and Python are not
 bundled. No model installation or real inference was performed in development.
 See managed-kokoro.md and kokoro-in-app-acceptance.md for the acceptance procedure.
+
+## Timed background colors increment
+
+PR #21 was merged with approval as 3448fb031a6bb3953e09f893874952fa8c77427d;
+`main` and `kilsatstudio1.0` were synchronized. Its Linux/macOS CI and Apple
+Silicon preview packaging passed. Real Kokoro synthesis/listening remains open.
+
+This increment implements bounded, validated scene-local background color keys,
+inclusive step evaluation, native draft editing and shared preview/SVG/PNG/MP4
+behavior. It covers solid colors; background images and cross-scene transitions
+remain open. Core, desktop and independent review agents contributed; the parent
+owns export regressions, integration and completion marking. Validation evidence
+is recorded in the pull request after final checks.

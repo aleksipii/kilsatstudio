@@ -407,16 +407,14 @@ impl Studio {
             self.status = "Project and scene settings unchanged.".into();
             return;
         }
-        let source = match motion_script::apply_scene_settings(
+        let source = match motion_script::apply_scene_settings_with_composition(
             &self.source,
             draft.scene_index,
             draft.project.clone(),
             &draft.scene_id,
             draft.duration_seconds,
-        )
-        .and_then(|source| {
-            motion_script::apply_composition(&source, draft.scene_index, draft.composition.clone())
-        }) {
+            draft.composition.clone(),
+        ) {
             Ok(source) => source,
             Err(error) => {
                 self.settings_error = Some(error.to_string());
@@ -3409,6 +3407,120 @@ mod scene_preview_tests {
         studio.apply_settings_draft();
         assert_eq!(studio.source, original);
         assert!(studio.settings_error.is_some());
+    }
+    #[test]
+    fn timed_background_apply_undo_and_invalid_drafts_preserve_source() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+        studio.settings_draft_source = Some(original.clone());
+        let duration = studio.script.as_ref().unwrap().scenes[0].duration;
+        studio
+            .settings_draft
+            .as_mut()
+            .unwrap()
+            .composition
+            .background_keys = vec![
+            motion_script::BackgroundKey {
+                at: 0.0,
+                color: "#102030".into(),
+            },
+            motion_script::BackgroundKey {
+                at: duration,
+                color: "#ABCDEF".into(),
+            },
+        ];
+        studio.apply_settings_draft();
+        assert_ne!(studio.source, original);
+        let keys = &studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .background_keys;
+        assert_eq!(keys.len(), 2);
+        assert_eq!(keys[1].at, duration);
+        assert_eq!(keys[1].color, "#ABCDEF");
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        // Each rejected draft is evaluated against the original, including when
+        // other valid settings would otherwise be committed by the same Apply.
+        let invalid = [
+            vec![(0.0, "red")],
+            vec![(-1.0, "#123456")],
+            vec![(duration + 1.0, "#123456")],
+            vec![(1.0, "#123456"), (1.0, "#654321")],
+            vec![(2.0, "#123456"), (1.0, "#654321")],
+            vec![(f64::NAN, "#123456")],
+        ];
+        for keys in invalid {
+            studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+            studio.settings_draft_source = Some(original.clone());
+            let draft = studio.settings_draft.as_mut().unwrap();
+            draft.project.title = "Must not be committed".into();
+            draft.composition.background_keys = keys
+                .into_iter()
+                .map(|(at, color)| motion_script::BackgroundKey {
+                    at,
+                    color: color.into(),
+                })
+                .collect();
+            studio.apply_settings_draft();
+            assert_eq!(studio.source, original);
+            assert!(studio.settings_error.is_some());
+        }
+    }
+    #[test]
+    fn background_and_duration_changes_apply_in_one_validated_transaction() {
+        for remove_key in [false, true] {
+            let mut studio = Studio::default();
+            studio.source = "project:\n  title: Timed background\ncharacters:\n  EMMA:\n    asset: characters/emma\nscenes:\n  - id: first\n    duration: 5.0\n    composition:\n      background_keys:\n        - at: 4.0\n          color: '#123456'\n    events: []\n".into();
+            studio.validate();
+            let original = studio.source.clone();
+            studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+            studio.settings_draft_source = Some(original.clone());
+            let draft = studio.settings_draft.as_mut().unwrap();
+            draft.duration_seconds = 2.0;
+            if remove_key {
+                draft.composition.background_keys.clear();
+            } else {
+                draft.composition.background_keys[0].at = 2.0;
+            }
+            studio.apply_settings_draft();
+            assert!(
+                studio.settings_error.is_none(),
+                "{:?}",
+                studio.settings_error
+            );
+            let scene = &studio.script.as_ref().unwrap().scenes[0];
+            assert_eq!(scene.duration, 2.0);
+            assert_eq!(
+                scene.composition.background_keys.len(),
+                usize::from(!remove_key)
+            );
+            studio.undo_edit(false);
+            assert_eq!(studio.source, original);
+            studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+            studio.settings_draft_source = Some(original.clone());
+            let draft = studio.settings_draft.as_mut().unwrap();
+            draft.duration_seconds = 8.0;
+            draft
+                .composition
+                .background_keys
+                .push(motion_script::BackgroundKey {
+                    at: 8.0,
+                    color: "#ABCDEF".into(),
+                });
+            studio.apply_settings_draft();
+            assert!(
+                studio.settings_error.is_none(),
+                "{:?}",
+                studio.settings_error
+            );
+            let scene = &studio.script.as_ref().unwrap().scenes[0];
+            assert_eq!(scene.duration, 8.0);
+            assert_eq!(scene.composition.background_keys[1].at, 8.0);
+            studio.undo_edit(false);
+            assert_eq!(studio.source, original);
+        }
     }
     #[test]
     fn asset_worker_remove_keeps_source_and_physical_file() {

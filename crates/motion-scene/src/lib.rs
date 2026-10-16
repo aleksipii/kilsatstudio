@@ -233,7 +233,13 @@ pub fn evaluate(
     };
     Ok(EvaluatedScene {
         camera: camera_at(&composition.camera, time_seconds),
-        background_color: composition.background_color.clone(),
+        background_color: composition
+            .background_keys
+            .iter()
+            .rev()
+            .find(|key| key.at <= time_seconds)
+            .map_or(&composition.background_color, |key| &key.color)
+            .clone(),
         opacity: fade_in.min(fade_out),
         width: script.project.width,
         height: script.project.height,
@@ -411,5 +417,46 @@ scenes:
         assert!((face.x - 500.0).abs() < 1e-9);
         assert!((face.y - 522.0).abs() < 1e-9);
         assert_eq!(quarter, evaluate(&script, 0, 1.0).unwrap());
+    }
+}
+
+#[cfg(test)]
+mod background_key_tests {
+    use super::*;
+    #[test]
+    fn background_steps_are_inclusive_and_seek_order_independent() {
+        let script = motion_script::parse(
+            r##"
+characters: {}
+scenes:
+- id: shot
+  duration: 4
+  events: []
+  composition:
+    background_color: '#112233'
+    background_keys:
+    - {at: 1, color: '#445566'}
+    - {at: 3, color: '#778899'}
+    - {at: 4, color: '#aabbcc'}
+"##,
+        )
+        .unwrap();
+        for (time, color) in [
+            (4.0, "#aabbcc"),
+            (0.0, "#112233"),
+            (3.0, "#778899"),
+            (0.999, "#112233"),
+            (1.0, "#445566"),
+            (2.999, "#445566"),
+            (4.0, "#aabbcc"),
+        ] {
+            assert_eq!(evaluate(&script, 0, time).unwrap().background_color, color);
+        }
+        let mut at_zero = script.clone();
+        at_zero.scenes[0].composition.background_keys[0].at = 0.0;
+        assert_eq!(
+            evaluate(&at_zero, 0, 0.0).unwrap().background_color,
+            "#445566"
+        );
     }
 }
