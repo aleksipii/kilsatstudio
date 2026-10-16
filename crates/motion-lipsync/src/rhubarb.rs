@@ -403,10 +403,8 @@ fn preflight_wav(b: &[u8]) -> Result<(), AlignmentError> {
                 }
                 block = Some(align as usize);
             }
-            b"data" => {
-                if data.replace(size).is_some() {
-                    return Err(invalid());
-                }
+            b"data" if data.replace(size).is_some() => {
+                return Err(invalid());
             }
             _ => {}
         }
