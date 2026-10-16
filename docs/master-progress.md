@@ -9,15 +9,17 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #30 merged as `de41228c0b68daece521cef1406361b21df0c3a6` after its final
-Linux/macOS CI passed. The release branch `kilsatstudio1.0` is synchronized.
+PR #31 merged as `82f1b3116f6d8647e20076b0e2803f2fd2adedba` after its final
+Linux/macOS CI passed. PR #30 was merged earlier as
+`de41228c0b68daece521cef1406361b21df0c3a6`. The release branch
+`kilsatstudio1.0` is synchronized with this merge and progress record.
 Its authored bone editor, chronological history, geometric masks/CPU blending,
 estimated-cue import, optional GPU fixture and license inventory are integrated.
 PR #27's user-reported first M1 Kokoro speech evidence is preserved.
 
-The next increment below is implemented in the development branch and **not yet
-merged**. Its local Rust checks passed; final CI remains pending. Do not treat these changes
-as release or hardware acceptance.
+The native acceptance tooling below is merged. Its implementation and CI checks
+are complete; physical hardware, real recognizer quality, full-scene GPU rendering
+and final redistribution clearance remain open.
 
 | Completed | Still open |
 | --- | --- |
@@ -589,9 +591,9 @@ Audit collection is not license clearance. See [bones](per-bone-editor.md),
 and [dependency evidence](dependency-audit.md).
 
 
-## Native acceptance tooling and retained provenance (PR #31, unmerged)
+## Native acceptance tooling and retained provenance (PR #31, merged)
 
-Implemented source passed local validation and is awaiting final CI and merge:
+Implemented source passed local validation, independent review and final CI:
 
 - [x] Selected advanced-layer canvas routes immutable snapshots through a bounded
   shared CPU compositor with generation/sample guards and speech-mouth overrides.
@@ -604,14 +606,24 @@ Implemented source passed local validation and is awaiting final CI and merge:
   Missing or budget-omitted texts stay unresolved; distribution approval is false.
 - [x] Local workspace/all-target tests: 329 passed, three explicit encoder tests ignored.
 - [x] Independent integration reviews; EOF/error retry and Mac path-alias regressions fixed.
-- [ ] Final Linux/macOS CI and merge for this increment.
+- [x] Final Linux/macOS CI and merge for this increment.
 - [ ] Actual Mac compositor/device timing, real Rhubarb quality, physical Metal
   fixture results, full-scene GPU parity and final artifact-specific license clearance.
 
 Current validation: workspace/all-target check and strict Clippy passed; 329 Rust
 tests, 44 runtime, 16 inventory and 10 packaging Python tests passed. The first
 CI checkpoint found a macOS canonical path alias regression, fixed with an alias
-and escape regression test. Final CI remains pending at this record.
+and escape regression test. Final head `5e0237143799d4d2bde61d91c5b8831cb11374fc`
+passed Audio foundation run 38959215597 (Linux/macOS fmt/check/strict Clippy,
+329 default tests, optional GPU tests/Clippy, Python checks and three actual
+encoder tests) and Apple Silicon preview run 38959215483. Local optional GPU
+validation passed 14 adapter-free tests with actual device execution ignored;
+all three actual encoder tests passed locally too. The arm64 package includes
+the independently signed Metal helper; bundle/helper architecture, signatures
+and packaged executable permissions were checked. Uploaded artifact SHA256:
+`d1ee4aea05b1dc2791cbdb6871debd9fed7b4db8a6e1813f5e9b8e14c127d651`.
+Package: https://github.com/aleksipii/kilsatstudio/actions/runs/38959215483/artifacts/12071129527
+This post-merge edit records evidence only and changes no implementation.
 No real engine, speech inference or GPU hardware execution is claimed here.
 See [native compositor](native-compositor.md), [native alignment](native-alignment.md),
 [Metal device check](gpu-device-check.md) and [retained provenance](license-provenance.md).
