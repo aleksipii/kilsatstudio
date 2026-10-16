@@ -566,9 +566,16 @@ check and strict Clippy with local Rust 1.90. The optional GPU library passed
 14 adapter-free tests (one actual GPU test deliberately ignored) and feature
 Clippy. Eighteen Python packaging/audit tests passed again after restoring the
 checkpoint. Two independent reviews found no blocker in unified history/masks
-and estimated-cue/GPU bounds. Source checkpoint 794cdb71 passed Mac preview and
-real media CI; its Rust CI stopped at a newer Clippy match-style lint. The
-behavior-preserving guard fix is now under final Linux/macOS CI.
+and estimated-cue/GPU bounds. Final implementation/documentation head
+`f986a736c0166c2b9b652fed6ce61b0c77296955` passed all Linux/macOS CI:
+Audio foundation run 38955230988 includes fmt/check/strict Clippy, 303 default
+Rust tests, the optional GPU feature tests/Clippy, runtime/packaging/audit Python
+tests and all three actual media-encoder tests. GPU feature testing passes
+14 adapter-free tests and intentionally skips actual device execution.
+Apple Silicon preview run 38955231046 passed build/package/signature checks and
+uploaded the arm64 artifact (SHA256
+`3a41892e8da0afea8bd7cf9b5435aa76e09a16b43cc24d340aa9b5be11c7be6a`).
+This subsequent edit records evidence only; it changes no implementation.
 
 No actual Rhubarb engine, Kokoro inference or GPU device was executed here.
 Estimated mouth shapes are not phonemes or forced alignment. GPU fixture
