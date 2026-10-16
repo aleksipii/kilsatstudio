@@ -29,7 +29,9 @@ fn invalid(message: &str) -> Error {
 fn samples(seconds: f64) -> Result<u64, Error> {
     let value = (seconds * f64::from(SEQUENCE_SAMPLE_RATE)).round();
     if !seconds.is_finite() || seconds <= 0.0 || value < 1.0 || value >= u64::MAX as f64 {
-        return Err(invalid("duration must round to a representable positive sample count"));
+        return Err(invalid(
+            "duration must round to a representable positive sample count",
+        ));
     }
     Ok(value as u64)
 }
@@ -48,7 +50,9 @@ impl SequenceTimeline {
                 Transition::Cut => 0,
                 Transition::Crossfade { duration } => samples(duration)?,
             };
-            total = start.checked_add(duration).ok_or_else(|| invalid("sequence duration overflow"))?;
+            total = start
+                .checked_add(duration)
+                .ok_or_else(|| invalid("sequence duration overflow"))?;
             spans.push(SceneSpan {
                 scene_index: index,
                 scene_id: scene.id.clone(),
@@ -56,30 +60,53 @@ impl SequenceTimeline {
                 duration_samples: duration,
                 outgoing_overlap: overlap,
             });
-            start = total.checked_sub(overlap).ok_or_else(|| invalid("crossfade duration overflow"))?;
+            start = total
+                .checked_sub(overlap)
+                .ok_or_else(|| invalid("crossfade duration overflow"))?;
         }
-        Ok(Self { spans, total_samples: total })
+        Ok(Self {
+            spans,
+            total_samples: total,
+        })
     }
-    pub fn spans(&self) -> &[SceneSpan] { &self.spans }
-    pub fn total_samples(&self) -> u64 { self.total_samples }
+    pub fn spans(&self) -> &[SceneSpan] {
+        &self.spans
+    }
+    pub fn total_samples(&self) -> u64 {
+        self.total_samples
+    }
     /// Evaluate [0, total_samples). At the first overlap sample both scenes
     /// are returned and the incoming weight is exactly zero.
     pub fn sample(&self, global_sample: u64) -> Result<Vec<SceneContribution>, Error> {
-        if global_sample >= self.total_samples { return Err(Error::InvalidTime); }
+        if global_sample >= self.total_samples {
+            return Err(Error::InvalidTime);
+        }
         let mut contributions = Vec::with_capacity(2);
         for (index, span) in self.spans.iter().enumerate() {
-            if global_sample < span.start_sample || global_sample - span.start_sample >= span.duration_samples { continue; }
+            if global_sample < span.start_sample
+                || global_sample - span.start_sample >= span.duration_samples
+            {
+                continue;
+            }
             let local = global_sample - span.start_sample;
             let mut weight = 1.0;
             if index > 0 {
                 let overlap = self.spans[index - 1].outgoing_overlap;
-                if local < overlap { weight = local as f64 / overlap as f64; }
+                if local < overlap {
+                    weight = local as f64 / overlap as f64;
+                }
             }
             if span.outgoing_overlap > 0 {
                 let fade_start = span.duration_samples - span.outgoing_overlap;
-                if local >= fade_start { weight = 1.0 - (local - fade_start) as f64 / span.outgoing_overlap as f64; }
+                if local >= fade_start {
+                    weight = 1.0 - (local - fade_start) as f64 / span.outgoing_overlap as f64;
+                }
             }
-            contributions.push(SceneContribution { scene_index: span.scene_index, local_sample: local, weight });
+            contributions.push(SceneContribution {
+                scene_index: span.scene_index,
+                local_sample: local,
+                weight,
+            });
         }
         Ok(contributions)
     }
@@ -89,7 +116,21 @@ impl SequenceTimeline {
 mod tests {
     use super::*;
     fn script(durations: &[f64]) -> Script {
-        Script { project: Default::default(), characters: Default::default(), scenes: durations.iter().enumerate().map(|(i, duration)| motion_script::Scene { composition: Default::default(), background: None, id: format!("s{i}"), duration: *duration, events: vec![] }).collect() }
+        Script {
+            project: Default::default(),
+            characters: Default::default(),
+            scenes: durations
+                .iter()
+                .enumerate()
+                .map(|(i, duration)| motion_script::Scene {
+                    composition: Default::default(),
+                    background: None,
+                    id: format!("s{i}"),
+                    duration: *duration,
+                    events: vec![],
+                })
+                .collect(),
+        }
     }
     #[test]
     fn cut_boundaries_and_legacy_defaults() {
@@ -98,7 +139,14 @@ mod tests {
         let timeline = SequenceTimeline::compile(&value).unwrap();
         assert_eq!(timeline.total_samples(), 72_000);
         assert_eq!(timeline.sample(23_999).unwrap()[0].scene_index, 0);
-        assert_eq!(timeline.sample(24_000).unwrap(), vec![SceneContribution { scene_index: 1, local_sample: 0, weight: 1.0 }]);
+        assert_eq!(
+            timeline.sample(24_000).unwrap(),
+            vec![SceneContribution {
+                scene_index: 1,
+                local_sample: 0,
+                weight: 1.0
+            }]
+        );
         assert!(timeline.sample(72_000).is_err());
     }
     #[test]
@@ -108,7 +156,12 @@ mod tests {
         let timeline = SequenceTimeline::compile(&value).unwrap();
         assert_eq!(timeline.total_samples(), 96_000);
         assert_eq!(timeline.spans()[1].start_sample, 24_000);
-        for (sample, outgoing, incoming) in [(36_000, 0.5, 0.5), (24_000, 1.0, 0.0), (42_000, 0.25, 0.75), (30_000, 0.75, 0.25)] {
+        for (sample, outgoing, incoming) in [
+            (36_000, 0.5, 0.5),
+            (24_000, 1.0, 0.0),
+            (42_000, 0.25, 0.75),
+            (30_000, 0.75, 0.25),
+        ] {
             let result = timeline.sample(sample).unwrap();
             assert_eq!(result.len(), 2);
             assert_eq!(result[0].weight, outgoing);

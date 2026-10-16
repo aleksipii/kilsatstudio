@@ -80,7 +80,9 @@ impl Default for Composition {
 pub enum Transition {
     #[default]
     Cut,
-    Crossfade { duration: f64 },
+    Crossfade {
+        duration: f64,
+    },
 }
 impl<'de> Deserialize<'de> for Transition {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
@@ -709,20 +711,37 @@ impl Script {
             let outgoing = match scene.composition.transition {
                 Transition::Cut => 0,
                 Transition::Crossfade { duration } => {
-                    let next = self.scenes.get(index + 1).ok_or_else(|| fail("final scene cannot crossfade".into()))?;
-                    let overlap = transition_samples(duration).ok_or_else(|| fail("crossfade duration requires at least one finite 24 kHz sample".into()))?;
-                    let current = transition_samples(scene.duration).ok_or_else(|| fail("crossfade scene duration exceeds sequence clock".into()))?;
-                    let following = transition_samples(next.duration).ok_or_else(|| fail("crossfade scene duration exceeds sequence clock".into()))?;
+                    let next = self
+                        .scenes
+                        .get(index + 1)
+                        .ok_or_else(|| fail("final scene cannot crossfade".into()))?;
+                    let overlap = transition_samples(duration).ok_or_else(|| {
+                        fail("crossfade duration requires at least one finite 24 kHz sample".into())
+                    })?;
+                    let current = transition_samples(scene.duration).ok_or_else(|| {
+                        fail("crossfade scene duration exceeds sequence clock".into())
+                    })?;
+                    let following = transition_samples(next.duration).ok_or_else(|| {
+                        fail("crossfade scene duration exceeds sequence clock".into())
+                    })?;
                     if overlap >= current || overlap >= following {
-                        return Err(fail("crossfade must be shorter than both neighboring scenes".into()));
+                        return Err(fail(
+                            "crossfade must be shorter than both neighboring scenes".into(),
+                        ));
                     }
                     overlap
                 }
             };
             if incoming > 0 && outgoing > 0 {
-                let length = transition_samples(scene.duration).ok_or_else(|| fail("invalid sequence duration".into()))?;
-                if incoming.checked_add(outgoing).is_none_or(|sum| sum > length) {
-                    return Err(fail("incoming and outgoing crossfades cannot overlap".into()));
+                let length = transition_samples(scene.duration)
+                    .ok_or_else(|| fail("invalid sequence duration".into()))?;
+                if incoming
+                    .checked_add(outgoing)
+                    .is_none_or(|sum| sum > length)
+                {
+                    return Err(fail(
+                        "incoming and outgoing crossfades cannot overlap".into(),
+                    ));
                 }
             }
             incoming = outgoing;
@@ -1497,15 +1516,36 @@ mod transition_tests {
     }
     #[test]
     fn composition_edit_validates_transition_atomically_and_strictly() {
-        let mut composition = Composition { transition: Transition::Crossfade { duration: 0.5 }, ..Default::default() };
+        let mut composition = Composition {
+            transition: Transition::Crossfade { duration: 0.5 },
+            ..Default::default()
+        };
         let updated = apply_composition(SOURCE, 0, composition.clone()).unwrap();
-        assert_eq!(parse(&updated).unwrap().scenes[0].composition.transition, composition.transition);
+        assert_eq!(
+            parse(&updated).unwrap().scenes[0].composition.transition,
+            composition.transition
+        );
         composition.transition = Transition::Crossfade { duration: 2.0 };
         assert!(apply_composition(&updated, 0, composition).is_err());
-        assert_eq!(parse(&updated).unwrap().scenes[0].composition.transition, Transition::Crossfade { duration: 0.5 });
-        for invalid in ["type: cut\nduration: 1", "type: cut\nduration: null", "type: cut\nunexpected: true", "type: crossfade\nduration: 1\nunexpected: true", "type: dissolve"] {
-            assert!(serde_yaml::from_str::<Transition>(invalid).is_err(), "{invalid}");
+        assert_eq!(
+            parse(&updated).unwrap().scenes[0].composition.transition,
+            Transition::Crossfade { duration: 0.5 }
+        );
+        for invalid in [
+            "type: cut\nduration: 1",
+            "type: cut\nduration: null",
+            "type: cut\nunexpected: true",
+            "type: crossfade\nduration: 1\nunexpected: true",
+            "type: dissolve",
+        ] {
+            assert!(
+                serde_yaml::from_str::<Transition>(invalid).is_err(),
+                "{invalid}"
+            );
         }
-        assert_eq!(serde_yaml::from_str::<Transition>("type: cut").unwrap(), Transition::Cut);
+        assert_eq!(
+            serde_yaml::from_str::<Transition>("type: cut").unwrap(),
+            Transition::Cut
+        );
     }
 }

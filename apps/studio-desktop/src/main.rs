@@ -3476,12 +3476,18 @@ mod scene_preview_tests {
         let original = studio.source.clone();
         studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
         studio.settings_draft_source = Some(original.clone());
-        studio.settings_draft.as_mut().unwrap().composition.transition =
-            motion_script::Transition::Crossfade { duration: 0.5 };
+        studio
+            .settings_draft
+            .as_mut()
+            .unwrap()
+            .composition
+            .transition = motion_script::Transition::Crossfade { duration: 0.5 };
         studio.apply_settings_draft();
         assert!(studio.settings_error.is_none());
         assert_eq!(
-            studio.script.as_ref().unwrap().scenes[0].composition.transition,
+            studio.script.as_ref().unwrap().scenes[0]
+                .composition
+                .transition,
             motion_script::Transition::Crossfade { duration: 0.5 }
         );
         studio.undo_edit(false);

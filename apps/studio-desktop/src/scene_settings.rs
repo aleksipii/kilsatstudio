@@ -58,15 +58,18 @@ impl Draft {
         ui.small("Shortening a scene is rejected if an event extends beyond its end.");
         ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
         ui.separator();
-        egui::CollapsingHeader::new("Background, camera, layers, fades and transitions").show(ui, |ui| {
-            crate::composition_editor::ui(
-                ui,
-                &mut self.composition,
-                &self.actors,
-                self.duration_seconds,
-                self.is_last_scene,
-            );
-        });
+        egui::CollapsingHeader::new("Background, camera, layers, fades and transitions").show(
+            ui,
+            |ui| {
+                crate::composition_editor::ui(
+                    ui,
+                    &mut self.composition,
+                    &self.actors,
+                    self.duration_seconds,
+                    self.is_last_scene,
+                );
+            },
+        );
         ui.button("Apply settings").clicked()
     }
 }

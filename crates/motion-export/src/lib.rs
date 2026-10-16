@@ -2,12 +2,12 @@
 //! SVG, PNG and explicitly configured local FFmpeg video share the same scene clock.
 mod media;
 mod sequence;
-pub use sequence::export_png_sequence;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art};
 use motion_lipsync::{AlignmentSource, Viseme};
 use motion_script::Script;
 use motion_tts::CancellationToken;
 use motion_voice::export::{RenderedScene, SceneManifest, SAMPLE_RATE};
+pub use sequence::export_png_sequence;
 use serde::Serialize;
 use std::{
     collections::BTreeMap,
