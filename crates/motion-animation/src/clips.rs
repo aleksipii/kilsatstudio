@@ -50,29 +50,16 @@ pub fn gesture_envelope(progress: f64) -> f64 {
 }
 
 /// Everything the scene rules selected for one actor at one instant.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct HumanoidState<'a> {
     /// Seconds since the active move began, or `None` when standing.
     pub walk_seconds: Option<f64>,
-    /// Emotion before the latest change.
-    pub previous_emotion: &'a str,
-    /// Current emotion.
-    pub emotion: &'a str,
-    /// Seconds since the current emotion took effect.
-    pub emotion_seconds: f64,
+    /// Emotion changes oldest first, each with the seconds since it took effect.
+    /// Posture starts neutral; each change blends from the posture in flight at
+    /// that moment, so closely spaced changes ease continuously.
+    pub emotion_changes: &'a [(&'a str, f64)],
     /// Active gesture, its normalized progress and its weight in `0..=1`.
     pub gesture: Option<(Gesture, f64, f64)>,
-}
-impl Default for HumanoidState<'_> {
-    fn default() -> Self {
-        Self {
-            walk_seconds: None,
-            previous_emotion: "neutral",
-            emotion: "neutral",
-            emotion_seconds: f64::INFINITY,
-            gesture: None,
-        }
-    }
 }
 
 struct Library {
@@ -244,18 +231,25 @@ fn add(pose: &mut [Transform2], offsets: &[Option<Track>], time: f64, weight: f6
 /// inputs fall back to neutral layers instead of producing invalid geometry.
 pub fn evaluate_humanoid(state: &HumanoidState) -> [Vec2; 7] {
     let lib = library();
-    let progress = if state.emotion_seconds.is_finite() && state.emotion_seconds >= 0.0 {
-        (state.emotion_seconds / POSTURE_BLEND_SECONDS).min(1.0)
-    } else {
-        1.0
+    let progress = |seconds: f64| {
+        if seconds.is_finite() && seconds >= 0.0 {
+            (seconds / POSTURE_BLEND_SECONDS).min(1.0)
+        } else {
+            1.0
+        }
     };
-    let mut pose = blend_pose(
-        &lib.rig,
-        &posture_pose(&lib.rig, state.previous_emotion),
-        &posture_pose(&lib.rig, state.emotion),
-        progress,
-    )
-    .expect("built-in postures are bounded");
+    let mut pose = lib.rig.rest_pose();
+    for (i, &(emotion, since)) in state.emotion_changes.iter().enumerate() {
+        // Blend toward this change only until the next one starts.
+        let until = state.emotion_changes.get(i + 1).map_or(0.0, |next| next.1);
+        pose = blend_pose(
+            &lib.rig,
+            &pose,
+            &posture_pose(&lib.rig, emotion),
+            progress(since - until),
+        )
+        .expect("built-in postures are bounded");
+    }
     if let Some(t) = state.walk_seconds.filter(|t| t.is_finite() && *t >= 0.0) {
         add(&mut pose, &lib.walk, t.rem_euclid(WALK_CYCLE_SECONDS), 1.0);
     }
@@ -319,21 +313,43 @@ mod tests {
 
     #[test]
     fn posture_blends_across_emotion_change() {
-        let state = |seconds| HumanoidState {
-            previous_emotion: "neutral",
-            emotion: "sad",
-            emotion_seconds: seconds,
-            ..Default::default()
+        let sad = |seconds| {
+            evaluate_humanoid(&HumanoidState {
+                emotion_changes: &[("sad", seconds)],
+                ..Default::default()
+            })
         };
         let neutral = evaluate_humanoid(&HumanoidState::default());
-        let start = evaluate_humanoid(&state(0.0));
-        let mid = evaluate_humanoid(&state(POSTURE_BLEND_SECONDS / 2.0));
-        let done = evaluate_humanoid(&state(POSTURE_BLEND_SECONDS));
-        assert_eq!(start, neutral);
+        let mid = sad(POSTURE_BLEND_SECONDS / 2.0);
+        let done = sad(POSTURE_BLEND_SECONDS);
+        assert_eq!(sad(0.0), neutral);
         assert!(mid[HEAD].y > neutral[HEAD].y && mid[HEAD].y < done[HEAD].y);
-        assert_eq!(done, evaluate_humanoid(&state(10.0)));
+        assert_eq!(done, sad(10.0));
         assert_eq!(done[HEAD].y, neutral[HEAD].y + 9.0);
-        assert_eq!(evaluate_humanoid(&state(f64::NAN)), done);
+        assert_eq!(sad(f64::NAN), done);
+    }
+
+    #[test]
+    fn interrupted_posture_blend_continues_from_in_flight_pose() {
+        let d = POSTURE_BLEND_SECONDS;
+        let state = |changes: &[(&str, f64)]| {
+            evaluate_humanoid(&HumanoidState {
+                emotion_changes: changes,
+                ..Default::default()
+            })
+        };
+        // Sad starts 0.4 d after happy: at that instant the pose is unchanged.
+        let in_flight = state(&[("happy", 0.4 * d)]);
+        assert_eq!(state(&[("happy", 0.4 * d), ("sad", 0.0)]), in_flight);
+        // Slightly later it moves from there toward sad, not from full happy.
+        let next = state(&[("happy", 0.45 * d), ("sad", 0.05 * d)]);
+        for (a, b) in next.iter().zip(&in_flight) {
+            assert!((a.x - b.x).abs() < 1.0 && (a.y - b.y).abs() < 1.0);
+        }
+        assert_eq!(
+            state(&[("happy", 5.0 * d), ("sad", 2.0 * d)]),
+            state(&[("sad", d)])
+        );
     }
 
     #[test]

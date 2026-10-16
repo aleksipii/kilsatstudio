@@ -458,7 +458,7 @@ it is documentation only, not an implemented or evaluated integration.
 
 | Date | Completed increment | Executed evidence and limits |
 | --- | --- | --- |
-| 2026-10-16 | Clip library, posture/gesture/walk layers and speech head motion | Local Linux: `cargo fmt --all --check`, `cargo check --workspace`, `cargo clippy --workspace --all-targets` and `cargo test --workspace` passed on the merged head with PR #25 (237 tests passed, 2 ignored). No Mac GUI run, visual motion review or perceptual speech-motion check. |
+| 2026-10-16 | Clip library, posture/gesture/walk layers and speech head motion | Local Linux: `cargo fmt --all --check`, `cargo check --workspace`, `cargo clippy --workspace --all-targets` and `cargo test --workspace` passed on the merged head with PR #25 (238 tests passed, 2 ignored, including the interrupted posture-blend regression). No Mac GUI run, visual motion review or perceptual speech-motion check. |
 
 Persisted or artist-authored clips, per-bone editing, textured parts, a Rhubarb
 or other automatic timing backend and measured mouth-timing quality remain open.

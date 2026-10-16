@@ -192,13 +192,12 @@ pub fn evaluate(
                 skeleton: motion_animation::humanoid(None, 0.0),
             };
             let mut walk_seconds = None;
-            let mut previous_emotion = pose.emotion.clone();
-            let mut emotion_at = f64::NEG_INFINITY;
+            let mut emotion_changes = Vec::new();
             let mut gesture = None;
             let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
                 if pose.emotion != *value {
-                    previous_emotion = std::mem::replace(&mut pose.emotion, value.clone());
-                    emotion_at = at;
+                    pose.emotion = value.clone();
+                    emotion_changes.push((value.clone(), time_seconds - at));
                 }
             };
             for event in &events {
@@ -240,11 +239,13 @@ pub fn evaluate(
                     Event::Speak { .. } => {}
                 }
             }
+            let emotion_changes: Vec<_> = emotion_changes
+                .iter()
+                .map(|(emotion, since)| (emotion.as_str(), *since))
+                .collect();
             pose.skeleton = motion_animation::evaluate_humanoid(&HumanoidState {
                 walk_seconds,
-                previous_emotion: &previous_emotion,
-                emotion: &pose.emotion,
-                emotion_seconds: time_seconds - emotion_at,
+                emotion_changes: &emotion_changes,
                 gesture,
             });
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
@@ -364,6 +365,15 @@ scenes:
         let forward = at(2.1);
         at(7.0);
         assert_eq!(at(2.1), forward);
+        // A second emotion inside the blend window continues from the in-flight pose.
+        let quick = motion_script::parse(&SCRIPT.replace(
+            "      - {type: gesture",
+            "      - {type: emotion, at: 2.1, actor: EMMA, value: sad}\n      - {type: gesture",
+        ))
+        .unwrap();
+        let chest = |t| evaluate(&quick, 0, t).unwrap().actors[0].skeleton[CHEST].y;
+        assert!((chest(2.1) - chest(2.0999)).abs() < 0.01);
+        assert!(chest(2.1 + POSTURE_BLEND_SECONDS) > chest(1.99));
         for name in motion_animation::GESTURES {
             motion_script::parse(&SCRIPT.replace("value: wave", &format!("value: {name}")))
                 .unwrap();

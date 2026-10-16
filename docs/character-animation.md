@@ -26,7 +26,7 @@ clip is an additive translation offset over the rest pose, and every layer is
 sampled from scene time, so seeking never replays earlier frames:
 
 1. **Posture** from the current emotion (happy upright, sad drooping, surprised
-   hands raised, angry hands in). A change blends from the previous posture over
+   hands raised, angry hands in). A change blends from the posture in flight at that moment over
    `POSTURE_BLEND_SECONDS` (0.25 s) with `blend_pose`.
 2. **Walk** cycle (`WALK_CYCLE_SECONDS`, 2/3 s) while a move is in progress.
 3. **Gesture**: `wave`, `point`, `nod` or `shrug`. The clip runs over normalized
