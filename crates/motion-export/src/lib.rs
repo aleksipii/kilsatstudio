@@ -7,7 +7,9 @@ use motion_lipsync::{AlignmentSource, Viseme};
 use motion_script::Script;
 use motion_tts::CancellationToken;
 use motion_voice::export::{RenderedScene, SceneManifest, SAMPLE_RATE};
-pub use sequence::export_png_sequence;
+pub use sequence::{
+    export_mp4_sequence, export_png_sequence, render_sequence_frame, SequencePreviewFrame,
+};
 use serde::Serialize;
 use std::{
     collections::BTreeMap,

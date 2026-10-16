@@ -253,3 +253,19 @@ These settings currently apply to the headless sequence PNG + WAV exporter.
 Desktop scene preview, scene playback and scene export remain scene-local; they
 do not preview or render an outgoing transition. No sequence playback/export
 controls are provided in this desktop phase.
+
+### Whole-project sequence
+
+The Inspector's **Whole project · sequence** panel explicitly prepares all scenes
+using the configured local runtime and the global scene alignment map. Preparation
+never downloads models. Its independent Play/Pause/Restart and global 24 kHz sample
+scrubber use the mixed project's audio-device position. If no audio backend/device
+is available, the panel clearly labels a silent visual transport instead.
+
+The full-frame preview is rasterized on one bounded background worker and uploaded
+as an egui texture. Source, project artwork, image inventory, runtime configuration,
+root, or alignment changes cancel and invalidate prepared audio, frames and exports.
+Scrubbing rejects frames from an earlier seek. Export chooses a new absolute output
+directory for PNG/WAV or MP4/WAV; MP4 additionally requires an explicit absolute
+local FFmpeg executable path. Cancel remains available during preparation/export.
+No actual Mac listening acceptance is implied by headless UI/worker tests.

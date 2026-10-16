@@ -14,6 +14,8 @@ mod playback;
 mod runtime_check;
 mod scene_settings;
 mod scene_worker;
+mod sequence_panel;
+mod sequence_worker;
 mod timeline_edit;
 mod voice_editor;
 
@@ -81,6 +83,7 @@ struct Prepare {
 }
 type PreviewResult = Result<Preview, String>;
 struct Studio {
+    sequence_panel: sequence_panel::Panel,
     art_editor: art_editor::Editor,
     art_resources: art_resources::Resources,
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
@@ -206,6 +209,7 @@ impl Default for Studio {
         Self {
             art_editor: Default::default(),
             art_resources: Default::default(),
+            sequence_panel: Default::default(),
             keyframe_draft: None,
             asset_worker: asset_worker::Worker::new(),
             asset_pending: None,
@@ -1001,6 +1005,10 @@ impl Studio {
             });
     }
     fn stop_playback(&mut self) {
+        self.sequence_panel.stop_transport();
+        self.stop_other_playback();
+    }
+    fn stop_other_playback(&mut self) {
         if let Some(player) = self.test_player.take() {
             let _ = player.stop();
         }
@@ -1195,6 +1203,7 @@ impl Studio {
         waveform(ui, &preview.peaks, self.playhead / duration.max(0.001));
         ui.horizontal(|ui| {
             if ui.button("Play scene audio").clicked() {
+                self.sequence_panel.stop_transport();
                 if let Some(clock) = &mut self.scene_transport {
                     clock.pause();
                 }
@@ -1904,6 +1913,7 @@ impl Studio {
             }
             ui.horizontal(|ui| {
                 if ui.button("Play from cursor").clicked() {
+                    self.sequence_panel.stop_transport();
                     self.scene_audio_active = false;
                     self.playback_error = None;
                     if let Some(clock) = &mut self.scene_transport {
@@ -1933,6 +1943,7 @@ impl Studio {
                     }
                 }
                 if ui.button("Resume").clicked() {
+                    self.sequence_panel.stop_transport();
                     if let Some(p) = &self.playback {
                         if let Err(e) = p.resume() {
                             self.playback_error = Some(e);
@@ -2320,6 +2331,7 @@ impl Studio {
                         },
                         &document.assets,
                         &script.characters.keys().cloned().collect::<Vec<_>>(),
+                        &self.art_resources.textures,
                     )
                 },
             );
@@ -2382,7 +2394,38 @@ impl Studio {
             }
         }
     }
+    fn sequence_ui(&mut self, ui: &mut egui::Ui) {
+        let request = self
+            .script
+            .as_ref()
+            .map(|script| sequence_worker::PrepareRequest {
+                generation: 0,
+                script: script.clone(),
+                root: self.project_root.clone().into(),
+                config: self.kokoro_config(),
+                alignments: self.scene_alignment.clone(),
+                art: motion_export::ArtContext {
+                    document: self
+                        .project_document
+                        .as_ref()
+                        .map(|d| d.art.clone())
+                        .unwrap_or_default(),
+                    images: (*self.art_resources.images).clone(),
+                },
+                cancel: CancellationToken::new(),
+            });
+        let own_busy = self.sequence_panel.busy();
+        let locked = (self.busy && !own_busy) || self.diagnostics_busy || self.export_busy;
+        if self.sequence_panel.ui(ui, locked, request) {
+            self.stop_other_playback();
+            self.busy = true;
+        }
+        if self.sequence_panel.take_play_started() {
+            self.stop_other_playback();
+        }
+    }
     fn inspector_ui(&mut self, ui: &mut egui::Ui) {
+        self.sequence_ui(ui);
         ui.heading("Inspector");
         ui.weak("Select a character or timeline event");
         ui.separator();
@@ -2747,6 +2790,7 @@ impl Studio {
     }
 
     fn play_scene_audio(&mut self) {
+        self.sequence_panel.stop_transport();
         let Some(preview) = &self.scene_preview else {
             return;
         };
@@ -2812,6 +2856,7 @@ impl Studio {
                         }
                     }
                     if ui.button("Resume").clicked() {
+                        self.sequence_panel.stop_transport();
                         if self.scene_audio_active {
                             if let Some(player) = &self.playback {
                                 if let Err(error) = player.resume() {
@@ -3114,7 +3159,25 @@ fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
 
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
+        let was_sequence_busy = self.sequence_panel.busy();
+        let signature = format!(
+            "{}:{:?}:{:?}:{}:{}:{:p}",
+            self.source,
+            self.project_document,
+            self.kokoro_config(),
+            self.project_root,
+            self.scene_alignment,
+            Arc::as_ptr(&self.art_resources.images)
+        );
+        self.sequence_panel.invalidate(signature);
+        self.sequence_panel.tick(ctx);
+        if was_sequence_busy && !self.sequence_panel.busy() {
+            self.busy = false;
+        }
         self.poll();
+        if self.sequence_panel.busy() {
+            self.busy = true;
+        }
         if self.busy
             || self.diagnostics_busy
             || self.test_player.is_some()

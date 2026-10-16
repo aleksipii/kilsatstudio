@@ -9,14 +9,14 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #25 merged as 97d2496ef5121ca6032c11713b153e30925ac116 after passing
-Linux/macOS CI and review. Subsequently PR #26 added rule-based character clips
-and PR #27 recorded the user's first successful real Mac Kokoro test. This
-sequence increment is built on current `main` at 0ab1ba1, preserving both changes.
+PR #28 merged as d9370611fcb19ab0f5bdf75ee28342064161e66e after final
+Linux/macOS CI and independent review. `kilsatstudio1.0` was fast-forwarded to
+that merge. This preserves PR #26 animation clips and PR #27 user-reported Mac
+Kokoro success. All PRs open at this task's initial inspection are now merged.
 
 | Completed | Still open |
 | --- | --- |
-| Timed solid colors/images, native editors and shared preview/export | Cross-scene transitions |
+| Timed solid colors/images, native editors and shared preview/export | Native whole-project preview/transport and MP4 sequence workflow |
 | Bounded joint PoseTrack sampler and weighted pose-blend API | Persisted per-bone editor, textured rigs and preview/export integration |
 | Rule-based posture, walk, gesture and speech-motion clips shared by preview/export (PR #26) | Artist-authored/persisted clips, per-bone editor and Mac visual review |
 | Atomic duration/composition settings and source Undo | Full unified project/asset history and advanced editor tools |
@@ -35,9 +35,9 @@ require actual evidence.
 | Compiler / project | Existing modules + parent | Validated script/schema integration |
 | Rigging/animation | Existing modules | Original rig and animation modules |
 | Rendering | Existing render modules | Shared deterministic frame path |
-| Desktop UX | `bound_alignment_ui` | Native controls and integration |
-| Speech | `bound_alignment_core` + `bound_alignment_voice` | Offline asset/alignment tools and evidence |
-| Export | Existing render modules | PNG/MP4, CLI, resource/error handling |
+| Desktop UX | `project_sequence_ui` + `asset_thumbnails` | Global transport and native image inventory |
+| Speech | `project_sequence_worker` | Bounded project preparation and shared alignment cache |
+| Export | `project_sequence_export` | Shared raster preview, MP4 and .kilsat CLI |
 | Scheduling | Existing bounded frame/decode workers | Bounded execution and cancellation |
 | QA/release | Independent review + parent | Packaging tests, integrated checks |
 | Documentation | All owners + parent | This tracker and feature documentation |
@@ -497,3 +497,17 @@ loading remain open. Per-bone editing/textured rigs, advanced compositing, unifi
 history, automatic alignment/quality, offline/device acceptance, GPU/performance
 and final licensing/distribution gates also remain open. User-reported first
 real M1 Kokoro success (PR27) remains distinct from those comprehensive gates.
+
+## Whole-project desktop increment (in validation)
+
+- [x] Merge PR #28 and synchronize the release branch; retain all earlier Mac evidence.
+- [ ] Integrate and validate native whole-project preview, global playback/seek and waveform.
+- [ ] Integrate and validate shared scaled raster preview and PNG/MP4 sequence export.
+- [ ] Validate .kilsat sequence CLI resource loading with canonical image bounds.
+- [ ] Integrate and validate asset thumbnails and virtualized image inventory.
+
+Four agents implemented these scopes; independent review and parent integration
+checks are running. Source in the current development branch is not yet final
+acceptance. Real Mac sequence device synchronization, offline Kokoro repeatability,
+perceptual timing, full unified history, per-bone textured editing, advanced masks
+and blending, GPU/performance and final license audit remain open.

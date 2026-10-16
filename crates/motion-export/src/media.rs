@@ -5,17 +5,28 @@ use std::{
 };
 
 pub(super) fn rasterize(svg: &str) -> Result<Vec<u8>, Error> {
+    rasterize_scaled(svg, None)
+}
+pub(super) fn rasterize_scaled(svg: &str, max_side: Option<u32>) -> Result<Vec<u8>, Error> {
     let tree = resvg::usvg::Tree::from_str(svg, &resvg::usvg::Options::default())
         .map_err(|e| invalid(format!("SVG rasterization: {e}")))?;
     let size = tree.size().to_int_size();
     if u64::from(size.width()) * u64::from(size.height()) > 16_000_000 {
         return Err(invalid("raster frame exceeds 16 million pixel budget"));
     }
-    let mut pixmap = resvg::tiny_skia::Pixmap::new(size.width(), size.height())
+    let scale = max_side.map_or(1.0, |limit| {
+        (limit as f32 / size.width().max(size.height()) as f32).min(1.0)
+    });
+    let width = (size.width() as f32 * scale).round().max(1.0) as u32;
+    let height = (size.height() as f32 * scale).round().max(1.0) as u32;
+    let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height)
         .ok_or_else(|| invalid("unable to allocate raster frame"))?;
     resvg::render(
         &tree,
-        resvg::tiny_skia::Transform::identity(),
+        resvg::tiny_skia::Transform::from_scale(
+            width as f32 / size.width() as f32,
+            height as f32 / size.height() as f32,
+        ),
         &mut pixmap.as_mut(),
     );
     pixmap
@@ -81,15 +92,7 @@ fn export_mp4_inner(
     progress: &mut impl FnMut(Progress),
 ) -> Result<Report, Error> {
     check(cancel)?;
-    if !ffmpeg.is_absolute() || !ffmpeg.is_file() {
-        return Err(invalid(
-            "FFmpeg must be an explicit absolute path to a local executable",
-        ));
-    }
-    // H.264 yuv420p needs even dimensions. Reject rather than silently resize poses.
-    if !script.project.width.is_multiple_of(2) || !script.project.height.is_multiple_of(2) {
-        return Err(invalid("MP4 requires even project width and height"));
-    }
+    validate_encoder(script, ffmpeg)?;
     let report = export_sequence(
         script,
         scene_index,
@@ -111,6 +114,18 @@ fn export_mp4_inner(
     result
 }
 
+pub(super) fn validate_encoder(script: &Script, ffmpeg: &Path) -> Result<(), Error> {
+    if !ffmpeg.is_absolute() || !ffmpeg.is_file() {
+        return Err(invalid(
+            "FFmpeg must be an explicit absolute path to a local executable",
+        ));
+    }
+    // H.264 yuv420p needs even dimensions. Reject rather than silently resize poses.
+    if !script.project.width.is_multiple_of(2) || !script.project.height.is_multiple_of(2) {
+        return Err(invalid("MP4 requires even project width and height"));
+    }
+    Ok(())
+}
 fn encode(
     script: &Script,
     destination: &Path,
@@ -132,6 +147,53 @@ fn encode_with_timeout(
     ffmpeg: &Path,
     cancel: &CancellationToken,
     timeout: Duration,
+) -> Result<(), Error> {
+    encode_files(
+        script,
+        destination,
+        ffmpeg,
+        cancel,
+        timeout,
+        "frame_%06d.png",
+        "scene.wav",
+        "scene.mp4",
+        "manifest.json",
+    )
+}
+#[allow(clippy::too_many_arguments)]
+pub(super) fn encode_named(
+    script: &Script,
+    destination: &Path,
+    ffmpeg: &Path,
+    cancel: &CancellationToken,
+    frames: &str,
+    audio: &str,
+    video_name: &str,
+    manifest_name: &str,
+) -> Result<(), Error> {
+    encode_files(
+        script,
+        destination,
+        ffmpeg,
+        cancel,
+        Duration::from_secs(300),
+        frames,
+        audio,
+        video_name,
+        manifest_name,
+    )
+}
+#[allow(clippy::too_many_arguments)]
+fn encode_files(
+    script: &Script,
+    destination: &Path,
+    ffmpeg: &Path,
+    cancel: &CancellationToken,
+    timeout: Duration,
+    frames: &str,
+    audio: &str,
+    video_name: &str,
+    manifest_name: &str,
 ) -> Result<(), Error> {
     check(cancel)?;
     let directory = fs::canonicalize(destination)?;
@@ -157,9 +219,9 @@ fn encode_with_timeout(
         ])
         .arg(script.project.fps.to_string())
         .args(["-start_number", "0", "-i"])
-        .arg(directory.join("frame_%06d.png"))
+        .arg(directory.join(frames))
         .arg("-i")
-        .arg(directory.join("scene.wav"))
+        .arg(directory.join(audio))
         .args([
             "-map",
             "0:v:0",
@@ -176,7 +238,7 @@ fn encode_with_timeout(
             "-fs",
         ])
         .arg(remaining.to_string())
-        .arg(directory.join("scene.mp4"))
+        .arg(directory.join(video_name))
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -211,17 +273,17 @@ fn encode_with_timeout(
             "FFmpeg encoding failed ({status}); check local H.264/AAC support"
         )));
     }
-    let video = directory.join("scene.mp4");
+    let video = directory.join(video_name);
     let length = fs::metadata(&video)?.len();
     if length == 0 || length >= remaining {
         return Err(invalid(
             "FFmpeg output is empty or reached the video byte budget",
         ));
     }
-    let path = directory.join("manifest.json");
+    let path = directory.join(manifest_name);
     let mut manifest: serde_json::Value = serde_json::from_slice(&fs::read(&path)?)?;
     manifest["video_encoded"] = true.into();
-    manifest["video_file"] = "scene.mp4".into();
+    manifest["video_file"] = video_name.into();
     manifest["video_codec"] = "h264".into();
     manifest["audio_codec"] = "aac".into();
     let bytes = bounded_json(&manifest, 8 * 1024 * 1024)?;

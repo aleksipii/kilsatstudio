@@ -1,6 +1,7 @@
 //! Canvas gestures commit one bounded document transaction, independent of screenplay history.
 use eframe::egui;
 use motion_art::{Color, Content, Document, Layer, Plane, Point, Rect, TimeRange};
+use std::collections::BTreeMap;
 pub struct SceneContext<'a> {
     pub id: &'a str,
     pub duration: f64,
@@ -76,6 +77,7 @@ impl Editor {
         scene: SceneContext<'_>,
         assets: &[motion_project::AssetReference],
         actors: &[String],
+        textures: &BTreeMap<String, egui::TextureHandle>,
     ) {
         let scene_id = scene.id;
         egui::CollapsingHeader::new("Artwork / layers").show(ui,|ui| {
@@ -100,7 +102,20 @@ impl Editor {
    if ui.button("Raise").clicked() && index+1<next.layers.len(){next.layers.swap(index,index+1);}
    if ui.button("Delete layer").clicked(){next.layers.remove(index);self.selected=None;}});
    }
-   for asset in assets.iter().filter(|a|a.kind==motion_project::AssetKind::Image) {ui.horizontal_wrapped(|ui|{for (plane,label) in [(Plane::Foreground,"Place image"),(Plane::Background,"Place background image")] {if ui.button(format!("{label}: {}",asset.id)).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});}
+   let images: Vec<_> = assets.iter().filter(|a| a.kind == motion_project::AssetKind::Image).collect();
+   if !images.is_empty() {
+    ui.label(format!("Image assets ({})", images.len()));
+    egui::ScrollArea::vertical().id_salt("art-image-inventory").max_height(256.0).show_rows(ui, 76.0, images.len(), |ui, rows| {
+     for row in rows {let asset = images[row];
+      ui.push_id(&asset.id, |ui| {ui.horizontal(|ui| {
+       asset_thumbnail(ui, textures.get(&asset.id));
+       ui.vertical(|ui| {ui.add(egui::Label::new(&asset.id).truncate()).on_hover_text(&asset.path);
+        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Place foreground"),(Plane::Background,"Place background")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});
+       });
+      });});
+     }
+    });
+   }
    if next.layers.iter().any(|l| l.scene_id==scene_id && l.active.as_ref().is_some_and(|a|a.end>scene.duration)) {self.error=Some("Artwork interval exceeds scene duration".into());} else {
    self.commit(document,next);
    }
@@ -209,6 +224,39 @@ impl Editor {
     }
 }
 
+/// Display only an already decoded native texture; never read files from a frame.
+fn asset_thumbnail(ui: &mut egui::Ui, texture: Option<&egui::TextureHandle>) {
+    let bounds = egui::vec2(64.0, 64.0);
+    let (rect, response) = ui.allocate_exact_size(bounds, egui::Sense::hover());
+    if let Some(texture) = texture {
+        let size = thumbnail_size(texture.size(), bounds);
+        let image_rect = egui::Rect::from_center_size(rect.center(), size);
+        ui.painter().image(
+            texture.id(),
+            image_rect,
+            egui::Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
+            egui::Color32::WHITE,
+        );
+        response.on_hover_text("Decoded image preview");
+    } else {
+        ui.painter()
+            .rect_filled(rect, 3.0, ui.visuals().faint_bg_color);
+        ui.painter().text(
+            rect.center(),
+            egui::Align2::CENTER_CENTER,
+            "No preview",
+            egui::FontId::proportional(10.0),
+            ui.visuals().weak_text_color(),
+        );
+        response.on_hover_text("Preview pending or unavailable. Check resource loading errors; this does not confirm the image loaded.");
+    }
+}
+
+fn thumbnail_size(size: [usize; 2], bounds: egui::Vec2) -> egui::Vec2 {
+    let source = egui::vec2(size[0].max(1) as f32, size[1].max(1) as f32);
+    source * (bounds.x / source.x).min(bounds.y / source.y)
+}
+
 pub fn paint(
     painter: &egui::Painter,
     canvas: egui::Rect,
@@ -295,6 +343,65 @@ pub fn paint(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn thumbnail_preserves_landscape_and_portrait_aspect() {
+        assert_eq!(
+            thumbnail_size([400, 200], egui::vec2(64.0, 64.0)),
+            egui::vec2(64.0, 32.0)
+        );
+        assert_eq!(
+            thumbnail_size([200, 400], egui::vec2(64.0, 64.0)),
+            egui::vec2(32.0, 64.0)
+        );
+    }
+
+    #[test]
+    fn asset_inventory_rendering_preserves_document_with_present_or_missing_preview() {
+        let context = egui::Context::default();
+        let texture = context.load_texture(
+            "synthetic-asset",
+            egui::ColorImage::new([2, 1], egui::Color32::RED),
+            Default::default(),
+        );
+        let mut textures = BTreeMap::new();
+        textures.insert("present".into(), texture);
+        let assets: Vec<_> = ["present", "missing"]
+            .into_iter()
+            .map(|id| motion_project::AssetReference {
+                id: id.into(),
+                path: format!("{id}.png"),
+                kind: motion_project::AssetKind::Image,
+            })
+            .collect();
+        let mut editor = Editor::default();
+        let mut document = Document::default();
+        let before = document.clone();
+        let output = context.run(Default::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                // Force the collapsible inventory open without simulating a click.
+                ui.memory_mut(|memory| memory.set_everything_is_visible(true));
+                editor.ui(
+                    ui,
+                    &mut document,
+                    SceneContext {
+                        id: "scene",
+                        duration: 2.0,
+                        width: 100,
+                        height: 100,
+                    },
+                    &assets,
+                    &[],
+                    &textures,
+                );
+            });
+        });
+        assert_eq!(document, before);
+        assert!(!editor.dirty);
+        assert!(editor.undo.is_empty());
+        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Mesh(mesh) if mesh.texture_id == textures["present"].id())));
+        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == "No preview")));
+    }
+
     use super::*;
     #[test]
     fn rectangle_gesture_commits_once_in_camera_world_coordinates() {
