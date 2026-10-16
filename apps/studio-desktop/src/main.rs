@@ -19,7 +19,12 @@ mod voice_editor;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
-use motion_lipsync::{Alignment, Viseme};
+#[cfg(test)]
+use motion_lipsync::Alignment;
+use motion_lipsync::{
+    cache::{AlignmentCache, AlignmentStatus},
+    Viseme,
+};
 use motion_tts::{CancellationToken, KokoroConfig, KokoroProvider, SpeechResult};
 use motion_voice::{dialogue_jobs, timeline::DialogueClip, DialogueJob, VoiceUpdate, VoiceWorker};
 use std::{
@@ -53,6 +58,7 @@ fn main() -> eframe::Result {
 
 struct Preview {
     scene: String,
+    alignment_status: AlignmentStatus,
     clip: DialogueClip,
     peaks: Vec<WaveformPeak>,
     result: SpeechResult,
@@ -60,6 +66,7 @@ struct Preview {
 }
 struct ScenePreview {
     scene: String,
+    alignment_statuses: std::collections::BTreeMap<u64, AlignmentStatus>,
     clips: Vec<DialogueClip>,
     audio: Arc<motion_audio::AudioBuffer>,
     manifest: Arc<motion_voice::export::SceneManifest>,
@@ -69,6 +76,7 @@ struct Prepare {
     job: DialogueJob,
     result: SpeechResult,
     alignment: String,
+    alignment_cache_root: std::path::PathBuf,
     cancel: CancellationToken,
 }
 type PreviewResult = Result<Preview, String>;
@@ -168,16 +176,14 @@ impl Default for Studio {
             while let Ok(task) = jobs.recv() {
                 let result = (|| {
                     task.cancel.check().map_err(|e| e.to_string())?;
-                    let alignment = if task.alignment.trim().is_empty() {
-                        None
-                    } else {
-                        Some(
-                            serde_json::from_str::<Alignment>(&task.alignment)
-                                .map_err(|e| e.to_string())?,
-                        )
-                    };
-                    let clip = DialogueClip::prepare(&task.job, &task.result, alignment)
-                        .map_err(|e| e.to_string())?;
+                    let alignment = scene_worker::parse_alignment_input(&task.alignment)?;
+                    let (clip, alignment_status) = DialogueClip::prepare_with_alignment_input(
+                        &task.job,
+                        &task.result,
+                        alignment.as_ref(),
+                        &AlignmentCache::new(&task.alignment_cache_root),
+                    )
+                    .map_err(|e| e.to_string())?;
                     let bin = (clip.audio.frames() / 700).max(1);
                     let peaks = motion_audio::waveform_peaks(&clip.audio, bin)
                         .map_err(|e| e.to_string())?;
@@ -185,6 +191,7 @@ impl Default for Studio {
                     task.cancel.check().map_err(|e| e.to_string())?;
                     Ok(Preview {
                         scene: task.job.scene.clone(),
+                        alignment_status,
                         playback_audio,
                         clip,
                         peaks,
@@ -1239,6 +1246,11 @@ impl Studio {
                 }
             }
         }
+        if let Some(preview) = &self.scene_preview {
+            for (id, status) in &preview.alignment_statuses {
+                ui.label(format!("Dialogue {id}: {}", alignment_status_text(*status)));
+            }
+        }
         ui.label("One mixed source clock drives all actor mouths. Missing alignment keeps mouths at rest. Device latency and perceptual timing require Mac validation.");
         if let Some(error) = &self.playback_error {
             ui.colored_label(egui::Color32::LIGHT_RED, error);
@@ -1521,6 +1533,7 @@ impl Studio {
                             );
                             self.scene_preview = Some(ScenePreview {
                                 scene: prepared.scene_id,
+                                alignment_statuses: ready.alignment_statuses,
                                 clips: prepared.clips,
                                 audio: Arc::new(audio),
                                 manifest: Arc::new(prepared.rendered.manifest),
@@ -1588,6 +1601,10 @@ impl Studio {
                                 job,
                                 result,
                                 alignment: self.alignment.clone(),
+                                alignment_cache_root: self
+                                    .kokoro_config()
+                                    .cache_directory
+                                    .join("alignments"),
                                 cancel: self.active_cancel.clone().unwrap_or_default(),
                             }) {
                                 Ok(()) => self.status = "Preparing waveform and alignment…".into(),
@@ -1657,6 +1674,17 @@ impl Studio {
                 Err(e) => self.status = format!("Audio/ alignment preview: {e}"),
             }
         }
+    }
+}
+fn alignment_status_text(status: AlignmentStatus) -> &'static str {
+    match status {
+        AlignmentStatus::None => "No alignment · mouth at rest",
+        AlignmentStatus::LegacyUnbound => {
+            "Legacy timing · unbound to audio/transcript · quality not measured"
+        }
+        AlignmentStatus::BoundImported => "Bound timing imported and cached · quality not measured",
+        AlignmentStatus::BoundCacheHit => "Bound timing cache hit · quality not measured",
+        AlignmentStatus::BoundCacheMiss => "Bound timing cache miss · mouth at rest",
     }
 }
 fn default_kokoro_root() -> String {
@@ -1794,6 +1822,12 @@ fn field(ui: &mut egui::Ui, label: &str, value: &mut String) {
     ui.text_edit_singleline(value);
 }
 impl Studio {
+    fn selected_alignment_edited(&mut self) {
+        self.stop_playback();
+        self.preview = None;
+        self.status =
+            "Selected-line timing changed; generate/load dialogue again to prepare timing.".into();
+    }
     fn runtime_ui(&mut self, ui: &mut egui::Ui) {
         self.kokoro_setup_ui(ui);
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
@@ -1818,12 +1852,12 @@ impl Studio {
                     }
                     ui.separator();
                     ui.heading("Scene alignments JSON");
-                    ui.label("Map dialogue IDs to Alignment objects, for example {\"0\": {...}}. Blank keeps all mouths at rest. Prepare again after editing.");
+                    ui.label("Map dialogue IDs to bound timing envelopes or legacy Alignment objects, for example {\"0\": {...}}. Legacy timing is unbound. Blank keeps mouths at rest; prepare again after editing.");
                     if ui.add(egui::TextEdit::multiline(&mut self.scene_alignment).desired_rows(5).char_limit(100_000).code_editor()).changed() { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; }
                     for job in self.jobs.iter().filter(|job| self.script.as_ref().and_then(|s| s.scenes.get(self.scene_index)).is_some_and(|s| s.id == job.scene)) { ui.label(format!("ID {} · {} · {}", job.id, job.actor, job.request.text)); }
                     ui.heading("Selected-line alignment JSON");
-                    ui.label("Paste manual or external forced-alignment JSON. Blank keeps mouth at rest. Timings are structurally checked, never claimed perceptually validated.");
-                    ui.add(egui::TextEdit::multiline(&mut self.alignment).desired_rows(7).char_limit(100_000).code_editor());
+                    ui.label("Paste a bound timing envelope (schema_version, key, optional alignment) or a legacy Alignment object (unbound). Blank keeps mouth at rest. Provenance checks do not measure timing quality.");
+                    if ui.add(egui::TextEdit::multiline(&mut self.alignment).desired_rows(7).char_limit(100_000).code_editor()).changed() { self.selected_alignment_edited(); }
         });
     }
     fn dialogue_ui(&mut self, ui: &mut egui::Ui) {
@@ -1936,6 +1970,7 @@ impl Studio {
             if let Some(error) = &self.playback_error {
                 ui.colored_label(egui::Color32::LIGHT_RED, error);
             }
+            ui.label(alignment_status_text(preview.alignment_status));
             if preview.clip.alignment.is_none() {
                 ui.label(
                     "No timed alignment: mouth stays at rest. Kokoro tokens are not timestamps.",
@@ -4409,5 +4444,58 @@ mod scene_preview_tests {
             },
         );
         assert!(!output.shapes.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod alignment_status_tests {
+    use super::*;
+    #[test]
+    fn editing_or_clearing_line_timing_discards_prepared_audio_and_status() {
+        let mut studio = Studio::default();
+        for changed in ["new bound envelope", ""] {
+            let audio = motion_audio::AudioBuffer {
+                sample_rate: 24000,
+                channels: 1,
+                samples: vec![0.0; 24],
+            };
+            studio.preview = Some(Preview {
+                scene: "scene".into(),
+                alignment_status: AlignmentStatus::BoundCacheHit,
+                clip: DialogueClip {
+                    actor: "actor".into(),
+                    start_frame: 0,
+                    audio: audio.clone(),
+                    alignment: None,
+                    gain: 1.0,
+                    trim_start_frame: 0,
+                },
+                peaks: vec![],
+                result: SpeechResult {
+                    audio_path: "unused.wav".into(),
+                    sample_rate: 24000,
+                    sample_count: 24,
+                    cache_key: "fixture".into(),
+                    phonemes: String::new(),
+                    cached: true,
+                },
+                playback_audio: Arc::new(audio),
+            });
+            studio.alignment = changed.into();
+            studio.selected_alignment_edited();
+            assert!(studio.preview.is_none());
+            assert_eq!(studio.alignment, changed);
+            assert!(studio.status.contains("timing changed"));
+        }
+    }
+    #[test]
+    fn timing_status_distinguishes_unbound_cache_and_rest() {
+        assert!(alignment_status_text(AlignmentStatus::LegacyUnbound).contains("unbound"));
+        assert!(alignment_status_text(AlignmentStatus::BoundCacheHit).contains("cache hit"));
+        assert!(alignment_status_text(AlignmentStatus::BoundCacheMiss).contains("mouth at rest"));
+        assert!(alignment_status_text(AlignmentStatus::None).contains("mouth at rest"));
+        assert!(
+            alignment_status_text(AlignmentStatus::BoundImported).contains("quality not measured")
+        );
     }
 }

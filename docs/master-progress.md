@@ -9,13 +9,15 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #22 merged as 3f4d131a6b18222455f7d9fb8f53bc2392910687 after review and
-passing Linux/macOS CI, media encoding and Apple Silicon packaging. `main` and
-`kilsatstudio1.0` are synchronized at that merge.
+PR #23 merged as 2e7e0397759acf4b998d251aef5da3dd17856661, followed by
+PR #24 as 920810010cc2b704a6ce940b86c4531ebdf10e6e after review without findings
+and passing Linux/macOS CI, media encoding and Apple Silicon packaging.
+`main` and `kilsatstudio1.0` are synchronized at the PR #24 merge.
 
 | Completed | Still open |
 | --- | --- |
-| Timed solid colors, native key editor and shared preview/export | Timed background images (current increment), cross-scene transitions |
+| Timed solid colors/images, native editors and shared preview/export | Cross-scene transitions |
+| Bounded joint PoseTrack sampler and weighted pose-blend API | Persisted per-bone editor, textured rigs and preview/export integration |
 | Atomic duration/composition settings and source Undo | Full unified project/asset history and advanced editor tools |
 | Managed Kokoro installation and speech-test UI | Real Mac inference/listening, alignment quality and device synchronization |
 | CPU SVG/PNG/MP4 and bounded parallel frames | GPU rendering, production benchmarks and final distribution/license audit |
@@ -29,12 +31,12 @@ require actual evidence.
 | Workstream | Owner in this increment | Integration boundary |
 | --- | --- | --- |
 | Architecture/integration | Parent agent | Workspace, shared interfaces, final checks |
-| Compiler / project | `timed_art_model` + parent | Validated script/schema integration |
+| Compiler / project | Existing modules + parent | Validated script/schema integration |
 | Rigging/animation | Existing modules | Original rig and animation modules |
-| Rendering | `timed_art_render` | Shared deterministic frame path |
-| Desktop UX | `timed_art_ui` | Native controls and integration |
-| Speech | Existing cache; no new inference stage | Offline asset/alignment tools and evidence |
-| Export | `timed_art_render` | PNG/MP4, CLI, resource/error handling |
+| Rendering | Existing render modules | Shared deterministic frame path |
+| Desktop UX | `bound_alignment_ui` | Native controls and integration |
+| Speech | `bound_alignment_core` + `bound_alignment_voice` | Offline asset/alignment tools and evidence |
+| Export | Existing render modules | PNG/MP4, CLI, resource/error handling |
 | Scheduling | Existing bounded frame/decode workers | Bounded execution and cancellation |
 | QA/release | Independent review + parent | Packaging tests, integrated checks |
 | Documentation | All owners + parent | This tracker and feature documentation |
@@ -150,7 +152,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Real local English Kokoro CPU WAV on Apple Silicon.
 - [ ] Offline synthesis after provisioning with networking disabled.
 - [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
-- [ ] Connect alignment cache to desktop preparation and automatic aligner.
+- [x] Exact-PCM/current-text bound alignment envelopes and shared line/scene desktop cache integration.
+- [ ] Automatic aligner execution and validated provider integration.
 - [ ] Validated forced-aligner integration and editable timing tools.
 - [ ] Annotated real-audio corpus and measured timing error.
 - [ ] Perceptual mouth-quality assessment across voices/speeds/pauses.
@@ -410,5 +413,31 @@ is recorded below and in its pull request.
 | 2026-10-16 | Six agent workstream audits delivered in docs/workstreams; 220 Rust workspace/all-target tests passed after the new animation APIs. Strict installed-driver Clippy/workspace check, direct rustfmt and diff checks passed; blend_pose example executed with weights 0/0.5/1. | Library foundation only; full per-bone editing and integrated animation blending remain open. |
 
 PR #23 head7bdf5f1 passed Linux/macOS CI, media encoding and Apple Silicon
-packaging; GitHub code review completed without findings. It remains unmerged.
-The animation/workstream follow-up is stacked on that head, not merged into main.
+packaging; GitHub code review completed without findings. PRs #23 and #24
+were subsequently merged in order, with the latter retargeted to main.
+
+## Exact-audio alignment and desktop cache increment
+
+Merge status is refreshed above and in each merged PR description. PR #23
+completed timed background images and composition fade parity; PR #24 completed
+headless joint-pose APIs and six scoped workstream reports. Neither merge closes
+physical Mac/model acceptance, full per-bone editing, transition, mask, unified
+history, automatic alignment or GPU milestones.
+
+This bounded implementation binds supplied timings to the decoded PCM and
+current transcript, adds explicit bound/cache/legacy status, and reuses the
+existing local cache from line/scene background preparation. Core, voice and
+desktop agents owned separate files; the parent integrated and verified them.
+No automatic timing generation, model installation or measured quality is implied.
+
+| Date | Completed increment | Executed evidence and limits |
+| --- | --- | --- |
+| 2026-10-16 | Bound alignment envelope, line/scene cache resolution and visible statuses | 235 Rust workspace/all-target tests passed locally; strict installed-driver Clippy/workspace check, direct rustfmt and diff checks passed. |
+| 2026-10-16 | Exact audio/text rejection and immutable concurrent cache publication | Same-length different PCM/current-text mismatch, cache-only hit/miss, corruption, legacy one-sample tolerance, competing conflicting writers and single/scene parity regressions passed. |
+| 2026-10-16 | Preview invalidation and review fixes | Selected timing replacement/clear invalidates prior preview; cache no-replace publication reviewed. Independent review confirmed both blockers resolved. |
+| 2026-10-16 | Bound import example | Executed on a synthetic local silent WAV and synthetic phone fixture; creates a strict envelope without inference/downloads. This is not measured real speech. |
+
+Automatic alignment, phone-boundary editing, real-audio corpus quality, physical
+Mac synchronization and actual Kokoro/offline synthesis remain open alongside
+transitions, full per-bone tooling, advanced compositing, unified history, GPU
+rendering, production performance and final license/distribution audit.

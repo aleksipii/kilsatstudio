@@ -1,6 +1,7 @@
 //! Prepared audio and mouth tracks evaluated against one sample clock.
 use crate::DialogueJob;
 use motion_audio::{AudioBuffer, MixClip};
+use motion_lipsync::cache::{AlignmentCache, AlignmentInput, AlignmentStatus};
 use motion_lipsync::{Alignment, Viseme};
 use motion_tts::{SpeechError, SpeechResult};
 
@@ -20,6 +21,38 @@ impl DialogueClip {
     ) -> Result<Self, SpeechError> {
         let audio =
             motion_audio::read_wav(&result.audio_path).map_err(|e| SpeechError(e.to_string()))?;
+        Self::from_audio(job, audio, alignment)
+    }
+    /// Resolves imported or cached alignment against decoded PCM and the current text.
+    pub fn prepare_with_alignment_input(
+        job: &DialogueJob,
+        result: &SpeechResult,
+        input: Option<&AlignmentInput>,
+        cache: &AlignmentCache,
+    ) -> Result<(Self, AlignmentStatus), SpeechError> {
+        let audio =
+            motion_audio::read_wav(&result.audio_path).map_err(|e| SpeechError(e.to_string()))?;
+        let mut clip = Self::from_audio(job, audio, None)?;
+        let resolved = match input {
+            Some(input) => Some(
+                input
+                    .resolve(&clip.audio, &job.request.text, cache)
+                    .map_err(|e| SpeechError(e.to_string()))?,
+            ),
+            None => None,
+        };
+        let (alignment, status) = match resolved {
+            Some(resolved) => (resolved.alignment, resolved.status),
+            None => (None, AlignmentStatus::None),
+        };
+        clip.alignment = alignment;
+        Ok((clip, status))
+    }
+    fn from_audio(
+        job: &DialogueJob,
+        audio: AudioBuffer,
+        alignment: Option<Alignment>,
+    ) -> Result<Self, SpeechError> {
         if audio.sample_rate != 24000 || audio.channels != 1 {
             return Err(SpeechError("dialogue must be 24kHz mono".into()));
         }
