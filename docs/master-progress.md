@@ -495,9 +495,11 @@ are not reused as proof; final results for this head are recorded below.
 | 2026-10-16 | Shared sequence timeline, outgoing transition editor, linear audio and whole-frame PNG crossfades | Restored source head f6c62bdd passed GitHub Linux/macOS fmt/check/strict Clippy/all-target tests, runtime38 + packaging8 Python tests, real media encoding and Apple Silicon preview packaging. Linux job logs contain261 passed Rust tests, two encoder tests separately covered by media CI. |
 | 2026-10-16 | Recovery review and local reproduction | Independent read-only re-review found no blocker; current apply_speech path and PR26/27 changes preserved. Locally4 sequence export tests passed. Recovered CLI fixture produced6 PNG frames,36000 audio samples and correct overlap midpoint PCM; synthetic tones only, no real speech inference. |
 
-The checked scope at PR #28 was authoring plus headless PNG/WAV sequence export. Native
-whole-project preview/transport, MP4/SVG sequence export and CLI `.kilsat` resource
-loading were open at that merge and are addressed by PR #29 below. Per-bone editing/textured rigs, advanced compositing, unified
+The checked scope at PR #28 was authoring plus headless PNG/WAV sequence export.
+Native whole-project preview/transport, MP4 sequence export and CLI `.kilsat`
+resource loading were open at that merge and are addressed by PR #29 below. SVG
+sequence compositing remains open. Per-bone editing/textured rigs, advanced
+compositing, unified
 history, automatic alignment/quality, offline/device acceptance, GPU/performance
 and final licensing/distribution gates also remain open. User-reported first
 real M1 Kokoro success (PR27) remains distinct from those comprehensive gates.
@@ -517,11 +519,16 @@ passed. All three opt-in real-encoder tests also passed; sequence encoding is no
 covered by the media CI job. Preparation snapshots are created only on explicit
 Prepare clicks; the final desktop 98 tests and strict Clippy passed after that
 UI optimization. [Mac instructions](practical-testing.md) include the new pending
-whole-project device/offline/transition acceptance checklist. A synthetic .kilsat fixture exported 6 PNGs and a 1.5 s MP4 with 36000 audio
-samples; decoded PNG artwork matched the expected green pixel. Traversal input
+whole-project device/offline/transition acceptance checklist. A synthetic .kilsat
+fixture exported 6 PNGs and a 1.5 s MP4 with 36000 audio samples; decoded PNG artwork matched the expected green pixel. Traversal input
 was rejected. Independent review found EOF retry, paused-seek repaint and competing
-playback bugs; fixes and regression tests are included. Final remote CI remains
-pending until its latest head completes. These are implementation checks.
+playback bugs; fixes and regression tests are included. Implementation head
+`6fb9696798bb31c222d5264dee3898b80526dcda` passed GitHub Linux/macOS
+fmt/check/strict Clippy/all-target Rust tests, runtime and packaging Python tests,
+and all three real media tests (Audio foundation run 38918205145). Apple Silicon
+preview build/package/signature/helper checks and artifact upload also passed
+(run 38918205156). This final tracker edit changes documentation only. These are
+implementation checks.
 Real Mac sequence device synchronization, offline Kokoro repeatability,
 perceptual timing, full unified history, per-bone textured editing, advanced masks
 and blending, GPU/performance and final license audit remain open.
