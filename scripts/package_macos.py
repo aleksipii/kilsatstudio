@@ -42,12 +42,16 @@ def app_icon():
     entry = b'ic08' + struct.pack('>I', len(png) + 8) + png
     return b'icns' + struct.pack('>I', len(entry) + 8) + entry
 
-def stage_bundle(repo, binary, destination, commit, arch, profile):
+def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None):
     repo, binary, destination = Path(repo).resolve(), Path(binary).resolve(), Path(destination)
     if not binary.is_file() or not os.access(binary, os.X_OK):
         raise ValueError('binary must be an existing executable file')
     if destination.exists():
         raise ValueError('bundle destination already exists')
+    if gpu_probe is not None:
+        gpu_probe = Path(gpu_probe)
+        if gpu_probe.is_symlink() or not gpu_probe.is_file() or not os.access(gpu_probe, os.X_OK):
+            raise ValueError('gpu probe must be a non-symlink executable file')
     required = ['examples', 'services/kokoro-runtime/runtime.py',
                 'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
                 'services/kokoro-runtime/acceptance.py',
@@ -64,6 +68,9 @@ def stage_bundle(repo, binary, destination, commit, arch, profile):
     executable.parent.mkdir(parents=True)
     resources.mkdir(parents=True)
     shutil.copy2(binary, executable)
+    if gpu_probe is not None:
+        (resources / 'bin').mkdir()
+        shutil.copy2(gpu_probe, resources / 'bin/gpu_probe')
     for relative in required:
         source, target = repo / relative, resources / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -111,6 +118,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--binary', type=Path, required=True)
+    parser.add_argument('--gpu-probe', type=Path, help='Optional native GPU fixture helper')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--commit', required=True)
     parser.add_argument('--arch', choices=['arm64', 'x86_64'], required=True)
@@ -124,7 +132,11 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='kilsat-package-') as temporary:
         bundle = stage_bundle(args.repo, args.binary, Path(temporary) / APP_NAME,
-                              args.commit, args.arch, args.profile)
+                              args.commit, args.arch, args.profile, args.gpu_probe)
+        if args.gpu_probe is not None:
+            helper = bundle / 'Contents/Resources/bin/gpu_probe'
+            subprocess.run(['codesign', '--force', '--sign', '-', str(helper)], check=True)
+            subprocess.run(['codesign', '--verify', '--strict', str(helper)], check=True)
         subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)
         subprocess.run(['codesign', '--verify', '--deep', '--strict', str(bundle)], check=True)
         # ditto preserves executable permissions and the enclosing app directory.

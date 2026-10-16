@@ -5,6 +5,7 @@ Python 3.11+. Reads supplied files only; never invokes Cargo, pip or a binary.
 """
 import argparse
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -24,7 +25,7 @@ def normalized(name):
     return re.sub(r'[-_.]+', '-', name).lower()
 
 
-def build_inventory(root, metadata=None, pip_inspect=None, binaries=()):
+def build_inventory(root, metadata=None, pip_inspect=None, binaries=(), managed_profile=None):
     for label, document, field in [('Cargo metadata', metadata, 'packages'),
                                     ('pip inspect', pip_inspect, 'installed')]:
         if document is not None:
@@ -66,6 +67,51 @@ def build_inventory(root, metadata=None, pip_inspect=None, binaries=()):
                               installer=distribution.get('installer'),
                               artifact_hash_status='not-established-by-pip-inspect',
                               notices_status='not-collected', review_status='unreviewed'))
+    managed = None
+    if managed_profile is not None:
+        profile_path = Path(managed_profile).resolve(strict=True)
+        if profile_path.stat().st_size > 1024 * 1024:
+            raise ValueError('Managed profile exceeds 1 MiB.')
+        spec = importlib.util.spec_from_file_location('managed_setup_evidence', Path(__file__).resolve().parents[1] / 'services/kokoro-runtime/setup_kokoro.py')
+        setup_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(setup_module)
+        profile = json.loads(profile_path.read_text())
+        evidence = setup_module.validate_profile_evidence(profile, profile_path.parent)
+        if evidence is None:
+            raise ValueError('Selected profile predates retained evidence; do not reinstall automatically.')
+        document = evidence['distributions']
+        if document.get('schema_version') != 1 or not isinstance(document.get('installed'), list):
+            raise ValueError('Invalid retained distribution evidence.')
+        if pip_inspect is not None:
+            raise ValueError('Select either pip inspect or managed evidence, not both.')
+        installed = document['installed']
+        for row in installed:
+            if not isinstance(row, dict) or not row.get('name') or not row.get('version') or not isinstance(row.get('licenses'), list):
+                raise ValueError('Invalid retained distribution record.')
+            import base64
+            for license_file in row['licenses']:
+                status = license_file.get('content_status', 'collected')
+                if status in ('not-collected-size-budget', 'not-collected-total-budget'):
+                    if ('sha256' in license_file or 'content_base64' in license_file or
+                            type(license_file.get('size_bytes')) is not int or license_file['size_bytes'] < 0):
+                        raise ValueError('Uncollected license cannot claim verified bytes.')
+                    continue
+                if status != 'collected':
+                    raise ValueError('Unknown retained license content status.')
+                raw = base64.b64decode(license_file['content_base64'], validate=True)
+                if len(raw) != license_file['size_bytes'] or hashlib.sha256(raw).hexdigest() != license_file['sha256']:
+                    raise ValueError('Retained license text hash mismatch.')
+            row['review_status'] = 'unreviewed'
+            incomplete = any(item.get('content_status', 'collected') != 'collected' for item in row['licenses'])
+            row['notices_status'] = ('partial-texts-unreviewed' if incomplete else
+                                     'texts-collected-unreviewed' if row['licenses'] else 'not-collected')
+            row['artifact_hash_status'] = 'installed-files-are-not-wheel-hashes'
+        managed = dict(profile_sha256=digest(profile_path), revision=profile['revision'],
+                       index_sha256=profile['license_evidence']['sha256'],
+                       setup_manifest_sha256=evidence['index']['setup_manifest_sha256'],
+                       current_manifest_matches=evidence['index']['setup_manifest_sha256'] == hashlib.sha256(json.dumps(setup, sort_keys=True).encode()).hexdigest(),
+                       setup_manifest=evidence['index']['setup_manifest'],
+                       evidence_status='hash-verified-local-collection-unreviewed')
     installed.sort(key=lambda p: (normalized(p['name']), p['version']))
     packages = []
     for spec in setup['packages']:
@@ -111,14 +157,14 @@ def build_inventory(root, metadata=None, pip_inspect=None, binaries=()):
             'Host Python, FFmpeg and eSpeak/native-library provenance require selected-artifact review.']
     if not metadata:
         gaps.append('Cargo metadata absent: Rust dependency license declarations unresolved.')
-    if not pip_inspect:
+    if not pip_inspect and managed is None:
         gaps.append('Installed Python inventory absent: no resolved-environment evidence.')
     return dict(schema_version=1, distribution_approved=False,
                 inputs={'Cargo.lock': digest(lock_path), 'setup-manifest.json': digest(setup_path),
                         'requirements.txt': digest(requirements_path),
                         'cargo_metadata_sha256': hashlib.sha256(json.dumps(metadata, sort_keys=True).encode()).hexdigest() if metadata else None,
                         'pip_inspect_sha256': hashlib.sha256(json.dumps(pip_inspect, sort_keys=True).encode()).hexdigest() if pip_inspect else None},
-                rust=rust, python_direct=packages, python_installed=installed,
+                rust=rust, python_direct=packages, python_installed=installed, managed_evidence=managed,
                 development_requirements=[line.strip() for line in requirements_path.read_text().splitlines()
                                           if line.strip() and not line.lstrip().startswith('#')],
                 model_assets=assets, english_model=language,
@@ -130,6 +176,7 @@ def main(argv=None):
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--cargo-metadata', type=Path, help='Existing cargo metadata JSON, not a command')
     parser.add_argument('--pip-inspect', type=Path, help='Existing pip inspect JSON from the selected environment')
+    parser.add_argument('--managed-profile', type=Path, help='Selected managed profile with retained hash-verified evidence')
     parser.add_argument('--binary', action='append', default=[], metavar='NAME=PATH', help='Hash a selected binary without executing it')
     parser.add_argument('--output', type=Path, help='Write JSON here; default stdout')
     parser.add_argument('--strict', action='store_true', help='Exit 1 while unresolved review work remains')
@@ -144,7 +191,7 @@ def main(argv=None):
         report = build_inventory(args.root,
                                  json.loads(args.cargo_metadata.read_text()) if args.cargo_metadata else None,
                                  json.loads(args.pip_inspect.read_text()) if args.pip_inspect else None,
-                                 binaries)
+                                 binaries, args.managed_profile)
         result = json.dumps(report, indent=2, sort_keys=True) + '\n'
         if args.output:
             args.output.write_text(result)

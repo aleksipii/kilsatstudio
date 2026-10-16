@@ -50,6 +50,26 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(list(resources.rglob('*.pt')), [])
         self.assertIn('abc123', (resources / 'BUILD-INFO.txt').read_text())
 
+    def test_optional_gpu_helper_and_legacy_absence(self):
+        self.stage()
+        self.assertFalse((self.bundle / 'Contents/Resources/bin/gpu_probe').exists())
+        import shutil
+        shutil.rmtree(self.bundle)
+        package.stage_bundle(self.repo, self.binary, self.bundle, 'abc', 'arm64', 'debug', self.binary)
+        helper = self.bundle / 'Contents/Resources/bin/gpu_probe'
+        self.assertEqual(helper.read_bytes(), self.binary.read_bytes())
+        self.assertTrue(helper.stat().st_mode & 0o111)
+
+    def test_invalid_optional_helper_is_rejected_before_writing(self):
+        for helper in (self.root / 'absent', self.repo / 'examples/dialogue.yaml'):
+            with self.assertRaisesRegex(ValueError, 'gpu probe'):
+                package.stage_bundle(self.repo, self.binary, self.bundle, 'abc', 'arm64', 'debug', helper)
+            self.assertFalse(self.bundle.exists())
+        link = self.root / 'linked-helper'
+        link.symlink_to(self.binary)
+        with self.assertRaisesRegex(ValueError, 'gpu probe'):
+            package.stage_bundle(self.repo, self.binary, self.bundle, 'abc', 'arm64', 'debug', link)
+
     def test_generated_icon_has_valid_png_payload(self):
         self.stage()
         icon = (self.bundle / 'Contents/Resources/KilsatStudio.icns').read_bytes()

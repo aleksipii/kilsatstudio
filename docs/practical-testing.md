@@ -223,3 +223,39 @@ GPU rendering, release signing/notarization and the complete
 redistribution/dependency audit remain open. PNG/MP4 implementation is distinct
 from the new Mac preview/export observations requested above.
 
+
+
+## Next development increment: compositor, estimated cues and Metal evidence
+
+These controls belong to the next unmerged increment; select its exact successful
+CI artifact and retain BUILD-INFO.txt before recording results. All physical checks
+below remain pending; the earlier successful M1 Kokoro speech report is preserved.
+
+1. Add an ellipse/polygon mask or Multiply/Screen artwork layer. At an active
+   frame, wait for the selected-scene shared CPU image, scrub and seek while it
+   renders, and verify stale frames never replace the new scene/source. Compare
+   equal timestamps with PNG export and Whole project preview. Test speech-mouth
+   boundaries as well as camera/opacity/fade edges. This is CPU raster composition,
+   not evidence of a production GPU renderer. See [compositor](native-compositor.md).
+2. With a separately installed licensed Rhubarb executable, prepare one dialogue
+   line first. Enter the absolute executable path, select a recognizer and click
+   **Estimate prepared line**. Inspect the estimated result, then explicitly
+   **Apply estimated timing**. Change line/text or cancel during execution and
+   confirm stale results cannot apply. Record real audio/video quality separately;
+   estimated shapes are not forced-aligned phonemes. No tool/model downloads are
+   performed by the panel. See [native timing](native-alignment.md).
+3. Expand **Metal device check**, choose a new absolute evidence directory with
+   an existing parent, and explicitly run the packaged helper. Preserve its
+   report, RGBA output and hashes with Mac/chip/macOS/build identity. Software or
+   unknown adapters must fail; cancel/timeout must not claim success. A fixture
+   pass establishes only that fixture's device gate, not complete scene parity.
+   See [device evidence](gpu-device-check.md).
+4. After a newly consented managed install, use the explicit profile with the
+   offline inventory command in [license provenance](license-provenance.md).
+   Verify evidence hashes, retain budget-omission markers and review texts before
+   sharing local details. Older profiles do not manufacture missing evidence.
+   `--strict` remains failing while review gaps remain; collection is not clearance.
+
+Current development checks cover workspace/all-target compilation and 42 runtime,
+14 inventory and 10 packaging Python tests. Full Rust/CI validation was pending
+when these instructions were updated; no physical checks above are claimed.

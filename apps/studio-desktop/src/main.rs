@@ -1,4 +1,6 @@
 //! Native dialogue workbench. Audio assets are prepared on bounded background workers.
+mod alignment_panel;
+mod alignment_worker;
 mod art_editor;
 mod art_resources;
 mod asset_worker;
@@ -8,8 +10,12 @@ mod demo;
 mod event_editor;
 mod event_factory;
 mod export_worker;
+mod gpu_check_panel;
+mod gpu_check_worker;
 mod keyframe_editor;
 mod kokoro_setup;
+mod managed_license_evidence;
+mod native_compositor;
 mod playback;
 mod project_history;
 mod runtime_check;
@@ -61,6 +67,8 @@ fn main() -> eframe::Result {
 
 struct Preview {
     scene: String,
+    line_id: u64,
+    transcript: String,
     alignment_status: AlignmentStatus,
     clip: DialogueClip,
     peaks: Vec<WaveformPeak>,
@@ -83,7 +91,31 @@ struct Prepare {
     cancel: CancellationToken,
 }
 type PreviewResult = Result<Preview, String>;
+struct NativeCanvas {
+    revision: u64,
+    request: native_compositor::Request,
+    line_audio: Option<Arc<motion_audio::AudioBuffer>>,
+    last_requested: Option<u64>,
+    shown: Option<u64>,
+    failed: Option<u64>,
+    texture: Option<egui::TextureHandle>,
+    error: Option<String>,
+}
+fn same_optional_arc<T>(a: &Option<Arc<T>>, b: &Option<Arc<T>>) -> bool {
+    match (a, b) {
+        (Some(a), Some(b)) => Arc::ptr_eq(a, b),
+        (None, None) => true,
+        _ => false,
+    }
+}
 struct Studio {
+    native_alignment: alignment_panel::Panel,
+    alignment_identity: Option<alignment_panel::Identity>,
+    alignment_audio: Option<Arc<motion_audio::AudioBuffer>>,
+    compositor: native_compositor::Worker,
+    native_canvas: Option<NativeCanvas>,
+    native_canvas_generation: u64,
+    gpu_check: gpu_check_panel::Panel,
     sequence_panel: sequence_panel::Panel,
     sequence_revision: u64,
     document_revision: u64,
@@ -200,6 +232,8 @@ impl Default for Studio {
                     task.cancel.check().map_err(|e| e.to_string())?;
                     Ok(Preview {
                         scene: task.job.scene.clone(),
+                        line_id: task.job.id,
+                        transcript: task.job.request.text.clone(),
                         alignment_status,
                         playback_audio,
                         clip,
@@ -215,6 +249,13 @@ impl Default for Studio {
         Self {
             art_editor: Default::default(),
             art_resources: Default::default(),
+            native_alignment: alignment_panel::Panel::new(),
+            alignment_identity: None,
+            alignment_audio: None,
+            compositor: native_compositor::Worker::new(),
+            native_canvas: None,
+            native_canvas_generation: 0,
+            gpu_check: Default::default(),
             sequence_panel: Default::default(),
             sequence_revision: 0,
             document_revision: 0,
@@ -774,6 +815,7 @@ impl Studio {
     fn finish_timeline_drag(&mut self, drag: timeline_edit::Drag) {
         let original_source = self.timeline_drag_source.take();
         if self.busy
+            || self.native_alignment.generation().is_some()
             || self.diagnostics_busy
             || original_source.as_deref() != Some(self.source.as_str())
         {
@@ -1359,6 +1401,286 @@ impl Studio {
             ui.colored_label(egui::Color32::LIGHT_RED, error);
         }
     }
+    fn eligible_alignment_preview(&self) -> Option<&Preview> {
+        let job = self.jobs.get(self.selected)?;
+        self.preview.as_ref().filter(|p| {
+            p.line_id == job.id
+                && p.transcript == job.request.text
+                && p.scene == job.scene
+                && p.clip.actor == job.actor
+                && p.clip.start_frame == (job.at * 24000.0).round() as u64
+        })
+    }
+    fn sync_native_alignment(&mut self) {
+        let current = self.eligible_alignment_preview();
+        let unchanged = match (
+            current,
+            self.alignment_identity.as_ref(),
+            self.alignment_audio.as_ref(),
+        ) {
+            (Some(p), Some(id), Some(audio)) => {
+                id.generation == self.sequence_revision
+                    && id.line_id == p.line_id
+                    && Arc::ptr_eq(audio, &p.playback_audio)
+            }
+            (None, None, None) => true,
+            _ => false,
+        };
+        if !unchanged {
+            let next = current.map(|p| {
+                (
+                    alignment_panel::Identity {
+                        generation: self.sequence_revision,
+                        line_id: p.line_id,
+                        audio_path: p.result.audio_path.clone(),
+                        transcript: p.transcript.clone(),
+                    },
+                    p.playback_audio.clone(),
+                )
+            });
+            self.native_alignment.invalidate();
+            (self.alignment_identity, self.alignment_audio) = match next {
+                Some((id, audio)) => (Some(id), Some(audio)),
+                None => (None, None),
+            };
+        }
+        let was_busy = self.native_alignment.busy();
+        self.native_alignment.tick(self.alignment_identity.as_ref());
+        if was_busy && !self.native_alignment.busy() {
+            self.busy = false;
+        }
+    }
+    fn native_alignment_ui(&mut self, ui: &mut egui::Ui) {
+        self.sync_native_alignment();
+        let can_run = !self.busy
+            && !self.diagnostics_busy
+            && !self.export_busy
+            && !self.setup_busy
+            && self.alignment_identity.is_some();
+        if self.native_alignment.ui(ui, can_run) {
+            if let (Some(id), Some(audio)) = (
+                self.alignment_identity.clone(),
+                self.alignment_audio.clone(),
+            ) {
+                let expected: Arc<dyn alignment_worker::PreparedAudio> = audio;
+                match self
+                    .native_alignment
+                    .start(id, expected, self.scene_alignment.clone())
+                {
+                    Ok(()) => {
+                        self.stop_playback();
+                        self.busy = true;
+                    }
+                    Err(e) => self.status = e,
+                }
+            }
+        }
+        if let Some(ready) = self.native_alignment.take_ready() {
+            self.apply_native_alignment(ready);
+        }
+    }
+    fn apply_native_alignment(&mut self, ready: alignment_panel::Ready) {
+        if self.busy
+            || self.diagnostics_busy
+            || self.export_busy
+            || self.alignment_identity.as_ref() != Some(&ready.identity)
+        {
+            return;
+        }
+        let Some(preview) = self.eligible_alignment_preview() else {
+            return;
+        };
+        let result = preview.result.clone();
+        let Some(job) = self.jobs.get(self.selected).cloned() else {
+            return;
+        };
+        self.stop_playback();
+        self.alignment = ready.json;
+        self.scene_alignment = ready.scene_json;
+        self.sequence_changed();
+        self.scene_preview = None;
+        self.scene_audio_active = false;
+        self.preview = None;
+        self.native_alignment.invalidate();
+        self.alignment_identity = None;
+        self.alignment_audio = None;
+        let cancel = CancellationToken::new();
+        match self.prepare_tx.try_send(Prepare {
+            job,
+            result,
+            alignment: self.alignment.clone(),
+            alignment_cache_root: self.kokoro_config().cache_directory.join("alignments"),
+            cancel: cancel.clone(),
+        }) {
+            Ok(()) => {
+                self.busy = true;
+                self.active_cancel = Some(cancel);
+                self.status =
+                    "Preparing existing audio with estimated timing; no synthesis or download."
+                        .into();
+            }
+            Err(e) => self.status = format!("Timing applied; prepare the line again: {e}"),
+        }
+    }
+    fn advanced_canvas_needed(&self) -> bool {
+        self.script
+            .as_ref()
+            .and_then(|s| s.scenes.get(self.scene_index))
+            .zip(self.project_document.as_ref())
+            .is_some_and(|(scene, doc)| {
+                requires_composited_preview(
+                    &doc.art,
+                    &scene.id,
+                    self.playhead.clamp(0.0, scene.duration),
+                )
+            })
+    }
+    fn native_canvas_ui(&mut self, ui: &mut egui::Ui) {
+        if let Some(document) = &self.project_document {
+            self.art_resources
+                .sync(ui.ctx(), &self.project_root, &document.assets);
+        }
+        self.sync_sequence_resources();
+        let Some(script) = self.script.as_ref() else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let total = (scene.duration * 24000.0).round() as u64;
+        if total == 0 || !self.playhead.is_finite() {
+            ui.label("Invalid preview clock.");
+            return;
+        }
+        let sample = ((self.playhead.max(0.0) * 24000.0).round() as u64).min(total);
+        let manifest = self
+            .scene_preview
+            .as_ref()
+            .filter(|p| p.scene == scene.id)
+            .map(|p| p.manifest.clone());
+        let line_audio = self
+            .preview
+            .as_ref()
+            .filter(|p| p.scene == scene.id)
+            .map(|p| p.playback_audio.clone());
+        let changed = self.native_canvas.as_ref().is_none_or(|canvas| {
+            canvas.revision != self.sequence_revision
+                || canvas.request.scene_index != self.scene_index
+                || !same_optional_arc(&canvas.request.manifest, &manifest)
+                || !same_optional_arc(&canvas.line_audio, &line_audio)
+        });
+        if changed {
+            self.native_canvas_generation = self.native_canvas_generation.wrapping_add(1);
+            self.native_canvas = Some(NativeCanvas {
+                revision: self.sequence_revision,
+                request: native_compositor::Request {
+                    generation: self.native_canvas_generation,
+                    scene_index: self.scene_index,
+                    sample_frame: sample,
+                    script: Arc::new(script.clone()),
+                    art: Arc::new(motion_export::ArtContext {
+                        document: self
+                            .project_document
+                            .as_ref()
+                            .map(|p| p.art.clone())
+                            .unwrap_or_default(),
+                        images: (*self.art_resources.images).clone(),
+                    }),
+                    manifest,
+                    mouths: None,
+                },
+                line_audio,
+                last_requested: None,
+                shown: None,
+                failed: None,
+                texture: None,
+                error: None,
+            });
+        }
+        let playing = self
+            .scene_transport
+            .as_ref()
+            .is_some_and(|p| p.is_playing())
+            || self.playback.as_ref().is_some_and(|p| p.snapshot().playing);
+        let canvas = self.native_canvas.as_mut().expect("canvas initialized");
+        while let Some(update) = self.compositor.poll() {
+            if update.generation != canvas.request.generation
+                || update.scene_index != self.scene_index
+                || (!playing && update.sample_frame != sample)
+            {
+                continue;
+            }
+            match update.result {
+                Ok(frame) => {
+                    canvas.texture = Some(ui.ctx().load_texture(
+                        "selected-compositor",
+                        egui::ColorImage::from_rgba_premultiplied(
+                            [frame.width as usize, frame.height as usize],
+                            &frame.rgba,
+                        ),
+                        egui::TextureOptions::LINEAR,
+                    ));
+                    canvas.shown = Some(update.sample_frame);
+                    canvas.failed = None;
+                    canvas.error = None;
+                }
+                Err(e) => {
+                    canvas.failed = Some(update.sample_frame);
+                    canvas.error = Some(e);
+                }
+            }
+        }
+        if canvas.last_requested != Some(sample) && canvas.failed.is_none() {
+            let mouths =
+                if let Some(p) = self.scene_preview.as_ref().filter(|p| p.scene == scene.id) {
+                    scene_mouths(&p.clips, sample)
+                        .into_iter()
+                        .map(|(a, v)| (a.to_owned(), v))
+                        .collect()
+                } else {
+                    self.preview
+                        .as_ref()
+                        .filter(|p| p.scene == scene.id)
+                        .and_then(|p| {
+                            p.clip
+                                .mouth_at(sample)
+                                .ok()
+                                .map(|v| (p.clip.actor.clone(), v))
+                        })
+                        .into_iter()
+                        .collect()
+                };
+            let mut request = canvas.request.clone();
+            request.sample_frame = sample;
+            request.mouths = Some(mouths);
+            match self.compositor.request(request) {
+                Ok(()) => canvas.last_requested = Some(sample),
+                Err(e) => {
+                    canvas.error = Some(e);
+                    canvas.failed = Some(sample);
+                }
+            }
+        }
+        ui.small("Shared scene preview · masks, blending, camera and timed mouths. Edit these layers in the Inspector.");
+        if let Some(texture) = &canvas.texture {
+            let scale = (ui.available_width() / texture.size_vec2().x).min(1.0);
+            ui.image((texture.id(), texture.size_vec2() * scale));
+        } else {
+            ui.spinner();
+        }
+        if let Some(error) = &canvas.error {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+            if ui.button("Retry scene preview").clicked() {
+                canvas.failed = None;
+                canvas.last_requested = None;
+                ui.ctx().request_repaint();
+            }
+        }
+        if canvas.shown != Some(sample) && canvas.failed.is_none() {
+            ui.ctx().request_repaint_after(Duration::from_millis(25));
+        }
+    }
+
     fn scene_ui(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.heading("Scene");
@@ -1372,6 +1694,10 @@ impl Studio {
             }
         });
         ui.add_space(12.0);
+        if self.advanced_canvas_needed() {
+            self.native_canvas_ui(ui);
+            return;
+        }
         if let Some(script) = &self.script {
             match motion_scene::evaluate(script, self.scene_index, self.playhead) {
                 Ok(mut scene) => {
@@ -1396,13 +1722,6 @@ impl Studio {
                     if let Some(document) = &self.project_document {
                         self.art_resources
                             .sync(ui.ctx(), &self.project_root, &document.assets);
-                    }
-                    if self.project_document.as_ref().is_some_and(|document| {
-                        requires_composited_preview(&document.art, scene_id, scene.time)
-                    }) {
-                        ui.colored_label(egui::Color32::LIGHT_BLUE, "This frame uses an advanced mask or blend mode. Open Whole project preview and prepare the project to inspect the shared compositor result.");
-                        ui.small("The direct drawing canvas is unavailable for this frame. Edit layers in the Inspector or move to a frame without an active advanced layer.");
-                        return;
                     }
                     let rect = draw_scene(ui, &scene, &mouths, |painter, rect, plane| {
                         if let Some(document) = &self.project_document {
@@ -2668,6 +2987,8 @@ impl Studio {
                 });
             });
         ui.separator();
+        self.native_alignment_ui(ui);
+        egui::CollapsingHeader::new("Metal device check").show(ui, |ui| self.gpu_check.ui(ui));
         egui::CollapsingHeader::new("Kokoro runtime / alignment").show(ui, |ui| {
             self.runtime_ui(ui);
         });
@@ -3350,6 +3671,7 @@ impl eframe::App for Studio {
             self.busy = false;
         }
         self.poll();
+        self.sync_native_alignment();
         if self.sequence_panel.busy() {
             self.busy = true;
         }
@@ -4911,6 +5233,8 @@ mod alignment_status_tests {
             };
             studio.preview = Some(Preview {
                 scene: "scene".into(),
+                line_id: 0,
+                transcript: "test".into(),
                 alignment_status: AlignmentStatus::BoundCacheHit,
                 clip: DialogueClip {
                     actor: "actor".into(),
@@ -5077,5 +5401,222 @@ mod bone_and_compositor_tests {
             },
         });
         assert!(requires_composited_preview(&art, "shot", 1.0));
+    }
+}
+
+#[cfg(test)]
+mod native_integration_tests {
+    use super::*;
+    fn prepared_line(studio: &mut Studio) {
+        studio.validate();
+        let job = studio.jobs.first().expect("default dialogue").clone();
+        let audio = motion_audio::AudioBuffer {
+            sample_rate: 24000,
+            channels: 1,
+            samples: vec![0.0; 24],
+        };
+        studio.preview = Some(Preview {
+            scene: job.scene,
+            line_id: job.id,
+            transcript: job.request.text,
+            alignment_status: AlignmentStatus::None,
+            clip: DialogueClip {
+                actor: job.actor,
+                start_frame: (job.at * 24000.0).round() as u64,
+                audio: audio.clone(),
+                alignment: None,
+                estimated_alignment: None,
+                gain: 1.0,
+                trim_start_frame: 0,
+            },
+            peaks: vec![],
+            result: SpeechResult {
+                audio_path: "/not-read.wav".into(),
+                sample_rate: 24000,
+                sample_count: 24,
+                cache_key: "fixture".into(),
+                phonemes: String::new(),
+                cached: true,
+            },
+            playback_audio: Arc::new(audio),
+        });
+    }
+    #[test]
+    fn native_alignment_eligibility_is_exact_and_idle_stable() {
+        let mut studio = Studio::default();
+        prepared_line(&mut studio);
+        studio.sync_native_alignment();
+        let identity = studio.alignment_identity.clone().unwrap();
+        let audio = studio.alignment_audio.clone().unwrap();
+        for _ in 0..50 {
+            studio.sync_native_alignment();
+        }
+        assert_eq!(studio.alignment_identity.as_ref(), Some(&identity));
+        assert!(Arc::ptr_eq(
+            studio.alignment_audio.as_ref().unwrap(),
+            &audio
+        ));
+        studio.preview.as_mut().unwrap().transcript.push('!');
+        studio.sync_native_alignment();
+        assert!(studio.alignment_identity.is_none());
+        assert!(!studio.native_alignment.busy());
+    }
+    #[test]
+    fn stale_native_alignment_cannot_replace_inputs_or_schedule_preparation() {
+        let mut studio = Studio::default();
+        prepared_line(&mut studio);
+        studio.sync_native_alignment();
+        studio.alignment = "existing selected timing".into();
+        studio.scene_alignment = "existing map".into();
+        let mut stale = studio.alignment_identity.clone().unwrap();
+        stale.generation += 1;
+        studio.apply_native_alignment(alignment_panel::Ready {
+            identity: stale,
+            json: "replacement".into(),
+            scene_json: "replacement map".into(),
+        });
+        assert_eq!(studio.alignment, "existing selected timing");
+        assert_eq!(studio.scene_alignment, "existing map");
+        assert!(!studio.busy);
+        assert!(studio.worker.is_none());
+        assert!(studio.preview.is_some());
+    }
+    #[test]
+    fn advanced_native_canvas_uses_cached_snapshot_without_scene_audio() {
+        let mut studio = Studio::default();
+        studio.source="project: {title: Native, width: 32, height: 32, fps: 4}\ncharacters: {}\nscenes: [{id: s, duration: 1, events: []}]\n".into();
+        studio.validate();
+        let mut document = motion_project::ProjectDocument::new(studio.source.clone()).unwrap();
+        document.art.layers.push(motion_art::Layer {
+            id: "mask".into(),
+            scene_id: "s".into(),
+            name: "ellipse mask".into(),
+            visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: Some(motion_art::ClipShape::Ellipse {
+                rect: motion_art::Rect {
+                    x: 0.,
+                    y: 0.,
+                    width: 16.,
+                    height: 16.,
+                },
+            }),
+            blend: motion_art::BlendMode::Multiply,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.,
+                    y: 0.,
+                    width: 32.,
+                    height: 32.,
+                },
+                color: motion_art::Color {
+                    r: 128,
+                    g: 64,
+                    b: 32,
+                    a: 255,
+                },
+            },
+        });
+        document.validate().unwrap();
+        studio.project_document = Some(document);
+        assert!(studio.advanced_canvas_needed());
+        assert!(studio.scene_preview.is_none());
+        let context = egui::Context::default();
+        // The first asset sync publishes an empty pending inventory, then the
+        // asynchronous decoder publishes its completed inventory (also empty
+        // here). That legitimate resource revision must settle before testing
+        // idle snapshot identity.
+        studio
+            .art_resources
+            .sync(&context, &studio.project_root, &[]);
+        let pending_images = studio.art_resources.images.clone();
+        for _ in 0..200 {
+            studio
+                .art_resources
+                .sync(&context, &studio.project_root, &[]);
+            if !Arc::ptr_eq(&pending_images, &studio.art_resources.images) {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(studio.art_resources.error.is_none());
+        assert!(
+            !Arc::ptr_eq(&pending_images, &studio.art_resources.images),
+            "initial resource decode did not settle"
+        );
+        let mut snapshot = None;
+        for _ in 0..200 {
+            let _ = context.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| studio.native_canvas_ui(ui));
+            });
+            let canvas = studio.native_canvas.as_ref().unwrap();
+            if let Some(old) = &snapshot {
+                assert!(Arc::ptr_eq(old, &canvas.request.script));
+            } else {
+                snapshot = Some(canvas.request.script.clone());
+            }
+            if canvas.texture.is_some() {
+                assert_eq!(canvas.shown, Some(0));
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert_eq!(studio.native_canvas.as_ref().unwrap().shown, Some(0));
+        // A paused seek to the exact scene end must render the endpoint, rather
+        // than retain the last pre-EOF mouth/art state or reconstruct the script.
+        studio.playhead = 1.0;
+        for _ in 0..200 {
+            let _ = context.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| studio.native_canvas_ui(ui));
+            });
+            let canvas = studio.native_canvas.as_ref().unwrap();
+            assert!(Arc::ptr_eq(
+                snapshot.as_ref().unwrap(),
+                &canvas.request.script
+            ));
+            if canvas.shown == Some(24000) {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert_eq!(studio.native_canvas.as_ref().unwrap().shown, Some(24000));
+
+        // Simulate a persistent snapshot validation error. Advancing the clock
+        // must not keep submitting the same invalid snapshot at every sample.
+        let canvas = studio.native_canvas.as_mut().unwrap();
+        let mut invalid_art = (*canvas.request.art).clone();
+        invalid_art.document.layers[0].opacity = f64::NAN;
+        canvas.request.art = Arc::new(invalid_art);
+        canvas.last_requested = None;
+        studio.playhead = 0.0;
+        for _ in 0..200 {
+            let _ = context.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| studio.native_canvas_ui(ui));
+            });
+            if studio.native_canvas.as_ref().unwrap().failed.is_some() {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        let canvas = studio.native_canvas.as_ref().unwrap();
+        assert_eq!(canvas.failed, Some(0));
+        assert!(canvas.error.is_some());
+        for sample in [6000, 12000, 18000, 24000] {
+            studio.playhead = sample as f64 / 24000.0;
+            let _ = context.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| studio.native_canvas_ui(ui));
+            });
+            let canvas = studio.native_canvas.as_ref().unwrap();
+            assert_eq!(canvas.last_requested, Some(0));
+            assert_eq!(canvas.failed, Some(0));
+            assert!(Arc::ptr_eq(
+                snapshot.as_ref().unwrap(),
+                &canvas.request.script
+            ));
+        }
     }
 }

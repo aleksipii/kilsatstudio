@@ -175,7 +175,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
         ui.data_mut(|d| d.insert_temp(id, draft));
     }
     if layer.clip_shape.is_some() || layer.blend != BlendMode::Normal {
-        ui.weak("Inspect this mask/blend in Whole project preview or PNG/MP4 export. Selected-scene canvas parity is pending.");
+        ui.weak("Inspect this mask/blend in the shared scene preview, Whole project preview or PNG/MP4 export.");
     }
 }
 

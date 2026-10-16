@@ -1,5 +1,7 @@
 """Evidence inventory tests, entirely offline and without installed Kokoro."""
 import copy
+import hashlib
+from unittest import mock
 import importlib.util
 import json
 from pathlib import Path
@@ -87,6 +89,65 @@ class InventoryTests(unittest.TestCase):
                 AUDIT.build_inventory(self.root, pip_inspect=document)
         with self.assertRaises(ValueError):
             AUDIT.build_inventory(self.root, metadata={'packages': 'wrong'})
+
+    def retained_profile(self, partial=False):
+        spec = importlib.util.spec_from_file_location('setup_evidence_test', ROOT / 'services/kokoro-runtime/setup_kokoro.py')
+        setup = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(setup)
+        managed = self.root / 'managed'
+        managed.mkdir()
+        freeze = 'kokoro==0.9.4\n'
+        revision = self.manifest['model_revision'] + ':' + hashlib.sha256(freeze.encode()).hexdigest()
+        license_bytes = b'MIT example copyright'
+        document = dict(schema_version=1, installed=[dict(name='kokoro', version='0.9.4',
+                        declared_license='Apache-2.0', classifiers=[], licenses=[dict(path='lib/kokoro.dist-info/LICENSE',
+                        content_base64=setup.base64.b64encode(license_bytes).decode(), size_bytes=len(license_bytes),
+                        sha256=hashlib.sha256(license_bytes).hexdigest())])])
+        if partial:
+            document['installed'][0]['licenses'].append(dict(path='lib/kokoro.dist-info/NOTICE',
+                size_bytes=300000, content_status='not-collected-size-budget'))
+        def collector(command, *args):
+            (managed / 'evidence/distributions.json').write_text(json.dumps(document))
+        with mock.patch.object(setup, 'run', side_effect=collector):
+            reference = setup.retain_evidence(managed, '/not-executed', self.manifest, freeze, revision, None)
+        profile = managed / 'profile.json'
+        profile.write_text(json.dumps(dict(revision=revision, license_evidence=reference)))
+        return profile
+
+    def test_retained_evidence_collects_notices_without_approving(self):
+        profile = self.retained_profile()
+        report = AUDIT.build_inventory(self.root, managed_profile=profile)
+        self.assertEqual(report['python_direct'][0]['match_status'], 'matches')
+        self.assertEqual(report['python_installed'][0]['notices_status'], 'texts-collected-unreviewed')
+        self.assertEqual(report['python_installed'][0]['review_status'], 'unreviewed')
+        self.assertFalse(report['distribution_approved'])
+        self.assertEqual(report['managed_evidence']['evidence_status'], 'hash-verified-local-collection-unreviewed')
+        output = self.root / 'retained-inventory.json'
+        self.assertEqual(AUDIT.main(['--root', str(self.root), '--managed-profile', str(profile), '--strict', '--output', str(output)]), 1)
+
+    def test_partial_retained_evidence_remains_explicitly_unresolved(self):
+        profile = self.retained_profile(partial=True)
+        report = AUDIT.build_inventory(self.root, managed_profile=profile)
+        row = report['python_installed'][0]
+        self.assertEqual(row['notices_status'], 'partial-texts-unreviewed')
+        self.assertEqual(row['licenses'][1]['content_status'], 'not-collected-size-budget')
+        self.assertNotIn('sha256', row['licenses'][1])
+        self.assertFalse(report['distribution_approved'])
+        self.assertTrue(report['unresolved'])
+
+    def test_retained_evidence_tamper_and_ambiguous_inputs_rejected(self):
+        profile = self.retained_profile()
+        with self.assertRaisesRegex(ValueError, 'either'):
+            AUDIT.build_inventory(self.root, pip_inspect={'installed': []}, managed_profile=profile)
+        (profile.parent / 'evidence/distributions.json').write_text('{}')
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+            AUDIT.build_inventory(self.root, managed_profile=profile)
+
+    def test_legacy_profile_does_not_trigger_reinstall(self):
+        profile = self.root / 'profile.json'
+        profile.write_text('{"revision":"old"}')
+        with self.assertRaisesRegex(ValueError, 'predates'):
+            AUDIT.build_inventory(self.root, managed_profile=profile)
 
     def test_invalid_pip_record_rejected(self):
         with self.assertRaisesRegex(ValueError, 'name or version'):

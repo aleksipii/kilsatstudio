@@ -9,21 +9,23 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #29 merged as dc6590cc8ce7622b0d58912ba85026e3e822fdf1 after review
-fixes and all Linux/macOS CI checks at head aaa87185. The release branch
-`kilsatstudio1.0` was fast-forwarded to the same merge. Cached immutable project
-preview validation now avoids full-export work limits; native invalidation uses
-mutation revisions instead of formatting the entire project each UI frame.
-Review re-check found no blocker. The earlier PR #26 animation and PR #27
-user-reported first M1 Kokoro speech evidence are preserved.
+PR #30 merged as `de41228c0b68daece521cef1406361b21df0c3a6` after its final
+Linux/macOS CI passed. The release branch `kilsatstudio1.0` is synchronized.
+Its authored bone editor, chronological history, geometric masks/CPU blending,
+estimated-cue import, optional GPU fixture and license inventory are integrated.
+PR #27's user-reported first M1 Kokoro speech evidence is preserved.
+
+The next increment below is implemented in the development branch and **not yet
+merged**. Its complete Rust/CI checks remain pending; do not treat these changes
+as release or hardware acceptance.
 
 | Completed | Still open |
 | --- | --- |
 | Timed solid colors/images, native editors and shared preview/export | SVG sequence compositing and physical Mac transition acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and additive rule layering | Custom rig authoring, textures/deformation and artist clip blending |
-| Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and full native canvas parity |
+| Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
-| Managed Kokoro, bound cache, reported M1 speech and opt-in estimated Rhubarb cues | Offline/device acceptance, native aligner execution/cache and measured quality |
+| Managed Kokoro, bound cache, reported M1 speech and opt-in estimated Rhubarb cues | Offline/device acceptance, estimated-cue cache and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
 
 Maintain this summary and the full checklist after each authorized merge. A new
@@ -109,7 +111,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Actor z-order/visibility composition metadata and editor.
 - [x] Persisted ordered/visible/opacity image and basic drawing layers with rectangular clip masks.
 - [x] Validated ellipse/simple-polygon masks and normal/multiply/screen shared CPU blending.
-- [ ] Groups, image/feathered/animated masks and full native direct-canvas compositing parity.
+- [ ] Groups, image/feathered/animated masks and physical Mac compositing acceptance.
+- [ ] Final integration checks for selected-scene shared CPU-composited advanced frames (implemented in the next unmerged increment).
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
 - [x] Timed background image planes and validated half-open visibility intervals.
@@ -584,3 +587,27 @@ Audit collection is not license clearance. See [bones](per-bone-editor.md),
 [history](unified-history.md), [composition](advanced-compositing.md),
 [estimated cues](rhubarb-estimated-cues.md), [GPU fixture](gpu-offscreen.md)
 and [dependency evidence](dependency-audit.md).
+
+
+## Native acceptance tooling and retained provenance (next increment, unmerged)
+
+Implemented source is awaiting full Rust/CI validation and merge:
+
+- [x] Selected advanced-layer canvas routes immutable snapshots through a bounded
+  shared CPU compositor with generation/sample guards and speech-mouth overrides.
+- [x] Explicit native Rhubarb action runs against an already prepared line on a
+  bounded worker; separate Apply reuses exact-PCM/current-text validation.
+- [x] Packaged independently signed Metal fixture helper, explicit device-check
+  UI, bounded evidence readback and cancellation/watchdog path.
+- [x] New consented managed installs retain sanitized freeze bytes, installed
+  distribution metadata and bounded license texts with manifest/hash binding.
+  Missing or budget-omitted texts stay unresolved; distribution approval is false.
+- [ ] Full workspace Rust tests, final CI, review and merge for this increment.
+- [ ] Actual Mac compositor/device timing, real Rhubarb quality, physical Metal
+  fixture results, full-scene GPU parity and final artifact-specific license clearance.
+
+Current validation: workspace/all-target check passed; 42 runtime, 14 inventory
+and 10 packaging Python tests passed. Full Rust tests are pending at this record.
+No real engine, speech inference or GPU hardware execution is claimed here.
+See [native compositor](native-compositor.md), [native alignment](native-alignment.md),
+[Metal device check](gpu-device-check.md) and [retained provenance](license-provenance.md).
