@@ -513,7 +513,11 @@ real M1 Kokoro success (PR27) remains distinct from those comprehensive gates.
 Four agents implemented these scopes. Parent validation passed all 274 Rust tests
 (three explicit encoder tests ignored by default), direct rustfmt, all-target check
 and strict Clippy. Seven sequence tests including the explicit real FFmpeg test
-passed. A synthetic .kilsat fixture exported 6 PNGs and a 1.5 s MP4 with 36000 audio
+passed. All three opt-in real-encoder tests also passed; sequence encoding is now
+covered by the media CI job. Preparation snapshots are created only on explicit
+Prepare clicks; the final desktop 98 tests and strict Clippy passed after that
+UI optimization. [Mac instructions](practical-testing.md) include the new pending
+whole-project device/offline/transition acceptance checklist. A synthetic .kilsat fixture exported 6 PNGs and a 1.5 s MP4 with 36000 audio
 samples; decoded PNG artwork matched the expected green pixel. Traversal input
 was rejected. Independent review found EOF retry, paused-seek repaint and competing
 playback bugs; fixes and regression tests are included. Final remote CI remains

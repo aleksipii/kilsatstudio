@@ -2396,30 +2396,38 @@ impl Studio {
         }
     }
     fn sequence_ui(&mut self, ui: &mut egui::Ui) {
-        let request = self
-            .script
-            .as_ref()
-            .map(|script| sequence_worker::PrepareRequest {
-                generation: 0,
-                script: script.clone(),
-                root: self.project_root.clone().into(),
-                config: self.kokoro_config(),
-                alignments: self.scene_alignment.clone(),
-                art: motion_export::ArtContext {
-                    document: self
-                        .project_document
-                        .as_ref()
-                        .map(|d| d.art.clone())
-                        .unwrap_or_default(),
-                    images: (*self.art_resources.images).clone(),
-                },
-                cancel: CancellationToken::new(),
-            });
         let own_busy = self.sequence_panel.busy();
         let locked = (self.busy && !own_busy) || self.diagnostics_busy || self.export_busy;
-        if self.sequence_panel.ui(ui, locked, request) {
+        if self.sequence_panel.ui(ui, locked, self.script.is_some()) {
             self.stop_other_playback();
             self.busy = true;
+        }
+        if self.sequence_panel.take_prepare_requested() {
+            let request = self
+                .script
+                .as_ref()
+                .map(|script| sequence_worker::PrepareRequest {
+                    generation: 0,
+                    script: script.clone(),
+                    root: self.project_root.clone().into(),
+                    config: self.kokoro_config(),
+                    alignments: self.scene_alignment.clone(),
+                    art: motion_export::ArtContext {
+                        document: self
+                            .project_document
+                            .as_ref()
+                            .map(|d| d.art.clone())
+                            .unwrap_or_default(),
+                        images: (*self.art_resources.images).clone(),
+                    },
+                    cancel: CancellationToken::new(),
+                });
+            if let Some(request) = request {
+                if self.sequence_panel.start_prepare(request) {
+                    self.stop_other_playback();
+                    self.busy = true;
+                }
+            }
         }
         if self.sequence_panel.take_play_started() {
             self.stop_other_playback();

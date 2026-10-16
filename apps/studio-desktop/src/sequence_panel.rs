@@ -20,6 +20,7 @@ pub struct Panel {
     shown: Option<u64>,
     failed_frame: Option<u64>,
     play_started: bool,
+    prepare_requested: bool,
     texture: Option<egui::TextureHandle>,
     player: Option<playback::Playback>,
     playing: bool,
@@ -47,6 +48,7 @@ impl Default for Panel {
             shown: None,
             failed_frame: None,
             play_started: false,
+            prepare_requested: false,
             texture: None,
             player: None,
             playing: false,
@@ -66,6 +68,31 @@ impl Panel {
         self.playing = false;
         if let Some(player) = self.player.take() {
             let _ = player.stop();
+        }
+    }
+    pub fn take_prepare_requested(&mut self) -> bool {
+        std::mem::take(&mut self.prepare_requested)
+    }
+    /// Called only after the explicit Prepare action, so cloning the project is lazy.
+    pub fn start_prepare(&mut self, mut request: sequence_worker::PrepareRequest) -> bool {
+        request.generation = self.generation;
+        self.cancel = Some(request.cancel.clone());
+        match self.worker.submit(Task::Prepare(Box::new(request))) {
+            Ok(()) => {
+                self.worker_pending = true;
+                self.stop_transport();
+                self.busy = true;
+                self.prepared = None;
+                self.texture = None;
+                self.shown = None;
+                self.failed_frame = None;
+                true
+            }
+            Err(error) => {
+                self.status = error;
+                self.cancel = None;
+                false
+            }
         }
     }
     pub fn take_play_started(&mut self) -> bool {
@@ -279,12 +306,7 @@ impl Panel {
             ctx.request_repaint_after(std::time::Duration::from_millis(25));
         }
     }
-    pub fn ui(
-        &mut self,
-        ui: &mut egui::Ui,
-        locked: bool,
-        request: Option<sequence_worker::PrepareRequest>,
-    ) -> bool {
+    pub fn ui(&mut self, ui: &mut egui::Ui, locked: bool, can_prepare: bool) -> bool {
         let mut started = false;
         ui.collapsing("Whole project · sequence", |ui| {
             ui.label("Prepare uses your configured local Kokoro runtime. No automatic download.");
@@ -294,32 +316,12 @@ impl Panel {
                         && !self.busy
                         && !self.worker_pending
                         && !self.frame_pending
-                        && request.is_some(),
+                        && can_prepare,
                     egui::Button::new("Prepare whole project"),
                 )
                 .clicked()
             {
-                if let Some(mut request) = request {
-                    request.generation = self.generation;
-                    self.cancel = Some(request.cancel.clone());
-                    match self.worker.submit(Task::Prepare(Box::new(request))) {
-                        Ok(()) => {
-                            self.worker_pending = true;
-                            self.stop_transport();
-                            self.busy = true;
-                            self.playing = false;
-                            self.prepared = None;
-                            self.texture = None;
-                            self.shown = None;
-                            self.failed_frame = None;
-                            started = true;
-                        }
-                        Err(error) => {
-                            self.status = error;
-                            self.cancel = None;
-                        }
-                    }
-                }
+                self.prepare_requested = true;
             }
             if self.busy && ui.button("Cancel sequence task").clicked() {
                 if let Some(cancel) = &self.cancel {
@@ -510,10 +512,11 @@ mod tests {
         let ctx = egui::Context::default();
         let _ = ctx.run(Default::default(), |ctx| {
             egui::CentralPanel::default().show(ctx, |ui| {
-                assert!(!panel.ui(ui, false, None));
+                assert!(!panel.ui(ui, false, false));
             });
         });
         assert!(!panel.busy());
         assert!(panel.prepared.is_none());
+        assert!(!panel.take_prepare_requested());
     }
 }
