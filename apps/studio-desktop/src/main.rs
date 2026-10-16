@@ -1229,6 +1229,7 @@ impl Studio {
                 }
             }
             if ui.button("Resume audio").clicked() && self.scene_audio_active {
+                self.sequence_panel.stop_transport();
                 if let Some(player) = &self.playback {
                     if let Err(e) = player.resume() {
                         self.playback_error = Some(e);

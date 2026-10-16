@@ -1,4 +1,5 @@
-//! Headless PNG/WAV project export from existing local files. No synthesis/downloads.
+//! Headless YAML/.kilsat PNG/WAV or MP4 project export from existing local files.
+//! MP4 requires an explicit local encoder; no synthesis or downloads.
 use serde::Deserialize;
 use std::{
     error::Error,

@@ -249,10 +249,9 @@ cannot overlap within a middle scene. Apply validates the whole screenplay,
 including duration edits, and commits one source Undo step; invalid edits preserve
 the document.
 
-These settings currently apply to the headless sequence PNG + WAV exporter.
-Desktop scene preview, scene playback and scene export remain scene-local; they
-do not preview or render an outgoing transition. No sequence playback/export
-controls are provided in this desktop phase.
+These settings apply to the whole-project preview and PNG/WAV or MP4 sequence
+export. The ordinary selected-scene preview, playback and export remain scene-local.
+Use the Whole project panel below to inspect outgoing transitions.
 
 ### Whole-project sequence
 

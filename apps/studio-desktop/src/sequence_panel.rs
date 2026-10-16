@@ -467,16 +467,20 @@ mod tests {
         assert_eq!(raster_sample(24000, 24000), Some(23999));
         assert_eq!(raster_sample(0, 0), None);
         assert_eq!(raster_sample(120, 24000), Some(120));
-        let mut panel = Panel::default();
-        panel.desired = 24000;
-        panel.shown = Some(23999);
+        let panel = Panel {
+            desired: 24000,
+            shown: Some(23999),
+            ..Panel::default()
+        };
         assert!(!panel.needs_frame(raster_sample(panel.desired, 24000).unwrap()));
         assert_eq!(panel.desired, 24000);
     }
     #[test]
     fn failed_frame_is_not_retried_until_seek_or_invalidation() {
-        let mut panel = Panel::default();
-        panel.failed_frame = Some(123);
+        let mut panel = Panel {
+            failed_frame: Some(123),
+            ..Panel::default()
+        };
         assert!(!panel.needs_frame(123));
         assert!(panel.needs_frame(124));
         panel.seek(123);
