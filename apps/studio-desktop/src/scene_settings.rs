@@ -9,6 +9,7 @@ pub struct Draft {
     pub duration_seconds: f64,
     pub composition: motion_script::Composition,
     actors: Vec<String>,
+    is_last_scene: bool,
 }
 
 impl Draft {
@@ -21,6 +22,7 @@ impl Draft {
             duration_seconds: scene.duration,
             composition: scene.composition.clone(),
             actors: script.characters.keys().cloned().collect(),
+            is_last_scene: scene_index + 1 == script.scenes.len(),
         })
     }
 
@@ -56,12 +58,13 @@ impl Draft {
         ui.small("Shortening a scene is rejected if an event extends beyond its end.");
         ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
         ui.separator();
-        egui::CollapsingHeader::new("Background, camera, layers and fades").show(ui, |ui| {
+        egui::CollapsingHeader::new("Background, camera, layers, fades and transitions").show(ui, |ui| {
             crate::composition_editor::ui(
                 ui,
                 &mut self.composition,
                 &self.actors,
                 self.duration_seconds,
+                self.is_last_scene,
             );
         });
         ui.button("Apply settings").clicked()

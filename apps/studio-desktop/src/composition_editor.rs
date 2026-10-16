@@ -1,8 +1,16 @@
 //! Detached composition controls; Apply is validated as one screenplay edit.
 use eframe::egui;
-use motion_script::{BackgroundKey, CameraKey, Composition, Layer};
+use motion_script::{BackgroundKey, CameraKey, Composition, Layer, Transition};
 
-pub fn ui(ui: &mut egui::Ui, value: &mut Composition, actors: &[String], duration: f64) {
+pub fn ui(
+    ui: &mut egui::Ui,
+    value: &mut Composition,
+    actors: &[String],
+    duration: f64,
+    is_last_scene: bool,
+) {
+    outgoing_transition_ui(ui, &mut value.transition, is_last_scene);
+    ui.separator();
     ui.label("Background color (#RRGGBB)");
     ui.add(egui::TextEdit::singleline(&mut value.background_color).char_limit(7));
     ui.separator();
@@ -124,6 +132,38 @@ pub fn ui(ui: &mut egui::Ui, value: &mut Composition, actors: &[String], duratio
     }
 }
 
+fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_last_scene: bool) {
+    ui.label("Outgoing transition to next scene");
+    let crossfade = matches!(transition, Transition::Crossfade { .. });
+    ui.horizontal(|ui| {
+        if ui.selectable_label(!crossfade, "Cut").clicked() {
+            *transition = Transition::Cut;
+        }
+        if ui
+            .add_enabled(
+                !is_last_scene,
+                egui::Button::new("Crossfade").selected(crossfade),
+            )
+            .clicked()
+            && !crossfade
+        {
+            *transition = Transition::Crossfade { duration: 0.5 };
+        }
+    });
+    if let Transition::Crossfade { duration } = transition {
+        ui.horizontal(|ui| {
+            ui.label("Overlap (seconds)");
+            ui.add(egui::DragValue::new(duration).speed(0.05));
+        });
+    }
+    if is_last_scene {
+        ui.small("The final scene has no next scene and must use Cut. Apply rejects a final-scene crossfade.");
+    } else {
+        ui.small("Crossfade overlaps this scene's end with the next scene's start. Use a positive duration shorter than both scenes; incoming and outgoing overlaps may not overlap each other.");
+    }
+    ui.small("Outgoing transitions apply to headless sequence PNG + WAV export. Desktop preview and scene exports remain scene-local.");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,7 +174,7 @@ mod tests {
         let ctx = egui::Context::default();
         let _ = ctx.run(Default::default(), |ctx| {
             egui::CentralPanel::default().show(ctx, |panel| {
-                ui(panel, &mut value, &["EMMA".into()], 5.0);
+                ui(panel, &mut value, &["EMMA".into()], 5.0, true);
             });
         });
         assert_eq!(serde_json::to_value(&value).unwrap(), before);
