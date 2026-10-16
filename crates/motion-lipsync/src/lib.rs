@@ -1,6 +1,7 @@
 //! Explicit alignment provenance: synthesis tokens are not phoneme timestamps.
 pub mod cache;
 mod import;
+pub mod rhubarb;
 pub use import::{arpabet_to_ipa, import_alignment_json, AlignmentAudio};
 
 use serde::{Deserialize, Serialize};
@@ -60,6 +61,8 @@ pub enum AlignmentSource {
     Manual,
     /// External aligner output, not automatically a quality certification.
     Forced { tool: String, version: String },
+    /// Algorithmic estimates; this source never certifies forced alignment.
+    Estimated { tool: String, version: String },
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -89,10 +92,12 @@ impl Alignment {
         if !self.duration_seconds.is_finite() || self.duration_seconds < 0.0 {
             return Err(AlignmentError("invalid alignment duration".into()));
         }
-        if let AlignmentSource::Forced { tool, version } = &self.source {
+        if let AlignmentSource::Forced { tool, version }
+        | AlignmentSource::Estimated { tool, version } = &self.source
+        {
             if tool.trim().is_empty() || version.trim().is_empty() {
                 return Err(AlignmentError(
-                    "forced alignment requires tool and version".into(),
+                    "alignment provenance requires tool and version".into(),
                 ));
             }
         }

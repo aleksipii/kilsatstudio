@@ -266,11 +266,37 @@ fn evaluate_validated(
                 .iter()
                 .map(|(emotion, since)| (emotion.as_str(), *since))
                 .collect();
-            pose.skeleton = motion_animation::evaluate_humanoid(&HumanoidState {
-                walk_seconds,
-                emotion_changes: &emotion_changes,
-                gesture,
-            });
+            let offsets: Vec<_> = scene
+                .composition
+                .bone_tracks
+                .get(id)
+                .into_iter()
+                .flat_map(|tracks| tracks.iter())
+                .map(|(bone, keys)| {
+                    let joint = motion_animation::HUMANOID_BONES
+                        .iter()
+                        .position(|name| *name == bone.as_str())
+                        .expect("validated bone name");
+                    let value = motion_animation::Track::new(
+                        keys.iter()
+                            .map(motion_script::ActorKey::animation_key)
+                            .collect(),
+                    )
+                    .expect("validated bone track")
+                    .sample(time_seconds)
+                    .expect("validated scene time");
+                    (joint, value)
+                })
+                .collect();
+            pose.skeleton = motion_animation::evaluate_humanoid_with_offsets(
+                &HumanoidState {
+                    walk_seconds,
+                    emotion_changes: &emotion_changes,
+                    gesture,
+                },
+                &offsets,
+            )
+            .expect("validated bounded bone offsets");
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
                 let value = motion_animation::Track::new(
@@ -614,5 +640,48 @@ scenes:
             evaluate(&at_zero, 0, 0.0).unwrap().background_color,
             "#445566"
         );
+    }
+}
+
+#[cfg(test)]
+mod bone_track_scene_tests {
+    use super::*;
+    #[test]
+    fn authored_local_keys_seek_interpolate_and_preserve_rule_gesture() {
+        let source = "characters: {A: {asset: a}}\nscenes: [{id: shot, duration: 4, events: [{type: gesture, at: 0, actor: A, value: wave, duration: 4}]}]";
+        let base = motion_script::parse(source).unwrap();
+        let source = motion_script::apply_bone_track(
+            source,
+            0,
+            "A",
+            "right_hand",
+            &[
+                motion_script::ActorKey::default(),
+                motion_script::ActorKey {
+                    at: 4.0,
+                    x: 40.0,
+                    ..Default::default()
+                },
+            ],
+        )
+        .unwrap();
+        let script = motion_script::parse(&source).unwrap();
+        for time in [2.0, 0.0, 4.0, 1.0, 2.0] {
+            let original = evaluate(&base, 0, time).unwrap();
+            let actual = evaluate(&script, 0, time).unwrap();
+            let joint = motion_animation::RIGHT_HAND;
+            assert_eq!(
+                actual.actors[0].skeleton[joint].x,
+                original.actors[0].skeleton[joint].x + time * 10.0
+            );
+            assert_eq!(
+                actual.actors[0].skeleton[joint].y,
+                original.actors[0].skeleton[joint].y
+            );
+            assert_eq!(
+                actual.actors[0].skeleton[motion_animation::HEAD],
+                original.actors[0].skeleton[motion_animation::HEAD]
+            );
+        }
     }
 }

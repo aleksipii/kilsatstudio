@@ -2,15 +2,16 @@
 mod art_editor;
 mod art_resources;
 mod asset_worker;
+mod bone_editor;
 mod composition_editor;
 mod demo;
-mod edit_history;
 mod event_editor;
 mod event_factory;
 mod export_worker;
 mod keyframe_editor;
 mod kokoro_setup;
 mod playback;
+mod project_history;
 mod runtime_check;
 mod scene_settings;
 mod scene_worker;
@@ -91,9 +92,10 @@ struct Studio {
     art_editor: art_editor::Editor,
     art_resources: art_resources::Resources,
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
+    bone_draft: Option<(String, bone_editor::Draft)>,
+    selected_bone: String,
     asset_worker: asset_worker::Worker,
     asset_pending: Option<(String, String, motion_project::ProjectDocument)>,
-    asset_undo: Option<motion_project::ProjectDocument>,
     asset_id: String,
     asset_path: String,
     asset_kind: usize,
@@ -113,7 +115,7 @@ struct Studio {
     timeline_drag: Option<timeline_edit::Drag>,
     timeline_drag_source: Option<String>,
     timeline_seek_drag: bool,
-    history: edit_history::History,
+    history: project_history::History,
     pending_text_edit: Option<String>,
     event_draft: Option<event_editor::Draft>,
     event_edit_error: Option<String>,
@@ -219,9 +221,10 @@ impl Default for Studio {
             sequence_images: None,
             sequence_art_revision: 0,
             keyframe_draft: None,
+            bone_draft: None,
+            selected_bone: "hip".into(),
             asset_worker: asset_worker::Worker::new(),
             asset_pending: None,
-            asset_undo: None,
             asset_id: String::new(),
             asset_path: String::new(),
             asset_kind: 0,
@@ -241,7 +244,9 @@ impl Default for Studio {
             timeline_drag: None,
             timeline_drag_source: None,
             timeline_seek_drag: false,
-            history: edit_history::History::new(include_str!("../../../examples/hello-emma.yaml")),
+            history: project_history::History::new(include_str!(
+                "../../../examples/hello-emma.yaml"
+            )),
             pending_text_edit: None,
             event_draft: None,
             event_edit_error: None,
@@ -331,7 +336,7 @@ impl Studio {
                     }
                 }
                 self.flush_text_edit();
-                self.history.record(&self.source, &source);
+                self.record_source_edit(&self.source.clone(), &source);
                 self.source = source;
                 self.document_changed();
                 self.alignment.clear();
@@ -486,7 +491,7 @@ impl Studio {
             }
         }
         self.flush_text_edit();
-        self.history.record(&self.source, &source);
+        self.record_source_edit(&self.source.clone(), &source);
         self.source = source;
         self.document_changed();
         self.validate();
@@ -500,10 +505,10 @@ impl Studio {
         let Some(script) = &self.script else {
             return;
         };
-        if !self
+        if self
             .settings_draft
             .as_ref()
-            .is_some_and(|draft| draft.scene_index == self.scene_index)
+            .is_none_or(|draft| draft.scene_index != self.scene_index)
         {
             self.settings_draft = scene_settings::Draft::new(script, self.scene_index);
             self.settings_draft_source = Some(self.source.clone());
@@ -578,7 +583,7 @@ impl Studio {
                     return;
                 }
                 self.flush_text_edit();
-                self.history.record(&self.source, &source);
+                self.record_source_edit(&self.source.clone(), &source);
                 let affected: Vec<_> = self
                     .jobs
                     .iter()
@@ -632,10 +637,10 @@ impl Studio {
         else {
             return;
         };
-        if !self
+        if self
             .voice_draft
             .as_ref()
-            .is_some_and(|draft| draft.actor == actor)
+            .is_none_or(|draft| draft.actor != actor)
         {
             self.voice_draft = voice_editor::Draft::new(script, &actor);
             self.voice_draft_source = Some(self.source.clone());
@@ -748,7 +753,7 @@ impl Studio {
                     self.status = "Edited screenplay exceeds 100 KB.".into();
                     return;
                 }
-                self.history.record(&self.source, &source);
+                self.record_source_edit(&self.source.clone(), &source);
                 self.source = source;
                 self.document_changed();
                 if speech {
@@ -805,44 +810,88 @@ impl Studio {
     }
     fn flush_text_edit(&mut self) {
         if let Some(before) = self.pending_text_edit.take() {
-            self.history.record(&before, &self.source);
+            self.record_source_edit(&before, &self.source.clone());
         }
     }
+    fn record_source_edit(&mut self, before: &str, after: &str) {
+        self.history.record(
+            project_history::Snapshot::capture(before, self.project_document.as_ref()),
+            project_history::Snapshot::capture(after, self.project_document.as_ref()),
+        );
+    }
+    fn snapshot(&self) -> project_history::Snapshot {
+        project_history::Snapshot::capture(&self.source, self.project_document.as_ref())
+    }
+    /// Called only after the artwork editor reports an actual committed edit.
+    fn record_art_transaction(&mut self) {
+        let Some(before_art) = self.art_editor.take_transaction_before() else {
+            return;
+        };
+        let Some(document) = self.project_document.as_mut() else {
+            return;
+        };
+        let mut before = document.clone();
+        before.art = before_art;
+        before.source = self.source.clone();
+        let mut candidate = document.clone();
+        candidate.source = self.source.clone();
+        if let Err(error) = candidate.validate() {
+            document.art = before.art;
+            self.art_editor.error = Some(error.to_string());
+            return;
+        }
+        // A canvas click can finish an in-progress screenplay text transaction.
+        // Keep its metadata from BEFORE this art edit so undo order stays exact.
+        if let Some(source) = self.pending_text_edit.take() {
+            self.history.record(
+                project_history::Snapshot::capture(&source, Some(&before)),
+                project_history::Snapshot::capture(&self.source, Some(&before)),
+            );
+        }
+        self.history.record(
+            project_history::Snapshot::capture(&self.source, Some(&before)),
+            project_history::Snapshot::capture(&self.source, Some(document)),
+        );
+    }
     fn undo_edit(&mut self, redo: bool) {
-        if self.busy || self.diagnostics_busy {
+        if self.busy || self.diagnostics_busy || self.export_busy {
             return;
         }
         self.flush_text_edit();
-        let source = if redo {
-            self.history.redo(&self.source)
-        } else {
-            self.history.undo(&self.source)
-        };
-        if let Some(source) = source {
-            if let Some(document) = &self.project_document {
-                let mut candidate = document.clone();
-                candidate.source = source.clone();
-                if let Err(error) = candidate.validate() {
-                    if redo {
-                        self.history.undo(&source);
-                    } else {
-                        self.history.redo(&source);
+        let current = self.snapshot();
+        match self.history.navigate(current, redo) {
+            Ok(Some(snapshot)) => {
+                let restored_document = snapshot.document();
+                let inventory_changed = self.project_document.as_ref().map(|d| &d.assets)
+                    != restored_document.as_ref().map(|d| &d.assets);
+                let art_changed = self.project_document.as_ref().map(|d| &d.art)
+                    != restored_document.as_ref().map(|d| &d.art);
+                let art_dirty = self.art_editor.dirty || art_changed;
+                self.project_document = restored_document;
+                self.source = snapshot.source;
+                self.document_changed();
+                self.art_editor.reset();
+                self.art_editor.dirty = art_dirty;
+                self.asset_dirty |= inventory_changed;
+                self.alignment.clear();
+                self.scene_alignment.clear();
+                self.stop_playback();
+                self.invalidate_scene();
+                self.jobs.clear();
+                self.preview = None;
+                self.validate();
+                if let Some(document) = &self.project_document {
+                    let mut document = document.clone();
+                    document.source = self.source.clone();
+                    if let Err(error) = document.validate() {
+                        self.script = None;
+                        self.jobs.clear();
+                        self.status = format!("History restored an unfinished screenplay: {error}");
                     }
-                    self.status = format!(
-                        "History conflicts with artwork: {error}. Remove related layers first."
-                    );
-                    return;
                 }
             }
-            self.source = source;
-            self.document_changed();
-            self.alignment.clear();
-            self.scene_alignment.clear();
-            self.stop_playback();
-            self.invalidate_scene();
-            self.jobs.clear();
-            self.preview = None;
-            self.validate();
+            Ok(None) => {}
+            Err(error) => self.status = format!("History unchanged: {error}"),
         }
     }
     fn apply_event_draft(&mut self) {
@@ -874,7 +923,7 @@ impl Studio {
                         Some("Edited screenplay exceeds the 100 KB desktop save limit.".into());
                     return;
                 }
-                self.history.record(&self.source, &source);
+                self.record_source_edit(&self.source.clone(), &source);
                 if edits_speech && insertion {
                     self.alignment.clear();
                     self.scene_alignment.clear();
@@ -943,7 +992,6 @@ impl Studio {
             Ok(assets) => {
                 self.art_editor.reset();
                 self.project_document = None;
-                self.asset_undo = None;
                 self.asset_dirty = false;
                 self.source = assets.source.clone();
                 self.document_changed();
@@ -996,6 +1044,7 @@ impl Studio {
         self.sequence_changed();
     }
     fn invalidate_scene(&mut self) {
+        self.bone_draft = None;
         self.document_changed();
         self.settings_draft = None;
         self.settings_draft_source = None;
@@ -1017,6 +1066,7 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.bone_draft = None;
         self.settings_draft = None;
         self.settings_draft_source = None;
         self.settings_error = None;
@@ -1090,7 +1140,6 @@ impl Studio {
                     self.document_changed();
                     self.project_document = Some(doc);
                     self.art_editor.reset();
-                    self.asset_undo = None;
                     self.asset_dirty = false;
                     self.project_root = root;
                     self.history.reset(&self.source);
@@ -1123,7 +1172,6 @@ impl Studio {
             Ok(source) => {
                 self.art_editor.reset();
                 self.project_document = None;
-                self.asset_undo = None;
                 self.asset_dirty = false;
                 self.source = source;
                 self.document_changed();
@@ -1173,7 +1221,6 @@ impl Studio {
             match result {
                 Ok(doc) => {
                     self.project_document = Some(doc);
-                    self.asset_undo = None;
                     self.asset_dirty = false;
                     self.art_editor.dirty = false;
                     self.flush_text_edit();
@@ -1350,6 +1397,13 @@ impl Studio {
                         self.art_resources
                             .sync(ui.ctx(), &self.project_root, &document.assets);
                     }
+                    if self.project_document.as_ref().is_some_and(|document| {
+                        requires_composited_preview(&document.art, scene_id, scene.time)
+                    }) {
+                        ui.colored_label(egui::Color32::LIGHT_BLUE, "This frame uses an advanced mask or blend mode. Open Whole project preview and prepare the project to inspect the shared compositor result.");
+                        ui.small("The direct drawing canvas is unavailable for this frame. Edit layers in the Inspector or move to a frame without an active advanced layer.");
+                        return;
+                    }
                     let rect = draw_scene(ui, &scene, &mouths, |painter, rect, plane| {
                         if let Some(document) = &self.project_document {
                             art_editor::paint(
@@ -1389,6 +1443,7 @@ impl Studio {
         } else {
             ui.label("Validate screenplay to enable deterministic scene preview.");
         }
+        self.record_art_transaction();
         ui.add_space(8.0);
         ui.weak("Procedural preview · sample-clock mouth animation");
     }
@@ -1513,7 +1568,10 @@ impl Studio {
             if let Some((source, path, previous)) = self.asset_pending.take() {
                 match result {
                     Ok(document) if self.source == source && self.script_path == path && self.project_document.as_ref().is_some_and(|current|current.art==previous.art && current.assets==previous.assets) => {
-                        self.asset_undo = Some(previous);
+                        self.history.record(
+                            project_history::Snapshot::capture(&self.source, Some(&previous)),
+                            project_history::Snapshot::capture(&self.source, Some(&document)),
+                        );
                         self.project_document = Some(document);
                         self.document_changed();
                         self.asset_dirty = true;
@@ -1573,11 +1631,11 @@ impl Studio {
                     match result {
                         Ok(ready) => {
                             let prepared = ready.prepared;
-                            if !self
+                            if self
                                 .script
                                 .as_ref()
                                 .and_then(|s| s.scenes.get(self.scene_index))
-                                .is_some_and(|s| s.id == prepared.scene_id)
+                                .is_none_or(|s| s.id != prepared.scene_id)
                             {
                                 self.status =
                                     "Discarded preparation for an invalidated scene.".into();
@@ -1736,6 +1794,9 @@ impl Studio {
 }
 fn alignment_status_text(status: AlignmentStatus) -> &'static str {
     match status {
+        AlignmentStatus::EstimatedImported => {
+            "Estimated Rhubarb mouth cues imported · uncached · quality not measured"
+        }
         AlignmentStatus::None => "No alignment · mouth at rest",
         AlignmentStatus::LegacyUnbound => {
             "Legacy timing · unbound to audio/transcript · quality not measured"
@@ -1904,6 +1965,7 @@ impl Studio {
                     ui.label("Preflight checks local packages and files only; it does not run inference or prove compatibility.");
                     if runtime_changed { self.sequence_changed(); self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; self.setup_profile = None; self.test_audio = None; }
                     if field(ui, "Project root (imported WAV paths)", &mut self.project_root) {
+                        self.pending_text_edit = None; self.history.reset(&self.source);
                         self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
                         self.status = "Project root changed; validate screenplay to resolve imported paths again.".into();
                     }
@@ -2030,7 +2092,7 @@ impl Studio {
                 ui.colored_label(egui::Color32::LIGHT_RED, error);
             }
             ui.label(alignment_status_text(preview.alignment_status));
-            if preview.clip.alignment.is_none() {
+            if preview.clip.alignment.is_none() && preview.clip.estimated_alignment.is_none() {
                 ui.label(
                     "No timed alignment: mouth stays at rest. Kokoro tokens are not timestamps.",
                 );
@@ -2094,7 +2156,7 @@ impl Studio {
                                 pending_change || self.history.can_undo(),
                                 egui::Button::new("Undo"),
                             )
-                            .on_hover_text("Undo screenplay edit · Cmd/Ctrl+Z")
+                            .on_hover_text("Undo project edit · Cmd/Ctrl+Z")
                             .clicked()
                         {
                             self.undo_edit(false);
@@ -2104,7 +2166,7 @@ impl Studio {
                                 !pending_change && self.history.can_redo(),
                                 egui::Button::new("Redo"),
                             )
-                            .on_hover_text("Redo screenplay edit · Cmd/Ctrl+Shift+Z")
+                            .on_hover_text("Redo project edit · Cmd/Ctrl+Shift+Z")
                             .clicked()
                         {
                             self.undo_edit(true);
@@ -2227,6 +2289,7 @@ impl Studio {
             self.status = "Asset operations require the .kilsat path beside the configured project root. Open or save the intended project first.".into();
             return;
         }
+        self.flush_text_edit();
         let mut document = self.project_document.clone().unwrap();
         document.source = self.source.clone();
         if let Err(error) = document.validate() {
@@ -2265,9 +2328,7 @@ impl Studio {
                 }
                 if ui.button("Relink reference").clicked() { self.start_asset(asset_worker::Operation::Relink { id: self.asset_id.clone(), path: self.asset_path.clone() }); }
                 if ui.button("Remove reference (keeps file)").clicked() { self.start_asset(asset_worker::Operation::Remove { id: self.asset_id.clone() }); }
-                if ui.add_enabled(self.asset_undo.is_some(), egui::Button::new("Undo last inventory change")).clicked() {
-                    if let Some(mut previous) = self.asset_undo.take() { previous.source = self.source.clone(); self.project_document = Some(previous); self.document_changed(); self.asset_dirty = true; self.status = "Inventory restored; imported physical files remain on disk.".into(); }
-                }
+                ui.weak("Undo / Redo in the toolbar also restores inventory references. Imported physical files stay on disk.");
             });
         });
     }
@@ -2358,7 +2419,6 @@ impl Studio {
         if let Some(document) = &mut self.project_document {
             self.art_editor
                 .clear_history_for_context(format!("{}:{}", self.document_revision, scene.id));
-            let before = document.art.clone();
             if ui.button("Reload images from disk").clicked() {
                 self.art_resources.reload();
                 if self.sequence_panel.busy() {
@@ -2386,17 +2446,11 @@ impl Studio {
                     )
                 },
             );
-            let mut candidate = document.clone();
-            candidate.source = self.source.clone();
-            if let Err(error) = candidate.validate() {
-                document.art = before;
-                self.art_editor.invalidate_history();
-                self.art_editor.error = Some(error.to_string());
-            }
             if let Some(error) = &self.art_resources.error {
                 ui.colored_label(egui::Color32::LIGHT_RED, error);
             }
         }
+        self.record_art_transaction();
     }
     fn keyframe_inspector_ui(&mut self, ui: &mut egui::Ui) {
         let Some(script) = &self.script else {
@@ -2445,6 +2499,75 @@ impl Studio {
             }
         }
     }
+    fn apply_bone_draft(&mut self) {
+        let Some((source, draft)) = &self.bone_draft else {
+            return;
+        };
+        let current_actor = self.selected_actor.as_deref().or_else(|| {
+            self.script
+                .as_ref()?
+                .characters
+                .keys()
+                .next()
+                .map(String::as_str)
+        });
+        if source != &self.source
+            || draft.scene_index != self.scene_index
+            || current_actor != Some(draft.actor.as_str())
+            || draft.bone != self.selected_bone
+        {
+            self.status = "Bone draft belongs to an earlier source, scene, actor or bone; reload the draft before applying.".into();
+            self.bone_draft = None;
+            return;
+        }
+        let result = draft.apply(&self.source);
+        self.apply_structure(result);
+    }
+
+    fn bone_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
+        let mut apply = false;
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
+            egui::CollapsingHeader::new("Per-bone keyframes").show(ui, |ui| {
+                let old_bone = self.selected_bone.clone();
+                egui::ComboBox::from_id_salt("authored_bone")
+                    .selected_text(&self.selected_bone).show_ui(ui, |ui| {
+                        for bone in motion_script::HUMANOID_BONES {
+                            ui.selectable_value(&mut self.selected_bone, bone.into(), bone);
+                        }
+                    });
+                if self.selected_bone != old_bone {
+                    ui.small("Bone changed: loaded that bone's saved keys; unapplied draft changes were discarded.");
+                }
+                if !self.bone_draft.as_ref().is_some_and(|(source, draft)| {
+                    source == &self.source && draft.scene_index == self.scene_index
+                        && draft.actor == actor && draft.bone == self.selected_bone
+                }) {
+                    self.bone_draft = Some((self.source.clone(), bone_editor::Draft::for_bone(
+                        scene, self.scene_index, actor, &self.selected_bone,
+                    )));
+                }
+                ui.small("Changing scene, actor or bone reloads saved keys and discards unapplied changes.");
+                if let Some((_, draft)) = &mut self.bone_draft { apply = draft.ui(ui); }
+            });
+        });
+        if apply {
+            self.apply_bone_draft();
+        }
+    }
+
     fn sequence_ui(&mut self, ui: &mut egui::Ui) {
         self.sync_sequence_resources();
         let own_busy = self.sequence_panel.busy();
@@ -2505,6 +2628,7 @@ impl Studio {
         }
         self.art_inspector_ui(ui);
         self.keyframe_inspector_ui(ui);
+        self.bone_inspector_ui(ui);
         self.voice_inspector_ui(ui);
         self.event_inspector_ui(ui);
         ui.add_space(12.0);
@@ -2759,10 +2883,10 @@ impl Studio {
         else {
             return;
         };
-        if !script
+        if script
             .scenes
             .get(self.scene_index)
-            .is_some_and(|scene| scene.id == preview.scene)
+            .is_none_or(|scene| scene.id != preview.scene)
         {
             self.status = "Prepare audio for the selected scene before export.".into();
             return;
@@ -3301,6 +3425,15 @@ fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
         .collect()
 }
 
+/// The direct egui painter cannot implement SVG arbitrary masks/blending.
+fn requires_composited_preview(art: &motion_art::Document, scene_id: &str, time: f64) -> bool {
+    art.layers.iter().any(|layer| {
+        layer.scene_id == scene_id
+            && layer.is_active(time)
+            && (layer.clip_shape.is_some() || layer.blend != motion_art::BlendMode::Normal)
+    })
+}
+
 fn draw_scene(
     ui: &mut egui::Ui,
     scene: &motion_scene::EvaluatedScene,
@@ -3506,6 +3639,8 @@ mod scene_preview_tests {
             active: None,
             opacity: 1.0,
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: None,
             content: motion_art::Content::Rectangle {
                 rect: motion_art::Rect {
@@ -3539,13 +3674,15 @@ mod scene_preview_tests {
         )
         .unwrap();
         studio.history.reset(&alternate);
-        studio.history.record(&alternate, &original);
-        studio.undo_edit(false);
-        assert_eq!(studio.source, original);
-        assert!(studio.history.can_undo());
-        studio.project_document.as_mut().unwrap().art.layers.clear();
+        studio.record_source_edit(&alternate, &original);
         studio.undo_edit(false);
         assert_eq!(studio.source, alternate);
+        assert!(studio.script.is_none());
+        assert!(studio.status.contains("unfinished screenplay"));
+        assert!(studio.jobs.is_empty());
+        studio.undo_edit(true);
+        assert_eq!(studio.source, original);
+        assert!(studio.script.is_some());
     }
     #[test]
     fn yaml_save_refuses_to_drop_artwork() {
@@ -3561,6 +3698,8 @@ mod scene_preview_tests {
             active: None,
             opacity: 1.0,
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: None,
             content: motion_art::Content::Rectangle {
                 rect: motion_art::Rect {
@@ -3831,8 +3970,8 @@ mod scene_preview_tests {
         assert!(studio.project_document.as_ref().unwrap().assets.is_empty());
         assert_eq!(studio.source, original);
         assert_eq!(std::fs::read(file).unwrap(), b"retained");
-        assert_eq!(studio.asset_undo.as_ref().unwrap().assets.len(), 1);
-        studio.project_document = studio.asset_undo.take();
+        studio.undo_edit(false);
+        assert_eq!(studio.project_document.as_ref().unwrap().assets.len(), 1);
         studio.asset_dirty = false;
         studio.start_asset(asset_worker::Operation::Remove { id: "image".into() });
         assert!(studio.busy);
@@ -3844,7 +3983,7 @@ mod scene_preview_tests {
         }
         assert!(!studio.busy);
         assert_eq!(studio.project_document.as_ref().unwrap().assets.len(), 1);
-        assert!(studio.asset_undo.is_none());
+        assert!(studio.history.can_redo());
         assert!(!studio.asset_dirty);
         assert!(studio.status.contains("discarded"));
         studio.project_root = root.join("missing-root").to_string_lossy().into();
@@ -3867,6 +4006,7 @@ mod scene_preview_tests {
                 channels: 1,
                 samples: vec![0.0; 24000],
             },
+            estimated_alignment: None,
             alignment: Some(Alignment {
                 source: motion_lipsync::AlignmentSource::Manual,
                 duration_seconds: 1.0,
@@ -4443,6 +4583,94 @@ mod scene_preview_tests {
         studio
     }
     #[test]
+    fn pending_text_then_canvas_artwork_undo_in_one_project_order() {
+        let mut studio = settings_studio();
+        let original = studio.source.clone();
+        studio.project_document =
+            Some(motion_project::ProjectDocument::new(original.clone()).unwrap());
+        let typed = format!("# typed before drawing\n{original}");
+        studio.source = typed.clone();
+        studio.pending_text_edit = Some(original.clone());
+        let document = studio.project_document.as_mut().unwrap();
+        let mut candidate = document.art.clone();
+        candidate.layers.push(motion_art::Layer {
+            id: "drawn".into(),
+            name: "Drawn".into(),
+            scene_id: studio.script.as_ref().unwrap().scenes[0].id.clone(),
+            visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 10.0,
+                },
+                color: motion_art::Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        });
+        studio.art_editor.commit(&mut document.art, candidate);
+        studio.record_art_transaction();
+        assert!(studio.pending_text_edit.is_none());
+        assert_eq!(
+            studio.project_document.as_ref().unwrap().art.layers.len(),
+            1
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, typed);
+        assert!(studio
+            .project_document
+            .as_ref()
+            .unwrap()
+            .art
+            .layers
+            .is_empty());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert!(studio
+            .project_document
+            .as_ref()
+            .unwrap()
+            .art
+            .layers
+            .is_empty());
+        studio.undo_edit(true);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, typed);
+        assert_eq!(
+            studio.project_document.as_ref().unwrap().art.layers.len(),
+            1
+        );
+        let revision = studio.sequence_revision;
+        let document = studio.project_document.as_mut().unwrap();
+        let mut invalid = document.art.clone();
+        invalid.layers[0].opacity = f64::NAN;
+        studio.art_editor.commit(&mut document.art, invalid);
+        studio.record_art_transaction();
+        assert_eq!(studio.sequence_revision, revision);
+        assert!(!studio.history.can_redo());
+        studio.undo_edit(false);
+        assert!(studio
+            .project_document
+            .as_ref()
+            .unwrap()
+            .art
+            .layers
+            .is_empty());
+    }
+
+    #[test]
     fn sequence_revisions_are_idle_stable_and_follow_document_history() {
         let mut studio = settings_studio();
         studio.sync_sequence_resources();
@@ -4688,6 +4916,7 @@ mod alignment_status_tests {
                     actor: "actor".into(),
                     start_frame: 0,
                     audio: audio.clone(),
+                    estimated_alignment: None,
                     alignment: None,
                     gain: 1.0,
                     trim_start_frame: 0,
@@ -4719,5 +4948,134 @@ mod alignment_status_tests {
         assert!(
             alignment_status_text(AlignmentStatus::BoundImported).contains("quality not measured")
         );
+    }
+}
+
+#[cfg(test)]
+mod bone_and_compositor_tests {
+    use super::*;
+    fn studio_with_draft() -> Studio {
+        let mut studio = Studio::default();
+        studio.validate();
+        let script = studio.script.as_ref().unwrap();
+        let actor = script.characters.keys().next().unwrap().clone();
+        studio.selected_actor = Some(actor.clone());
+        studio.selected_bone = "chest".into();
+        let mut draft = bone_editor::Draft::for_bone(&script.scenes[0], 0, &actor, "chest");
+        draft.keys.push(motion_script::ActorKey {
+            rotation: 0.25,
+            ..Default::default()
+        });
+        studio.bone_draft = Some((studio.source.clone(), draft));
+        studio
+    }
+    fn layer(scene: &str) -> motion_art::Layer {
+        motion_art::Layer {
+            id: "test".into(),
+            name: "Test".into(),
+            scene_id: scene.into(),
+            visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 10.0,
+                },
+                color: motion_art::Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        }
+    }
+    #[test]
+    fn bone_apply_and_artwork_undo_share_chronology() {
+        let mut studio = studio_with_draft();
+        let original = studio.source.clone();
+        studio.apply_bone_draft();
+        let bone_source = studio.source.clone();
+        assert_ne!(bone_source, original);
+        let scene_id = studio.script.as_ref().unwrap().scenes[0].id.clone();
+        if studio.project_document.is_none() {
+            studio.project_document =
+                Some(motion_project::ProjectDocument::new(bone_source.clone()).unwrap());
+        }
+        let document = studio.project_document.as_mut().unwrap();
+        let mut candidate = document.art.clone();
+        candidate.layers.push(layer(&scene_id));
+        studio.art_editor.commit(&mut document.art, candidate);
+        studio.record_art_transaction();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, bone_source);
+        assert!(studio
+            .project_document
+            .as_ref()
+            .unwrap()
+            .art
+            .layers
+            .is_empty());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, bone_source);
+    }
+    #[test]
+    fn stale_bone_context_and_invalid_offsets_preserve_source() {
+        for context in 0..5 {
+            let mut studio = studio_with_draft();
+            let original = studio.source.clone();
+            match context {
+                0 => studio.bone_draft.as_mut().unwrap().0.push(' '),
+                1 => studio.scene_index += 1,
+                2 => studio.selected_actor = Some("another_actor".into()),
+                3 => studio.selected_bone = "head".into(),
+                _ => studio.bone_draft.as_mut().unwrap().1.keys[0].scale_x = 0.0,
+            }
+            studio.apply_bone_draft();
+            assert_eq!(studio.source, original);
+        }
+        let mut studio = studio_with_draft();
+        studio.invalidate_scene();
+        assert!(studio.bone_draft.is_none());
+    }
+    #[test]
+    fn advanced_direct_canvas_gate_obeys_scene_visibility_and_time() {
+        let mut art = motion_art::Document {
+            layers: vec![layer("shot")],
+        };
+        assert!(!requires_composited_preview(&art, "shot", 0.0));
+        art.layers[0].blend = motion_art::BlendMode::Multiply;
+        assert!(requires_composited_preview(&art, "shot", 0.0));
+        assert!(!requires_composited_preview(&art, "other", 0.0));
+        art.layers[0].active = Some(motion_art::TimeRange {
+            start: 1.0,
+            end: 2.0,
+        });
+        assert!(!requires_composited_preview(&art, "shot", 0.0));
+        assert!(requires_composited_preview(&art, "shot", 1.0));
+        assert!(!requires_composited_preview(&art, "shot", 2.0));
+        art.layers[0].visible = false;
+        assert!(!requires_composited_preview(&art, "shot", 1.0));
+        art.layers[0].visible = true;
+        art.layers[0].blend = motion_art::BlendMode::Normal;
+        art.layers[0].clip_shape = Some(motion_art::ClipShape::Ellipse {
+            rect: motion_art::Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 10.0,
+                height: 10.0,
+            },
+        });
+        assert!(requires_composited_preview(&art, "shot", 1.0));
     }
 }

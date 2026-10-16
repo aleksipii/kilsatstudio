@@ -3,7 +3,12 @@ name = "motion-render"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = []
+gpu = ["dep:wgpu"]
+
 [dependencies]
+wgpu = { version = "=24.0.5", optional = true, default-features = false, features = ["wgsl", "metal"] }
 motion-art = { path = "../motion-art" }
 motion-scene = { path = "../motion-scene" }
 motion-lipsync = { path = "../motion-lipsync" }
@@ -13,3 +18,7 @@ thiserror.workspace = true
 motion-animation = { path = "../motion-animation" }
 motion-script = { path = "../motion-script" }
 serde_json.workspace = true
+
+[[example]]
+name = "gpu_probe"
+required-features = ["gpu"]

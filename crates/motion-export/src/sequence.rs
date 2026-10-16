@@ -142,6 +142,11 @@ fn preflight(
                     _ => 1,
                 })
                 .ok_or_else(|| invalid("art geometry overflow"))?;
+            if let Some(motion_art::ClipShape::Polygon { points }) = &layer.clip_shape {
+                geometry = geometry
+                    .checked_add(points.len() as u64)
+                    .ok_or_else(|| invalid("mask geometry overflow"))?;
+            }
             if layer.visible {
                 if let motion_art::Content::Image { asset_id, .. } = &layer.content {
                     if !a.images.contains_key(asset_id) {
@@ -754,6 +759,8 @@ mod tests {
             }),
             opacity: 1.0,
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: None,
             content: Content::Rectangle {
                 rect: Rect {
@@ -862,6 +869,159 @@ mod tests {
             |_| {}
         )
         .is_err());
+        assert!(!dest.exists());
+    }
+    #[test]
+    fn advanced_clips_and_backdrop_blends_are_real_raster_pixels() {
+        use motion_art::{BlendMode, ClipShape, Color, Content, Layer, Plane, Point, Rect};
+        let (mut script, rendered) = fixture(false);
+        script.scenes[0].composition.background_color = "#808080".into();
+        let rect = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 8.0,
+            height: 8.0,
+        };
+        let mut art = ArtContext::default();
+        art.document.layers.push(Layer {
+            id: "blend".into(),
+            scene_id: script.scenes[0].id.clone(),
+            name: "blend".into(),
+            visible: true,
+            plane: Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: None,
+            blend: BlendMode::Normal,
+            content: Content::Rectangle {
+                rect,
+                color: Color {
+                    r: 128,
+                    g: 192,
+                    b: 64,
+                    a: 255,
+                },
+            },
+        });
+        let cancel = CancellationToken::new();
+        for (mode, opacity, expected) in [
+            (BlendMode::Normal, 1.0, [128, 192, 64]),
+            (BlendMode::Multiply, 1.0, [64, 96, 32]),
+            (BlendMode::Screen, 1.0, [192, 224, 160]),
+            (BlendMode::Multiply, 0.5, [96, 112, 80]),
+            (BlendMode::Screen, 0.5, [160, 176, 144]),
+        ] {
+            art.document.layers[0].blend = mode;
+            art.document.layers[0].opacity = opacity;
+            let frame =
+                render_sequence_frame(&script, &rendered, Some(&art), 0, 8, &cancel).unwrap();
+            for (actual, expected) in frame.rgba[..3].iter().zip(expected) {
+                assert!(
+                    (i32::from(*actual) - expected).abs() <= 2,
+                    "{mode:?} opacity {opacity}: {:?}",
+                    &frame.rgba[..4]
+                );
+            }
+        }
+        art.document.layers[0].blend = BlendMode::Normal;
+        art.document.layers[0].opacity = 1.0;
+        for shape in [
+            ClipShape::Ellipse { rect },
+            ClipShape::Polygon {
+                points: vec![
+                    Point { x: 4.0, y: 0.0 },
+                    Point { x: 8.0, y: 4.0 },
+                    Point { x: 4.0, y: 8.0 },
+                    Point { x: 0.0, y: 4.0 },
+                ],
+            },
+        ] {
+            art.document.layers[0].clip_shape = Some(shape);
+            let frame =
+                render_sequence_frame(&script, &rendered, Some(&art), 0, 8, &cancel).unwrap();
+            assert_eq!(&frame.rgba[..4], &[128, 128, 128, 255]);
+            let center = (4 * 8 + 4) * 4;
+            assert_eq!(&frame.rgba[center..center + 4], &[128, 192, 64, 255]);
+            let again =
+                render_sequence_frame(&script, &rendered, Some(&art), 0, 8, &cancel).unwrap();
+            assert_eq!(frame.rgba, again.rgba);
+            let dest = crate::tests::destination();
+            export_png_sequence(&script, &rendered, Some(&art), &dest, &cancel, |_| {}).unwrap();
+            let exported = resvg::tiny_skia::Pixmap::decode_png(
+                &fs::read(dest.join("frame-000000.png")).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(frame.rgba, exported.data());
+            fs::remove_dir_all(dest).unwrap();
+        }
+    }
+    #[test]
+    fn polygon_vertex_work_is_bounded_before_single_or_sequence_output() {
+        use motion_art::{BlendMode, ClipShape, Color, Content, Layer, Plane, Point, Rect};
+        let (mut script, rendered) = fixture(false);
+        script.project.fps = 240;
+        let points = (0..128)
+            .map(|i| {
+                let a = f64::from(i) * std::f64::consts::TAU / 128.0;
+                Point {
+                    x: 4.0 + 3.0 * a.cos(),
+                    y: 4.0 + 3.0 * a.sin(),
+                }
+            })
+            .collect();
+        let base = Layer {
+            id: "mask".into(),
+            scene_id: script.scenes[0].id.clone(),
+            name: "Mask".into(),
+            visible: true,
+            plane: Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: Some(ClipShape::Polygon { points }),
+            blend: BlendMode::Normal,
+            content: Content::Rectangle {
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 8.0,
+                    height: 8.0,
+                },
+                color: Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        };
+        let mut art = ArtContext::default();
+        for i in 0..150 {
+            let mut layer = base.clone();
+            layer.id = format!("mask{i}");
+            art.document.layers.push(layer);
+        }
+        art.document.validate().unwrap();
+        let cancel = CancellationToken::new();
+        let dest = crate::tests::destination();
+        let single = crate::export_png_scene_with_art(
+            &script,
+            0,
+            &rendered[0],
+            &art,
+            &dest,
+            &cancel,
+            |_| {},
+        )
+        .unwrap_err();
+        assert!(single.to_string().contains("four million"), "{single}");
+        assert!(!dest.exists());
+        let sequence = export_png_sequence(&script, &rendered, Some(&art), &dest, &cancel, |_| {})
+            .unwrap_err();
+        assert!(sequence.to_string().contains("frame-work"), "{sequence}");
         assert!(!dest.exists());
     }
 }

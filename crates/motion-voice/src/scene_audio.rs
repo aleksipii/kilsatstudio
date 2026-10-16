@@ -378,4 +378,129 @@ mod bound_tests {
         assert_eq!(fixture.calls.load(Ordering::SeqCst), 0);
         assert!(!fixture.root.join("cache").exists());
     }
+    fn estimated_input(fixture: &Fixture) -> AlignmentInput {
+        use motion_lipsync::rhubarb::{
+            pcm_identity, EstimatedVisemeAlignment, MouthCue, Recognizer,
+        };
+        let audio = motion_audio::read_wav(fixture.root.join("voice.wav")).unwrap();
+        AlignmentInput::Estimated(EstimatedVisemeAlignment {
+            schema_version: 1,
+            source: "estimated_rhubarb".into(),
+            tool_version: "synthetic-cues-only".into(),
+            executable_sha256: "a".repeat(64),
+            pcm_sha256: pcm_identity(&audio).unwrap(),
+            transcript_sha256: "185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969"
+                .into(),
+            recognizer: Recognizer::PocketSphinx,
+            sample_rate: 24000,
+            frame_count: 24,
+            cues: vec![
+                MouthCue {
+                    start_sample: 0,
+                    end_sample: 12,
+                    shape: 'D',
+                },
+                MouthCue {
+                    start_sample: 12,
+                    end_sample: 24,
+                    shape: 'F',
+                },
+            ],
+        })
+    }
+    #[test]
+    fn estimated_import_shared_line_scene_sequence_and_trim_clock() {
+        let fixture = Fixture::new();
+        let script = script();
+        let cache = AlignmentCache::new(fixture.root.join("estimated-cache"));
+        let job = dialogue_jobs(&script, &fixture.root).unwrap().remove(0);
+        let result = fixture.synthesize(job.request.clone()).unwrap();
+        let json = serde_json::to_string(&estimated_input(&fixture)).unwrap();
+        assert!(!json.contains("phonemes"));
+        let input: AlignmentInput = serde_json::from_str(&json).unwrap();
+        let (mut clip, status) =
+            DialogueClip::prepare_with_alignment_input(&job, &result, Some(&input), &cache)
+                .unwrap();
+        assert_eq!(status, AlignmentStatus::EstimatedImported);
+        assert!(clip.alignment.is_none());
+        assert!(clip.estimated_alignment.is_some());
+        let scene = prepare_scene_with_alignment_inputs(
+            &script,
+            0,
+            &fixture.root,
+            &fixture,
+            &BTreeMap::from([(0, input)]),
+            &cache,
+            &CancellationToken::default(),
+            |_| {},
+        )
+        .unwrap();
+        assert_eq!(
+            scene.alignment_statuses[&0],
+            AlignmentStatus::EstimatedImported
+        );
+        assert!(!fixture.root.join("estimated-cache").exists());
+        for frame in 0..25 {
+            assert_eq!(
+                clip.mouth_at(frame).unwrap(),
+                scene.prepared.clips[0].mouth_at(frame).unwrap()
+            );
+        }
+        let manifest = &scene.prepared.rendered.manifest;
+        assert!(
+            matches!(&manifest.dialogue[0].alignment_source,Some(AlignmentSource::Estimated{tool,..}) if tool=="rhubarb")
+        );
+        let timeline = motion_scene::SequenceTimeline::compile(&script).unwrap();
+        crate::sequence::mix_sequence(
+            &timeline,
+            &[scene.prepared.rendered],
+            &CancellationToken::default(),
+        )
+        .unwrap();
+        clip.start_frame = 3;
+        clip.trim_start_frame = 6;
+        let rendered = export::render_scene("scene", 0.01, std::slice::from_ref(&clip)).unwrap();
+        for frame in 0..240 {
+            let exported = rendered.manifest.dialogue[0]
+                .visemes
+                .iter()
+                .find(|v| v.start_frame <= frame && frame < v.end_frame)
+                .map(|v| v.viseme)
+                .unwrap_or(motion_lipsync::Viseme::Rest);
+            assert_eq!(clip.mouth_at(frame).unwrap(), exported, "frame {frame}");
+        }
+        clip.audio.samples[0] = 0.8;
+        assert!(export::render_scene("scene", 0.01, &[clip]).is_err());
+    }
+    #[test]
+    fn estimated_input_rejects_wrong_pcm_text_schema_ranges_and_unknown_fields() {
+        let fixture = Fixture::new();
+        let cache = AlignmentCache::new(fixture.root.join("never"));
+        let input = estimated_input(&fixture);
+        let mut audio = motion_audio::read_wav(fixture.root.join("voice.wav")).unwrap();
+        assert!(input.resolve(&audio, "Changed", &cache).is_err());
+        audio.samples[0] = -0.25;
+        assert!(input.resolve(&audio, "Hello", &cache).is_err());
+        for field in [
+            "schema_version",
+            "tool_version",
+            "source",
+            "cues",
+            "unexpected",
+        ] {
+            let mut value = serde_json::to_value(&input).unwrap();
+            value[field] = match field {
+                "schema_version" => 2.into(),
+                "tool_version" => "".into(),
+                "source" => "forced".into(),
+                "cues" => serde_json::json!([{"start_sample":0,"end_sample":25,"shape":"D"}]),
+                _ => true.into(),
+            };
+            if let Ok(bad) = serde_json::from_value::<AlignmentInput>(value) {
+                let audio = motion_audio::read_wav(fixture.root.join("voice.wav")).unwrap();
+                assert!(bad.resolve(&audio, "Hello", &cache).is_err());
+            }
+        }
+        assert!(!fixture.root.join("never").exists());
+    }
 }

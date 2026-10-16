@@ -1,6 +1,8 @@
-//! Canvas gestures commit one bounded document transaction, independent of screenplay history.
+//! Artwork edits expose one transaction to the shared project history.
 use eframe::egui;
-use motion_art::{Color, Content, Document, Layer, Plane, Point, Rect, TimeRange};
+use motion_art::{
+    BlendMode, ClipShape, Color, Content, Document, Layer, Plane, Point, Rect, TimeRange,
+};
 use std::collections::BTreeMap;
 pub struct SceneContext<'a> {
     pub id: &'a str,
@@ -24,11 +26,159 @@ pub struct Editor {
     revision: u64,
     points: Vec<Point>,
     gesture_scene: String,
-    undo: Vec<Document>,
-    redo: Vec<Document>,
+    transaction_before: Option<Document>,
     pub error: Option<String>,
     context: String,
 }
+fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
+    if text.len() > 16_384 {
+        return Err("Mask vertices exceed 16 KiB".into());
+    }
+    let mut points = Vec::new();
+    for pair in text.split_whitespace() {
+        if points.len() >= motion_art::MAX_MASK_POINTS {
+            return Err("Use at most 256 vertices".into());
+        }
+        let (x, y) = pair
+            .split_once(',')
+            .ok_or("Use whitespace-separated x,y vertices")?;
+        points.push(Point {
+            x: x.parse().map_err(|_| "Invalid x coordinate")?,
+            y: y.parse().map_err(|_| "Invalid y coordinate")?,
+        });
+    }
+    ClipShape::Polygon {
+        points: points.clone(),
+    }
+    .validate()
+    .map_err(|e| e.to_string())?;
+    Ok(points)
+}
+fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
+    egui::ComboBox::from_label("Blend")
+        .selected_text(format!("{:?}", layer.blend))
+        .show_ui(ui, |ui| {
+            for mode in [BlendMode::Normal, BlendMode::Multiply, BlendMode::Screen] {
+                ui.selectable_value(&mut layer.blend, mode, format!("{mode:?}"));
+            }
+        });
+    let mut kind = match &layer.clip_shape {
+        Some(ClipShape::Ellipse { .. }) => 2,
+        Some(ClipShape::Polygon { .. }) => 3,
+        None => {
+            if layer.clip.is_some() {
+                1
+            } else {
+                0
+            }
+        }
+    };
+    let previous = kind;
+    egui::ComboBox::from_label("Clip mask")
+        .selected_text(["None", "Rectangle", "Ellipse", "Polygon"][kind])
+        .show_ui(ui, |ui| {
+            for (value, label) in ["None", "Rectangle", "Ellipse", "Polygon"]
+                .into_iter()
+                .enumerate()
+            {
+                ui.selectable_value(&mut kind, value, label);
+            }
+        });
+    if kind != previous {
+        let rect = layer
+            .clip
+            .or(match &layer.clip_shape {
+                Some(ClipShape::Ellipse { rect }) => Some(*rect),
+                _ => None,
+            })
+            .unwrap_or(Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 300.0,
+                height: 300.0,
+            });
+        layer.clip = None;
+        layer.clip_shape = None;
+        match kind {
+            1 => layer.clip = Some(rect),
+            2 => layer.clip_shape = Some(ClipShape::Ellipse { rect }),
+            3 => {
+                layer.clip_shape = Some(ClipShape::Polygon {
+                    points: vec![
+                        Point {
+                            x: rect.x,
+                            y: rect.y,
+                        },
+                        Point {
+                            x: rect.x + rect.width,
+                            y: rect.y,
+                        },
+                        Point {
+                            x: rect.x + rect.width,
+                            y: rect.y + rect.height,
+                        },
+                        Point {
+                            x: rect.x,
+                            y: rect.y + rect.height,
+                        },
+                    ],
+                })
+            }
+            _ => {}
+        }
+    }
+    let rect = match &mut layer.clip_shape {
+        Some(ClipShape::Ellipse { rect }) => Some(rect),
+        _ => layer.clip.as_mut(),
+    };
+    if let Some(rect) = rect {
+        ui.horizontal(|ui| {
+            for (name, value) in [
+                ("X", &mut rect.x),
+                ("Y", &mut rect.y),
+                ("W", &mut rect.width),
+                ("H", &mut rect.height),
+            ] {
+                ui.label(name);
+                ui.add(egui::DragValue::new(value).speed(1.0));
+            }
+        });
+    }
+    if let Some(ClipShape::Polygon { points }) = &mut layer.clip_shape {
+        let id = ui.id().with(("mask-vertices", &layer.id));
+        let initial = points
+            .iter()
+            .map(|p| format!("{},{}", p.x, p.y))
+            .collect::<Vec<_>>()
+            .join(" ");
+        let mut draft = ui
+            .data_mut(|d| d.get_temp::<String>(id))
+            .unwrap_or(initial.clone());
+        ui.label(
+            "Vertices: x,y pairs separated by spaces (3–256). Do not repeat the first vertex.",
+        );
+        ui.add(
+            egui::TextEdit::multiline(&mut draft)
+                .desired_rows(3)
+                .char_limit(16_384),
+        );
+        if ui.button("Apply polygon vertices").clicked() {
+            match parse_mask_points(&draft) {
+                Ok(next) => {
+                    *points = next;
+                }
+                Err(error) => {
+                    ui.colored_label(egui::Color32::LIGHT_RED, error);
+                }
+            }
+        }
+        ui.data_mut(|d| d.insert_temp(id, draft));
+    }
+    if layer.clip_shape.is_some() || layer.blend != BlendMode::Normal {
+        ui.weak("Inspect this mask/blend in Whole project preview or PNG/MP4 export. Selected-scene canvas parity is pending.");
+    }
+}
+
 impl Editor {
     /// Increments only when document content changes, including history restoration.
     pub fn revision(&self) -> u64 {
@@ -36,23 +186,21 @@ impl Editor {
     }
     pub fn clear_history_for_context(&mut self, context: String) {
         if self.context != context {
-            self.undo.clear();
-            self.redo.clear();
+            self.transaction_before = None;
             self.points.clear();
             self.selected = None;
             self.context = context;
         }
     }
-    pub fn invalidate_history(&mut self) {
-        self.undo.clear();
-        self.redo.clear();
+    pub fn take_transaction_before(&mut self) -> Option<Document> {
+        self.transaction_before.take()
     }
     pub fn reset(&mut self) {
         let revision = self.revision.wrapping_add(1);
         *self = Self::default();
         self.revision = revision;
     }
-    fn commit(&mut self, document: &mut Document, candidate: Document) {
+    pub(crate) fn commit(&mut self, document: &mut Document, candidate: Document) {
         if *document == candidate {
             return;
         }
@@ -61,19 +209,9 @@ impl Editor {
             return;
         }
         self.error = None;
-        self.undo.push(document.clone());
-        while self.undo.len() > 1
-            && (self.undo.len() > 24
-                || self
-                    .undo
-                    .iter()
-                    .map(|d| serde_json::to_vec(d).map(|v| v.len()).unwrap_or(usize::MAX))
-                    .sum::<usize>()
-                    > 8 * 1024 * 1024)
-        {
-            self.undo.remove(0);
+        if self.transaction_before.is_none() {
+            self.transaction_before = Some(document.clone());
         }
-        self.redo.clear();
         *document = candidate;
         self.dirty = true;
         self.revision = self.revision.wrapping_add(1);
@@ -104,8 +242,7 @@ impl Editor {
     ui.add(egui::Slider::new(&mut layer.opacity,0.0..=1.0).text("Opacity"));
     if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("W",&mut rect.width),("H",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
     egui::ComboBox::from_label("Follow actor translation").selected_text(layer.attachment.as_deref().unwrap_or("World")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"World");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
-    let mut masked=layer.clip.is_some();if ui.checkbox(&mut masked,"Rectangular clip mask").changed(){layer.clip=masked.then_some(Rect{x:0.0,y:0.0,width:300.0,height:300.0});}
-    if let Some(clip)=&mut layer.clip {ui.horizontal(|ui| {for (name,value) in [("X",&mut clip.x),("Y",&mut clip.y),("W",&mut clip.width),("H",&mut clip.height)] {ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});clip.width=clip.width.max(1.0);clip.height=clip.height.max(1.0);}
+    compositing_controls(ui, layer);
     ui.horizontal(|ui| {if ui.button("Lower").clicked() && index>0 {next.layers.swap(index,index-1);}
    if ui.button("Raise").clicked() && index+1<next.layers.len(){next.layers.swap(index,index+1);}
    if ui.button("Delete layer").clicked(){next.layers.remove(index);self.selected=None;}});
@@ -118,7 +255,7 @@ impl Editor {
       ui.push_id(&asset.id, |ui| {ui.horizontal(|ui| {
        asset_thumbnail(ui, textures.get(&asset.id));
        ui.vertical(|ui| {ui.add(egui::Label::new(&asset.id).truncate()).on_hover_text(&asset.path);
-        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Place foreground"),(Plane::Background,"Place background")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});
+        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Place foreground"),(Plane::Background,"Place background")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});
        });
       });});
      }
@@ -127,8 +264,7 @@ impl Editor {
    if next.layers.iter().any(|l| l.scene_id==scene_id && l.active.as_ref().is_some_and(|a|a.end>scene.duration)) {self.error=Some("Artwork interval exceeds scene duration".into());} else {
    self.commit(document,next);
    }
-   ui.horizontal(|ui| {if ui.add_enabled(!self.undo.is_empty(),egui::Button::new("Undo artwork")).clicked(){self.redo.push(document.clone());*document=self.undo.pop().unwrap();self.dirty=true;self.revision=self.revision.wrapping_add(1);}
-   if ui.add_enabled(!self.redo.is_empty(),egui::Button::new("Redo artwork")).clicked(){self.undo.push(document.clone());*document=self.redo.pop().unwrap();self.dirty=true;self.revision=self.revision.wrapping_add(1);}});
+   ui.weak("Undo / Redo uses the shared project history in the toolbar.");
    if self.dirty {ui.label("Artwork has unsaved changes");}
    if let Some(error)=&self.error{ui.colored_label(egui::Color32::LIGHT_RED,error);}
   });
@@ -223,6 +359,8 @@ impl Editor {
                 active: None,
                 opacity: 1.0,
                 attachment: None,
+                clip_shape: None,
+                blend: motion_art::BlendMode::Normal,
                 clip: None,
                 content,
             });
@@ -405,7 +543,7 @@ mod tests {
         });
         assert_eq!(document, before);
         assert!(!editor.dirty);
-        assert!(editor.undo.is_empty());
+        assert!(editor.transaction_before.is_none());
         assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Mesh(mesh) if mesh.texture_id == textures["present"].id())));
         assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == "No preview")));
     }
@@ -475,7 +613,7 @@ mod tests {
             );
         }
         assert_eq!(document.layers.len(), 1);
-        assert_eq!(editor.undo.len(), 1);
+        assert!(editor.transaction_before.is_some());
         let Content::Rectangle { rect, .. } = document.layers[0].content else {
             panic!("rectangle expected")
         };
@@ -485,7 +623,7 @@ mod tests {
         assert_eq!(rect.height, 40.0);
     }
     #[test]
-    fn timed_artwork_changes_are_atomic_and_undo_restores_plane_and_interval() {
+    fn timed_artwork_changes_are_atomic_and_expose_the_before_state() {
         let mut editor = Editor::default();
         let mut document = Document::default();
         let layer = Layer {
@@ -500,6 +638,8 @@ mod tests {
             }),
             opacity: 1.0,
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: None,
             content: Content::Rectangle {
                 rect: Rect {
@@ -527,14 +667,73 @@ mod tests {
         invalid.layers[0].active.as_mut().unwrap().end = 1.0;
         editor.commit(&mut document, invalid);
         assert_eq!(document, before);
-        assert_eq!(editor.undo.len(), 1);
+        assert!(editor.transaction_before.is_some());
         assert!(editor.error.is_some());
         let mut next = before.clone();
         next.layers[0].plane = Plane::Foreground;
         next.layers[0].active = None;
         editor.commit(&mut document, next);
-        document = editor.undo.pop().unwrap();
-        assert_eq!(document, before);
+        // The host consumes the initial transaction before a later edit.
+        assert!(editor.take_transaction_before().is_some());
+        assert_ne!(document, before);
+    }
+
+    #[test]
+    fn advanced_polygon_edits_are_detached_validated_and_undoable() {
+        let points = parse_mask_points("0,0 20,0 20,20 0,20").unwrap();
+        assert!(parse_mask_points("0,0 20,20 0,20 20,0").is_err());
+        assert!(parse_mask_points("NaN,0 1,0 0,1").is_err());
+        let mut document = Document {
+            layers: vec![Layer {
+                id: "mask".into(),
+                scene_id: "s".into(),
+                name: "Mask".into(),
+                visible: true,
+                plane: Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                clip_shape: None,
+                blend: BlendMode::Normal,
+                content: Content::Rectangle {
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 20.0,
+                        height: 20.0,
+                    },
+                    color: Color {
+                        r: 1,
+                        g: 2,
+                        b: 3,
+                        a: 255,
+                    },
+                },
+            }],
+        };
+        let before = document.clone();
+        let mut editor = Editor::default();
+        let mut next = before.clone();
+        next.layers[0].clip_shape = Some(ClipShape::Polygon { points });
+        next.layers[0].blend = BlendMode::Screen;
+        editor.commit(&mut document, next);
+        assert_ne!(document, before);
+        let valid = document.clone();
+        let mut invalid = valid.clone();
+        invalid.layers[0].clip = Some(Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 1.0,
+            height: 1.0,
+        });
+        editor.commit(&mut document, invalid);
+        assert_eq!(document, valid);
+        // Rejected edits preserve the one before-state delivered to the shared
+        // project history; the artwork editor no longer owns an undo stack.
+        assert_eq!(editor.take_transaction_before(), Some(before));
+        assert!(editor.take_transaction_before().is_none());
+        assert!(editor.error.is_some());
     }
 
     #[test]
@@ -556,6 +755,8 @@ mod tests {
                 }),
                 opacity: 1.0,
                 attachment: None,
+                clip_shape: None,
+                blend: motion_art::BlendMode::Normal,
                 clip: None,
                 content: Content::Rectangle {
                     rect: Rect {
@@ -623,7 +824,7 @@ mod tests {
     }
 
     #[test]
-    fn artwork_history_is_bounded_and_atomic() {
+    fn artwork_transactions_are_atomic_and_only_keep_the_first_before_state() {
         let mut e = Editor::default();
         let mut d = Document::default();
         for i in 0..30 {
@@ -637,6 +838,8 @@ mod tests {
                 active: None,
                 opacity: 1.0,
                 attachment: None,
+                clip_shape: None,
+                blend: motion_art::BlendMode::Normal,
                 clip: None,
                 content: Content::Rectangle {
                     rect: Rect {
@@ -655,7 +858,7 @@ mod tests {
             });
             e.commit(&mut d, next);
         }
-        assert_eq!(e.undo.len(), 24);
+        assert_eq!(e.transaction_before.as_ref().unwrap(), &Document::default());
         assert_eq!(e.revision(), 30);
         let unchanged = d.clone();
         e.commit(&mut d, unchanged);

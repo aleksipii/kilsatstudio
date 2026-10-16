@@ -11,6 +11,7 @@ fn clip() -> DialogueClip {
             channels: 1,
             samples: vec![0.25; 24],
         },
+        estimated_alignment: None,
         alignment: Some(Alignment {
             source: AlignmentSource::Manual,
             duration_seconds: 0.001,

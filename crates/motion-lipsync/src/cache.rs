@@ -108,6 +108,7 @@ impl CacheKey {
         }
         match &alignment.source {
             AlignmentSource::Forced { tool, version }
+            | AlignmentSource::Estimated { tool, version }
                 if tool != &self.provider || version != &self.version =>
             {
                 return Err(AlignmentError(
@@ -149,11 +150,13 @@ impl BoundAlignment {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum AlignmentInput {
+    Estimated(crate::rhubarb::EstimatedVisemeAlignment),
     Bound(BoundAlignment),
     Legacy(Alignment),
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AlignmentStatus {
+    EstimatedImported,
     None,
     LegacyUnbound,
     BoundImported,
@@ -162,6 +165,7 @@ pub enum AlignmentStatus {
 }
 #[derive(Clone, Debug)]
 pub struct ResolvedAlignment {
+    pub estimated: Option<crate::rhubarb::EstimatedVisemeAlignment>,
     pub alignment: Option<Alignment>,
     pub status: AlignmentStatus,
 }
@@ -174,6 +178,14 @@ impl AlignmentInput {
         cache: &AlignmentCache,
     ) -> Result<ResolvedAlignment, AlignmentError> {
         let bound = match self {
+            Self::Estimated(estimated) => {
+                estimated.validate_for(audio, transcript)?;
+                return Ok(ResolvedAlignment {
+                    alignment: None,
+                    estimated: Some(estimated.clone()),
+                    status: AlignmentStatus::EstimatedImported,
+                });
+            }
             Self::Legacy(alignment) => {
                 alignment.validate()?;
                 audio.validate().map_err(err)?;
@@ -186,6 +198,7 @@ impl AlignmentInput {
                 }
                 return Ok(ResolvedAlignment {
                     alignment: Some(alignment.clone()),
+                    estimated: None,
                     status: AlignmentStatus::LegacyUnbound,
                 });
             }
@@ -226,6 +239,7 @@ impl AlignmentInput {
             }
             return Ok(ResolvedAlignment {
                 alignment: Some(cached),
+                estimated: None,
                 status: AlignmentStatus::BoundCacheHit,
             });
         }
@@ -233,11 +247,13 @@ impl AlignmentInput {
             cache.store(&bound.key, alignment)?;
             Ok(ResolvedAlignment {
                 alignment: Some(alignment.clone()),
+                estimated: None,
                 status: AlignmentStatus::BoundImported,
             })
         } else {
             Ok(ResolvedAlignment {
                 alignment: None,
+                estimated: None,
                 status: AlignmentStatus::BoundCacheMiss,
             })
         }

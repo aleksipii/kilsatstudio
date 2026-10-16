@@ -10,6 +10,7 @@ pub struct DialogueClip {
     pub start_frame: u64,
     pub audio: AudioBuffer,
     pub alignment: Option<Alignment>,
+    pub estimated_alignment: Option<motion_lipsync::rhubarb::EstimatedVisemeAlignment>,
     pub gain: f32,
     pub trim_start_frame: u64,
 }
@@ -41,11 +42,12 @@ impl DialogueClip {
             ),
             None => None,
         };
-        let (alignment, status) = match resolved {
-            Some(resolved) => (resolved.alignment, resolved.status),
-            None => (None, AlignmentStatus::None),
+        let (alignment, estimated, status) = match resolved {
+            Some(resolved) => (resolved.alignment, resolved.estimated, resolved.status),
+            None => (None, None, AlignmentStatus::None),
         };
         clip.alignment = alignment;
+        clip.estimated_alignment = estimated;
         Ok((clip, status))
     }
     fn from_audio(
@@ -70,6 +72,7 @@ impl DialogueClip {
             start_frame: (job.at * 24000.0).round() as u64,
             audio,
             alignment,
+            estimated_alignment: None,
             gain: 1.0,
             trim_start_frame: 0,
         })
@@ -83,6 +86,16 @@ impl DialogueClip {
         let local = local.saturating_add(self.trim_start_frame);
         if local >= self.audio.frames() as u64 {
             return Ok(Viseme::Rest);
+        }
+        if let Some(estimated) = &self.estimated_alignment {
+            if self.alignment.is_some() {
+                return Err(SpeechError(
+                    "conflicting phoneme and estimated mouth tracks".into(),
+                ));
+            }
+            return estimated
+                .viseme_at_sample(local)
+                .map_err(|e| SpeechError(e.to_string()));
         }
         match &self.alignment {
             Some(a) => a
@@ -116,6 +129,7 @@ mod tests {
                 channels: 1,
                 samples: vec![0.25; 24000],
             },
+            estimated_alignment: None,
             alignment: Some(Alignment {
                 source: AlignmentSource::Manual,
                 duration_seconds: 1.0,

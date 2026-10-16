@@ -15,6 +15,8 @@ jobs:
       - run: cargo check --workspace
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets
+      - run: cargo test --locked -p motion-render --features gpu --lib
+      - run: cargo clippy --locked -p motion-render --features gpu --all-targets -- -D warnings
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

@@ -153,7 +153,7 @@ screenplay text and its asset inventory. Imported audio resolves from the projec
 file's parent directory. Saving a `.kilsat` file requires that directory to match
 the configured project root, so Save As cannot silently relocate relative paths.
 YAML retains its explicit configured root behavior. The desktop source limit is
-100 KB; project image inventory is retained but image rendering is not implemented.
+100 KB. Local PNG/JPEG inventory images decode off the UI thread and can be placed as artwork layers.
 
 The Project tab's **Add / duplicate / delete** section accepts a new stable ID,
 adds or duplicates scenes and characters, and confirms deletion. Referenced
@@ -175,17 +175,30 @@ ready, the UI reports finalizing/encoding until the worker confirms completion.
 ## Artwork and actor transform tracks
 
 The editor now supports background and foreground pen/rectangle/ellipse and PNG/JPEG image
-layers with rectangular clips, visibility, order and opacity. Resources decode on
+layers with rectangular, ellipse or simple-polygon clips, visibility, order and opacity. Resources decode on
 a bounded worker; Reload images refreshes same-path edits. Save `.kilsat` v2 to
 retain artwork; v1 files migrate without losing source/assets. YAML save refuses
-artwork loss. Artwork history is separate/bounded and reference-safe; it is not
-full project Undo. Actor attachments follow translation only.
+artwork loss. Toolbar Undo/Redo traverses source, committed artwork and completed
+asset-inventory edits in one chronological history. It restores metadata only,
+never deleting or rewriting asset files. Saving retains history; opening another
+project resets it. Actor attachments follow translation only.
 
 A detached keyframe editor stores actor root offsets, radians, scales and easing
 in MotionScript. Procedural actor geometry and faces use the same evaluated root
-transform as export. Per-bone textures, arbitrary masks, advanced image editing
-and Mac visual acceptance remain open. See `docs/art-format.md`,
-`docs/art-rendering.md`, `docs/keyframe-editor.md` and `docs/art-acceptance.md`.
+transform as export. Select an actor and expand **Per-bone keyframes** in the
+Inspector to choose a stable bone, edit its detached transform keys and Apply.
+Changing scene, actor or bone discards unapplied keys; accepted Apply is one
+global Undo transaction. Per-bone textures, arbitrary rig authoring, feathered
+masks and Mac visual acceptance remain open. See [per-bone editing](../../docs/per-bone-editor.md),
+[unified history](../../docs/unified-history.md), [compositing](../../docs/advanced-compositing.md)
+and [art acceptance](../../docs/art-acceptance.md).
+
+The layer Inspector offers ellipse/polygon clips and Normal/Multiply/Screen.
+Polygon drafts use whitespace-separated `x,y` vertices and apply after validation.
+Use **Whole project · sequence** preparation and preview to inspect these effects:
+the selected-scene direct canvas is suppressed at frames with active advanced
+layers and displays a compositor hint. Shared CPU preview/export supports them;
+this does not establish native painter or physical Mac parity.
 
 ## Timed scene background colors
 
@@ -207,13 +220,13 @@ In **Artwork / layers**, use **Place background image** for a project-canvas-siz
 PNG/JPEG behind the actors, or **Place image** for a foreground image. The plane
 selector also moves existing drawings and images between background and foreground.
 Layer order is preserved within each plane. Camera transforms, opacity, actor
-translation attachments and rectangular masks still apply.
+translation attachments and layer masks still apply.
 
 Enable **Visible during interval** and enter scene-local start/end seconds. The
 start is included and the end excluded; disabled intervals span the whole scene.
 Use `0 ≤ start < end ≤ scene duration`. Invalid intervals leave the artwork
-unchanged. Artwork Undo/Redo includes the plane and timing; screenplay and audio
-are unaffected. Save as `.kilsat` to retain these fields. Preview and export use
+unchanged. Global Undo/Redo includes the plane and timing alongside source and
+inventory transactions; prepared speech is discarded on restoration. Save as `.kilsat` to retain these fields. Preview and export use
 the same timing boundaries. Scene time is independent of the audio playback test.
 
 ## Bound alignment imports and cache
@@ -268,3 +281,16 @@ Scrubbing rejects frames from an earlier seek. Export chooses a new absolute out
 directory for PNG/WAV or MP4/WAV; MP4 additionally requires an explicit absolute
 local FFmpeg executable path. Cancel remains available during preparation/export.
 No actual Mac listening acceptance is implied by headless UI/worker tests.
+
+## Offline alignment and GPU experiments
+
+The opt-in [Rhubarb adapter](../../docs/rhubarb-estimated-cues.md) runs an explicitly
+configured local executable through a CLI. Paste its exact-audio-bound estimated
+JSON into selected-line timing, or a global-dialogue-ID map for scene/project
+preparation. The desktop does not execute Rhubarb automatically or cache these
+cues; real-engine quality remains unmeasured. No engine assets are downloaded.
+
+The [GPU fixture](../../docs/gpu-offscreen.md) is default-disabled and separate
+from the CPU production renderer. Compilation is not evidence of a Metal device
+run or full-scene parity. See [dependency audit](../../docs/dependency-audit.md)
+for license inventory and the still-open distribution clearance.

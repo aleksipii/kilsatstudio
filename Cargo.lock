@@ -1616,6 +1616,7 @@ dependencies = [
  "base64",
  "image",
  "serde",
+ "serde_json",
  "thiserror 2.0.21",
 ]
 
@@ -1683,6 +1684,7 @@ dependencies = [
  "motion-script",
  "serde_json",
  "thiserror 2.0.21",
+ "wgpu",
 ]
 
 [[package]]
@@ -3492,6 +3494,7 @@ dependencies = [
  "arrayvec",
  "ash",
  "bitflags 2.13.2",
+ "block",
  "bytemuck",
  "cfg_aliases",
  "core-graphics-types",
