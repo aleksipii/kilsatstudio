@@ -84,6 +84,10 @@ struct Prepare {
 type PreviewResult = Result<Preview, String>;
 struct Studio {
     sequence_panel: sequence_panel::Panel,
+    sequence_revision: u64,
+    document_revision: u64,
+    sequence_images: Option<Arc<std::collections::BTreeMap<String, motion_art::ImageResource>>>,
+    sequence_art_revision: u64,
     art_editor: art_editor::Editor,
     art_resources: art_resources::Resources,
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
@@ -210,6 +214,10 @@ impl Default for Studio {
             art_editor: Default::default(),
             art_resources: Default::default(),
             sequence_panel: Default::default(),
+            sequence_revision: 0,
+            document_revision: 0,
+            sequence_images: None,
+            sequence_art_revision: 0,
             keyframe_draft: None,
             asset_worker: asset_worker::Worker::new(),
             asset_pending: None,
@@ -325,6 +333,7 @@ impl Studio {
                 self.flush_text_edit();
                 self.history.record(&self.source, &source);
                 self.source = source;
+                self.document_changed();
                 self.alignment.clear();
                 self.scene_alignment.clear();
                 self.preview = None;
@@ -479,6 +488,7 @@ impl Studio {
         self.flush_text_edit();
         self.history.record(&self.source, &source);
         self.source = source;
+        self.document_changed();
         self.validate();
         if let Some(script) = &self.script {
             self.settings_draft = scene_settings::Draft::new(script, self.scene_index);
@@ -597,6 +607,7 @@ impl Studio {
                     }
                 }
                 self.source = source;
+                self.document_changed();
                 self.selected_actor = Some(actor.clone());
                 self.validate();
                 if let Some(script) = &self.script {
@@ -739,6 +750,7 @@ impl Studio {
                 }
                 self.history.record(&self.source, &source);
                 self.source = source;
+                self.document_changed();
                 if speech {
                     self.alignment.clear();
                     self.scene_alignment.clear();
@@ -823,6 +835,7 @@ impl Studio {
                 }
             }
             self.source = source;
+            self.document_changed();
             self.alignment.clear();
             self.scene_alignment.clear();
             self.stop_playback();
@@ -869,6 +882,7 @@ impl Studio {
                     self.clear_event_alignment(scene, event);
                 }
                 self.source = source;
+                self.document_changed();
                 self.scene_index = scene;
                 self.validate();
                 if let Some(script) = &self.script {
@@ -932,6 +946,7 @@ impl Studio {
                 self.asset_undo = None;
                 self.asset_dirty = false;
                 self.source = assets.source.clone();
+                self.document_changed();
                 self.history.reset(&self.source);
                 self.pending_text_edit = None;
                 self.project_root = assets.root.to_string_lossy().into_owned();
@@ -952,7 +967,36 @@ impl Studio {
             Err(error) => self.status = format!("Sound check: {error}"),
         }
     }
+    /// Document/configuration mutation boundary; idle UI frames never serialize inputs.
+    fn sequence_changed(&mut self) {
+        self.sequence_revision = self.sequence_revision.wrapping_add(1);
+        let was_busy = self.sequence_panel.busy();
+        self.sequence_panel
+            .invalidate(self.sequence_revision.to_string());
+        if was_busy {
+            self.busy = false;
+        }
+    }
+    fn sync_sequence_resources(&mut self) {
+        // Resources publishes a fresh immutable Arc for every decode/reload result.
+        // Retaining the old Arc also prevents allocator address reuse from hiding changes.
+        let images_changed = self
+            .sequence_images
+            .as_ref()
+            .is_none_or(|previous| !Arc::ptr_eq(previous, &self.art_resources.images));
+        let art_revision = self.art_editor.revision();
+        if images_changed || self.sequence_art_revision != art_revision {
+            self.sequence_images = Some(Arc::clone(&self.art_resources.images));
+            self.sequence_art_revision = art_revision;
+            self.sequence_changed();
+        }
+    }
+    fn document_changed(&mut self) {
+        self.document_revision = self.document_revision.wrapping_add(1);
+        self.sequence_changed();
+    }
     fn invalidate_scene(&mut self) {
+        self.document_changed();
         self.settings_draft = None;
         self.settings_draft_source = None;
         self.settings_error = None;
@@ -1043,6 +1087,7 @@ impl Studio {
             match result {
                 Ok((doc, root)) => {
                     self.source = doc.source.clone();
+                    self.document_changed();
                     self.project_document = Some(doc);
                     self.art_editor.reset();
                     self.asset_undo = None;
@@ -1081,6 +1126,7 @@ impl Studio {
                 self.asset_undo = None;
                 self.asset_dirty = false;
                 self.source = source;
+                self.document_changed();
                 self.history.reset(&self.source);
                 self.pending_text_edit = None;
                 self.alignment.clear();
@@ -1469,6 +1515,7 @@ impl Studio {
                     Ok(document) if self.source == source && self.script_path == path && self.project_document.as_ref().is_some_and(|current|current.art==previous.art && current.assets==previous.assets) => {
                         self.asset_undo = Some(previous);
                         self.project_document = Some(document);
+                        self.document_changed();
                         self.asset_dirty = true;
                         self.status = "Asset inventory updated; Save .kilsat to persist. Physical files are never removed by inventory removal.".into();
                     }
@@ -1717,6 +1764,7 @@ impl Studio {
         }
     }
     fn apply_kokoro_profile(&mut self, profile: kokoro_setup::Profile) {
+        self.sequence_changed();
         self.stop_playback();
         self.python = profile.python.to_string_lossy().into_owned();
         self.config = profile.config.to_string_lossy().into_owned();
@@ -1828,9 +1876,9 @@ impl Studio {
     }
 }
 
-fn field(ui: &mut egui::Ui, label: &str, value: &mut String) {
+fn field(ui: &mut egui::Ui, label: &str, value: &mut String) -> bool {
     ui.label(label);
-    ui.text_edit_singleline(value);
+    ui.text_edit_singleline(value).changed()
 }
 impl Studio {
     fn selected_alignment_edited(&mut self) {
@@ -1842,29 +1890,27 @@ impl Studio {
     fn runtime_ui(&mut self, ui: &mut egui::Ui) {
         self.kokoro_setup_ui(ui);
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
-                    let previous_runtime = format!("{:?}", self.kokoro_config());
+                    let mut runtime_changed = false;
                     ui.heading("Advanced local runtime settings");
                     ui.label("Supply existing local assets, or use the explicit installation flow above.");
-                    field(ui, "Python executable", &mut self.python);
-                    field(ui, "Sidecar script", &mut self.runtime);
-                    field(ui, "Model config JSON", &mut self.config);
-                    field(ui, "Model weights", &mut self.weights);
-                    field(ui, "Voice .pt directory", &mut self.voices);
-                    field(ui, "Cache directory", &mut self.cache);
-                    field(ui, "Immutable model + dependency revision", &mut self.revision);
+                    runtime_changed |= field(ui, "Python executable", &mut self.python);
+                    runtime_changed |= field(ui, "Sidecar script", &mut self.runtime);
+                    runtime_changed |= field(ui, "Model config JSON", &mut self.config);
+                    runtime_changed |= field(ui, "Model weights", &mut self.weights);
+                    runtime_changed |= field(ui, "Voice .pt directory", &mut self.voices);
+                    runtime_changed |= field(ui, "Cache directory", &mut self.cache);
+                    runtime_changed |= field(ui, "Immutable model + dependency revision", &mut self.revision);
                     if ui.button("Check local Kokoro setup").clicked() { self.check_runtime(); }
                     ui.label("Preflight checks local packages and files only; it does not run inference or prove compatibility.");
-                    if format!("{:?}", self.kokoro_config()) != previous_runtime { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; self.setup_profile = None; self.test_audio = None; }
-                    let previous_root = self.project_root.clone();
-                    field(ui, "Project root (imported WAV paths)", &mut self.project_root);
-                    if self.project_root != previous_root {
+                    if runtime_changed { self.sequence_changed(); self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; self.setup_profile = None; self.test_audio = None; }
+                    if field(ui, "Project root (imported WAV paths)", &mut self.project_root) {
                         self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
                         self.status = "Project root changed; validate screenplay to resolve imported paths again.".into();
                     }
                     ui.separator();
                     ui.heading("Scene alignments JSON");
                     ui.label("Map dialogue IDs to bound timing envelopes or legacy Alignment objects, for example {\"0\": {...}}. Legacy timing is unbound. Blank keeps mouths at rest; prepare again after editing.");
-                    if ui.add(egui::TextEdit::multiline(&mut self.scene_alignment).desired_rows(5).char_limit(100_000).code_editor()).changed() { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; }
+                    if ui.add(egui::TextEdit::multiline(&mut self.scene_alignment).desired_rows(5).char_limit(100_000).code_editor()).changed() { self.sequence_changed(); self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; }
                     for job in self.jobs.iter().filter(|job| self.script.as_ref().and_then(|s| s.scenes.get(self.scene_index)).is_some_and(|s| s.id == job.scene)) { ui.label(format!("ID {} · {} · {}", job.id, job.actor, job.request.text)); }
                     ui.heading("Selected-line alignment JSON");
                     ui.label("Paste a bound timing envelope (schema_version, key, optional alignment) or a legacy Alignment object (unbound). Blank keeps mouth at rest. Provenance checks do not measure timing quality.");
@@ -2220,7 +2266,7 @@ impl Studio {
                 if ui.button("Relink reference").clicked() { self.start_asset(asset_worker::Operation::Relink { id: self.asset_id.clone(), path: self.asset_path.clone() }); }
                 if ui.button("Remove reference (keeps file)").clicked() { self.start_asset(asset_worker::Operation::Remove { id: self.asset_id.clone() }); }
                 if ui.add_enabled(self.asset_undo.is_some(), egui::Button::new("Undo last inventory change")).clicked() {
-                    if let Some(mut previous) = self.asset_undo.take() { previous.source = self.source.clone(); self.project_document = Some(previous); self.asset_dirty = true; self.status = "Inventory restored; imported physical files remain on disk.".into(); }
+                    if let Some(mut previous) = self.asset_undo.take() { previous.source = self.source.clone(); self.project_document = Some(previous); self.document_changed(); self.asset_dirty = true; self.status = "Inventory restored; imported physical files remain on disk.".into(); }
                 }
             });
         });
@@ -2310,13 +2356,17 @@ impl Studio {
             self.project_document = motion_project::ProjectDocument::new(self.source.clone()).ok();
         }
         if let Some(document) = &mut self.project_document {
-            self.art_editor.clear_history_for_context(format!(
-                "{}:{:?}:{}",
-                self.source, document.assets, scene.id
-            ));
+            self.art_editor
+                .clear_history_for_context(format!("{}:{}", self.document_revision, scene.id));
             let before = document.art.clone();
             if ui.button("Reload images from disk").clicked() {
                 self.art_resources.reload();
+                if self.sequence_panel.busy() {
+                    self.busy = false;
+                }
+                self.sequence_revision = self.sequence_revision.wrapping_add(1);
+                self.sequence_panel
+                    .invalidate(self.sequence_revision.to_string());
             }
             ui.add_enabled_ui(
                 !self.busy && !self.diagnostics_busy && !self.export_busy,
@@ -2396,6 +2446,7 @@ impl Studio {
         }
     }
     fn sequence_ui(&mut self, ui: &mut egui::Ui) {
+        self.sync_sequence_resources();
         let own_busy = self.sequence_panel.busy();
         let locked = (self.busy && !own_busy) || self.diagnostics_busy || self.export_busy;
         if self.sequence_panel.ui(ui, locked, self.script.is_some()) {
@@ -3169,16 +3220,7 @@ fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         let was_sequence_busy = self.sequence_panel.busy();
-        let signature = format!(
-            "{}:{:?}:{:?}:{}:{}:{:p}",
-            self.source,
-            self.project_document,
-            self.kokoro_config(),
-            self.project_root,
-            self.scene_alignment,
-            Arc::as_ptr(&self.art_resources.images)
-        );
-        self.sequence_panel.invalidate(signature);
+        self.sync_sequence_resources();
         self.sequence_panel.tick(ctx);
         if was_sequence_busy && !self.sequence_panel.busy() {
             self.busy = false;
@@ -3199,6 +3241,7 @@ impl eframe::App for Studio {
             ctx.request_repaint_after(Duration::from_millis(50));
         }
         self.workspace_ui(ctx);
+        self.sync_sequence_resources();
     }
 }
 
@@ -4399,6 +4442,55 @@ mod scene_preview_tests {
         studio.settings_draft_source = Some(studio.source.clone());
         studio
     }
+    #[test]
+    fn sequence_revisions_are_idle_stable_and_follow_document_history() {
+        let mut studio = settings_studio();
+        studio.sync_sequence_resources();
+        let initial = studio.sequence_revision;
+        let document_initial = studio.document_revision;
+        for _ in 0..100 {
+            studio.sync_sequence_resources();
+        }
+        assert_eq!(studio.sequence_revision, initial);
+        studio.validate();
+        assert_eq!(studio.sequence_revision, initial);
+        studio.settings_draft =
+            scene_settings::Draft::new(studio.script.as_ref().unwrap(), studio.scene_index);
+        studio.settings_draft_source = Some(studio.source.clone());
+        studio.settings_draft.as_mut().unwrap().project.title = "Revision edit".into();
+        studio.apply_settings_draft();
+        assert!(studio.sequence_revision > initial);
+        assert!(studio.document_revision > document_initial);
+        let edited = studio.sequence_revision;
+        studio.undo_edit(false);
+        assert!(studio.sequence_revision > edited);
+        let undone = studio.sequence_revision;
+        studio.undo_edit(true);
+        assert!(studio.sequence_revision > undone);
+        let before_invalidation = studio.sequence_revision;
+        studio.invalidate_scene(); // Includes unvalidated text and imported-root changes.
+        assert!(studio.sequence_revision > before_invalidation);
+    }
+
+    #[test]
+    fn sequence_resources_track_immutable_replacement_and_art_reset_without_scanning() {
+        let mut studio = Studio::default();
+        studio.sync_sequence_resources();
+        let original = studio.sequence_revision;
+        // Even an identically empty replacement is a new decode/reload generation.
+        studio.art_resources.images = Arc::new(Default::default());
+        studio.sync_sequence_resources();
+        assert_eq!(studio.sequence_revision, original + 1);
+        let replacement = studio.sequence_revision;
+        studio.sync_sequence_resources();
+        assert_eq!(studio.sequence_revision, replacement);
+        studio.art_editor.reset();
+        studio.sync_sequence_resources();
+        assert_eq!(studio.sequence_revision, replacement + 1);
+        studio.sync_sequence_resources();
+        assert_eq!(studio.sequence_revision, replacement + 1);
+    }
+
     #[test]
     fn settings_apply_preserves_timing_and_supports_exact_undo() {
         let mut studio = settings_studio();

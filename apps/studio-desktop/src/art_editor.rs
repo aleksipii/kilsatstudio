@@ -21,6 +21,7 @@ pub struct Editor {
     pub tool: Tool,
     pub selected: Option<String>,
     pub dirty: bool,
+    revision: u64,
     points: Vec<Point>,
     gesture_scene: String,
     undo: Vec<Document>,
@@ -29,6 +30,10 @@ pub struct Editor {
     context: String,
 }
 impl Editor {
+    /// Increments only when document content changes, including history restoration.
+    pub fn revision(&self) -> u64 {
+        self.revision
+    }
     pub fn clear_history_for_context(&mut self, context: String) {
         if self.context != context {
             self.undo.clear();
@@ -43,7 +48,9 @@ impl Editor {
         self.redo.clear();
     }
     pub fn reset(&mut self) {
+        let revision = self.revision.wrapping_add(1);
         *self = Self::default();
+        self.revision = revision;
     }
     fn commit(&mut self, document: &mut Document, candidate: Document) {
         if *document == candidate {
@@ -69,6 +76,7 @@ impl Editor {
         self.redo.clear();
         *document = candidate;
         self.dirty = true;
+        self.revision = self.revision.wrapping_add(1);
     }
     pub fn ui(
         &mut self,
@@ -119,8 +127,8 @@ impl Editor {
    if next.layers.iter().any(|l| l.scene_id==scene_id && l.active.as_ref().is_some_and(|a|a.end>scene.duration)) {self.error=Some("Artwork interval exceeds scene duration".into());} else {
    self.commit(document,next);
    }
-   ui.horizontal(|ui| {if ui.add_enabled(!self.undo.is_empty(),egui::Button::new("Undo artwork")).clicked(){self.redo.push(document.clone());*document=self.undo.pop().unwrap();self.dirty=true;}
-   if ui.add_enabled(!self.redo.is_empty(),egui::Button::new("Redo artwork")).clicked(){self.undo.push(document.clone());*document=self.redo.pop().unwrap();self.dirty=true;}});
+   ui.horizontal(|ui| {if ui.add_enabled(!self.undo.is_empty(),egui::Button::new("Undo artwork")).clicked(){self.redo.push(document.clone());*document=self.undo.pop().unwrap();self.dirty=true;self.revision=self.revision.wrapping_add(1);}
+   if ui.add_enabled(!self.redo.is_empty(),egui::Button::new("Redo artwork")).clicked(){self.undo.push(document.clone());*document=self.redo.pop().unwrap();self.dirty=true;self.revision=self.revision.wrapping_add(1);}});
    if self.dirty {ui.label("Artwork has unsaved changes");}
    if let Some(error)=&self.error{ui.colored_label(egui::Color32::LIGHT_RED,error);}
   });
@@ -648,11 +656,18 @@ mod tests {
             e.commit(&mut d, next);
         }
         assert_eq!(e.undo.len(), 24);
+        assert_eq!(e.revision(), 30);
+        let unchanged = d.clone();
+        e.commit(&mut d, unchanged);
+        assert_eq!(e.revision(), 30);
         let before = d.clone();
         let mut invalid = d.clone();
         invalid.layers[0].opacity = f64::NAN;
         e.commit(&mut d, invalid);
         assert_eq!(d, before);
         assert!(e.error.is_some());
+        assert_eq!(e.revision(), 30);
+        e.reset();
+        assert_eq!(e.revision(), 31);
     }
 }

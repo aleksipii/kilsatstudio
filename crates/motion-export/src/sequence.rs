@@ -1,6 +1,7 @@
 //! Bounded project preview and PNG/WAV/MP4 export on one shared sample clock.
 use super::*;
 use motion_scene::SequenceTimeline;
+use std::sync::Arc;
 #[derive(Serialize)]
 struct Contribution {
     scene_index: usize,
@@ -41,9 +42,14 @@ fn image(
     index: usize,
     sample: u64,
     max_side: Option<u32>,
+    validated: Option<&motion_scene::ValidatedScript>,
 ) -> Result<resvg::tiny_skia::Pixmap, Error> {
-    let mut pose = motion_scene::evaluate(script, index, sample as f64 / f64::from(SAMPLE_RATE))
-        .map_err(|e| invalid(e.to_string()))?;
+    let time = sample as f64 / f64::from(SAMPLE_RATE);
+    let mut pose = match validated {
+        Some(validated) => validated.evaluate(index, time),
+        None => motion_scene::evaluate(script, index, time),
+    }
+    .map_err(|e| invalid(e.to_string()))?;
     let mouths = mouths_at(&rendered[index].manifest, sample);
     motion_scene::apply_speech(&mut pose, &mouths);
     let svg = match art {
@@ -66,6 +72,7 @@ fn preflight(
     script: &Script,
     rendered: &[RenderedScene],
     art: Option<&ArtContext>,
+    export: bool,
 ) -> Result<(SequenceTimeline, u64), Error> {
     if rendered.len() != script.scenes.len() {
         return Err(invalid("one rendered scene required per scene"));
@@ -79,12 +86,13 @@ fn preflight(
         / u64::from(SAMPLE_RATE);
     let pixels = u64::from(script.project.width) * u64::from(script.project.height);
     if total == 0
-        || total > MAX_FRAMES
+        || (export && total > MAX_FRAMES)
         || pixels > 16_000_000
-        || pixels
-            .checked_mul(total)
-            .and_then(|n| n.checked_mul(2))
-            .is_none_or(|n| n > 1_000_000_000)
+        || (export
+            && pixels
+                .checked_mul(total)
+                .and_then(|n| n.checked_mul(2))
+                .is_none_or(|n| n > 1_000_000_000))
     {
         return Err(invalid("sequence frame or pixel-work budget exceeded"));
     }
@@ -92,12 +100,20 @@ fn preflight(
         n.checked_add(s.duration_samples)
             .ok_or_else(|| invalid("source audio size overflow"))
     })?;
+    if total_samples > 24_000 * 600 || source_samples > 24_000 * 1200 {
+        return Err(invalid("sequence exceeds audio duration budget"));
+    }
     let source_bytes = source_samples
         .checked_mul(4)
         .ok_or_else(|| invalid("source audio byte overflow"))?;
     // Conservative working set includes retained source/mixed PCM, two RGBA frames,
     // raster/PNG scratch and retained artwork encoding/decoding copies.
-    let mut working = pixels
+    let raster_pixels = if export {
+        pixels
+    } else {
+        pixels.min(1024 * 1024)
+    };
+    let mut working = raster_pixels
         .checked_mul(24)
         .and_then(|n| total_samples.checked_mul(4).and_then(|a| n.checked_add(a)))
         .and_then(|n| n.checked_add(source_bytes))
@@ -106,7 +122,7 @@ fn preflight(
         return Err(invalid("sequence estimated working set exceeds 256 MiB"));
     }
     for (index, scene) in rendered.iter().enumerate() {
-        validate(script, index, scene)?;
+        validate_mode(script, index, scene, export)?;
     }
     if let Some(a) = art {
         a.document.validate().map_err(|e| invalid(e.to_string()))?;
@@ -134,7 +150,10 @@ fn preflight(
                 }
             }
         }
-        if geometry.checked_mul(total).is_none_or(|n| n > 4_000_000) {
+        if geometry
+            .checked_mul(if export { total } else { 1 })
+            .is_none_or(|n| n > 4_000_000)
+        {
             return Err(invalid("artwork frame-work budget exceeded"));
         }
         let bytes = a.images.values().try_fold(0usize, |n, i| {
@@ -171,6 +190,7 @@ fn compose(
     sample: u64,
     max_side: Option<u32>,
     cancel: &CancellationToken,
+    validated: Option<&motion_scene::ValidatedScript>,
 ) -> Result<(resvg::tiny_skia::Pixmap, Vec<Contribution>), Error> {
     let contributions = timeline
         .sample(sample)
@@ -189,6 +209,7 @@ fn compose(
             c.scene_index,
             c.local_sample,
             max_side,
+            validated,
         )?;
         if src.data().as_chunks::<4>().0.iter().any(|p| p[3] != 255) {
             return Err(invalid(
@@ -220,6 +241,86 @@ pub struct SequencePreviewFrame {
     pub height: u32,
     pub rgba: Vec<u8>,
 }
+/// Immutable, resource-validated project data shared by all preview requests.
+/// Construct on a worker once after preparing audio; retained PCM is shared by Arc.
+pub struct SequencePreview {
+    script: Arc<Script>,
+    rendered: Arc<Vec<RenderedScene>>,
+    art: Option<Arc<ArtContext>>,
+    timeline: SequenceTimeline,
+    validated: motion_scene::ValidatedScript,
+}
+impl SequencePreview {
+    pub fn new(
+        script: Arc<Script>,
+        rendered: Arc<Vec<RenderedScene>>,
+        art: Option<Arc<ArtContext>>,
+        cancel: &CancellationToken,
+    ) -> Result<Self, Error> {
+        check(cancel)?;
+        let (timeline, _) = preflight(&script, &rendered, art.as_deref(), false)?;
+        check(cancel)?;
+        let validated = motion_scene::ValidatedScript::new(script.clone())
+            .map_err(|e| invalid(e.to_string()))?;
+        Ok(Self {
+            script,
+            rendered,
+            art,
+            timeline,
+            validated,
+        })
+    }
+    pub fn render_frame(
+        &self,
+        sample: u64,
+        max_side: u32,
+        cancel: &CancellationToken,
+    ) -> Result<SequencePreviewFrame, Error> {
+        preview_frame(
+            &self.script,
+            &self.rendered,
+            self.art.as_deref(),
+            &self.timeline,
+            sample,
+            max_side,
+            cancel,
+            Some(&self.validated),
+        )
+    }
+}
+#[allow(clippy::too_many_arguments)]
+fn preview_frame(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    timeline: &SequenceTimeline,
+    global_sample: u64,
+    max_side: u32,
+    cancel: &CancellationToken,
+    validated: Option<&motion_scene::ValidatedScript>,
+) -> Result<SequencePreviewFrame, Error> {
+    check(cancel)?;
+    if !(1..=1024).contains(&max_side) {
+        return Err(invalid("preview maximum side must be 1..1024"));
+    }
+    let (image, _) = compose(
+        script,
+        rendered,
+        art,
+        timeline,
+        global_sample,
+        Some(max_side),
+        cancel,
+        validated,
+    )?;
+    check(cancel)?;
+    Ok(SequencePreviewFrame {
+        sample_frame: global_sample,
+        width: image.width(),
+        height: image.height(),
+        rgba: image.data().to_vec(),
+    })
+}
 /// Render a bounded preview without changing scene coordinates or starting synthesis.
 pub fn render_sequence_frame(
     script: &Script,
@@ -233,23 +334,17 @@ pub fn render_sequence_frame(
     if !(1..=1024).contains(&max_side) {
         return Err(invalid("preview maximum side must be 1..1024"));
     }
-    let (timeline, _) = preflight(script, rendered, art)?;
-    let (image, _) = compose(
+    let (timeline, _) = preflight(script, rendered, art, false)?;
+    preview_frame(
         script,
         rendered,
         art,
         &timeline,
         global_sample,
-        Some(max_side),
+        max_side,
         cancel,
-    )?;
-    check(cancel)?;
-    Ok(SequencePreviewFrame {
-        sample_frame: global_sample,
-        width: image.width(),
-        height: image.height(),
-        rgba: image.data().to_vec(),
-    })
+        None,
+    )
 }
 /// Export the same PNG/WAV composition and encode it with an explicit local FFmpeg.
 #[allow(clippy::too_many_arguments)]
@@ -293,11 +388,11 @@ pub fn export_png_sequence(
     mut progress: impl FnMut(Progress),
 ) -> Result<Report, Error> {
     check(cancel)?;
-    let (timeline, total) = preflight(script, rendered, art)?;
+    let (timeline, total) = preflight(script, rendered, art, true)?;
     let total_samples = timeline.total_samples();
     for index in 0..rendered.len() {
         check(cancel)?;
-        image(script, rendered, art, index, 0, None)?;
+        image(script, rendered, art, index, 0, None, None)?;
     }
     let audio = motion_voice::sequence::mix_sequence(&timeline, rendered, cancel).map_err(|e| {
         if cancel.is_cancelled() {
@@ -331,7 +426,8 @@ pub fn export_png_sequence(
                 .checked_mul(u64::from(SAMPLE_RATE))
                 .ok_or_else(|| invalid("frame clock overflow"))?
                 / u64::from(script.project.fps);
-            let (out, entries) = compose(script, rendered, art, &timeline, sample, None, cancel)?;
+            let (out, entries) =
+                compose(script, rendered, art, &timeline, sample, None, cancel, None)?;
             let bytes = out.encode_png().map_err(|e| invalid(e.to_string()))?;
             used = used
                 .checked_add(bytes.len() as u64)
@@ -482,6 +578,42 @@ mod tests {
         )
         .is_err());
         fs::remove_dir_all(dest).unwrap();
+    }
+    #[test]
+    fn prepared_hd_preview_is_independent_of_export_work_budget() {
+        let (mut script, _) = fixture(false);
+        script.scenes.truncate(1);
+        script.project.width = 1920;
+        script.project.height = 1080;
+        script.project.fps = 30;
+        script.scenes[0].duration = 30.0;
+        let rendered =
+            vec![motion_voice::export::render_scene(&script.scenes[0].id, 30.0, &[]).unwrap()];
+        let cancel = CancellationToken::new();
+        let dest = crate::tests::destination();
+        assert!(export_png_sequence(&script, &rendered, None, &dest, &cancel, |_| {}).is_err());
+        assert!(!dest.exists());
+        let preview = SequencePreview::new(
+            Arc::new(script.clone()),
+            Arc::new(rendered.clone()),
+            None,
+            &cancel,
+        )
+        .unwrap();
+        // Repeated rendering uses immutable validated data, with no export-wide
+        // resource scan or first-frame rasterization of unrelated scenes.
+        for sample in [0, 24_000, 719_999] {
+            let frame = preview.render_frame(sample, 320, &cancel).unwrap();
+            assert_eq!((frame.width, frame.height), (320, 180));
+            assert_eq!(frame.rgba.len(), 320 * 180 * 4);
+        }
+        assert!(render_sequence_frame(&script, &rendered, None, 0, 320, &cancel).is_ok());
+        assert!(preview.render_frame(720_000, 320, &cancel).is_err());
+        cancel.cancel();
+        assert!(matches!(
+            preview.render_frame(0, 320, &cancel),
+            Err(Error::Cancelled)
+        ));
     }
     #[test]
     fn mp4_encoder_and_cancel_preflight_leave_no_output() {

@@ -158,12 +158,31 @@ pub fn frame_count(duration_seconds: f64, fps: u32, max_frames: u64) -> Result<u
     Ok(count)
 }
 
+/// An immutable script validated once for repeated scene evaluation.
+#[derive(Clone)]
+pub struct ValidatedScript(std::sync::Arc<Script>);
+impl ValidatedScript {
+    pub fn new(script: std::sync::Arc<Script>) -> Result<Self, Error> {
+        script.validate()?;
+        Ok(Self(script))
+    }
+    pub fn evaluate(&self, scene_index: usize, time_seconds: f64) -> Result<EvaluatedScene, Error> {
+        evaluate_validated(&self.0, scene_index, time_seconds)
+    }
+}
 pub fn evaluate(
     script: &Script,
     scene_index: usize,
     time_seconds: f64,
 ) -> Result<EvaluatedScene, Error> {
     script.validate()?;
+    evaluate_validated(script, scene_index, time_seconds)
+}
+fn evaluate_validated(
+    script: &Script,
+    scene_index: usize,
+    time_seconds: f64,
+) -> Result<EvaluatedScene, Error> {
     let scene = script
         .scenes
         .get(scene_index)
@@ -326,6 +345,24 @@ scenes:
       - {type: speak, at: 3.0, actor: EMMA, text: Hello! Welcome to Kilsat Studio.}
       - {type: move, at: 4.0, actor: EMMA, x: 800, y: 700, duration: 2.0}
 "#;
+    #[test]
+    fn validated_script_retains_immutable_snapshot_and_evaluation_boundaries() {
+        let mut script = std::sync::Arc::new(motion_script::parse(SCRIPT).unwrap());
+        let validated = ValidatedScript::new(script.clone()).unwrap();
+        for time in [0.0, 2.5, 7.9] {
+            assert_eq!(
+                validated.evaluate(0, time).unwrap(),
+                evaluate(&script, 0, time).unwrap()
+            );
+        }
+        // Mutation through another owner copies rather than invalidating the snapshot.
+        std::sync::Arc::make_mut(&mut script).scenes[0].duration = -1.0;
+        assert!(evaluate(&script, 0, 0.0).is_err());
+        assert!(validated.evaluate(0, 0.0).is_ok());
+        assert!(validated.evaluate(1, 0.0).is_err());
+        assert!(validated.evaluate(0, f64::NAN).is_err());
+        assert!(ValidatedScript::new(script).is_err());
+    }
     #[test]
     fn combined_script_deterministic_boundaries_and_seeking() {
         let script = motion_script::parse(SCRIPT).unwrap();

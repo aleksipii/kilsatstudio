@@ -1,6 +1,6 @@
 //! One bounded background lane for project preparation, preview and export.
 use motion_audio::{AudioBuffer, WaveformPeak};
-use motion_export::{ArtContext, Report, SequencePreviewFrame};
+use motion_export::{ArtContext, Report, SequencePreview, SequencePreviewFrame};
 use motion_lipsync::cache::{AlignmentCache, AlignmentInput, AlignmentStatus};
 use motion_scene::SequenceTimeline;
 use motion_script::Script;
@@ -13,9 +13,10 @@ use std::{
 };
 
 pub struct Prepared {
-    pub script: Script,
-    pub rendered: Vec<RenderedScene>,
-    pub art: ArtContext,
+    pub script: Arc<Script>,
+    pub rendered: Arc<Vec<RenderedScene>>,
+    pub art: Arc<ArtContext>,
+    pub preview: SequencePreview,
     pub audio: Arc<AudioBuffer>,
     pub timeline: SequenceTimeline,
     pub peaks: Vec<WaveformPeak>,
@@ -199,15 +200,10 @@ fn execute(task: Task, progress: &impl Fn(Update)) -> Update {
         } => Update::Frame {
             generation,
             sample_frame,
-            result: motion_export::render_sequence_frame(
-                &prepared.script,
-                &prepared.rendered,
-                Some(&prepared.art),
-                sample_frame,
-                512,
-                &cancel,
-            )
-            .map_err(|e| e.to_string()),
+            result: prepared
+                .preview
+                .render_frame(sample_frame, 512, &cancel)
+                .map_err(|e| e.to_string()),
         },
         Task::Export {
             generation,
@@ -316,10 +312,21 @@ fn prepare(request: PrepareRequest, progress: &impl Fn(Update)) -> Result<Prepar
     let peaks = motion_audio::waveform_peaks(&audio, audio.frames().div_ceil(700).max(1))
         .map_err(|e| e.to_string())?;
     request.cancel.check().map_err(|e| e.to_string())?;
+    let script = Arc::new(request.script);
+    let art = Arc::new(request.art);
+    let rendered = Arc::new(rendered);
+    let preview = SequencePreview::new(
+        script.clone(),
+        rendered.clone(),
+        Some(art.clone()),
+        &request.cancel,
+    )
+    .map_err(|e| e.to_string())?;
     Ok(Prepared {
-        script: request.script,
-        art: request.art,
+        script,
+        art,
         rendered,
+        preview,
         audio: Arc::new(audio),
         timeline,
         peaks,
