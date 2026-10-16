@@ -215,3 +215,25 @@ Use `0 ≤ start < end ≤ scene duration`. Invalid intervals leave the artwork
 unchanged. Artwork Undo/Redo includes the plane and timing; screenplay and audio
 are unaffected. Save as `.kilsat` to retain these fields. Preview and export use
 the same timing boundaries. Scene time is independent of the audio playback test.
+
+## Bound alignment imports and cache
+
+The selected-line and full-scene alignment inputs accept bound timing envelopes
+(`schema_version`, `key`, optional `alignment`) as well as legacy Alignment JSON.
+For a scene, map dialogue IDs to either form. Legacy timing is explicitly shown
+as **unbound**: its audio duration is checked, but it does not carry exact audio
+and transcript identity. Blank inputs keep mouths at rest.
+
+Bound envelopes check exact decoded PCM and the current dialogue text. A timing
+payload is stored under the configured Kokoro cache directory's `alignments`
+subdirectory; both preparation paths use that location. An envelope without a
+payload requests only its exact cache entry. Missing entries leave the mouth at
+rest. A changed transcript/audio or corrupt entry reports a recoverable preparation
+error rather than silently using stale timing. Use a new manual edit identity
+when deliberately revising an existing bound alignment.
+
+Preparation shows imported, cache-hit, cache-miss, legacy-unbound or absent timing
+status per line. JSON parsing, PCM hashing and cache I/O run on bounded background
+workers, with a 100 KB JSON input limit. These statuses establish structural
+provenance only; they do not measure perceptual quality or provide an automatic
+aligner. Device playback and listening acceptance still require Mac testing.

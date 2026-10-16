@@ -47,13 +47,14 @@ pub fn phoneme_to_viseme(phoneme: &str) -> Option<Viseme> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TimedPhoneme {
     pub phoneme: String,
     pub start_seconds: f64,
     pub end_seconds: f64,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AlignmentSource {
     /// Human authored or corrected against the waveform.
     Manual,
@@ -61,6 +62,7 @@ pub enum AlignmentSource {
     Forced { tool: String, version: String },
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Alignment {
     pub source: AlignmentSource,
     pub duration_seconds: f64,
