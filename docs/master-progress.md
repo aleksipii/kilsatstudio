@@ -69,7 +69,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Camera event commands or cinematic rule presets beyond scene camera tracks.
 - [x] Timed solid background-color tracks shared by preview and export.
 - [x] Timed background image placement shared by native preview and export.
-- [ ] Cross-scene transitions.
+- [x] Validated outgoing cuts/crossfades, compiled sample timeline and headless PNG/WAV sequence export.
+- [ ] Native whole-project sequence preview/transport and MP4/SVG sequence export.
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
 - [ ] Stable versioned editable compiled timeline representation.
@@ -105,7 +106,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
 - [x] Timed background image planes and validated half-open visibility intervals.
-- [ ] True cross-scene transitions.
+- [x] Whole opaque-frame cuts/crossfades in headless PNG sequence export.
+- [ ] Native transition preview and sequence MP4/SVG compositing.
 - [ ] Offscreen GPU renderer using a verified macOS Metal path.
 - [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
 - [ ] Wider image/texture golden coverage as rendering grows.
@@ -132,7 +134,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
 - [ ] Per-bone animation editing, pressure brushes, arbitrary masks and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
-- [ ] Cross-scene transitions and multi-scene composition.
+- [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
+- [ ] Whole-project sequence preview/playback and desktop sequence-export controls.
 - [ ] Full project/asset history and shortcut/accessibility coverage.
 - [ ] Comprehensive interactive macOS workflow acceptance.
 
@@ -482,3 +485,15 @@ Four agents restored their implementations additively on main0ab1ba1, preserving
 the new rule-based animation and user Mac evidence. The restored source was
 checkpointed immediately in PR #28 before revalidation. Old incomplete test logs
 are not reused as proof; final results for this head are recorded below.
+
+| Date | Completed implementation | Actual validation and remaining scope |
+| --- | --- | --- |
+| 2026-10-16 | Shared sequence timeline, outgoing transition editor, linear audio and whole-frame PNG crossfades | Restored source head f6c62bdd passed GitHub Linux/macOS fmt/check/strict Clippy/all-target tests, runtime38 + packaging8 Python tests, real media encoding and Apple Silicon preview packaging. Linux job logs contain261 passed Rust tests, two encoder tests separately covered by media CI. |
+| 2026-10-16 | Recovery review and local reproduction | Independent read-only re-review found no blocker; current apply_speech path and PR26/27 changes preserved. Locally4 sequence export tests passed. Recovered CLI fixture produced6 PNG frames,36000 audio samples and correct overlap midpoint PCM; synthetic tones only, no real speech inference. |
+
+The checked scope is authoring plus headless PNG/WAV sequence export. Native
+whole-project preview/transport, MP4/SVG sequence export and CLI `.kilsat` resource
+loading remain open. Per-bone editing/textured rigs, advanced compositing, unified
+history, automatic alignment/quality, offline/device acceptance, GPU/performance
+and final licensing/distribution gates also remain open. User-reported first
+real M1 Kokoro success (PR27) remains distinct from those comprehensive gates.
