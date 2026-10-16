@@ -1,4 +1,5 @@
-//! Headless PNG/WAV project export from existing local files. No synthesis/downloads.
+//! Headless YAML/.kilsat PNG/WAV or MP4 project export from existing local files.
+//! MP4 requires an explicit local encoder; no synthesis or downloads.
 use serde::Deserialize;
 use std::{
     error::Error,
@@ -26,11 +27,51 @@ fn read(path: &Path, limit: u64) -> Result<Vec<u8>, Box<dyn Error>> {
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
-    if args.len() != 3 {
-        return Err("usage: render_sequence SCRIPT_YAML INPUT_JSON NEW_OUTPUT_DIRECTORY (PNG + WAV only; no MP4/SVG sequence)".into());
+    if !(3..=5).contains(&args.len()) {
+        return Err("usage: render_sequence SCRIPT_YAML_OR_KILSAT INPUT_JSON NEW_OUTPUT_DIRECTORY [png|mp4] [ABSOLUTE_FFMPEG]".into());
     }
-    let script =
-        motion_script::parse(&String::from_utf8(read(Path::new(&args[0]), 1024 * 1024)?)?)?;
+    let input = Path::new(&args[0]);
+    let (source, art) = if input.extension().is_some_and(|e| e == "kilsat") {
+        let project = motion_project::load(input)?;
+        let mut images = std::collections::BTreeMap::new();
+        let mut encoded_bytes = 0usize;
+        let mut decoded_pixels = 0u64;
+        for layer in &project.art.layers {
+            if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                if !images.contains_key(asset_id) {
+                    let asset = project
+                        .assets
+                        .iter()
+                        .find(|a| &a.id == asset_id)
+                        .ok_or("missing image asset")?;
+                    let path = motion_project::resolve_asset(input, asset)?;
+                    let image = motion_art::load_image(&path)?;
+                    encoded_bytes += image.png().len();
+                    decoded_pixels += u64::from(image.width()) * u64::from(image.height());
+                    if encoded_bytes > 32 * 1024 * 1024 || decoded_pixels > 16_000_000 {
+                        return Err(
+                            "artwork exceeds aggregate 32 MiB / 16 million pixel image budget"
+                                .into(),
+                        );
+                    }
+                    images.insert(asset_id.clone(), image);
+                }
+            }
+        }
+        (
+            project.source,
+            motion_export::ArtContext {
+                document: project.art,
+                images,
+            },
+        )
+    } else {
+        (
+            String::from_utf8(read(input, 1024 * 1024)?)?,
+            motion_export::ArtContext::default(),
+        )
+    };
+    let script = motion_script::parse(&source)?;
     let timeline = motion_scene::SequenceTimeline::compile(&script)?;
     if timeline.total_samples() > 24_000 * 600
         || timeline
@@ -82,14 +123,27 @@ fn main() -> Result<(), Box<dyn Error>> {
             manifest: serde_json::from_slice(&manifest_data)?,
         });
     }
-    let report = motion_export::export_png_sequence(
-        &script,
-        &rendered,
-        None,
-        Path::new(&args[2]),
-        &motion_tts::CancellationToken::new(),
-        |_| {},
-    )?;
+    let cancel = motion_tts::CancellationToken::new();
+    let report = match args.get(3).map(String::as_str).unwrap_or("png") {
+        "png" if args.len() <= 4 => motion_export::export_png_sequence(
+            &script,
+            &rendered,
+            Some(&art),
+            Path::new(&args[2]),
+            &cancel,
+            |_| {},
+        ),
+        "mp4" if args.len() == 5 => motion_export::export_mp4_sequence(
+            &script,
+            &rendered,
+            Some(&art),
+            Path::new(&args[2]),
+            Path::new(&args[4]),
+            &cancel,
+            |_| {},
+        ),
+        _ => return Err("format must be png, or mp4 with explicit absolute FFmpeg".into()),
+    }?;
     println!(
         "Exported {} PNG frames plus audio.wav and sequence.json",
         report.frame_count

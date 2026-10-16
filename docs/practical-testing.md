@@ -21,8 +21,12 @@ for the model-free checks below.
    The ZIP includes test instructions, examples and the Python sidecar source,
    but no inference dependencies or model assets.
 
-A user has confirmed that the current preview opens after the normal macOS
-approval. The Mac chip, macOS version and audio behavior remain unrecorded.
+A user confirmed the preview opens after normal macOS approval. On 2026-10-16,
+they also reported successful in-app Kokoro setup and English CPU speech tests
+for `af_heart` and `am_michael` on an Apple M1, macOS 27.1, Homebrew Python 3.12,
+using build `98d265b`. Preserve that evidence; the new sequence/device/offline
+checks below have not thereby passed. See the
+[recorded Mac evidence](kokoro-in-app-acceptance.md#recorded-mac-evidence).
 
 The build job checks bundle layout, architecture, dynamic-library references and
 ad-hoc signature. It does not launch the GUI or listen to the output device.
@@ -35,8 +39,9 @@ the scene time slider. Change a movement coordinate in YAML, revalidate and veri
 that the procedural actor responds. Try an invalid actor name and verify that an
 actionable validation error appears instead of a stale playable scene.
 
-The characters are original procedural placeholders. Textured puppets, production
-frame rendering and video export are still unfinished.
+The default characters use original procedural rigs. Local artwork and bounded
+PNG/MP4 export are implemented; production GPU rendering and comprehensive
+physical-device acceptance remain unfinished.
 
 ## Test 2: full scene sound and mouth cues, no model
 
@@ -72,8 +77,8 @@ their owner is dropped; use a separate path if saving a persistent project.
 5. Once connected, use normal screenplay dialogue preparation/playback. Accurate
    lip timing still requires separate alignment.
 
-This setup path is implemented and fixture-tested; actual Mac installation,
-inference and listening acceptance remain to be recorded. See
+The user has reported successful Mac installation and both voice tests as recorded
+above. Complete offline repeatability and scene/device acceptance separately. See
 [managed setup](managed-kokoro.md) and [acceptance](kokoro-in-app-acceptance.md).
 
 ## Advanced manual Kokoro setup and CPU evidence
@@ -110,6 +115,89 @@ explicit local CPU test before testing full dialogue in the app.
 Real speech has no automatically validated mouth timestamps. Import or author
 alignment separately; do not judge phoneme timing from tones or Kokoro strings.
 
+## Test 4: whole-project sequence, new Mac acceptance
+
+All boxes here start **pending**. Record `pass`, `fail` or `not_tested` per check;
+passing Rust tests or the earlier M1 voice test cannot close these observations.
+Use the current build's commit from BUILD-INFO, not the earlier build identifier.
+Open **Whole project · sequence** in the native scene workspace. Its transport is
+separate from single-scene playback.
+
+### Model-free transition and transport
+
+1. Open `examples/scene-sequence.yaml` and validate. It contains two one-second
+   scenes, red then blue, with a half-second crossfade. Click **Prepare whole
+   project**. No download or speech synthesis is needed for this empty-dialogue
+   fixture; expect a 1.500-second prepared sequence.
+2. Use **Play**, **Pause**, **Restart** and the **global sample / 24 kHz** slider.
+   At sample 12000 (0.500 s), expect red; at 18000 (0.750 s), expect approximately
+   equal red/blue; at 24000 (1.000 s), expect blue. This is a blend in encoded
+   color space, not a linear-light reference. Scrub backward and forward while
+   paused and playing; the picture must settle on the requested position without
+   an older worker result replacing it.
+3. Let playback reach 1.500 s. It must stop without looping or hanging; the last
+   picture remains visible. Press **Play** at the end to restart from zero. Test
+   **Restart** while playing and paused. Check that single-scene playback does
+   not continue sounding underneath project playback.
+4. Change a scene setting and apply it, or edit and validate the source. The old
+   prepared project must stop and require preparation again. Restore the fixture
+   before continuing. Inspect missing-device errors: **Silent visual transport**
+   means the fallback picture clock ran, not that device audio passed.
+
+### Real dialogue, physical output and offline repeatability
+
+Create a separate persistent two-scene project using already installed voices or
+owned imported WAV files. Put distinguishable dialogue near the end of scene A
+and the beginning of B so both are audible during the crossfade; each line must
+still fit its own scene. Add explicit imported/manual alignment if assessing
+mouth cues. Keep this fixture and its assets outside temporary sound-check demo
+directories. Use [sequence timing](scene-sequences.md) for transition limits.
+
+- [ ] Prepare both scenes, listen on the named physical output device, and record
+  whether the overlap fades continuously with no gap, repeated onset or obvious
+  clipping. Crossfade weights are shared with video; that alone does not prove
+  perceptual synchronization or acceptable loudness.
+- [ ] Pause/resume inside the overlap; seek before, inside and after it in both
+  directions. Check audio, global cursor, both scenes' movement/mouth cues and
+  picture against each other. Repeat at the final speech boundary and EOF.
+- [ ] Test missing/unavailable output and recovery using the actual device setup.
+  Record the error and whether replay can recover. Do not count silent fallback
+  as successful audio playback.
+- [ ] With assets already provisioned, disconnect networking and prepare changed,
+  uncached text using the configured local Kokoro runtime. Confirm real new WAV
+  generation, not just cached replay; preserve smoke/diagnostic evidence. Then
+  prepare unchanged text to check reuse. Neither **Prepare whole project** nor
+  playback should start the installer or download assets. Do not enable setup
+  downloads for this offline test.
+- [ ] Cancel a sufficiently long uncached **Prepare whole project** with **Cancel
+  sequence task**. Wait for worker completion; verify no cancelled/stale project
+  becomes playable and retry works. Keep notes on responsiveness and errors.
+
+### Export, cancellation and comparison
+
+1. Prepare the dialogue project and supply a **new absolute output directory**.
+   Leave **MP4 + WAV (otherwise PNG + WAV)** unchecked and select **Export whole
+   project**. Verify numbered PNGs, `audio.wav` and `sequence.json`; compare
+   crossfade start/middle/end pictures and audio to the native preview.
+2. Repeat into another new directory with the MP4 box checked and an explicit
+   absolute path to an already installed local FFmpeg executable. Use even
+   project dimensions for H.264. The app must not download or locate an encoder
+   through PATH. An invalid encoder path or existing destination must produce an
+   actionable failure and preserve existing files.
+3. Play `sequence.mp4` in a Mac video player through the same output device.
+   Compare speech onset, overlap, mouth cues and final line with the native
+   preview. Check frame count and duration against `sequence.json`; record
+   perceptual drift separately, especially for a longer fixture within export
+   limits. A structural duration match does not prove lip-sync quality.
+4. Cancel an export long enough to observe progress. Wait for completion and
+   check that its newly created partial directory is removed, earlier successful
+   exports remain unchanged and another export succeeds. Repeat cancellation
+   during MP4 encoding when feasible; report `not_tested` if it finishes too fast.
+
+No new Mac/device/offline/video acceptance is claimed by this checklist. Retain
+the fixture, exact build, transition samples, device, observed errors and reviewed
+reports so another person can reproduce each result.
+
 ## Report the result
 
 Include the source commit from BUILD-INFO, macOS version, Mac model/chip, output
@@ -129,7 +217,9 @@ perceptual alignment, audio-device latency or video export.
 | Real speech | Actual CPU WAV generation and voice behavior on your Mac |
 | Real alignment | Annotated boundaries and perceptual timing, separately measured |
 
-Remaining work includes practical cancellation validation, runtime output-device recovery,
-measured speech alignment, textured rigs, rendered frames/video, release signing,
-notarization, and the complete redistribution/dependency audit.
+Remaining acceptance includes practical cancellation, runtime output-device
+recovery, offline synthesis and measured/perceptual speech alignment. Production
+GPU rendering, release signing/notarization and the complete
+redistribution/dependency audit remain open. PNG/MP4 implementation is distinct
+from the new Mac preview/export observations requested above.
 

@@ -161,7 +161,7 @@ fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_las
     } else {
         ui.small("Crossfade overlaps this scene's end with the next scene's start. Use a positive duration shorter than both scenes; incoming and outgoing overlaps may not overlap each other.");
     }
-    ui.small("Outgoing transitions apply to headless sequence PNG + WAV export. Desktop preview and scene exports remain scene-local.");
+    ui.small("Outgoing transitions appear in Whole project preview and PNG/MP4 sequence export. Selected-scene preview and exports remain scene-local.");
 }
 
 #[cfg(test)]
