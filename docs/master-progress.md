@@ -83,8 +83,9 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Expressive idle cycles and extensible artist-authored motion presets.
 - [x] Validated transform keyframe interpolation API: linear/smoothstep/hold and shortest rotation.
 - [x] Persistent per-scene actor root transform tracks and detached keyframe/easing editor.
-- [ ] Per-bone custom tracks and rig editing.
-- [ ] Animation blending.
+- [x] Headless per-joint PoseTrack sampler and validated weighted pose-blending API.
+- [ ] Persisted per-bone custom tracks, rig editing and preview/export integration.
+- [ ] Animation blending integrated with persisted tracks, desktop preview and export.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -382,3 +383,32 @@ Final local checks: direct rustfmt and diff checks passed; strict installed-driv
 Clippy/workspace all-target check passed. The full 20-test motion-export suite
 also passed with actual /usr/bin/ffmpeg and /usr/bin/ffprobe, including both
 normally ignored real-media tests. GitHub CI applies only to its exact head.
+
+## Open workstream assignment and results
+
+The user requested six agents for the remaining areas on 2026-10-16. Each
+completed the bounded task below; these are not claims that the whole feature or
+acceptance gate is finished. Reports are implementation contracts, not completed
+product features.
+
+| Agent | Delivered scope | Still open |
+| --- | --- | --- |
+| bone_animation | Local per-joint PoseTrack sampling, weighted pose blend API, tests and runnable example; [details](workstreams/animation.md) | Persistence, per-bone editor, textured rigs and preview/export integration |
+| transition_workstream | [Cross-scene clock, composition, audio and test contract](workstreams/transitions.md) | Scene transition implementation and acceptance |
+| mask_workstream | [Masks and blend-mode implementation contract](workstreams/masks-blending.md) | Ellipse/arbitrary masks, isolated compositing and blend modes |
+| history_workstream | [Whole-project transaction/history migration](workstreams/unified-history.md) | Shared bounded history across source, art and inventory |
+| alignment_workstream | [Exact-audio import/cache integration plan](workstreams/alignment.md) | Desktop identity-bound import, automatic backend and measured quality |
+| gpu_release_workstream | [GPU proof, Mac/device and license evidence gaps](workstreams/gpu-release-gates.md) | Offscreen Metal path, physical-device/offline Kokoro acceptance and full license audit |
+
+Current code increment is a headless animation foundation. Do not mark full
+per-bone rigging, animation blending, masks, transitions, alignment, GPU or Mac
+acceptance complete based on these APIs or reports. The exact final validation
+is recorded below and in its pull request.
+
+| Date | Completion evidence | Remaining scope |
+| --- | --- | --- |
+| 2026-10-16 | Six agent workstream audits delivered in docs/workstreams; 220 Rust workspace/all-target tests passed after the new animation APIs. Strict installed-driver Clippy/workspace check, direct rustfmt and diff checks passed; blend_pose example executed with weights 0/0.5/1. | Library foundation only; full per-bone editing and integrated animation blending remain open. |
+
+PR #23 head7bdf5f1 passed Linux/macOS CI, media encoding and Apple Silicon
+packaging; GitHub code review completed without findings. It remains unmerged.
+The animation/workstream follow-up is stacked on that head, not merged into main.

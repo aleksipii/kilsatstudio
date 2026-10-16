@@ -32,6 +32,95 @@ pub enum Error {
     InvalidTrack,
     #[error("animation time must be finite and nonnegative")]
     InvalidTime,
+    #[error("pose tracks must match the rig and contain at most 65536 keys in total")]
+    InvalidPoseTrack,
+    #[error("pose must match the rig and produce bounded world transforms")]
+    InvalidPose,
+    #[error("pose blend weight must be finite and in 0..=1")]
+    InvalidWeight,
+}
+
+/// Seekable local transforms in the rig's parent-before-child joint order.
+/// Missing tracks retain the joint's rest transform. Tracks replace local rest
+/// transforms; they are not additive offsets. The owned rig fixes joint identity.
+#[derive(Debug, Clone)]
+pub struct PoseTrack {
+    rig: Rig,
+    tracks: Vec<Option<Track>>,
+}
+impl PoseTrack {
+    pub fn new(rig: Rig, tracks: Vec<Option<Track>>) -> Result<Self, Error> {
+        if tracks.len() != rig.joints().len()
+            || tracks.iter().flatten().map(|t| t.keys.len()).sum::<usize>() > 65536
+        {
+            return Err(Error::InvalidPoseTrack);
+        }
+        Ok(Self { rig, tracks })
+    }
+
+    pub fn rig(&self) -> &Rig {
+        &self.rig
+    }
+
+    /// Validates the complete hierarchy before returning a new local pose.
+    /// A locally valid key can still exceed world bounds when composed.
+    pub fn sample(&self, time: f64) -> Result<Vec<Transform2>, Error> {
+        if !time.is_finite() || time < 0.0 {
+            return Err(Error::InvalidTime);
+        }
+        let mut pose = self.rig.rest_pose();
+        for (local, track) in pose.iter_mut().zip(&self.tracks) {
+            if let Some(track) = track {
+                *local = track.sample(time)?;
+            }
+        }
+        self.rig.evaluate(&pose).map_err(|_| Error::InvalidPose)?;
+        Ok(pose)
+    }
+}
+
+/// Blends two complete local poses, using the shortest angular arc per joint.
+/// Weight zero returns `a` exactly, one returns `b` exactly. Inputs and output
+/// must fit the rig's world bounds; errors never modify either input.
+pub fn blend_pose(
+    rig: &Rig,
+    a: &[Transform2],
+    b: &[Transform2],
+    weight: f64,
+) -> Result<Vec<Transform2>, Error> {
+    if !weight.is_finite() || !(0.0..=1.0).contains(&weight) {
+        return Err(Error::InvalidWeight);
+    }
+    rig.evaluate(a).map_err(|_| Error::InvalidPose)?;
+    rig.evaluate(b).map_err(|_| Error::InvalidPose)?;
+    if weight == 0.0 {
+        return Ok(a.to_vec());
+    }
+    if weight == 1.0 {
+        return Ok(b.to_vec());
+    }
+    let pose = a
+        .iter()
+        .zip(b)
+        .map(|(&a, &b)| {
+            // Reuse the existing track's scale, translation and rotation rules.
+            Track::new(vec![
+                Keyframe {
+                    time: 0.0,
+                    value: a,
+                    easing: Easing::Linear,
+                },
+                Keyframe {
+                    time: 1.0,
+                    value: b,
+                    easing: Easing::Linear,
+                },
+            ])
+            .and_then(|track| track.sample(weight))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    rig.evaluate(&pose).map_err(|_| Error::InvalidPose)?;
+    Ok(pose)
 }
 impl Track {
     pub fn new(keys: Vec<Keyframe>) -> Result<Self, Error> {
@@ -186,5 +275,94 @@ mod tests {
         assert!(humanoid(Some(f64::MAX), 0.0)
             .iter()
             .all(|p| p.x.is_finite() && p.y.is_finite()));
+    }
+
+    fn two_joint_rig() -> Rig {
+        Rig::new(vec![
+            Joint {
+                name: "root".into(),
+                parent: None,
+                rest: Transform2::default(),
+            },
+            Joint {
+                name: "hand".into(),
+                parent: Some(0),
+                rest: Transform2 {
+                    translation: Vec2::new(3.0, 0.0),
+                    ..Default::default()
+                },
+            },
+        ])
+        .unwrap()
+    }
+
+    #[test]
+    fn joint_tracks_seek_and_propagate_parent_rotation() {
+        let track = PoseTrack::new(
+            two_joint_rig(),
+            vec![
+                Some(
+                    Track::new(vec![
+                        key(0.0, 0.0, 0.0, Easing::Linear),
+                        key(2.0, 10.0, std::f64::consts::PI, Easing::Linear),
+                    ])
+                    .unwrap(),
+                ),
+                None,
+            ],
+        )
+        .unwrap();
+        let mid = track.sample(1.0).unwrap();
+        let world = track.rig().evaluate(&mid).unwrap();
+        assert!((world[1].tx - 5.0).abs() < 1e-10);
+        assert!((world[1].ty + 3.0).abs() < 1e-10);
+        track.sample(100.0).unwrap();
+        assert_eq!(track.sample(1.0).unwrap(), mid);
+        assert_eq!(mid[1], track.rig().rest_pose()[1]);
+        assert!(track.sample(f64::INFINITY).is_err());
+    }
+
+    #[test]
+    fn pose_blend_endpoints_shortest_rotation_and_input_integrity() {
+        let rig = two_joint_rig();
+        let mut a = rig.rest_pose();
+        let mut b = a.clone();
+        a[0].rotation = 170f64.to_radians();
+        b[0].rotation = (-170f64).to_radians();
+        b[1].translation.x = 9.0;
+        let original = (a.clone(), b.clone());
+        assert_eq!(blend_pose(&rig, &a, &b, 0.0).unwrap(), a);
+        assert_eq!(blend_pose(&rig, &a, &b, 1.0).unwrap(), b);
+        let mid = blend_pose(&rig, &a, &b, 0.5).unwrap();
+        assert!((mid[0].rotation - std::f64::consts::PI).abs() < 1e-10);
+        assert_eq!(mid[1].translation.x, 6.0);
+        for weight in [f64::NAN, f64::INFINITY, -0.1, 1.1] {
+            assert_eq!(blend_pose(&rig, &a, &b, weight), Err(Error::InvalidWeight));
+        }
+        assert_eq!(blend_pose(&rig, &a[..1], &b, 0.0), Err(Error::InvalidPose));
+        assert_eq!((a, b), original);
+    }
+
+    #[test]
+    fn pose_tracks_reject_shape_budget_and_composed_overflow() {
+        assert!(PoseTrack::new(two_joint_rig(), vec![None]).is_err());
+        let big = Track::new(vec![key(0.0, 1e6, 0.0, Easing::Hold)]).unwrap();
+        let track = PoseTrack::new(two_joint_rig(), vec![Some(big), None]).unwrap();
+        assert_eq!(track.sample(0.0), Err(Error::InvalidPose));
+        let rig = Rig::new(
+            (0..17)
+                .map(|i| Joint {
+                    name: format!("joint_{i}"),
+                    parent: None,
+                    rest: Transform2::default(),
+                })
+                .collect(),
+        )
+        .unwrap();
+        let keys = (0..4096)
+            .map(|i| key(i as f64, 0.0, 0.0, Easing::Hold))
+            .collect();
+        let long = Track::new(keys).unwrap();
+        assert!(PoseTrack::new(rig, vec![Some(long); 17]).is_err());
     }
 }
