@@ -1,6 +1,6 @@
 # Alignment workstream
 
-Status: repository inspection and next implementation plan, 2026-10-16.
+Status: repository inspection updated for exact-audio desktop integration, 2026-10-16.
 This report completes no automatic alignment or perceptual quality acceptance.
 No model, voice or language asset was downloaded and no inference was run.
 
@@ -32,9 +32,10 @@ No model, voice or language asset was downloaded and no inference was run.
 
 ## Missing integration and limits
 
-- Desktop/scene preparation does not load/store `AlignmentCache` or invoke an
-  automatic aligner. Pasted plain `Alignment` objects carry duration/provenance
-  but no exact-audio identity; equal duration does not prove correct pairing.
+- Desktop line/scene preparation now resolves bound envelopes against the actual
+  PCM/current text and shares `AlignmentCache`. It does not invoke an automatic
+  aligner. Legacy plain `Alignment` remains explicitly unbound and uncached; equal
+  duration alone does not prove correct pairing.
 - There is no provider execution contract, managed aligner environment, pinned
   acoustic/dictionary assets, cancellation adapter or validated output converter.
 - There is no waveform phone-boundary editor with transactional Undo/Redo and
@@ -42,7 +43,12 @@ No model, voice or language asset was downloaded and no inference was run.
 - Real-audio annotation, reviewed thresholds, corpus measurements and physical
   Mac playback/animation acceptance remain open.
 
-## Next smallest implementation: exact-audio import and cache in preparation
+## Implemented slice: exact-audio import and cache in preparation
+
+The following contract is now implemented through `AlignmentInput`,
+`BoundAlignment`, `DialogueClip::prepare_with_alignment_input`, scene preparation
+and both desktop workers. Imported JSON can be bound with the new
+`bound_alignment` example. Final executed checks belong to the increment PR.
 
 1. Add an explicit alignment-input envelope carrying transcript, exact PCM
    identity, provider/version, configuration and original import/edit identity.
