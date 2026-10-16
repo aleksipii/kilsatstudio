@@ -55,7 +55,7 @@ jobs:
           from pathlib import Path
           root = 'Kilsat Studio Preview.app/Contents/Resources/services/kokoro-runtime/'
           with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
-              for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py']:
+              for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py', 'setup_kokoro.py', 'setup-manifest.json']:
                   source = Path('services/kokoro-runtime', helper).read_bytes()
                   if archive.read(root + helper) != source:
                       raise SystemExit(f'Packaged {helper} differs from source')

@@ -8,15 +8,43 @@ cargo run -p studio-desktop
 
 This native egui/eframe app edits and validates MotionScript YAML, selects dialogue,
 submits bounded background generation/import jobs, previews duration and waveform,
-and scrubs a sample-based symbolic mouth display. macOS device playback is available as described below; it also renders original procedural characters with deterministic scene movement, expressions and waves. It does not export video. macOS GUI execution and real Kokoro
+and scrubs a sample-based symbolic mouth display. macOS device playback is available as described below; it also renders original procedural characters with deterministic scene movement, expressions and waves. PNG sequences and MP4/WAV exports use the same scene evaluation. macOS GUI execution and real Kokoro
 synthesis require local platform testing.
 
-Install the Kokoro CPU runtime separately following `services/kokoro-runtime`.
-Set the Python executable, runtime script, model config, weights, voice directory,
-cache directory, and immutable model/dependency revision in the app. No files are
-downloaded. Voice preset, language, speed and imported `audio` path come from YAML.
-Imported WAV must be nonempty 24 kHz mono PCM16. Paths resolve from the configured
-project root. Screenplay edits invalidate event selections until revalidation.
+## Set up Kokoro inside the application
+
+Open **Kokoro runtime / alignment** and use **Kokoro · local speech setup**.
+The application starts the CPU runtime locally; no Terminal commands are needed
+for installation, connection, speech testing or playback. Python 3.10–3.12 must
+already be installed. Leave the Python path blank for detection, or enter its
+absolute executable path.
+
+1. Choose an installation folder (defaults to `~/Library/Application Support/Kilsat Studio/Kokoro`).
+2. Review and enable the download consent checkbox, then choose **Install local Kokoro**.
+   This explicitly downloads dependencies, model weights, the two English voices
+   and language assets. The checkbox starts unchecked. Long operations run on a
+   bounded background worker with progress, cancellation and recoverable errors.
+3. For an existing installation created by this installer, choose the same folder
+   and **Connect existing local installation**. Connection performs no downloads.
+4. Choose `af_heart` or `am_michael` and press **Test English CPU speech**.
+   The test generates a separate WAV and JSON report; their locations and metrics
+   appear in the panel. Choose **Play speech test** and listen on your Mac.
+5. Prepare selected dialogue or full-scene audio with the normal studio controls.
+
+Installation/connection fills the advanced Python, model, voice, cache and
+revision fields automatically. It does not modify the screenplay, dialogue jobs,
+Undo history or manual alignment. The standalone speech test uses separate audio
+and playback state, so it does not become a scene clip or drive its mouth cues.
+A successful test report verifies generation and basic WAV validity, not perceptual
+speech or lip-sync quality. Actual playback needs a macOS audio output device.
+The profile is saved by the installer; reconnect the folder after reopening the app.
+
+**Advanced local runtime settings** remain available for separately installed
+assets: Python executable, sidecar script, model config, weights, voice directory,
+cache and immutable model/dependency revision. Manual edits disconnect the selected
+managed profile. Voice preset, language, speed and imported `audio` path come from
+YAML. Imported WAV must be nonempty 24 kHz mono PCM16. Paths resolve from the
+configured project root. Screenplay edits invalidate selections until revalidation.
 
 Before generation, choose **Check local Kokoro setup**. A background check reads
 local asset hashes and installed package metadata using the configured Python.

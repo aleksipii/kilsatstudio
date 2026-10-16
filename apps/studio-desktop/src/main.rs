@@ -9,6 +9,7 @@ mod event_editor;
 mod event_factory;
 mod export_worker;
 mod keyframe_editor;
+mod kokoro_setup;
 mod playback;
 mod runtime_check;
 mod scene_settings;
@@ -145,6 +146,16 @@ struct Studio {
     scene_preview: Option<ScenePreview>,
     scene_alignment: String,
     scene_audio_active: bool,
+    kokoro_setup: kokoro_setup::Worker,
+    setup_busy: bool,
+    setup_root: String,
+    setup_python: String,
+    setup_downloads: bool,
+    setup_voice: String,
+    setup_status: String,
+    setup_profile: Option<kokoro_setup::Profile>,
+    test_audio: Option<Arc<motion_audio::AudioBuffer>>,
+    test_player: Option<playback::Playback>,
     diagnostics: runtime_check::Worker,
     diagnostics_busy: bool,
     diagnostics_report: Option<Result<String, String>>,
@@ -261,6 +272,16 @@ impl Default for Studio {
             scene_preview: None,
             scene_alignment: String::new(),
             scene_audio_active: false,
+            kokoro_setup: kokoro_setup::Worker::spawn(),
+            setup_busy: false,
+            setup_root: default_kokoro_root(),
+            setup_python: String::new(),
+            setup_downloads: false,
+            setup_voice: "af_heart".into(),
+            setup_status: String::new(),
+            setup_profile: None,
+            test_audio: None,
+            test_player: None,
             diagnostics: runtime_check::Worker::new(),
             diagnostics_busy: false,
             diagnostics_report: None,
@@ -975,6 +996,9 @@ impl Studio {
             });
     }
     fn stop_playback(&mut self) {
+        if let Some(player) = self.test_player.take() {
+            let _ = player.stop();
+        }
         if let Some(clock) = &mut self.scene_transport {
             clock.pause();
         }
@@ -1411,6 +1435,7 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        self.poll_kokoro_setup();
         if let Some(result) = self.asset_worker.poll() {
             self.busy = false;
             if let Some((source, path, previous)) = self.asset_pending.take() {
@@ -1631,16 +1656,147 @@ impl Studio {
         }
     }
 }
+fn default_kokoro_root() -> String {
+    kokoro_setup::default_root().to_string_lossy().into_owned()
+}
+impl Studio {
+    fn submit_kokoro(&mut self, task: kokoro_setup::Task) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        match self.kokoro_setup.submit(task) {
+            Ok(()) => {
+                self.stop_playback();
+                self.setup_busy = true;
+                self.diagnostics_busy = true;
+                self.setup_status = "Working locally…".into();
+            }
+            Err(error) => self.setup_status = error,
+        }
+    }
+    fn apply_kokoro_profile(&mut self, profile: kokoro_setup::Profile) {
+        self.stop_playback();
+        self.python = profile.python.to_string_lossy().into_owned();
+        self.config = profile.config.to_string_lossy().into_owned();
+        self.weights = profile.model.to_string_lossy().into_owned();
+        self.voices = profile.voices.to_string_lossy().into_owned();
+        self.cache = profile.cache.to_string_lossy().into_owned();
+        self.revision = profile.revision.clone();
+        self.scene_preview = None;
+        self.scene_audio_active = false;
+        self.preview = None;
+        self.diagnostics_report = None;
+        self.test_audio = None;
+        self.setup_profile = Some(profile);
+    }
+    fn poll_kokoro_setup(&mut self) {
+        while let Some(update) = self.kokoro_setup.poll() {
+            match update {
+                kokoro_setup::Update::Progress(message) => self.setup_status = message,
+                kokoro_setup::Update::Finished(result) => {
+                    self.setup_busy = false;
+                    self.diagnostics_busy = false;
+                    match result {
+                        Ok(kokoro_setup::Outcome::Connected(profile)) => {
+                            self.apply_kokoro_profile(profile);
+                            self.setup_status = "Local Kokoro connected. Run the English CPU speech test, then listen to the result.".into();
+                        }
+                        Ok(kokoro_setup::Outcome::Tested {
+                            wav,
+                            report,
+                            metrics,
+                            audio,
+                        }) => {
+                            self.test_audio = Some(audio);
+                            self.setup_status = format!("CPU speech test completed. {metrics}\nWAV: {}\nReport: {}\nListen to confirm speech quality. This does not validate lip-sync.", wav.display(), report.display());
+                        }
+                        Err(error) => self.setup_status = error,
+                    }
+                }
+            }
+        }
+        if let Some(player) = &self.test_player {
+            let state = player.snapshot();
+            if let Some(error) = state.error {
+                self.setup_status = format!("Test playback: {error}");
+                self.test_player = None;
+            } else if state.finished {
+                self.test_player = None;
+            }
+        }
+    }
+    fn kokoro_setup_ui(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Kokoro · local speech setup");
+        ui.label("Install and test English CPU speech here. Python 3.10–3.12 must already be installed. The model runs as a local background process.");
+        let idle = !self.busy && !self.diagnostics_busy && !self.export_busy;
+        ui.add_enabled_ui(idle, |ui| {
+            field(ui, "Installation folder", &mut self.setup_root);
+            field(ui, "Python 3.10–3.12 executable (blank: detect)", &mut self.setup_python);
+            ui.checkbox(&mut self.setup_downloads, "I allow downloading Python dependencies, Kokoro model, voices and English language assets for this installation.");
+            ui.weak("Installation needs an internet connection and disk space. After setup, speech generation uses local assets. Existing assets can be connected without downloads.");
+            let root = std::path::PathBuf::from(self.setup_root.trim());
+            let (installer, manifest) = kokoro_setup::helper_paths(Path::new(&self.runtime));
+            if ui.add_enabled(self.setup_downloads && !self.setup_root.trim().is_empty(), egui::Button::new("Install local Kokoro")).clicked() {
+                let python = (!self.setup_python.trim().is_empty()).then(|| self.setup_python.trim().into());
+                self.submit_kokoro(kokoro_setup::Task::Setup { python, root: root.clone(), installer, manifest, allow_downloads: self.setup_downloads });
+            }
+            if ui.add_enabled(!self.setup_root.trim().is_empty(), egui::Button::new("Connect existing local installation")).clicked() {
+                self.submit_kokoro(kokoro_setup::Task::ConnectExisting { root: root.clone() });
+            }
+            let previous_voice = self.setup_voice.clone();
+            ui.horizontal(|ui| {
+                ui.label("English test voice");
+                egui::ComboBox::from_id_salt("kokoro-test-voice").selected_text(&self.setup_voice).show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.setup_voice, "af_heart".into(), "af_heart");
+                    ui.selectable_value(&mut self.setup_voice, "am_michael".into(), "am_michael");
+                });
+            });
+            if self.setup_voice != previous_voice { self.test_audio = None; self.stop_playback(); }
+            if ui.add_enabled(self.setup_profile.is_some(), egui::Button::new("Test English CPU speech")).clicked() {
+                if let Some(profile) = self.setup_profile.clone() {
+                    self.test_audio = None;
+                    let output_root = profile.cache.parent().unwrap_or(&profile.cache).join("speech-tests");
+                    self.submit_kokoro(kokoro_setup::Task::Test { profile, smoke_script: Path::new(&self.runtime).with_file_name("smoke_macos.py"), voice_preset: self.setup_voice.clone(), output_root });
+                }
+            }
+            if ui.add_enabled(self.test_audio.is_some(), egui::Button::new("Play speech test")).clicked() {
+                self.stop_playback();
+                if let Some(audio) = self.test_audio.clone() {
+                    match playback::Playback::new().and_then(|player| { player.play(audio, 0)?; Ok(player) }) {
+                        Ok(player) => self.test_player = Some(player),
+                        Err(error) => self.setup_status = error,
+                    }
+                }
+            }
+        });
+        if self.setup_busy {
+            ui.spinner();
+            if ui.button("Cancel Kokoro operation").clicked() {
+                self.kokoro_setup.cancel();
+                self.setup_status = "Cancelling…".into();
+            }
+        }
+        if self.test_player.is_some() && ui.button("Stop speech test").clicked() {
+            self.stop_playback();
+        }
+        if !self.setup_status.is_empty() {
+            ui.label(&self.setup_status);
+        }
+        ui.separator();
+    }
+}
+
 fn field(ui: &mut egui::Ui, label: &str, value: &mut String) {
     ui.label(label);
     ui.text_edit_singleline(value);
 }
 impl Studio {
     fn runtime_ui(&mut self, ui: &mut egui::Ui) {
-        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+        self.kokoro_setup_ui(ui);
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
                     let previous_runtime = format!("{:?}", self.kokoro_config());
-                    ui.heading("Offline runtime");
-                    ui.label("Supply previously installed local assets. This app never downloads model files.");
+                    ui.heading("Advanced local runtime settings");
+                    ui.label("Supply existing local assets, or use the explicit installation flow above.");
                     field(ui, "Python executable", &mut self.python);
                     field(ui, "Sidecar script", &mut self.runtime);
                     field(ui, "Model config JSON", &mut self.config);
@@ -1650,7 +1806,7 @@ impl Studio {
                     field(ui, "Immutable model + dependency revision", &mut self.revision);
                     if ui.button("Check local Kokoro setup").clicked() { self.check_runtime(); }
                     ui.label("Preflight checks local packages and files only; it does not run inference or prove compatibility.");
-                    if format!("{:?}", self.kokoro_config()) != previous_runtime { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; }
+                    if format!("{:?}", self.kokoro_config()) != previous_runtime { self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; self.setup_profile = None; self.test_audio = None; }
                     let previous_root = self.project_root.clone();
                     field(ui, "Project root (imported WAV paths)", &mut self.project_root);
                     if self.project_root != previous_root {
@@ -2917,6 +3073,7 @@ impl eframe::App for Studio {
         self.poll();
         if self.busy
             || self.diagnostics_busy
+            || self.test_player.is_some()
             || self.playback.is_some()
             || self
                 .scene_transport
@@ -3948,6 +4105,66 @@ mod scene_preview_tests {
         assert_eq!(studio.source, original);
         assert!(!studio.history.can_undo());
     }
+    #[test]
+    fn kokoro_setup_respects_active_document_operations() {
+        for guard in 0..3 {
+            let mut studio = Studio::default();
+            studio.busy = guard == 0;
+            studio.diagnostics_busy = guard == 1;
+            studio.export_busy = guard == 2;
+            studio.setup_status = "unchanged".into();
+            studio.submit_kokoro(kokoro_setup::Task::ConnectExisting {
+                root: "/not-read-because-busy".into(),
+            });
+            assert!(!studio.setup_busy);
+            assert_eq!(studio.setup_status, "unchanged");
+        }
+    }
+
+    #[test]
+    fn kokoro_setup_panel_renders_without_running_tasks() {
+        let ctx = egui::Context::default();
+        let mut studio = Studio::default();
+        let source = studio.source.clone();
+        let output = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| studio.runtime_ui(ui));
+        });
+        assert!(!output.shapes.is_empty());
+        assert_eq!(studio.source, source);
+        assert!(!studio.setup_busy);
+        assert!(!studio.setup_downloads);
+        assert!(studio.setup_profile.is_none());
+    }
+
+    #[test]
+    fn connecting_kokoro_profile_preserves_document_and_dialogue() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let source = studio.source.clone();
+        let jobs = studio.jobs.len();
+        studio.alignment = "manual line timing".into();
+        studio.scene_alignment = "manual scene timing".into();
+        assert!(!studio.setup_downloads);
+        let profile = kokoro_setup::Profile {
+            python: "/local/python".into(),
+            config: "/local/config.json".into(),
+            model: "/local/model.pth".into(),
+            voices: "/local/voices".into(),
+            cache: "/local/cache".into(),
+            revision: "immutable-test-revision".into(),
+        };
+        studio.apply_kokoro_profile(profile);
+        assert_eq!(studio.python, "/local/python");
+        assert_eq!(studio.weights, "/local/model.pth");
+        assert_eq!(studio.revision, "immutable-test-revision");
+        assert_eq!(studio.source, source);
+        assert_eq!(studio.jobs.len(), jobs);
+        assert_eq!(studio.alignment, "manual line timing");
+        assert_eq!(studio.scene_alignment, "manual scene timing");
+        assert!(studio.setup_profile.is_some());
+        assert!(!studio.history.can_undo());
+    }
+
     #[test]
     fn native_workspace_headless_layout_and_optional_capture() {
         let ctx = egui::Context::default();
