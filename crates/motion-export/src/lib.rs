@@ -659,6 +659,59 @@ mod tests {
     }
 
     #[test]
+    fn timed_background_keys_reach_svg_and_decoded_png_on_the_sample_clock() {
+        let (mut script, rendered) = fixture();
+        script.scenes[0].composition.background_color = "#0000ff".into();
+        script.scenes[0].composition.background_keys = vec![
+            motion_script::BackgroundKey {
+                at: 0.25,
+                color: "#ff0000".into(),
+            },
+            motion_script::BackgroundKey {
+                at: 0.5,
+                color: "#00ff00".into(),
+            },
+        ];
+        let colors = ["#0000ff", "#ff0000", "#00ff00", "#00ff00"];
+        let pixels = [
+            [0, 0, 255, 255],
+            [255, 0, 0, 255],
+            [0, 255, 0, 255],
+            [0, 255, 0, 255],
+        ];
+        let svg_dir = destination();
+        let png_dir = destination();
+        export_scene(
+            &script,
+            0,
+            &rendered,
+            &svg_dir,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        export_png_scene(
+            &script,
+            0,
+            &rendered,
+            &png_dir,
+            &CancellationToken::new(),
+            |_| {},
+        )
+        .unwrap();
+        for index in 0..4 {
+            let svg = fs::read_to_string(svg_dir.join(format!("frame_{index:06}.svg"))).unwrap();
+            assert!(svg.contains(&format!("fill=\"{}\"", colors[index])));
+            let image =
+                resvg::tiny_skia::Pixmap::load_png(png_dir.join(format!("frame_{index:06}.png")))
+                    .unwrap();
+            assert_eq!(&image.data()[..4], &pixels[index]);
+        }
+        fs::remove_dir_all(svg_dir).unwrap();
+        fs::remove_dir_all(png_dir).unwrap();
+    }
+
+    #[test]
     fn png_decodes_dimensions_and_cancellation_cleans_output() {
         let (mut s, r) = fixture();
         s.project.width = 1920;

@@ -11,7 +11,9 @@ what this implementation actually accepts.
   Asset strings identify future artwork; the desktop currently draws its own
   procedural placeholder actors and does not load a rig from those paths.
 - `scenes` contain unique IDs, positive finite durations, optional background names,
-  and events. Background names are metadata; the preview uses a built-in backdrop.
+  and events. Background names are metadata; `composition.background_color` and
+  timed `composition.background_keys` control the rendered solid backdrop. See
+  [scene composition](composition.md).
 - Each event starts at a finite nonnegative `at` less than scene duration and names
   an existing `actor`. Unknown fields and commands fail explicitly.
 

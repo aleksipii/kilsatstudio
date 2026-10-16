@@ -51,6 +51,7 @@ pub enum Event {
 #[serde(default, deny_unknown_fields)]
 pub struct Composition {
     pub background_color: String,
+    pub background_keys: Vec<BackgroundKey>,
     pub camera: Vec<CameraKey>,
     pub layers: BTreeMap<String, Layer>,
     pub actor_tracks: BTreeMap<String, Vec<ActorKey>>,
@@ -61,6 +62,7 @@ impl Default for Composition {
     fn default() -> Self {
         Self {
             background_color: "#181f2c".into(),
+            background_keys: vec![],
             camera: vec![],
             layers: BTreeMap::new(),
             actor_tracks: BTreeMap::new(),
@@ -68,6 +70,17 @@ impl Default for Composition {
             fade_out: 0.0,
         }
     }
+}
+/// A scene-local step change, effective at and after its timestamp.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BackgroundKey {
+    pub at: f64,
+    pub color: String,
+}
+fn safe_background_color(color: &str) -> bool {
+    let bytes = color.as_bytes();
+    bytes.len() == 7 && bytes[0] == b'#' && bytes[1..].iter().all(u8::is_ascii_hexdigit)
 }
 /// Root offsets layered over movement events; rotation is in radians.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -317,6 +330,30 @@ pub fn apply_scene_settings(
     })
 }
 
+/// Update scene settings and composition together, validating only the final candidate.
+/// This permits duration edits accompanied by retiming keys in the same transaction.
+/// Input/output bounds and YAML normalization match `apply_scene_settings`.
+pub fn apply_scene_settings_with_composition(
+    source: &str,
+    scene_index: usize,
+    project: Project,
+    scene_id: &str,
+    duration_seconds: f64,
+    composition: Composition,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        scene.id = scene_id.into();
+        scene.duration = duration_seconds;
+        scene.composition = composition;
+        candidate.project = project;
+        Ok(())
+    })
+}
+
 /// Replace scene composition atomically; validate all camera keys and actor references.
 /// YAML formatting is normalized and comments are removed; no files are changed.
 pub fn apply_composition(
@@ -499,10 +536,26 @@ impl Script {
                 return Err(fail(format!("{}: background must not be empty", s.id)));
             }
             let composition = &s.composition;
-            let color = composition.background_color.as_bytes();
-            if color.len() != 7 || color[0] != b'#' || !color[1..].iter().all(u8::is_ascii_hexdigit)
-            {
+            if !safe_background_color(&composition.background_color) {
                 return Err(fail(format!("{}: background color requires #RRGGBB", s.id)));
+            }
+            if composition.background_keys.len() > 4096 {
+                return Err(fail("background exceeds 4096 keys".into()));
+            }
+            let mut previous = None;
+            for key in &composition.background_keys {
+                if !key.at.is_finite()
+                    || key.at < 0.0
+                    || key.at > s.duration
+                    || previous.is_some_and(|at| key.at <= at)
+                    || !safe_background_color(&key.color)
+                {
+                    return Err(fail(format!(
+                        "{}: background keys require increasing scene times and #RRGGBB colors",
+                        s.id
+                    )));
+                }
+                previous = Some(key.at);
             }
             if [composition.fade_in, composition.fade_out]
                 .iter()
@@ -1224,6 +1277,141 @@ mod actor_track_tests {
         assert!(parse(&deleted).unwrap().scenes[0]
             .composition
             .actor_tracks
+            .is_empty());
+    }
+}
+
+#[cfg(test)]
+mod background_key_tests {
+    use super::*;
+    const SOURCE: &str = "characters: {A: {asset: a}}\nscenes: [{id: shot, duration: 4, events: [{type: emotion, at: 1, actor: A, value: happy}]}]";
+    fn composition() -> Composition {
+        Composition {
+            background_keys: vec![
+                BackgroundKey {
+                    at: 0.0,
+                    color: "#00aAFF".into(),
+                },
+                BackgroundKey {
+                    at: 4.0,
+                    color: "#FFFFFF".into(),
+                },
+            ],
+            ..Composition::default()
+        }
+    }
+    #[test]
+    fn background_edit_roundtrips_and_invalid_edits_leave_source_intact() {
+        let original = parse(SOURCE).unwrap();
+        let updated = apply_composition(SOURCE, 0, composition()).unwrap();
+        let parsed = parse(&updated).unwrap();
+        assert_eq!(parsed.scenes[0].composition, composition());
+        assert_eq!(
+            serde_yaml::to_string(&parsed.scenes[0].events).unwrap(),
+            serde_yaml::to_string(&original.scenes[0].events).unwrap()
+        );
+        for at in [-1.0, 0.0, 4.01, f64::INFINITY, f64::NAN] {
+            let mut invalid = composition();
+            invalid.background_keys[1].at = at;
+            assert!(apply_composition(&updated, 0, invalid).is_err());
+            assert_eq!(
+                parse(&updated).unwrap().scenes[0].composition,
+                parsed.scenes[0].composition
+            );
+        }
+        for color in ["", "red", "#fff", "#GG0000", "#ffffff\"/>"] {
+            let mut invalid = composition();
+            invalid.background_keys[0].color = color.into();
+            assert!(apply_composition(&updated, 0, invalid).is_err());
+        }
+        let mut invalid = composition();
+        invalid.background_keys.reverse();
+        assert!(apply_composition(&updated, 0, invalid).is_err());
+        let mut removed = composition();
+        removed.background_keys.clear();
+        let cleared = apply_composition(&updated, 0, removed).unwrap();
+        assert!(parse(&cleared).unwrap().scenes[0]
+            .composition
+            .background_keys
+            .is_empty());
+    }
+    #[test]
+    fn duration_and_background_retiming_share_one_atomic_transaction() {
+        let initial = apply_composition(SOURCE, 0, composition()).unwrap();
+        let project = parse(&initial).unwrap().project;
+        let mut shorter = composition();
+        shorter.background_keys[1].at = 2.0;
+        // The old endpoint lies beyond the shorter duration until keys are retimed.
+        assert!(apply_scene_settings(&initial, 0, project.clone(), "short", 2.0).is_err());
+        let shortened = apply_scene_settings_with_composition(
+            &initial,
+            0,
+            project.clone(),
+            "short",
+            2.0,
+            shorter.clone(),
+        )
+        .unwrap();
+        let scene = &parse(&shortened).unwrap().scenes[0];
+        assert_eq!(scene.duration, 2.0);
+        assert_eq!(scene.composition, shorter);
+        let mut longer = shorter;
+        longer.background_keys.push(BackgroundKey {
+            at: 6.0,
+            color: "#abcdef".into(),
+        });
+        assert!(apply_composition(&shortened, 0, longer.clone()).is_err());
+        let extended = apply_scene_settings_with_composition(
+            &shortened,
+            0,
+            project.clone(),
+            "long",
+            6.0,
+            longer.clone(),
+        )
+        .unwrap();
+        let parsed = parse(&extended).unwrap();
+        assert_eq!(parsed.scenes[0].duration, 6.0);
+        assert_eq!(parsed.scenes[0].composition, longer);
+        assert!(apply_scene_settings_with_composition(
+            &extended,
+            0,
+            project,
+            "invalid",
+            3.0,
+            longer.clone()
+        )
+        .is_err());
+        assert_eq!(parse(&extended).unwrap().scenes[0].composition, longer);
+        assert_eq!(parse(&extended).unwrap().scenes[0].id, "long");
+    }
+
+    #[test]
+    fn background_key_schema_is_strict_and_budget_is_bounded() {
+        for key in [
+            "{at: 1, color: '#112233', typo: true}",
+            "{at: 1}",
+            "{color: '#112233'}",
+        ] {
+            let source = format!("characters: {{}}\nscenes: [{{id: shot, duration: 4, events: [], composition: {{background_keys: [{key}]}}}}]");
+            assert!(parse(&source).is_err());
+        }
+        let mut value = composition();
+        value.background_keys = (0..4096)
+            .map(|i| BackgroundKey {
+                at: i as f64 / 1024.0,
+                color: "#112233".into(),
+            })
+            .collect();
+        assert!(apply_composition(SOURCE, 0, value.clone()).is_ok());
+        value.background_keys.push(BackgroundKey {
+            at: 4.0,
+            color: "#112233".into(),
+        });
+        assert!(apply_composition(SOURCE, 0, value).is_err());
+        assert!(parse(SOURCE).unwrap().scenes[0]
+            .composition
+            .background_keys
             .is_empty());
     }
 }

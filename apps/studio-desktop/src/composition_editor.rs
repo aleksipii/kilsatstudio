@@ -1,10 +1,69 @@
 //! Detached composition controls; Apply is validated as one screenplay edit.
 use eframe::egui;
-use motion_script::{CameraKey, Composition, Layer};
+use motion_script::{BackgroundKey, CameraKey, Composition, Layer};
 
 pub fn ui(ui: &mut egui::Ui, value: &mut Composition, actors: &[String], duration: f64) {
     ui.label("Background color (#RRGGBB)");
     ui.add(egui::TextEdit::singleline(&mut value.background_color).char_limit(7));
+    ui.separator();
+    ui.label("Timed background colors");
+    ui.small("The base color is used before the first key. Each key switches color at its exact time and holds until the next key.");
+    let mut remove_background = None;
+    for (index, key) in value.background_keys.iter_mut().enumerate() {
+        ui.push_id(("background", index), |ui| {
+            ui.horizontal(|ui| {
+                ui.label(format!("Key {} · seconds", index + 1));
+                ui.add(egui::DragValue::new(&mut key.at).speed(0.1));
+                if ui.small_button("Remove key").clicked() {
+                    remove_background = Some(index);
+                }
+            });
+            ui.horizontal(|ui| {
+                ui.label("Color");
+                ui.add(
+                    egui::TextEdit::singleline(&mut key.color)
+                        .char_limit(7)
+                        .desired_width(85.0),
+                );
+                if let Ok(color) = egui::Color32::from_hex(&key.color) {
+                    let (rect, _) =
+                        ui.allocate_exact_size(egui::vec2(18.0, 18.0), egui::Sense::hover());
+                    ui.painter().rect_filled(rect, 2.0, color);
+                }
+            });
+        });
+    }
+    if let Some(index) = remove_background {
+        value.background_keys.remove(index);
+    }
+    // Do not create duplicate times when the last key is already at scene end.
+    let next_at = value.background_keys.last().map_or(Some(0.0), |key| {
+        if key.at.is_finite() && key.at < duration {
+            let candidate = (key.at + 1.0).min(duration);
+            (candidate > key.at).then_some(candidate)
+        } else {
+            None
+        }
+    });
+    if ui
+        .add_enabled(
+            value.background_keys.len() < 4096 && next_at.is_some(),
+            egui::Button::new("Add background key"),
+        )
+        .clicked()
+    {
+        let color = value
+            .background_keys
+            .last()
+            .map(|key| key.color.clone())
+            .unwrap_or_else(|| value.background_color.clone());
+        value.background_keys.push(BackgroundKey {
+            at: next_at.unwrap(),
+            color,
+        });
+    }
+    ui.small("Use #RRGGBB and unique ascending times from 0 to scene duration. Apply settings commits all background edits together; Undo restores the previous screenplay.");
+    ui.separator();
     ui.horizontal(|ui| {
         ui.label("Fade in / out (seconds)");
         ui.add(egui::DragValue::new(&mut value.fade_in).speed(0.1));

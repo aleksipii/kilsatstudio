@@ -186,3 +186,17 @@ in MotionScript. Procedural actor geometry and faces use the same evaluated root
 transform as export. Per-bone textures, arbitrary masks, advanced image editing
 and Mac visual acceptance remain open. See `docs/art-format.md`,
 `docs/art-rendering.md`, `docs/keyframe-editor.md` and `docs/art-acceptance.md`.
+
+## Timed scene background colors
+
+In the Inspector's project/scene settings, expand **Background, camera, layers and
+fades**. Set the base `#RRGGBB` color, then add background keys with times in seconds
+and colors. Each key switches the scene background at its exact time and holds
+until the next key; the base color applies before the first key. Keys can be
+edited or removed in the detached settings draft. Times must be finite, unique,
+ascending and within the scene duration (up to 4096 keys).
+
+**Apply settings** validates and commits the full draft as one screenplay Undo
+step. Invalid colors/times leave the screenplay unchanged. Preview and exported
+frames use the same background evaluation. Settings controls are disabled while
+an active operation holds the document.

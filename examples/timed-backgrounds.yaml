@@ -1,0 +1,19 @@
+project:
+  title: Timed background colors
+  fps: 24
+  width: 640
+  height: 360
+characters:
+  EMMA:
+    asset: characters/emma
+scenes:
+  - id: colors
+    duration: 4
+    composition:
+      background_color: '#203040'
+      background_keys:
+        - {at: 1, color: '#304860'}
+        - {at: 2, color: '#604030'}
+        - {at: 3, color: '#305040'}
+    events:
+      - {type: move, actor: EMMA, at: 0, x: 480, y: 252, duration: 4}

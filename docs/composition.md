@@ -6,6 +6,9 @@ original dark background, identity camera, visible actors in ID order, and no fa
 ```yaml
 composition:
   background_color: '#203040'
+  background_keys:
+    - {at: 1, color: '#304050'}
+    - {at: 3, color: '#506070'}
   camera:
     - {at: 0, x: 0, y: 0, zoom: 1}
     - {at: 4, x: 100, y: 30, zoom: 1.5}
@@ -43,3 +46,17 @@ does not load background images, masks, or external SVG files.
 
 Deleting an unused character removes its layer metadata atomically. Event references
 continue to reject deletion; no dialogue or movement events are silently removed.
+
+## Timed background colors
+
+`background_keys` is an optional list of `{at, color}` entries. The base
+`background_color` is used before the first key. A key takes effect exactly at
+its scene-local time and holds until the next key; colors do not interpolate.
+Keys must have finite, strictly increasing times in `[0, scene.duration]`, with
+at most 4096 entries. Every color uses `#RRGGBB`. A key at the scene end is valid
+for endpoint inspection; an exported frame sequence samples before that endpoint.
+
+The native composition editor edits these rows in its existing detached draft.
+Apply validates the entire scene atomically and participates in source Undo/Redo.
+Scrubbing and SVG/PNG/MP4 export share the same stateless color evaluation.
+Background images and cross-scene transitions remain separate work.
