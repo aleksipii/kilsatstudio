@@ -151,7 +151,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Automatic alignment backend and actual quality acceptance; report tooling does not establish these.
 - [x] Consented managed Kokoro provisioning with pinned asset revisions, sizes and SHA256.
 - [ ] Complete dependency/asset license and redistribution audit.
-- [ ] Real local English Kokoro CPU WAV on Apple Silicon.
+- [x] Real local English Kokoro CPU WAV on Apple Silicon (user report 2026-10-16: M1, macOS 27.1, both voices; see [acceptance](kokoro-in-app-acceptance.md#recorded-mac-evidence)).
 - [ ] Offline synthesis after provisioning with networking disabled.
 - [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
 - [x] Exact-PCM/current-text bound alignment envelopes and shared line/scene desktop cache integration.
@@ -462,3 +462,9 @@ it is documentation only, not an implemented or evaluated integration.
 
 Persisted or artist-authored clips, per-bone editing, textured parts, a Rhubarb
 or other automatic timing backend and measured mouth-timing quality remain open.
+
+## First real Kokoro speech on a Mac
+
+| Date | Evidence | Remaining |
+| --- | --- | --- |
+| 2026-10-16 | The user installed Kokoro through the in-app managed setup on an Apple M1 running macOS 27.1, using the preview built from `main` at 98d265b with Homebrew Python 3.12. They ran the English CPU speech test for `af_heart` and `am_michael` and reported that it works. | Offline synthesis with networking disabled, the remaining in-app acceptance checklist, real scene dialogue playback/export and the Speech 2 gate. |

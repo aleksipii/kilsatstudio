@@ -68,6 +68,16 @@ with the test evidence. Do not place downloaded model assets in Git.
 - [ ] Measure alignment separately against real recorded audio before claiming
   perceptual mouth timing quality. Kokoro phoneme tokens are not timestamps.
 
+## Recorded Mac evidence
+
+| Date | Machine and build | Result reported by the user | Not covered |
+| --- | --- | --- | --- |
+| 2026-10-16 | Apple M1, macOS 27.1; preview artifact from `main` at 98d265b (macOS practical preview run #61); Homebrew Python 3.12 | Managed in-app setup installed and connected a profile. The in-app English CPU speech test produced audio for `af_heart` and `am_michael`, and the user reported that Kokoro works after listening to both. | Offline run with networking disabled, consent decline, cancel/retry, restart/reload, multiple speeds, clipping/truncation notes, device switching and full scene playback. No WAV, JSON evidence report or BUILD-INFO.txt was attached. |
+
+The checklist items above stay unchecked until each one is exercised as written.
+This entry is the first real Apple Silicon synthesis report; it does not establish
+offline repeatability or the Speech 2 gate.
+
 The setup flow remains a local Python CPU sidecar. This checklist does not claim
 native Rust inference, Metal/MPS/Core ML acceleration, notarization, a complete
 Python wheel lock, or clearance to redistribute every dependency and voice asset.
