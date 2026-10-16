@@ -3,8 +3,8 @@
 Kilsat Studio's workspace groups screenplay editing, scene inspection and timeline
 navigation around the existing deterministic preview. It is an original Kilsat
 implementation in egui/eframe. Procedural characters remain placeholders; the
-workspace does not provide a texture editor, bone editor or production compositing
-system.
+workspace provides authored transforms for the original procedural bones, but no
+texture-rig authoring or complete production compositing system.
 
 ## Panels and navigation
 
@@ -80,11 +80,14 @@ Rejected edits leave the document unchanged. Applying normalizes YAML formatting
 and removes comments; **Undo** restores the exact previous source.
 
 The toolbar provides **Undo** and **Redo**, with Cmd/Ctrl+Z and Cmd/Ctrl+Shift+Z.
-These shortcuts apply to the screenplay when its editor has focus or no other
-text field is active. Other text fields retain their own undo behavior. A focused
+These shortcuts traverse committed screenplay, artwork and asset-inventory edits
+in one chronological history when the screenplay has focus or no other text field
+is active. Other text fields retain their own local text undo behavior. A focused
 screenplay editing session is grouped until focus leaves the editor or validation,
 save, apply or undo commits it. Opening a file or demo starts a new history.
-History retains up to 64 snapshots and 8 MiB, separately from the current document.
+History retains up to 64 states and 8 MiB across undo and redo, excluding the
+current document. Saving preserves history. Snapshots restore exact source and
+art/inventory metadata, never filesystem side effects; see [unified history](unified-history.md).
 
 Applying an event invalidates prepared playback/export audio. Editing dialogue
 also clears its pasted scene alignment and the selected-line alignment while
@@ -209,8 +212,8 @@ The native preview and exported frames consume the same evaluated composition.
 
 The asset inventory provides explicit local import, relink and reference-only
 removal on a bounded worker. Imported files remain on disk when a reference is
-removed. Inventory changes are marked unsaved and have a separate one-step Undo;
-save `.kilsat` to persist them. These controls do not render imported textures.
+removed. Inventory changes are marked unsaved and enter global Undo/Redo; save `.kilsat`
+to persist them. PNG/JPEG thumbnails and placed artwork use decoded local images.
 See [composition](composition.md) and [asset management](asset-management.md).
 
 
@@ -218,16 +221,34 @@ See [composition](composition.md) and [asset management](asset-management.md).
 
 The artwork panel adds pen strokes, rectangles, ellipses and PNG/JPEG image layers
 to the selected scene. Layers support visibility, opacity, order, geometry and
-rectangular clipping. Actor attachments follow translation only. Artwork paints
+rectangular, ellipse or simple-polygon clipping, plus Normal/Multiply/Screen blending. Actor attachments follow translation only. Foreground artwork paints
 after procedural actors and remains inside the shared camera/canvas/fade.
 Image decode runs on a bounded worker; use **Reload images** for same-path file
 changes. Image data is shared between preview and export.
 
 Save artwork in `.kilsat` v2; v1 projects migrate preserving source/assets. YAML
-save refuses to discard artwork. Artwork has bounded separate history; source
-and inventory context changes invalidate unsafe snapshots, and reference-breaking
-Undo/edits are rejected. This is not full unified project history.
+save refuses to discard artwork. Committed artwork enters the same bounded
+chronological history as source and inventory. Invalid edits preserve the document.
 
 The per-actor keyframe editor stores time, Move-relative position offsets, root
 rotation/positive scales and linear/smoothstep/hold interpolation in MotionScript.
 Apply is atomic and source Undo/Redo restores exact text. See [keyframe editor](keyframe-editor.md), [art format](art-format.md) and [art acceptance](art-acceptance.md) for limits and manual platform checks.
+
+### Per-bone and advanced-compositing controls
+
+Select an actor and expand **Per-bone keyframes**, then choose the bone and edit
+its detached time/translation/rotation/scale keys. Apply validates the screenplay
+and records one global transaction; changing scene, actor or bone reloads saved
+keys and discards the draft. See [per-bone editor](per-bone-editor.md).
+
+The layer Inspector selects clip type and blend mode. Polygon text is a sequence
+of whitespace-separated `x,y` vertices, committed only after validation. Advanced
+active layers suppress the direct selected-scene drawing canvas with a hint.
+Prepare **Whole project · sequence** to inspect their shared CPU-composited frame.
+See [advanced compositing](advanced-compositing.md) for supported effects and
+remaining native-painter/Mac parity checks.
+
+[Estimated Rhubarb cues](rhubarb-estimated-cues.md) can be imported through existing
+timing inputs after explicit CLI execution; automatic desktop execution and real
+audio quality acceptance remain open. The [optional GPU fixture](gpu-offscreen.md)
+does not replace production CPU preview/export.

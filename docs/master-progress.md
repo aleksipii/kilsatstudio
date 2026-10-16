@@ -20,11 +20,11 @@ user-reported first M1 Kokoro speech evidence are preserved.
 | Completed | Still open |
 | --- | --- |
 | Timed solid colors/images, native editors and shared preview/export | SVG sequence compositing and physical Mac transition acceptance |
-| Bounded joint PoseTrack sampler and weighted pose-blend API | Persisted per-bone editor, textured rigs and preview/export integration |
-| Rule-based posture, walk, gesture and speech-motion clips shared by preview/export (PR #26) | Artist-authored/persisted clips, per-bone editor and Mac visual review |
-| Atomic duration/composition settings and source Undo | Full unified project/asset history and advanced editor tools |
-| Managed Kokoro setup, bound alignment/cache and user-reported M1 speech tests | Offline repeatability, scene/device acceptance, automatic alignment and quality |
-| CPU SVG/PNG/MP4 and bounded parallel frames | GPU rendering, production benchmarks and final distribution/license audit |
+| Persisted per-bone tracks/editor, shared preview/export and additive rule layering | Custom rig authoring, textures/deformation and artist clip blending |
+| Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and full native canvas parity |
+| Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
+| Managed Kokoro, bound cache, reported M1 speech and opt-in estimated Rhubarb cues | Offline/device acceptance, native aligner execution/cache and measured quality |
+| CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
 
 Maintain this summary and the full checklist after each authorized merge. A new
 implementation remains pending until its relevant checks pass; hardware gates
@@ -36,11 +36,11 @@ require actual evidence.
 | --- | --- | --- |
 | Architecture/integration | Parent agent | Workspace, shared interfaces, final checks |
 | Compiler / project | Existing modules + parent | Validated script/schema integration |
-| Rigging/animation | Existing modules | Original rig and animation modules |
-| Rendering | Existing render modules | Shared deterministic frame path |
-| Desktop UX | `project_sequence_ui` + `asset_thumbnails` | Global transport and native image inventory |
-| Speech | `project_sequence_worker` | Bounded project preparation and shared alignment cache |
-| Export | `project_sequence_export` | Shared raster preview, MP4 and .kilsat CLI |
+| Rigging/animation | `per_bone` + parent | Authored bone tracks, editor and shared evaluation |
+| Rendering | `preview_preflight` + parent | Geometric masks and verified backdrop blending |
+| Desktop UX/history | `sequence_revision` + parent | Unified document history and source/context guards |
+| Speech | `automatic_alignment` | Bounded estimated cues, exact-PCM import and shared sample clock |
+| GPU/audit | `license_audit` + parent | Optional offscreen fixture and evidence inventory |
 | Scheduling | Existing bounded frame/decode workers | Bounded execution and cancellation |
 | QA/release | Independent review + parent | Packaging tests, integrated checks |
 | Documentation | All owners + parent | This tracker and feature documentation |
@@ -93,8 +93,10 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persistent per-scene actor root transform tracks and detached keyframe/easing editor.
 - [x] Headless per-joint PoseTrack sampler and validated weighted pose-blending API.
 - [x] Rule-based keyframe clip library in shared preview/export: emotion posture blending, walk, wave/point/nod/shrug gestures and viseme-driven speech head motion.
-- [ ] Persisted per-bone custom tracks, rig editing and preview/export integration.
-- [ ] Animation blending integrated with persisted tracks, desktop preview and export.
+- [x] Persisted parent-local per-bone tracks and detached editor in shared preview/export.
+- [ ] Arbitrary rig definition editing, textured parts and deformation.
+- [x] Authored bone offsets layer over rule clips in shared evaluation.
+- [ ] Artist-controlled weighted clip/track blending and clip library editing.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -106,14 +108,16 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Textured per-bone character sprites and deformation.
 - [x] Actor z-order/visibility composition metadata and editor.
 - [x] Persisted ordered/visible/opacity image and basic drawing layers with rectangular clip masks.
-- [ ] Layer groups, arbitrary masks and blend modes.
+- [x] Validated ellipse/simple-polygon masks and normal/multiply/screen shared CPU blending.
+- [ ] Groups, image/feathered/animated masks and full native direct-canvas compositing parity.
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
 - [x] Timed background image planes and validated half-open visibility intervals.
 - [x] Whole opaque-frame cuts/crossfades in headless PNG sequence export.
 - [x] Shared scaled raster transition preview and sequence MP4 compositing.
 - [ ] SVG sequence compositing and verified GPU preview.
-- [ ] Offscreen GPU renderer using a verified macOS Metal path.
+- [x] Optional genuine offscreen GPU fixture, shader validation, bounded readback and explicit backend/device metadata.
+- [ ] Full-scene GPU renderer/parity and actual macOS Metal hardware evidence.
 - [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
 - [ ] Wider image/texture golden coverage as rendering grows.
 
@@ -128,22 +132,24 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Scene/character structure controls, confirmed deletion and source Undo.
 - [x] `.kilsat` exact-source persistence and portable asset inventory preservation.
 - [x] Explicit v1→v2 migration preserving source/assets and persisting typed artwork.
-- [x] Bounded artwork history and source/reference guards (separate histories; not full unified Undo).
+- [x] Bounded unified source/artwork/asset-inventory history and source/reference guards.
 - [x] SVG/PNG/MP4 background export selection and explicit FFmpeg path.
 - [x] Audio waveform display and prepared-dialogue preview controls.
 - [x] Explicit local asset import/relink/remove-reference UI and bounded worker.
-- [x] `.kilsat` inventory dirty tracking and one-step inventory Undo.
+- [x] `.kilsat` inventory dirty tracking and chronological metadata-only Undo/Redo.
 - [x] Background PNG/JPEG decoding, texture loading and foreground image rendering.
 - [x] Native cached image thumbnails with aspect-fit and virtualized asset rows.
-- [ ] Full unified asset history.
+- [x] Asset inventory operations participate in the global document history; physical files are retained.
 - [x] Actor layer order/visibility and composition camera-key editor.
 - [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
-- [ ] Per-bone animation editing, pressure brushes, arbitrary masks and image retouching.
+- [x] Native detached per-bone editor and validated ellipse/polygon mask/blend controls.
+- [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
 - [x] Whole-project sequence preview/playback, global sample seek, waveform and PNG/MP4 export controls.
 - [ ] Real Mac sequence playback/synchronization and end-to-end acceptance.
-- [ ] Full project/asset history and shortcut/accessibility coverage.
+- [x] Chronological document history across source, artwork and inventory.
+- [ ] Comprehensive Mac shortcut/accessibility acceptance.
 - [ ] Comprehensive interactive macOS workflow acceptance.
 
 ## 6. Audio, Kokoro and lip sync
@@ -158,14 +164,17 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Separate imported/manual alignment and timed viseme evaluation.
 - [x] Clear distinction between facial emotion and acoustic conditioning.
 - [x] WAV-bound local acceptance reports and manual/candidate alignment error metrics.
-- [ ] Automatic alignment backend and actual quality acceptance; report tooling does not establish these.
+- [x] Opt-in bounded Rhubarb CLI backend and exact-PCM estimated-cue import into line/scene/sequence preparation.
+- [ ] Actual Rhubarb engine/device/corpus quality acceptance; stub tests do not establish these.
 - [x] Consented managed Kokoro provisioning with pinned asset revisions, sizes and SHA256.
-- [ ] Complete dependency/asset license and redistribution audit.
+- [x] Reproducible Cargo/Python/model/voice/binary evidence inventory with fail-closed unresolved gate.
+- [ ] Complete artifact-specific dependency/asset license and redistribution audit.
 - [x] Real local English Kokoro CPU WAV on Apple Silicon (user report 2026-10-16: M1, macOS 27.1, both voices; see [acceptance](kokoro-in-app-acceptance.md#recorded-mac-evidence)).
 - [ ] Offline synthesis after provisioning with networking disabled.
 - [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
 - [x] Exact-PCM/current-text bound alignment envelopes and shared line/scene desktop cache integration.
-- [ ] Automatic aligner execution and validated provider integration.
+- [ ] Native automatic-aligner execution controls and estimated-cue cache.
+- [x] Estimated cues preserve separate provenance and integer-sample trim/offset evaluation in preview/export.
 - [ ] Validated forced-aligner integration and editable timing tools.
 - [ ] Annotated real-audio corpus and measured timing error.
 - [ ] Perceptual mouth-quality assessment across voices/speeds/pauses.
@@ -241,17 +250,20 @@ These gates remain open until all constituent work and acceptance are evidenced.
   established app launch only.
 - [ ] **M2 — Character animation:** hierarchy, rigging, keyframes/easing, presets,
   expressions/gestures and blending integrated and tested; procedural rig and
-  interpolation and root-transform editor are implemented; textured custom rigs,
-  per-bone controls and animation blending remain open.
+  interpolation, root/per-bone editors and additive authored layering are implemented;
+  textured custom rigs and artist clip blending remain open.
 - [ ] **M3 — Dialogue/lip sync:** import/tracks/mouth/timing foundations implemented;
-  real local Kokoro, Speech Stages 2–4 and quality/hardware gates remain open.
+  reported real M1 Kokoro speech and estimated-cue import are recorded; complete
+  Speech Stages 2–4 and quality/hardware gates remain open.
 - [ ] **M4 — Professional editing:** timeline and source Undo/Redo implemented;
   actor order/visibility, camera tracks and inventory tools implemented; transform
-  root-keyframe/basic drawing/image layers now implemented; advanced assets,
-  arbitrary masks/retouching, unified history and transitions remain open.
-- [ ] **M5 — Production rendering:** SVG/audio baseline implemented; GPU offscreen,
-  CPU PNG/MP4 and bounded parallel frame jobs implemented/tested; GPU rendering
-  and production performance/hardware acceptance remain open.
+  root/per-bone keys, geometric masks, CPU blend modes, unified document history
+  and transitions are implemented; advanced assets/retouching and full native
+  compositor parity remain open.
+- [ ] **M5 — Production rendering:** CPU SVG/PNG/MP4 and bounded parallel frames
+  implemented/tested; optional GPU fixture compiles and validates shaders without
+  a device. Full GPU scene parity, production performance and hardware acceptance
+  remain open.
 - [ ] **M6 — macOS distribution:** preview bundle, generated icon and metadata implemented; actual Finder,
   release packaging and Apple Silicon release acceptance remain open.
 
@@ -532,23 +544,36 @@ and all three real media tests (Audio foundation run 38918205145). Apple Silicon
 preview build/package/signature/helper checks and artifact upload also passed
 (run 38918205156). This final tracker edit changes documentation only. These are
 implementation checks.
-Real Mac sequence device synchronization, offline Kokoro repeatability,
-perceptual timing, full unified history, per-bone textured editing, advanced masks
-and blending, GPU/performance and final license audit remain open.
+At the PR #29 checkpoint, real Mac sequence/offline/perceptual acceptance,
+unified history, per-bone editing, advanced composition, GPU and final licensing
+were still open. The implementation slices completed next are recorded below;
+physical acceptance and full product gates are not implied.
 
-## Artist tools and offline pipeline increment (in integration)
+## Artist tools and offline pipeline increment (PR #30)
 
 - [x] Merge PR #29, synchronize release branch and record actual checks.
-- [ ] Integrate persisted per-bone editor and shared evaluation, preserving rule clips.
-- [ ] Integrate chronological source/artwork/asset inventory Undo/Redo.
-- [ ] Integrate validated ellipse/polygon masks and verified multiply/screen blending.
-- [ ] Integrate bounded offline Rhubarb estimated cues and exact-PCM import.
-- [ ] Integrate optional offscreen GPU fixture; full scene GPU parity stays open.
-- [ ] Integrate reproducible dependency evidence inventory and strict unknown gate.
+- [x] Integrate persisted per-bone editor and shared evaluation, preserving rule clips.
+- [x] Integrate chronological source/artwork/asset inventory Undo/Redo.
+- [x] Integrate validated ellipse/polygon masks and verified multiply/screen blending.
+- [x] Integrate bounded offline Rhubarb estimated cues and exact-PCM import.
+- [x] Integrate optional offscreen GPU fixture; full scene GPU parity stays open.
+- [x] Integrate reproducible dependency evidence inventory and strict unknown gate.
 - [ ] Real Mac Metal, sequence/audio/offline and perceptual mouth acceptance.
 - [ ] Full dependency/voice redistribution audit and reviewed third-party notices.
 
-Agent tests are preliminary until parent integration succeeds. Estimated mouth
-shapes are not phonemes or forced alignment. GPU fixture compilation is not
-physical hardware acceptance or full-scene GPU rendering. Audit collection is
-not license clearance. Final results will be recorded after integrated checks.
+Parent integrated 244 focused Rust tests (108 desktop), workspace/all-target
+check and strict Clippy with local Rust 1.90. The optional GPU library passed
+14 adapter-free tests (one actual GPU test deliberately ignored) and feature
+Clippy. Eighteen Python packaging/audit tests passed again after restoring the
+checkpoint. Two independent reviews found no blocker in unified history/masks
+and estimated-cue/GPU bounds. Source checkpoint 794cdb71 passed Mac preview and
+real media CI; its Rust CI stopped at a newer Clippy match-style lint. The
+behavior-preserving guard fix is now under final Linux/macOS CI.
+
+No actual Rhubarb engine, Kokoro inference or GPU device was executed here.
+Estimated mouth shapes are not phonemes or forced alignment. GPU fixture
+compilation is not physical hardware acceptance or full-scene GPU rendering.
+Audit collection is not license clearance. See [bones](per-bone-editor.md),
+[history](unified-history.md), [composition](advanced-compositing.md),
+[estimated cues](rhubarb-estimated-cues.md), [GPU fixture](gpu-offscreen.md)
+and [dependency evidence](dependency-audit.md).
