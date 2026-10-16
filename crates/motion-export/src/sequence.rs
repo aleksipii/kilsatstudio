@@ -587,15 +587,19 @@ mod tests {
         script.project.height = 1080;
         script.project.fps = 30;
         script.scenes[0].duration = 30.0;
-        let rendered =
-            vec![motion_voice::export::render_scene(&script.scenes[0].id, 30.0, &[]).unwrap()];
+        let rendered = Arc::new(vec![motion_voice::export::render_scene(
+            &script.scenes[0].id,
+            30.0,
+            &[],
+        )
+        .unwrap()]);
         let cancel = CancellationToken::new();
         let dest = crate::tests::destination();
         assert!(export_png_sequence(&script, &rendered, None, &dest, &cancel, |_| {}).is_err());
         assert!(!dest.exists());
         let preview = SequencePreview::new(
             Arc::new(script.clone()),
-            Arc::new(rendered.clone()),
+            Arc::clone(&rendered),
             None,
             &cancel,
         )
