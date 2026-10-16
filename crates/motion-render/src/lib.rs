@@ -1,5 +1,8 @@
 //! Deterministic, self-contained SVG frames from evaluated scenes.
 //! Uses original procedural characters; no fonts, network assets, or video encoder.
+#[cfg(feature = "gpu")]
+pub mod gpu;
+
 use motion_lipsync::Viseme;
 use motion_scene::{
     EvaluatedScene, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND,
@@ -257,14 +260,43 @@ fn append_art(
             },
             None => (0.0, 0.0),
         };
+        let blend_style = match layer.blend {
+            motion_art::BlendMode::Normal => "",
+            motion_art::BlendMode::Multiply => " style=\"mix-blend-mode:multiply\"",
+            motion_art::BlendMode::Screen => " style=\"mix-blend-mode:screen\"",
+        };
         write!(
             svg,
-            "<g transform=\"translate({x:.6} {y:.6})\" opacity=\"{:.6}\">",
+            "<g transform=\"translate({x:.6} {y:.6})\" opacity=\"{:.6}\"{blend_style}>",
             layer.opacity
         )
         .unwrap();
         if let Some(r) = layer.clip {
             write!(svg,"<defs><clipPath id=\"art{index}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">",r.x,r.y,r.width,r.height).unwrap();
+        }
+        if let Some(shape) = &layer.clip_shape {
+            write!(svg, "<defs><clipPath id=\"art{index}\">").unwrap();
+            match shape {
+                motion_art::ClipShape::Ellipse { rect: r } => {
+                    write!(
+                        svg,
+                        "<ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\"/>",
+                        r.x + r.width / 2.0,
+                        r.y + r.height / 2.0,
+                        r.width / 2.0,
+                        r.height / 2.0
+                    )
+                    .unwrap();
+                }
+                motion_art::ClipShape::Polygon { points } => {
+                    svg.push_str("<polygon points=\"");
+                    for p in points {
+                        write!(svg, "{},{} ", p.x, p.y).unwrap();
+                    }
+                    svg.push_str("\"/>");
+                }
+            }
+            write!(svg, "</clipPath></defs><g clip-path=\"url(#art{index})\">").unwrap();
         }
         let paint = |color: &motion_art::Color| {
             format!(
@@ -323,7 +355,7 @@ fn append_art(
                 write!(svg,"\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{:.6}\" stroke-width=\"{width}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>",color.r,color.g,color.b,f64::from(color.a)/255.0).unwrap();
             }
         }
-        if layer.clip.is_some() {
+        if layer.clip.is_some() || layer.clip_shape.is_some() {
             svg.push_str("</g>");
         }
         svg.push_str("</g>");
@@ -503,6 +535,8 @@ mod timed_art_tests {
                 end: 3.0,
             }),
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: Some(Rect {
                 x: 1.0,
                 y: 2.0,

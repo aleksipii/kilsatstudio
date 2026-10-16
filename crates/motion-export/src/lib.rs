@@ -127,7 +127,14 @@ fn validate_mode(
         .values()
         .map(Vec::len)
         .sum::<usize>()
-        + scene.composition.camera.len();
+        + scene.composition.camera.len()
+        + scene
+            .composition
+            .bone_tracks
+            .values()
+            .flat_map(|bones| bones.values())
+            .map(Vec::len)
+            .sum::<usize>();
     if count.saturating_mul(keys as u64) > 1_000_000 {
         return Err(invalid(
             "keyframe evaluation exceeds one million key visits",
@@ -177,14 +184,18 @@ fn validate_mode(
         if !clip.visemes.is_empty() && clip.alignment_source.is_none() {
             return Err(invalid("visemes require alignment provenance"));
         }
-        if let Some(AlignmentSource::Forced { tool, version }) = &clip.alignment_source {
+        if let Some(
+            AlignmentSource::Forced { tool, version }
+            | AlignmentSource::Estimated { tool, version },
+        ) = &clip.alignment_source
+        {
             if tool.trim().is_empty()
                 || version.trim().is_empty()
                 || tool.len() > 1024
                 || version.len() > 1024
             {
                 return Err(invalid(
-                    "forced alignment provenance requires bounded tool and version",
+                    "alignment provenance requires bounded tool and version",
                 ));
             }
         }
@@ -425,9 +436,16 @@ fn export_sequence(
             .layers
             .iter()
             .filter(|l| l.scene_id == script.scenes[scene_index].id)
-            .map(|l| match &l.content {
-                motion_art::Content::Stroke { points, .. } => points.len() as u64,
-                _ => 1,
+            .map(|l| {
+                let content = match &l.content {
+                    motion_art::Content::Stroke { points, .. } => points.len() as u64,
+                    _ => 1,
+                };
+                content
+                    + match &l.clip_shape {
+                        Some(motion_art::ClipShape::Polygon { points }) => points.len() as u64,
+                        _ => 0,
+                    }
             })
             .sum::<u64>();
         if geometry.saturating_mul(total) > 4_000_000 {
@@ -1076,6 +1094,8 @@ mod artwork_tests {
             plane: motion_art::Plane::Foreground,
             active: None,
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: None,
             content,
         }

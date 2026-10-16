@@ -1,4 +1,5 @@
 //! Strict MotionScript scene and dialogue schema.
+pub use motion_animation::HUMANOID_BONES;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -57,6 +58,7 @@ pub struct Composition {
     pub camera: Vec<CameraKey>,
     pub layers: BTreeMap<String, Layer>,
     pub actor_tracks: BTreeMap<String, Vec<ActorKey>>,
+    pub bone_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
     pub fade_in: f64,
     pub fade_out: f64,
 }
@@ -69,6 +71,7 @@ impl Default for Composition {
             camera: vec![],
             layers: BTreeMap::new(),
             actor_tracks: BTreeMap::new(),
+            bone_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
         }
@@ -427,6 +430,46 @@ pub fn apply_actor_track(
     })
 }
 
+/// Atomically replace one actor's parent-local bone track. Empty keys remove it.
+pub fn apply_bone_track(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    bone: &str,
+    keys: &[ActorKey],
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        if !candidate.characters.contains_key(actor) {
+            return Err(Error::Validation(format!(
+                "unknown bone-track actor {actor}"
+            )));
+        }
+        if !motion_animation::HUMANOID_BONES.contains(&bone) {
+            return Err(Error::Validation(format!("unknown humanoid bone {bone}")));
+        }
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if keys.is_empty() {
+            if let Some(tracks) = scene.composition.bone_tracks.get_mut(actor) {
+                tracks.remove(bone);
+                if tracks.is_empty() {
+                    scene.composition.bone_tracks.remove(actor);
+                }
+            }
+        } else {
+            scene
+                .composition
+                .bone_tracks
+                .entry(actor.into())
+                .or_default()
+                .insert(bone.into(), keys.to_vec());
+        }
+        Ok(())
+    })
+}
+
 /// Append a scene after validating the complete candidate screenplay.
 pub fn add_scene(source: &str, scene: Scene) -> Result<String, Error> {
     edit_source(source, |script| {
@@ -486,6 +529,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
         for scene in &mut script.scenes {
             scene.composition.layers.remove(id);
             scene.composition.actor_tracks.remove(id);
+            scene.composition.bone_tracks.remove(id);
         }
         Ok(())
     })
@@ -632,6 +676,33 @@ impl Script {
                     .is_err()
                 {
                     return Err(fail(format!("{}: actor tracks need 1..4096 increasing scene times and bounded finite transforms with positive scale", s.id)));
+                }
+            }
+            let mut bone_key_count = 0usize;
+            for (actor, tracks) in &composition.bone_tracks {
+                if !self.characters.contains_key(actor) || tracks.is_empty() {
+                    return Err(fail(format!(
+                        "{}: bone tracks need a known actor and at least one bone",
+                        s.id
+                    )));
+                }
+                for (bone, keys) in tracks {
+                    bone_key_count = bone_key_count.saturating_add(keys.len());
+                    if bone_key_count > 65536
+                        || !motion_animation::HUMANOID_BONES.contains(&bone.as_str())
+                        || keys.iter().any(|key| {
+                            key.at > s.duration
+                                || !motion_animation::valid_humanoid_offset(
+                                    key.animation_key().value,
+                                )
+                        })
+                        || motion_animation::Track::new(
+                            keys.iter().map(ActorKey::animation_key).collect(),
+                        )
+                        .is_err()
+                    {
+                        return Err(fail(format!("{}: bone tracks require original rig names, 1..4096 increasing scene keys, at most 65536 keys per scene, offsets/rotation within ±1000 and scale 0.1..4", s.id)));
+                    }
                 }
             }
             let mut moves: BTreeMap<&str, Vec<(f64, f64)>> = BTreeMap::new();
@@ -1546,6 +1617,110 @@ mod transition_tests {
         assert_eq!(
             serde_yaml::from_str::<Transition>("type: cut").unwrap(),
             Transition::Cut
+        );
+    }
+}
+
+#[cfg(test)]
+mod bone_track_tests {
+    use super::*;
+    const SOURCE: &str =
+        "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
+    #[test]
+    fn aggregate_scene_key_budget_and_strict_bone_schema_are_enforced() {
+        let mut script = parse(SOURCE).unwrap();
+        let character = script.characters["A"].clone();
+        script.characters.insert("C".into(), character);
+        let keys: Vec<_> = (0..4096)
+            .map(|i| ActorKey {
+                at: i as f64 / 1024.0,
+                ..Default::default()
+            })
+            .collect();
+        for actor in ["A", "B", "C"] {
+            for bone in HUMANOID_BONES {
+                script.scenes[0]
+                    .composition
+                    .bone_tracks
+                    .entry(actor.into())
+                    .or_default()
+                    .insert(bone.into(), keys.clone());
+            }
+        }
+        assert!(script.validate().is_err());
+        script.scenes[0].composition.bone_tracks.remove("C");
+        assert!(script.validate().is_ok());
+        let invalid = "characters: {A: {asset: a}}\nscenes: [{id: shot, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, unknown: 1}]}}}}]";
+        assert!(parse(invalid).is_err());
+    }
+    #[test]
+    fn bone_tracks_roundtrip_atomic_rejection_removal_and_character_cleanup() {
+        let keys = vec![
+            ActorKey::default(),
+            ActorKey {
+                at: 4.0,
+                rotation: 0.5,
+                easing: ActorEasing::Hold,
+                ..Default::default()
+            },
+        ];
+        let source = apply_bone_track(SOURCE, 0, "A", "chest", &keys).unwrap();
+        assert_eq!(
+            parse(&source).unwrap().scenes[0].composition.bone_tracks["A"]["chest"],
+            keys
+        );
+        for (actor, bone) in [("missing", "head"), ("A", "unknown")] {
+            assert!(apply_bone_track(&source, 0, actor, bone, &keys).is_err());
+        }
+        for key in [
+            ActorKey {
+                at: 4.1,
+                ..Default::default()
+            },
+            ActorKey {
+                x: 1000.1,
+                ..Default::default()
+            },
+            ActorKey {
+                rotation: f64::NAN,
+                ..Default::default()
+            },
+            ActorKey {
+                scale_x: 4.01,
+                ..Default::default()
+            },
+            ActorKey {
+                scale_y: 0.09,
+                ..Default::default()
+            },
+        ] {
+            assert!(apply_bone_track(&source, 0, "A", "head", &[key]).is_err());
+        }
+        assert!(apply_bone_track(
+            &source,
+            0,
+            "A",
+            "head",
+            &[ActorKey::default(), ActorKey::default()]
+        )
+        .is_err());
+        assert!(apply_bone_track(&source, 1, "A", "head", &keys).is_err());
+        assert_eq!(
+            parse(&source).unwrap().scenes[0].composition.bone_tracks["A"]["chest"],
+            keys
+        );
+        let removed = apply_bone_track(&source, 0, "A", "chest", &[]).unwrap();
+        assert!(parse(&removed).unwrap().scenes[0]
+            .composition
+            .bone_tracks
+            .is_empty());
+        let deleted = remove_character(&source, "A").unwrap();
+        assert!(parse(&deleted).unwrap().scenes[0]
+            .composition
+            .bone_tracks
+            .is_empty());
+        assert!(
+            apply_scene_settings(&source, 0, parse(&source).unwrap().project, "shot", 3.0).is_err()
         );
     }
 }

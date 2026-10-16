@@ -312,6 +312,8 @@ mod tests {
             active: None,
             opacity: 0.75,
             attachment: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
             clip: None,
             content: motion_art::Content::Rectangle {
                 rect: motion_art::Rect {

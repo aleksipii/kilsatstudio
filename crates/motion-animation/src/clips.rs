@@ -11,6 +11,27 @@ use crate::{
 use motion_rig::{Joint, Rig};
 use std::sync::OnceLock;
 
+/// Stable parent-before-child names for the original procedural rig.
+pub const HUMANOID_BONES: [&str; 7] = [
+    "hip",
+    "chest",
+    "head",
+    "left_hand",
+    "right_hand",
+    "left_foot",
+    "right_foot",
+];
+
+/// Conservative limits keep every authored hierarchy inside rig world bounds.
+pub fn valid_humanoid_offset(value: Transform2) -> bool {
+    value.is_valid()
+        && value.translation.x.abs() <= 1000.0
+        && value.translation.y.abs() <= 1000.0
+        && value.rotation.abs() <= 1000.0
+        && (0.1..=4.0).contains(&value.scale.x)
+        && (0.1..=4.0).contains(&value.scale.y)
+}
+
 /// Seconds over which a new emotion's posture replaces the previous one.
 pub const POSTURE_BLEND_SECONDS: f64 = 0.25;
 /// Seconds per full walk cycle (two steps).
@@ -230,6 +251,15 @@ fn add(pose: &mut [Transform2], offsets: &[Option<Track>], time: f64, weight: f6
 /// Local skeleton points for the built-in humanoid. Nonfinite or out-of-range
 /// inputs fall back to neutral layers instead of producing invalid geometry.
 pub fn evaluate_humanoid(state: &HumanoidState) -> [Vec2; 7] {
+    evaluate_humanoid_with_offsets(state, &[]).expect("bounded built-in pose")
+}
+
+/// Apply authored parent-local offsets after rule clips and before hierarchy evaluation.
+/// Duplicate or unknown joints and invalid/beyond-budget offsets are rejected.
+pub fn evaluate_humanoid_with_offsets(
+    state: &HumanoidState,
+    offsets: &[(usize, Transform2)],
+) -> Result<[Vec2; 7], crate::Error> {
     let lib = library();
     let progress = |seconds: f64| {
         if seconds.is_finite() && seconds >= 0.0 {
@@ -263,8 +293,24 @@ pub fn evaluate_humanoid(state: &HumanoidState) -> [Vec2; 7] {
             );
         }
     }
-    let world = lib.rig.evaluate(&pose).expect("bounded built-in pose");
-    std::array::from_fn(|i| world[i].point(Vec2::default()))
+    let mut seen = [false; 7];
+    for &(joint, delta) in offsets {
+        if joint >= 7 || seen[joint] || !valid_humanoid_offset(delta) {
+            return Err(crate::Error::InvalidPose);
+        }
+        seen[joint] = true;
+        let local = &mut pose[joint];
+        local.translation.x += delta.translation.x;
+        local.translation.y += delta.translation.y;
+        local.rotation += delta.rotation;
+        local.scale.x *= delta.scale.x;
+        local.scale.y *= delta.scale.y;
+    }
+    let world = lib
+        .rig
+        .evaluate(&pose)
+        .map_err(|_| crate::Error::InvalidPose)?;
+    Ok(std::array::from_fn(|i| world[i].point(Vec2::default())))
 }
 
 #[cfg(test)]
@@ -378,5 +424,88 @@ mod tests {
         assert!(walk(f64::MAX)
             .iter()
             .all(|p| p.x.is_finite() && p.y.is_finite()));
+    }
+}
+
+#[cfg(test)]
+mod authored_tests {
+    use super::*;
+    #[test]
+    fn custom_parent_rotation_propagates_and_rules_remain_additive() {
+        let state = HumanoidState {
+            gesture: Some((Gesture::Wave, 0.5, 1.0)),
+            ..Default::default()
+        };
+        let baseline = evaluate_humanoid(&state);
+        assert_eq!(
+            baseline,
+            evaluate_humanoid_with_offsets(&state, &[]).unwrap()
+        );
+        let moved = evaluate_humanoid_with_offsets(
+            &state,
+            &[(
+                CHEST,
+                Transform2 {
+                    rotation: std::f64::consts::FRAC_PI_2,
+                    ..Default::default()
+                },
+            )],
+        )
+        .unwrap();
+        assert_eq!(moved[CHEST], baseline[CHEST]);
+        assert_ne!(moved[HEAD], baseline[HEAD]);
+        assert_ne!(moved[RIGHT_HAND], baseline[RIGHT_HAND]);
+        assert_eq!(moved[LEFT_FOOT], baseline[LEFT_FOOT]);
+        let delta = [(
+            RIGHT_HAND,
+            Transform2 {
+                translation: Vec2::new(3.0, 4.0),
+                ..Default::default()
+            },
+        )];
+        let custom = evaluate_humanoid_with_offsets(&state, &delta).unwrap();
+        assert_eq!(
+            custom[RIGHT_HAND],
+            Vec2::new(baseline[RIGHT_HAND].x + 3.0, baseline[RIGHT_HAND].y + 4.0)
+        );
+        assert_eq!(
+            custom,
+            evaluate_humanoid_with_offsets(&state, &delta).unwrap()
+        );
+    }
+    #[test]
+    fn invalid_offsets_reject_and_max_hierarchy_stays_bounded() {
+        let state = HumanoidState::default();
+        assert!(evaluate_humanoid_with_offsets(&state, &[(7, Transform2::default())]).is_err());
+        assert!(evaluate_humanoid_with_offsets(
+            &state,
+            &[(HIP, Transform2::default()), (HIP, Transform2::default())]
+        )
+        .is_err());
+        for delta in [
+            Transform2 {
+                rotation: f64::NAN,
+                ..Default::default()
+            },
+            Transform2 {
+                scale: Vec2::new(4.1, 1.0),
+                ..Default::default()
+            },
+        ] {
+            assert!(evaluate_humanoid_with_offsets(&state, &[(HIP, delta)]).is_err());
+        }
+        let offsets: Vec<_> = (0..7)
+            .map(|i| {
+                (
+                    i,
+                    Transform2 {
+                        translation: Vec2::new(1000.0, 1000.0),
+                        rotation: 1000.0,
+                        scale: Vec2::new(4.0, 4.0),
+                    },
+                )
+            })
+            .collect();
+        assert!(evaluate_humanoid_with_offsets(&state, &offsets).is_ok());
     }
 }

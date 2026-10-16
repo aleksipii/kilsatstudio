@@ -85,13 +85,17 @@ pub fn mix_sequence(
             {
                 return Err(invalid("invalid dialogue bounds, gain or provenance"));
             }
-            if let Some(AlignmentSource::Forced { tool, version }) = &clip.alignment_source {
+            if let Some(
+                AlignmentSource::Forced { tool, version }
+                | AlignmentSource::Estimated { tool, version },
+            ) = &clip.alignment_source
+            {
                 if tool.trim().is_empty()
                     || version.trim().is_empty()
                     || tool.len() > 1024
                     || version.len() > 1024
                 {
-                    return Err(invalid("invalid forced alignment provenance"));
+                    return Err(invalid("invalid alignment provenance"));
                 }
             }
             interval_count = interval_count.saturating_add(clip.visemes.len());

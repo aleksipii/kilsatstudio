@@ -9,10 +9,13 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #28 merged as d9370611fcb19ab0f5bdf75ee28342064161e66e after final
-Linux/macOS CI and independent review. `kilsatstudio1.0` was fast-forwarded to
-that merge. This preserves PR #26 animation clips and PR #27 user-reported Mac
-Kokoro success. All PRs open at this task's initial inspection are now merged.
+PR #29 merged as dc6590cc8ce7622b0d58912ba85026e3e822fdf1 after review
+fixes and all Linux/macOS CI checks at head aaa87185. The release branch
+`kilsatstudio1.0` was fast-forwarded to the same merge. Cached immutable project
+preview validation now avoids full-export work limits; native invalidation uses
+mutation revisions instead of formatting the entire project each UI frame.
+Review re-check found no blocker. The earlier PR #26 animation and PR #27
+user-reported first M1 Kokoro speech evidence are preserved.
 
 | Completed | Still open |
 | --- | --- |
@@ -532,3 +535,20 @@ implementation checks.
 Real Mac sequence device synchronization, offline Kokoro repeatability,
 perceptual timing, full unified history, per-bone textured editing, advanced masks
 and blending, GPU/performance and final license audit remain open.
+
+## Artist tools and offline pipeline increment (in integration)
+
+- [x] Merge PR #29, synchronize release branch and record actual checks.
+- [ ] Integrate persisted per-bone editor and shared evaluation, preserving rule clips.
+- [ ] Integrate chronological source/artwork/asset inventory Undo/Redo.
+- [ ] Integrate validated ellipse/polygon masks and verified multiply/screen blending.
+- [ ] Integrate bounded offline Rhubarb estimated cues and exact-PCM import.
+- [ ] Integrate optional offscreen GPU fixture; full scene GPU parity stays open.
+- [ ] Integrate reproducible dependency evidence inventory and strict unknown gate.
+- [ ] Real Mac Metal, sequence/audio/offline and perceptual mouth acceptance.
+- [ ] Full dependency/voice redistribution audit and reviewed third-party notices.
+
+Agent tests are preliminary until parent integration succeeds. Estimated mouth
+shapes are not phonemes or forced alignment. GPU fixture compilation is not
+physical hardware acceptance or full-scene GPU rendering. Audit collection is
+not license clearance. Final results will be recorded after integrated checks.

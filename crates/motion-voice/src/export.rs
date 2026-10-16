@@ -84,7 +84,32 @@ pub fn render_scene(
             )));
         }
         let mut visemes = Vec::new();
-        let alignment_source = if let Some(alignment) = &clip.alignment {
+        let alignment_source = if let Some(estimated) = &clip.estimated_alignment {
+            if clip.alignment.is_some() {
+                return Err(SpeechError(
+                    "conflicting phoneme and estimated mouth tracks".into(),
+                ));
+            }
+            estimated
+                .validate_audio(&clip.audio)
+                .map_err(|e| SpeechError(e.to_string()))?;
+            for cue in &estimated.cues {
+                let start = cue.start_sample.max(clip.trim_start_frame);
+                let end = cue.end_sample.min(clip.audio.frames() as u64);
+                if start < end {
+                    visemes.push(SampleViseme {
+                        start_frame: clip.start_frame + start - clip.trim_start_frame,
+                        end_frame: clip.start_frame + end - clip.trim_start_frame,
+                        viseme: motion_lipsync::rhubarb::shape_viseme(cue.shape)
+                            .expect("validated shape"),
+                    });
+                }
+            }
+            Some(AlignmentSource::Estimated {
+                tool: "rhubarb".into(),
+                version: estimated.tool_version.clone(),
+            })
+        } else if let Some(alignment) = &clip.alignment {
             alignment
                 .validate()
                 .map_err(|e| SpeechError(e.to_string()))?;
