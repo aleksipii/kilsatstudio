@@ -3469,6 +3469,63 @@ mod scene_preview_tests {
     }
     use super::*;
     #[test]
+    fn outgoing_transition_apply_and_undo_restore_exact_source() {
+        let mut studio = Studio::default();
+        studio.source = "project:\n  title: Sequence\ncharacters: {}\nscenes:\n  - id: first\n    duration: 5.0\n    events: []\n  - id: last\n    duration: 5.0\n    events: []\n".into();
+        studio.validate();
+        let original = studio.source.clone();
+        studio.settings_draft = scene_settings::Draft::new(studio.script.as_ref().unwrap(), 0);
+        studio.settings_draft_source = Some(original.clone());
+        studio
+            .settings_draft
+            .as_mut()
+            .unwrap()
+            .composition
+            .transition = motion_script::Transition::Crossfade { duration: 0.5 };
+        studio.apply_settings_draft();
+        assert!(studio.settings_error.is_none());
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0]
+                .composition
+                .transition,
+            motion_script::Transition::Crossfade { duration: 0.5 }
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+    }
+
+    #[test]
+    fn invalid_final_transition_and_shortened_overlap_preserve_document() {
+        for (scene_index, shorten) in [(2, false), (1, true)] {
+            let mut studio = Studio::default();
+            studio.source = "project:\n  title: Sequence\ncharacters: {}\nscenes:\n  - id: first\n    duration: 5.0\n    composition:\n      transition: { type: crossfade, duration: 1.0 }\n    events: []\n  - id: middle\n    duration: 5.0\n    composition:\n      transition: { type: crossfade, duration: 1.0 }\n    events: []\n  - id: last\n    duration: 5.0\n    events: []\n".into();
+            studio.validate();
+            assert!(studio.script.is_some());
+            studio.scene_index = scene_index;
+            let original = studio.source.clone();
+            let script_before = serde_json::to_value(studio.script.as_ref().unwrap()).unwrap();
+            studio.settings_draft =
+                scene_settings::Draft::new(studio.script.as_ref().unwrap(), scene_index);
+            studio.settings_draft_source = Some(original.clone());
+            let draft = studio.settings_draft.as_mut().unwrap();
+            if shorten {
+                // Each overlap still fits alone, but their sum exceeds this scene.
+                draft.duration_seconds = 1.5;
+            } else {
+                draft.composition.transition =
+                    motion_script::Transition::Crossfade { duration: 0.5 };
+            }
+            studio.apply_settings_draft();
+            assert!(studio.settings_error.is_some());
+            assert_eq!(studio.source, original);
+            assert_eq!(
+                serde_json::to_value(studio.script.as_ref().unwrap()).unwrap(),
+                script_before
+            );
+        }
+    }
+
+    #[test]
     fn composition_apply_is_atomic_and_undoable() {
         let mut studio = Studio::default();
         studio.validate();

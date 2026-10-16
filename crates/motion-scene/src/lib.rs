@@ -4,6 +4,8 @@ pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_F
 pub use motion_animation::{GESTURES, POSTURE_BLEND_SECONDS};
 use motion_lipsync::Viseme;
 use motion_script::{Event, Script};
+mod sequence;
+pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline, SEQUENCE_SAMPLE_RATE};
 
 /// Head dip, in local skeleton units, at a fully open mouth.
 pub const SPEECH_HEAD_DIP: f64 = 3.0;
@@ -117,6 +119,8 @@ pub struct EvaluatedScene {
 }
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("invalid sequence: {0}")]
+    InvalidSequence(String),
     #[error(transparent)]
     Script(#[from] motion_script::Error),
     #[error("scene index {0} does not exist")]

@@ -9,10 +9,10 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #23 merged as 2e7e0397759acf4b998d251aef5da3dd17856661, followed by
-PR #24 as 920810010cc2b704a6ce940b86c4531ebdf10e6e after review without findings
-and passing Linux/macOS CI, media encoding and Apple Silicon packaging.
-`main` and `kilsatstudio1.0` are synchronized at the PR #24 merge.
+PR #25 merged as 97d2496ef5121ca6032c11713b153e30925ac116 after passing
+Linux/macOS CI and review. Subsequently PR #26 added rule-based character clips
+and PR #27 recorded the user's first successful real Mac Kokoro test. This
+sequence increment is built on current `main` at 0ab1ba1, preserving both changes.
 
 | Completed | Still open |
 | --- | --- |
@@ -20,7 +20,7 @@ and passing Linux/macOS CI, media encoding and Apple Silicon packaging.
 | Bounded joint PoseTrack sampler and weighted pose-blend API | Persisted per-bone editor, textured rigs and preview/export integration |
 | Rule-based posture, walk, gesture and speech-motion clips shared by preview/export (PR #26) | Artist-authored/persisted clips, per-bone editor and Mac visual review |
 | Atomic duration/composition settings and source Undo | Full unified project/asset history and advanced editor tools |
-| Managed Kokoro installation and speech-test UI | Real Mac inference/listening, alignment quality and device synchronization |
+| Managed Kokoro setup, bound alignment/cache and user-reported M1 speech tests | Offline repeatability, scene/device acceptance, automatic alignment and quality |
 | CPU SVG/PNG/MP4 and bounded parallel frames | GPU rendering, production benchmarks and final distribution/license audit |
 
 Maintain this summary and the full checklist after each authorized merge. A new
@@ -69,7 +69,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Camera event commands or cinematic rule presets beyond scene camera tracks.
 - [x] Timed solid background-color tracks shared by preview and export.
 - [x] Timed background image placement shared by native preview and export.
-- [ ] Cross-scene transitions.
+- [x] Validated outgoing cuts/crossfades, compiled sample timeline and headless PNG/WAV sequence export.
+- [ ] Native whole-project sequence preview/transport and MP4/SVG sequence export.
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
 - [ ] Stable versioned editable compiled timeline representation.
@@ -105,7 +106,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
 - [x] Timed background image planes and validated half-open visibility intervals.
-- [ ] True cross-scene transitions.
+- [x] Whole opaque-frame cuts/crossfades in headless PNG sequence export.
+- [ ] Native transition preview and sequence MP4/SVG compositing.
 - [ ] Offscreen GPU renderer using a verified macOS Metal path.
 - [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
 - [ ] Wider image/texture golden coverage as rendering grows.
@@ -132,7 +134,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
 - [ ] Per-bone animation editing, pressure brushes, arbitrary masks and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
-- [ ] Cross-scene transitions and multi-scene composition.
+- [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
+- [ ] Whole-project sequence preview/playback and desktop sequence-export controls.
 - [ ] Full project/asset history and shortcut/accessibility coverage.
 - [ ] Comprehensive interactive macOS workflow acceptance.
 
@@ -468,3 +471,29 @@ or other automatic timing backend and measured mouth-timing quality remain open.
 | Date | Evidence | Remaining |
 | --- | --- | --- |
 | 2026-10-16 | The user installed Kokoro through the in-app managed setup on an Apple M1 running macOS 27.1, using the preview built from `main` at 98d265b with Homebrew Python 3.12. They ran the English CPU speech test for `af_heart` and `am_michael` and reported that it works. | Offline synthesis with networking disabled, the remaining in-app acceptance checklist, real scene dialogue playback/export and the Speech 2 gate. |
+
+## Scene sequence implementation increment
+
+Current work adds validated outgoing cuts/crossfades, a shared global 24 kHz
+timeline, matching audio mixing and bounded headless PNG/WAV sequence export.
+Inspector authoring is included; native preview/transport and scene-export buttons
+remain scene-local. Full native sequence preview and MP4/SVG sequence export stay
+open. See [guide](scene-sequences.md) and [sample](../examples/scene-sequence.yaml).
+
+The initial uncommitted sequence work was lost when the transient workspace reset.
+Four agents restored their implementations additively on main0ab1ba1, preserving
+the new rule-based animation and user Mac evidence. The restored source was
+checkpointed immediately in PR #28 before revalidation. Old incomplete test logs
+are not reused as proof; final results for this head are recorded below.
+
+| Date | Completed implementation | Actual validation and remaining scope |
+| --- | --- | --- |
+| 2026-10-16 | Shared sequence timeline, outgoing transition editor, linear audio and whole-frame PNG crossfades | Restored source head f6c62bdd passed GitHub Linux/macOS fmt/check/strict Clippy/all-target tests, runtime38 + packaging8 Python tests, real media encoding and Apple Silicon preview packaging. Linux job logs contain261 passed Rust tests, two encoder tests separately covered by media CI. |
+| 2026-10-16 | Recovery review and local reproduction | Independent read-only re-review found no blocker; current apply_speech path and PR26/27 changes preserved. Locally4 sequence export tests passed. Recovered CLI fixture produced6 PNG frames,36000 audio samples and correct overlap midpoint PCM; synthetic tones only, no real speech inference. |
+
+The checked scope is authoring plus headless PNG/WAV sequence export. Native
+whole-project preview/transport, MP4/SVG sequence export and CLI `.kilsat` resource
+loading remain open. Per-bone editing/textured rigs, advanced compositing, unified
+history, automatic alignment/quality, offline/device acceptance, GPU/performance
+and final licensing/distribution gates also remain open. User-reported first
+real M1 Kokoro success (PR27) remains distinct from those comprehensive gates.

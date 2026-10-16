@@ -180,3 +180,6 @@ pub mod timeline;
 pub mod export;
 
 pub mod scene_audio;
+
+/// Shared sequence-clock audio composition.
+pub mod sequence;

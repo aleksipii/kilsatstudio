@@ -237,3 +237,19 @@ status per line. JSON parsing, PCM hashing and cache I/O run on bounded backgrou
 workers, with a 100 KB JSON input limit. These statuses establish structural
 provenance only; they do not measure perceptual quality or provide an automatic
 aligner. Device playback and listening acceptance still require Mac testing.
+
+## Outgoing scene transitions
+
+Expand **Background, camera, layers, fades and transitions** in detached scene
+settings. **Cut** ends the scene before starting the next; **Crossfade** overlaps
+its ending with the next scene by the entered seconds. The final scene must use
+Cut. The overlap must be finite, positive, represent at least one 24 kHz sample,
+and remain shorter than both neighboring scenes. Incoming and outgoing overlaps
+cannot overlap within a middle scene. Apply validates the whole screenplay,
+including duration edits, and commits one source Undo step; invalid edits preserve
+the document.
+
+These settings currently apply to the headless sequence PNG + WAV exporter.
+Desktop scene preview, scene playback and scene export remain scene-local; they
+do not preview or render an outgoing transition. No sequence playback/export
+controls are provided in this desktop phase.

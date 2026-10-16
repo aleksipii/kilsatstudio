@@ -1,0 +1,14 @@
+project: {title: Two-scene crossfade, fps: 4, width: 32, height: 32}
+characters: {}
+scenes:
+  - id: warm
+    duration: 1
+    composition:
+      background_color: '#ff0000'
+      transition: {type: crossfade, duration: 0.5}
+    events: []
+  - id: cool
+    duration: 1
+    composition:
+      background_color: '#0000ff'
+    events: []
