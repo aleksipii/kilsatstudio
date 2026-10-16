@@ -81,7 +81,16 @@ Audio-device output currently targets macOS. Linux supports the editor, visual
 scrubbing, tests and headless tools, with an explicit unsupported-device message.
 The application never automatically downloads models or requires a paid cloud API.
 
-## Local Kokoro setup
+## Kokoro inside the app
+
+The **Kokoro — setup and test** panel can install an isolated local environment
+and hash-verified model/English voice assets after an explicit download choice,
+connect an existing managed profile, and run/play a CPU speech test without a
+terminal. A compatible locally installed Python3.10–3.12 is still required;
+known Mac paths are detected on a worker. Models/environments are not bundled.
+See [managed setup](docs/managed-kokoro.md) and [acceptance](docs/kokoro-in-app-acceptance.md).
+
+## Advanced manual Kokoro setup
 
 Use a separate compatible Python 3.10–3.12 environment. Follow the
 [Kokoro CPU runtime guide](services/kokoro-runtime/README.md) to install the

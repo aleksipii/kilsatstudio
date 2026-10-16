@@ -51,6 +51,8 @@ def stage_bundle(repo, binary, destination, commit, arch, profile):
     required = ['examples', 'services/kokoro-runtime/runtime.py',
                 'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
                 'services/kokoro-runtime/acceptance.py',
+                'services/kokoro-runtime/setup_kokoro.py',
+                'services/kokoro-runtime/setup-manifest.json',
                 'services/kokoro-runtime/requirements.txt', 'services/kokoro-runtime/README.md',
                 'docs/practical-testing.md']
     for relative in required:

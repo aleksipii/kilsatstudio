@@ -20,6 +20,8 @@ class PackageTests(unittest.TestCase):
                          'services/kokoro-runtime/doctor.py',
                          'services/kokoro-runtime/smoke_macos.py',
                          'services/kokoro-runtime/acceptance.py',
+                         'services/kokoro-runtime/setup_kokoro.py',
+                         'services/kokoro-runtime/setup-manifest.json',
                          'services/kokoro-runtime/requirements.txt',
                          'services/kokoro-runtime/README.md',
                          'services/kokoro-runtime/weights.pt', 'docs/practical-testing.md']:
@@ -43,7 +45,7 @@ class PackageTests(unittest.TestCase):
         resources = contents / 'Resources'
         self.assertTrue((resources / 'examples/dialogue.yaml').is_file())
         self.assertTrue((resources / 'services/kokoro-runtime/runtime.py').is_file())
-        for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py']:
+        for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py', 'setup_kokoro.py', 'setup-manifest.json']:
             self.assertEqual((resources / 'services/kokoro-runtime' / helper).read_text(), 'fixture')
         self.assertEqual(list(resources.rglob('*.pt')), [])
         self.assertIn('abc123', (resources / 'BUILD-INFO.txt').read_text())
@@ -96,7 +98,7 @@ class PackageTests(unittest.TestCase):
             self.stage()
 
     def test_requires_diagnostic_helpers_before_writing(self):
-        for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py']:
+        for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py', 'setup_kokoro.py', 'setup-manifest.json']:
             path = self.repo / 'services/kokoro-runtime' / helper
             path.unlink()
             with self.assertRaisesRegex(ValueError, helper):

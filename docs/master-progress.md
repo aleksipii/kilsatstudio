@@ -307,3 +307,18 @@ image editor, unified project history, GPU export or real Mac acceptance.
 The current release acceptance gates remain open: no actual Mac GUI/device test,
 real Kokoro inference, GPU rendering or perceptual mouth-sync acceptance was
 performed for this artwork increment.
+
+## Managed Kokoro desktop setup increment
+
+- [x] PR #20 merged with approval; main and kilsatstudio1.0 synchronized to
+  6634e68190b3588e58719c659bca99ff11e346bf.
+- [x] Desktop consent, isolated setup, progress/cancel and existing-profile connection.
+- [x] Verified model/voice/language asset manifest and packaged setup helpers.
+- [x] Separate English CPU speech-test and playback controls without document edits.
+- [x] Runtime Python tests: 38 passed; macOS packaging unit tests: 8 passed.
+- [ ] Actual Apple Silicon installation, synthesis, listening and device acceptance.
+- [ ] Complete transitive dependency lock and redistribution/license audit.
+
+Compatible host Python 3.10–3.12 is required. Model assets and Python are not
+bundled. No model installation or real inference was performed in development.
+See managed-kokoro.md and kokoro-in-app-acceptance.md for the acceptance procedure.

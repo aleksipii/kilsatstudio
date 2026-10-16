@@ -55,7 +55,28 @@ These tones are **not speech and not Kokoro output**. Their manual mouth cues te
 plumbing, not phoneme alignment quality. Temporary demo assets are removed when
 their owner is dropped; use a separate path if saving a persistent project.
 
-## Test 3: real Kokoro CPU inference (separate setup)
+## Test 3: Kokoro setup and CPU test inside the app
+
+1. Open **Kokoro — setup and test**. Provide a compatible local Python3.10–3.12
+   only if autodetection cannot find one. The installer does not install system Python.
+2. Choose a new managed install folder, review source/download information and
+   explicitly enable the download choice. Press Install; the model is about328MB
+   plus voices, language data and Python packages. Keep the app open and follow
+   progress or Cancel. Existing directories are preserved rather than overwritten.
+3. Successful setup connects a profile and fills advanced paths automatically.
+   It proves prerequisites, not speech inference. You can also Connect existing
+   to a previous managed installation.
+4. Select af_heart or am_michael and run the local CPU speech test. The new WAV
+   and JSON evidence paths are shown; use Play test audio. The test preserves your
+   screenplay. Listen, record errors and repeat for both voices.
+5. Once connected, use normal screenplay dialogue preparation/playback. Accurate
+   lip timing still requires separate alignment.
+
+This setup path is implemented and fixture-tested; actual Mac installation,
+inference and listening acceptance remain to be recorded. See
+[managed setup](managed-kokoro.md) and [acceptance](kokoro-in-app-acceptance.md).
+
+## Advanced manual Kokoro setup and CPU evidence
 
 Use the [runtime guide](../services/kokoro-runtime/README.md) to prepare a compatible
 Python environment and approved model/voice/G2P assets outside the repository.
