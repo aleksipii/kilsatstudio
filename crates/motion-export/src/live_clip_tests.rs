@@ -402,6 +402,10 @@ fn animated_overlaps_keep_source_order_and_default_envelopes_keep_existing_frame
 fn looping_masked_instances_match_authored_frames_across_cycles_and_project_roundtrip() {
     let mut script = motion_script::parse(SOURCE).unwrap();
     script.scenes[0].duration = 5.0;
+    // A leaf joint's rotation does not move its plotted skeleton point. Use
+    // translation so the excluded head track also changes actual pixels.
+    let clip = script.animation_clips.get_mut("reach").unwrap();
+    clip.bone_tracks.get_mut("head").unwrap()[0].x = 24.0;
     let layer = &mut script.scenes[0].composition.clip_instances[0];
     layer.duration = 4.5;
     layer.looping = true;
@@ -415,7 +419,7 @@ fn looping_masked_instances_match_authored_frames_across_cycles_and_project_roun
         script.scenes[0].composition.clip_instances
     );
     // Original clip duration two seconds, instance starts at .25. The mask
-    // deliberately excludes the clip's head rotation. Samples cross two cycle
+    // deliberately excludes the clip's head translation. Samples cross two cycle
     // resets, run backwards, repeat and include the half-open instance endpoint.
     for (frame, x) in [
         (38, None),
