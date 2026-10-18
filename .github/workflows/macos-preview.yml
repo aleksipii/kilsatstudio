@@ -67,6 +67,10 @@ jobs:
           from pathlib import Path
           root = 'Kilsat Studio Preview.app/Contents/Resources/services/kokoro-runtime/'
           with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
+              license_text = Path('LICENSE').read_bytes()
+              for entry in ['LICENSE', 'Kilsat Studio Preview.app/Contents/Resources/LICENSE']:
+                  if archive.read(entry) != license_text:
+                      raise SystemExit(f'Packaged {entry} differs from source')
               helper = archive.getinfo('Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe')
               if not (helper.external_attr >> 16) & 0o111:
                   raise SystemExit('GPU helper lost executable permissions')

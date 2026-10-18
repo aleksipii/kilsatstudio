@@ -3,6 +3,7 @@ from pathlib import Path
 import plistlib
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location('package_macos', Path(__file__).resolve().parents[1] / 'scripts/package_macos.py')
 package = importlib.util.module_from_spec(SPEC)
@@ -15,7 +16,7 @@ class PackageTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.repo = self.root / 'source with spaces'
-        for relative in ['examples/dialogue.yaml', 'examples/model.pt',
+        for relative in ['LICENSE', 'examples/dialogue.yaml', 'examples/model.pt',
                          'services/kokoro-runtime/runtime.py',
                          'services/kokoro-runtime/doctor.py',
                          'services/kokoro-runtime/smoke_macos.py',
@@ -49,6 +50,58 @@ class PackageTests(unittest.TestCase):
             self.assertEqual((resources / 'services/kokoro-runtime' / helper).read_text(), 'fixture')
         self.assertEqual(list(resources.rglob('*.pt')), [])
         self.assertIn('abc123', (resources / 'BUILD-INFO.txt').read_text())
+
+    def test_source_license_preserved_in_bundle_and_distribution(self):
+        source = self.repo / 'LICENSE'
+        source.write_bytes(b'source license fixture\r\nCopyright fixture\r\n')
+        distribution = self.root / 'distribution'
+        bundle = package.stage_distribution(self.repo, self.binary, distribution,
+                                            'abc123', 'arm64', 'debug')
+        self.assertEqual((distribution / 'LICENSE').read_bytes(), source.read_bytes())
+        self.assertEqual((bundle / 'Contents/Resources/LICENSE').read_bytes(), source.read_bytes())
+        self.assertEqual({path.name for path in distribution.iterdir()}, {package.APP_NAME, 'LICENSE'})
+
+    def test_requires_regular_nonempty_source_license_before_writing(self):
+        source = self.repo / 'LICENSE'
+        source.unlink()
+        for invalid_kind in ('missing', 'empty', 'directory', 'symlink'):
+            with self.subTest(invalid_kind=invalid_kind):
+                if invalid_kind == 'empty':
+                    source.touch()
+                elif invalid_kind == 'directory':
+                    source.mkdir()
+                elif invalid_kind == 'symlink':
+                    source.symlink_to(self.binary)
+                with self.assertRaisesRegex(ValueError, 'LICENSE.*repository source license'):
+                    self.stage()
+                self.assertFalse(self.bundle.exists())
+                if source.is_dir():
+                    source.rmdir()
+                elif source.exists():
+                    source.unlink()
+
+    def test_archive_command_contains_app_and_adjacent_license(self):
+        output = self.root / 'preview.zip'
+        commands = []
+
+        def run(command, check):
+            self.assertTrue(check)
+            commands.append(command)
+            if command[0] == 'ditto':
+                self.assertNotIn('--keepParent', command)
+                staging = Path(command[-2])
+                self.assertEqual(command[-1], str(output))
+                self.assertEqual((staging / 'LICENSE').read_bytes(), (self.repo / 'LICENSE').read_bytes())
+                self.assertTrue((staging / package.APP_NAME / 'Contents/MacOS/studio-desktop').is_file())
+
+        arguments = ['package_macos.py', '--repo', str(self.repo), '--binary', str(self.binary),
+                     '--output', str(output), '--commit', 'abc123', '--arch', 'arm64']
+        with patch.object(package.sys, 'platform', 'darwin'), \
+                patch.object(package.sys, 'argv', arguments), \
+                patch.object(package.subprocess, 'run', side_effect=run), \
+                patch('builtins.print'):
+            package.main()
+        self.assertEqual([command[0] for command in commands], ['codesign', 'codesign', 'ditto'])
 
     def test_optional_gpu_helper_and_legacy_absence(self):
         self.stage()

@@ -2,6 +2,7 @@
 name = "motion-export"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 [dependencies]
 motion-project = { path = "../motion-project" }
 motion-art = { path = "../motion-art" }

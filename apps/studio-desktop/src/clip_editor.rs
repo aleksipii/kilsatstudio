@@ -1,12 +1,13 @@
 //! Detached scene-local rule clip intensities. Only Apply changes screenplay data.
 use eframe::egui;
-use motion_script::{ClipWeights, Scene};
+use motion_script::{ActorEasing, ClipWeightKeyframe, ClipWeights, Scene};
 
 pub struct Draft {
     pub scene_index: usize,
     pub actor: String,
     pub weights: ClipWeights,
     original: ClipWeights,
+    animated: bool,
 }
 
 impl Draft {
@@ -22,6 +23,7 @@ impl Draft {
             actor: actor.into(),
             weights,
             original: weights,
+            animated: scene.composition.clip_weight_tracks.contains_key(actor),
         }
     }
 
@@ -47,6 +49,9 @@ impl Draft {
     /// Returns true only for an explicit, locally valid Apply request.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
         ui.heading(format!("{} · rule clip intensities", self.actor));
+        if self.animated {
+            ui.label("An animated strength track overrides these static values until that track is removed.");
+        }
         ui.small("Independent additive intensities, not a normalized mix. 0 disables a clip contribution; 1 keeps its full strength.");
         ui.small("These controls affect skeleton rule clips only. Root paths, facial emotion, speech head motion and authored bone offsets remain unchanged.");
         for (label, weight) in [
@@ -91,6 +96,188 @@ impl Draft {
             }
         });
         apply
+    }
+}
+
+/// Detached animated strengths; applying replaces only this actor's track.
+pub struct TrackDraft {
+    pub scene_index: usize,
+    pub actor: String,
+    pub keys: Vec<ClipWeightKeyframe>,
+    original: Vec<ClipWeightKeyframe>,
+    duration: f64,
+}
+
+impl TrackDraft {
+    pub fn new(scene: &Scene, scene_index: usize, actor: &str) -> Self {
+        let keys = scene
+            .composition
+            .clip_weight_tracks
+            .get(actor)
+            .cloned()
+            .unwrap_or_default();
+        Self {
+            scene_index,
+            actor: actor.into(),
+            original: keys.clone(),
+            keys,
+            duration: scene.duration,
+        }
+    }
+
+    pub fn apply(&self, source: &str) -> Result<String, motion_script::Error> {
+        motion_script::apply_clip_weight_track(
+            source,
+            self.scene_index,
+            &self.actor,
+            self.keys.clone(),
+        )
+    }
+
+    pub fn reset(&mut self) {
+        self.keys = self.original.clone();
+    }
+
+    fn valid(&self) -> bool {
+        self.keys.len() <= 256
+            && self.keys.iter().all(|key| {
+                key.time.is_finite()
+                    && (0.0..=self.duration).contains(&key.time)
+                    && key.weights.is_valid()
+            })
+            && self.keys.windows(2).all(|pair| pair[0].time < pair[1].time)
+    }
+
+    fn next_key_time(&self) -> Option<f64> {
+        if self.keys.len() >= 256 || !self.duration.is_finite() || self.duration < 0.0 {
+            return None;
+        }
+        let time = match self.keys.last() {
+            None => 0.0,
+            Some(key) => {
+                if !key.time.is_finite() || !(0.0..self.duration).contains(&key.time) {
+                    return None;
+                }
+                let next = key.time + (self.duration - key.time).min(1.0);
+                if next <= key.time {
+                    return None;
+                }
+                next
+            }
+        };
+        (time.is_finite() && (0.0..=self.duration).contains(&time)).then_some(time)
+    }
+
+    /// Never sorts, clamps or writes source while controls are painted.
+    pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
+        ui.heading(format!("{} · animated clip strengths", self.actor));
+        ui.small("This track overrides static strengths. The first/last values are held outside the key range; easing controls the segment after a key.");
+        ui.small("Times must increase inside the scene; each independent strength is 0..1. Removing all keys and applying restores static strengths.");
+        let mut remove = None;
+        for (index, key) in self.keys.iter_mut().enumerate() {
+            ui.push_id(index, |ui| {
+                egui::CollapsingHeader::new(format!("Strength key {}", index + 1))
+                    .default_open(true)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.label("Time (seconds)");
+                            if key.time.is_finite() {
+                                let mut edited = key.time;
+                                if ui.add(egui::DragValue::new(&mut edited).speed(0.05)).changed() {
+                                    key.time = edited;
+                                }
+                            } else {
+                                ui.label("Invalid time; reset or remove this key");
+                            }
+                        });
+                        for (label, weight) in [
+                            ("Posture", &mut key.weights.posture),
+                            ("Walk", &mut key.weights.walk),
+                            ("Gesture", &mut key.weights.gesture),
+                        ] {
+                            if weight.is_finite() {
+                                let mut edited = *weight;
+                                if ui
+                                    .add(
+                                        egui::Slider::new(&mut edited, 0.0..=1.0)
+                                            .text(label)
+                                            .clamping(egui::SliderClamping::Never),
+                                    )
+                                    .changed()
+                                {
+                                    *weight = edited;
+                                }
+                            } else {
+                                ui.label(format!("{label}: invalid value; reset or remove this key"));
+                            }
+                        }
+                        egui::ComboBox::from_id_salt("strength_easing")
+                            .selected_text(easing_label(key.easing))
+                            .show_ui(ui, |ui| {
+                                for easing in [
+                                    ActorEasing::Linear,
+                                    ActorEasing::Smoothstep,
+                                    ActorEasing::Hold,
+                                ] {
+                                    ui.selectable_value(
+                                        &mut key.easing,
+                                        easing,
+                                        easing_label(easing),
+                                    );
+                                }
+                            });
+                        if ui.button("Remove strength key").clicked() {
+                            remove = Some(index);
+                        }
+                    });
+            });
+        }
+        if let Some(index) = remove {
+            self.keys.remove(index);
+        }
+        let next_time = self.next_key_time();
+        if ui
+            .add_enabled(next_time.is_some(), egui::Button::new("Add strength key"))
+            .clicked()
+        {
+            self.keys.push(ClipWeightKeyframe {
+                time: next_time.expect("enabled Add requires an available key time"),
+                weights: self
+                    .keys
+                    .last()
+                    .map_or_else(ClipWeights::default, |key| key.weights),
+                easing: ActorEasing::Linear,
+            });
+        }
+        let valid = self.valid();
+        if !valid {
+            ui.colored_label(
+                egui::Color32::LIGHT_RED,
+                "Fix key times and strengths before Apply (maximum 256 keys).",
+            );
+        }
+        ui.small("Apply validates the whole screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
+        let mut apply = false;
+        ui.horizontal(|ui| {
+            apply = ui
+                .add_enabled(valid, egui::Button::new("Apply animated strengths"))
+                .clicked();
+            if ui.button("Reset strength track draft").clicked() {
+                self.reset();
+            }
+            if ui.button("Remove strength track draft").clicked() {
+                self.keys.clear();
+            }
+        });
+        apply
+    }
+}
+
+fn easing_label(easing: ActorEasing) -> &'static str {
+    match easing {
+        ActorEasing::Linear => "Linear",
+        ActorEasing::Smoothstep => "Smoothstep",
+        ActorEasing::Hold => "Hold",
     }
 }
 
@@ -163,4 +350,103 @@ mod tests {
         draft.actor = "missing".into();
         assert!(draft.apply(SOURCE).is_err());
     }
+
+    #[test]
+    fn animated_track_apply_is_actor_local_and_empty_restores_static() {
+        let script = motion_script::parse(SOURCE).unwrap();
+        let mut draft = TrackDraft::new(&script.scenes[0], 0, "B");
+        draft.keys = vec![ClipWeightKeyframe {
+            time: 0.5,
+            weights: ClipWeights { posture: 0.8, walk: 0.6, gesture: 0.2 },
+            easing: ActorEasing::Smoothstep,
+        }];
+        let updated = draft.apply(SOURCE).unwrap();
+        let parsed = motion_script::parse(&updated).unwrap();
+        assert_eq!(parsed.scenes[0].composition.clip_weight_tracks["B"], draft.keys);
+        let mut actual = serde_json::to_value(&parsed).unwrap();
+        actual["scenes"][0]["composition"]["clip_weight_tracks"]
+            .as_object_mut().unwrap().remove("B");
+        assert_eq!(actual, serde_json::to_value(&script).unwrap());
+        draft.keys.clear();
+        let restored = motion_script::parse(&draft.apply(&updated).unwrap()).unwrap();
+        assert_eq!(serde_json::to_value(&restored).unwrap(), serde_json::to_value(&script).unwrap());
+        assert_eq!(restored.scenes[0].composition.sample_clip_weights("B", 1.0), script.scenes[0].composition.clip_weights["B"]);
+    }
+
+    #[test]
+    fn animated_track_headless_paint_preserves_invalid_values_and_reset() {
+        let script = motion_script::parse(SOURCE).unwrap();
+        let mut draft = TrackDraft::new(&script.scenes[0], 0, "A");
+        draft.keys.push(ClipWeightKeyframe {
+            time: f64::NAN,
+            weights: ClipWeights { posture: -0.5, walk: f64::INFINITY, gesture: 1.5 },
+            easing: ActorEasing::Hold,
+        });
+        let ctx = egui::Context::default();
+        let mut applied = false;
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                applied = draft.ui(ui);
+            });
+        });
+        assert!(!applied);
+        assert!(draft.keys[0].time.is_nan());
+        assert_eq!(draft.keys[0].weights.posture, -0.5);
+        assert!(draft.keys[0].weights.walk.is_infinite());
+        assert_eq!(draft.keys[0].weights.gesture, 1.5);
+        assert!(draft.apply(SOURCE).is_err());
+        draft.reset();
+        assert!(draft.keys.is_empty());
+        assert!(draft.valid());
+    }
+
+    #[test]
+    fn animated_track_rejects_duplicate_times_outside_scene_and_overflow() {
+        let script = motion_script::parse(SOURCE).unwrap();
+        let mut draft = TrackDraft::new(&script.scenes[0], 0, "A");
+        let key = ClipWeightKeyframe {
+            time: 0.0,
+            weights: ClipWeights::default(),
+            easing: ActorEasing::Linear,
+        };
+        draft.keys = vec![key.clone(), key.clone()];
+        assert!(!draft.valid());
+        assert!(draft.apply(SOURCE).is_err());
+        draft.keys = vec![key.clone()];
+        draft.keys[0].time = 4.5;
+        assert!(!draft.valid());
+        assert!(draft.apply(SOURCE).is_err());
+        draft.keys = (0..257).map(|index| ClipWeightKeyframe {
+            time: index as f64 / 100.0,
+            ..key.clone()
+        }).collect();
+        assert!(!draft.valid());
+        assert!(draft.apply(SOURCE).is_err());
+    }
+
+
+    #[test]
+    fn animated_track_add_can_reach_subsecond_scene_and_fractional_tail() {
+        let script = motion_script::parse(SOURCE).unwrap();
+        let mut draft = TrackDraft::new(&script.scenes[0], 0, "A");
+        draft.duration = 0.5;
+        assert_eq!(draft.next_key_time(), Some(0.0));
+        draft.keys.push(ClipWeightKeyframe {
+            time: 0.0,
+            weights: ClipWeights::default(),
+            easing: ActorEasing::Linear,
+        });
+        assert_eq!(draft.next_key_time(), Some(0.5));
+        draft.keys[0].time = 0.5;
+        assert_eq!(draft.next_key_time(), None);
+        draft.duration = 4.0;
+        draft.keys[0].time = 3.75;
+        assert_eq!(draft.next_key_time(), Some(4.0));
+        draft.keys[0].time = f64::NAN;
+        assert_eq!(draft.next_key_time(), None);
+        draft.duration = f64::INFINITY;
+        draft.keys.clear();
+        assert_eq!(draft.next_key_time(), None);
+    }
+
 }

@@ -2,6 +2,7 @@
 name = "motion-project"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 motion-art = { path = "../motion-art" }

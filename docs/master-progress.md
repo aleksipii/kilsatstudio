@@ -767,3 +767,24 @@ three existing procedural layers; advanced artist tools remain incomplete.
 Full GPU parity, automatic fresh-engine memoization, physical acceptance and
 final licenses remain open.
 See [artist layer strengths](artist-clip-weights.md).
+
+
+## Source license and animated strengths (2026-10-18, pending integration)
+
+- [ ] Integrate root MIT LICENSE, consistent Cargo package metadata and README scope.
+- [ ] Include source license in the signed app resources and ZIP root, with missing
+  license rejection and byte-exact package verification.
+- [ ] Integrate validated scene-local procedural strength keys, outgoing
+  linear/smoothstep/hold sampling, static fallback and character cleanup.
+- [ ] Integrate detached animated strength editor, Apply/Undo/Redo, project
+  persistence and stale/busy guards.
+- [ ] Validate actual SVG/PNG exports, sample-clock preview and deterministic seeks.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Arbitrary authored clip libraries/blending, custom/textured rigs and advanced masks.
+- [ ] Full GPU/native parity, automatic fresh-engine estimated result reuse,
+  physical Mac acceptance and final artifact-specific third-party license clearance.
+
+Implementation is pending CI. No local Rust toolchain is available. Declaring
+an original-source license does not complete model/voice/tool/dependency review.
+Animated strengths control the existing three procedural layers; they do not
+implement a general custom-clip library or full animation authoring suite.

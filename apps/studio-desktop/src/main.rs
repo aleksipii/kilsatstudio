@@ -127,6 +127,7 @@ struct Studio {
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
     bone_draft: Option<(String, bone_editor::Draft)>,
     clip_draft: Option<(String, clip_editor::Draft)>,
+    clip_track_draft: Option<(String, clip_editor::TrackDraft)>,
     selected_bone: String,
     asset_worker: asset_worker::Worker,
     asset_pending: Option<(String, String, motion_project::ProjectDocument)>,
@@ -266,6 +267,7 @@ impl Default for Studio {
             keyframe_draft: None,
             bone_draft: None,
             clip_draft: None,
+            clip_track_draft: None,
             selected_bone: "hip".into(),
             asset_worker: asset_worker::Worker::new(),
             asset_pending: None,
@@ -1091,6 +1093,7 @@ impl Studio {
     fn invalidate_scene(&mut self) {
         self.bone_draft = None;
         self.clip_draft = None;
+        self.clip_track_draft = None;
         self.document_changed();
         self.settings_draft = None;
         self.settings_draft_source = None;
@@ -1114,6 +1117,7 @@ impl Studio {
     fn reset_scene(&mut self) {
         self.bone_draft = None;
         self.clip_draft = None;
+        self.clip_track_draft = None;
         self.settings_draft = None;
         self.settings_draft_source = None;
         self.settings_error = None;
@@ -2874,6 +2878,33 @@ impl Studio {
                 "Clip draft belongs to an earlier source, scene or actor; reload before applying."
                     .into();
             self.clip_draft = None;
+            self.clip_track_draft = None;
+            return;
+        }
+        let result = draft.apply(&self.source);
+        self.apply_structure(result);
+    }
+
+    fn apply_clip_track_draft(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        let Some((source, draft)) = &self.clip_track_draft else {
+            return;
+        };
+        let current_actor = self.selected_actor.as_deref().or_else(|| {
+            self.script
+                .as_ref()
+                .and_then(|script| script.characters.keys().next().map(String::as_str))
+        });
+        if source != &self.source
+            || draft.scene_index != self.scene_index
+            || current_actor != Some(draft.actor.as_str())
+        {
+            self.status =
+                "Animated strengths draft belongs to an earlier source, scene or actor; reload before applying."
+                    .into();
+            self.clip_track_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2902,15 +2933,32 @@ impl Studio {
                 clip_editor::Draft::new(scene, self.scene_index, actor),
             ));
         }
+        if !self.clip_track_draft.as_ref().is_some_and(|(source, draft)| {
+            source == &self.source && draft.scene_index == self.scene_index && draft.actor == actor
+        }) {
+            self.clip_track_draft = Some((
+                self.source.clone(),
+                clip_editor::TrackDraft::new(scene, self.scene_index, actor),
+            ));
+        }
         let mut apply = false;
+        let mut apply_track = false;
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy, |ui| {
             egui::CollapsingHeader::new("Animation layer strengths").show(ui, |ui| {
                 ui.small("Changing scene or actor reloads saved strengths and discards unapplied changes.");
                 if let Some((_, draft)) = &mut self.clip_draft { apply = draft.ui(ui); }
             });
+            egui::CollapsingHeader::new("Animated layer strengths").show(ui, |ui| {
+                ui.small("Changing scene or actor discards unapplied keys.");
+                if let Some((_, draft)) = &mut self.clip_track_draft {
+                    apply_track = draft.ui(ui);
+                }
+            });
         });
         if apply {
             self.apply_clip_draft();
+        } else if apply_track {
+            self.apply_clip_track_draft();
         }
     }
 
@@ -5533,6 +5581,75 @@ mod clip_editor_integration_tests {
                 _ => studio.busy = true,
             }
             studio.apply_clip_draft();
+            assert_eq!(studio.source, original);
+        }
+    }
+}
+
+
+#[cfg(test)]
+mod animated_strength_integration_tests {
+    use super::*;
+
+    fn studio_with_track() -> Studio {
+        let mut studio = Studio::default();
+        studio.validate();
+        let script = studio.script.as_ref().unwrap();
+        let actor = script.characters.keys().next().unwrap().clone();
+        let mut draft = clip_editor::TrackDraft::new(&script.scenes[0], 0, &actor);
+        draft.keys = vec![
+            motion_script::ClipWeightKeyframe {
+                time: 0.0,
+                weights: motion_script::ClipWeights { gesture: 0.0, ..Default::default() },
+                easing: motion_script::ActorEasing::Linear,
+            },
+            motion_script::ClipWeightKeyframe {
+                time: 1.0,
+                weights: motion_script::ClipWeights::default(),
+                easing: motion_script::ActorEasing::Hold,
+            },
+        ];
+        studio.selected_actor = Some(actor);
+        studio.clip_track_draft = Some((studio.source.clone(), draft));
+        studio
+    }
+
+    #[test]
+    fn animated_strength_apply_persists_as_one_undoable_project_edit() {
+        let mut studio = studio_with_track();
+        let original = studio.source.clone();
+        let actor = studio.selected_actor.clone().unwrap();
+        studio.apply_clip_track_draft();
+        let edited = studio.source.clone();
+        assert_ne!(edited, original);
+        let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
+        let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        let script = motion_script::parse(&loaded.source).unwrap();
+        assert_eq!(script.scenes[0].composition.sample_clip_weights(&actor, 0.5).gesture, 0.5);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+        studio.invalidate_scene();
+        assert!(studio.clip_track_draft.is_none());
+    }
+
+    #[test]
+    fn stale_invalid_or_busy_animated_drafts_never_change_source() {
+        for context in 0..8 {
+            let mut studio = studio_with_track();
+            let original = studio.source.clone();
+            match context {
+                0 => studio.clip_track_draft.as_mut().unwrap().0.push(' '),
+                1 => studio.scene_index += 1,
+                2 => studio.selected_actor = Some("another_actor".into()),
+                3 => studio.clip_track_draft.as_mut().unwrap().1.keys[0].time = f64::NAN,
+                4 => studio.busy = true,
+                5 => studio.diagnostics_busy = true,
+                6 => studio.export_busy = true,
+                _ => studio.setup_busy = true,
+            }
+            studio.apply_clip_track_draft();
             assert_eq!(studio.source, original);
         }
     }
