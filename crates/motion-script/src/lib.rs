@@ -2300,16 +2300,13 @@ mod animation_library_tests {
             .composition
             .actor_tracks
             .insert("B".into(), keys.to_vec());
-        script.scenes[1]
-            .composition
-            .clip_weights
-            .insert(
-                "B".into(),
-                ClipWeights {
-                    walk: 0.3,
-                    ..Default::default()
-                },
-            );
+        script.scenes[1].composition.clip_weights.insert(
+            "B".into(),
+            ClipWeights {
+                walk: 0.3,
+                ..Default::default()
+            },
+        );
         script.animation_clips.insert(
             "clip".into(),
             AnimationClip {

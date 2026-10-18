@@ -5829,15 +5829,26 @@ mod clip_library_integration_tests {
         studio.validate();
         let initial = studio.source.clone();
         studio.apply_library_action(
-            clip_library::Action::Capture { name: "nod".into(), replace: false },
-            &initial, 0, "A",
+            clip_library::Action::Capture {
+                name: "nod".into(),
+                replace: false,
+            },
+            &initial,
+            0,
+            "A",
         );
         let captured = studio.source.clone();
         let library = studio.script.as_ref().unwrap().animation_clips.clone();
         studio.selected_actor = Some("B".into());
         studio.apply_library_action(
-            clip_library::Action::ApplyRetimed { name: "nod".into(), at: 0.25, duration: 0.5 },
-            &captured, 0, "B",
+            clip_library::Action::ApplyRetimed {
+                name: "nod".into(),
+                at: 0.25,
+                duration: 0.5,
+            },
+            &captured,
+            0,
+            "B",
         );
         let edited = studio.source.clone();
         assert_ne!(edited, captured);

@@ -4,14 +4,21 @@ use motion_script::Script;
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
-    Capture { name: String, replace: bool },
-    Apply { name: String },
+    Capture {
+        name: String,
+        replace: bool,
+    },
+    Apply {
+        name: String,
+    },
     ApplyRetimed {
         name: String,
         at: f64,
         duration: f64,
     },
-    Remove { name: String },
+    Remove {
+        name: String,
+    },
 }
 
 impl Action {
@@ -28,9 +35,16 @@ impl Action {
             Self::Apply { name } => {
                 motion_script::apply_animation_clip(source, scene_index, actor, &name)
             }
-            Self::ApplyRetimed { name, at, duration } => motion_script::apply_animation_clip_retimed(
-                source, scene_index, actor, &name, at, duration,
-            ),
+            Self::ApplyRetimed { name, at, duration } => {
+                motion_script::apply_animation_clip_retimed(
+                    source,
+                    scene_index,
+                    actor,
+                    &name,
+                    at,
+                    duration,
+                )
+            }
             Self::Remove { name } => motion_script::remove_animation_clip(source, &name),
         }
     }
