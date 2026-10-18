@@ -2,8 +2,8 @@
 mod clips;
 pub use clips::{
     evaluate_humanoid, evaluate_humanoid_with_offsets, evaluate_humanoid_with_weights_and_offsets,
-    gesture_envelope, valid_humanoid_offset, ClipWeights,
-    Gesture, HumanoidState, GESTURES, HUMANOID_BONES, POSTURE_BLEND_SECONDS, WALK_CYCLE_SECONDS,
+    gesture_envelope, valid_humanoid_offset, ClipWeights, Gesture, HumanoidState, GESTURES,
+    HUMANOID_BONES, POSTURE_BLEND_SECONDS, WALK_CYCLE_SECONDS,
 };
 #[cfg(test)]
 use motion_rig::Joint;

@@ -106,10 +106,8 @@ fn gesture_suppression_survives_export_and_preview_without_removing_authored_off
     .unwrap();
     let svg_dir = crate::tests::destination();
     let png_dir = crate::tests::destination();
-    export_scene_with_art(&authored, 0, &rendered, &art, &svg_dir, &cancel, |_| {})
-        .unwrap();
-    export_png_scene_with_art(&authored, 0, &rendered, &art, &png_dir, &cancel, |_| {})
-        .unwrap();
+    export_scene_with_art(&authored, 0, &rendered, &art, &svg_dir, &cancel, |_| {}).unwrap();
+    export_png_scene_with_art(&authored, 0, &rendered, &art, &png_dir, &cancel, |_| {}).unwrap();
     // Includes pre-speech, both mouth intervals, and their shared sample clock.
     for frame in 0..4 {
         let sample = frame * SAMPLE_RATE as u64 / authored.project.fps as u64;

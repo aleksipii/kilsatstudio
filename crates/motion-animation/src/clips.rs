@@ -21,12 +21,17 @@ pub struct ClipWeights {
 }
 impl Default for ClipWeights {
     fn default() -> Self {
-        Self { posture: 1.0, walk: 1.0, gesture: 1.0 }
+        Self {
+            posture: 1.0,
+            walk: 1.0,
+            gesture: 1.0,
+        }
     }
 }
 impl ClipWeights {
     pub fn is_valid(self) -> bool {
-        [self.posture, self.walk, self.gesture].into_iter()
+        [self.posture, self.walk, self.gesture]
+            .into_iter()
             .all(|v| v.is_finite() && (0.0..=1.0).contains(&v))
     }
 }
@@ -319,7 +324,12 @@ pub fn evaluate_humanoid_with_weights_and_offsets(
             .expect("bounded posture intensity");
     }
     if let Some(t) = state.walk_seconds.filter(|t| t.is_finite() && *t >= 0.0) {
-        add(&mut pose, &lib.walk, t.rem_euclid(WALK_CYCLE_SECONDS), weights.walk);
+        add(
+            &mut pose,
+            &lib.walk,
+            t.rem_euclid(WALK_CYCLE_SECONDS),
+            weights.walk,
+        );
     }
     if let Some((gesture, progress, weight)) = state.gesture {
         if progress.is_finite() && weight.is_finite() && weight > 0.0 {
@@ -558,7 +568,13 @@ mod intensity_tests {
 
     #[test]
     fn default_intensities_keep_compatibility_wrapper_points_identical() {
-        let offsets = [(HEAD, Transform2 { rotation: 0.2, ..Default::default() })];
+        let offsets = [(
+            HEAD,
+            Transform2 {
+                rotation: 0.2,
+                ..Default::default()
+            },
+        )];
         for seconds in [0.0, 0.01, 0.07, 0.15, 0.24, 0.25, 1.3] {
             let state = HumanoidState {
                 walk_seconds: Some(seconds),
@@ -566,9 +582,17 @@ mod intensity_tests {
                 gesture: Some((Gesture::Wave, 0.4, 0.8)),
             };
             let before = evaluate_humanoid_with_offsets(&state, &offsets).unwrap();
-            let after = evaluate_humanoid_with_weights_and_offsets(&state, &offsets, ClipWeights::default()).unwrap();
+            let after = evaluate_humanoid_with_weights_and_offsets(
+                &state,
+                &offsets,
+                ClipWeights::default(),
+            )
+            .unwrap();
             for (a, b) in before.iter().zip(after) {
-                assert_eq!((a.x.to_bits(), a.y.to_bits()), (b.x.to_bits(), b.y.to_bits()));
+                assert_eq!(
+                    (a.x.to_bits(), a.y.to_bits()),
+                    (b.x.to_bits(), b.y.to_bits())
+                );
             }
         }
     }
@@ -577,9 +601,18 @@ mod intensity_tests {
     fn each_layer_can_be_disabled_or_halved_without_frame_history() {
         let neutral = evaluate_humanoid(&HumanoidState::default());
         let states = [
-            HumanoidState { emotion_changes: &[("happy", 1.0)], ..Default::default() },
-            HumanoidState { walk_seconds: Some(0.3), ..Default::default() },
-            HumanoidState { gesture: Some((Gesture::Shrug, 0.5, 1.0)), ..Default::default() },
+            HumanoidState {
+                emotion_changes: &[("happy", 1.0)],
+                ..Default::default()
+            },
+            HumanoidState {
+                walk_seconds: Some(0.3),
+                ..Default::default()
+            },
+            HumanoidState {
+                gesture: Some((Gesture::Shrug, 0.5, 1.0)),
+                ..Default::default()
+            },
         ];
         for (i, state) in states.into_iter().enumerate() {
             let full = evaluate_humanoid(&state);
@@ -587,9 +620,18 @@ mod intensity_tests {
             let mut off = ClipWeights::default();
             let mut half = off;
             match i {
-                0 => { off.posture = 0.0; half.posture = 0.5; }
-                1 => { off.walk = 0.0; half.walk = 0.5; }
-                _ => { off.gesture = 0.0; half.gesture = 0.5; }
+                0 => {
+                    off.posture = 0.0;
+                    half.posture = 0.5;
+                }
+                1 => {
+                    off.walk = 0.0;
+                    half.walk = 0.5;
+                }
+                _ => {
+                    off.gesture = 0.0;
+                    half.gesture = 0.5;
+                }
             }
             assert_eq!(weighted(&state, off), neutral);
             let actual = weighted(&state, half);
@@ -604,28 +646,71 @@ mod intensity_tests {
     #[test]
     fn disabled_rules_preserve_authored_offsets_and_reject_bad_weights() {
         let state = HumanoidState {
-            emotion_changes: &[("sad", 1.0)], walk_seconds: Some(0.3),
+            emotion_changes: &[("sad", 1.0)],
+            walk_seconds: Some(0.3),
             gesture: Some((Gesture::Wave, 0.5, 1.0)),
         };
-        let offsets = [(RIGHT_HAND, Transform2 { translation: Vec2 { x: 12.0, y: 3.0 }, ..Default::default() })];
-        let off = ClipWeights { posture: 0.0, walk: 0.0, gesture: 0.0 };
-        assert_eq!(evaluate_humanoid_with_weights_and_offsets(&state, &offsets, off).unwrap(),
-            evaluate_humanoid_with_offsets(&HumanoidState::default(), &offsets).unwrap());
+        let offsets = [(
+            RIGHT_HAND,
+            Transform2 {
+                translation: Vec2 { x: 12.0, y: 3.0 },
+                ..Default::default()
+            },
+        )];
+        let off = ClipWeights {
+            posture: 0.0,
+            walk: 0.0,
+            gesture: 0.0,
+        };
+        assert_eq!(
+            evaluate_humanoid_with_weights_and_offsets(&state, &offsets, off).unwrap(),
+            evaluate_humanoid_with_offsets(&HumanoidState::default(), &offsets).unwrap()
+        );
         for bad in [f64::NAN, f64::INFINITY, -0.1, 1.1] {
-            for weights in [ClipWeights { posture: bad, ..off }, ClipWeights { walk: bad, ..off }, ClipWeights { gesture: bad, ..off }] {
+            for weights in [
+                ClipWeights {
+                    posture: bad,
+                    ..off
+                },
+                ClipWeights { walk: bad, ..off },
+                ClipWeights {
+                    gesture: bad,
+                    ..off
+                },
+            ] {
                 assert!(!weights.is_valid());
-                assert!(evaluate_humanoid_with_weights_and_offsets(&state, &offsets, weights).is_err());
+                assert!(
+                    evaluate_humanoid_with_weights_and_offsets(&state, &offsets, weights).is_err()
+                );
             }
         }
     }
 
     #[test]
     fn close_emotion_changes_remain_continuous_with_partial_posture() {
-        let weights = ClipWeights { posture: 0.4, ..Default::default() };
-        let before = weighted(&HumanoidState { emotion_changes: &[("happy", 0.05)], ..Default::default() }, weights);
-        let onset = weighted(&HumanoidState { emotion_changes: &[("happy", 0.05), ("sad", 0.0)], ..Default::default() }, weights);
+        let weights = ClipWeights {
+            posture: 0.4,
+            ..Default::default()
+        };
+        let before = weighted(
+            &HumanoidState {
+                emotion_changes: &[("happy", 0.05)],
+                ..Default::default()
+            },
+            weights,
+        );
+        let onset = weighted(
+            &HumanoidState {
+                emotion_changes: &[("happy", 0.05), ("sad", 0.0)],
+                ..Default::default()
+            },
+            weights,
+        );
         assert_eq!(before, onset);
-        let seek = HumanoidState { emotion_changes: &[("happy", 0.12), ("sad", 0.07)], ..Default::default() };
+        let seek = HumanoidState {
+            emotion_changes: &[("happy", 0.12), ("sad", 0.07)],
+            ..Default::default()
+        };
         let expected = weighted(&seek, weights);
         let _ = weighted(&HumanoidState::default(), weights);
         assert_eq!(weighted(&seek, weights), expected);

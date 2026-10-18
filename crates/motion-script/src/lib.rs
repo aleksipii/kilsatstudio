@@ -414,9 +414,14 @@ pub fn apply_clip_weights(
 ) -> Result<String, Error> {
     edit_source(source, |candidate| {
         if !candidate.characters.contains_key(actor) || !weights.is_valid() {
-            return Err(Error::Validation("clip weights require a known actor and finite intensities 0..1".into()));
+            return Err(Error::Validation(
+                "clip weights require a known actor and finite intensities 0..1".into(),
+            ));
         }
-        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
         if weights == ClipWeights::default() {
             scene.composition.clip_weights.remove(actor);
         } else {
@@ -1757,32 +1762,77 @@ mod bone_track_tests {
 #[cfg(test)]
 mod clip_weight_tests {
     use super::*;
-    const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
+    const SOURCE: &str =
+        "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
 
     #[test]
     fn missing_defaults_roundtrip_and_atomic_weight_edits() {
-        assert!(parse(SOURCE).unwrap().scenes[0].composition.clip_weights.is_empty());
-        let weights = ClipWeights { posture: 0.2, walk: 0.5, gesture: 0.0 };
+        assert!(parse(SOURCE).unwrap().scenes[0]
+            .composition
+            .clip_weights
+            .is_empty());
+        let weights = ClipWeights {
+            posture: 0.2,
+            walk: 0.5,
+            gesture: 0.0,
+        };
         let source = apply_clip_weights(SOURCE, 0, "A", weights).unwrap();
-        assert_eq!(parse(&source).unwrap().scenes[0].composition.clip_weights["A"], weights);
+        assert_eq!(
+            parse(&source).unwrap().scenes[0].composition.clip_weights["A"],
+            weights
+        );
         assert!(apply_clip_weights(&source, 0, "unknown", weights).is_err());
         assert!(apply_clip_weights(&source, 1, "A", weights).is_err());
         for bad in [f64::NAN, f64::INFINITY, -0.1, 1.1] {
-            assert!(apply_clip_weights(&source, 0, "A", ClipWeights { walk: bad, ..weights }).is_err());
+            assert!(apply_clip_weights(
+                &source,
+                0,
+                "A",
+                ClipWeights {
+                    walk: bad,
+                    ..weights
+                }
+            )
+            .is_err());
         }
-        assert_eq!(parse(&source).unwrap().scenes[0].composition.clip_weights["A"], weights);
+        assert_eq!(
+            parse(&source).unwrap().scenes[0].composition.clip_weights["A"],
+            weights
+        );
         let reset = apply_clip_weights(&source, 0, "A", ClipWeights::default()).unwrap();
-        assert!(parse(&reset).unwrap().scenes[0].composition.clip_weights.is_empty());
+        assert!(parse(&reset).unwrap().scenes[0]
+            .composition
+            .clip_weights
+            .is_empty());
         let removed = remove_character(&source, "A").unwrap();
-        assert!(parse(&removed).unwrap().scenes[0].composition.clip_weights.is_empty());
+        assert!(parse(&removed).unwrap().scenes[0]
+            .composition
+            .clip_weights
+            .is_empty());
     }
 
     #[test]
     fn strict_weight_schema_and_actor_validation() {
-        let source = |map: &str| format!("characters: {{A: {{asset: a}}}}\nscenes: [{{id: shot, duration: 4, events: [], composition: {{clip_weights: {map}}}}}]");
-        let parsed = parse(&source("{A: {walk: 0.25}}" )).unwrap();
-        assert_eq!(parsed.scenes[0].composition.clip_weights["A"], ClipWeights { walk: 0.25, ..Default::default() });
-        for map in ["{unknown: {}}", "{A: {walk: true}}", "{A: {walk: .nan}}", "{A: {walk: .inf}}", "{A: {walk: -1}}", "{A: {posture: 2}}", "{A: {unexpected: 0}}"] {
+        let source = |map: &str| {
+            format!("characters: {{A: {{asset: a}}}}\nscenes: [{{id: shot, duration: 4, events: [], composition: {{clip_weights: {map}}}}}]")
+        };
+        let parsed = parse(&source("{A: {walk: 0.25}}")).unwrap();
+        assert_eq!(
+            parsed.scenes[0].composition.clip_weights["A"],
+            ClipWeights {
+                walk: 0.25,
+                ..Default::default()
+            }
+        );
+        for map in [
+            "{unknown: {}}",
+            "{A: {walk: true}}",
+            "{A: {walk: .nan}}",
+            "{A: {walk: .inf}}",
+            "{A: {walk: -1}}",
+            "{A: {posture: 2}}",
+            "{A: {unexpected: 0}}",
+        ] {
             assert!(parse(&source(map)).is_err(), "{map}");
         }
     }

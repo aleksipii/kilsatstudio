@@ -2862,12 +2862,17 @@ impl Studio {
             return;
         };
         let current_actor = self.selected_actor.as_deref().or_else(|| {
-            self.script.as_ref().and_then(|script| script.characters.keys().next().map(String::as_str))
+            self.script
+                .as_ref()
+                .and_then(|script| script.characters.keys().next().map(String::as_str))
         });
-        if source != &self.source || draft.scene_index != self.scene_index
+        if source != &self.source
+            || draft.scene_index != self.scene_index
             || current_actor != Some(draft.actor.as_str())
         {
-            self.status = "Clip draft belongs to an earlier source, scene or actor; reload before applying.".into();
+            self.status =
+                "Clip draft belongs to an earlier source, scene or actor; reload before applying."
+                    .into();
             self.clip_draft = None;
             return;
         }
@@ -2876,14 +2881,26 @@ impl Studio {
     }
 
     fn clip_inspector_ui(&mut self, ui: &mut egui::Ui) {
-        let Some(script) = &self.script else { return; };
-        let Some(scene) = script.scenes.get(self.scene_index) else { return; };
-        let Some(actor) = self.selected_actor.as_deref()
-            .or_else(|| script.characters.keys().next().map(String::as_str)) else { return; };
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
         if !self.clip_draft.as_ref().is_some_and(|(source, draft)| {
             source == &self.source && draft.scene_index == self.scene_index && draft.actor == actor
         }) {
-            self.clip_draft = Some((self.source.clone(), clip_editor::Draft::new(scene, self.scene_index, actor)));
+            self.clip_draft = Some((
+                self.source.clone(),
+                clip_editor::Draft::new(scene, self.scene_index, actor),
+            ));
         }
         let mut apply = false;
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy, |ui| {
@@ -2892,7 +2909,9 @@ impl Studio {
                 if let Some((_, draft)) = &mut self.clip_draft { apply = draft.ui(ui); }
             });
         });
-        if apply { self.apply_clip_draft(); }
+        if apply {
+            self.apply_clip_draft();
+        }
     }
 
     fn bone_inspector_ui(&mut self, ui: &mut egui::Ui) {
@@ -5480,13 +5499,20 @@ mod clip_editor_integration_tests {
         studio.apply_clip_draft();
         let edited = studio.source.clone();
         assert_ne!(edited, original);
-        let weights = studio.script.as_ref().unwrap().scenes[0].composition.clip_weights[&actor];
+        let weights = studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .clip_weights[&actor];
         assert_eq!(weights.gesture, 0.25);
         assert_eq!(weights.walk, 0.0);
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
         let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
         assert_eq!(loaded.source, edited);
-        assert_eq!(motion_script::parse(&loaded.source).unwrap().scenes[0].composition.clip_weights[&actor], weights);
+        assert_eq!(
+            motion_script::parse(&loaded.source).unwrap().scenes[0]
+                .composition
+                .clip_weights[&actor],
+            weights
+        );
         studio.undo_edit(false);
         assert_eq!(studio.source, original);
         studio.undo_edit(true);

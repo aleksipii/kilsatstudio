@@ -34,9 +34,13 @@ impl Draft {
     }
 
     fn valid(&self) -> bool {
-        [self.weights.posture, self.weights.walk, self.weights.gesture]
-            .into_iter()
-            .all(|weight| weight.is_finite() && (0.0..=1.0).contains(&weight))
+        [
+            self.weights.posture,
+            self.weights.walk,
+            self.weights.gesture,
+        ]
+        .into_iter()
+        .all(|weight| weight.is_finite() && (0.0..=1.0).contains(&weight))
     }
 
     /// Paints detached controls without normalizing or clamping existing values.
@@ -134,7 +138,10 @@ mod tests {
         assert_eq!(actual, expected);
         draft.weights = ClipWeights::default();
         let restored = motion_script::parse(&draft.apply(&updated).unwrap()).unwrap();
-        assert!(!restored.scenes[0].composition.clip_weights.contains_key("A"));
+        assert!(!restored.scenes[0]
+            .composition
+            .clip_weights
+            .contains_key("A"));
         assert_eq!(serde_json::to_value(restored).unwrap(), expected);
     }
 
