@@ -1023,3 +1023,20 @@ This post-merge record changes documentation only. This is an envelope for
 ordered override weights, not a normalized or additive mixer. No real recognizer,
 model, GPU device or physical Mac acceptance is performed by fixture tests. See
 [live clip blending](live-clip-blending.md).
+
+## Final package inventory (source implemented, pending integration)
+
+- [ ] Integrate bounded offline final-ZIP/member inventory and exact current
+  resource boundary, licenses, generated metadata and build-info checks.
+- [ ] Integrate explicit signature/AppleDouble observations, optional helper
+  component identity, atomic external sidecar and distinct collection/strict exits.
+- [ ] Integrate post-signing macOS CI report attachment, independent review and
+  package/security regression tests.
+- [ ] Collect actual target/feature/compiler/native-linkage evidence and reviewed
+  upstream artifact notices, license alternatives and redistribution obligations.
+- [ ] Final third-party license clearance, GPU parity, automatic estimated-result
+  reuse and physical Mac/hardware/model quality acceptance.
+
+See [final package audit](final-package-audit.md). Source is pending final checks;
+package-boundary success never grants distribution approval. No external assets,
+recognizer, GPU device or physical Mac acceptance is exercised by fixture tests.

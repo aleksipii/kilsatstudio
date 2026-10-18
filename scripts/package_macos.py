@@ -42,6 +42,31 @@ def app_icon():
     entry = b'ic08' + struct.pack('>I', len(png) + 8) + png
     return b'icns' + struct.pack('>I', len(entry) + 8) + entry
 
+def bundle_info():
+    """Expected generated application metadata shared with the offline audit."""
+    return {'CFBundleExecutable': 'studio-desktop',
+                      'CFBundleIdentifier': 'studio.kilsat.preview',
+                      'CFBundleName': 'Kilsat Studio Preview',
+                      'CFBundlePackageType': 'APPL',
+                      'CFBundleShortVersionString': '0.1.0',
+                      'CFBundleVersion': '1', 'LSMinimumSystemVersion': '13.0',
+                      'NSHighResolutionCapable': True,
+                      'CFBundleIconFile': 'KilsatStudio.icns',
+                      'CFBundleDocumentTypes': [
+                          {'CFBundleTypeName': 'Kilsat Studio Project',
+                           'CFBundleTypeRole': 'Editor', 'LSHandlerRank': 'Alternate',
+                           'LSItemContentTypes': ['studio.kilsat.project']},
+                          {'CFBundleTypeName': 'MotionScript YAML',
+                           'CFBundleTypeRole': 'Editor', 'LSHandlerRank': 'Alternate',
+                           'CFBundleTypeExtensions': ['yaml', 'yml']}],
+                      'UTExportedTypeDeclarations': [
+                          {'UTTypeIdentifier': 'studio.kilsat.project',
+                           'UTTypeDescription': 'Kilsat Studio JSON Project',
+                           'UTTypeConformsTo': ['public.json'],
+                           'UTTypeTagSpecification':
+                               {'public.filename-extension': ['kilsat']}}]}
+
+
 def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None):
     repo, binary, destination = Path(repo).resolve(), Path(binary).resolve(), Path(destination)
     if not binary.is_file() or not os.access(binary, os.X_OK):
@@ -88,27 +113,7 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
             shutil.copy2(source, target)
     (resources / 'KilsatStudio.icns').write_bytes(app_icon())
     with (destination / 'Contents/Info.plist').open('wb') as handle:
-        plistlib.dump({'CFBundleExecutable': 'studio-desktop',
-                      'CFBundleIdentifier': 'studio.kilsat.preview',
-                      'CFBundleName': 'Kilsat Studio Preview',
-                      'CFBundlePackageType': 'APPL',
-                      'CFBundleShortVersionString': '0.1.0',
-                      'CFBundleVersion': '1', 'LSMinimumSystemVersion': '13.0',
-                      'NSHighResolutionCapable': True,
-                      'CFBundleIconFile': 'KilsatStudio.icns',
-                      'CFBundleDocumentTypes': [
-                          {'CFBundleTypeName': 'Kilsat Studio Project',
-                           'CFBundleTypeRole': 'Editor', 'LSHandlerRank': 'Alternate',
-                           'LSItemContentTypes': ['studio.kilsat.project']},
-                          {'CFBundleTypeName': 'MotionScript YAML',
-                           'CFBundleTypeRole': 'Editor', 'LSHandlerRank': 'Alternate',
-                           'CFBundleTypeExtensions': ['yaml', 'yml']}],
-                      'UTExportedTypeDeclarations': [
-                          {'UTTypeIdentifier': 'studio.kilsat.project',
-                           'UTTypeDescription': 'Kilsat Studio JSON Project',
-                           'UTTypeConformsTo': ['public.json'],
-                           'UTTypeTagSpecification':
-                               {'public.filename-extension': ['kilsat']}}]}, handle)
+        plistlib.dump(bundle_info(), handle)
     (resources / 'BUILD-INFO.txt').write_text(
         f'Commit: {commit}\nArchitecture: {arch}\nProfile: {profile}\n'
         'Preview build; ad-hoc signed, not notarized.\n'
