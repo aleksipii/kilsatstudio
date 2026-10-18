@@ -55,7 +55,9 @@ impl Draft {
             ("Gesture", &mut self.weights.gesture),
         ] {
             if !weight.is_finite() {
-                ui.label(format!("{label}: invalid value; reset the draft to recover"));
+                ui.label(format!(
+                    "{label}: invalid value; reset the draft to recover"
+                ));
                 continue;
             }
             let mut edited = *weight;
