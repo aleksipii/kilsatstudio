@@ -992,9 +992,14 @@ fn edit_source(
     }
     let mut candidate = parse(source)?;
     edit(&mut candidate)?;
-    candidate.validate()?;
-    let output = serde_yaml::to_string(&candidate)?;
-    if output.len() > LIMIT {
+    to_source(&candidate)
+}
+
+/// Validate and encode an edited document as bounded, readable MotionScript YAML.
+pub fn to_source(script: &Script) -> Result<String, Error> {
+    script.validate()?;
+    let output = serde_yaml::to_string(script)?;
+    if output.len() > 1_048_576 {
         return Err(Error::Validation(
             "updated screenplay exceeds one MiB".into(),
         ));

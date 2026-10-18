@@ -419,8 +419,7 @@ impl Studio {
                 motion_scene::editable_timeline::EditableTimeline::from_script(&script)
                     .map_err(|e| e.to_string())?;
             let compiled = document.apply(&script, edit).map_err(|e| e.to_string())?;
-            let source =
-                serde_json::to_string_pretty(&compiled.script).map_err(|e| e.to_string())?;
+            let source = motion_script::to_source(&compiled.script).map_err(|e| e.to_string())?;
             Ok((source, selected))
         })();
         match result {
@@ -6285,6 +6284,7 @@ mod editable_timeline_integration_tests {
             before: None,
         });
         let edited = studio.source.clone();
+        assert!(edited.starts_with("project:"));
         assert_eq!(studio.scene_index, 1);
         assert_eq!(studio.script.as_ref().unwrap().scenes[0].id, "second");
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
