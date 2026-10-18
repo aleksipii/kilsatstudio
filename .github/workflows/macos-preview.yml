@@ -35,6 +35,14 @@ jobs:
         run: cargo build --locked -p studio-desktop --target aarch64-apple-darwin
       - name: Build explicit Metal fixture helper
         run: cargo build --locked -p motion-render --features gpu --example gpu_probe --target aarch64-apple-darwin
+      - name: Save resolved workspace build observations
+        run: |
+          mkdir -p dist/build-inputs
+          cargo metadata --locked --filter-platform aarch64-apple-darwin --format-version 1 > dist/build-inputs/desktop-metadata.json
+          cargo metadata --locked --filter-platform aarch64-apple-darwin --format-version 1 --features motion-render/gpu > dist/build-inputs/helper-metadata.json
+          rustc -vV > dist/build-inputs/rustc.txt
+          cargo -V > dist/build-inputs/cargo.txt
+          cp Cargo.lock dist/build-inputs/Cargo.lock
       - name: Package ad-hoc signed app
         run: |
           binary=target/aarch64-apple-darwin/debug/studio-desktop
@@ -82,11 +90,47 @@ jobs:
       - name: Inventory final signed ZIP (not license approval)
         run: |
           python3 scripts/package_audit.py --archive dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --target aarch64-apple-darwin --profile debug --require-signature-metadata --output dist/Kilsat-Studio-Preview-arm64.audit.json
+      - name: Bind final executable linkage observations and build evidence
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, subprocess, tempfile, zipfile
+          from pathlib import Path
+          audit = json.loads(Path('dist/Kilsat-Studio-Preview-arm64.audit.json').read_text())
+          records = {row['path']: row for row in audit['files']}
+          members = ['Kilsat Studio Preview.app/Contents/MacOS/studio-desktop',
+                     'Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe']
+          observations = {}
+          with tempfile.TemporaryDirectory(prefix='kilsat-native-observation-') as temporary:
+              with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
+                  for index, member in enumerate(members):
+                      info = archive.getinfo(member)
+                      if info.file_size > 128 * 1024 * 1024:
+                          raise SystemExit('Executable observation exceeds byte budget')
+                      data = archive.read(info)
+                      digest = hashlib.sha256(data).hexdigest()
+                      if digest != records[member]['sha256']:
+                          raise SystemExit('Final member differs from package audit')
+                      selected = Path(temporary, f'executable-{index}')
+                      selected.write_bytes(data)
+                      archs = subprocess.check_output(['lipo', '-archs', str(selected)], text=True)
+                      libraries = subprocess.check_output(['otool', '-L', str(selected)], text=True)
+                      if archs.strip() != 'arm64':
+                          raise SystemExit('Final executable is not arm64')
+                      for line in libraries.splitlines()[1:]:
+                          library = line.strip().split(' (', 1)[0]
+                          if not library.startswith(('/System/Library/', '/usr/lib/')):
+                              raise SystemExit('Unexpected final native dependency: ' + library)
+                      observations[member] = dict(sha256=digest, lipo_archs=archs, otool_libraries=libraries)
+          Path('dist/build-inputs/native.json').write_text(json.dumps(observations, indent=2, sort_keys=True) + '\n')
+          PY
+          python3 scripts/build_evidence.py --archive dist/Kilsat-Studio-Preview-arm64.zip --audit dist/Kilsat-Studio-Preview-arm64.audit.json --lock Cargo.lock --desktop-metadata dist/build-inputs/desktop-metadata.json --helper-metadata dist/build-inputs/helper-metadata.json --rustc dist/build-inputs/rustc.txt --cargo dist/build-inputs/cargo.txt --native-observations dist/build-inputs/native.json --output dist/Kilsat-Studio-Preview-arm64.build-evidence.json
       - uses: actions/upload-artifact@v4
         with:
           name: Kilsat-Studio-Preview-arm64
           path: |
             dist/Kilsat-Studio-Preview-arm64.zip
             dist/Kilsat-Studio-Preview-arm64.audit.json
+            dist/Kilsat-Studio-Preview-arm64.build-evidence.json
+            dist/build-inputs/
           if-no-files-found: error
           retention-days: 14

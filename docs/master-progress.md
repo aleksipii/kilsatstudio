@@ -69,6 +69,13 @@ require actual evidence.
 
 ## Ownership and current increment
 
+Current parallel implementation increment (2026-10-18, source pending checks):
+`gpu_scene_implementation`, `animation_loop_masks`, `artist_mask_tools`,
+`speech_reuse_implementation`, `mac_release_evidence` and
+`planned_timeline_features`; parent owns cross-stream integration and release.
+The historical owner table below maps broader responsibilities. Agent activity
+does not constitute hardware, quality, license or full-milestone acceptance.
+
 | Workstream | Owner in this increment | Integration boundary |
 | --- | --- | --- |
 | Architecture/integration | Parent agent | Shared interfaces, ownership, review, progress and release synchronization |
@@ -1064,3 +1071,32 @@ See [final package audit](final-package-audit.md). This post-merge record change
 documentation only;
 package-boundary success never grants distribution approval. No external assets,
 recognizer, GPU device or physical Mac acceptance is exercised by fixture tests.
+
+## Parallel studio workstreams (source implemented, pending integration)
+
+- [ ] Integrate bounded evaluated-geometry GPU experiment, explicit font-label
+  omission/unsupported-feature boundaries, adapter-free command/shader tests and
+  full decoded-RGBA comparison metrics. Production full-scene parity stays open.
+- [ ] Integrate live-clip original-speed looping and explicit seven-joint masks,
+  native controls, persisted defaults and independent SVG/PNG/preview tests.
+- [ ] Integrate persisted soft animated ellipse masks, native Apply/history,
+  shared SVG/PNG/preview/sequence sampling and strict geometry/key/work bounds.
+- [ ] Integrate exact-request immutable engine-index foundation, synthetic
+  conflict/corruption/cancellation tests and fresh versus explicit archive origin.
+  Production automatic reuse remains ineligible without a verified real package.
+- [ ] Integrate final-ZIP-bound separate resolved Cargo closures, compiler and
+  final-member native observations, retained CI inputs and never-approved report.
+- [ ] Integrate versioned editable scene-order/duration snapshot using the shared
+  sequence clock, native scene-order actions, source history and validation.
+- [ ] Final Linux/macOS CI, independent cross-stream review and authorized merge.
+- [ ] Full GPU/native parity and actual Metal performance; custom rigs, textured
+  parts/deformation; artist groups, painting, pressure and image retouching.
+- [ ] Verified real recognizer environment/automatic hits, editable mouth timings
+  and measured real-audio quality; physical Mac/offline/device/GUI acceptance.
+- [ ] Final licenses/redistribution review, production measurements/release,
+  separate audio cues, conditional animation rules and general compiled-track editing.
+
+No downloaded model, real recognizer, physical Mac or GPU execution is claimed.
+See [GPU experiment](gpu-evaluated-scene.md), [live clips](live-clip-blending.md),
+[soft masks](soft-animated-masks.md), [engine reuse](workstreams/estimated-auto-reuse.md),
+[build evidence](build-evidence.md) and [editable timeline](editable-timeline.md).

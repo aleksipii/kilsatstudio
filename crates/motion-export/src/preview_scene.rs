@@ -57,12 +57,18 @@ impl ScenePreview {
             if layer.active.is_some_and(|r| r.end > owner.duration) {
                 return Err(invalid("artwork visibility exceeds scene duration"));
             }
+            if let Some(shape) = &layer.clip_shape {
+                shape.validate_scene_duration(owner.duration).map_err(|error| invalid(error.to_string()))?;
+            }
             geometry += match &layer.content {
                 motion_art::Content::Stroke { points, .. } => points.len(),
                 _ => 1,
             };
             if let Some(motion_art::ClipShape::Polygon { points }) = &layer.clip_shape {
                 geometry += points.len();
+            }
+            if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {
+                geometry += (usize::BITS - keys.len().max(1).leading_zeros()) as usize + 8;
             }
             if layer.visible {
                 if let motion_art::Content::Image { asset_id, .. } = &layer.content {

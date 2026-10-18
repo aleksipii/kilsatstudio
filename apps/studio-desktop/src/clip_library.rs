@@ -334,6 +334,8 @@ mod tests {
                 fade_in: 0.0,
                 fade_out: 0.0,
                 weight_keys: Vec::new(),
+                looping: false,
+                joint_mask: Vec::new(),
             },
         )
         .unwrap();

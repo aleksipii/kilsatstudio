@@ -1,6 +1,7 @@
 //! Explicit alignment provenance: synthesis tokens are not phoneme timestamps.
 pub mod cache;
 pub mod estimated_cache;
+pub mod engine_reuse;
 mod import;
 pub mod rhubarb;
 pub use import::{arpabet_to_ipa, import_alignment_json, AlignmentAudio};

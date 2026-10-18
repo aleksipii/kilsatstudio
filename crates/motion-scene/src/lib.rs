@@ -1,4 +1,5 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
+pub mod editable_timeline;
 use motion_animation::HumanoidState;
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
 pub use motion_animation::{GESTURES, POSTURE_BLEND_SECONDS};
@@ -256,11 +257,21 @@ impl PreparedAnimation {
                 .library
                 .get(&instance.clip)
                 .ok_or_else(|| Error::InvalidAnimation(instance.clip.clone()))?;
-            let clip_time = (time - instance.at) / instance.duration * clip.duration;
+            let local = time - instance.at;
+            let clip_time = if instance.looping {
+                local.rem_euclid(clip.duration)
+            } else {
+                local / instance.duration * clip.duration
+            };
             if !clip_time.is_finite() || clip_time < 0.0 || clip_time > clip.duration {
                 return Err(Error::InvalidTime);
             }
-            for (value, track) in values.iter_mut().zip(tracks) {
+            for (joint, (value, track)) in values.iter_mut().zip(tracks).enumerate() {
+                if !instance.joint_mask.is_empty()
+                    && !instance.joint_mask.iter().any(|name| name == motion_animation::HUMANOID_BONES[joint])
+                {
+                    continue;
+                }
                 if let Some(track) = track {
                     *value = Some(motion_animation::blend_humanoid_offset(
                         value.unwrap_or_default(),
@@ -922,6 +933,8 @@ mod live_instance_tests {
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
+            looping: false,
+            joint_mask: Vec::new(),
         }
     }
     fn offsets(script: &Script, time: f64) -> Vec<(usize, Transform2)> {
@@ -942,6 +955,47 @@ mod live_instance_tests {
             .map(|(_, v)| *v)
             .unwrap_or_default()
     }
+    #[test]
+    fn loops_repeat_original_seconds_and_masks_preserve_unselected_offsets() {
+        let mut script = script();
+        let mut layer = instance("loop", "first", 1.0, 4.0, 0.5);
+        layer.looping = true;
+        layer.joint_mask = vec!["head".into()];
+        script.scenes[0].composition.clip_instances = vec![layer];
+        // Clip x20→60 over two seconds. Base head x8; equal blend.
+        for (time, expected) in [(1.0, 14.0), (1.5, 19.0), (3.0, 14.0), (4.5, 29.0), (2.0, 24.0), (5.0, 8.0)] {
+            assert_eq!(bone(&offsets(&script, time), "head").translation.x, expected);
+        }
+        script.scenes[0].composition.clip_instances[0].joint_mask = vec!["right_hand".into()];
+        assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 8.0);
+        script.scenes[0].composition.clip_instances[0].clip = "second".into();
+        assert_eq!(bone(&offsets(&script, 2.0), "right_hand").translation.y, 10.0);
+        assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 8.0);
+        script.scenes[0].composition.clip_instances[0].joint_mask.clear();
+        assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 54.0);
+        script.scenes[0].composition.clip_instances[0].clip = "first".into();
+        script.scenes[0].composition.clip_instances[0].looping = false;
+        assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 19.0);
+    }
+
+    #[test]
+    fn masked_layers_keep_source_order_and_fades_do_not_restart_each_loop() {
+        let mut script = script();
+        let mut looping = instance("loop", "first", 1.0, 4.0, 1.0);
+        looping.looping = true;
+        looping.fade_in = 4.0;
+        looping.joint_mask = vec!["head".into()];
+        let mut overlay = instance("overlay", "second", 1.0, 4.0, 0.5);
+        overlay.joint_mask = vec!["head".into()];
+        script.scenes[0].composition.clip_instances = vec![looping, overlay];
+        // At local2: cycle reset x20 but fade=.5, so base8 ->14 ->57.
+        assert_eq!(bone(&offsets(&script, 3.0), "head").translation.x, 57.0);
+        assert_eq!(bone(&offsets(&script, 3.0), "right_hand"), Transform2::default());
+        script.scenes[0].composition.clip_instances.reverse();
+        // Reversed: base8 ->54 ->37. Fades stay on instance time.
+        assert_eq!(bone(&offsets(&script, 3.0), "head").translation.x, 37.0);
+    }
+
     #[test]
     fn envelope_product_blends_once_and_matches_prepared_seek_evaluation() {
         let mut script = script();

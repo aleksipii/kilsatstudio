@@ -10,7 +10,8 @@ The ordered rows show the entire scene, including other actors. Select an actor
 to edit or move its rows. Up/Down changes the row's position in the complete
 scene list. Removing an instance needs confirmation and leaves its definition
 and independently copied tracks intact. Reset restores draft timing and static
-weight, clears fade durations and weight keys, and preserves the ID and selected clip.
+weight, clears fade durations and weight keys, and preserves the ID, selected clip,
+looping mode and joint selection.
 Source/scene/actor changes discard drafts. Every source action supports unified
 Undo/Redo and `.kilsat` persistence; YAML formatting and comments are normalized
 as in the existing editors.
@@ -37,14 +38,15 @@ layers, preserving existing projects.
 ## Timing and blending
 
 An instance contributes on `[start, start + duration)`: its start is included,
-its end excluded. Clip time is `(scene_time - start) / duration * clip.duration`.
+its end excluded. By default, clip time is
+`(scene_time - start) / duration * clip.duration`: the clip stretches once to fit.
 Within that window, tracks hold endpoint values if their keys do not span the
 clip duration. Outside it the layer contributes nothing. Hard activation edges
-can pop when no envelope is authored. Optional fades are described below; looping
-and automatic smoothing of authored hold-key jumps are not added.
+can pop when no envelope is authored. Optional fades and looping are described
+below. Authored hold-key jumps are not automatically smoothed.
 
 Start with the actor's ordinary authored local bone offsets, using identity for
-absent bones. Visit active rows in saved order. On each bone present in a clip,
+absent bones. Visit active rows in saved order. On each selected bone present in a clip,
 interpolate the current offset toward the sampled clip offset by its effective
 weight. Translation and scale interpolate linearly; rotation uses the existing
 shortest-arc rule. Weight 0 leaves the base exactly unchanged and 1 replaces it.
@@ -97,11 +99,52 @@ rescale keys or fades: inconsistent drafts remain visible and cannot Apply.
 Use the explicit reset or edit/remove keys to recover. The library definition,
 other instances and speech/event timing are not changed by an envelope edit.
 
+## Looping and joint selection
+
+Enable **Loop at original clip speed** to repeat a library clip at one clip second
+per scene second. With `looping: true`, clip time is
+`(scene_time - start) modulo clip.duration`. An exact cycle boundary samples the
+start of the clip; the instance end remains excluded. A shorter instance cuts the
+cycle short, while a longer one repeats for as many complete or partial cycles as
+fit. With `looping: false` or the field omitted, the existing stretch-once mapping
+is preserved. Loop boundaries can jump if authored endpoint poses differ.
+
+Fades and weight keys keep their instance-local clock across every cycle. They do
+not restart on loop boundaries. Changing the library duration changes the loop
+period; changing instance duration changes the activation window without retiming
+the library keys, fades or weight keys.
+
+Enable **Select individual joints** to choose original-rig joints. The initial
+selection includes all seven joints; the UI keeps at least one selected. Disable
+the selection to use all authored clip joints. This setting remains a detached
+draft until Apply. A mask affects only this instance's local authored offsets,
+without descendant expansion. Unselected joints retain accumulated base or earlier
+layer offsets. Selected joints absent from a clip also retain their prior offsets.
+
+```yaml
+clip_instances:
+  - id: hand_loop
+    clip: tilt
+    actor: EMMA
+    at: 0.5
+    duration: 2
+    weight: 0.5
+    looping: true
+    joint_mask: [head]
+```
+
+This fragment uses the earlier `tilt` definition. An empty or omitted `joint_mask`
+selects all authored clip joints. Valid names are `hip`, `chest`, `head`,
+`left_hand`, `right_hand`, `left_foot` and `right_foot`. Masking does not introduce
+arbitrary rigs, per-joint blend weights, texture deformation or general additive
+pose mixing. Reset timing/weight/envelope controls preserve loop mode and mask;
+edit these controls explicitly to change them.
+
 ## Live references versus copies
 
 Library replacement affects every live reference and displays affected scene
 and instance counts. Instance start/duration stay fixed; a changed definition
-duration changes its sample mapping. Previously copied or retimed tracks remain
+duration changes its sample mapping or loop period. Previously copied or retimed tracks remain
 independent. A referenced definition cannot be deleted: remove its live instances
 first. Removing a character removes its instances atomically. Duplicating a
 scene keeps scene-local IDs and shares the clip definitions.
@@ -111,7 +154,8 @@ scene keeps scene-local IDs and shares the clip definitions.
 IDs use 1–64 ASCII letters/digits/underscores/hyphens and are unique within the
 scene. Clip and actor references must exist. Start must be finite and nonnegative;
 duration finite and positive; the finite end must exceed start and fit the scene.
-Weights must be finite in `[0,1]`. Zero-weight instances still require valid
+Weights must be finite in `[0,1]`. A joint mask must contain at most seven unique
+original-rig joint names; unknown and repeated names are rejected. Zero-weight instances still require valid
 references and count toward limits.
 
 Limits: 128 instances per scene, 32 per actor per scene and 1024 per project.
@@ -120,8 +164,8 @@ counting inactive and zero-weight instances. Existing clip, transform and
 source-size limits remain. Prepared snapshots
 share referenced library tracks; instances and frames do not duplicate their
 keys. Unused definitions are not prepared. Export preflight conservatively
-counts inactive and zero-weight layers, scans, scalar/bone searches and fade
-arithmetic under the
+counts inactive and zero-weight layers, scans, scalar/bone searches, fade
+arithmetic, loop mapping and joint-selection checks under the
 existing one-million-unit per-scene work budget. Preview also checks bounded
 per-frame sample work. These are protective estimates, not measured performance.
 
@@ -131,6 +175,10 @@ Regressions cover independent expected offsets, overlap order, missing bones,
 rotation and scale, endpoint windows, seek order, source references and deletion,
 saved projects and source history. Actual SVG/PNG fixtures compare independently
 authored expectations and sample-clock preview including speech/root stages.
-Physical Mac motion quality, production performance, looping, joint masks,
-custom/textured rigs and cross-project exchange remain open.
+Loop/mask regressions additionally compare two cycle resets, repeated/backward
+seeks, the excluded instance endpoint, preserved unselected joints, source-order
+blending, project round trips and default compatibility. The extension is source
+implemented; final CI and integration evidence will be recorded in master progress.
+Physical Mac motion quality, production performance, custom/textured rigs,
+deformation, general additive mixing and cross-project exchange remain open.
 This change does not complete GPU scene parity or recognizer-result memoization.

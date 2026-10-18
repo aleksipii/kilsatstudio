@@ -28,10 +28,16 @@ pub enum Action {
     Estimate,
     Load { key: String },
 }
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ResultOrigin {
+    #[default]
+    Fresh,
+    ExplicitArchiveLoad,
+}
 #[derive(Debug, Default)]
 pub struct CacheInfo {
     pub key: Option<String>,
-    pub hit: bool,
+    pub origin: ResultOrigin,
     pub message: String,
     pub provenance: String,
 }
@@ -86,7 +92,10 @@ fn execute(request: &Request) -> Result<Ready, String> {
                 || request.cancel.is_cancelled(),
             )
             .map_err(|e| e.to_string())?,
-            CacheInfo::default(),
+            CacheInfo {
+                message: motion_lipsync::engine_reuse::automatic_reuse_unavailable().into(),
+                ..Default::default()
+            },
         ),
         Action::Load { key } => (
             archive
@@ -94,7 +103,7 @@ fn execute(request: &Request) -> Result<Ready, String> {
                 .map_err(|e| format!("Saved estimated timing: {e}"))?,
             CacheInfo {
                 key: Some(key.clone()),
-                hit: true,
+                origin: ResultOrigin::ExplicitArchiveLoad,
                 message: String::new(),
                 provenance: String::new(),
             },
@@ -131,7 +140,7 @@ fn execute(request: &Request) -> Result<Ready, String> {
         ) {
             Ok(key) => cache.key = Some(key),
             Err(error) => {
-                cache.message = format!("Timing is usable, but saving it failed: {error}")
+                cache.message.push_str(&format!(" Timing is usable, but saving it failed: {error}"))
             }
         }
     }
@@ -358,7 +367,7 @@ mod tests {
         r.executable = PathBuf::new();
         r.action = Action::Load { key };
         let saved = execute(&r).unwrap();
-        assert!(saved.cache.hit);
+        assert_eq!(saved.cache.origin, ResultOrigin::ExplicitArchiveLoad);
         assert_eq!(saved.json, ready.json);
         r.identity.transcript = "changed".into();
         assert!(execute(&r).is_err());

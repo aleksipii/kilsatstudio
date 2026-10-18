@@ -16,7 +16,7 @@ pub enum Backend {
     Gl,
 }
 impl Backend {
-    fn mask(self) -> wgpu::Backends {
+    pub(crate) fn mask(self) -> wgpu::Backends {
         match self {
             Self::Metal => wgpu::Backends::METAL,
             Self::Vulkan => wgpu::Backends::VULKAN,
@@ -64,7 +64,7 @@ pub fn row_layout(width: u32, height: u32) -> Result<(u32, u64), Error> {
     }
     Ok((padded, bytes))
 }
-fn check(cancel: &AtomicBool, deadline: Instant) -> Result<(), Error> {
+pub(crate) fn check(cancel: &AtomicBool, deadline: Instant) -> Result<(), Error> {
     if cancel.load(Ordering::Relaxed) {
         Err(Error::Cancelled)
     } else if Instant::now() >= deadline {
@@ -79,7 +79,7 @@ impl Wake for Signal {
         self.0.unpark();
     }
 }
-fn wait<T>(
+pub(crate) fn wait<T>(
     future: impl Future<Output = T>,
     cancel: &AtomicBool,
     deadline: Instant,

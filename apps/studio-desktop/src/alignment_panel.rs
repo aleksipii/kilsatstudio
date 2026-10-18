@@ -64,7 +64,7 @@ impl Panel {
             if self.busy() { ui.spinner(); ui.ctx().request_repaint_after(std::time::Duration::from_millis(40)); }
             if !self.status.is_empty() { ui.label(&self.status); }
             if let Some(candidate)=&self.candidate {
-                ui.label(if candidate.cache.hit { "Saved estimated result; no recognizer was executed." } else { "Fresh local estimate." });
+                ui.label(if candidate.cache.origin == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad { "Saved estimated result; no recognizer was executed." } else { "Fresh local estimate." });
                 if let Some(key) = &candidate.cache.key {
                     ui.horizontal(|ui| {
                         ui.label(format!("Cache key: {key}"));
@@ -155,7 +155,7 @@ impl Panel {
                     if let Some(key) = &ready.cache.key {
                         self.cache_key = key.clone();
                     }
-                    self.status = if ready.cache.hit {
+                    self.status = if ready.cache.origin == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad {
                         "Saved estimated timing loaded. Review and apply explicitly."
                     } else {
                         "Estimation complete. Review and apply explicitly."
