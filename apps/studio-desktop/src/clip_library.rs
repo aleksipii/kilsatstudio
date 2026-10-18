@@ -74,7 +74,10 @@ impl State {
         ui.small("Name: 1–64 ASCII letters, digits, underscores or hyphens.");
         let exists = script.animation_clips.contains_key(&self.name);
         if exists {
-            ui.checkbox(&mut self.replace_capture, "Replace this existing library clip");
+            ui.checkbox(
+                &mut self.replace_capture,
+                "Replace this existing library clip",
+            );
         }
         let can_capture = valid_target
             && has_tracks
@@ -143,9 +146,15 @@ impl State {
                 });
                 self.replace_target = false;
             }
-            ui.checkbox(&mut self.confirm_delete, "Delete selected clip from this project");
+            ui.checkbox(
+                &mut self.confirm_delete,
+                "Delete selected clip from this project",
+            );
             if ui
-                .add_enabled(self.confirm_delete, egui::Button::new("Delete library clip"))
+                .add_enabled(
+                    self.confirm_delete,
+                    egui::Button::new("Delete library clip"),
+                )
                 .clicked()
             {
                 action = Some(Action::Remove {

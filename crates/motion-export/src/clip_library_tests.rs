@@ -5,7 +5,8 @@ const SOURCE: &str = "project: {fps: 4, width: 256, height: 256}\ncharacters: {E
 
 fn applied_fixture() -> (Script, Script, RenderedScene, String) {
     let (_, rendered) = crate::tests::fixture();
-    let captured = motion_script::capture_animation_clip(SOURCE, 0, "EMMA", "reach", false).unwrap();
+    let captured =
+        motion_script::capture_animation_clip(SOURCE, 0, "EMMA", "reach", false).unwrap();
     let applied = motion_script::apply_animation_clip(&captured, 1, "EMMA", "reach").unwrap();
     // An independent expected target: do not derive its tracks from the library
     // or the capture/apply helpers under test.

@@ -119,7 +119,7 @@ mod tests {
         Script {
             project: Default::default(),
             characters: Default::default(),
-                animation_clips: Default::default(),
+            animation_clips: Default::default(),
             scenes: durations
                 .iter()
                 .enumerate()

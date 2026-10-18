@@ -2884,7 +2884,7 @@ impl Studio {
                     .into();
             self.clip_draft = None;
             self.clip_track_draft = None;
-        self.clip_library_draft = None;
+            self.clip_library_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2911,7 +2911,7 @@ impl Studio {
                 "Animated strengths draft belongs to an earlier source, scene or actor; reload before applying."
                     .into();
             self.clip_track_draft = None;
-        self.clip_library_draft = None;
+            self.clip_library_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2986,9 +2986,12 @@ impl Studio {
             return;
         }
         let current_actor = self.selected_actor.as_deref().or_else(|| {
-            self.script.as_ref().and_then(|script| script.characters.keys().next().map(String::as_str))
+            self.script
+                .as_ref()
+                .and_then(|script| script.characters.keys().next().map(String::as_str))
         });
-        if source != self.source || scene_index != self.scene_index || current_actor != Some(actor) {
+        if source != self.source || scene_index != self.scene_index || current_actor != Some(actor)
+        {
             self.status = "Clip library belongs to an earlier source, scene or actor; reload before applying.".into();
             self.clip_library_draft = None;
             return;
@@ -2998,21 +3001,41 @@ impl Studio {
     }
 
     fn clip_library_ui(&mut self, ui: &mut egui::Ui) {
-        let Some(script) = &self.script else { return; };
-        let Some(actor) = self.selected_actor.as_deref().or_else(|| script.characters.keys().next().map(String::as_str)) else { return; };
-        if !self.clip_library_draft.as_ref().is_some_and(|(source, index, selected, _)| {
-            source == &self.source && *index == self.scene_index && selected == actor
-        }) {
-            self.clip_library_draft = Some((self.source.clone(), self.scene_index, actor.into(), clip_library::State::default()));
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
+        if !self
+            .clip_library_draft
+            .as_ref()
+            .is_some_and(|(source, index, selected, _)| {
+                source == &self.source && *index == self.scene_index && selected == actor
+            })
+        {
+            self.clip_library_draft = Some((
+                self.source.clone(),
+                self.scene_index,
+                actor.into(),
+                clip_library::State::default(),
+            ));
         }
         let mut action = None;
-        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy, |ui| {
-            egui::CollapsingHeader::new("Authored clip library").show(ui, |ui| {
-                if let Some((_, _, _, draft)) = &mut self.clip_library_draft {
-                    action = draft.ui(ui, script, self.scene_index, actor);
-                }
-            });
-        });
+        ui.add_enabled_ui(
+            !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
+            |ui| {
+                egui::CollapsingHeader::new("Authored clip library").show(ui, |ui| {
+                    if let Some((_, _, _, draft)) = &mut self.clip_library_draft {
+                        action = draft.ui(ui, script, self.scene_index, actor);
+                    }
+                });
+            },
+        );
         if let Some(action) = action {
             let source = self.source.clone();
             let actor = actor.to_string();
@@ -5738,26 +5761,53 @@ mod clip_library_integration_tests {
     #[test]
     fn library_actions_are_saved_and_undoable_without_live_references() {
         let mut studio = studio();
-        studio.apply_library_action(clip_library::Action::Capture { name: "nod".into(), replace: false }, SOURCE, 0, "A");
+        studio.apply_library_action(
+            clip_library::Action::Capture {
+                name: "nod".into(),
+                replace: false,
+            },
+            SOURCE,
+            0,
+            "A",
+        );
         let captured = studio.source.clone();
         assert_ne!(captured, SOURCE);
         studio.selected_actor = Some("B".into());
-        studio.apply_library_action(clip_library::Action::Apply { name: "nod".into() }, &captured, 0, "B");
+        studio.apply_library_action(
+            clip_library::Action::Apply { name: "nod".into() },
+            &captured,
+            0,
+            "B",
+        );
         let applied = studio.source.clone();
         let script = studio.script.as_ref().unwrap();
-        assert_eq!(script.scenes[0].composition.bone_tracks["A"], script.scenes[0].composition.bone_tracks["B"]);
+        assert_eq!(
+            script.scenes[0].composition.bone_tracks["A"],
+            script.scenes[0].composition.bone_tracks["B"]
+        );
         assert!(!script.scenes[0].composition.bone_tracks["B"].contains_key("left_hand"));
         let document = motion_project::ProjectDocument::new(applied.clone()).unwrap();
         let restored = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
         assert_eq!(restored.source, applied);
-        assert!(motion_script::parse(&restored.source).unwrap().animation_clips.contains_key("nod"));
+        assert!(motion_script::parse(&restored.source)
+            .unwrap()
+            .animation_clips
+            .contains_key("nod"));
         studio.undo_edit(false);
         assert_eq!(studio.source, captured);
         studio.undo_edit(true);
         assert_eq!(studio.source, applied);
-        studio.apply_library_action(clip_library::Action::Remove { name: "nod".into() }, &applied, 0, "B");
+        studio.apply_library_action(
+            clip_library::Action::Remove { name: "nod".into() },
+            &applied,
+            0,
+            "B",
+        );
         assert!(studio.script.as_ref().unwrap().animation_clips.is_empty());
-        assert!(studio.script.as_ref().unwrap().scenes[0].composition.bone_tracks["B"].contains_key("head"));
+        assert!(studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .bone_tracks["B"]
+            .contains_key("head"));
     }
 
     #[test]
@@ -5774,7 +5824,15 @@ mod clip_library_integration_tests {
                 5 => studio.export_busy = true,
                 _ => studio.setup_busy = true,
             }
-            studio.apply_library_action(clip_library::Action::Capture { name: "nod".into(), replace: false }, &expected, 0, "A");
+            studio.apply_library_action(
+                clip_library::Action::Capture {
+                    name: "nod".into(),
+                    replace: false,
+                },
+                &expected,
+                0,
+                "A",
+            );
             assert_eq!(studio.source, SOURCE);
         }
     }

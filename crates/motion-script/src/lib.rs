@@ -288,7 +288,9 @@ pub struct AnimationClip {
 fn valid_clip_name(name: &str) -> bool {
     !name.is_empty()
         && name.len() <= 64
-        && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+        && name
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -601,22 +603,39 @@ pub fn capture_animation_clip(
 ) -> Result<String, Error> {
     edit_source(source, |candidate| {
         if !valid_clip_name(name) {
-            return Err(Error::Validation("clip name requires 1..64 ASCII letters, digits, underscores or hyphens".into()));
+            return Err(Error::Validation(
+                "clip name requires 1..64 ASCII letters, digits, underscores or hyphens".into(),
+            ));
         }
         if candidate.animation_clips.contains_key(name) && !replace {
-            return Err(Error::Validation(format!("clip {name} already exists; explicitly enable replacement")));
+            return Err(Error::Validation(format!(
+                "clip {name} already exists; explicitly enable replacement"
+            )));
         }
         if !candidate.characters.contains_key(actor) {
             return Err(Error::Validation(format!("unknown clip actor {actor}")));
         }
-        let scene = candidate.scenes.get(scene_index).ok_or_else(missing_event)?;
-        let tracks = scene.composition.bone_tracks.get(actor)
+        let scene = candidate
+            .scenes
+            .get(scene_index)
+            .ok_or_else(missing_event)?;
+        let tracks = scene
+            .composition
+            .bone_tracks
+            .get(actor)
             .filter(|tracks| !tracks.is_empty())
-            .ok_or_else(|| Error::Validation(format!("{actor}: author at least one bone track before capturing a clip")))?;
-        candidate.animation_clips.insert(name.into(), AnimationClip {
-            duration: scene.duration,
-            bone_tracks: tracks.clone(),
-        });
+            .ok_or_else(|| {
+                Error::Validation(format!(
+                    "{actor}: author at least one bone track before capturing a clip"
+                ))
+            })?;
+        candidate.animation_clips.insert(
+            name.into(),
+            AnimationClip {
+                duration: scene.duration,
+                bone_tracks: tracks.clone(),
+            },
+        );
         Ok(())
     })
 }
@@ -632,13 +651,24 @@ pub fn apply_animation_clip(
         if !candidate.characters.contains_key(actor) {
             return Err(Error::Validation(format!("unknown clip actor {actor}")));
         }
-        let clip = candidate.animation_clips.get(name)
+        let clip = candidate
+            .animation_clips
+            .get(name)
             .ok_or_else(|| Error::Validation(format!("unknown animation clip {name}")))?;
-        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
         if clip.duration > scene.duration {
-            return Err(Error::Validation(format!("clip {name} duration {} exceeds target scene duration {}; clips are not retimed", clip.duration, scene.duration)));
+            return Err(Error::Validation(format!(
+                "clip {name} duration {} exceeds target scene duration {}; clips are not retimed",
+                clip.duration, scene.duration
+            )));
         }
-        scene.composition.bone_tracks.insert(actor.into(), clip.bone_tracks.clone());
+        scene
+            .composition
+            .bone_tracks
+            .insert(actor.into(), clip.bone_tracks.clone());
         Ok(())
     })
 }
@@ -646,7 +676,9 @@ pub fn apply_animation_clip(
 /// Remove only the library entry; previously applied independent tracks remain intact.
 pub fn remove_animation_clip(source: &str, name: &str) -> Result<String, Error> {
     edit_source(source, |candidate| {
-        candidate.animation_clips.remove(name)
+        candidate
+            .animation_clips
+            .remove(name)
             .ok_or_else(|| Error::Validation(format!("unknown animation clip {name}")))?;
         Ok(())
     })
@@ -770,9 +802,14 @@ impl Script {
                 library_keys = library_keys.saturating_add(keys.len());
                 if library_keys > 65536
                     || !HUMANOID_BONES.contains(&bone.as_str())
-                    || keys.iter().any(|key| key.at > clip.duration
-                        || !motion_animation::valid_humanoid_offset(key.animation_key().value))
-                    || motion_animation::Track::new(keys.iter().map(ActorKey::animation_key).collect()).is_err()
+                    || keys.iter().any(|key| {
+                        key.at > clip.duration
+                            || !motion_animation::valid_humanoid_offset(key.animation_key().value)
+                    })
+                    || motion_animation::Track::new(
+                        keys.iter().map(ActorKey::animation_key).collect(),
+                    )
+                    .is_err()
                 {
                     return Err(fail(format!("clip {name}: require original rig bones, 1..4096 increasing finite keys within the clip, bounded offsets/rotation within ±1000, scale 0.1..4, and at most 65536 library keys")));
                 }
@@ -2188,23 +2225,42 @@ mod animation_library_tests {
         let parsed = parse(&captured).unwrap();
         let clip = parsed.animation_clips["Head-1"].clone();
         assert_eq!(clip.duration, 4.0);
-        assert_eq!(clip.bone_tracks, parsed.scenes[0].composition.bone_tracks["A"]);
+        assert_eq!(
+            clip.bone_tracks,
+            parsed.scenes[0].composition.bone_tracks["A"]
+        );
         assert!(capture_animation_clip(&captured, 0, "B", "Head-1", false).is_err());
         let replaced = capture_animation_clip(&captured, 0, "B", "Head-1", true).unwrap();
-        assert!(parse(&replaced).unwrap().animation_clips["Head-1"].bone_tracks.contains_key("chest"));
+        assert!(parse(&replaced).unwrap().animation_clips["Head-1"]
+            .bone_tracks
+            .contains_key("chest"));
         let same_scene = apply_animation_clip(&captured, 0, "B", "Head-1").unwrap();
-        assert_eq!(parse(&same_scene).unwrap().scenes[0].composition.bone_tracks["A"], clip.bone_tracks);
+        assert_eq!(
+            parse(&same_scene).unwrap().scenes[0]
+                .composition
+                .bone_tracks["A"],
+            clip.bone_tracks
+        );
         let applied = apply_animation_clip(&captured, 1, "B", "Head-1").unwrap();
         let parsed = parse(&applied).unwrap();
-        assert_eq!(parsed.scenes[1].composition.bone_tracks["B"], clip.bone_tracks);
+        assert_eq!(
+            parsed.scenes[1].composition.bone_tracks["B"],
+            clip.bone_tracks
+        );
         assert!(!parsed.scenes[1].composition.bone_tracks["B"].contains_key("chest"));
-        assert_eq!(parsed.scenes[0].composition, parse(&captured).unwrap().scenes[0].composition);
+        assert_eq!(
+            parsed.scenes[0].composition,
+            parse(&captured).unwrap().scenes[0].composition
+        );
         let deleted_actor = remove_character(&captured, "A").unwrap();
         assert!(apply_animation_clip(&deleted_actor, 1, "B", "Head-1").is_ok());
         let removed = remove_animation_clip(&applied, "Head-1").unwrap();
         let parsed = parse(&removed).unwrap();
         assert!(parsed.animation_clips.is_empty());
-        assert_eq!(parsed.scenes[1].composition.bone_tracks["B"], clip.bone_tracks);
+        assert_eq!(
+            parsed.scenes[1].composition.bone_tracks["B"],
+            clip.bone_tracks
+        );
         assert!(remove_animation_clip(&removed, "Head-1").is_err());
         assert!(apply_animation_clip(&captured, 2, "B", "Head-1").is_err());
         assert!(apply_animation_clip(&captured, 1, "unknown", "Head-1").is_err());
@@ -2217,7 +2273,8 @@ mod animation_library_tests {
     }
     #[test]
     fn library_schema_and_numeric_boundaries_are_strict() {
-        let base = parse(&capture_animation_clip(&source(), 0, "A", "clip", false).unwrap()).unwrap();
+        let base =
+            parse(&capture_animation_clip(&source(), 0, "A", "clip", false).unwrap()).unwrap();
         let invalid = |edit: fn(&mut AnimationClip)| {
             let mut script = base.clone();
             edit(script.animation_clips.get_mut("clip").unwrap());
@@ -2228,14 +2285,21 @@ mod animation_library_tests {
             |clip| clip.duration = 0.0,
             |clip| clip.duration = 600.001,
             |clip| clip.bone_tracks.clear(),
-            |clip| { clip.bone_tracks.insert("tail".into(), vec![ActorKey::default()]); },
-            |clip| { clip.bone_tracks.get_mut("head").unwrap().clear(); },
+            |clip| {
+                clip.bone_tracks
+                    .insert("tail".into(), vec![ActorKey::default()]);
+            },
+            |clip| {
+                clip.bone_tracks.get_mut("head").unwrap().clear();
+            },
             |clip| clip.bone_tracks.get_mut("head").unwrap()[0].at = -1.0,
             |clip| clip.bone_tracks.get_mut("head").unwrap()[0].x = f64::INFINITY,
             |clip| clip.bone_tracks.get_mut("head").unwrap()[0].scale_x = 0.0,
             |clip| clip.bone_tracks.get_mut("head").unwrap()[1].at = 0.0,
             |clip| clip.bone_tracks.get_mut("head").unwrap()[1].at = 4.001,
-        ] { invalid(edit); }
+        ] {
+            invalid(edit);
+        }
         let mut yaml = serde_yaml::to_value(&base).unwrap();
         yaml["animation_clips"]["clip"]["unknown"] = serde_yaml::Value::Bool(true);
         assert!(parse(&serde_yaml::to_string(&yaml).unwrap()).is_err());
@@ -2243,7 +2307,9 @@ mod animation_library_tests {
         assert!(parse(&yaml.replace("bone_tracks:", "unknown_tracks:")).is_err());
         let mut max = base.clone();
         let clip = max.animation_clips["clip"].clone();
-        for i in 1..64 { max.animation_clips.insert(format!("clip{i}"), clip.clone()); }
+        for i in 1..64 {
+            max.animation_clips.insert(format!("clip{i}"), clip.clone());
+        }
         assert!(max.validate().is_ok());
         max.animation_clips.insert("overflow".into(), clip);
         assert!(max.validate().is_err());
@@ -2251,16 +2317,41 @@ mod animation_library_tests {
     #[test]
     fn library_key_budget_is_global_and_per_track_is_bounded() {
         let mut script = parse(&source()).unwrap();
-        let keys: Vec<_> = (0..4096).map(|i| ActorKey { at: i as f64 / 10.0, ..ActorKey::default() }).collect();
-        let clip = AnimationClip { duration: 600.0, bone_tracks: BTreeMap::from([("head".into(), keys.clone())]) };
-        for i in 0..16 { script.animation_clips.insert(format!("c{i}"), clip.clone()); }
+        let keys: Vec<_> = (0..4096)
+            .map(|i| ActorKey {
+                at: i as f64 / 10.0,
+                ..ActorKey::default()
+            })
+            .collect();
+        let clip = AnimationClip {
+            duration: 600.0,
+            bone_tracks: BTreeMap::from([("head".into(), keys.clone())]),
+        };
+        for i in 0..16 {
+            script.animation_clips.insert(format!("c{i}"), clip.clone());
+        }
         assert!(script.validate().is_ok());
-        script.animation_clips.insert("overflow".into(), AnimationClip { duration: 1.0, bone_tracks: BTreeMap::from([("head".into(), vec![ActorKey::default()])]) });
+        script.animation_clips.insert(
+            "overflow".into(),
+            AnimationClip {
+                duration: 1.0,
+                bone_tracks: BTreeMap::from([("head".into(), vec![ActorKey::default()])]),
+            },
+        );
         assert!(script.validate().is_err());
         script.animation_clips.clear();
         let mut too_many = keys;
-        too_many.push(ActorKey { at: 410.0, ..ActorKey::default() });
-        script.animation_clips.insert("too-many".into(), AnimationClip { duration: 600.0, bone_tracks: BTreeMap::from([("head".into(), too_many)]) });
+        too_many.push(ActorKey {
+            at: 410.0,
+            ..ActorKey::default()
+        });
+        script.animation_clips.insert(
+            "too-many".into(),
+            AnimationClip {
+                duration: 600.0,
+                bone_tracks: BTreeMap::from([("head".into(), too_many)]),
+            },
+        );
         assert!(script.validate().is_err());
         let long_scene = source().replace("duration: 4", "duration: 601");
         assert!(capture_animation_clip(&long_scene, 0, "A", "too-long", false).is_err());
