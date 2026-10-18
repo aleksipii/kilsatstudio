@@ -440,7 +440,7 @@ mod tests {
     #[test]
     fn decoded_full_image_comparison_reports_interior_and_edges() {
         let mut reference = vec![128u8; 64 * 64 * 4];
-        for p in reference.chunks_exact_mut(4) {
+        for p in reference.as_chunks_mut::<4>().0 {
             p[3] = 255;
         }
         let center = (32 * 64 + 32) * 4;
