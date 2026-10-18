@@ -211,7 +211,7 @@ above describe the historical first-package boundary; PR #41 completes that
 bounded extension. Loops, joint masks, custom rigs and general mixing remain open.
 
 
-## Live looping and joint selection (source implemented; CI/integration pending)
+## Live looping and joint selection (PR #43 integrated)
 
 The next bounded extension adds strict, defaulted `ClipInstance.looping: bool`
 and `joint_mask: Vec<String>`. False/empty preserve existing projects exactly.
@@ -240,8 +240,8 @@ backward seeks, masked source-order blending and fades that continue across loop
 boundaries. Actual SVG/PNG and sample-clock preview fixtures compare independently
 authored hand offsets, preserve an excluded head track, distinguish masked/all
 joint output and verify project round trips and default compatibility. These are
-source tests awaiting final CI; no physical motion or performance acceptance is
-claimed. Export work preflight counts modulo and bounded joint-selection checks.
+tests passed in final Linux/macOS CI; no physical motion or performance
+acceptance is claimed. Export work preflight counts modulo and bounded joint-selection checks.
 
 Historical deferred entries in PR #40/#41 above retain their original package
 boundaries. This extension addresses looping and original-rig joint masks only.

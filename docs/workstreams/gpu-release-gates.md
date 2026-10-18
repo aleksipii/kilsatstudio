@@ -30,7 +30,12 @@ The real-adapter test remains explicitly opt-in/ignored in default tests.
 Implement a default-disabled, offscreen **experimental subset**, separate from
 production backend selection. Its purpose is to replace fixture-only geometry
 with the actual evaluated-scene input without hiding unsupported features.
-Nothing in this subsection is marked implemented.
+PR #43 integrated a narrower evaluated-geometry experiment with explicit label
+omission, genuine shader composition, bounded readback, shader/command tests and
+decoded RGBA metrics. See [implemented experiment](../gpu-evaluated-scene.md).
+The broader target in this subsection is not fully implemented or accepted:
+font labels, artwork, transitions, PNG raster comparisons and real Metal evidence
+remain open. Existing checkbox gates below retain those broader requirements.
 
 Files and interfaces:
 

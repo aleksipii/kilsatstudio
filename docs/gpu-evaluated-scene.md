@@ -59,3 +59,8 @@ shader validation, geometry/transform/viseme/budget tests and decoded-image metr
 tests do not prove Metal execution. Actual Metal runs, complete-image edge
 acceptance, performance and full scene parity remain open in
 [the GPU release gates](workstreams/gpu-release-gates.md).
+
+PR #43 integrated the experiment after Linux/macOS optional-feature compilation,
+strict Clippy, adapter-free shader/command/metric tests and default regression
+checks passed. Exact evidence is in [master progress](master-progress.md).
+No adapter was requested by those tests; real GPU/parity acceptance stays open.

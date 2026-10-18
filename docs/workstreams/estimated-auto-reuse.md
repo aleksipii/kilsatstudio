@@ -1,6 +1,6 @@
 # Automatic estimated-result reuse workstream
 
-Status: input-index foundation implemented in source; CI acceptance pending,
+Status: input-index foundation integrated in PR #43 after Linux/macOS CI,
 2026-10-18. Production automatic engine memoization is **not enabled or accepted**. This document
 does not establish the contents, behavior or licenses of a real Rhubarb package.
 No recognizer, model download or hardware test was run for this inspection.
@@ -48,7 +48,8 @@ corruption and dangling archive errors, immutable conflicting outputs, concurren
 publication, cancellation during fingerprinting/before I/O and cancellation after
 archive/staging creation. They establish storage control flow only; execution and
 quality evidence for a real offline package remain separate. These tests are
-written but CI acceptance is pending for this source change.
+passed in Linux/macOS CI; see [master progress](../master-progress.md) for exact
+evidence.
 
 
 `motion-lipsync/src/estimated_cache.rs` stores immutable complete
@@ -194,7 +195,7 @@ storage rather than claiming hard real-time cancellation.
 ## Actual blocker and delivery boundary
 
 Input identity, bounded index storage and explicit worker origin/bypass status are
-implemented in source with synthetic fixtures; CI acceptance is pending. Enabling automatic hits for arbitrary configured Rhubarb
+integrated in PR #43 with synthetic fixtures after Linux/macOS CI. Enabling automatic hits for arbitrary configured Rhubarb
 executables cannot be justified from this repository: there is no inspected,
 pinned execution-resource/dependency closure or controlled process environment.
 The next deliverable must connect lookup/miss execution/publication using one

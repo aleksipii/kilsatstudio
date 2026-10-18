@@ -7,8 +7,9 @@ later is required (`tomllib`); preview CI uses Python 3.12.
 
 The [macOS preview workflow](../.github/workflows/macos-preview.yml) now captures
 these inputs and requests collection after the signed ZIP and package-audit
-sidecar exist. Integration is pending CI verification; this document records no
-new physical Mac or model run.
+sidecar exist. PR #43 integrated this collection after Linux/macOS CI verification; exact run
+and artifact evidence is in [master progress](master-progress.md). This document
+records no new physical Mac or model run.
 
 ## Inputs and command
 

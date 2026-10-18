@@ -148,3 +148,16 @@ not available in this mapping. Original wheel hashes/transitive lock, exact
 upstream license/NOTICE corpus, native-library/source obligations and pinned
 model/voice/language rights remain unresolved. Human review must assess the
 assembled boundary before any redistribution clearance claim. PR #42 implements the bounded inventory validator, not these release approvals.
+
+## Build observations added in PR #43
+
+CI now retains separate target-filtered resolved workspace Cargo closures for
+desktop/helper, enabled features, lock checksums, compiler/Cargo identity and
+post-signing final-ZIP member hashes with native architecture/library observations.
+The offline collector rehashes the final ZIP and both member bytes and binds the
+input observations to the package audit. See [build evidence](../build-evidence.md)
+and [master progress](../master-progress.md) for final checks and exact artifact.
+These are resolved dependency observations, not exact compile-unit/embedded
+component proof. License texts, choices, source obligations and upstream rights
+remain unreviewed; `distribution_approved` stays false. No physical device,
+real recognizer, inference or Metal execution acceptance is granted.

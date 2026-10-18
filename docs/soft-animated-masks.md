@@ -1,6 +1,6 @@
 # Soft and animated elliptical artwork masks
 
-Implementation is awaiting integration and CI verification. This feature adds
+Integrated in PR #43 after Linux/macOS CI verification. This feature adds
 inward feathering and scene-local animation to elliptical artwork masks. It does
 not complete the artist-tool workstream or GPU rendering parity.
 
@@ -96,8 +96,9 @@ transactional rejection, individual/document key budgets, native draft validatio
 and history behavior. Pixel tests compare independently authored static masks
 with animated samples, repeated preview seeks, SVG rasterization and PNG output.
 They also check known radial coverage, rejection of keys beyond the scene and
-export work rejection before a destination is created. These tests have not yet
-been run in this change's CI at the time this guide was written.
+export work rejection before a destination is created. Linux/macOS CI passed these tests; exact source, runs and package evidence are
+recorded in [master progress](master-progress.md). This does not establish
+physical Mac rendering acceptance.
 
 Still open: groups and nested group compositing, feathered polygons, arbitrary
 animated mask paths, mask painting and erasing, pressure-sensitive brush input,

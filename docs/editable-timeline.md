@@ -61,7 +61,8 @@ UI. The JSON example above documents the serializable API format.
 New tests cover the JSON round trip, stable IDs after reordering, exact sample
 boundaries, atomic invalid edits, unknown versions and references, crossfade
 rules, deterministic overlap seeking and preservation of authored camera tracks.
-Workspace and desktop integration checks are pending CI for this change.
+Workspace and desktop integration checks passed Linux/macOS CI in PR #43.
+Exact evidence is recorded in [master progress](master-progress.md).
 
 This is a bounded scene-order/duration editing step. General editing of compiled
 event tracks, event retiming, a versioned compiled-track interchange format,
