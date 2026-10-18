@@ -6,6 +6,7 @@ mod art_resources;
 mod asset_worker;
 mod bone_editor;
 mod clip_editor;
+mod clip_library;
 mod composition_editor;
 mod demo;
 mod event_editor;
@@ -128,6 +129,7 @@ struct Studio {
     bone_draft: Option<(String, bone_editor::Draft)>,
     clip_draft: Option<(String, clip_editor::Draft)>,
     clip_track_draft: Option<(String, clip_editor::TrackDraft)>,
+    clip_library_draft: Option<(String, usize, String, clip_library::State)>,
     selected_bone: String,
     asset_worker: asset_worker::Worker,
     asset_pending: Option<(String, String, motion_project::ProjectDocument)>,
@@ -266,6 +268,7 @@ impl Default for Studio {
             sequence_art_revision: 0,
             keyframe_draft: None,
             bone_draft: None,
+            clip_library_draft: None,
             clip_draft: None,
             clip_track_draft: None,
             selected_bone: "hip".into(),
@@ -1094,6 +1097,7 @@ impl Studio {
         self.bone_draft = None;
         self.clip_draft = None;
         self.clip_track_draft = None;
+        self.clip_library_draft = None;
         self.document_changed();
         self.settings_draft = None;
         self.settings_draft_source = None;
@@ -1118,6 +1122,7 @@ impl Studio {
         self.bone_draft = None;
         self.clip_draft = None;
         self.clip_track_draft = None;
+        self.clip_library_draft = None;
         self.settings_draft = None;
         self.settings_draft_source = None;
         self.settings_error = None;
@@ -2879,6 +2884,7 @@ impl Studio {
                     .into();
             self.clip_draft = None;
             self.clip_track_draft = None;
+        self.clip_library_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2905,6 +2911,7 @@ impl Studio {
                 "Animated strengths draft belongs to an earlier source, scene or actor; reload before applying."
                     .into();
             self.clip_track_draft = None;
+        self.clip_library_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2965,6 +2972,51 @@ impl Studio {
             self.apply_clip_draft();
         } else if apply_track {
             self.apply_clip_track_draft();
+        }
+    }
+
+    fn apply_library_action(
+        &mut self,
+        action: clip_library::Action,
+        source: &str,
+        scene_index: usize,
+        actor: &str,
+    ) {
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        let current_actor = self.selected_actor.as_deref().or_else(|| {
+            self.script.as_ref().and_then(|script| script.characters.keys().next().map(String::as_str))
+        });
+        if source != self.source || scene_index != self.scene_index || current_actor != Some(actor) {
+            self.status = "Clip library belongs to an earlier source, scene or actor; reload before applying.".into();
+            self.clip_library_draft = None;
+            return;
+        }
+        let result = action.apply(&self.source, scene_index, actor);
+        self.apply_structure(result);
+    }
+
+    fn clip_library_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else { return; };
+        let Some(actor) = self.selected_actor.as_deref().or_else(|| script.characters.keys().next().map(String::as_str)) else { return; };
+        if !self.clip_library_draft.as_ref().is_some_and(|(source, index, selected, _)| {
+            source == &self.source && *index == self.scene_index && selected == actor
+        }) {
+            self.clip_library_draft = Some((self.source.clone(), self.scene_index, actor.into(), clip_library::State::default()));
+        }
+        let mut action = None;
+        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy, |ui| {
+            egui::CollapsingHeader::new("Authored clip library").show(ui, |ui| {
+                if let Some((_, _, _, draft)) = &mut self.clip_library_draft {
+                    action = draft.ui(ui, script, self.scene_index, actor);
+                }
+            });
+        });
+        if let Some(action) = action {
+            let source = self.source.clone();
+            let actor = actor.to_string();
+            self.apply_library_action(action, &source, self.scene_index, &actor);
         }
     }
 
@@ -3074,6 +3126,7 @@ impl Studio {
         self.keyframe_inspector_ui(ui);
         self.bone_inspector_ui(ui);
         self.clip_inspector_ui(ui);
+        self.clip_library_ui(ui);
         self.voice_inspector_ui(ui);
         self.event_inspector_ui(ui);
         ui.add_space(12.0);
@@ -5665,6 +5718,64 @@ mod animated_strength_integration_tests {
             }
             studio.apply_clip_track_draft();
             assert_eq!(studio.source, original);
+        }
+    }
+}
+
+#[cfg(test)]
+mod clip_library_integration_tests {
+    use super::*;
+    const SOURCE: &str = "project: {width: 64, height: 64}\ncharacters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 1, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 12}]}, B: {left_hand: [{at: 0, y: 5}]}}}}]";
+
+    fn studio() -> Studio {
+        let mut studio = Studio::default();
+        studio.source = SOURCE.into();
+        studio.validate();
+        studio.selected_actor = Some("A".into());
+        studio
+    }
+
+    #[test]
+    fn library_actions_are_saved_and_undoable_without_live_references() {
+        let mut studio = studio();
+        studio.apply_library_action(clip_library::Action::Capture { name: "nod".into(), replace: false }, SOURCE, 0, "A");
+        let captured = studio.source.clone();
+        assert_ne!(captured, SOURCE);
+        studio.selected_actor = Some("B".into());
+        studio.apply_library_action(clip_library::Action::Apply { name: "nod".into() }, &captured, 0, "B");
+        let applied = studio.source.clone();
+        let script = studio.script.as_ref().unwrap();
+        assert_eq!(script.scenes[0].composition.bone_tracks["A"], script.scenes[0].composition.bone_tracks["B"]);
+        assert!(!script.scenes[0].composition.bone_tracks["B"].contains_key("left_hand"));
+        let document = motion_project::ProjectDocument::new(applied.clone()).unwrap();
+        let restored = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        assert_eq!(restored.source, applied);
+        assert!(motion_script::parse(&restored.source).unwrap().animation_clips.contains_key("nod"));
+        studio.undo_edit(false);
+        assert_eq!(studio.source, captured);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, applied);
+        studio.apply_library_action(clip_library::Action::Remove { name: "nod".into() }, &applied, 0, "B");
+        assert!(studio.script.as_ref().unwrap().animation_clips.is_empty());
+        assert!(studio.script.as_ref().unwrap().scenes[0].composition.bone_tracks["B"].contains_key("head"));
+    }
+
+    #[test]
+    fn library_actions_reject_stale_or_busy_context_without_source_changes() {
+        for context in 0..7 {
+            let mut studio = studio();
+            let mut expected = SOURCE.to_string();
+            match context {
+                0 => expected.push(' '),
+                1 => studio.scene_index = 1,
+                2 => studio.selected_actor = Some("B".into()),
+                3 => studio.busy = true,
+                4 => studio.diagnostics_busy = true,
+                5 => studio.export_busy = true,
+                _ => studio.setup_busy = true,
+            }
+            studio.apply_library_action(clip_library::Action::Capture { name: "nod".into(), replace: false }, &expected, 0, "A");
+            assert_eq!(studio.source, SOURCE);
         }
     }
 }
