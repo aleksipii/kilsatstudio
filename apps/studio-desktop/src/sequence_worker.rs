@@ -31,6 +31,12 @@ pub struct PrepareRequest {
     pub art: ArtContext,
     pub cancel: CancellationToken,
 }
+pub enum ExportFormat {
+    Png,
+    Svg,
+    Mp4 { ffmpeg: PathBuf },
+}
+
 pub enum Task {
     Prepare(Box<PrepareRequest>),
     Frame {
@@ -43,7 +49,7 @@ pub enum Task {
         generation: u64,
         prepared: Arc<Prepared>,
         destination: PathBuf,
-        ffmpeg: Option<PathBuf>,
+        format: ExportFormat,
         cancel: CancellationToken,
     },
 }
@@ -209,7 +215,7 @@ fn execute(task: Task, progress: &impl Fn(Update)) -> Update {
             generation,
             prepared,
             destination,
-            ffmpeg,
+            format,
             cancel,
         } => {
             let report = |p| {
@@ -218,8 +224,8 @@ fn execute(task: Task, progress: &impl Fn(Update)) -> Update {
                     progress: p,
                 })
             };
-            let result = match ffmpeg {
-                Some(ffmpeg) => motion_export::export_mp4_sequence(
+            let result = match format {
+                ExportFormat::Mp4 { ffmpeg } => motion_export::export_mp4_sequence(
                     &prepared.script,
                     &prepared.rendered,
                     Some(&prepared.art),
@@ -228,7 +234,15 @@ fn execute(task: Task, progress: &impl Fn(Update)) -> Update {
                     &cancel,
                     report,
                 ),
-                None => motion_export::export_png_sequence(
+                ExportFormat::Svg => motion_export::export_svg_sequence(
+                    &prepared.script,
+                    &prepared.rendered,
+                    Some(&prepared.art),
+                    &destination,
+                    &cancel,
+                    report,
+                ),
+                ExportFormat::Png => motion_export::export_png_sequence(
                     &prepared.script,
                     &prepared.rendered,
                     Some(&prepared.art),
@@ -382,6 +396,47 @@ mod tests {
         assert!(prepared.audio.samples.iter().all(|s| *s == 0.0));
         assert!(prepared.alignment_statuses.is_empty());
     }
+    #[test]
+    fn worker_exports_selected_vector_or_raster_format_without_encoder() {
+        let worker = Worker::new();
+        worker.submit(Task::Prepare(Box::new(request(7)))).unwrap();
+        let Update::Prepared { result, .. } = finish(&worker) else {
+            panic!("wrong update")
+        };
+        let prepared = result.unwrap();
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "native-sequence-export-{}-{unique}",
+            std::process::id()
+        ));
+        std::fs::create_dir(&root).unwrap();
+        for (format, extension) in [(ExportFormat::Svg, "svg"), (ExportFormat::Png, "png")] {
+            let destination = root.join(extension);
+            worker
+                .submit(Task::Export {
+                    generation: 7,
+                    prepared: prepared.clone(),
+                    destination: destination.clone(),
+                    format,
+                    cancel: CancellationToken::new(),
+                })
+                .unwrap();
+            let Update::Exported { generation, result } = finish(&worker) else {
+                panic!("wrong update")
+            };
+            assert_eq!(generation, 7);
+            assert!(result.unwrap().frame_count > 0);
+            assert!(destination.join("audio.wav").is_file());
+            assert!(std::fs::read_dir(&destination).unwrap().any(|entry| {
+                entry.unwrap().path().extension().is_some_and(|value| value == extension)
+            }));
+        }
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
     #[test]
     fn queue_is_bounded_until_completion_is_consumed_and_cancel_keeps_generation() {
         let worker = Worker::new();

@@ -48,15 +48,17 @@ the original aspect ratio within that bound. EOF is excluded. Preview performs
 no synthesis or downloads and accepts already prepared scene audio/manifests.
 
 The native panel runs preparation, raster preview and export on a bounded worker.
-Its PNG/WAV and MP4 export controls require a new absolute output directory; MP4
+Its PNG/WAV, SVG/WAV and MP4 export controls require a new absolute output directory; MP4
 requires an explicit absolute path to an existing local FFmpeg executable.
 Preparation uses the configured local runtime and can be cancelled. Physical
 Mac playback and speech-transition synchronization still need device acceptance.
 
-## Headless PNG/WAV and MP4 export
+## Headless SVG/WAV, PNG/WAV and MP4 export
 
 ```sh
 cargo run -p motion-export --example render_sequence -- examples/scene-sequence.yaml inputs.json /absolute/new-output png
+# Vector scene frames with the same mixed audio and transition manifest:
+cargo run -p motion-export --example render_sequence -- examples/scene-sequence.yaml inputs.json /absolute/new-vector-output svg
 # A saved project includes artwork and resolves its bounded local image assets:
 cargo run -p motion-export --example render_sequence -- /absolute/project.kilsat inputs.json /absolute/new-video mp4 /absolute/ffmpeg
 ```
@@ -74,15 +76,30 @@ Input paths resolve relative to `inputs.json`. Manifests use the existing
 single-scene audio format, with exact scene IDs and rounded sample lengths.
 The CLI bounds aggregate manifest bytes to 8 MiB and WAV bytes to 128 MiB before
 retaining inputs. It performs no synthesis or download. The library
-`export_png_sequence` and `export_mp4_sequence` also accept an optional
+`export_svg_sequence`, `export_png_sequence` and `export_mp4_sequence` accept an optional
 `ArtContext`. The CLI accepts YAML or `.kilsat`; project image resources use
 validated canonical resolution and aggregate limits of 32 MiB encoded images
-and 16 million decoded pixels. There is no SVG sequence option.
+and 16 million decoded pixels.
 
-Output contains numbered `frame-000000.png` files, mixed `audio.wav`, and
+Output contains numbered `frame-000000.svg` or `frame-000000.png` files, mixed `audio.wav`, and
 `sequence.json` with dimensions, ordered scene spans, local/global sample indices
 and contribution weights. Destination must not exist. Cancellation/errors clean
 only the newly created output directory.
+
+SVG retains vector geometry, paths, masks and embedded project image assets; it
+does not flatten the complete frame to a PNG. Each contributing scene uses its
+own local sample time and its generated SVG IDs/references are namespaced, so
+camera/artwork clip definitions cannot collide between scenes. During a
+crossfade the complete opaque outgoing scene remains underneath the complete
+incoming scene, whose group opacity is the incoming weight. Applying opacity
+to both stacked scenes would give incorrect weights. The mixed WAV and manifest
+use the same clock and contributions as PNG/MP4.
+
+SVG serialization and antialiasing can round pixels differently from PNG's
+8-bit channel interpolation; raster comparison tests allow a small documented
+channel tolerance. These fixtures do not establish identical appearance in every
+third-party SVG viewer or physical Mac acceptance. SVG export uses the same
+conservative project preflight limits, plus bounded SVG serialization.
 
 MP4 retains those interchange files and adds `sequence.mp4`; `sequence.json`
 records encoding and codec fields. Both project dimensions must be even for
@@ -99,7 +116,7 @@ are not a process allocator cap; long/high-resolution work can require splitting
 
 ## Still open
 
-SVG sequence export and shared parallel sequence rendering remain open. Project
+Shared parallel sequence rendering remains open. Project SVG/PNG/MP4 export,
 preview and MP4 export are implemented, while automated synthetic fixtures do
 not establish physical Mac synchronization or real speech transition acceptance.
 GPU sequence rendering is not implemented.

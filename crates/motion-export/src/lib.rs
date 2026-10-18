@@ -10,7 +10,7 @@ use motion_script::Script;
 use motion_tts::CancellationToken;
 use motion_voice::export::{RenderedScene, SceneManifest, SAMPLE_RATE};
 pub use sequence::{
-    export_mp4_sequence, export_png_sequence, render_sequence_frame, SequencePreview,
+    export_mp4_sequence, export_png_sequence, export_svg_sequence, render_sequence_frame, SequencePreview,
     SequencePreviewFrame,
 };
 use serde::Serialize;

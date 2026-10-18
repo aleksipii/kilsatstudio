@@ -1,4 +1,4 @@
-//! Headless YAML/.kilsat PNG/WAV or MP4 project export from existing local files.
+//! Headless YAML/.kilsat SVG/WAV, PNG/WAV or MP4 project export from local files.
 //! MP4 requires an explicit local encoder; no synthesis or downloads.
 use serde::Deserialize;
 use std::{
@@ -28,7 +28,7 @@ fn read(path: &Path, limit: u64) -> Result<Vec<u8>, Box<dyn Error>> {
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !(3..=5).contains(&args.len()) {
-        return Err("usage: render_sequence SCRIPT_YAML_OR_KILSAT INPUT_JSON NEW_OUTPUT_DIRECTORY [png|mp4] [ABSOLUTE_FFMPEG]".into());
+        return Err("usage: render_sequence SCRIPT_YAML_OR_KILSAT INPUT_JSON NEW_OUTPUT_DIRECTORY [png|svg|mp4] [ABSOLUTE_FFMPEG]".into());
     }
     let input = Path::new(&args[0]);
     let (source, art) = if input.extension().is_some_and(|e| e == "kilsat") {
@@ -124,8 +124,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         });
     }
     let cancel = motion_tts::CancellationToken::new();
-    let report = match args.get(3).map(String::as_str).unwrap_or("png") {
+    let format = args.get(3).map(String::as_str).unwrap_or("png");
+    let report = match format {
         "png" if args.len() <= 4 => motion_export::export_png_sequence(
+            &script,
+            &rendered,
+            Some(&art),
+            Path::new(&args[2]),
+            &cancel,
+            |_| {},
+        ),
+        "svg" if args.len() <= 4 => motion_export::export_svg_sequence(
             &script,
             &rendered,
             Some(&art),
@@ -142,11 +151,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             &cancel,
             |_| {},
         ),
-        _ => return Err("format must be png, or mp4 with explicit absolute FFmpeg".into()),
+        _ => return Err("format must be png or svg, or mp4 with explicit absolute FFmpeg".into()),
     }?;
     println!(
-        "Exported {} PNG frames plus audio.wav and sequence.json",
-        report.frame_count
+        "Exported {} project frames ({format}) plus audio.wav and sequence.json",
+        report.frame_count,
     );
     Ok(())
 }

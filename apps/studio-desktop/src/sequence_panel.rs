@@ -1,11 +1,41 @@
 //! Native sequence controls. Expensive work belongs to the bounded worker.
 use crate::{
     playback,
-    sequence_worker::{self, Task, Update},
+    sequence_worker::{self, ExportFormat, Task, Update},
 };
 use eframe::egui;
 use motion_tts::CancellationToken;
 use std::{sync::Arc, time::Instant};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ExportChoice {
+    Png,
+    Svg,
+    Mp4,
+}
+
+fn export_request(
+    choice: ExportChoice,
+    destination: &str,
+    ffmpeg: &str,
+) -> Result<(std::path::PathBuf, ExportFormat), String> {
+    let destination = std::path::PathBuf::from(destination.trim());
+    if !destination.is_absolute() {
+        return Err("Use a new absolute output directory.".into());
+    }
+    let format = match choice {
+        ExportChoice::Png => ExportFormat::Png,
+        ExportChoice::Svg => ExportFormat::Svg,
+        ExportChoice::Mp4 => {
+            let ffmpeg = std::path::PathBuf::from(ffmpeg.trim());
+            if !ffmpeg.is_absolute() {
+                return Err("Use an absolute path to local FFmpeg for MP4.".into());
+            }
+            ExportFormat::Mp4 { ffmpeg }
+        }
+    };
+    Ok((destination, format))
+}
 
 pub struct Panel {
     worker: sequence_worker::Worker,
@@ -31,7 +61,7 @@ pub struct Panel {
     status: String,
     destination: String,
     ffmpeg: String,
-    mp4: bool,
+    export_choice: ExportChoice,
 }
 impl Default for Panel {
     fn default() -> Self {
@@ -59,7 +89,7 @@ impl Default for Panel {
             status: "Prepare explicitly to synthesize local project audio.".into(),
             destination: String::new(),
             ffmpeg: String::new(),
-            mp4: false,
+            export_choice: ExportChoice::Png,
         }
     }
 }
@@ -385,8 +415,13 @@ impl Panel {
                     ));
                     ui.label("New absolute output directory");
                     ui.text_edit_singleline(&mut self.destination);
-                    ui.checkbox(&mut self.mp4, "MP4 + WAV (otherwise PNG + WAV)");
-                    if self.mp4 {
+                    ui.horizontal(|ui| {
+                        ui.label("Format");
+                        ui.selectable_value(&mut self.export_choice, ExportChoice::Png, "PNG + WAV");
+                        ui.selectable_value(&mut self.export_choice, ExportChoice::Svg, "SVG + WAV");
+                        ui.selectable_value(&mut self.export_choice, ExportChoice::Mp4, "MP4 + WAV");
+                    });
+                    if self.export_choice == ExportChoice::Mp4 {
                         ui.label("Absolute path to local FFmpeg");
                         ui.text_edit_singleline(&mut self.ffmpeg);
                     }
@@ -397,34 +432,29 @@ impl Panel {
                         )
                         .clicked()
                     {
-                        let destination = std::path::PathBuf::from(self.destination.trim());
-                        let ffmpeg = self
-                            .mp4
-                            .then(|| std::path::PathBuf::from(self.ffmpeg.trim()));
-                        if !destination.is_absolute()
-                            || ffmpeg.as_ref().is_some_and(|p| !p.is_absolute())
-                        {
-                            self.status = "Use absolute output and FFmpeg paths.".into();
-                        } else {
-                            if let Some(player) = &self.player {
-                                let _ = player.stop();
-                            }
-                            self.playing = false;
-                            let cancel = CancellationToken::new();
-                            match self.worker.submit(Task::Export {
-                                generation: self.generation,
-                                prepared: Arc::clone(&prepared),
-                                destination,
-                                ffmpeg,
-                                cancel: cancel.clone(),
-                            }) {
-                                Ok(()) => {
-                                    self.worker_pending = true;
-                                    self.cancel = Some(cancel);
-                                    self.busy = true;
-                                    started = true;
+                        match export_request(self.export_choice, &self.destination, &self.ffmpeg) {
+                            Err(error) => self.status = error,
+                            Ok((destination, format)) => {
+                                if let Some(player) = &self.player {
+                                    let _ = player.stop();
                                 }
-                                Err(error) => self.status = error,
+                                self.playing = false;
+                                let cancel = CancellationToken::new();
+                                match self.worker.submit(Task::Export {
+                                    generation: self.generation,
+                                    prepared: Arc::clone(&prepared),
+                                    destination,
+                                    format,
+                                    cancel: cancel.clone(),
+                                }) {
+                                    Ok(()) => {
+                                        self.worker_pending = true;
+                                        self.cancel = Some(cancel);
+                                        self.busy = true;
+                                        started = true;
+                                    }
+                                    Err(error) => self.status = error,
+                                }
                             }
                         }
                     }
@@ -449,6 +479,31 @@ fn raster_sample(desired: u64, total: u64) -> Option<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn vector_and_raster_exports_do_not_require_ffmpeg() {
+        let output = std::env::temp_dir().join("sequence-format-choice-test");
+        let output = output.to_str().unwrap();
+        assert!(matches!(
+            export_request(ExportChoice::Svg, output, ""),
+            Ok((_, ExportFormat::Svg))
+        ));
+        assert!(matches!(
+            export_request(ExportChoice::Png, output, "relative-unused"),
+            Ok((_, ExportFormat::Png))
+        ));
+        assert!(export_request(ExportChoice::Mp4, output, "").is_err());
+        assert!(export_request(ExportChoice::Mp4, output, "relative-ffmpeg").is_err());
+        for choice in [ExportChoice::Png, ExportChoice::Svg, ExportChoice::Mp4] {
+            assert!(export_request(choice, "relative-output", "").is_err());
+            assert!(export_request(choice, "", "").is_err());
+        }
+        let executable = std::env::temp_dir().join("never-execute-ffmpeg");
+        assert!(matches!(
+            export_request(ExportChoice::Mp4, output, executable.to_str().unwrap()),
+            Ok((_, ExportFormat::Mp4 { ffmpeg })) if ffmpeg == executable
+        ));
+    }
+
     #[test]
     fn source_changes_cancel_and_reject_old_generation() {
         let mut panel = Panel::default();
@@ -517,6 +572,8 @@ mod tests {
         });
         assert!(!panel.busy());
         assert!(panel.prepared.is_none());
+        assert!(!panel.worker_pending);
+        assert!(panel.cancel.is_none());
         assert!(!panel.take_prepare_requested());
     }
 }
