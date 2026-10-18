@@ -9,7 +9,13 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #40 merged as `aeca29cef42efa1b9a9393dfd95ef140ac1aa266` after final Linux/macOS CI passed.
+PR #41 merged as `19667de847753bd1e0c7628e596449da3b061aa7` after final Linux/macOS CI passed.
+Live original-rig layers now support per-instance animated weight curves and
+linear entrance/exit fades, detached native editing, source Undo/Redo and project
+persistence. Exact defaults retain the prior constant-weight behavior. The
+release branch is synchronized with this progress record.
+
+Earlier PR #40 merged as `aeca29cef42efa1b9a9393dfd95ef140ac1aa266` after final Linux/macOS CI passed.
 The first original-rig live clip package now supports constant-weight ordered
 override layers, half-open windows, persistent references, native editing and
 prepared shared preview/export evaluation. Broader blending and hardware gates
@@ -45,7 +51,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
-| Rule clips, authored offsets, project clip capture/reuse/retiming and ordered live original-rig layers; ellipse/polygon masks and multiply/screen CPU composition | Animated clip weights/fades/loops, feathered/image masks, groups and physical Mac compositing acceptance |
+| Rule clips, authored offsets, project clip capture/reuse/retiming and ordered live original-rig layers with weight curves/fades; ellipse/polygon masks and multiply/screen CPU composition | Looping/joint masks, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
@@ -122,7 +128,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Named project-local authored bone clip library with capture/explicit overwrite, inspection, copied-track application and deletion (PR #37).
 - [x] Explicit copied-clip start/duration retiming with native controls, atomic validation and shared tracks (PR #38).
 - [x] Persistent original-rig live clip instances, half-open windows and constant-weight ordered local-offset override blending (PR #40).
-- [ ] Animated clip weights/fades, looping, general additive/masked mixing and cross-project libraries.
+- [x] Per-instance animated weight curves, linear fades, shared sampling and native authoring (PR #41).
+- [ ] Looping, general additive/masked mixing and cross-project libraries.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -176,6 +183,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native project clip library with detached names/selection, explicit replacement/deletion confirmations and unified source history (PR #37).
 - [x] Opt-in clip start/duration controls, explicit reset and replacement confirmation after timing edits (PR #38).
 - [x] Native live-instance editor with saved layer order, source history, reference warnings and cached shared preview (PR #40).
+- [x] Detached fade/key/easing editor with invalid draft preservation, Apply, reset and Undo/Redo (PR #41).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -287,7 +295,7 @@ These gates remain open until all constituent work and acceptance are evidenced.
 - [ ] **M2 — Character animation:** hierarchy, rigging, keyframes/easing, presets,
   expressions/gestures and blending integrated and tested; procedural rig and
   interpolation, root/per-bone editors and additive authored layering are implemented;
-  textured custom rigs, animated clip weights/fades and physical motion acceptance remain open.
+  textured custom rigs, looping/joint masks and physical motion acceptance remain open.
 - [ ] **M3 — Dialogue/lip sync:** import/tracks/mouth/timing foundations implemented;
   reported real M1 Kokoro speech and estimated-cue import are recorded; complete
   Speech Stages 2–4 and quality/hardware gates remain open.
@@ -919,7 +927,8 @@ See [clip library](animation-clip-library.md).
 - [ ] Implement and verify full GPU scene/native parity.
 - [ ] Implement automatic estimated-result lookup with verified resources/environment.
 - [x] Implement the first original-rig persistent live-instance and ordered override package (PR #40).
-- [ ] Extend live layers with animated weights/fades, loops and more general mixing.
+- [x] Extend live layers with animated scalar weights and linear fades (PR #41).
+- [ ] Extend live layers with loops and more general mixing.
 - [ ] Collect and review physical Mac/device/offline/synchronization acceptance evidence.
 - [ ] Complete the final artifact-specific third-party license/redistribution review.
 
@@ -944,8 +953,9 @@ gates. Plans and agent ownership are not completed product acceptance.
 - [x] Validate independent actual SVG/PNG frames, sample-clock preview, seek order,
   overlap order, root/speech stages, library replacement and copied-track independence.
 - [x] Final Linux/macOS CI, independent review and merge.
-- [ ] Animated weights/fades, loops, masks, arbitrary/textured rigs, cross-project
-  exchange and physical/perceptual motion acceptance.
+- [x] Animated weights/fades followed in PR #41; see the integration record below.
+- [ ] Loops, masks, arbitrary/textured rigs, cross-project exchange and
+  physical/perceptual motion acceptance.
 - [ ] Full GPU parity, verified-environment automatic estimated reuse and final
   third-party artifact/license approval.
 
@@ -979,25 +989,37 @@ GPU parity, verified-environment estimated reuse and final licenses remain open.
 See [live clip blending](live-clip-blending.md).
 
 
-## Live clip weight curves and fades (2026-10-18, pending integration)
+## Live clip weight curves and fades (PR #41, merged 2026-10-18)
 
-- [ ] Integrate backward-compatible per-instance linear fades and local scalar
+- [x] Integrate backward-compatible per-instance linear fades and local scalar
   weight keys with outgoing easing and exact static-envelope defaults.
-- [ ] Validate finite durations/multipliers, non-overlapping fades, ordered local
+- [x] Validate finite durations/multipliers, non-overlapping fades, ordered local
   key bounds and 256/8192/65536 instance/scene/project key budgets.
-- [ ] Integrate detached native fade/key authoring, explicit reset/Apply, invalid
+- [x] Integrate detached native fade/key authoring, explicit reset/Apply, invalid
   draft preservation, source Undo/Redo and project persistence.
-- [ ] Account for scalar searches/fades in preview/export work estimates even for
+- [x] Account for scalar searches/fades in preview/export work estimates even for
   inactive/zero layers; reject over-budget output before creating directories.
-- [ ] Validate independently expected actual SVG/PNG/sample-clock preview frames,
+- [x] Validate independently expected actual SVG/PNG/sample-clock preview frames,
   faded base-pose boundaries, overlap order, backwards seeks and old defaults.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Looping, joint masks, custom/textured rigs, cross-project exchange and
   physical/perceptual motion acceptance.
 - [ ] Full GPU parity, verified-environment automatic estimated-result reuse and
   final third-party artifact/license clearance.
 
-Source is pending CI; local Rust tools are unavailable. This is an envelope for
+Final source `9247f6a00c9167e2bc1ec9ffae9caf7518bb2a11` passed Audio foundation 39126660947 and Apple Silicon
+preview 39126660943. CI verified formatting, workspace check, strict Clippy,
+420 default Rust tests on Linux and 419 on macOS, 14 adapter-free GPU
+tests/feature Clippy per platform, 55 runtime and 29 packaging Python tests per
+platform, and three actual encoder tests. Independent review found no remaining
+blocker. The actual-frame fixture binds PCM and manifest duration to the scene;
+frame 8 tests the instance end inside a longer scene. The preflight regression
+rejects dormant zero-weight envelope work before any output directory is created.
+Local Rust tools are unavailable; these execution results come from CI.
+
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39126660943/artifacts/12135693647
+SHA256: `5738e7406bcb8c36b0b08a381b847801b177c0bb1c2a270551567658ac3bc0f0`.
+This post-merge record changes documentation only. This is an envelope for
 ordered override weights, not a normalized or additive mixer. No real recognizer,
 model, GPU device or physical Mac acceptance is performed by fixture tests. See
 [live clip blending](live-clip-blending.md).

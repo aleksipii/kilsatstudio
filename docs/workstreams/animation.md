@@ -187,9 +187,9 @@ reuse the retained snapshot. Export work limits count all live instances, includ
 inactive and zero-weight rows.
 
 
-## Live weight envelopes (source implemented, pending integration)
+## Live weight envelopes (PR #41, integrated 2026-10-18)
 
-The next bounded extension adds `fade_in`, `fade_out` and local
+The integrated bounded extension adds `fade_in`, `fade_out` and local
 `weight_keys: [{time, weight, easing}]` to live instances, defaulting to zero,
 zero and empty. Effective weight multiplies the static value by an endpoint-held
 key curve and linear entrance/exit factors. Keys use instance-local seconds;
@@ -201,5 +201,10 @@ the surrounding evaluator retains its existing bounded pose allocations. Schema
 limits all keys, including inactive/zero layers: 256 per instance, 8192 per scene
 and 65536 per project. Export work accounting includes curve searches/fades.
 Native drafts preserve invalid values and apply through existing source history.
-See [live layer controls](../live-clip-blending.md). CI and final integration are
-still pending; hardware/perceptual acceptance stays open.
+See [live layer controls](../live-clip-blending.md). Final Linux/macOS formatting,
+check, strict Clippy and tests passed: 420/419 default Rust tests, 14 adapter-free
+GPU tests and 55+29 Python tests per platform, plus three actual encoder tests.
+Exact source/run/artifact evidence is in [master progress](../master-progress.md).
+Hardware/perceptual acceptance stays open. Earlier deferred weight/fade entries
+above describe the historical first-package boundary; PR #41 completes that
+bounded extension. Loops, joint masks, custom rigs and general mixing remain open.
