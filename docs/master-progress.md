@@ -9,8 +9,9 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #36 merged as `e49f7add105409ed4d98859d1be4b55ae1c803b1` after its final
-Linux/macOS CI passed. PR #35 merged earlier as
+PR #37 merged as `0aa890bb6fa6ce597ba5f2a21fd942db720b7389` after its final
+Linux/macOS CI passed. PR #36 merged earlier as
+`e49f7add105409ed4d98859d1be4b55ae1c803b1`; PR #35 as
 `6bd988ab162adb64cdcea621bb01600099abbeb2`; PR #34 as
 `f89c59b8113b3b578c82fe648850615e704fdaf0`; PR #33 as
 `504166d85daa15e88f937a777a17123162df5e8a`; PR #32 as
@@ -31,7 +32,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
-| Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and physical Mac compositing acceptance |
+| Rule clips, authored offsets and project-local bone clip capture/reuse; ellipse/polygon masks and multiply/screen CPU composition | Live custom-clip blending/retiming, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
@@ -108,7 +109,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Authored bone offsets layer over rule clips in shared evaluation.
 - [x] Artist-controlled per-scene/actor posture, walk and gesture strengths with shared evaluation (PR #35).
 - [x] Scene-local animated procedural strength tracks with outgoing easing and native editor (PR #36).
-- [ ] Editable custom clips, arbitrary authored clip blending and clip library editing.
+- [x] Named project-local authored bone clip library with capture/explicit overwrite, inspection, copied-track application and deletion (PR #37).
+- [ ] Live custom-clip instances, arbitrary authored clip blending, retiming and cross-project libraries.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -159,6 +161,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native detached per-bone editor and validated ellipse/polygon mask/blend controls.
 - [x] Native procedural layer strength editor with Apply, unified Undo/Redo and project persistence (PR #35).
 - [x] Animated procedural strength key editor with timing/easing, explicit Apply and safe track removal (PR #36).
+- [x] Native project clip library with detached names/selection, explicit replacement/deletion confirmations and unified source history (PR #37).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -813,23 +816,41 @@ rigs, full GPU parity, automatic fresh-engine reuse and physical acceptance rema
 open. See [artist strengths](artist-clip-weights.md) and the
 [dependency audit](dependency-audit.md).
 
-## Project-local authored bone clip library (2026-10-18, pending integration)
+## Project-local authored bone clip library (PR #37, merged 2026-10-18)
 
-- [ ] Integrate bounded, strict named animation clips in project source with
+- [x] Integrate bounded, strict named animation clips in project source with
   original-rig bone tracks, duration and backward-compatible empty defaults.
-- [ ] Integrate atomic capture/explicit overwrite, full target-track replacement
+- [x] Integrate atomic capture/explicit overwrite, full target-track replacement
   and removal; applied copies remain independent of library/source deletion.
-- [ ] Integrate native library capture/selection/inspection, explicit replacement
+- [x] Integrate native library capture/selection/inspection, explicit replacement
   confirmations, unified Undo/Redo, saved projects and stale/busy context guards.
-- [ ] Validate independent expected SVG/PNG frames, sample-clock preview,
+- [x] Validate independent expected SVG/PNG frames, sample-clock preview,
   repeated/backwards seeking and deletion preserving already applied animation.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Live custom clip instances/blending, retiming, arbitrary/textured rigs and
   cross-project library exchange.
 - [ ] Full GPU/native parity, automatic fresh-engine estimated-result reuse,
   physical Mac acceptance and final third-party release license clearance.
 
-Implementation is pending CI. Rust checks require CI because no local toolchain
-is available. These clips copy authored offsets into the existing shared bone
-track evaluator; this does not introduce a general custom-rig runtime or prove
-physical hardware/perceptual acceptance. See [clip library](animation-clip-library.md).
+Final source head `85c5cb5948c17ac1073810744ac22963ee383912` passed Audio
+foundation 39089591769 and Apple Silicon preview 39089591760. CI validated
+formatting, workspace check, strict Clippy, 381 default Rust tests on Linux and
+380 on macOS, 14 adapter-free GPU tests/feature Clippy per platform, 55 runtime
+plus 29 inventory/packaging Python tests and three actual encoder tests.
+Arm64 packaging/signature and license-byte checks passed. The 29 packaging/
+inventory tests also passed locally. Rust checks ran in CI because no local
+toolchain was available. Independent review found no remaining blocker.
+An integration regression caught the general source edit helper clearing the
+target actor selection; accepted library edits now retain that validated actor,
+while stale/busy guards and rejected/noop action behavior remain unchanged.
+Tests cover strict schema/resource bounds, full target replacement, independent
+actor/source-library lifetimes, saved projects, source Undo/Redo and real SVG/PNG
+frames versus independently authored expectations and sample-clock preview.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39089591760/artifacts/12122271546
+SHA256: `781e30c3d8a36021db9e5d8e28182719f7725c8372a369685235ff18588021fc`.
+This post-merge record changes no implementation. No real recognizer/model,
+GPU-device or physical Mac acceptance was performed. These clips copy authored
+offsets into the existing shared evaluator; live instances/blending/retiming,
+custom/textured rigs, full GPU parity, automatic fresh-engine estimated reuse,
+physical acceptance and final third-party licenses remain open.
+See [clip library](animation-clip-library.md).

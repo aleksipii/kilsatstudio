@@ -43,7 +43,8 @@ into `scenes[].composition.bone_tracks`. Unused clips have no rendering effect.
 Limits are 64 clips per project, a positive duration up to 600 seconds, 1–4096
 strictly increasing keys per bone and 65,536 keys across the library. Existing
 finite transform and original-rig offset bounds also apply. Source-edit input
-and output remain limited to one MiB; exceeding a limit preserves the document.
+and output remain limited to one MiB; the native desktop source-edit limit is
+100 KB. Exceeding either applicable limit preserves the document.
 Empty clips, unknown bones/fields, invalid names and out-of-duration keys fail
 validation. Existing projects without `animation_clips` use an empty library.
 
