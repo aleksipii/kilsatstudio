@@ -9,12 +9,14 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #31 merged as `82f1b3116f6d8647e20076b0e2803f2fd2adedba` after its final
-Linux/macOS CI passed. PR #30 was merged earlier as
+PR #32 merged as `f2e7b79f23968ac3b32637680ff2c48ac7f43453` after its final
+Linux/macOS CI passed. PR #31 merged earlier as
+`82f1b3116f6d8647e20076b0e2803f2fd2adedba`; PR #30 as
 `de41228c0b68daece521cef1406361b21df0c3a6`. The release branch
 `kilsatstudio1.0` is synchronized with this merge and progress record.
-Its authored bone editor, chronological history, geometric masks/CPU blending,
-estimated-cue import, optional GPU fixture and license inventory are integrated.
+The authored bone editor, chronological history, geometric masks/CPU blending,
+estimated-cue import, exact-audio mouth-shape quality evaluator, optional GPU
+fixture and license inventory are integrated.
 PR #27's user-reported first M1 Kokoro speech evidence is preserved.
 
 The native acceptance tooling below is merged. Its implementation and CI checks
@@ -628,21 +630,31 @@ No real engine, speech inference or GPU hardware execution is claimed here.
 See [native compositor](native-compositor.md), [native alignment](native-alignment.md),
 [Metal device check](gpu-device-check.md) and [retained provenance](license-provenance.md).
 
-## Estimated mouth-shape quality tooling (2026-10-18, pending integration)
+## Estimated mouth-shape quality tooling (PR #32, merged 2026-10-18)
 
-- [ ] Integrate offline Rhubarb mouth-shape comparison against manual sample-based
+- [x] Integrate offline Rhubarb mouth-shape comparison against manual sample-based
   references, with whole-recording and active-union agreement, exact confusion
   counts and boundary errors only for matching collapsed shape sequences.
-- [ ] Integrate exact WAV/decoded-PCM/current-text evidence binding, bounded input
+- [x] Integrate exact WAV/decoded-PCM/current-text evidence binding, bounded input
   snapshots, exclusive report publication and shared Rust/Python PCM golden vector.
-- [ ] Complete final CI, independent review and merge for this increment.
+- [x] Complete final CI, independent review and merge for this increment.
 - [ ] Run representative real Rhubarb corpus and review audible/visible timing;
   establish reviewed targets and physical Mac synchronization evidence.
 
 Local validation: 55 runtime tests (44 existing, 11 new) and 26 inventory/packaging
-tests passed. No local Rust toolchain is available in this restored workspace;
-the new Rust golden-vector regression and workspace checks require CI. These
-tests use synthetic audio; no recognizer, model or GPU was executed. The evaluator
+tests passed. Independent review reran all 55 runtime tests and cross-checked
+signal measurements against the smoke reader at six lengths around chunk boundaries.
+Final head `6fefd300fd57725b183b317455a73d0d1ab959c2` passed Audio foundation
+39081856002 and Apple Silicon preview 39081856023: Linux/macOS fmt, workspace
+check, strict Clippy, 330 default Rust tests, 14 adapter-free GPU tests/feature
+Clippy, Python checks and three actual encoder tests. The shared Rust/Python
+PCM golden vector passed. Rust checks ran in CI because no local toolchain was
+available. The actual GPU test remains ignored.
+The arm64 package passed architecture/signature/packaging verification. Artifact:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39081856023/artifacts/12118704932
+SHA256: `0670ee100b0019713b25fee8049cb4957e84564fa0e9a4f6e1616925beab6a33`.
+These quality-tool tests use synthetic audio; no recognizer, model or GPU was
+executed. This post-merge edit records evidence only. The evaluator
 always leaves production acceptance `not_granted`. Full GPU scene parity,
 physical Mac acceptance and final artifact-specific license clearance remain open.
 See [estimated mouth-shape evidence](viseme-quality.md).
