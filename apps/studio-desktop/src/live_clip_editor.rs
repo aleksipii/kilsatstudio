@@ -472,7 +472,10 @@ mod tests {
         assert!(state.draft.as_ref().unwrap().at.is_nan());
         assert!(state.draft.as_ref().unwrap().fade_in.is_nan());
         assert!(state.draft.as_ref().unwrap().weight_keys[0].time.is_nan());
-        assert_eq!(state.draft.as_ref().unwrap().weight_keys[0].weight, f64::INFINITY);
+        assert_eq!(
+            state.draft.as_ref().unwrap().weight_keys[0].weight,
+            f64::INFINITY
+        );
         assert_eq!(state.draft.as_ref().unwrap().weight, f64::INFINITY);
         let _ = ctx.run(egui::RawInput::default(), |ctx| {
             egui::CentralPanel::default().show(ctx, |ui| {
@@ -512,7 +515,9 @@ mod tests {
         assert_eq!(saved.scenes[0].composition.clip_instances[0], draft);
         draft.duration = 1.0;
         assert!(!envelope_valid(&draft));
-        assert!(Action::Upsert { instance: draft }.apply(&applied, 0).is_err());
+        assert!(Action::Upsert { instance: draft }
+            .apply(&applied, 0)
+            .is_err());
         assert_eq!(
             motion_script::parse(&applied).unwrap().scenes[0]
                 .composition

@@ -6117,23 +6117,49 @@ mod live_clip_integration_tests {
         row.fade_in = 0.25;
         row.fade_out = 0.25;
         row.weight_keys = vec![
-            motion_script::InstanceWeightKey { time: 0.0, weight: 0.0, easing: motion_script::ActorEasing::Linear },
-            motion_script::InstanceWeightKey { time: 1.0, weight: 1.0, easing: motion_script::ActorEasing::Hold },
+            motion_script::InstanceWeightKey {
+                time: 0.0,
+                weight: 0.0,
+                easing: motion_script::ActorEasing::Linear,
+            },
+            motion_script::InstanceWeightKey {
+                time: 1.0,
+                weight: 1.0,
+                easing: motion_script::ActorEasing::Hold,
+            },
         ];
-        studio.apply_live_clip_action(live_clip_editor::Action::Upsert { instance: row.clone() }, SOURCE, 0, "A");
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert {
+                instance: row.clone(),
+            },
+            SOURCE,
+            0,
+            "A",
+        );
         let edited = studio.source.clone();
         assert_ne!(edited, SOURCE);
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
         let restored = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
         let script = motion_script::parse(&restored.source).unwrap();
-        assert_eq!(script.scenes[0].composition.clip_instances, vec![row.clone()]);
-        assert_eq!(script.scenes[0].composition.clip_instances[0].sample_weight(0.5), 0.125);
+        assert_eq!(
+            script.scenes[0].composition.clip_instances,
+            vec![row.clone()]
+        );
+        assert_eq!(
+            script.scenes[0].composition.clip_instances[0].sample_weight(0.5),
+            0.125
+        );
         studio.undo_edit(false);
         assert_eq!(studio.source, SOURCE);
         studio.undo_edit(true);
         assert_eq!(studio.source, edited);
         row.duration = 0.1;
-        studio.apply_live_clip_action(live_clip_editor::Action::Upsert { instance: row }, &edited, 0, "A");
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert { instance: row },
+            &edited,
+            0,
+            "A",
+        );
         assert_eq!(studio.source, edited);
     }
 

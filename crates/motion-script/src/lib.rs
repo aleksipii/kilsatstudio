@@ -115,9 +115,7 @@ impl ClipInstance {
     /// interval. Keys use local seconds, endpoint clamping and outgoing easing.
     /// This allocation-free sampler assumes source validation has succeeded.
     pub fn sample_weight(&self, scene_time: f64) -> f64 {
-        if !scene_time.is_finite()
-            || scene_time < self.at
-            || scene_time >= self.at + self.duration
+        if !scene_time.is_finite() || scene_time < self.at || scene_time >= self.at + self.duration
         {
             return 0.0;
         }
@@ -1140,8 +1138,10 @@ impl Script {
                 {
                     return Err(fail(format!("{}: instance {} requires finite nonnegative fades with sum within duration", s.id, instance.id)));
                 }
-                scene_instance_keys = scene_instance_keys.saturating_add(instance.weight_keys.len());
-                project_instance_keys = project_instance_keys.saturating_add(instance.weight_keys.len());
+                scene_instance_keys =
+                    scene_instance_keys.saturating_add(instance.weight_keys.len());
+                project_instance_keys =
+                    project_instance_keys.saturating_add(instance.weight_keys.len());
                 if instance.weight_keys.len() > 256
                     || scene_instance_keys > 8192
                     || project_instance_keys > 65536
@@ -2810,7 +2810,11 @@ mod live_clip_instance_tests {
     }
 
     fn weight_key(time: f64, weight: f64, easing: ActorEasing) -> InstanceWeightKey {
-        InstanceWeightKey { time, weight, easing }
+        InstanceWeightKey {
+            time,
+            weight,
+            easing,
+        }
     }
 
     #[test]
@@ -2873,7 +2877,10 @@ mod live_clip_instance_tests {
         let valid = upsert_clip_instance(&source, 1, item.clone()).unwrap();
         item.duration = 1.0;
         assert!(upsert_clip_instance(&valid, 1, item.clone()).is_err());
-        assert_eq!(parse(&valid).unwrap().scenes[1].composition.clip_instances[0].duration, 2.0);
+        assert_eq!(
+            parse(&valid).unwrap().scenes[1].composition.clip_instances[0].duration,
+            2.0
+        );
         item.fade_in = 0.0;
         item.fade_out = 0.0;
         item.duration = 2.0;
@@ -2886,7 +2893,9 @@ mod live_clip_instance_tests {
             assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
         }
         for times in [[1.0, 1.0], [1.0, 0.0]] {
-            item.weight_keys = times.map(|t| weight_key(t, 1.0, ActorEasing::Linear)).to_vec();
+            item.weight_keys = times
+                .map(|t| weight_key(t, 1.0, ActorEasing::Linear))
+                .to_vec();
             assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
         }
         for yaml in [
@@ -2908,13 +2917,17 @@ mod live_clip_instance_tests {
             .collect();
         script.scenes[1].composition.clip_instances = vec![item.clone()];
         assert!(script.validate().is_ok());
-        script.scenes[1].composition.clip_instances[0].weight_keys.push(weight_key(2.0, 1.0, ActorEasing::Linear));
+        script.scenes[1].composition.clip_instances[0]
+            .weight_keys
+            .push(weight_key(2.0, 1.0, ActorEasing::Linear));
         assert!(script.validate().is_err());
-        let layers: Vec<_> = (0..32).map(|i| {
-            let mut layer = item.clone();
-            layer.id = format!("key-{i}");
-            layer
-        }).collect();
+        let layers: Vec<_> = (0..32)
+            .map(|i| {
+                let mut layer = item.clone();
+                layer.id = format!("key-{i}");
+                layer
+            })
+            .collect();
         script.scenes[1].composition.clip_instances = layers.clone();
         assert!(script.validate().is_ok());
         let mut extra = item;
@@ -2924,11 +2937,13 @@ mod live_clip_instance_tests {
         assert!(script.validate().is_err());
         script.scenes[1].composition.clip_instances = layers;
         let template = script.scenes[1].clone();
-        script.scenes = (0..8).map(|i| {
-            let mut scene = template.clone();
-            scene.id = format!("scene-{i}");
-            scene
-        }).collect();
+        script.scenes = (0..8)
+            .map(|i| {
+                let mut scene = template.clone();
+                scene.id = format!("scene-{i}");
+                scene
+            })
+            .collect();
         assert!(script.validate().is_ok());
         let mut extra_scene = template;
         extra_scene.id = "over-budget".into();

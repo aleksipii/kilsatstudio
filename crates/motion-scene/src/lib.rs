@@ -962,18 +962,31 @@ mod live_instance_tests {
         ];
         script.scenes[0].composition.clip_instances = vec![layer];
         // Constant target100, base8; .8 static * .5 keyed * .5 fade = .2.
-        for (time, expected) in [(1.5, 26.4), (3.0, 44.8), (4.5, 26.4), (1.0, 8.0), (5.0, 8.0), (1.5, 26.4)] {
+        for (time, expected) in [
+            (1.5, 26.4),
+            (3.0, 44.8),
+            (4.5, 26.4),
+            (1.0, 8.0),
+            (5.0, 8.0),
+            (1.5, 26.4),
+        ] {
             let actual = bone(&offsets(&script, time), "head").translation.x;
             assert!((actual - expected).abs() < 1e-12);
         }
         let prepared = ValidatedScript::new(std::sync::Arc::new(script.clone())).unwrap();
         for time in [4.5, 1.0, 3.0, 5.0, 1.5] {
-            assert_eq!(prepared.evaluate(0, time).unwrap(), evaluate(&script, 0, time).unwrap());
+            assert_eq!(
+                prepared.evaluate(0, time).unwrap(),
+                evaluate(&script, 0, time).unwrap()
+            );
         }
         script.scenes[0].composition.clip_instances[0].weight = 0.0;
         script.scenes[0].composition.clip_instances[0].fade_out = f64::NAN;
         assert!(matches!(evaluate(&script, 0, 0.0), Err(Error::Script(_))));
-        assert!(matches!(ValidatedScript::new(std::sync::Arc::new(script)), Err(Error::Script(_))));
+        assert!(matches!(
+            ValidatedScript::new(std::sync::Arc::new(script)),
+            Err(Error::Script(_))
+        ));
     }
 
     #[test]
