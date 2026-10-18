@@ -52,11 +52,7 @@ type Artwork<'a> = (
     &'a std::collections::BTreeMap<String, motion_art::ImageResource>,
 );
 
-pub(crate) fn validate_scene(
-    scene: &EvaluatedScene,
-    width: u32,
-    height: u32,
-) -> Result<(), Error> {
+pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) -> Result<(), Error> {
     if [scene.width, scene.height, width, height]
         .iter()
         .any(|&v| v == 0 || v > MAX_DIMENSION)
@@ -288,7 +284,12 @@ fn append_art(
             write!(svg,"<defs><clipPath id=\"art{index}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">",r.x,r.y,r.width,r.height).unwrap();
         }
         if let Some(motion_art::ClipShape::SoftEllipse { .. }) = &layer.clip_shape {
-            let (r, feather) = layer.clip_shape.as_ref().unwrap().sample_ellipse(scene.time).unwrap();
+            let (r, feather) = layer
+                .clip_shape
+                .as_ref()
+                .unwrap()
+                .sample_ellipse(scene.time)
+                .unwrap();
             if feather == 0.0 {
                 write!(svg, "<defs><clipPath id=\"art{index}\"><ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">", r.x + r.width / 2.0, r.y + r.height / 2.0, r.width / 2.0, r.height / 2.0).unwrap();
             } else {
@@ -308,7 +309,9 @@ fn append_art(
                     )
                     .unwrap();
                 }
-                motion_art::ClipShape::SoftEllipse { .. } => return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into())),
+                motion_art::ClipShape::SoftEllipse { .. } => {
+                    return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into()))
+                }
                 motion_art::ClipShape::Polygon { points } => {
                     svg.push_str("<polygon points=\"");
                     for p in points {

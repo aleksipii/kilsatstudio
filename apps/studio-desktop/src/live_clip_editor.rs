@@ -143,14 +143,23 @@ impl State {
         if previous != draft.clip {
             self.confirm_delete = false;
         }
-        if ui.checkbox(&mut draft.looping, "Loop at original clip speed").changed() {
+        if ui
+            .checkbox(&mut draft.looping, "Loop at original clip speed")
+            .changed()
+        {
             self.confirm_delete = false;
         }
         ui.small("Looping repeats the library clip in seconds; fades and weight keys span the whole instance. Otherwise the clip stretches once to fit.");
         let mut masked = !draft.joint_mask.is_empty();
-        if ui.checkbox(&mut masked, "Select individual joints").changed() {
+        if ui
+            .checkbox(&mut masked, "Select individual joints")
+            .changed()
+        {
             draft.joint_mask = if masked {
-                motion_script::HUMANOID_BONES.iter().map(|name| (*name).to_owned()).collect()
+                motion_script::HUMANOID_BONES
+                    .iter()
+                    .map(|name| (*name).to_owned())
+                    .collect()
             } else {
                 Vec::new()
             };
@@ -227,7 +236,7 @@ impl State {
             .add_enabled(
                 next_time.is_some()
                     && envelope_valid(draft)
-            && mask_valid(draft)
+                    && mask_valid(draft)
                     && envelope_budget(script, scene_index, draft, self.editing, 1),
                 egui::Button::new("Add weight key"),
             )
@@ -425,9 +434,21 @@ mod tests {
         draft.looping = true;
         draft.joint_mask = vec!["head".into()];
         assert!(mask_valid(&draft));
-        assert!(motion_script::parse(&source).unwrap().scenes[0].composition.clip_instances.is_empty());
-        let saved = Action::Upsert { instance: draft.clone() }.apply(&source, 0).unwrap();
-        assert_eq!(motion_script::parse(&saved).unwrap().scenes[0].composition.clip_instances[0], draft);
+        assert!(motion_script::parse(&source).unwrap().scenes[0]
+            .composition
+            .clip_instances
+            .is_empty());
+        let saved = Action::Upsert {
+            instance: draft.clone(),
+        }
+        .apply(&source, 0)
+        .unwrap();
+        assert_eq!(
+            motion_script::parse(&saved).unwrap().scenes[0]
+                .composition
+                .clip_instances[0],
+            draft
+        );
         draft.joint_mask.push("head".into());
         assert!(!mask_valid(&draft));
         assert!(Action::Upsert { instance: draft }.apply(&saved, 0).is_err());

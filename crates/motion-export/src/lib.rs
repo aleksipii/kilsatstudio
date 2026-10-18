@@ -6,10 +6,10 @@ mod artist_blending_tests;
 mod clip_library_tests;
 #[cfg(test)]
 mod live_clip_tests;
-#[cfg(test)]
-mod soft_mask_tests;
 mod media;
 mod preview_scene;
+#[cfg(test)]
+mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
 mod sequence;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art};
@@ -501,7 +501,8 @@ fn export_sequence(
                 ));
             }
             if let Some(shape) = &layer.clip_shape {
-                shape.validate_scene_duration(script.scenes[scene_index].duration)
+                shape
+                    .validate_scene_duration(script.scenes[scene_index].duration)
                     .map_err(|error| invalid(error.to_string()))?;
             }
             // Preflight future images too: frame zero may precede their start time.

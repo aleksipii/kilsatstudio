@@ -409,20 +409,29 @@ impl Studio {
         }
         let result = (|| -> Result<(String, String), String> {
             let script = motion_script::parse(&self.source).map_err(|e| e.to_string())?;
-            let selected = script.scenes.get(self.scene_index)
-                .ok_or("Selected scene is no longer available")?.id.clone();
-            let mut document = motion_scene::editable_timeline::EditableTimeline::from_script(&script)
-                .map_err(|e| e.to_string())?;
+            let selected = script
+                .scenes
+                .get(self.scene_index)
+                .ok_or("Selected scene is no longer available")?
+                .id
+                .clone();
+            let mut document =
+                motion_scene::editable_timeline::EditableTimeline::from_script(&script)
+                    .map_err(|e| e.to_string())?;
             let compiled = document.apply(&script, edit).map_err(|e| e.to_string())?;
-            let source = serde_json::to_string_pretty(&compiled.script).map_err(|e| e.to_string())?;
+            let source =
+                serde_json::to_string_pretty(&compiled.script).map_err(|e| e.to_string())?;
             Ok((source, selected))
         })();
         match result {
             Ok((source, selected)) => {
                 self.apply_structure(Ok(source.clone()));
                 if self.source == source {
-                    if let Some(index) = self.script.as_ref()
-                        .and_then(|s| s.scenes.iter().position(|scene| scene.id == selected)) {
+                    if let Some(index) = self
+                        .script
+                        .as_ref()
+                        .and_then(|s| s.scenes.iter().position(|scene| scene.id == selected))
+                    {
                         self.scene_index = index;
                         self.reset_scene();
                     }
@@ -6268,16 +6277,25 @@ mod editable_timeline_integration_tests {
 
     #[test]
     fn scene_reordering_keeps_selection_and_roundtrips_through_history() {
-        let mut studio = Studio { source: SOURCE.into(), ..Default::default() };
+        let mut studio = Studio {
+            source: SOURCE.into(),
+            ..Default::default()
+        };
         studio.validate();
         studio.apply_timeline_edit(TimelineEdit::MoveScene {
-            scene_id: "first".into(), before: None,
+            scene_id: "first".into(),
+            before: None,
         });
         let edited = studio.source.clone();
         assert_eq!(studio.scene_index, 1);
         assert_eq!(studio.script.as_ref().unwrap().scenes[0].id, "second");
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
-        assert_eq!(motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap().source, edited);
+        assert_eq!(
+            motion_project::decode(&motion_project::encode(&document).unwrap())
+                .unwrap()
+                .source,
+            edited
+        );
         studio.undo_edit(false);
         assert_eq!(studio.source, SOURCE);
         studio.undo_edit(true);
@@ -6286,16 +6304,21 @@ mod editable_timeline_integration_tests {
 
     #[test]
     fn invalid_or_busy_timeline_edits_leave_source_untouched() {
-        let mut studio = Studio { source: SOURCE.into(), ..Default::default() };
+        let mut studio = Studio {
+            source: SOURCE.into(),
+            ..Default::default()
+        };
         studio.validate();
         studio.apply_timeline_edit(TimelineEdit::MoveScene {
-            scene_id: "first".into(), before: Some("missing".into()),
+            scene_id: "first".into(),
+            before: Some("missing".into()),
         });
         assert_eq!(studio.source, SOURCE);
         assert!(studio.status.contains("Timeline edit"));
         studio.busy = true;
         studio.apply_timeline_edit(TimelineEdit::MoveScene {
-            scene_id: "first".into(), before: None,
+            scene_id: "first".into(),
+            before: None,
         });
         assert_eq!(studio.source, SOURCE);
     }

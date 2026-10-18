@@ -63,7 +63,8 @@ fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
         if keys.len() >= motion_art::MAX_MASK_KEYS {
             return Err("Use at most 128 mask keys".into());
         }
-        let values: Vec<f64> = row.split(',')
+        let values: Vec<f64> = row
+            .split(',')
             .map(|value| value.parse().map_err(|_| "Invalid mask key number"))
             .collect::<Result<_, _>>()?;
         if values.len() != 6 {
@@ -71,16 +72,29 @@ fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
         }
         keys.push(MaskKey {
             time: values[0],
-            rect: Rect { x: values[1], y: values[2], width: values[3], height: values[4] },
+            rect: Rect {
+                x: values[1],
+                y: values[2],
+                width: values[3],
+                height: values[4],
+            },
             feather: values[5],
         });
     }
     ClipShape::SoftEllipse {
-        rect: Rect { x: 0.0, y: 0.0, width: 1.0, height: 1.0 },
+        rect: Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 1.0,
+            height: 1.0,
+        },
         feather: 0.0,
         keys: keys.clone(),
-    }.validate().map_err(|error| error.to_string())?;
-    if !duration.is_finite() || duration <= 0.0
+    }
+    .validate()
+    .map_err(|error| error.to_string())?;
+    if !duration.is_finite()
+        || duration <= 0.0
         || keys.last().is_some_and(|key| key.time > duration)
     {
         return Err("Mask keys must fit within the scene duration".into());
@@ -109,11 +123,25 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
     };
     let previous = kind;
     egui::ComboBox::from_label("Clip mask")
-        .selected_text(["None", "Rectangle", "Ellipse", "Polygon", "Soft / animated ellipse"][kind])
+        .selected_text(
+            [
+                "None",
+                "Rectangle",
+                "Ellipse",
+                "Polygon",
+                "Soft / animated ellipse",
+            ][kind],
+        )
         .show_ui(ui, |ui| {
-            for (value, label) in ["None", "Rectangle", "Ellipse", "Polygon", "Soft / animated ellipse"]
-                .into_iter()
-                .enumerate()
+            for (value, label) in [
+                "None",
+                "Rectangle",
+                "Ellipse",
+                "Polygon",
+                "Soft / animated ellipse",
+            ]
+            .into_iter()
+            .enumerate()
             {
                 ui.selectable_value(&mut kind, value, label);
             }
@@ -122,7 +150,9 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         let rect = layer
             .clip
             .or(match &layer.clip_shape {
-                Some(ClipShape::Ellipse { rect } | ClipShape::SoftEllipse { rect, .. }) => Some(*rect),
+                Some(ClipShape::Ellipse { rect } | ClipShape::SoftEllipse { rect, .. }) => {
+                    Some(*rect)
+                }
                 _ => None,
             })
             .unwrap_or(Rect {
@@ -136,7 +166,13 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         match kind {
             1 => layer.clip = Some(rect),
             2 => layer.clip_shape = Some(ClipShape::Ellipse { rect }),
-            4 => layer.clip_shape = Some(ClipShape::SoftEllipse { rect, feather: 0.25, keys: Vec::new() }),
+            4 => {
+                layer.clip_shape = Some(ClipShape::SoftEllipse {
+                    rect,
+                    feather: 0.25,
+                    keys: Vec::new(),
+                })
+            }
             3 => {
                 layer.clip_shape = Some(ClipShape::Polygon {
                     points: vec![
@@ -215,9 +251,24 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         ui.label("Animation keys: time,x,y,width,height,feather (scene seconds). Linear interpolation; first/last key holds.");
         let id = ui.id().with(("soft-mask-keys", &layer.id));
         let error_id = id.with("error");
-        let initial = keys.iter().map(|key| format!("{},{},{},{},{},{}", key.time, key.rect.x, key.rect.y, key.rect.width, key.rect.height, key.feather)).collect::<Vec<_>>().join("\n");
-        let mut draft = ui.data_mut(|data| data.get_temp::<String>(id)).unwrap_or(initial);
-        ui.add(egui::TextEdit::multiline(&mut draft).desired_rows(4).char_limit(24_576));
+        let initial = keys
+            .iter()
+            .map(|key| {
+                format!(
+                    "{},{},{},{},{},{}",
+                    key.time, key.rect.x, key.rect.y, key.rect.width, key.rect.height, key.feather
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut draft = ui
+            .data_mut(|data| data.get_temp::<String>(id))
+            .unwrap_or(initial);
+        ui.add(
+            egui::TextEdit::multiline(&mut draft)
+                .desired_rows(4)
+                .char_limit(24_576),
+        );
         if ui.button("Apply mask animation keys").clicked() {
             match parse_mask_keys(&draft, duration) {
                 Ok(next) => {
@@ -553,26 +604,58 @@ mod tests {
         assert_eq!(keys.len(), 2);
         assert_eq!(keys[1].feather, 1.0);
         for invalid in [
-            "0,0,0,20,20,NaN", "0,0,0,20,20,1.1", "3,0,0,20,20,0",
-            "1,0,0,20,20,0 1,0,0,20,20,1", "0,0,0,0,20,0", "0,0,0,20,20",
+            "0,0,0,20,20,NaN",
+            "0,0,0,20,20,1.1",
+            "3,0,0,20,20,0",
+            "1,0,0,20,20,0 1,0,0,20,20,1",
+            "0,0,0,0,20,0",
+            "0,0,0,20,20",
         ] {
             assert!(parse_mask_keys(invalid, 2.0).is_err(), "{invalid}");
         }
         assert!(parse_mask_keys("", 2.0).unwrap().is_empty());
         let mut document = Document::default();
         let mut editor = Editor::default();
-        let candidate = Document { layers: vec![Layer {
-            id: "soft".into(), scene_id: "s".into(), name: "Soft mask".into(),
-            visible: true, plane: Plane::Foreground, active: None, opacity: 1.0,
-            attachment: None, clip: None, blend: BlendMode::Normal,
-            clip_shape: Some(ClipShape::SoftEllipse { rect: keys[0].rect, feather: 0.0, keys }),
-            content: Content::Rectangle { rect: Rect { x: 0.0, y: 0.0, width: 100.0, height: 100.0 }, color: Color { r: 255, g: 0, b: 0, a: 255 } },
-        }] };
+        let candidate = Document {
+            layers: vec![Layer {
+                id: "soft".into(),
+                scene_id: "s".into(),
+                name: "Soft mask".into(),
+                visible: true,
+                plane: Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                blend: BlendMode::Normal,
+                clip_shape: Some(ClipShape::SoftEllipse {
+                    rect: keys[0].rect,
+                    feather: 0.0,
+                    keys,
+                }),
+                content: Content::Rectangle {
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 100.0,
+                        height: 100.0,
+                    },
+                    color: Color {
+                        r: 255,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
+                },
+            }],
+        };
         editor.commit(&mut document, candidate.clone());
         assert_eq!(document, candidate);
         assert_eq!(editor.take_transaction_before(), Some(Document::default()));
         let mut invalid = candidate.clone();
-        let Some(ClipShape::SoftEllipse { keys, .. }) = &mut invalid.layers[0].clip_shape else { panic!("soft mask") };
+        let Some(ClipShape::SoftEllipse { keys, .. }) = &mut invalid.layers[0].clip_shape else {
+            panic!("soft mask")
+        };
         keys[1].time = 0.0;
         editor.commit(&mut document, invalid);
         assert_eq!(document, candidate);

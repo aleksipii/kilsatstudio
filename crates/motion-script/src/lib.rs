@@ -2841,14 +2841,29 @@ mod live_clip_instance_tests {
         let source = source();
         let mut layer = instance("masked");
         let original = upsert_clip_instance(&source, 1, layer.clone()).unwrap();
-        let without_fields = original.lines()
-            .filter(|line| !line.trim_start().starts_with("looping:") && !line.trim_start().starts_with("joint_mask:"))
-            .collect::<Vec<_>>().join("\n");
-        assert_eq!(parse(&without_fields).unwrap().scenes[1].composition.clip_instances[0], layer);
+        let without_fields = original
+            .lines()
+            .filter(|line| {
+                !line.trim_start().starts_with("looping:")
+                    && !line.trim_start().starts_with("joint_mask:")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert_eq!(
+            parse(&without_fields).unwrap().scenes[1]
+                .composition
+                .clip_instances[0],
+            layer
+        );
         layer.looping = true;
         layer.joint_mask = vec!["head".into(), "right_hand".into()];
         let updated = upsert_clip_instance(&source, 1, layer.clone()).unwrap();
-        assert_eq!(parse(&updated).unwrap().scenes[1].composition.clip_instances[0], layer);
+        assert_eq!(
+            parse(&updated).unwrap().scenes[1]
+                .composition
+                .clip_instances[0],
+            layer
+        );
         for mask in [vec!["head", "head"], vec!["unknown"], vec!["head"; 8]] {
             layer.joint_mask = mask.into_iter().map(str::to_owned).collect();
             assert!(upsert_clip_instance(&updated, 1, layer.clone()).is_err());

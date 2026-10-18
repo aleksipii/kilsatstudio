@@ -139,9 +139,9 @@ fn execute(request: &Request) -> Result<Ready, String> {
             &request.identity.transcript,
         ) {
             Ok(key) => cache.key = Some(key),
-            Err(error) => {
-                cache.message.push_str(&format!(" Timing is usable, but saving it failed: {error}"))
-            }
+            Err(error) => cache
+                .message
+                .push_str(&format!(" Timing is usable, but saving it failed: {error}")),
         }
     }
     request.cancel.check().map_err(|e| e.to_string())?;

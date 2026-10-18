@@ -28,9 +28,15 @@ pub struct EditableTimeline {
 /// Commands refer to stable scene IDs, never stale display row indices.
 #[derive(Debug, Clone, PartialEq)]
 pub enum TimelineEdit {
-    SetDuration { scene_id: String, duration: f64 },
+    SetDuration {
+        scene_id: String,
+        duration: f64,
+    },
     /// Move before another scene, or to the end when `before` is `None`.
-    MoveScene { scene_id: String, before: Option<String> },
+    MoveScene {
+        scene_id: String,
+        before: Option<String>,
+    },
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -60,10 +66,14 @@ impl EditableTimeline {
         SequenceTimeline::compile(script)?;
         Ok(Self {
             version: TIMELINE_EDIT_VERSION,
-            scenes: script.scenes.iter().map(|scene| SceneTiming {
-                scene_id: scene.id.clone(),
-                duration: scene.duration,
-            }).collect(),
+            scenes: script
+                .scenes
+                .iter()
+                .map(|scene| SceneTiming {
+                    scene_id: scene.id.clone(),
+                    duration: scene.duration,
+                })
+                .collect(),
         })
     }
 
@@ -73,7 +83,8 @@ impl EditableTimeline {
         if self.version != TIMELINE_EDIT_VERSION {
             return Err(TimelineEditError::Version(self.version));
         }
-        if self.scenes.is_empty() || self.scenes.len() > 1024
+        if self.scenes.is_empty()
+            || self.scenes.len() > 1024
             || self.scenes.len() != source.scenes.len()
         {
             return Err(TimelineEditError::SceneSet);
@@ -81,8 +92,11 @@ impl EditableTimeline {
         // Validate the original too: edits must not repair malformed source by
         // accidentally discarding duplicate IDs or invalid original durations.
         SequenceTimeline::compile(source)?;
-        let by_id: BTreeMap<_, _> = source.scenes.iter()
-            .map(|scene| (scene.id.as_str(), scene)).collect();
+        let by_id: BTreeMap<_, _> = source
+            .scenes
+            .iter()
+            .map(|scene| (scene.id.as_str(), scene))
+            .collect();
         let mut seen = BTreeSet::new();
         let mut script = source.clone();
         script.scenes.clear();
@@ -93,8 +107,10 @@ impl EditableTimeline {
             if !timing.duration.is_finite() || timing.duration <= 0.0 {
                 return Err(TimelineEditError::Duration(timing.scene_id.clone()));
             }
-            let mut scene = (*by_id.get(timing.scene_id.as_str())
-                .ok_or_else(|| TimelineEditError::UnknownScene(timing.scene_id.clone()))?).clone();
+            let mut scene = (*by_id
+                .get(timing.scene_id.as_str())
+                .ok_or_else(|| TimelineEditError::UnknownScene(timing.scene_id.clone()))?)
+            .clone();
             scene.duration = timing.duration;
             script.scenes.push(scene);
         }
@@ -104,29 +120,48 @@ impl EditableTimeline {
 
     /// Commit a command only after the entire candidate compiles. On failure,
     /// both the edit document and caller-owned source remain untouched.
-    pub fn apply(&mut self, source: &Script, edit: TimelineEdit)
-        -> Result<CompiledTimelineEdit, TimelineEditError>
-    {
+    pub fn apply(
+        &mut self,
+        source: &Script,
+        edit: TimelineEdit,
+    ) -> Result<CompiledTimelineEdit, TimelineEditError> {
         self.compile(source)?;
         let mut candidate = self.clone();
         match edit {
             TimelineEdit::SetDuration { scene_id, duration } => {
-                let scene = candidate.scenes.iter_mut().find(|scene| scene.scene_id == scene_id)
+                let scene = candidate
+                    .scenes
+                    .iter_mut()
+                    .find(|scene| scene.scene_id == scene_id)
                     .ok_or_else(|| TimelineEditError::UnknownScene(scene_id.clone()))?;
                 scene.duration = duration;
             }
             TimelineEdit::MoveScene { scene_id, before } => {
-                let from = candidate.scenes.iter().position(|scene| scene.scene_id == scene_id)
+                let from = candidate
+                    .scenes
+                    .iter()
+                    .position(|scene| scene.scene_id == scene_id)
                     .ok_or_else(|| TimelineEditError::UnknownScene(scene_id.clone()))?;
                 if before.as_ref() != Some(&scene_id) {
                     if let Some(target) = &before {
-                        if !candidate.scenes.iter().any(|scene| &scene.scene_id == target) {
+                        if !candidate
+                            .scenes
+                            .iter()
+                            .any(|scene| &scene.scene_id == target)
+                        {
                             return Err(TimelineEditError::UnknownScene(target.clone()));
                         }
                     }
                     let scene = candidate.scenes.remove(from);
-                    let to = before.as_ref().and_then(|target| candidate.scenes.iter()
-                        .position(|scene| &scene.scene_id == target)).unwrap_or(candidate.scenes.len());
+                    let to = before
+                        .as_ref()
+                        .and_then(|target| {
+                            candidate
+                                .scenes
+                                .iter()
+                                .position(|scene| &scene.scene_id == target)
+                        })
+                        .unwrap_or(candidate.scenes.len());
                     candidate.scenes.insert(to, scene);
                 }
             }
@@ -150,12 +185,24 @@ mod tests {
     fn roundtrip_reorders_stable_ids_and_rebuilds_shared_clock() {
         let source = source();
         let mut document = EditableTimeline::from_script(&source).unwrap();
-        document.apply(&source, TimelineEdit::MoveScene {
-            scene_id: "b".into(), before: Some("a".into()),
-        }).unwrap();
-        let compiled = document.apply(&source, TimelineEdit::SetDuration {
-            scene_id: "b".into(), duration: 0.5,
-        }).unwrap();
+        document
+            .apply(
+                &source,
+                TimelineEdit::MoveScene {
+                    scene_id: "b".into(),
+                    before: Some("a".into()),
+                },
+            )
+            .unwrap();
+        let compiled = document
+            .apply(
+                &source,
+                TimelineEdit::SetDuration {
+                    scene_id: "b".into(),
+                    duration: 0.5,
+                },
+            )
+            .unwrap();
         let json = serde_json::to_string(&document).unwrap();
         let restored: EditableTimeline = serde_json::from_str(&json).unwrap();
         assert_eq!(restored, document);
@@ -174,18 +221,36 @@ mod tests {
         let mut document = EditableTimeline::from_script(&source).unwrap();
         let before = document.clone();
         for duration in [f64::NAN, f64::INFINITY, -1.0, 0.0, 0.000001, f64::MAX] {
-            assert!(document.apply(&source, TimelineEdit::SetDuration {
-                scene_id: "a".into(), duration,
-            }).is_err());
+            assert!(document
+                .apply(
+                    &source,
+                    TimelineEdit::SetDuration {
+                        scene_id: "a".into(),
+                        duration,
+                    }
+                )
+                .is_err());
             assert_eq!(document, before);
         }
-        assert!(document.apply(&source, TimelineEdit::MoveScene {
-            scene_id: "a".into(), before: Some("missing".into()),
-        }).is_err());
+        assert!(document
+            .apply(
+                &source,
+                TimelineEdit::MoveScene {
+                    scene_id: "a".into(),
+                    before: Some("missing".into()),
+                }
+            )
+            .is_err());
         assert_eq!(document, before);
-        assert!(document.apply(&source, TimelineEdit::SetDuration {
-            scene_id: "missing".into(), duration: 1.0,
-        }).is_err());
+        assert!(document
+            .apply(
+                &source,
+                TimelineEdit::SetDuration {
+                    scene_id: "missing".into(),
+                    duration: 1.0,
+                }
+            )
+            .is_err());
         assert_eq!(document, before);
     }
 
@@ -195,37 +260,68 @@ mod tests {
         let original = EditableTimeline::from_script(&source).unwrap();
         let mut bad = original.clone();
         bad.version = 2;
-        assert!(matches!(bad.compile(&source), Err(TimelineEditError::Version(2))));
+        assert!(matches!(
+            bad.compile(&source),
+            Err(TimelineEditError::Version(2))
+        ));
         bad = original.clone();
         bad.scenes[1].scene_id = "a".into();
-        assert!(matches!(bad.compile(&source), Err(TimelineEditError::SceneSet)));
+        assert!(matches!(
+            bad.compile(&source),
+            Err(TimelineEditError::SceneSet)
+        ));
         bad = original.clone();
         bad.scenes.pop();
         assert!(bad.compile(&source).is_err());
         bad = original;
         bad.scenes[0].scene_id = "unknown".into();
-        assert!(matches!(bad.compile(&source), Err(TimelineEditError::UnknownScene(_))));
+        assert!(matches!(
+            bad.compile(&source),
+            Err(TimelineEditError::UnknownScene(_))
+        ));
         assert!(serde_json::from_str::<EditableTimeline>(
             r#"{"version":1,"scenes":[],"ignored":true}"#
-        ).is_err());
+        )
+        .is_err());
     }
 
     #[test]
     fn retiming_preserves_authored_tracks_and_rejects_truncation() {
         let mut source = source();
-        source.scenes[0].composition.camera.push(motion_script::CameraKey {
-            at: 1.5, x: 4.0, y: 8.0, zoom: 1.25,
-        });
+        source.scenes[0]
+            .composition
+            .camera
+            .push(motion_script::CameraKey {
+                at: 1.5,
+                x: 4.0,
+                y: 8.0,
+                zoom: 1.25,
+            });
         let mut document = EditableTimeline::from_script(&source).unwrap();
         let before = document.clone();
-        assert!(document.apply(&source, TimelineEdit::SetDuration {
-            scene_id: "a".into(), duration: 1.0,
-        }).is_err());
+        assert!(document
+            .apply(
+                &source,
+                TimelineEdit::SetDuration {
+                    scene_id: "a".into(),
+                    duration: 1.0,
+                }
+            )
+            .is_err());
         assert_eq!(document, before);
-        let compiled = document.apply(&source, TimelineEdit::SetDuration {
-            scene_id: "a".into(), duration: 3.0,
-        }).unwrap();
-        assert_eq!(compiled.script.scenes[0].composition, source.scenes[0].composition);
+        let compiled = document
+            .apply(
+                &source,
+                TimelineEdit::SetDuration {
+                    scene_id: "a".into(),
+                    duration: 3.0,
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            compiled.script.scenes[0].composition,
+            source.scenes[0].composition
+        );
         assert_eq!(source.scenes[0].duration, 2.0);
     }
 
@@ -236,15 +332,24 @@ mod tests {
         let mut document = EditableTimeline::from_script(&source).unwrap();
         let before = document.clone();
         // Moving an outgoing crossfade to the last scene is invalid, not silently cut.
-        assert!(document.apply(&source, TimelineEdit::MoveScene {
-            scene_id: "a".into(), before: None,
-        }).is_err());
+        assert!(document
+            .apply(
+                &source,
+                TimelineEdit::MoveScene {
+                    scene_id: "a".into(),
+                    before: None,
+                }
+            )
+            .is_err());
         assert_eq!(document, before);
         let compiled = document.compile(&source).unwrap();
         for sample in [42_000, 36_000, 47_999, 40_000] {
             let contributions = compiled.timeline.sample(sample).unwrap();
             assert_eq!(contributions.len(), 2);
-            assert_eq!(contributions.iter().map(|value| value.weight).sum::<f64>(), 1.0);
+            assert_eq!(
+                contributions.iter().map(|value| value.weight).sum::<f64>(),
+                1.0
+            );
         }
     }
 }

@@ -98,7 +98,8 @@ impl ProjectDocument {
                 return invalid("artwork active interval exceeds its scene duration");
             }
             if let Some(shape) = &layer.clip_shape {
-                shape.validate_scene_duration(scene.duration)
+                shape
+                    .validate_scene_duration(scene.duration)
                     .map_err(|error| Error::Validation(error.to_string()))?;
             }
             if layer

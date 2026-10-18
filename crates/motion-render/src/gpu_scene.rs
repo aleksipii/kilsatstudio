@@ -58,7 +58,10 @@ impl GpuSceneRenderer {
         .ok_or(gpu::Error::NoAdapter)?;
         let info = adapter.get_info();
         if !backend.mask().contains(info.backend.into())
-            || matches!(info.device_type, wgpu::DeviceType::Cpu | wgpu::DeviceType::Other)
+            || matches!(
+                info.device_type,
+                wgpu::DeviceType::Cpu | wgpu::DeviceType::Other
+            )
         {
             return Err(gpu::Error::NotHardware.into());
         }
@@ -118,7 +121,13 @@ impl GpuSceneRenderer {
         if let Some(error) = gpu::wait(device.pop_error_scope(), cancel, deadline)? {
             return Err(gpu::Error::Device(error.to_string()).into());
         }
-        Ok(Self { device, queue, pipeline, info, errors })
+        Ok(Self {
+            device,
+            queue,
+            pipeline,
+            info,
+            errors,
+        })
     }
 
     pub fn render(&mut self, scene: &SceneCommands, cancel: &AtomicBool) -> Result<Frame, Error> {
@@ -135,7 +144,11 @@ impl GpuSceneRenderer {
         // readback; initialization retains its separate validation scope.
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("bounded evaluated scene target"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -145,7 +158,9 @@ impl GpuSceneRenderer {
         });
         let mut commands = scene.bytes();
         // WGSL storage arrays require at least one element even with count zero.
-        if commands.is_empty() { commands.resize(80, 0); }
+        if commands.is_empty() {
+            commands.resize(80, 0);
+        }
         let shapes = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("bounded scene commands"),
             size: commands.len() as u64,
@@ -156,9 +171,18 @@ impl GpuSceneRenderer {
         let uniform_values = [
             scene.canvas,
             scene.background,
-            [scene.opacity, scene.command_count() as f32, width as f32, height as f32],
+            [
+                scene.opacity,
+                scene.command_count() as f32,
+                width as f32,
+                height as f32,
+            ],
         ];
-        let uniform_bytes: Vec<u8> = uniform_values.iter().flatten().flat_map(|v| v.to_le_bytes()).collect();
+        let uniform_bytes: Vec<u8> = uniform_values
+            .iter()
+            .flatten()
+            .flat_map(|v| v.to_le_bytes())
+            .collect();
         let uniforms = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("scene composition"),
             size: uniform_bytes.len() as u64,
@@ -170,8 +194,14 @@ impl GpuSceneRenderer {
             label: None,
             layout: &self.pipeline.get_bind_group_layout(0),
             entries: &[
-                wgpu::BindGroupEntry { binding: 0, resource: shapes.as_entire_binding() },
-                wgpu::BindGroupEntry { binding: 1, resource: uniforms.as_entire_binding() },
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: shapes.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: uniforms.as_entire_binding(),
+                },
             ],
         });
         let readback = device.create_buffer(&wgpu::BufferDescriptor {
@@ -188,7 +218,10 @@ impl GpuSceneRenderer {
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
                     resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK), store: wgpu::StoreOp::Store },
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store,
+                    },
                 })],
                 depth_stencil_attachment: None,
                 timestamp_writes: None,
@@ -202,36 +235,63 @@ impl GpuSceneRenderer {
             texture.as_image_copy(),
             wgpu::TexelCopyBufferInfo {
                 buffer: &readback,
-                layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(padded), rows_per_image: Some(height) },
+                layout: wgpu::TexelCopyBufferLayout {
+                    offset: 0,
+                    bytes_per_row: Some(padded),
+                    rows_per_image: Some(height),
+                },
             },
-            wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+            wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
         );
         gpu::check(cancel, deadline)?;
         self.queue.submit(Some(encoder.finish()));
         let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-        readback.slice(..).map_async(wgpu::MapMode::Read, move |result| { let _ = sender.send(result); });
+        readback
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                let _ = sender.send(result);
+            });
         let result = (|| -> Result<Vec<u8>, gpu::Error> {
             loop {
                 gpu::check(cancel, deadline)?;
                 device.poll(wgpu::Maintain::Poll);
                 match receiver.try_recv() {
-                    Ok(result) => { result.map_err(|e| gpu::Error::Device(e.to_string()))?; break; }
-                    Err(std::sync::mpsc::TryRecvError::Empty) => std::thread::sleep(Duration::from_millis(1)),
+                    Ok(result) => {
+                        result.map_err(|e| gpu::Error::Device(e.to_string()))?;
+                        break;
+                    }
+                    Err(std::sync::mpsc::TryRecvError::Empty) => {
+                        std::thread::sleep(Duration::from_millis(1))
+                    }
                     Err(error) => return Err(gpu::Error::Device(error.to_string())),
                 }
             }
             let mapped = readback.slice(..).get_mapped_range();
             let mut rgba = Vec::with_capacity((width * height * 4) as usize);
-            for row in mapped.chunks_exact(padded as usize) { rgba.extend_from_slice(&row[..(width * 4) as usize]); }
+            for row in mapped.chunks_exact(padded as usize) {
+                rgba.extend_from_slice(&row[..(width * 4) as usize]);
+            }
             drop(mapped);
             readback.unmap();
             Ok(rgba)
         })();
         let rgba = result?;
-        let errors = self.errors.lock().map_err(|e| gpu::Error::Device(e.to_string()))?.clone();
-        if !errors.is_empty() { return Err(gpu::Error::Device(errors.join("; ")).into()); }
+        let errors = self
+            .errors
+            .lock()
+            .map_err(|e| gpu::Error::Device(e.to_string()))?
+            .clone();
+        if !errors.is_empty() {
+            return Err(gpu::Error::Device(errors.join("; ")).into());
+        }
         Ok(Frame {
-            width, height, rgba,
+            width,
+            height,
+            rgba,
             adapter_name: self.info.name.clone(),
             backend: format!("{:?}", self.info.backend),
             device_type: format!("{:?}", self.info.device_type),
@@ -276,17 +336,19 @@ pub fn compare_decoded_rgba(
             let i = ((y * width + x) * 4) as usize;
             let edge = [
                 (x.saturating_sub(1), y),
-                ((x+1).min(width-1), y),
+                ((x + 1).min(width - 1), y),
                 (x, y.saturating_sub(1)),
-                (x, (y+1).min(height-1)),
-            ].into_iter().any(|(nx, ny)| {
+                (x, (y + 1).min(height - 1)),
+            ]
+            .into_iter()
+            .any(|(nx, ny)| {
                 let n = ((ny * width + nx) * 4) as usize;
-                (0..4).any(|c| reference[i+c].abs_diff(reference[n+c]) > 8)
+                (0..4).any(|c| reference[i + c].abs_diff(reference[n + c]) > 8)
             });
             let mut squared = 0u64;
             let mut differs = false;
             for c in 0..4 {
-                let difference = reference[i+c].abs_diff(candidate[i+c]);
+                let difference = reference[i + c].abs_diff(candidate[i + c]);
                 differs |= difference != 0;
                 maxima[c] = maxima[c].max(difference);
                 let square = u64::from(difference).pow(2);
@@ -294,17 +356,28 @@ pub fn compare_decoded_rgba(
                 squared += square;
             }
             changed += u64::from(differs);
-            if edge { edge_pixels += 1; edge_sum += squared; } else { interior_sum += squared; }
+            if edge {
+                edge_pixels += 1;
+                edge_sum += squared;
+            } else {
+                interior_sum += squared;
+            }
         }
     }
-    let rms = |sum: u64, count: u64| if count == 0 { 0.0 } else { (sum as f64 / (count as f64 * 4.0)).sqrt() };
+    let rms = |sum: u64, count: u64| {
+        if count == 0 {
+            0.0
+        } else {
+            (sum as f64 / (count as f64 * 4.0)).sqrt()
+        }
+    };
     Ok(ImageDifference {
         maximum_channel_error: maxima,
         rms_channel_error: sums.map(|sum| (sum as f64 / pixels as f64).sqrt()),
         changed_pixel_fraction: changed as f64 / pixels as f64,
         edge_pixels,
         edge_rms_error: rms(edge_sum, edge_pixels),
-        interior_rms_error: rms(interior_sum, pixels-edge_pixels),
+        interior_rms_error: rms(interior_sum, pixels - edge_pixels),
     })
 }
 
@@ -360,29 +433,59 @@ mod tests {
         wgpu::naga::valid::Validator::new(
             wgpu::naga::valid::ValidationFlags::all(),
             wgpu::naga::valid::Capabilities::empty(),
-        ).validate(&module).unwrap();
+        )
+        .validate(&module)
+        .unwrap();
     }
     #[test]
     fn decoded_full_image_comparison_reports_interior_and_edges() {
-        let mut reference=vec![128u8;64*64*4];
-        for p in reference.chunks_exact_mut(4) { p[3]=255; }
-        let center=(32*64+32)*4;
-        reference[center]=255;
-        let mut candidate=reference.clone(); candidate[center]=200; candidate[0]=100;
-        let result=compare_decoded_rgba(64,64,&reference,&candidate).unwrap();
-        assert_eq!(result.maximum_channel_error,[55,0,0,0]);
-        assert_eq!(result.changed_pixel_fraction,2.0/4096.0);
-        assert_eq!(result.edge_pixels,5);
-        assert!(result.edge_rms_error>0.0); assert!(result.interior_rms_error>0.0);
-        let exact=compare_decoded_rgba(64,64,&reference,&reference).unwrap();
-        assert_eq!(exact.changed_pixel_fraction,0.0); assert_eq!(exact.rms_channel_error,[0.0;4]);
-        assert!(compare_decoded_rgba(64,64,&reference,&candidate[..100]).is_err());
+        let mut reference = vec![128u8; 64 * 64 * 4];
+        for p in reference.chunks_exact_mut(4) {
+            p[3] = 255;
+        }
+        let center = (32 * 64 + 32) * 4;
+        reference[center] = 255;
+        let mut candidate = reference.clone();
+        candidate[center] = 200;
+        candidate[0] = 100;
+        let result = compare_decoded_rgba(64, 64, &reference, &candidate).unwrap();
+        assert_eq!(result.maximum_channel_error, [55, 0, 0, 0]);
+        assert_eq!(result.changed_pixel_fraction, 2.0 / 4096.0);
+        assert_eq!(result.edge_pixels, 5);
+        assert!(result.edge_rms_error > 0.0);
+        assert!(result.interior_rms_error > 0.0);
+        let exact = compare_decoded_rgba(64, 64, &reference, &reference).unwrap();
+        assert_eq!(exact.changed_pixel_fraction, 0.0);
+        assert_eq!(exact.rms_channel_error, [0.0; 4]);
+        assert!(compare_decoded_rgba(64, 64, &reference, &candidate[..100]).is_err());
     }
     #[test]
     fn cancellation_and_unsupported_labels_precede_device_initialization() {
-        let scene=crate::tests::scene();
-        let cancel=AtomicBool::new(true);
-        assert!(matches!(render_scene(&scene,640,360,&[],Labels::Require,Backend::Metal,&cancel),Err(Error::UnsupportedFeature(_))));
-        assert!(matches!(render_scene(&scene,640,360,&[],Labels::OmitAcknowledged,Backend::Metal,&cancel),Err(Error::Gpu(gpu::Error::Cancelled))));
+        let scene = crate::tests::scene();
+        let cancel = AtomicBool::new(true);
+        assert!(matches!(
+            render_scene(
+                &scene,
+                640,
+                360,
+                &[],
+                Labels::Require,
+                Backend::Metal,
+                &cancel
+            ),
+            Err(Error::UnsupportedFeature(_))
+        ));
+        assert!(matches!(
+            render_scene(
+                &scene,
+                640,
+                360,
+                &[],
+                Labels::OmitAcknowledged,
+                Backend::Metal,
+                &cancel
+            ),
+            Err(Error::Gpu(gpu::Error::Cancelled))
+        ));
     }
 }

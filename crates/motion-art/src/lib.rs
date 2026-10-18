@@ -76,8 +76,12 @@ pub enum Plane {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ClipShape {
-    Ellipse { rect: Rect },
-    Polygon { points: Vec<Point> },
+    Ellipse {
+        rect: Rect,
+    },
+    Polygon {
+        points: Vec<Point>,
+    },
     /// Elliptical alpha mask with an inward, normalized radial feather.
     /// Keys use scene-local seconds; their first/last values hold outside the track.
     SoftEllipse {
@@ -129,7 +133,11 @@ impl ClipShape {
     pub fn sample_ellipse(&self, time: f64) -> Option<(Rect, f64)> {
         match self {
             Self::Ellipse { rect } => Some((*rect, 0.0)),
-            Self::SoftEllipse { rect, feather, keys } => {
+            Self::SoftEllipse {
+                rect,
+                feather,
+                keys,
+            } => {
                 if keys.is_empty() || !time.is_finite() {
                     return Some((*rect, *feather));
                 }
@@ -144,12 +152,15 @@ impl ClipShape {
                 let right = keys[index];
                 let t = (time - left.time) / (right.time - left.time);
                 let lerp = |a: f64, b: f64| a + (b - a) * t;
-                Some((Rect {
-                    x: lerp(left.rect.x, right.rect.x),
-                    y: lerp(left.rect.y, right.rect.y),
-                    width: lerp(left.rect.width, right.rect.width),
-                    height: lerp(left.rect.height, right.rect.height),
-                }, lerp(left.feather, right.feather)))
+                Some((
+                    Rect {
+                        x: lerp(left.rect.x, right.rect.x),
+                        y: lerp(left.rect.y, right.rect.y),
+                        width: lerp(left.rect.width, right.rect.width),
+                        height: lerp(left.rect.height, right.rect.height),
+                    },
+                    lerp(left.feather, right.feather),
+                ))
             }
             Self::Polygon { .. } => None,
         }
@@ -157,7 +168,11 @@ impl ClipShape {
     pub fn validate(&self) -> Result<(), Error> {
         match self {
             Self::Ellipse { rect } => rect.validate(),
-            Self::SoftEllipse { rect, feather, keys } => {
+            Self::SoftEllipse {
+                rect,
+                feather,
+                keys,
+            } => {
                 rect.validate()?;
                 if !feather.is_finite() || !(0.0..=1.0).contains(feather) {
                     return invalid("mask feather must be finite and between 0 and 1");
@@ -168,9 +183,11 @@ impl ClipShape {
                 let mut previous = None;
                 for key in keys {
                     key.rect.validate()?;
-                    if !key.time.is_finite() || key.time < 0.0
+                    if !key.time.is_finite()
+                        || key.time < 0.0
                         || previous.is_some_and(|time| key.time <= time)
-                        || !key.feather.is_finite() || !(0.0..=1.0).contains(&key.feather)
+                        || !key.feather.is_finite()
+                        || !(0.0..=1.0).contains(&key.feather)
                     {
                         return invalid("mask keys require increasing finite nonnegative seconds and feather 0–1");
                     }
@@ -424,11 +441,34 @@ mod tests {
     use super::*;
     fn soft_mask() -> ClipShape {
         ClipShape::SoftEllipse {
-            rect: Rect { x: 90.0, y: 90.0, width: 10.0, height: 10.0 },
+            rect: Rect {
+                x: 90.0,
+                y: 90.0,
+                width: 10.0,
+                height: 10.0,
+            },
             feather: 0.0,
             keys: vec![
-                MaskKey { time: 1.0, rect: Rect { x: 0.0, y: 2.0, width: 10.0, height: 20.0 }, feather: 0.0 },
-                MaskKey { time: 3.0, rect: Rect { x: 20.0, y: 6.0, width: 30.0, height: 40.0 }, feather: 1.0 },
+                MaskKey {
+                    time: 1.0,
+                    rect: Rect {
+                        x: 0.0,
+                        y: 2.0,
+                        width: 10.0,
+                        height: 20.0,
+                    },
+                    feather: 0.0,
+                },
+                MaskKey {
+                    time: 3.0,
+                    rect: Rect {
+                        x: 20.0,
+                        y: 6.0,
+                        width: 30.0,
+                        height: 40.0,
+                    },
+                    feather: 1.0,
+                },
             ],
         }
     }
@@ -442,25 +482,54 @@ mod tests {
         for time in [3.0, 0.0, 2.0, 1.0, 4.0, 2.0] {
             assert_eq!(shape.sample_ellipse(time), restored.sample_ellipse(time));
         }
-        assert_eq!(shape.sample_ellipse(2.0), Some((Rect { x: 10.0, y: 4.0, width: 20.0, height: 30.0 }, 0.5)));
+        assert_eq!(
+            shape.sample_ellipse(2.0),
+            Some((
+                Rect {
+                    x: 10.0,
+                    y: 4.0,
+                    width: 20.0,
+                    height: 30.0
+                },
+                0.5
+            ))
+        );
         assert_eq!(shape.sample_ellipse(0.0), shape.sample_ellipse(1.0));
         assert_eq!(shape.sample_ellipse(4.0), shape.sample_ellipse(3.0));
-        let ClipShape::SoftEllipse { rect, feather, .. } = shape else { panic!("soft mask") };
-        let static_shape = ClipShape::SoftEllipse { rect, feather, keys: Vec::new() };
+        let ClipShape::SoftEllipse { rect, feather, .. } = shape else {
+            panic!("soft mask")
+        };
+        let static_shape = ClipShape::SoftEllipse {
+            rect,
+            feather,
+            keys: Vec::new(),
+        };
         assert_eq!(static_shape.sample_ellipse(20.0), Some((rect, feather)));
-        assert_eq!(ClipShape::Ellipse { rect }.sample_ellipse(2.0), Some((rect, 0.0)));
+        assert_eq!(
+            ClipShape::Ellipse { rect }.sample_ellipse(2.0),
+            Some((rect, 0.0))
+        );
     }
     #[test]
     fn malformed_soft_mask_keys_are_rejected_transactionally() {
         let mut source = layer();
         source.clip = None;
         source.clip_shape = Some(soft_mask());
-        let mut document = Document { layers: vec![source.clone()] };
+        let mut document = Document {
+            layers: vec![source.clone()],
+        };
         document.validate().unwrap();
         let before = document.clone();
         for case in 0..8 {
             let mut edited = source.clone();
-            let Some(ClipShape::SoftEllipse { rect, feather, keys }) = &mut edited.clip_shape else { panic!("soft mask") };
+            let Some(ClipShape::SoftEllipse {
+                rect,
+                feather,
+                keys,
+            }) = &mut edited.clip_shape
+            else {
+                panic!("soft mask")
+            };
             match case {
                 0 => *feather = f64::NAN,
                 1 => *feather = 1.1,
@@ -479,9 +548,24 @@ mod tests {
     fn mask_key_limits_bound_individual_tracks_and_document_totals() {
         let mut source = layer();
         source.clip = None;
-        let rect = Rect { x: 0.0, y: 0.0, width: 10.0, height: 10.0 };
-        let keys: Vec<_> = (0..MAX_MASK_KEYS).map(|i| MaskKey { time: i as f64, rect, feather: 0.5 }).collect();
-        source.clip_shape = Some(ClipShape::SoftEllipse { rect, feather: 0.5, keys: keys.clone() });
+        let rect = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 10.0,
+            height: 10.0,
+        };
+        let keys: Vec<_> = (0..MAX_MASK_KEYS)
+            .map(|i| MaskKey {
+                time: i as f64,
+                rect,
+                feather: 0.5,
+            })
+            .collect();
+        source.clip_shape = Some(ClipShape::SoftEllipse {
+            rect,
+            feather: 0.5,
+            keys: keys.clone(),
+        });
         let mut document = Document::default();
         for i in 0..MAX_TOTAL_MASK_KEYS / MAX_MASK_KEYS {
             let mut next = source.clone();
@@ -493,8 +577,18 @@ mod tests {
         assert!(document.apply(Command::Add(source)).is_err());
         assert_eq!(document, before);
         let mut too_many = keys;
-        too_many.push(MaskKey { time: MAX_MASK_KEYS as f64, rect, feather: 0.5 });
-        assert!(ClipShape::SoftEllipse { rect, feather: 0.0, keys: too_many }.validate().is_err());
+        too_many.push(MaskKey {
+            time: MAX_MASK_KEYS as f64,
+            rect,
+            feather: 0.5,
+        });
+        assert!(ClipShape::SoftEllipse {
+            rect,
+            feather: 0.0,
+            keys: too_many
+        }
+        .validate()
+        .is_err());
     }
     fn layer() -> Layer {
         Layer {

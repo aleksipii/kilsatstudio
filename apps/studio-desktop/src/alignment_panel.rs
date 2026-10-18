@@ -155,7 +155,9 @@ impl Panel {
                     if let Some(key) = &ready.cache.key {
                         self.cache_key = key.clone();
                     }
-                    self.status = if ready.cache.origin == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad {
+                    self.status = if ready.cache.origin
+                        == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad
+                    {
                         "Saved estimated timing loaded. Review and apply explicitly."
                     } else {
                         "Estimation complete. Review and apply explicitly."

@@ -268,7 +268,10 @@ impl PreparedAnimation {
             }
             for (joint, (value, track)) in values.iter_mut().zip(tracks).enumerate() {
                 if !instance.joint_mask.is_empty()
-                    && !instance.joint_mask.iter().any(|name| name == motion_animation::HUMANOID_BONES[joint])
+                    && !instance
+                        .joint_mask
+                        .iter()
+                        .any(|name| name == motion_animation::HUMANOID_BONES[joint])
                 {
                     continue;
                 }
@@ -963,15 +966,30 @@ mod live_instance_tests {
         layer.joint_mask = vec!["head".into()];
         script.scenes[0].composition.clip_instances = vec![layer];
         // Clip x20→60 over two seconds. Base head x8; equal blend.
-        for (time, expected) in [(1.0, 14.0), (1.5, 19.0), (3.0, 14.0), (4.5, 29.0), (2.0, 24.0), (5.0, 8.0)] {
-            assert_eq!(bone(&offsets(&script, time), "head").translation.x, expected);
+        for (time, expected) in [
+            (1.0, 14.0),
+            (1.5, 19.0),
+            (3.0, 14.0),
+            (4.5, 29.0),
+            (2.0, 24.0),
+            (5.0, 8.0),
+        ] {
+            assert_eq!(
+                bone(&offsets(&script, time), "head").translation.x,
+                expected
+            );
         }
         script.scenes[0].composition.clip_instances[0].joint_mask = vec!["right_hand".into()];
         assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 8.0);
         script.scenes[0].composition.clip_instances[0].clip = "second".into();
-        assert_eq!(bone(&offsets(&script, 2.0), "right_hand").translation.y, 10.0);
+        assert_eq!(
+            bone(&offsets(&script, 2.0), "right_hand").translation.y,
+            10.0
+        );
         assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 8.0);
-        script.scenes[0].composition.clip_instances[0].joint_mask.clear();
+        script.scenes[0].composition.clip_instances[0]
+            .joint_mask
+            .clear();
         assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 54.0);
         script.scenes[0].composition.clip_instances[0].clip = "first".into();
         script.scenes[0].composition.clip_instances[0].looping = false;
@@ -990,7 +1008,10 @@ mod live_instance_tests {
         script.scenes[0].composition.clip_instances = vec![looping, overlay];
         // At local2: cycle reset x20 but fade=.5, so base8 ->14 ->57.
         assert_eq!(bone(&offsets(&script, 3.0), "head").translation.x, 57.0);
-        assert_eq!(bone(&offsets(&script, 3.0), "right_hand"), Transform2::default());
+        assert_eq!(
+            bone(&offsets(&script, 3.0), "right_hand"),
+            Transform2::default()
+        );
         script.scenes[0].composition.clip_instances.reverse();
         // Reversed: base8 ->54 ->37. Fades stay on instance time.
         assert_eq!(bone(&offsets(&script, 3.0), "head").translation.x, 37.0);

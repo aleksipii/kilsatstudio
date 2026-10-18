@@ -58,7 +58,9 @@ impl ScenePreview {
                 return Err(invalid("artwork visibility exceeds scene duration"));
             }
             if let Some(shape) = &layer.clip_shape {
-                shape.validate_scene_duration(owner.duration).map_err(|error| invalid(error.to_string()))?;
+                shape
+                    .validate_scene_duration(owner.duration)
+                    .map_err(|error| invalid(error.to_string()))?;
             }
             geometry += match &layer.content {
                 motion_art::Content::Stroke { points, .. } => points.len(),
