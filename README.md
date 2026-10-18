@@ -19,6 +19,8 @@ not complete their redistribution review; see the
 
 ## Current capabilities
 
+- Capture, inspect and reuse project-local authored bone clips with explicit replacement and Undo/Redo; see the [clip library guide](docs/animation-clip-library.md).
+
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
 - Add, duplicate, edit and remove events in the Inspector; drag start times on the
   project frame grid, and undo/redo screenplay changes.

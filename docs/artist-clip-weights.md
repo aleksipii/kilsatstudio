@@ -90,8 +90,9 @@ isolation, project source round trips, stale drafts and source Undo/Redo. Export
 fixtures compare default frames and actual weighted SVG/PNG frames with shared
 preview at the same speech sample positions.
 
-This implements controls for three existing procedural layers. Editable custom
-clip libraries, blending of arbitrary authored clips, arbitrary rigs, textured/deformed
+This implements controls for three existing procedural layers. The separate
+[project-local bone clip library](animation-clip-library.md) copies authored
+tracks between actors/scenes. Live blending of arbitrary authored clips, arbitrary rigs, textured/deformed
 parts, inverse kinematics, advanced mask painting and physical Mac visual/motion
 acceptance remain open. No perceptual motion-quality or GPU-parity gate is
 completed by synthetic fixtures.

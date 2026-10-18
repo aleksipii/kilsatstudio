@@ -812,3 +812,24 @@ control the existing three procedural layers; custom clip libraries, arbitrary
 rigs, full GPU parity, automatic fresh-engine reuse and physical acceptance remain
 open. See [artist strengths](artist-clip-weights.md) and the
 [dependency audit](dependency-audit.md).
+
+## Project-local authored bone clip library (2026-10-18, pending integration)
+
+- [ ] Integrate bounded, strict named animation clips in project source with
+  original-rig bone tracks, duration and backward-compatible empty defaults.
+- [ ] Integrate atomic capture/explicit overwrite, full target-track replacement
+  and removal; applied copies remain independent of library/source deletion.
+- [ ] Integrate native library capture/selection/inspection, explicit replacement
+  confirmations, unified Undo/Redo, saved projects and stale/busy context guards.
+- [ ] Validate independent expected SVG/PNG frames, sample-clock preview,
+  repeated/backwards seeking and deletion preserving already applied animation.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Live custom clip instances/blending, retiming, arbitrary/textured rigs and
+  cross-project library exchange.
+- [ ] Full GPU/native parity, automatic fresh-engine estimated-result reuse,
+  physical Mac acceptance and final third-party release license clearance.
+
+Implementation is pending CI. Rust checks require CI because no local toolchain
+is available. These clips copy authored offsets into the existing shared bone
+track evaluator; this does not introduce a general custom-rig runtime or prove
+physical hardware/perceptual acceptance. See [clip library](animation-clip-library.md).

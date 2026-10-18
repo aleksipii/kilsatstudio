@@ -2,6 +2,8 @@
 //! SVG, PNG and explicitly configured local FFmpeg video share the same scene clock.
 #[cfg(test)]
 mod artist_blending_tests;
+#[cfg(test)]
+mod clip_library_tests;
 mod media;
 mod preview_scene;
 pub use preview_scene::ScenePreview;

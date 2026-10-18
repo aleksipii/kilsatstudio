@@ -197,6 +197,7 @@ mod tests {
             script: Script {
                 project: Default::default(),
                 characters: Default::default(),
+                animation_clips: Default::default(),
                 scenes: vec![],
             },
             scene_index: 0,
