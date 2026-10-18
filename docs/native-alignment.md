@@ -31,3 +31,8 @@ remain acceptance requirements.
 Compare saved estimated cues with manual mouth-shape annotations using the
 [offline quality evaluator](viseme-quality.md). This records agreement and
 transition errors on the exact audio; it does not grant quality acceptance.
+
+Fresh estimates can now be saved and explicitly loaded by key through the
+[estimated-cue archive](estimated-cue-cache.md). Loading checks the prepared
+PCM/text and retains original provenance without executing Rhubarb; Apply stays
+separate. This is selected-result reuse, not automatic fresh-engine memoization.

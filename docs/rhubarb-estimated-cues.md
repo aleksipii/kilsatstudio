@@ -32,7 +32,9 @@ Configuration for schema 1 fixes JSON/GHX/two threads and the mapping below.
 Executable identity is checked again after execution; the input snapshot is also
 checked for modification. This does not establish identity or licensing of
 Rhubarb's separate recognizer resources or shared libraries. Managed installation,
-resource manifests, estimated-cue caching and redistribution remain open.
+resource manifests, automatic fresh-engine cache lookup and redistribution
+remain open. Explicit selected-result storage/reload is described in the
+[estimated-cue archive](estimated-cue-cache.md).
 
 | Rhubarb shape | Studio viseme |
 | --- | --- |
@@ -75,12 +77,13 @@ Synthetic process fixtures test execution, provenance changes, limits, cancellat
 and serialization only. Real-engine compatibility across supported platforms,
 licensed recognizer-resource identity, real-audio cue accuracy, user corrections,
 Mac device synchronization, project timing persistence and estimated-cue caching
-are still open. PR #31 added explicit native execution and Apply controls for an
+with verified recognizer-resource identity are still open. Explicit saved-result
+reuse is available through the separate archive. PR #31 added native execution and Apply controls for an
 already prepared line; see [native alignment](native-alignment.md).
 Selected-line/scene/sequence
 preparation now imports these cues through one typed input path; preview and
 export share their exact sample intervals. UI labels imported cues as estimated,
-uncached and quality not measured. Export manifests use an explicit
+separate from the phoneme cache and quality not measured. Export manifests use an explicit
 `estimated` provenance source, preserving existing manual/forced JSON support.
 Do not mark automatic alignment or perceptual acceptance complete from these tests.
 
