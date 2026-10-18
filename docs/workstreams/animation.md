@@ -48,10 +48,10 @@ then prints root/hand world positions at blend weights 0, 0.5 and 1.
   source history. `.kilsat` persists the MotionScript source. See
   [current controls](../animation-clip-library.md).
 
-## First live-instance package (implementation pending CI)
+## First live-instance package (PR #40, integrated 2026-10-18)
 
-The following contract now has source implementation awaiting integration and
-CI. It is not completed validation. Support constant-weight **ordered override blending of local authored
+The following bounded contract is integrated and passed Linux/macOS CI. It does
+not establish physical motion acceptance. It supports constant-weight **ordered override blending of local authored
 offsets** for the original seven bones first. Defer additive arbitrary-pose mixing,
 normalized mixing, loops, fades, animated instance weights, clip events, masks,
 custom rigs and cross-project exchange.
@@ -128,11 +128,11 @@ errors instead of extending existing `expect` assumptions to unchecked data.
 
 ### Bounded preparation and interfaces
 
-Proposed ceilings: 128 instances per scene, 32 per actor per scene and 1024 per
+Enforced ceilings: 128 instances per scene, 32 per actor per scene and 1024 per
 project, counting inactive/zero-weight instances. Retain current 64 clips,
 600-second clip duration, 4096 keys per bone, 65,536 aggregate library keys,
 original finite offset bounds, one-MiB source-edit limits and 100-KB native source
-limit. These proposed ceilings need boundary tests and are not measured capacity.
+limit. Boundary tests cover these ceilings; they are protective limits, not measured capacity.
 
 Prepare library tracks once per immutable `ValidatedScript` and share by clip ID.
 Do not copy keys per instance/frame. The seven-transform accumulator and at most
@@ -152,7 +152,7 @@ Prepared state is rebuildable runtime data, invalidated on accepted source chang
 
 No per-frame jobs, model loading, encoding or GPU work is added to the UI loop.
 
-### Acceptance before marking implemented
+### Regression scope and remaining physical acceptance
 
 - Schema defaults, unknown fields, duplicate IDs, unknown references, all numeric
   invalidities/precision collapse and every budget boundary.
@@ -176,3 +176,12 @@ Hard activation edges may pop: describe this limitation in the UI. Ordered
 override layers are not additive or normalized crossfades. Live library edits
 affect many scenes and require clear affected-reference warnings and Undo tests.
 Animated weights/fades, joint masks and looping require later explicit semantics.
+
+
+PR #40 integrated this first package. See [the user guide](../live-clip-blending.md)
+and [master progress](../master-progress.md) for exact checks and remaining scope.
+Perceptual motion acceptance, animated weights/fades, loops, masks, custom rigs
+and cross-project exchange remain open. Runtime tracks are prepared in immutable
+snapshots; preflight and snapshots may prepare separately, while production frames
+reuse the retained snapshot. Export work limits count all live instances, including
+inactive and zero-weight rows.

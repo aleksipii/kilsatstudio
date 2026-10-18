@@ -9,13 +9,19 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PR #40 merged as `aeca29cef42efa1b9a9393dfd95ef140ac1aa266` after final Linux/macOS CI passed.
+The first original-rig live clip package now supports constant-weight ordered
+override layers, half-open windows, persistent references, native editing and
+prepared shared preview/export evaluation. Broader blending and hardware gates
+remain open. The release branch is synchronized with this progress record.
+
 Documentation-only PR #39 merged as `cf03e847674a00162766bceb81ba7e5ea44348f8`, assigning the
 five open workstreams and recording inspected implementation/evidence plans.
 Local Markdown link targets and diff whitespace checks passed; the license owner
 also passed 16 existing inventory tests while the strict release gate stayed
 blocked. This planning merge implements no production feature or acceptance.
 
-The latest implementation PR #38 merged as `797e7d4fb3c97b9577bef56a8570f25c49f2c34c` after its final
+Earlier implementation PR #38 merged as `797e7d4fb3c97b9577bef56a8570f25c49f2c34c` after its final
 Linux/macOS CI passed. PR #37 merged earlier as
 `0aa890bb6fa6ce597ba5f2a21fd942db720b7389`; PR #36 as
 `e49f7add105409ed4d98859d1be4b55ae1c803b1`; PR #35 as
@@ -39,7 +45,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
-| Rule clips, authored offsets and project-local bone clip capture/reuse and explicit copied-key retiming; ellipse/polygon masks and multiply/screen CPU composition | Live custom-clip instances/blending, feathered/image masks, groups and physical Mac compositing acceptance |
+| Rule clips, authored offsets, project clip capture/reuse/retiming and ordered live original-rig layers; ellipse/polygon masks and multiply/screen CPU composition | Animated clip weights/fades/loops, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
@@ -115,7 +121,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Scene-local animated procedural strength tracks with outgoing easing and native editor (PR #36).
 - [x] Named project-local authored bone clip library with capture/explicit overwrite, inspection, copied-track application and deletion (PR #37).
 - [x] Explicit copied-clip start/duration retiming with native controls, atomic validation and shared tracks (PR #38).
-- [ ] Live custom-clip instances, arbitrary authored clip blending and cross-project libraries.
+- [x] Persistent original-rig live clip instances, half-open windows and constant-weight ordered local-offset override blending (PR #40).
+- [ ] Animated clip weights/fades, looping, general additive/masked mixing and cross-project libraries.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -168,6 +175,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Animated procedural strength key editor with timing/easing, explicit Apply and safe track removal (PR #36).
 - [x] Native project clip library with detached names/selection, explicit replacement/deletion confirmations and unified source history (PR #37).
 - [x] Opt-in clip start/duration controls, explicit reset and replacement confirmation after timing edits (PR #38).
+- [x] Native live-instance editor with saved layer order, source history, reference warnings and cached shared preview (PR #40).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -279,7 +287,7 @@ These gates remain open until all constituent work and acceptance are evidenced.
 - [ ] **M2 — Character animation:** hierarchy, rigging, keyframes/easing, presets,
   expressions/gestures and blending integrated and tested; procedural rig and
   interpolation, root/per-bone editors and additive authored layering are implemented;
-  textured custom rigs and artist clip blending remain open.
+  textured custom rigs, animated clip weights/fades and physical motion acceptance remain open.
 - [ ] **M3 — Dialogue/lip sync:** import/tracks/mouth/timing foundations implemented;
   reported real M1 Kokoro speech and estimated-cue import are recorded; complete
   Speech Stages 2–4 and quality/hardware gates remain open.
@@ -910,7 +918,8 @@ See [clip library](animation-clip-library.md).
   acceptance tests and evidence blockers in the linked workstream documents.
 - [ ] Implement and verify full GPU scene/native parity.
 - [ ] Implement automatic estimated-result lookup with verified resources/environment.
-- [ ] Implement persistent live clip instances and deterministic authored-clip blending.
+- [x] Implement the first original-rig persistent live-instance and ordered override package (PR #40).
+- [ ] Extend live layers with animated weights/fades, loops and more general mixing.
 - [ ] Collect and review physical Mac/device/offline/synchronization acceptance evidence.
 - [ ] Complete the final artifact-specific third-party license/redistribution review.
 
@@ -922,26 +931,49 @@ M1 Kokoro speech evidence is retained; it does not close the remaining device
 gates. Plans and agent ownership are not completed product acceptance.
 
 
-## Ordered live authored clip layers (2026-10-18, pending integration)
+## Ordered live authored clip layers (PR #40, merged 2026-10-18)
 
-- [ ] Integrate strict persistent scene instances, reference/numeric/order/budget
+- [x] Integrate strict persistent scene instances, reference/numeric/order/budget
   validation, atomic upsert/remove/reorder, deletion guards and actor cleanup.
-- [ ] Integrate prepared shared referenced tracks, checked local-offset override
+- [x] Integrate prepared shared referenced tracks, checked local-offset override
   blending, half-open windows, unchanged default behavior and typed failures.
-- [ ] Integrate native detached instance editing, global layer order, library
+- [x] Integrate native detached instance editing, global layer order, library
   reference warnings, source Undo/Redo, persistence and stale/busy/actor guards.
-- [ ] Reuse prepared snapshots in scene/project export and cached native preview;
+- [x] Reuse prepared snapshots in scene/project export and cached native preview;
   preflight inactive/zero layers and enforce bounded work before output creation.
-- [ ] Validate independent actual SVG/PNG frames, sample-clock preview, seek order,
+- [x] Validate independent actual SVG/PNG frames, sample-clock preview, seek order,
   overlap order, root/speech stages, library replacement and copied-track independence.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Animated weights/fades, loops, masks, arbitrary/textured rigs, cross-project
   exchange and physical/perceptual motion acceptance.
 - [ ] Full GPU parity, verified-environment automatic estimated reuse and final
   third-party artifact/license approval.
 
-Source is awaiting CI; no local Rust toolchain is available. First support is
-constant-weight ordered override of original-rig local authored offsets, with
-explicit half-open activation and no implicit fades. Implementation does not
-establish hardware, real recognizer or final release acceptance. See
-[live clip blending](live-clip-blending.md).
+Final source head `b6700bdf47f16cdfa900cd960fbf6877f7e29784` passed Audio
+foundation 39125173890 and Apple Silicon preview 39125173903. CI validated
+formatting, workspace check, strict Clippy, 409 default Rust tests on Linux and
+408 on macOS, 14 adapter-free GPU tests/feature Clippy per platform, 55 runtime
+plus 29 inventory/packaging Python tests and three actual encoder tests.
+Arm64 packaging/signature and license-byte checks passed. Rust checks ran in CI
+because no local toolchain was available. Independent review found no remaining
+blocker after correcting unused-library preparation and total live-work bounds.
+Prepared snapshots store only referenced definitions, share their keys across
+instances/clones and are retained across production preview/export frames.
+Existing bounded preflight may prepare separately; it retains its early errors.
+The work estimate counts inactive/zero layers and binary-search/scanning work;
+a regression rejects excessive valid live work before any output directory.
+Tests cover strict schema/references/count limits, independent weight/order and
+rotation/scale expectations, half-open/adjacent/compressed windows, repeated
+seeks, copied/live definition independence, guarded deletion, source history,
+project round trips, cross-actor/stale/busy rejection and prepared-storage sharing.
+Actual SVG/PNG frames match independent authored expectations and sample-clock
+preview with procedural, root and speech stages. Native live projects use the
+existing bounded compositor worker rather than reconstructing tracks per draw.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39125173903/artifacts/12135299806
+SHA256: `de5eb79159a1556c95f6389ca09c833a3247d68c80f169210d559beef71c0231`.
+This post-merge record changes no implementation. First support is constant-weight
+ordered override of original-rig local offsets, with explicit half-open activation
+and no implicit fades. No real recognizer/model, GPU device or physical Mac
+acceptance was performed. Animated weights/fades, loops, arbitrary rigs, full
+GPU parity, verified-environment estimated reuse and final licenses remain open.
+See [live clip blending](live-clip-blending.md).
