@@ -9,8 +9,9 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #35 merged as `6bd988ab162adb64cdcea621bb01600099abbeb2` after its final
-Linux/macOS CI passed. PR #34 merged earlier as
+PR #36 merged as `e49f7add105409ed4d98859d1be4b55ae1c803b1` after its final
+Linux/macOS CI passed. PR #35 merged earlier as
+`6bd988ab162adb64cdcea621bb01600099abbeb2`; PR #34 as
 `f89c59b8113b3b578c82fe648850615e704fdaf0`; PR #33 as
 `504166d85daa15e88f937a777a17123162df5e8a`; PR #32 as
 `f2e7b79f23968ac3b32637680ff2c48ac7f43453`; PR #31 as
@@ -29,7 +30,7 @@ and final redistribution clearance remain open.
 | Completed | Still open |
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
-| Persisted per-bone tracks/editor, shared preview/export and per-actor procedural layer strengths | Custom rig authoring, textures/deformation and animated custom-clip blending |
+| Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
 | Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
@@ -106,7 +107,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Arbitrary rig definition editing, textured parts and deformation.
 - [x] Authored bone offsets layer over rule clips in shared evaluation.
 - [x] Artist-controlled per-scene/actor posture, walk and gesture strengths with shared evaluation (PR #35).
-- [ ] Editable custom clips, animated blend tracks and clip library editing.
+- [x] Scene-local animated procedural strength tracks with outgoing easing and native editor (PR #36).
+- [ ] Editable custom clips, arbitrary authored clip blending and clip library editing.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -156,6 +158,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
 - [x] Native detached per-bone editor and validated ellipse/polygon mask/blend controls.
 - [x] Native procedural layer strength editor with Apply, unified Undo/Redo and project persistence (PR #35).
+- [x] Animated procedural strength key editor with timing/easing, explicit Apply and safe track removal (PR #36).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -232,6 +235,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Sidecar protocol/error/diagnostic unit tests present.
 - [x] Sample projects, build/run and practical-test documentation.
 - [x] Native preview `.app` staging, ad-hoc signing and ZIP workflow.
+- [x] Original-source MIT LICENSE, inherited Cargo metadata and byte-exact license in app resources/ZIP root (PR #36).
 - [x] Integrated direct rustfmt, cargo check, strict Clippy and all-target Rust tests run.
 - [x] Python runtime and package tests run; actual FFmpeg test run separately.
 - [x] Original generated ICNS and Editor/Alternate file-type metadata structurally tested.
@@ -769,22 +773,42 @@ final licenses remain open.
 See [artist layer strengths](artist-clip-weights.md).
 
 
-## Source license and animated strengths (2026-10-18, pending integration)
+## Source license and animated strengths (PR #36, merged 2026-10-18)
 
-- [ ] Integrate root MIT LICENSE, consistent Cargo package metadata and README scope.
-- [ ] Include source license in the signed app resources and ZIP root, with missing
+- [x] Integrate root MIT LICENSE, consistent Cargo package metadata and README scope.
+- [x] Include source license in the signed app resources and ZIP root, with missing
   license rejection and byte-exact package verification.
-- [ ] Integrate validated scene-local procedural strength keys, outgoing
+- [x] Integrate validated scene-local procedural strength keys, outgoing
   linear/smoothstep/hold sampling, static fallback and character cleanup.
-- [ ] Integrate detached animated strength editor, Apply/Undo/Redo, project
+- [x] Integrate detached animated strength editor, Apply/Undo/Redo, project
   persistence and stale/busy guards.
-- [ ] Validate actual SVG/PNG exports, sample-clock preview and deterministic seeks.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Validate actual SVG/PNG exports, sample-clock preview and deterministic seeks.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Arbitrary authored clip libraries/blending, custom/textured rigs and advanced masks.
 - [ ] Full GPU/native parity, automatic fresh-engine estimated result reuse,
   physical Mac acceptance and final artifact-specific third-party license clearance.
 
-Implementation is pending CI. No local Rust toolchain is available. Declaring
-an original-source license does not complete model/voice/tool/dependency review.
-Animated strengths control the existing three procedural layers; they do not
-implement a general custom-clip library or full animation authoring suite.
+Final source head `7a55ab5c506efec1ffedf2fd8fe71f4d86fd5978` passed Audio
+foundation 39086245253 and Apple Silicon preview 39086245328. CI validated
+formatting, workspace check, strict Clippy, 372 default Rust tests on Linux and
+371 on macOS, 14 adapter-free GPU tests/feature Clippy per platform, 55 runtime
+plus 29 inventory/packaging Python tests and three actual encoder tests.
+Arm64 packaging/signature checks and byte-exact LICENSE checks inside the app
+and at ZIP root passed. Rust checks ran in CI because no local toolchain was
+available. The same 55 runtime and 29 packaging/inventory tests passed locally.
+Independent review found an invalid empty-track export fixture; the corrected
+test removes the track through the public API before comparing SVG/PNG output.
+An existing worker format-routing test hit its five-second limit while rasterizing
+default full-HD frames; its fixture now uses 64x64 frames and retains real exports.
+Animated track tests cover strict schema/bounds, independent scalar interpolation,
+outgoing easing, endpoint clamps, repeated/backwards seeks, actual SVG/PNG versus
+sample-clock preview, static fallback, saved projects and one-edit Undo/Redo.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39086245328/artifacts/12120942405
+SHA256: `91c80638a12768b504fc9d0e1db61fd45b551893672b6b7592b7bc3616996172`.
+This post-merge record changes no implementation. No real recognizer/model,
+GPU-device or physical Mac acceptance was performed. Declaring an original-source
+license does not complete model/voice/tool/dependency review. Animated strengths
+control the existing three procedural layers; custom clip libraries, arbitrary
+rigs, full GPU parity, automatic fresh-engine reuse and physical acceptance remain
+open. See [artist strengths](artist-clip-weights.md) and the
+[dependency audit](dependency-audit.md).
