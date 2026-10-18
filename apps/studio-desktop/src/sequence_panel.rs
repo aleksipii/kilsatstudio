@@ -417,9 +417,21 @@ impl Panel {
                     ui.text_edit_singleline(&mut self.destination);
                     ui.horizontal(|ui| {
                         ui.label("Format");
-                        ui.selectable_value(&mut self.export_choice, ExportChoice::Png, "PNG + WAV");
-                        ui.selectable_value(&mut self.export_choice, ExportChoice::Svg, "SVG + WAV");
-                        ui.selectable_value(&mut self.export_choice, ExportChoice::Mp4, "MP4 + WAV");
+                        ui.selectable_value(
+                            &mut self.export_choice,
+                            ExportChoice::Png,
+                            "PNG + WAV",
+                        );
+                        ui.selectable_value(
+                            &mut self.export_choice,
+                            ExportChoice::Svg,
+                            "SVG + WAV",
+                        );
+                        ui.selectable_value(
+                            &mut self.export_choice,
+                            ExportChoice::Mp4,
+                            "MP4 + WAV",
+                        );
                     });
                     if self.export_choice == ExportChoice::Mp4 {
                         ui.label("Absolute path to local FFmpeg");

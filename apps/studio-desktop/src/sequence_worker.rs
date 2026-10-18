@@ -431,7 +431,11 @@ mod tests {
             assert!(result.unwrap().frame_count > 0);
             assert!(destination.join("audio.wav").is_file());
             assert!(std::fs::read_dir(&destination).unwrap().any(|entry| {
-                entry.unwrap().path().extension().is_some_and(|value| value == extension)
+                entry
+                    .unwrap()
+                    .path()
+                    .extension()
+                    .is_some_and(|value| value == extension)
             }));
         }
         std::fs::remove_dir_all(root).unwrap();
