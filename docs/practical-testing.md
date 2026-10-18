@@ -176,20 +176,25 @@ directories. Use [sequence timing](scene-sequences.md) for transition limits.
 ### Export, cancellation and comparison
 
 1. Prepare the dialogue project and supply a **new absolute output directory**.
-   Leave **MP4 + WAV (otherwise PNG + WAV)** unchecked and select **Export whole
+   Select **PNG + WAV** and then **Export whole
    project**. Verify numbered PNGs, `audio.wav` and `sequence.json`; compare
    crossfade start/middle/end pictures and audio to the native preview.
-2. Repeat into another new directory with the MP4 box checked and an explicit
+2. Repeat into another new directory with **MP4 + WAV** selected and an explicit
    absolute path to an already installed local FFmpeg executable. Use even
    project dimensions for H.264. The app must not download or locate an encoder
    through PATH. An invalid encoder path or existing destination must produce an
    actionable failure and preserve existing files.
-3. Play `sequence.mp4` in a Mac video player through the same output device.
+3. Also export **SVG + WAV** into a new directory without configuring FFmpeg.
+   Check the `.svg` frame extensions and the sample/contribution manifest. Open
+   crossfade start/middle/end frames in the chosen SVG viewer and compare camera,
+   fades, image layers and masks with PNG output. Report the viewer and visual
+   differences; automated raster fixtures are not browser/device acceptance.
+4. Play `sequence.mp4` in a Mac video player through the same output device.
    Compare speech onset, overlap, mouth cues and final line with the native
    preview. Check frame count and duration against `sequence.json`; record
    perceptual drift separately, especially for a longer fixture within export
    limits. A structural duration match does not prove lip-sync quality.
-4. Cancel an export long enough to observe progress. Wait for completion and
+5. Cancel an export long enough to observe progress. Wait for completion and
    check that its newly created partial directory is removed, earlier successful
    exports remain unchanged and another export succeeds. Repeat cancellation
    during MP4 encoding when feasible; report `not_tested` if it finishes too fast.

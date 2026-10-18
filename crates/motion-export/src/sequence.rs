@@ -35,15 +35,14 @@ struct Manifest {
     scenes: Vec<Span>,
     frames: Vec<Frame>,
 }
-fn image(
+fn scene_svg(
     script: &Script,
     rendered: &[RenderedScene],
     art: Option<&ArtContext>,
     index: usize,
     sample: u64,
-    max_side: Option<u32>,
     validated: Option<&motion_scene::ValidatedScript>,
-) -> Result<resvg::tiny_skia::Pixmap, Error> {
+) -> Result<String, Error> {
     let time = sample as f64 / f64::from(SAMPLE_RATE);
     let mut pose = match validated {
         Some(validated) => validated.evaluate(index, time),
@@ -65,9 +64,121 @@ fn image(
         None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
     }
     .map_err(|e| invalid(e.to_string()))?;
+    Ok(svg)
+}
+fn image(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    index: usize,
+    sample: u64,
+    max_side: Option<u32>,
+    validated: Option<&motion_scene::ValidatedScript>,
+) -> Result<resvg::tiny_skia::Pixmap, Error> {
+    let svg = scene_svg(script, rendered, art, index, sample, validated)?;
     resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, max_side)?)
         .map_err(|e| invalid(e.to_string()))
 }
+
+/// Prefix references in internally generated SVG only. Prefixing every ID,
+/// rather than a list of today's clip names, also protects future definitions.
+fn namespace_svg(svg: &str, prefix: &str) -> String {
+    // Only internally generated XML is accepted here: attribute values/text
+    // escape literal angle brackets. Keep visible labels untouched and make
+    // three linear passes per tag, including large embedded image tags.
+    let mut out = String::with_capacity(svg.len());
+    for segment in svg.split_inclusive('>') {
+        if let Some(start) = segment.find('<') {
+            out.push_str(&segment[..start]);
+            let tag = segment[start..]
+                .replace("id=\"", &format!("id=\"{prefix}"))
+                .replace("url(#", &format!("url(#{prefix}"))
+                .replace("href=\"#", &format!("href=\"#{prefix}"));
+            out.push_str(&tag);
+        } else {
+            out.push_str(segment);
+        }
+    }
+    out
+}
+
+const MAX_SVG_FRAME_BYTES: usize = 64 * 1024 * 1024;
+
+fn compose_svg(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    timeline: &SequenceTimeline,
+    sample: u64,
+    cancel: &CancellationToken,
+) -> Result<(Vec<u8>, Vec<Contribution>), Error> {
+    let contributions = timeline
+        .sample(sample)
+        .map_err(|e| invalid(e.to_string()))?;
+    if contributions.is_empty() || contributions.len() > 2 {
+        return Err(invalid("invalid sequence contributions"));
+    }
+    let mut out = format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\" viewBox=\"0 0 {} {}\">",
+        script.project.width, script.project.height, script.project.width, script.project.height
+    );
+    let mut entries = Vec::with_capacity(2);
+    for (slot, c) in contributions.into_iter().enumerate() {
+        check(cancel)?;
+        let svg = scene_svg(script, rendered, art, c.scene_index, c.local_sample, None)?;
+        if svg.len() > MAX_SVG_FRAME_BYTES {
+            return Err(invalid("sequence SVG scene byte budget exceeded"));
+        }
+        let svg = namespace_svg(&svg, &format!("scene{slot}_"));
+        // Each generated scene includes an opaque black full-canvas backdrop.
+        // Outgoing stays opaque; only the isolated incoming scene gets weighted.
+        // This gives the same linear channel mix as the PNG compositor.
+        let opacity = if slot == 0 { 1.0 } else { c.weight };
+        let group = format!("<g opacity=\"{opacity:.12}\">{svg}</g>");
+        if out
+            .len()
+            .checked_add(group.len())
+            .and_then(|n| n.checked_add("</svg>".len()))
+            .is_none_or(|n| n > MAX_SVG_FRAME_BYTES)
+        {
+            return Err(invalid("sequence SVG byte budget exceeded"));
+        }
+        out.push_str(&group);
+        entries.push(Contribution {
+            scene_index: c.scene_index,
+            local_sample: c.local_sample,
+            weight: c.weight,
+        });
+    }
+    check(cancel)?;
+    out.push_str("</svg>");
+    Ok((out.into_bytes(), entries))
+}
+// Rendering embeds image data once per layer, not once per unique asset.
+// Include inactive/invisible occurrences conservatively before generating SVG.
+fn embedded_image_budget(art: &ArtContext, limit: u64) -> Result<u64, Error> {
+    let mut scenes = std::collections::BTreeMap::<&str, u64>::new();
+    for layer in &art.document.layers {
+        if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+            if let Some(image) = art.images.get(asset_id) {
+                let encoded = (image.png().len() as u64)
+                    .checked_add(2)
+                    .and_then(|n| (n / 3).checked_mul(4))
+                    .and_then(|n| n.checked_add(256))
+                    .ok_or_else(|| invalid("embedded image byte overflow"))?;
+                let total = scenes.entry(&layer.scene_id).or_default();
+                *total = total
+                    .checked_add(encoded)
+                    .ok_or_else(|| invalid("embedded image byte overflow"))?;
+                if *total > limit {
+                    return Err(invalid("per-scene embedded image byte budget exceeded"));
+                }
+            }
+        }
+    }
+    Ok(scenes.values().copied().max().unwrap_or(0))
+}
+
 fn preflight(
     script: &Script,
     rendered: &[RenderedScene],
@@ -126,6 +237,7 @@ fn preflight(
     }
     if let Some(a) = art {
         a.document.validate().map_err(|e| invalid(e.to_string()))?;
+        let embedded = embedded_image_budget(a, 32 * 1024 * 1024)?;
         let mut geometry = 0u64;
         for layer in &a.document.layers {
             let scene = script
@@ -176,6 +288,10 @@ fn preflight(
                     .ok_or_else(|| invalid("art working-set overflow"))?,
             )
             .and_then(|n| image_pixels.checked_mul(8).and_then(|p| n.checked_add(p)))
+            // Conservative encoding scratch estimate, including two scene
+            // contributions, namespacing replacement and nested group copies.
+            // Allocator overhead/vector text remain estimates, not a heap cap.
+            .and_then(|n| embedded.checked_mul(6).and_then(|p| n.checked_add(p)))
             .ok_or_else(|| invalid("art working-set overflow"))?;
         if working > MAX_BYTES {
             return Err(invalid("sequence artwork working set exceeds 256 MiB"));
@@ -390,7 +506,32 @@ pub fn export_png_sequence(
     art: Option<&ArtContext>,
     destination: &Path,
     cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_project_sequence(script, rendered, art, destination, cancel, progress, false)
+}
+
+/// Export editable vector frames plus mixed WAV and sample-accurate sequence manifest.
+/// Imported PNG artwork remains embedded; generated scene geometry stays vector.
+pub fn export_svg_sequence(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    destination: &Path,
+    cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_project_sequence(script, rendered, art, destination, cancel, progress, true)
+}
+
+fn export_project_sequence(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    destination: &Path,
+    cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
+    svg: bool,
 ) -> Result<Report, Error> {
     check(cancel)?;
     let (timeline, total) = preflight(script, rendered, art, true)?;
@@ -431,16 +572,23 @@ pub fn export_png_sequence(
                 .checked_mul(u64::from(SAMPLE_RATE))
                 .ok_or_else(|| invalid("frame clock overflow"))?
                 / u64::from(script.project.fps);
-            let (out, entries) =
-                compose(script, rendered, art, &timeline, sample, None, cancel, None)?;
-            let bytes = out.encode_png().map_err(|e| invalid(e.to_string()))?;
+            let (bytes, entries) = if svg {
+                compose_svg(script, rendered, art, &timeline, sample, cancel)?
+            } else {
+                let (out, entries) =
+                    compose(script, rendered, art, &timeline, sample, None, cancel, None)?;
+                (
+                    out.encode_png().map_err(|e| invalid(e.to_string()))?,
+                    entries,
+                )
+            };
             used = used
                 .checked_add(bytes.len() as u64)
                 .ok_or_else(|| invalid("output byte overflow"))?;
             if used > MAX_BYTES {
                 return Err(invalid("sequence output byte budget exceeded"));
             }
-            let file = format!("frame-{frame:06}.png");
+            let file = format!("frame-{frame:06}.{}", if svg { "svg" } else { "png" });
             write_new(&destination.join(&file), &bytes)?;
             frames.push(Frame {
                 frame,
@@ -528,6 +676,302 @@ mod tests {
         let pix = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
         pix.data()[0..4].try_into().unwrap()
     }
+    #[test]
+    fn vector_sequence_raster_matches_png_cuts_crossfades_and_mask_namespaces() {
+        use motion_art::{BlendMode, ClipShape, Color, Content, Layer, Plane, Rect};
+        for fade in [false, true] {
+            let (mut script, rendered) = fixture(fade);
+            for scene in &mut script.scenes {
+                scene.composition.fade_in = 0.25;
+                scene.composition.fade_out = 0.25;
+                scene.composition.camera = vec![
+                    motion_script::CameraKey {
+                        at: 0.0,
+                        x: 0.0,
+                        y: 0.0,
+                        zoom: 1.0,
+                    },
+                    motion_script::CameraKey {
+                        at: 1.0,
+                        x: 1.0,
+                        y: 0.5,
+                        zoom: 1.2,
+                    },
+                ];
+            }
+            let mut art = ArtContext::default();
+            for (index, scene) in script.scenes.iter().enumerate() {
+                art.document.layers.push(Layer {
+                    id: format!("mask{index}"),
+                    scene_id: scene.id.clone(),
+                    name: "masked".into(),
+                    visible: true,
+                    plane: Plane::Foreground,
+                    active: None,
+                    opacity: 0.7,
+                    attachment: None,
+                    clip: if index == 0 {
+                        Some(Rect {
+                            x: 0.0,
+                            y: 0.0,
+                            width: 6.0,
+                            height: 8.0,
+                        })
+                    } else {
+                        None
+                    },
+                    clip_shape: if index == 1 {
+                        Some(ClipShape::Ellipse {
+                            rect: Rect {
+                                x: 0.0,
+                                y: 0.0,
+                                width: 8.0,
+                                height: 8.0,
+                            },
+                        })
+                    } else {
+                        None
+                    },
+                    blend: BlendMode::Multiply,
+                    content: Content::Rectangle {
+                        rect: Rect {
+                            x: 0.0,
+                            y: 0.0,
+                            width: 8.0,
+                            height: 8.0,
+                        },
+                        color: Color {
+                            r: 128,
+                            g: 192,
+                            b: 96,
+                            a: 255,
+                        },
+                    },
+                });
+            }
+            let mut image_layer = art.document.layers[1].clone();
+            image_layer.id = "embedded".into();
+            image_layer.clip_shape = None;
+            image_layer.blend = BlendMode::Normal;
+            image_layer.content = Content::Image {
+                asset_id: "pixel".into(),
+                rect: Rect {
+                    x: 2.0,
+                    y: 2.0,
+                    width: 4.0,
+                    height: 4.0,
+                },
+            };
+            art.document.layers.push(image_layer);
+            art.images.insert(
+                "pixel".into(),
+                motion_art::ImageResource::from_rgba(1, 1, vec![255, 255, 255, 255]).unwrap(),
+            );
+            let dest = crate::tests::destination();
+            // A resource used only in the future scene must fail before output.
+            let image = art.images.remove("pixel").unwrap();
+            assert!(export_svg_sequence(
+                &script,
+                &rendered,
+                Some(&art),
+                &dest,
+                &CancellationToken::new(),
+                |_| {}
+            )
+            .is_err());
+            assert!(!dest.exists());
+            art.images.insert("pixel".into(), image);
+            let cancel = CancellationToken::new();
+            let report =
+                export_svg_sequence(&script, &rendered, Some(&art), &dest, &cancel, |_| {})
+                    .unwrap();
+            let timeline = SequenceTimeline::compile(&script).unwrap();
+            for frame in 0..report.frame_count {
+                let sample = frame * 6000;
+                let svg = fs::read_to_string(dest.join(format!("frame-{frame:06}.svg"))).unwrap();
+                assert!(svg.contains("<rect"));
+                if sample >= 24000 || (fade && sample >= 12000) {
+                    assert!(svg.contains("data:image/png"));
+                }
+                assert!(!svg.contains("id=\"canvas\""));
+                assert!(svg.contains("id=\"scene0_canvas\""));
+                let raster = resvg::tiny_skia::Pixmap::decode_png(
+                    &media::rasterize_scaled(&svg, None).unwrap(),
+                )
+                .unwrap();
+                let (png, _) = compose(
+                    &script,
+                    &rendered,
+                    Some(&art),
+                    &timeline,
+                    sample,
+                    None,
+                    &cancel,
+                    None,
+                )
+                .unwrap();
+                // SVG source-over quantizes premultiplied channels; PNG sums round once.
+                for (a, b) in raster.data().iter().zip(png.data()) {
+                    assert!(a.abs_diff(*b) <= 2, "frame {frame}: {a} != {b}");
+                }
+            }
+            let manifest: serde_json::Value =
+                serde_json::from_slice(&fs::read(dest.join("sequence.json")).unwrap()).unwrap();
+            assert_eq!(manifest["frames"][3]["sample_frame"], 18000);
+            assert_eq!(manifest["frames"][0]["file"], "frame-000000.svg");
+            assert_eq!(
+                motion_audio::read_wav(dest.join("audio.wav"))
+                    .unwrap()
+                    .frames() as u64,
+                timeline.total_samples()
+            );
+            fs::remove_dir_all(dest).unwrap();
+        }
+    }
+
+    #[test]
+    fn repeated_image_occurrences_are_bounded_before_render_or_destination() {
+        let (script, rendered) = fixture(false);
+        let mut art = ArtContext::default();
+        // Deterministic incompressible pixels keep this fixture small while
+        // repeated references would expand into tens of MiB of SVG text.
+        let mut state = 1u32;
+        let rgba: Vec<u8> = (0..128 * 128 * 4)
+            .map(|_| {
+                state ^= state << 13;
+                state ^= state >> 17;
+                state ^= state << 5;
+                state as u8
+            })
+            .collect();
+        art.images.insert(
+            "pixel".into(),
+            motion_art::ImageResource::from_rgba(128, 128, rgba).unwrap(),
+        );
+        for index in 0..500 {
+            art.document.layers.push(motion_art::Layer {
+                id: format!("repeated{index}"),
+                scene_id: script.scenes[1].id.clone(),
+                name: "image".into(),
+                visible: false,
+                plane: motion_art::Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                clip_shape: None,
+                blend: motion_art::BlendMode::Normal,
+                content: motion_art::Content::Image {
+                    asset_id: "pixel".into(),
+                    rect: motion_art::Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 8.0,
+                        height: 8.0,
+                    },
+                },
+            });
+        }
+        let per_image = (art.images["pixel"].png().len() as u64).div_ceil(3) * 4 + 256;
+        assert!(embedded_image_budget(&art, per_image * 499).is_err());
+        assert_eq!(
+            embedded_image_budget(&art, per_image * 500).unwrap(),
+            per_image * 500
+        );
+        let dest = crate::tests::destination();
+        for svg in [false, true] {
+            let result = export_project_sequence(
+                &script,
+                &rendered,
+                Some(&art),
+                &dest,
+                &CancellationToken::new(),
+                |_| {},
+                svg,
+            );
+            assert!(result
+                .unwrap_err()
+                .to_string()
+                .contains("embedded image byte budget"));
+            assert!(!dest.exists());
+        }
+    }
+
+    #[test]
+    fn svg_uses_the_same_prepared_timed_mouths() {
+        let (script, rendered) = crate::tests::fixture();
+        let scenes = vec![rendered];
+        let timeline = SequenceTimeline::compile(&script).unwrap();
+        let cancel = CancellationToken::new();
+        for sample in [0, 6000, 12000, 18000, 23999] {
+            let (svg, _) = compose_svg(&script, &scenes, None, &timeline, sample, &cancel).unwrap();
+            let svg = String::from_utf8(svg).unwrap();
+            let raster =
+                resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
+                    .unwrap();
+            let (png, _) = compose(
+                &script, &scenes, None, &timeline, sample, None, &cancel, None,
+            )
+            .unwrap();
+            assert_eq!(raster.data(), png.data());
+        }
+    }
+
+    #[test]
+    fn svg_cancel_and_invalid_future_scene_preserve_destination() {
+        let (script, mut rendered) = fixture(true);
+        let dest = crate::tests::destination();
+        let cancel = CancellationToken::new();
+        cancel.cancel();
+        assert!(matches!(
+            export_svg_sequence(&script, &rendered, None, &dest, &cancel, |_| {}),
+            Err(Error::Cancelled)
+        ));
+        assert!(!dest.exists());
+        let cancel = CancellationToken::new();
+        assert!(matches!(
+            export_svg_sequence(&script, &rendered, None, &dest, &cancel, |_| cancel
+                .cancel()),
+            Err(Error::Cancelled)
+        ));
+        assert!(!dest.exists());
+        rendered[1].manifest.scene_id = "invalid".into();
+        assert!(export_svg_sequence(
+            &script,
+            &rendered,
+            None,
+            &dest,
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        assert!(!dest.exists());
+        rendered[1].manifest.scene_id = "second".into();
+        fs::create_dir(&dest).unwrap();
+        fs::write(dest.join("keep"), b"keep").unwrap();
+        assert!(export_svg_sequence(
+            &script,
+            &rendered,
+            None,
+            &dest,
+            &CancellationToken::new(),
+            |_| {}
+        )
+        .is_err());
+        assert_eq!(fs::read(dest.join("keep")).unwrap(), b"keep");
+        fs::remove_dir_all(dest).unwrap();
+    }
+
+    #[test]
+    fn generated_svg_namespaces_every_definition_and_reference() {
+        let source = "<svg><defs><clipPath id=\"canvas\"/><mask id=\"future\"/></defs><g clip-path=\"url(#canvas)\" mask=\"url(#future)\"><use href=\"#future\"/></g><text>url(#canvas) href=&quot;#future id=&quot;canvas</text></svg>";
+        let namespaced = namespace_svg(source, "scene1_");
+        assert!(namespaced.contains("id=\"scene1_future\""));
+        assert!(namespaced.contains("url(#scene1_future)"));
+        assert!(namespaced.contains("href=\"#scene1_future\""));
+        assert!(namespaced.contains("<text>url(#canvas) href=&quot;#future id=&quot;canvas</text>"));
+    }
+
     #[test]
     fn preview_matches_export_pixels_and_scales_original_coordinates() {
         let (script, rendered) = fixture(true);

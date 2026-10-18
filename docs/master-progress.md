@@ -116,7 +116,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persisted ordered/visible/opacity image and basic drawing layers with rectangular clip masks.
 - [x] Validated ellipse/simple-polygon masks and normal/multiply/screen shared CPU blending.
 - [ ] Groups, image/feathered/animated masks and physical Mac compositing acceptance.
-- [ ] Final integration checks for selected-scene shared CPU-composited advanced frames (implemented in the next unmerged increment).
+- [x] Selected-scene shared CPU-composited advanced frames and final integration checks (PR #31).
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
 - [x] Timed background image planes and validated half-open visibility intervals.
@@ -180,7 +180,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Offline synthesis after provisioning with networking disabled.
 - [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
 - [x] Exact-PCM/current-text bound alignment envelopes and shared line/scene desktop cache integration.
-- [ ] Native automatic-aligner execution controls and estimated-cue cache.
+- [x] Native explicit estimated-aligner execution controls (PR #31).
+- [ ] Estimated-cue cache.
 - [x] Estimated cues preserve separate provenance and integer-sample trim/offset evaluation in preview/export.
 - [ ] Validated forced-aligner integration and editable timing tools.
 - [ ] Annotated real-audio corpus and measured timing error.
@@ -658,3 +659,21 @@ executed. This post-merge edit records evidence only. The evaluator
 always leaves production acceptance `not_granted`. Full GPU scene parity,
 physical Mac acceptance and final artifact-specific license clearance remain open.
 See [estimated mouth-shape evidence](viseme-quality.md).
+
+## Whole-project SVG sequence export (2026-10-18, pending integration)
+
+- [ ] Integrate vector SVG/WAV sequence export with cuts/crossfades, namespaced
+  generated definitions, shared audio/sample manifest and bounded cleanup.
+- [ ] Integrate SVG format into the existing native export worker and headless
+  YAML/`.kilsat` CLI; require FFmpeg only for MP4.
+- [ ] Validate SVG-vs-PNG raster fixtures with camera/fades, masks/blending,
+  embedded images and prepared timed mouths, plus cancellation/output ownership.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Physical Mac SVG-viewer comparison and real speech/device synchronization.
+
+Implementation is in the development branch; no local Rust toolchain is
+available, so formatting/compilation/test validation is pending in CI. The
+tracker also corrects two stale unchecked items already completed in PR #31:
+selected advanced CPU frames and explicit native estimated-aligner controls.
+Estimated-cue caching, full-scene GPU parity, real corpus quality, physical Mac
+acceptance and final artifact-specific license clearance remain open.
