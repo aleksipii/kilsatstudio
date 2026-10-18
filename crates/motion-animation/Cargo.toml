@@ -5,3 +5,4 @@ edition.workspace = true
 [dependencies]
 motion-rig = { path = "../motion-rig" }
 thiserror.workspace = true
+serde.workspace = true

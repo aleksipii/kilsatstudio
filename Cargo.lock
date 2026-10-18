@@ -1606,6 +1606,7 @@ name = "motion-animation"
 version = "0.1.0"
 dependencies = [
  "motion-rig",
+ "serde",
  "thiserror 2.0.21",
 ]
 

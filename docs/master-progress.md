@@ -731,3 +731,22 @@ GPU-device or physical Mac acceptance was performed. Full GPU parity, advanced
 artist tools, automatic engine memoization, physical acceptance and final license
 clearance remain open.
 See [saved estimated timing](estimated-cue-cache.md).
+
+## Artist procedural layer strengths (2026-10-18, pending integration)
+
+- [ ] Integrate per-scene/actor posture, walk and gesture strengths with strict
+  defaults, finite range validation, atomic edits and character cleanup.
+- [ ] Integrate shared weighted evaluation while retaining authored bone offsets,
+  facial/root/speech stages and existing default geometry.
+- [ ] Integrate detached native Inspector controls, explicit Apply, unified
+  Undo/Redo, project persistence and stale/busy draft guards.
+- [ ] Validate actual SVG/PNG frames and shared preview on the speech sample clock.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Editable custom clips, animated blend tracks, arbitrary/textured rigs,
+  advanced masks and physical Mac motion/artist acceptance.
+
+Source implementation is awaiting Rust formatting/build/tests in CI; no local
+Rust toolchain is available. These are controls for the three existing procedural
+layers, not completion of all advanced artist tools. Full GPU parity, automatic
+fresh-engine memoization, physical acceptance and final licenses remain open.
+See [artist layer strengths](artist-clip-weights.md).

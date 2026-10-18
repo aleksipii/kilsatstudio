@@ -41,13 +41,18 @@ Unknown gesture names are rejected as unsupported by MotionScript validation.
 
 ## Completion and remaining work
 
+The native Inspector now provides detached
+[procedural layer strengths](artist-clip-weights.md) for posture, walk and gesture.
+They persist per scene/actor and participate in shared preview/export and Undo.
+
 - [x] Transform hierarchy and deterministic evaluation.
 - [x] Original procedural humanoid used in shared scene evaluation and SVG output.
 - [x] Walk and wave presets using the existing Move/Gesture scene events.
 - [x] Keyframe clip library: posture blending, walk, wave/point/nod/shrug and speech head motion in shared evaluation.
 - [x] Transform keyframe interpolation API and numerical validation tests.
 - [ ] Persistent custom rigs and editable animation tracks in project files.
-- [ ] Keyframe editor, joint inspector, inverse kinematics and animation blending.
+- [x] Native root/per-bone keyframe editors and procedural layer strength controls.
+- [ ] Arbitrary rig/joint authoring, inverse kinematics and editable clip blending tracks.
 - [ ] Licensed textured body parts, deformation and replaceable character assets.
 - [ ] Mac visual acceptance and motion quality review.
 

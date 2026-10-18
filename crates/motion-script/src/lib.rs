@@ -1,5 +1,5 @@
 //! Strict MotionScript scene and dialogue schema.
-pub use motion_animation::HUMANOID_BONES;
+pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +58,7 @@ pub struct Composition {
     pub camera: Vec<CameraKey>,
     pub layers: BTreeMap<String, Layer>,
     pub actor_tracks: BTreeMap<String, Vec<ActorKey>>,
+    pub clip_weights: BTreeMap<String, ClipWeights>,
     pub bone_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
     pub fade_in: f64,
     pub fade_out: f64,
@@ -71,6 +72,7 @@ impl Default for Composition {
             camera: vec![],
             layers: BTreeMap::new(),
             actor_tracks: BTreeMap::new(),
+            clip_weights: BTreeMap::new(),
             bone_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
@@ -403,6 +405,27 @@ pub fn apply_composition(
     })
 }
 
+/// Atomically change an actor's procedural layer intensities. Defaults remove the override.
+pub fn apply_clip_weights(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    weights: ClipWeights,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        if !candidate.characters.contains_key(actor) || !weights.is_valid() {
+            return Err(Error::Validation("clip weights require a known actor and finite intensities 0..1".into()));
+        }
+        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        if weights == ClipWeights::default() {
+            scene.composition.clip_weights.remove(actor);
+        } else {
+            scene.composition.clip_weights.insert(actor.into(), weights);
+        }
+        Ok(())
+    })
+}
+
 /// Replace or remove one actor's root track atomically, validating the entire script.
 pub fn apply_actor_track(
     source: &str,
@@ -530,6 +553,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
             scene.composition.layers.remove(id);
             scene.composition.actor_tracks.remove(id);
             scene.composition.bone_tracks.remove(id);
+            scene.composition.clip_weights.remove(id);
         }
         Ok(())
     })
@@ -659,6 +683,11 @@ impl Script {
                     return Err(fail(format!("{}: camera keys require increasing scene times, finite offsets and zoom 0.05..20", s.id)));
                 }
                 previous = Some(key.at);
+            }
+            for (actor, weights) in &composition.clip_weights {
+                if !self.characters.contains_key(actor) || !weights.is_valid() {
+                    return Err(fail(format!("{}: clip weights require a known actor and finite intensities 0..1 ({actor})", s.id)));
+                }
             }
             for actor in composition.layers.keys() {
                 if !self.characters.contains_key(actor) {
@@ -1722,5 +1751,39 @@ mod bone_track_tests {
         assert!(
             apply_scene_settings(&source, 0, parse(&source).unwrap().project, "shot", 3.0).is_err()
         );
+    }
+}
+
+#[cfg(test)]
+mod clip_weight_tests {
+    use super::*;
+    const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
+
+    #[test]
+    fn missing_defaults_roundtrip_and_atomic_weight_edits() {
+        assert!(parse(SOURCE).unwrap().scenes[0].composition.clip_weights.is_empty());
+        let weights = ClipWeights { posture: 0.2, walk: 0.5, gesture: 0.0 };
+        let source = apply_clip_weights(SOURCE, 0, "A", weights).unwrap();
+        assert_eq!(parse(&source).unwrap().scenes[0].composition.clip_weights["A"], weights);
+        assert!(apply_clip_weights(&source, 0, "unknown", weights).is_err());
+        assert!(apply_clip_weights(&source, 1, "A", weights).is_err());
+        for bad in [f64::NAN, f64::INFINITY, -0.1, 1.1] {
+            assert!(apply_clip_weights(&source, 0, "A", ClipWeights { walk: bad, ..weights }).is_err());
+        }
+        assert_eq!(parse(&source).unwrap().scenes[0].composition.clip_weights["A"], weights);
+        let reset = apply_clip_weights(&source, 0, "A", ClipWeights::default()).unwrap();
+        assert!(parse(&reset).unwrap().scenes[0].composition.clip_weights.is_empty());
+        let removed = remove_character(&source, "A").unwrap();
+        assert!(parse(&removed).unwrap().scenes[0].composition.clip_weights.is_empty());
+    }
+
+    #[test]
+    fn strict_weight_schema_and_actor_validation() {
+        let source = |map: &str| format!("characters: {{A: {{asset: a}}}}\nscenes: [{{id: shot, duration: 4, events: [], composition: {{clip_weights: {map}}}}}]");
+        let parsed = parse(&source("{A: {walk: 0.25}}" )).unwrap();
+        assert_eq!(parsed.scenes[0].composition.clip_weights["A"], ClipWeights { walk: 0.25, ..Default::default() });
+        for map in ["{unknown: {}}", "{A: {walk: true}}", "{A: {walk: .nan}}", "{A: {walk: .inf}}", "{A: {walk: -1}}", "{A: {posture: 2}}", "{A: {unexpected: 0}}"] {
+            assert!(parse(&source(map)).is_err(), "{map}");
+        }
     }
 }
