@@ -331,6 +331,9 @@ mod tests {
                 at: 0.0,
                 duration: 4.0,
                 weight: 1.0,
+                fade_in: 0.0,
+                fade_out: 0.0,
+                weight_keys: Vec::new(),
             },
         )
         .unwrap();

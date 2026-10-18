@@ -977,3 +977,27 @@ and no implicit fades. No real recognizer/model, GPU device or physical Mac
 acceptance was performed. Animated weights/fades, loops, arbitrary rigs, full
 GPU parity, verified-environment estimated reuse and final licenses remain open.
 See [live clip blending](live-clip-blending.md).
+
+
+## Live clip weight curves and fades (2026-10-18, pending integration)
+
+- [ ] Integrate backward-compatible per-instance linear fades and local scalar
+  weight keys with outgoing easing and exact static-envelope defaults.
+- [ ] Validate finite durations/multipliers, non-overlapping fades, ordered local
+  key bounds and 256/8192/65536 instance/scene/project key budgets.
+- [ ] Integrate detached native fade/key authoring, explicit reset/Apply, invalid
+  draft preservation, source Undo/Redo and project persistence.
+- [ ] Account for scalar searches/fades in preview/export work estimates even for
+  inactive/zero layers; reject over-budget output before creating directories.
+- [ ] Validate independently expected actual SVG/PNG/sample-clock preview frames,
+  faded base-pose boundaries, overlap order, backwards seeks and old defaults.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Looping, joint masks, custom/textured rigs, cross-project exchange and
+  physical/perceptual motion acceptance.
+- [ ] Full GPU parity, verified-environment automatic estimated-result reuse and
+  final third-party artifact/license clearance.
+
+Source is pending CI; local Rust tools are unavailable. This is an envelope for
+ordered override weights, not a normalized or additive mixer. No real recognizer,
+model, GPU device or physical Mac acceptance is performed by fixture tests. See
+[live clip blending](live-clip-blending.md).

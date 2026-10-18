@@ -241,11 +241,11 @@ impl PreparedAnimation {
             }
         }
         for instance in &script.scenes[scene_index].composition.clip_instances {
-            if instance.actor != actor
-                || time < instance.at
-                || time >= instance.at + instance.duration
-                || instance.weight == 0.0
-            {
+            if instance.actor != actor {
+                continue;
+            }
+            let weight = instance.sample_weight(time);
+            if weight == 0.0 {
                 continue;
             }
             let clip = script
@@ -265,7 +265,7 @@ impl PreparedAnimation {
                     *value = Some(motion_animation::blend_humanoid_offset(
                         value.unwrap_or_default(),
                         track.sample(clip_time)?,
-                        instance.weight,
+                        weight,
                     )?);
                 }
             }
@@ -919,6 +919,9 @@ mod live_instance_tests {
             at,
             duration,
             weight,
+            fade_in: 0.0,
+            fade_out: 0.0,
+            weight_keys: Vec::new(),
         }
     }
     fn offsets(script: &Script, time: f64) -> Vec<(usize, Transform2)> {
@@ -939,6 +942,40 @@ mod live_instance_tests {
             .map(|(_, v)| *v)
             .unwrap_or_default()
     }
+    #[test]
+    fn envelope_product_blends_once_and_matches_prepared_seek_evaluation() {
+        let mut script = script();
+        let mut layer = instance("envelope", "second", 1.0, 4.0, 0.8);
+        layer.fade_in = 1.0;
+        layer.fade_out = 1.0;
+        layer.weight_keys = vec![
+            motion_script::InstanceWeightKey {
+                time: 0.0,
+                weight: 0.5,
+                easing: motion_script::ActorEasing::Linear,
+            },
+            motion_script::InstanceWeightKey {
+                time: 4.0,
+                weight: 0.5,
+                easing: motion_script::ActorEasing::Linear,
+            },
+        ];
+        script.scenes[0].composition.clip_instances = vec![layer];
+        // Constant target100, base8; .8 static * .5 keyed * .5 fade = .2.
+        for (time, expected) in [(1.5, 26.4), (3.0, 44.8), (4.5, 26.4), (1.0, 8.0), (5.0, 8.0), (1.5, 26.4)] {
+            let actual = bone(&offsets(&script, time), "head").translation.x;
+            assert!((actual - expected).abs() < 1e-12);
+        }
+        let prepared = ValidatedScript::new(std::sync::Arc::new(script.clone())).unwrap();
+        for time in [4.5, 1.0, 3.0, 5.0, 1.5] {
+            assert_eq!(prepared.evaluate(0, time).unwrap(), evaluate(&script, 0, time).unwrap());
+        }
+        script.scenes[0].composition.clip_instances[0].weight = 0.0;
+        script.scenes[0].composition.clip_instances[0].fade_out = f64::NAN;
+        assert!(matches!(evaluate(&script, 0, 0.0), Err(Error::Script(_))));
+        assert!(matches!(ValidatedScript::new(std::sync::Arc::new(script)), Err(Error::Script(_))));
+    }
+
     #[test]
     fn independently_expected_weights_order_and_missing_bones() {
         let mut script = script();

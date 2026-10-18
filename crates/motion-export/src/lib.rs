@@ -111,7 +111,13 @@ pub(crate) fn live_clip_frame_work(script: &Script, scene_index: usize) -> u64 {
                     cost.saturating_add(search.saturating_add(4))
                 })
             });
-        work.saturating_add(tracks)
+        let weight_search = if instance.weight_keys.is_empty() {
+            0
+        } else {
+            u64::from(usize::BITS - instance.weight_keys.len().leading_zeros()).saturating_add(4)
+        };
+        let fade_work = u64::from(instance.fade_in > 0.0) * 2 + u64::from(instance.fade_out > 0.0) * 2;
+        work.saturating_add(tracks).saturating_add(weight_search).saturating_add(fade_work)
     })
 }
 
@@ -1101,6 +1107,9 @@ mod tests {
                 at: 9.0,
                 duration: 1.0,
                 weight: 0.0,
+                fade_in: 0.0,
+                fade_out: 0.0,
+                weight_keys: Vec::new(),
             })
             .collect();
         script.validate().unwrap();
@@ -1121,6 +1130,35 @@ mod tests {
         // The same otherwise-valid scene remains within budget without live layers.
         script.scenes[0].composition.clip_instances.clear();
         assert_eq!(validate(&script, 0, &rendered).unwrap(), 1200);
+    }
+
+    #[test]
+    fn dormant_zero_weight_envelopes_cannot_bypass_export_work_budget() {
+        let (mut script, mut rendered) = fixture();
+        script.project.fps = 240;
+        script.scenes[0].duration = 150.0;
+        rendered.audio.samples.resize(3_600_000, 0.0);
+        rendered.manifest.total_frames = 3_600_000;
+        script.animation_clips.insert("rest".into(), motion_script::AnimationClip {
+            duration: 1.0,
+            bone_tracks: BTreeMap::from([("head".into(), vec![motion_script::ActorKey::default()])]),
+        });
+        script.scenes[0].composition.clip_instances = vec![motion_script::ClipInstance {
+            id: "later".into(), clip: "rest".into(), actor: "EMMA".into(),
+            at: 149.0, duration: 1.0, weight: 0.0, fade_in: 0.0, fade_out: 0.0, weight_keys: Vec::new(),
+        }];
+        // The exact same scene fits without envelope search/fade work.
+        assert_eq!(validate(&script, 0, &rendered).unwrap(), 36_000);
+        let row = &mut script.scenes[0].composition.clip_instances[0];
+        row.fade_in = 0.1; row.fade_out = 0.1;
+        row.weight_keys = (0..256).map(|index| motion_script::InstanceWeightKey {
+            time: index as f64 / 256.0, weight: 1.0, easing: motion_script::ActorEasing::Linear,
+        }).collect();
+        script.validate().unwrap();
+        let output = destination();
+        let result = export_scene(&script, 0, &rendered, &output, &CancellationToken::new(), |_| {});
+        assert!(matches!(result, Err(Error::Invalid(message)) if message.contains("keyframe/live-clip")));
+        assert!(!output.exists());
     }
 
     #[test]
