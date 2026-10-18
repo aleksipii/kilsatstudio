@@ -213,11 +213,16 @@ fn retimed_library_clip_matches_authored_frames_and_shuffled_preview_seeks() {
         &motion_script::apply_animation_clip(&captured, 1, "EMMA", "reach").unwrap(),
     )
     .unwrap();
+    // At 0.5 both mappings cross the same pose; at 0.25 only the original has advanced.
     assert_ne!(
-        encode_frame(&applied, 1, &rendered, 2, true, &cancel, None)
+        motion_scene::evaluate(&applied, 1, 0.25).unwrap().actors,
+        motion_scene::evaluate(&unretimed, 1, 0.25).unwrap().actors
+    );
+    assert_ne!(
+        encode_frame(&applied, 1, &rendered, 1, true, &cancel, None)
             .unwrap()
             .2,
-        encode_frame(&unretimed, 1, &rendered, 2, true, &cancel, None)
+        encode_frame(&unretimed, 1, &rendered, 1, true, &cancel, None)
             .unwrap()
             .2
     );

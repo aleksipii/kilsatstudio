@@ -178,6 +178,11 @@ impl State {
                         self.replace_target = false;
                     }
                 });
+                if ui.button("Reset copied key timing").clicked() {
+                    self.at = 0.0;
+                    self.duration = clip.duration;
+                    self.replace_target = false;
+                }
             }
             let fits = scene.is_some_and(|scene| {
                 if self.retime {
