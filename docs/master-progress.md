@@ -9,8 +9,9 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #32 merged as `f2e7b79f23968ac3b32637680ff2c48ac7f43453` after its final
-Linux/macOS CI passed. PR #31 merged earlier as
+PR #33 merged as `504166d85daa15e88f937a777a17123162df5e8a` after its final
+Linux/macOS CI passed. PR #32 merged earlier as
+`f2e7b79f23968ac3b32637680ff2c48ac7f43453`; PR #31 as
 `82f1b3116f6d8647e20076b0e2803f2fd2adedba`; PR #30 as
 `de41228c0b68daece521cef1406361b21df0c3a6`. The release branch
 `kilsatstudio1.0` is synchronized with this merge and progress record.
@@ -25,7 +26,7 @@ and final redistribution clearance remain open.
 
 | Completed | Still open |
 | --- | --- |
-| Timed solid colors/images, native editors and shared preview/export | SVG sequence compositing and physical Mac transition acceptance |
+| Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and additive rule layering | Custom rig authoring, textures/deformation and artist clip blending |
 | Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
@@ -80,7 +81,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Timed background image placement shared by native preview and export.
 - [x] Validated outgoing cuts/crossfades, compiled sample timeline and headless PNG/WAV sequence export.
 - [x] Native whole-project sequence preview/transport and PNG/MP4 sequence export.
-- [ ] SVG sequence compositing.
+- [x] SVG sequence compositing (PR #33).
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
 - [ ] Stable versioned editable compiled timeline representation.
@@ -122,7 +123,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Timed background image planes and validated half-open visibility intervals.
 - [x] Whole opaque-frame cuts/crossfades in headless PNG sequence export.
 - [x] Shared scaled raster transition preview and sequence MP4 compositing.
-- [ ] SVG sequence compositing and verified GPU preview.
+- [x] SVG project sequence compositing (PR #33).
+- [ ] Verified GPU preview.
 - [x] Optional genuine offscreen GPU fixture, shader validation, bounded readback and explicit backend/device metadata.
 - [ ] Full-scene GPU renderer/parity and actual macOS Metal hardware evidence.
 - [x] Composition SVG golden fixture plus shared geometry/clock regression tests.
@@ -660,20 +662,36 @@ always leaves production acceptance `not_granted`. Full GPU scene parity,
 physical Mac acceptance and final artifact-specific license clearance remain open.
 See [estimated mouth-shape evidence](viseme-quality.md).
 
-## Whole-project SVG sequence export (2026-10-18, pending integration)
+## Whole-project SVG sequence export (PR #33, merged 2026-10-18)
 
-- [ ] Integrate vector SVG/WAV sequence export with cuts/crossfades, namespaced
+- [x] Integrate vector SVG/WAV sequence export with cuts/crossfades, namespaced
   generated definitions, shared audio/sample manifest and bounded cleanup.
-- [ ] Integrate SVG format into the existing native export worker and headless
+- [x] Integrate SVG format into the existing native export worker and headless
   YAML/`.kilsat` CLI; require FFmpeg only for MP4.
-- [ ] Validate SVG-vs-PNG raster fixtures with camera/fades, masks/blending,
+- [x] Validate SVG-vs-PNG raster fixtures with camera/fades, masks/blending,
   embedded images and prepared timed mouths, plus cancellation/output ownership.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Physical Mac SVG-viewer comparison and real speech/device synchronization.
 
-Implementation is in the development branch; no local Rust toolchain is
-available, so formatting/compilation/test validation is pending in CI. The
-tracker also corrects two stale unchecked items already completed in PR #31:
+Final head `de29b3732b3ed491ad5db82cb19db9a5fdf8478c` passed Audio foundation
+39082961887 and Apple Silicon preview 39082961885: Linux/macOS fmt/check/strict
+Clippy, 337 default Rust tests, 14 adapter-free GPU tests/feature Clippy, 55 runtime
+and 26 inventory/packaging Python tests, three actual encoder tests and signed
+arm64 package verification. Rust checks ran in CI; no local toolchain was
+available. SVG raster comparisons cover cuts/crossfades, cameras, scene fades,
+mask IDs, multiply blending, an embedded PNG and prepared mouth samples, with
+at most two channel values of rounding tolerance. Cancellation, existing outputs,
+future missing images and repeated-image preflight have regressions.
+Independent review found repeated references could evade the unique-image budget;
+preflight now counts each occurrence before SVG/raster generation, even when
+hidden or active later. Per-scene base64 image occurrences are capped at 32 MiB,
+serialized scene/frame SVG at 64 MiB, total output at 256 MiB. Temporary copies
+are included in the conservative working-set estimate, which is not an allocator cap.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39082961885/artifacts/12120160079
+SHA256: `6f4e56e221ffd93ec3d8e34dfb35da278a17b2afe6fe6d3958b291f0bda10455`.
+This post-merge record changes no implementation. No real model/recognizer,
+GPU device or physical Mac viewer acceptance was executed. The tracker also
+corrects two stale unchecked items already completed in PR #31:
 selected advanced CPU frames and explicit native estimated-aligner controls.
 Estimated-cue caching, full-scene GPU parity, real corpus quality, physical Mac
 acceptance and final artifact-specific license clearance remain open.
