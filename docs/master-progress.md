@@ -78,22 +78,35 @@ require actual evidence.
 
 ## Ownership and current increment
 
-Current parallel implementation increment (2026-10-18, integrated in PR #43):
+Previous parallel implementation increment (2026-10-18, integrated in PR #43):
 `gpu_scene_implementation`, `animation_loop_masks`, `artist_mask_tools`,
 `speech_reuse_implementation`, `mac_release_evidence` and
 `planned_timeline_features`; parent owns cross-stream integration and release.
-The historical owner table below maps broader responsibilities. Agent activity
+The follow-up table below assigns the remaining product responsibilities. Agent activity
 does not constitute hardware, quality, license or full-milestone acceptance.
 
-| Workstream | Owner in this increment | Integration boundary |
+Eight-area follow-up assignment (2026-10-18). Each owner inspects the current
+implementation and defines a concrete next package, interfaces, file boundaries,
+checks and remaining acceptance evidence. This assignment changes no production
+feature and grants no milestone, hardware, quality or license acceptance.
+
+| Workstream | Assigned agent | Handoff and remaining scope |
 | --- | --- | --- |
-| Architecture/integration | Parent agent | Shared interfaces, ownership, review, progress and release synchronization |
-| GPU scene parity | `gpu_parity` | [GPU implementation/evidence plan](workstreams/gpu-release-gates.md); renderer subset, shared preview/export and device gates |
-| Automatic estimated-result reuse | `estimated_auto_reuse` | [Verified environment and cache plan](workstreams/estimated-auto-reuse.md); identity, fail-closed lookup and bounded worker |
-| Live clip blending | `live_clip_blending` | [Animation implementation plan](workstreams/animation.md); persistent instances, sampling, deterministic blend order and editor/history |
-| Physical Mac acceptance | `mac_acceptance` | [Mac acceptance plan](workstreams/mac-device-acceptance.md); real device, offline speech, Metal and synchronization evidence |
-| Final artifact license review | `final_license_audit` | [Release audit plan](workstreams/final-license-audit.md); exact shipping artifacts, notices and unresolved redistribution evidence |
-| QA and integration review | Parent + workstream owners | Applicable checks, evidence and cross-stream interface coordination |
+| GPU | `gpu_production_owner` | [GPU production handoff](workstreams/next-gpu-production.md): text, textures, masks, blends, transitions, shared production preview/export and Metal measurements |
+| Characters and animation | `character_animation_owner` | [Character/animation handoff](workstreams/next-character-animation.md): custom rigs, textured parts, deformation, idle, general mixing and cross-project libraries |
+| Artist tools | `artist_tools_owner` | [Artist tools handoff](workstreams/next-artist-tools.md): groups, image masks, polygon feathering, painting, pressure and retouching |
+| Speech and lip sync | `speech_quality_owner` | [Speech/quality handoff](workstreams/next-speech-quality.md): verified real environment, automatic reuse, timing editing, forced alignment and real-audio quality |
+| Screenplay and timeline | `screenplay_timeline_owner` | [Screenplay/timeline handoff](workstreams/next-screenplay-timeline.md): audio cues, reusable/conditional rules, camera presets and general compiled-track editing |
+| Performance and architecture | `performance_architecture_owner` | [Performance/architecture handoff](workstreams/next-performance-architecture.md): benchmarks, UI latency, process memory and dependency scheduling |
+| Mac acceptance | `mac_device_owner` | [Mac acceptance handoff](workstreams/next-mac-device.md): offline speech, devices, synchronization, Finder, shortcuts, accessibility and full workflow evidence |
+| Release and licenses | `release_license_owner` | [Release/license handoff](workstreams/next-release-license.md): exact components/assets, obligations/notices, production package, signing and notarization |
+| Integration and QA | Parent agent | Shared schema/render/desktop contracts, non-overlapping edits, actual checks, review, progress and release synchronization |
+
+- [x] Complete all eight owner inspections and publish linked handoffs.
+- [ ] Implement and validate the next packages; keep feature checkboxes open until
+  integration and relevant checks succeed.
+- [ ] Collect external physical-device, real-audio and final upstream license
+  evidence; source inspection and synthetic tests cannot replace it.
 
 Owners describe responsibilities, not completed acceptance. Agent assignment is
 maintained by the parent; shared files are changed only by their assigned owner.
