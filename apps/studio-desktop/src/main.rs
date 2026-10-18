@@ -6284,7 +6284,8 @@ mod editable_timeline_integration_tests {
             before: None,
         });
         let edited = studio.source.clone();
-        assert!(edited.starts_with("project:"));
+        assert!(edited.lines().any(|line| line == "project:"));
+        assert!(serde_json::from_str::<serde_json::Value>(&edited).is_err());
         assert_eq!(studio.scene_index, 1);
         assert_eq!(studio.script.as_ref().unwrap().scenes[0].id, "second");
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
