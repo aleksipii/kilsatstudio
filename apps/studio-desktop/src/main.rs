@@ -2998,6 +2998,15 @@ impl Studio {
         }
         let result = action.apply(&self.source, scene_index, actor);
         self.apply_structure(result);
+        // Library edits never remove the target actor; keep its Inspector context.
+        if self.source != source
+            && self
+                .script
+                .as_ref()
+                .is_some_and(|script| script.characters.contains_key(actor))
+        {
+            self.selected_actor = Some(actor.into());
+        }
     }
 
     fn clip_library_ui(&mut self, ui: &mut egui::Ui) {
