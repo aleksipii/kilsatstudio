@@ -1467,10 +1467,12 @@ impl Studio {
                     .kokoro_config()
                     .cache_directory
                     .join("estimated-alignments");
-                match self
-                    .native_alignment
-                    .start(id, expected, self.scene_alignment.clone(), cache_root)
-                {
+                match self.native_alignment.start(
+                    id,
+                    expected,
+                    self.scene_alignment.clone(),
+                    cache_root,
+                ) {
                     Ok(()) => {
                         self.stop_playback();
                         self.busy = true;

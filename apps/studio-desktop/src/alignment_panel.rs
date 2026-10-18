@@ -1,6 +1,6 @@
 //! Explicit opt-in estimated alignment of an already prepared dialogue WAV.
-pub use crate::alignment_worker::{Identity, Ready};
 use crate::alignment_worker::{Action, PreparedAudio, Request, Worker};
+pub use crate::alignment_worker::{Identity, Ready};
 use eframe::egui;
 use motion_lipsync::rhubarb::Recognizer;
 use motion_tts::CancellationToken;
@@ -78,7 +78,11 @@ impl Panel {
             }
         });
         if settings_changed {
-            let action = if run { self.pending_action.take() } else { None };
+            let action = if run {
+                self.pending_action.take()
+            } else {
+                None
+            };
             self.invalidate();
             self.pending_action = action;
         }
@@ -91,7 +95,10 @@ impl Panel {
         scene_alignments: String,
         cache_root: PathBuf,
     ) -> Result<(), String> {
-        let action = self.pending_action.take().ok_or("Choose Estimate or Load cached timing explicitly")?;
+        let action = self
+            .pending_action
+            .take()
+            .ok_or("Choose Estimate or Load cached timing explicitly")?;
         let loading = matches!(action, Action::Load { .. });
         let request = Request {
             cache_root,
@@ -108,7 +115,12 @@ impl Panel {
                 self.active = Some(identity);
                 self.candidate = None;
                 self.ready = None;
-                self.status = if loading { "Loading saved estimated timing…" } else { "Estimating prepared audio locally…" }.into();
+                self.status = if loading {
+                    "Loading saved estimated timing…"
+                } else {
+                    "Estimating prepared audio locally…"
+                }
+                .into();
                 Ok(())
             }
             Err(e) => {
@@ -143,7 +155,12 @@ impl Panel {
                     if let Some(key) = &ready.cache.key {
                         self.cache_key = key.clone();
                     }
-                    self.status = if ready.cache.hit { "Saved estimated timing loaded. Review and apply explicitly." } else { "Estimation complete. Review and apply explicitly." }.into();
+                    self.status = if ready.cache.hit {
+                        "Saved estimated timing loaded. Review and apply explicitly."
+                    } else {
+                        "Estimation complete. Review and apply explicitly."
+                    }
+                    .into();
                     self.candidate = Some(ready);
                 }
                 Err(e) => self.status = e,
@@ -173,7 +190,8 @@ impl Panel {
         self.candidate = None;
         self.ready = None;
         self.pending_action = None;
-        self.status = "Prepared line or timing settings changed; previous estimated timing discarded.".into();
+        self.status =
+            "Prepared line or timing settings changed; previous estimated timing discarded.".into();
     }
 }
 #[cfg(test)]
@@ -230,11 +248,23 @@ mod tests {
     fn start_requires_explicit_action_and_invalidation_clears_it() {
         let mut p = Panel::new();
         let audio: Arc<dyn PreparedAudio> = Arc::new(motion_audio::AudioBuffer {
-            sample_rate: 24000, channels: 1, samples: vec![0.0; 24],
+            sample_rate: 24000,
+            channels: 1,
+            samples: vec![0.0; 24],
         });
-        assert!(p.start(identity(), audio, String::new(), PathBuf::from("/not-accessed")).unwrap_err().contains("explicitly"));
+        assert!(p
+            .start(
+                identity(),
+                audio,
+                String::new(),
+                PathBuf::from("/not-accessed")
+            )
+            .unwrap_err()
+            .contains("explicitly"));
         assert!(!p.busy());
-        p.pending_action = Some(Action::Load { key: "a".repeat(64) });
+        p.pending_action = Some(Action::Load {
+            key: "a".repeat(64),
+        });
         p.invalidate();
         assert!(p.pending_action.is_none());
     }

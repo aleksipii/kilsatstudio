@@ -183,7 +183,11 @@ mod tests {
             recognizer: Recognizer::Phonetic,
             sample_rate: 24000,
             frame_count: 240,
-            cues: vec![MouthCue { start_sample: 0, end_sample: 200, shape: 'A' }],
+            cues: vec![MouthCue {
+                start_sample: 0,
+                end_sample: 200,
+                shape: 'A',
+            }],
         };
         (audio, alignment)
     }
@@ -194,8 +198,14 @@ mod tests {
         let key = root.cache().store(&alignment, &audio, "hello").unwrap();
         assert_eq!(key.len(), 64);
         let loaded = root.cache().load(&key, &audio, "hello").unwrap();
-        assert_eq!(serde_json::to_vec(&loaded).unwrap(), serde_json::to_vec(&alignment).unwrap());
-        assert_eq!(root.cache().store(&alignment, &audio, "hello").unwrap(), key);
+        assert_eq!(
+            serde_json::to_vec(&loaded).unwrap(),
+            serde_json::to_vec(&alignment).unwrap()
+        );
+        assert_eq!(
+            root.cache().store(&alignment, &audio, "hello").unwrap(),
+            key
+        );
         assert_eq!(fs::read_dir(&root.0).unwrap().count(), 1);
         let mut wrong = audio.clone();
         wrong.samples[0] = 0.25;
@@ -231,11 +241,20 @@ mod tests {
         let original = fs::read(&path).unwrap();
         let mut tampered: serde_json::Value = serde_json::from_slice(&original).unwrap();
         tampered["alignment"]["cues"][0]["shape"] = "B".into();
-        for bytes in [serde_json::to_vec(&tampered).unwrap(), b"{".to_vec(), serde_json::to_vec(&alignment).unwrap(), vec![b' '; MAX_BYTES as usize + 1]] {
+        for bytes in [
+            serde_json::to_vec(&tampered).unwrap(),
+            b"{".to_vec(),
+            serde_json::to_vec(&alignment).unwrap(),
+            vec![b' '; MAX_BYTES as usize + 1],
+        ] {
             fs::write(&path, &bytes).unwrap();
             assert!(cache.load(&key, &audio, "hello").is_err());
             assert!(cache.store(&alignment, &audio, "hello").is_err());
-            assert_eq!(fs::read(&path).unwrap(), bytes, "never replace corrupt entries");
+            assert_eq!(
+                fs::read(&path).unwrap(),
+                bytes,
+                "never replace corrupt entries"
+            );
             assert_eq!(fs::read_dir(&root.0).unwrap().count(), 1);
         }
         tampered = serde_json::from_slice(&original).unwrap();
@@ -247,7 +266,14 @@ mod tests {
     fn invalid_keys_and_non_regular_files_are_rejected() {
         let root = Root::new();
         let (audio, _) = fixture();
-        for key in ["../escape", "/tmp/absolute", "", &"A".repeat(64), &"g".repeat(64), &"0".repeat(63)] {
+        for key in [
+            "../escape",
+            "/tmp/absolute",
+            "",
+            &"A".repeat(64),
+            &"g".repeat(64),
+            &"0".repeat(63),
+        ] {
             assert!(root.cache().load(key, &audio, "hello").is_err());
         }
         assert!(!root.0.exists());
@@ -259,16 +285,18 @@ mod tests {
         let root = Root::new();
         let (audio, alignment) = fixture();
         let barrier = std::sync::Arc::new(std::sync::Barrier::new(4));
-        let handles: Vec<_> = (0..4).map(|_| {
-            let cache = root.cache();
-            let audio = audio.clone();
-            let alignment = alignment.clone();
-            let barrier = barrier.clone();
-            std::thread::spawn(move || {
-                barrier.wait();
-                cache.store(&alignment, &audio, "hello").unwrap()
+        let handles: Vec<_> = (0..4)
+            .map(|_| {
+                let cache = root.cache();
+                let audio = audio.clone();
+                let alignment = alignment.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    cache.store(&alignment, &audio, "hello").unwrap()
+                })
             })
-        }).collect();
+            .collect();
         let keys: Vec<_> = handles.into_iter().map(|h| h.join().unwrap()).collect();
         assert!(keys.iter().all(|key| key == &keys[0]));
         root.cache().load(&keys[0], &audio, "hello").unwrap();
