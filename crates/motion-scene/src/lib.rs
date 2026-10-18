@@ -123,6 +123,10 @@ pub enum Error {
     InvalidSequence(String),
     #[error(transparent)]
     Script(#[from] motion_script::Error),
+    #[error(transparent)]
+    Animation(#[from] motion_animation::Error),
+    #[error("invalid prepared animation reference: {0}")]
+    InvalidAnimation(String),
     #[error("scene index {0} does not exist")]
     MissingScene(usize),
     #[error("evaluation time must be finite and within scene duration")]
@@ -160,29 +164,79 @@ pub fn frame_count(duration_seconds: f64, fps: u32, max_frames: u64) -> Result<u
 
 /// An immutable script validated once for repeated scene evaluation.
 #[derive(Clone)]
-pub struct ValidatedScript(std::sync::Arc<Script>);
+pub struct ValidatedScript {
+    script: std::sync::Arc<Script>,
+    prepared: std::sync::Arc<PreparedAnimation>,
+}
+type BoneTracks = [Option<motion_animation::Track>; 7];
+#[derive(Default)]
+struct PreparedAnimation {
+    library: std::collections::BTreeMap<String, BoneTracks>,
+    scenes: Vec<std::collections::BTreeMap<String, BoneTracks>>,
+}
+fn prepare_bones(tracks: &std::collections::BTreeMap<String, Vec<motion_script::ActorKey>>) -> Result<BoneTracks, Error> {
+    let mut prepared: BoneTracks = std::array::from_fn(|_| None);
+    for (bone, keys) in tracks {
+        let joint = motion_animation::HUMANOID_BONES.iter().position(|name| *name == bone.as_str())
+            .ok_or_else(|| Error::InvalidAnimation(bone.clone()))?;
+        prepared[joint] = Some(motion_animation::Track::new(keys.iter().map(motion_script::ActorKey::animation_key).collect())?);
+    }
+    Ok(prepared)
+}
+impl PreparedAnimation {
+    fn new(script: &Script) -> Result<Self, Error> {
+        // Unused definitions remain source data only. In particular, direct raw
+        // evaluation of projects using copied tracks must not copy the library.
+        let referenced = script.scenes.iter()
+            .flat_map(|scene| scene.composition.clip_instances.iter())
+            .map(|instance| instance.clip.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        let library = referenced.into_iter().map(|id| {
+            let clip = script.animation_clips.get(id)
+                .ok_or_else(|| Error::InvalidAnimation(id.into()))?;
+            Ok((id.to_owned(), prepare_bones(&clip.bone_tracks)?))
+        }).collect::<Result<_, Error>>()?;
+        let scenes = script.scenes.iter().map(|scene| scene.composition.bone_tracks.iter().map(|(actor, tracks)| Ok((actor.clone(), prepare_bones(tracks)?))).collect::<Result<_, Error>>()).collect::<Result<_, Error>>()?;
+        Ok(Self { library, scenes })
+    }
+    fn offsets(&self, script: &Script, scene_index: usize, actor: &str, time: f64) -> Result<Vec<(usize, motion_animation::Transform2)>, Error> {
+        let mut values = [None; 7];
+        if let Some(tracks) = self.scenes[scene_index].get(actor) {
+            for (value, track) in values.iter_mut().zip(tracks) {
+                if let Some(track) = track { *value = Some(track.sample(time)?); }
+            }
+        }
+        for instance in &script.scenes[scene_index].composition.clip_instances {
+            if instance.actor != actor || time < instance.at || time >= instance.at + instance.duration || instance.weight == 0.0 { continue; }
+            let clip = script.animation_clips.get(&instance.clip).ok_or_else(|| Error::InvalidAnimation(instance.clip.clone()))?;
+            let tracks = self.library.get(&instance.clip).ok_or_else(|| Error::InvalidAnimation(instance.clip.clone()))?;
+            let clip_time = (time - instance.at) / instance.duration * clip.duration;
+            if !clip_time.is_finite() || clip_time < 0.0 || clip_time > clip.duration { return Err(Error::InvalidTime); }
+            for (value, track) in values.iter_mut().zip(tracks) {
+                if let Some(track) = track {
+                    *value = Some(motion_animation::blend_humanoid_offset(value.unwrap_or_default(), track.sample(clip_time)?, instance.weight)?);
+                }
+            }
+        }
+        Ok(values.into_iter().enumerate().filter_map(|(joint, value)| value.map(|value| (joint, value))).collect())
+    }
+}
 impl ValidatedScript {
     pub fn new(script: std::sync::Arc<Script>) -> Result<Self, Error> {
         script.validate()?;
-        Ok(Self(script))
+        let prepared = std::sync::Arc::new(PreparedAnimation::new(&script)?);
+        Ok(Self { script, prepared })
     }
     pub fn evaluate(&self, scene_index: usize, time_seconds: f64) -> Result<EvaluatedScene, Error> {
-        evaluate_validated(&self.0, scene_index, time_seconds)
+        evaluate_validated(&self.script, &self.prepared, scene_index, time_seconds)
     }
 }
-pub fn evaluate(
-    script: &Script,
-    scene_index: usize,
-    time_seconds: f64,
-) -> Result<EvaluatedScene, Error> {
+pub fn evaluate(script: &Script, scene_index: usize, time_seconds: f64) -> Result<EvaluatedScene, Error> {
     script.validate()?;
-    evaluate_validated(script, scene_index, time_seconds)
+    let prepared = PreparedAnimation::new(script)?;
+    evaluate_validated(script, &prepared, scene_index, time_seconds)
 }
-fn evaluate_validated(
-    script: &Script,
-    scene_index: usize,
-    time_seconds: f64,
-) -> Result<EvaluatedScene, Error> {
+fn evaluate_validated(script: &Script, prepared: &PreparedAnimation, scene_index: usize, time_seconds: f64) -> Result<EvaluatedScene, Error> {
     let scene = script
         .scenes
         .get(scene_index)
@@ -266,28 +320,7 @@ fn evaluate_validated(
                 .iter()
                 .map(|(emotion, since)| (emotion.as_str(), *since))
                 .collect();
-            let offsets: Vec<_> = scene
-                .composition
-                .bone_tracks
-                .get(id)
-                .into_iter()
-                .flat_map(|tracks| tracks.iter())
-                .map(|(bone, keys)| {
-                    let joint = motion_animation::HUMANOID_BONES
-                        .iter()
-                        .position(|name| *name == bone.as_str())
-                        .expect("validated bone name");
-                    let value = motion_animation::Track::new(
-                        keys.iter()
-                            .map(motion_script::ActorKey::animation_key)
-                            .collect(),
-                    )
-                    .expect("validated bone track")
-                    .sample(time_seconds)
-                    .expect("validated scene time");
-                    (joint, value)
-                })
-                .collect();
+            let offsets = prepared.offsets(script, scene_index, id, time_seconds)?;
             let weights = scene.composition.sample_clip_weights(id, time_seconds);
             pose.wave *= weights.gesture;
             pose.skeleton = motion_animation::evaluate_humanoid_with_weights_and_offsets(
@@ -299,7 +332,7 @@ fn evaluate_validated(
                 &offsets,
                 weights,
             )
-            .expect("validated bounded bone offsets");
+            ?;
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
                 let value = motion_animation::Track::new(
@@ -315,9 +348,9 @@ fn evaluate_validated(
                 pose.rotation = value.rotation;
                 pose.scale = value.scale;
             }
-            pose
+            Ok(pose)
         })
-        .collect();
+        .collect::<Result<Vec<_>, Error>>()?;
     actors.sort_by_key(|actor| {
         scene
             .composition
@@ -798,5 +831,109 @@ mod animated_clip_weight_tests {
             assert_eq!(actual.actors[0].x, before.actors[0].x);
             assert_eq!(actual.actors[0].emotion, before.actors[0].emotion);
         }
+    }
+}
+
+#[cfg(test)]
+mod live_instance_tests {
+    use super::*;
+    use motion_animation::{Transform2, HUMANOID_BONES};
+    fn script() -> Script {
+        motion_script::parse("characters: {A: {asset: a}}\nanimation_clips:\n  first:\n    duration: 2\n    bone_tracks:\n      head: [{at: 0, x: 20}, {at: 2, x: 60}]\n  second:\n    duration: 1\n    bone_tracks:\n      head: [{at: 0, x: 100}]\n      right_hand: [{at: 0, y: 20}]\nscenes:\n  - id: shot\n    duration: 6\n    events: []\n    composition:\n      bone_tracks:\n        A:\n          head: [{at: 0, x: 8}]\n").unwrap()
+    }
+    fn instance(id:&str, clip:&str, at:f64, duration:f64, weight:f64) -> motion_script::ClipInstance {
+        motion_script::ClipInstance {id:id.into(),clip:clip.into(),actor:"A".into(),at,duration,weight}
+    }
+    fn offsets(script: &Script, time:f64) -> Vec<(usize,Transform2)> {
+        script.validate().unwrap();
+        PreparedAnimation::new(script).unwrap().offsets(script,0,"A",time).unwrap()
+    }
+    fn bone(offsets:&[(usize,Transform2)], name:&str) -> Transform2 {
+        let joint=HUMANOID_BONES.iter().position(|bone| *bone==name).unwrap();
+        offsets.iter().find(|(i,_)| *i==joint).map(|(_,v)|*v).unwrap_or_default()
+    }
+    #[test]
+    fn independently_expected_weights_order_and_missing_bones() {
+        let mut script=script();
+        for (weight,expected) in [(0.0,8.0),(0.5,24.0),(1.0,40.0)] {
+            script.scenes[0].composition.clip_instances=vec![instance("a","first",1.0,2.0,weight)];
+            let actual=offsets(&script,2.0);
+            assert_eq!(bone(&actual,"head").translation.x,expected);
+            assert_eq!(bone(&actual,"right_hand"),Transform2::default());
+        }
+        script.scenes[0].composition.clip_instances=vec![instance("a","first",1.0,2.0,0.5),instance("b","second",1.0,2.0,0.5)];
+        let actual=offsets(&script,2.0);
+        assert_eq!(bone(&actual,"head").translation.x,62.0);
+        assert_eq!(bone(&actual,"right_hand").translation.y,10.0);
+        script.scenes[0].composition.clip_instances.reverse();
+        assert_eq!(bone(&offsets(&script,2.0),"head").translation.x,47.0);
+    }
+    #[test]
+    fn half_open_compressed_adjacent_windows_endpoint_holding_and_seeks() {
+        let mut script=script();
+        script.scenes[0].composition.clip_instances=vec![instance("a","first",1.0,0.5,1.0),instance("b","second",1.5,0.5,1.0)];
+        for (time,expected) in [(1.25,40.0),(0.0,8.0),(1.0,20.0),(1.5,100.0),(2.0,8.0),(6.0,8.0),(1.25,40.0)] {
+            assert_eq!(bone(&offsets(&script,time),"head").translation.x,expected);
+        }
+        script.animation_clips.get_mut("first").unwrap().bone_tracks.get_mut("head").unwrap()[0].at=0.5;
+        assert_eq!(bone(&offsets(&script,1.0),"head").translation.x,20.0);
+        assert_eq!(bone(&offsets(&script,1.125),"head").translation.x,20.0);
+        script.animation_clips.get_mut("first").unwrap().bone_tracks.get_mut("head").unwrap()[1].at=1.0;
+        assert_eq!(bone(&offsets(&script,1.375),"head").translation.x,60.0);
+    }
+    #[test]
+    fn prepared_snapshot_shared_by_clone_reuses_bounded_storage_and_matches_direct() {
+        let mut script=script();
+        script.scenes[0].composition.clip_instances=vec![instance("a","first",1.0,2.0,0.5)];
+        let raw=std::sync::Arc::new(script);
+        let prepared=ValidatedScript::new(raw.clone()).unwrap();
+        let clone=prepared.clone();
+        assert!(std::sync::Arc::ptr_eq(&prepared.prepared,&clone.prepared));
+        let track=prepared.prepared.library["first"][HEAD].as_ref().unwrap() as *const motion_animation::Track;
+        for time in [2.0,0.0,3.0,1.0,2.000020833333333,2.0] {
+            assert_eq!(prepared.evaluate(0,time).unwrap(),evaluate(&raw,0,time).unwrap());
+            assert_eq!(track,clone.prepared.library["first"][HEAD].as_ref().unwrap() as *const motion_animation::Track);
+        }
+        assert_eq!(prepared.prepared.library.len(),1);
+        assert!(!prepared.prepared.library.contains_key("second"));
+        assert_eq!(prepared.prepared.scenes.len(),1);
+    }
+    #[test]
+    fn unused_library_is_not_prepared_and_duplicate_references_share_one_definition() {
+        let mut script = script();
+        let unused = PreparedAnimation::new(&script).unwrap();
+        assert!(unused.library.is_empty());
+        assert_eq!(unused.scenes[0]["A"].iter().flatten().count(), 1);
+        script.scenes[0].composition.clip_instances = vec![
+            instance("a", "first", 1.0, 2.0, 0.5),
+            instance("b", "first", 2.0, 2.0, 0.0),
+        ];
+        script.validate().unwrap();
+        let prepared = ValidatedScript::new(std::sync::Arc::new(script)).unwrap();
+        assert_eq!(prepared.prepared.library.len(), 1);
+        assert!(prepared.prepared.library.contains_key("first"));
+        assert!(!prepared.prepared.library.contains_key("second"));
+        let cloned = prepared.clone();
+        assert!(std::sync::Arc::ptr_eq(&prepared.prepared, &cloned.prepared));
+        for time in [3.0, 0.0, 1.5, 2.0, 1.5] {
+            prepared.evaluate(0, time).unwrap();
+        }
+        assert_eq!(prepared.prepared.library.len(), 1);
+        assert_eq!(prepared.prepared.library["first"].iter().flatten().count(), 1);
+    }
+
+    #[test]
+    fn empty_instances_preserve_authored_geometry_and_independent_base_speech_root() {
+        let script=script();
+        let at=evaluate(&script,0,2.0).unwrap();
+        assert_eq!(at.actors[0].skeleton[HEAD],Vec2::new(8.0,-90.0));
+        let mut live=script.clone();
+        live.scenes[0].composition.clip_instances=vec![instance("a","first",1.0,2.0,0.5)];
+        let mut actual=evaluate(&live,0,2.0).unwrap();
+        assert_eq!(actual.actors[0].skeleton[HEAD],Vec2::new(24.0,-90.0));
+        assert_eq!(actual.actors[0].x,at.actors[0].x);
+        assert_eq!(actual.actors[0].emotion,at.actors[0].emotion);
+        apply_speech(&mut actual,&[("A",Viseme::A)]);
+        assert_eq!(actual.actors[0].skeleton[HEAD],Vec2::new(24.0,-87.0));
     }
 }

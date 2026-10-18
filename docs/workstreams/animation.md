@@ -48,10 +48,10 @@ then prints root/hand world positions at blend weights 0, 0.5 and 1.
   source history. `.kilsat` persists the MotionScript source. See
   [current controls](../animation-clip-library.md).
 
-## OPEN: first live-instance package
+## First live-instance package (implementation pending CI)
 
-This is a proposed implementation contract, not implemented behavior or completed
-validation. Support constant-weight **ordered override blending of local authored
+The following contract now has source implementation awaiting integration and
+CI. It is not completed validation. Support constant-weight **ordered override blending of local authored
 offsets** for the original seven bones first. Defer additive arbitrary-pose mixing,
 normalized mixing, loops, fades, animated instance weights, clip events, masks,
 custom rigs and cross-project exchange.

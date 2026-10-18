@@ -60,6 +60,7 @@ pub struct Composition {
     pub actor_tracks: BTreeMap<String, Vec<ActorKey>>,
     pub clip_weights: BTreeMap<String, ClipWeights>,
     pub clip_weight_tracks: BTreeMap<String, Vec<ClipWeightKeyframe>>,
+    pub clip_instances: Vec<ClipInstance>,
     pub bone_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
     pub fade_in: f64,
     pub fade_out: f64,
@@ -75,11 +76,27 @@ impl Default for Composition {
             actor_tracks: BTreeMap::new(),
             clip_weights: BTreeMap::new(),
             clip_weight_tracks: BTreeMap::new(),
+            clip_instances: Vec::new(),
             bone_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
         }
     }
+}
+/// Ordered scene-local override layer referencing a project animation clip.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClipInstance {
+    pub id: String,
+    pub clip: String,
+    pub actor: String,
+    pub at: f64,
+    pub duration: f64,
+    #[serde(default = "full_clip_instance_weight")]
+    pub weight: f64,
+}
+fn full_clip_instance_weight() -> f64 {
+    1.0
 }
 /// Scene-local animation of all three procedural layer strengths.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -278,7 +295,7 @@ pub struct Script {
     pub scenes: Vec<Scene>,
 }
 /// Project-local authored parent-local offsets for the original seven-bone rig.
-/// Applying a clip copies its tracks; scenes never retain a library reference.
+/// Copying tracks is independent; live instances retain a reference to this definition.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AnimationClip {
@@ -736,9 +753,73 @@ pub fn apply_animation_clip_retimed(
     })
 }
 
-/// Remove only the library entry; previously applied independent tracks remain intact.
+/// Add or update an instance by scene-local ID, preserving its existing layer position.
+pub fn upsert_clip_instance(
+    source: &str,
+    scene_index: usize,
+    instance: ClipInstance,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        let instances = &mut scene.composition.clip_instances;
+        if let Some(existing) = instances.iter_mut().find(|item| item.id == instance.id) {
+            *existing = instance;
+        } else {
+            instances.push(instance);
+        }
+        Ok(())
+    })
+}
+
+/// Remove one live layer without altering its definition or independent copied tracks.
+pub fn remove_clip_instance(source: &str, scene_index: usize, id: &str) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        let instances = &mut scene.composition.clip_instances;
+        let index = instances.iter().position(|item| item.id == id).ok_or_else(|| {
+            Error::Validation(format!("unknown clip instance {id}"))
+        })?;
+        instances.remove(index);
+        Ok(())
+    })
+}
+
+/// Move a live layer to an absolute index in the complete, unfiltered scene list.
+pub fn reorder_clip_instance(
+    source: &str,
+    scene_index: usize,
+    id: &str,
+    new_index: usize,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        let instances = &mut scene.composition.clip_instances;
+        if new_index >= instances.len() {
+            return Err(Error::Validation("clip instance layer index is out of range".into()));
+        }
+        let index = instances.iter().position(|item| item.id == id).ok_or_else(|| {
+            Error::Validation(format!("unknown clip instance {id}"))
+        })?;
+        let instance = instances.remove(index);
+        instances.insert(new_index, instance);
+        Ok(())
+    })
+}
+
+/// Remove an unreferenced library entry; independent copied tracks remain intact.
 pub fn remove_animation_clip(source: &str, name: &str) -> Result<String, Error> {
     edit_source(source, |candidate| {
+        let references: Vec<_> = candidate.scenes.iter().flat_map(|scene| {
+            scene.composition.clip_instances.iter()
+                .filter(|instance| instance.clip == name)
+                .map(move |instance| (scene.id.as_str(), instance.id.as_str()))
+        }).collect();
+        if let Some((scene, instance)) = references.first() {
+            return Err(Error::Validation(format!(
+                "clip {name} is referenced by {} instance(s); first scene {scene}, instance {instance}; remove instances before deleting the definition",
+                references.len()
+            )));
+        }
         candidate
             .animation_clips
             .remove(name)
@@ -809,6 +890,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
             scene.composition.bone_tracks.remove(id);
             scene.composition.clip_weights.remove(id);
             scene.composition.clip_weight_tracks.remove(id);
+            scene.composition.clip_instances.retain(|instance| instance.actor != id);
         }
         Ok(())
     })
@@ -906,6 +988,7 @@ impl Script {
             }
         }
         let mut ids = std::collections::BTreeSet::new();
+        let mut project_instances = 0usize;
         for s in &self.scenes {
             if s.id.trim().is_empty()
                 || !ids.insert(&s.id)
@@ -918,6 +1001,35 @@ impl Script {
                 return Err(fail(format!("{}: background must not be empty", s.id)));
             }
             let composition = &s.composition;
+            project_instances = project_instances.saturating_add(composition.clip_instances.len());
+            if composition.clip_instances.len() > 128 || project_instances > 1024 {
+                return Err(fail(format!("{}: clip instances exceed 128 per scene or 1024 per project", s.id)));
+            }
+            let mut instance_ids = std::collections::BTreeSet::new();
+            let mut actor_instances = BTreeMap::new();
+            for instance in &composition.clip_instances {
+                if !valid_clip_name(&instance.id) || !instance_ids.insert(&instance.id) {
+                    return Err(fail(format!("{}: invalid or duplicate clip instance ID {}", s.id, instance.id)));
+                }
+                if !self.animation_clips.contains_key(&instance.clip)
+                    || !self.characters.contains_key(&instance.actor)
+                {
+                    return Err(fail(format!("{}: instance {} references unknown clip {} or actor {}", s.id, instance.id, instance.clip, instance.actor)));
+                }
+                let count = actor_instances.entry(&instance.actor).or_insert(0usize);
+                *count += 1;
+                if *count > 32 {
+                    return Err(fail(format!("{}: actor {} exceeds 32 clip instances", s.id, instance.actor)));
+                }
+                let end = instance.at + instance.duration;
+                if !instance.at.is_finite() || instance.at < 0.0
+                    || !instance.duration.is_finite() || instance.duration <= 0.0
+                    || !end.is_finite() || end <= instance.at || end > s.duration
+                    || !instance.weight.is_finite() || !(0.0..=1.0).contains(&instance.weight)
+                {
+                    return Err(fail(format!("{}: instance {} requires finite start >= 0, duration > 0, distinct end within scene, and weight 0..1", s.id, instance.id)));
+                }
+            }
             if !safe_background_color(&composition.background_color) {
                 return Err(fail(format!("{}: background color requires #RRGGBB", s.id)));
             }
@@ -2539,5 +2651,187 @@ mod animation_library_tests {
         assert!(script.validate().is_err());
         let long_scene = source().replace("duration: 4", "duration: 601");
         assert!(capture_animation_clip(&long_scene, 0, "A", "too-long", false).is_err());
+    }
+}
+
+#[cfg(test)]
+mod live_clip_instance_tests {
+    use super::*;
+
+    fn source() -> String {
+        let source = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: source, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 2}, {at: 4, x: 4}]}}}}, {id: target, duration: 6, events: []}]";
+        capture_animation_clip(source, 0, "A", "head", false).unwrap()
+    }
+
+    fn instance(id: &str) -> ClipInstance {
+        ClipInstance {
+            id: id.into(),
+            clip: "head".into(),
+            actor: "B".into(),
+            at: 1.0,
+            duration: 2.0,
+            weight: 1.0,
+        }
+    }
+
+    #[test]
+    fn strict_instance_schema_defaults_and_required_fields() {
+        let source = source();
+        assert!(parse(&source).unwrap().scenes[0].composition.clip_instances.is_empty());
+        let yaml = "{id: a, clip: head, actor: B, at: 0, duration: 1}";
+        assert_eq!(serde_yaml::from_str::<ClipInstance>(yaml).unwrap().weight, 1.0);
+        let value: serde_yaml::Value = serde_yaml::from_str(yaml).unwrap();
+        for field in ["id", "clip", "actor", "at", "duration"] {
+            let mut missing = value.clone();
+            missing.as_mapping_mut().unwrap().remove(field);
+            assert!(serde_yaml::from_value::<ClipInstance>(missing).is_err());
+        }
+        for extra in [", unknown: 1", ", weight: true"] {
+            assert!(serde_yaml::from_str::<ClipInstance>(&format!("{}{} }}", &yaml[..yaml.len() - 1], extra)).is_err());
+        }
+    }
+
+    #[test]
+    fn instance_validation_rejects_all_invalid_numbers_and_references_even_at_zero_weight() {
+        let source = source();
+        for invalid in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            for field in 0..3 {
+                let mut item = instance("a");
+                match field { 0 => item.at = invalid, 1 => item.duration = invalid, _ => item.weight = invalid }
+                assert!(upsert_clip_instance(&source, 1, item).is_err());
+            }
+        }
+        let invalid_edits: [fn(&mut ClipInstance); 11] = [
+            |item| item.at = -1.0,
+            |item| item.duration = 0.0,
+            |item| item.duration = -1.0,
+            |item| item.duration = 6.0,
+            |item| item.weight = -0.01,
+            |item| item.weight = 1.01,
+            |item| item.clip = "missing".into(),
+            |item| item.actor = "missing".into(),
+            |item| item.id = "".into(),
+            |item| item.id = "bad id".into(),
+            |item| item.id = "x".repeat(65),
+        ];
+        for edit in invalid_edits {
+            let mut item = instance("a");
+            item.weight = 0.0;
+            edit(&mut item);
+            assert!(upsert_clip_instance(&source, 1, item).is_err());
+        }
+        let mut script = parse(&source).unwrap();
+        script.scenes[1].duration = f64::MAX;
+        let mut item = instance("a");
+        item.at = f64::MAX;
+        item.duration = 1.0;
+        script.scenes[1].composition.clip_instances = vec![item.clone()];
+        assert!(script.validate().is_err()); // precision collapse
+        item.duration = f64::MAX;
+        script.scenes[1].composition.clip_instances = vec![item];
+        assert!(script.validate().is_err()); // overflow
+        let mut script = parse(&source).unwrap();
+        script.scenes[1].composition.clip_instances = vec![instance("same"), instance("same")];
+        assert!(script.validate().is_err());
+        let mut endpoint = instance(&"x".repeat(64));
+        endpoint.at = 0.0;
+        endpoint.duration = 6.0;
+        endpoint.weight = 0.0;
+        assert!(upsert_clip_instance(&source, 1, endpoint).is_ok());
+    }
+
+    #[test]
+    fn instance_budgets_include_inactive_zero_weight_layers_at_every_boundary() {
+        let mut script = parse(&source()).unwrap();
+        for actor in ["C", "D", "E"] {
+            script.characters.insert(actor.into(), script.characters["B"].clone());
+        }
+        let layers: Vec<_> = (0..128).map(|index| {
+            let mut item = instance(&format!("i{index}"));
+            item.actor = ["A", "B", "C", "D"][index / 32].into();
+            item.weight = 0.0;
+            item
+        }).collect();
+        script.scenes[1].composition.clip_instances = layers.clone();
+        assert!(script.validate().is_ok());
+        script.scenes[1].composition.clip_instances.push(ClipInstance { actor: "E".into(), ..instance("overflow") });
+        assert!(script.validate().is_err());
+        script.scenes[1].composition.clip_instances = layers[..32].to_vec();
+        assert!(script.validate().is_ok());
+        script.scenes[1].composition.clip_instances.push(ClipInstance { actor: "A".into(), ..instance("actor_overflow") });
+        assert!(script.validate().is_err());
+        script.scenes.truncate(1);
+        script.scenes[0].composition.clip_instances = layers;
+        for index in 1..8 {
+            let mut scene = script.scenes[0].clone();
+            scene.id = format!("scene{index}");
+            script.scenes.push(scene);
+        }
+        assert!(script.validate().is_ok());
+        let mut scene = script.scenes[0].clone();
+        scene.id = "overflow".into();
+        scene.composition.clip_instances = vec![instance("extra")];
+        script.scenes.push(scene);
+        assert!(script.validate().is_err());
+    }
+
+    #[test]
+    fn atomic_instance_edits_preserve_layer_order_and_copied_tracks() {
+        let source = apply_animation_clip(&source(), 1, "B", "head").unwrap();
+        let copied = parse(&source).unwrap().scenes[1].composition.bone_tracks.clone();
+        let source = upsert_clip_instance(&source, 1, instance("first")).unwrap();
+        let source = upsert_clip_instance(&source, 1, instance("second")).unwrap();
+        let mut changed = instance("first");
+        changed.weight = 0.5;
+        let source = upsert_clip_instance(&source, 1, changed.clone()).unwrap();
+        let script = parse(&source).unwrap();
+        assert_eq!(script.scenes[1].composition.clip_instances, vec![changed, instance("second")]);
+        let moved = reorder_clip_instance(&source, 1, "first", 1).unwrap();
+        assert_eq!(parse(&moved).unwrap().scenes[1].composition.clip_instances[0].id, "second");
+        for (index, id, target) in [(1, "first", 2), (1, "missing", 0), (99, "first", 0)] {
+            assert!(reorder_clip_instance(&source, index, id, target).is_err());
+        }
+        assert!(remove_clip_instance(&source, 1, "missing").is_err());
+        assert!(remove_clip_instance(&source, 99, "first").is_err());
+        let before = source.clone();
+        let mut invalid = instance("first");
+        invalid.duration = 99.0;
+        assert!(upsert_clip_instance(&source, 1, invalid).is_err());
+        assert_eq!(source, before);
+        let removed = remove_clip_instance(&moved, 1, "first").unwrap();
+        let script = parse(&removed).unwrap();
+        assert_eq!(script.scenes[1].composition.clip_instances, vec![instance("second")]);
+        assert_eq!(script.scenes[1].composition.bone_tracks, copied);
+    }
+
+    #[test]
+    fn live_reference_guard_replacement_character_cleanup_and_scene_lifecycle() {
+        let source = apply_animation_clip(&source(), 1, "B", "head").unwrap();
+        let copied = parse(&source).unwrap().scenes[1].composition.bone_tracks.clone();
+        let source = upsert_clip_instance(&source, 1, instance("live")).unwrap();
+        let duplicated = duplicate_scene(&source, 1, "duplicate").unwrap();
+        let error = remove_animation_clip(&duplicated, "head").unwrap_err().to_string();
+        assert!(error.contains("2 instance(s)") && error.contains("target") && error.contains("live"));
+        assert!(capture_animation_clip(&source, 0, "A", "head", false).is_err());
+        let replaced = capture_animation_clip(&source, 1, "B", "head", true).unwrap();
+        let script = parse(&replaced).unwrap();
+        assert_eq!(script.animation_clips["head"].duration, 6.0);
+        assert_eq!(script.scenes[1].composition.clip_instances, vec![instance("live")]);
+        assert_eq!(script.scenes[1].composition.bone_tracks, copied);
+        // A candidate replacement cannot bypass definition validation.
+        let mut invalid = parse(&source).unwrap();
+        invalid.scenes[0].duration = 601.0;
+        let invalid = serde_yaml::to_string(&invalid).unwrap();
+        assert!(capture_animation_clip(&invalid, 0, "A", "head", true).is_err());
+        let deleted = remove_scene(&duplicated, 1).unwrap();
+        assert_eq!(parse(&deleted).unwrap().scenes[1].composition.clip_instances, vec![instance("live")]);
+        let no_actor = remove_character(&duplicated, "B").unwrap();
+        let script = parse(&no_actor).unwrap();
+        assert!(script.scenes.iter().all(|scene| scene.composition.clip_instances.is_empty()));
+        assert!(script.animation_clips.contains_key("head"));
+        assert!(remove_animation_clip(&no_actor, "head").is_ok());
+        let no_instance = remove_clip_instance(&source, 1, "live").unwrap();
+        let deleted = remove_animation_clip(&no_instance, "head").unwrap();
+        assert_eq!(parse(&deleted).unwrap().scenes[1].composition.bone_tracks, copied);
     }
 }

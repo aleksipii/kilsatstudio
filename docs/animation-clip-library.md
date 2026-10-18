@@ -59,7 +59,8 @@ animation_clips:
 ```
 
 Library definitions alone do not play animation. Apply a clip to copy its tracks
-into `scenes[].composition.bone_tracks`. Unused clips have no rendering effect.
+into `scenes[].composition.bone_tracks`, or add a [live clip layer](live-clip-blending.md)
+to retain an active reference with ordered blending. Unused clips have no rendering effect.
 
 Limits are 64 clips per project, a positive duration up to 600 seconds, 1–4096
 strictly increasing keys per bone and 65,536 keys across the library. Existing
@@ -71,6 +72,6 @@ validation. Existing projects without `animation_clips` use an empty library.
 
 Tests compare copied tracks with independent expected SVG/PNG output, shared
 sample-clock preview, repeated/backwards seeking and project round trips.
-Arbitrary rigs, textured parts, live clip instances, layered retiming, blending of
-multiple custom clips and cross-project library exchange remain open. No GPU,
+Arbitrary rigs, textured parts, animated layer weights/fades, looping and
+cross-project library exchange remain open. No GPU,
 physical Mac or perceptual motion-quality acceptance is established by fixtures.

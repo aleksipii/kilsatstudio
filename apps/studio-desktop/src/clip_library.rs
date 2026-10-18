@@ -105,6 +105,13 @@ impl State {
         ui.small("Name: 1–64 ASCII letters, digits, underscores or hyphens.");
         let exists = script.animation_clips.contains_key(&self.name);
         if exists {
+            let (scenes, instances) = reference_counts(script, &self.name);
+            if instances > 0 {
+                ui.colored_label(
+                    egui::Color32::YELLOW,
+                    format!("Replacing this clip changes {instances} live instances in {scenes} scenes. Replacement must fit every reference."),
+                );
+            }
             ui.checkbox(
                 &mut self.replace_capture,
                 "Replace this existing library clip",
@@ -231,13 +238,20 @@ impl State {
                 });
                 self.replace_target = false;
             }
-            ui.checkbox(
-                &mut self.confirm_delete,
-                "Delete selected clip from this project",
-            );
+            let (referenced_scenes, references) = reference_counts(script, &self.selected);
+            if references > 0 {
+                self.confirm_delete = false;
+                ui.small(format!("Used by {references} live instances in {referenced_scenes} scenes. Remove those instances before deleting this library clip."));
+            }
+            ui.add_enabled_ui(references == 0, |ui| {
+                ui.checkbox(
+                    &mut self.confirm_delete,
+                    "Delete selected clip from this project",
+                );
+            });
             if ui
                 .add_enabled(
-                    self.confirm_delete,
+                    self.confirm_delete && references == 0,
                     egui::Button::new("Delete library clip"),
                 )
                 .clicked()
@@ -254,6 +268,13 @@ impl State {
         }
         action
     }
+}
+
+fn reference_counts(script: &Script, name: &str) -> (usize, usize) {
+    let counts: Vec<usize> = script.scenes.iter().map(|scene| {
+        scene.composition.clip_instances.iter().filter(|instance| instance.clip == name).count()
+    }).collect();
+    (counts.iter().filter(|count| **count > 0).count(), counts.iter().sum())
 }
 
 /// Nonfinite drafts remain visible and invalid rather than silently becoming valid.
@@ -279,6 +300,25 @@ mod tests {
     use super::*;
 
     const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 2}, {at: 2, x: 8}]}}}}]\n";
+
+    #[test]
+    fn live_references_are_counted_and_cannot_be_deleted_from_library() {
+        let captured = Action::Capture { name: "Nod".into(), replace: false }
+            .apply(SOURCE, 0, "A").unwrap();
+        let source = motion_script::upsert_clip_instance(&captured, 0, motion_script::ClipInstance {
+            id: "live".into(), clip: "Nod".into(), actor: "B".into(), at: 0.0, duration: 4.0, weight: 1.0,
+        }).unwrap();
+        let script = motion_script::parse(&source).unwrap();
+        assert_eq!(reference_counts(&script, "Nod"), (1, 1));
+        assert_eq!(reference_counts(&script, "Missing"), (0, 0));
+        assert!(Action::Remove { name: "Nod".into() }.apply(&source, 0, "A").is_err());
+        let mut state = State { selected: "Nod".into(), confirm_delete: true, context: Some((0, "A".into())), ..State::default() };
+        let ctx = egui::Context::default();
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| { assert!(state.ui(ui, &script, 0, "A").is_none()); });
+        });
+        assert!(!state.confirm_delete);
+    }
 
     #[test]
     fn painting_changes_no_source_and_context_resets_destructive_confirmations() {

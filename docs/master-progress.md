@@ -920,3 +920,28 @@ parent owns shared schema/scene/desktop files and coordinates implementation
 before agents may edit overlapping production code. The existing user-reported
 M1 Kokoro speech evidence is retained; it does not close the remaining device
 gates. Plans and agent ownership are not completed product acceptance.
+
+
+## Ordered live authored clip layers (2026-10-18, pending integration)
+
+- [ ] Integrate strict persistent scene instances, reference/numeric/order/budget
+  validation, atomic upsert/remove/reorder, deletion guards and actor cleanup.
+- [ ] Integrate prepared shared referenced tracks, checked local-offset override
+  blending, half-open windows, unchanged default behavior and typed failures.
+- [ ] Integrate native detached instance editing, global layer order, library
+  reference warnings, source Undo/Redo, persistence and stale/busy/actor guards.
+- [ ] Reuse prepared snapshots in scene/project export and cached native preview;
+  preflight inactive/zero layers and enforce bounded work before output creation.
+- [ ] Validate independent actual SVG/PNG frames, sample-clock preview, seek order,
+  overlap order, root/speech stages, library replacement and copied-track independence.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Animated weights/fades, loops, masks, arbitrary/textured rigs, cross-project
+  exchange and physical/perceptual motion acceptance.
+- [ ] Full GPU parity, verified-environment automatic estimated reuse and final
+  third-party artifact/license approval.
+
+Source is awaiting CI; no local Rust toolchain is available. First support is
+constant-weight ordered override of original-rig local authored offsets, with
+explicit half-open activation and no implicit fades. Implementation does not
+establish hardware, real recognizer or final release acceptance. See
+[live clip blending](live-clip-blending.md).
