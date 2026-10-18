@@ -6277,10 +6277,8 @@ mod editable_timeline_integration_tests {
 
     #[test]
     fn scene_reordering_keeps_selection_and_roundtrips_through_history() {
-        let mut studio = Studio {
-            source: SOURCE.into(),
-            ..Default::default()
-        };
+        let mut studio = Studio::default();
+        studio.source = SOURCE.into();
         studio.validate();
         studio.apply_timeline_edit(TimelineEdit::MoveScene {
             scene_id: "first".into(),
@@ -6304,10 +6302,8 @@ mod editable_timeline_integration_tests {
 
     #[test]
     fn invalid_or_busy_timeline_edits_leave_source_untouched() {
-        let mut studio = Studio {
-            source: SOURCE.into(),
-            ..Default::default()
-        };
+        let mut studio = Studio::default();
+        studio.source = SOURCE.into();
         studio.validate();
         studio.apply_timeline_edit(TimelineEdit::MoveScene {
             scene_id: "first".into(),
