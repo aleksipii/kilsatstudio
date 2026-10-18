@@ -9,6 +9,14 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+Documentation-only PR #44 merged as `443e3f7b1881c02a7b0fdd55fbd647aeeba583cb`, assigning all eight
+remaining areas to named agents and recording inspected next-package handoffs.
+Local Markdown targets, whitespace checks and independent cross-workstream
+review passed. No production code changed, no Rust/Python execution was newly
+claimed, and no product/device/quality/license gate was closed. PR #43 below
+remains the latest implementation increment. The release branch is synchronized
+with this assignment and progress record.
+
 PR #43 merged as `ebd7287825c10c8dcfdbf7805ac920c03545eedc` after final Linux/macOS CI passed.
 Live clips now support original-speed loops and explicit seven-joint selection;
 soft ellipse masks support feathering and scene-local key animation. Native scene
