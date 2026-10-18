@@ -288,13 +288,21 @@ fn evaluate_validated(
                     (joint, value)
                 })
                 .collect();
-            pose.skeleton = motion_animation::evaluate_humanoid_with_offsets(
+            let weights = scene
+                .composition
+                .clip_weights
+                .get(id)
+                .copied()
+                .unwrap_or_default();
+            pose.wave *= weights.gesture;
+            pose.skeleton = motion_animation::evaluate_humanoid_with_weights_and_offsets(
                 &HumanoidState {
                     walk_seconds,
                     emotion_changes: &emotion_changes,
                     gesture,
                 },
                 &offsets,
+                weights,
             )
             .expect("validated bounded bone offsets");
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
@@ -683,5 +691,64 @@ mod bone_track_scene_tests {
                 original.actors[0].skeleton[motion_animation::HEAD]
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod clip_weight_tests {
+    use super::*;
+
+    #[test]
+    fn actor_intensities_isolate_rules_and_keep_authored_and_speech_motion() {
+        let source = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: [{type: gesture, actor: A, at: 0, value: wave, duration: 4}, {type: gesture, actor: B, at: 0, value: wave, duration: 4}, {type: emotion, actor: A, at: 0, value: happy}, {type: move, actor: A, at: 0, x: 500, y: 400, duration: 4}]}]";
+        let source = motion_script::apply_bone_track(
+            source,
+            0,
+            "A",
+            "right_hand",
+            &[motion_script::ActorKey {
+                x: 20.0,
+                ..Default::default()
+            }],
+        )
+        .unwrap();
+        let original = motion_script::parse(&source).unwrap();
+        let off = motion_script::ClipWeights {
+            posture: 0.0,
+            walk: 0.0,
+            gesture: 0.0,
+        };
+        let edited = motion_script::apply_clip_weights(&source, 0, "A", off).unwrap();
+        let script = motion_script::parse(&edited).unwrap();
+        let mut neutral = script.clone();
+        neutral.scenes[0].events.clear();
+        for time in [2.0, 0.0, 4.0, 0.02, 1.0, 2.0] {
+            let before = evaluate(&original, 0, time).unwrap();
+            let mut actual = evaluate(&script, 0, time).unwrap();
+            let rest = evaluate(&neutral, 0, time).unwrap();
+            assert_eq!(actual.actors[1], before.actors[1]);
+            assert_eq!(actual.actors[0].skeleton, rest.actors[0].skeleton);
+            assert_eq!(actual.actors[0].wave, 0.0);
+            assert_eq!(actual.actors[0].x, before.actors[0].x);
+            assert_eq!(actual.actors[0].y, before.actors[0].y);
+            assert_eq!(actual.actors[0].emotion, before.actors[0].emotion);
+            let head_y = actual.actors[0].skeleton[HEAD].y;
+            apply_speech(&mut actual, &[("A", Viseme::A)]);
+            assert_eq!(actual.actors[0].skeleton[HEAD].y, head_y + SPEECH_HEAD_DIP);
+        }
+        let half = motion_script::apply_clip_weights(
+            &source,
+            0,
+            "A",
+            motion_script::ClipWeights {
+                gesture: 0.5,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        let half = evaluate(&motion_script::parse(&half).unwrap(), 0, 2.0).unwrap();
+        let full = evaluate(&original, 0, 2.0).unwrap();
+        assert_eq!(half.actors[0].wave, full.actors[0].wave * 0.5);
+        assert_eq!(half.actors[1].wave, full.actors[1].wave);
     }
 }
