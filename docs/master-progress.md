@@ -9,7 +9,13 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #38 merged as `797e7d4fb3c97b9577bef56a8570f25c49f2c34c` after its final
+Documentation-only PR #39 merged as `cf03e847674a00162766bceb81ba7e5ea44348f8`, assigning the
+five open workstreams and recording inspected implementation/evidence plans.
+Local Markdown link targets and diff whitespace checks passed; the license owner
+also passed 16 existing inventory tests while the strict release gate stayed
+blocked. This planning merge implements no production feature or acceptance.
+
+The latest implementation PR #38 merged as `797e7d4fb3c97b9577bef56a8570f25c49f2c34c` after its final
 Linux/macOS CI passed. PR #37 merged earlier as
 `0aa890bb6fa6ce597ba5f2a21fd942db720b7389`; PR #36 as
 `e49f7add105409ed4d98859d1be4b55ae1c803b1`; PR #35 as
@@ -897,7 +903,7 @@ and final third-party artifact/license clearance remain open.
 See [clip library](animation-clip-library.md).
 
 
-## Five open workstreams assigned (2026-10-18)
+## Five open workstreams assigned (PR #39, merged 2026-10-18)
 
 - [x] Assign a separate agent to each of the five requested open workstreams.
 - [x] Inspect current implementations and record bounded next changes, interfaces,
