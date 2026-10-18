@@ -253,17 +253,26 @@ fn animated_strength_uses_outgoing_hold_and_smoothstep_in_encoded_frames() {
 }
 
 #[test]
-fn empty_strength_track_preserves_static_fallback_encoded_frames() {
+fn removing_strength_track_restores_static_fallback_encoded_frames() {
     let (mut baseline, rendered) = fixture();
     baseline.scenes[0]
         .composition
         .clip_weights
         .insert("EMMA".into(), gesture_weights(0.375));
-    let mut empty_track = baseline.clone();
-    empty_track.scenes[0]
-        .composition
-        .clip_weight_tracks
-        .insert("EMMA".into(), Vec::new());
+    let source = serde_json::to_string(&baseline).unwrap();
+    let tracked = motion_script::apply_clip_weight_track(
+        &source,
+        0,
+        "EMMA",
+        vec![motion_script::ClipWeightKeyframe {
+            time: 0.0,
+            weights: gesture_weights(0.0),
+            easing: motion_script::ActorEasing::Linear,
+        }],
+    )
+    .unwrap();
+    let removed = motion_script::apply_clip_weight_track(&tracked, 0, "EMMA", Vec::new()).unwrap();
+    let empty_track = motion_script::parse(&removed).unwrap();
     let cancel = CancellationToken::new();
     for frame in [2, 0, 3, 1] {
         for png in [false, true] {

@@ -756,8 +756,24 @@ mod animated_clip_weight_tests {
     fn animated_strengths_match_static_evaluation_on_shared_scene_clock() {
         let source = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: [{type: gesture, actor: A, at: 0, value: wave, duration: 4}, {type: gesture, actor: B, at: 0, value: wave, duration: 4}, {type: emotion, actor: A, at: 0, value: happy}, {type: move, actor: A, at: 0, x: 500, y: 400, duration: 4}]}]";
         let keys = vec![
-            motion_script::ClipWeightKeyframe { time: 0.0, weights: motion_script::ClipWeights { posture: 0.0, walk: 1.0, gesture: 0.2 }, easing: motion_script::ActorEasing::Smoothstep },
-            motion_script::ClipWeightKeyframe { time: 4.0, weights: motion_script::ClipWeights { posture: 1.0, walk: 0.0, gesture: 0.8 }, easing: motion_script::ActorEasing::Linear },
+            motion_script::ClipWeightKeyframe {
+                time: 0.0,
+                weights: motion_script::ClipWeights {
+                    posture: 0.0,
+                    walk: 1.0,
+                    gesture: 0.2,
+                },
+                easing: motion_script::ActorEasing::Smoothstep,
+            },
+            motion_script::ClipWeightKeyframe {
+                time: 4.0,
+                weights: motion_script::ClipWeights {
+                    posture: 1.0,
+                    walk: 0.0,
+                    gesture: 0.8,
+                },
+                easing: motion_script::ActorEasing::Linear,
+            },
         ];
         let tracked_source = motion_script::apply_clip_weight_track(source, 0, "A", keys).unwrap();
         let tracked = motion_script::parse(&tracked_source).unwrap();
@@ -766,9 +782,15 @@ mod animated_clip_weight_tests {
         for time in [4.0, 1.0, 0.0, 2.5, 0.5, 1.0] {
             let t = time / 4.0;
             let eased = t * t * (3.0 - 2.0 * t);
-            let expected_weights = motion_script::ClipWeights { posture: eased, walk: 1.0 - eased, gesture: 0.2 + (0.8 - 0.2) * eased };
-            let expected_source = motion_script::apply_clip_weights(source, 0, "A", expected_weights).unwrap();
-            let expected = evaluate(&motion_script::parse(&expected_source).unwrap(), 0, time).unwrap();
+            let expected_weights = motion_script::ClipWeights {
+                posture: eased,
+                walk: 1.0 - eased,
+                gesture: 0.2 + (0.8 - 0.2) * eased,
+            };
+            let expected_source =
+                motion_script::apply_clip_weights(source, 0, "A", expected_weights).unwrap();
+            let expected =
+                evaluate(&motion_script::parse(&expected_source).unwrap(), 0, time).unwrap();
             let actual = evaluate(&tracked, 0, time).unwrap();
             let before = evaluate(&original, 0, time).unwrap();
             assert_eq!(actual.actors, expected.actors);

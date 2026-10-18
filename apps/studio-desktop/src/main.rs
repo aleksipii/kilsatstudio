@@ -2933,9 +2933,15 @@ impl Studio {
                 clip_editor::Draft::new(scene, self.scene_index, actor),
             ));
         }
-        if !self.clip_track_draft.as_ref().is_some_and(|(source, draft)| {
-            source == &self.source && draft.scene_index == self.scene_index && draft.actor == actor
-        }) {
+        if !self
+            .clip_track_draft
+            .as_ref()
+            .is_some_and(|(source, draft)| {
+                source == &self.source
+                    && draft.scene_index == self.scene_index
+                    && draft.actor == actor
+            })
+        {
             self.clip_track_draft = Some((
                 self.source.clone(),
                 clip_editor::TrackDraft::new(scene, self.scene_index, actor),
@@ -5586,7 +5592,6 @@ mod clip_editor_integration_tests {
     }
 }
 
-
 #[cfg(test)]
 mod animated_strength_integration_tests {
     use super::*;
@@ -5600,7 +5605,10 @@ mod animated_strength_integration_tests {
         draft.keys = vec![
             motion_script::ClipWeightKeyframe {
                 time: 0.0,
-                weights: motion_script::ClipWeights { gesture: 0.0, ..Default::default() },
+                weights: motion_script::ClipWeights {
+                    gesture: 0.0,
+                    ..Default::default()
+                },
                 easing: motion_script::ActorEasing::Linear,
             },
             motion_script::ClipWeightKeyframe {
@@ -5625,7 +5633,13 @@ mod animated_strength_integration_tests {
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
         let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
         let script = motion_script::parse(&loaded.source).unwrap();
-        assert_eq!(script.scenes[0].composition.sample_clip_weights(&actor, 0.5).gesture, 0.5);
+        assert_eq!(
+            script.scenes[0]
+                .composition
+                .sample_clip_weights(&actor, 0.5)
+                .gesture,
+            0.5
+        );
         studio.undo_edit(false);
         assert_eq!(studio.source, original);
         studio.undo_edit(true);

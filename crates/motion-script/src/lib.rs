@@ -95,7 +95,11 @@ impl Composition {
     /// uses the static actor override; before/after endpoints clamp to that key.
     pub fn sample_clip_weights(&self, actor: &str, time: f64) -> ClipWeights {
         let fallback = self.clip_weights.get(actor).copied().unwrap_or_default();
-        let Some(keys) = self.clip_weight_tracks.get(actor).filter(|keys| !keys.is_empty()) else {
+        let Some(keys) = self
+            .clip_weight_tracks
+            .get(actor)
+            .filter(|keys| !keys.is_empty())
+        else {
             return fallback;
         };
         if !time.is_finite() {
@@ -485,13 +489,21 @@ pub fn apply_clip_weight_track(
 ) -> Result<String, Error> {
     edit_source(source, |candidate| {
         if !candidate.characters.contains_key(actor) {
-            return Err(Error::Validation(format!("unknown clip weight track actor {actor}")));
+            return Err(Error::Validation(format!(
+                "unknown clip weight track actor {actor}"
+            )));
         }
-        let scene = candidate.scenes.get_mut(scene_index).ok_or_else(missing_event)?;
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
         if keys.is_empty() {
             scene.composition.clip_weight_tracks.remove(actor);
         } else {
-            scene.composition.clip_weight_tracks.insert(actor.into(), keys);
+            scene
+                .composition
+                .clip_weight_tracks
+                .insert(actor.into(), keys);
         }
         Ok(())
     })
@@ -763,7 +775,10 @@ impl Script {
             }
             for (actor, keys) in &composition.clip_weight_tracks {
                 if !self.characters.contains_key(actor) || keys.is_empty() || keys.len() > 256 {
-                    return Err(fail(format!("{}: clip weight tracks require a known actor and 1..256 keys", s.id)));
+                    return Err(fail(format!(
+                        "{}: clip weight tracks require a known actor and 1..256 keys",
+                        s.id
+                    )));
                 }
                 let mut previous = None;
                 for key in keys {
@@ -1925,18 +1940,42 @@ mod clip_weight_tests {
 #[cfg(test)]
 mod clip_weight_track_tests {
     use super::*;
-    const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
-    fn key(time: f64, posture: f64, walk: f64, gesture: f64, easing: ActorEasing) -> ClipWeightKeyframe {
-        ClipWeightKeyframe { time, weights: ClipWeights { posture, walk, gesture }, easing }
+    const SOURCE: &str =
+        "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: []}]";
+    fn key(
+        time: f64,
+        posture: f64,
+        walk: f64,
+        gesture: f64,
+        easing: ActorEasing,
+    ) -> ClipWeightKeyframe {
+        ClipWeightKeyframe {
+            time,
+            weights: ClipWeights {
+                posture,
+                walk,
+                gesture,
+            },
+            easing,
+        }
     }
     #[test]
     fn track_sampling_clamps_and_uses_outgoing_easing_independently() {
         let mut composition = Composition::default();
-        let fallback = ClipWeights { posture: 0.1, walk: 0.2, gesture: 0.3 };
+        let fallback = ClipWeights {
+            posture: 0.1,
+            walk: 0.2,
+            gesture: 0.3,
+        };
         composition.clip_weights.insert("A".into(), fallback);
         assert_eq!(composition.sample_clip_weights("A", 1.0), fallback);
-        let keys = vec![key(1.0, 0.0, 1.0, 0.2, ActorEasing::Linear), key(3.0, 1.0, 0.0, 0.6, ActorEasing::Hold)];
-        composition.clip_weight_tracks.insert("A".into(), keys.clone());
+        let keys = vec![
+            key(1.0, 0.0, 1.0, 0.2, ActorEasing::Linear),
+            key(3.0, 1.0, 0.0, 0.6, ActorEasing::Hold),
+        ];
+        composition
+            .clip_weight_tracks
+            .insert("A".into(), keys.clone());
         assert_eq!(composition.sample_clip_weights("A", 0.0), keys[0].weights);
         assert_eq!(composition.sample_clip_weights("A", 4.0), keys[1].weights);
         let middle = composition.sample_clip_weights("A", 2.0);
@@ -1947,39 +1986,88 @@ mod clip_weight_track_tests {
         composition.clip_weight_tracks.get_mut("A").unwrap()[0].easing = ActorEasing::Hold;
         assert_eq!(composition.sample_clip_weights("A", 2.999).posture, 0.0);
         assert_eq!(composition.sample_clip_weights("A", 3.0), keys[1].weights);
-        assert_eq!(composition.sample_clip_weights("B", 2.0), ClipWeights::default());
-        composition.clip_weight_tracks.insert("A".into(), vec![keys[0].clone()]);
+        assert_eq!(
+            composition.sample_clip_weights("B", 2.0),
+            ClipWeights::default()
+        );
+        composition
+            .clip_weight_tracks
+            .insert("A".into(), vec![keys[0].clone()]);
         assert_eq!(composition.sample_clip_weights("A", 4.0), keys[0].weights);
     }
     #[test]
     fn track_edits_roundtrip_reject_invalid_atomically_and_clean_up() {
-        let keys = vec![key(0.0, 0.0, 0.3, 1.0, ActorEasing::Linear), key(4.0, 1.0, 0.8, 0.0, ActorEasing::Smoothstep)];
+        let keys = vec![
+            key(0.0, 0.0, 0.3, 1.0, ActorEasing::Linear),
+            key(4.0, 1.0, 0.8, 0.0, ActorEasing::Smoothstep),
+        ];
         let source = apply_clip_weight_track(SOURCE, 0, "A", keys.clone()).unwrap();
-        assert_eq!(parse(&source).unwrap().scenes[0].composition.clip_weight_tracks["A"], keys);
+        assert_eq!(
+            parse(&source).unwrap().scenes[0]
+                .composition
+                .clip_weight_tracks["A"],
+            keys
+        );
         assert!(apply_clip_weight_track(&source, 1, "A", keys.clone()).is_err());
         assert!(apply_clip_weight_track(&source, 0, "unknown", keys.clone()).is_err());
         for invalid in [f64::NAN, f64::INFINITY, -0.1, 4.1] {
-            let mut bad = keys.clone(); bad[0].time = invalid;
+            let mut bad = keys.clone();
+            bad[0].time = invalid;
             assert!(apply_clip_weight_track(&source, 0, "A", bad).is_err());
         }
         for invalid in [f64::NAN, f64::INFINITY, -0.1, 1.1] {
-            let mut bad = keys.clone(); bad[0].weights.walk = invalid;
+            let mut bad = keys.clone();
+            bad[0].weights.walk = invalid;
             assert!(apply_clip_weight_track(&source, 0, "A", bad).is_err());
         }
-        for bad in [vec![keys[0].clone(), keys[0].clone()], vec![keys[1].clone(), keys[0].clone()], (0..257).map(|i| key(i as f64 / 100.0, 1.0, 1.0, 1.0, ActorEasing::Linear)).collect()] {
+        for bad in [
+            vec![keys[0].clone(), keys[0].clone()],
+            vec![keys[1].clone(), keys[0].clone()],
+            (0..257)
+                .map(|i| key(i as f64 / 100.0, 1.0, 1.0, 1.0, ActorEasing::Linear))
+                .collect(),
+        ] {
             assert!(apply_clip_weight_track(&source, 0, "A", bad).is_err());
         }
-        let boundary: Vec<_> = (0..256).map(|i| key(i as f64 / 100.0, 1.0, 1.0, 1.0, ActorEasing::Linear)).collect();
+        let boundary: Vec<_> = (0..256)
+            .map(|i| key(i as f64 / 100.0, 1.0, 1.0, 1.0, ActorEasing::Linear))
+            .collect();
         assert!(apply_clip_weight_track(&source, 0, "A", boundary).is_ok());
-        assert_eq!(parse(&source).unwrap().scenes[0].composition.clip_weight_tracks["A"], keys);
-        assert!(parse(&apply_clip_weight_track(&source, 0, "A", vec![]).unwrap()).unwrap().scenes[0].composition.clip_weight_tracks.is_empty());
-        assert!(parse(&remove_character(&source, "A").unwrap()).unwrap().scenes[0].composition.clip_weight_tracks.is_empty());
+        assert_eq!(
+            parse(&source).unwrap().scenes[0]
+                .composition
+                .clip_weight_tracks["A"],
+            keys
+        );
+        assert!(
+            parse(&apply_clip_weight_track(&source, 0, "A", vec![]).unwrap())
+                .unwrap()
+                .scenes[0]
+                .composition
+                .clip_weight_tracks
+                .is_empty()
+        );
+        assert!(parse(&remove_character(&source, "A").unwrap())
+            .unwrap()
+            .scenes[0]
+            .composition
+            .clip_weight_tracks
+            .is_empty());
     }
     #[test]
     fn strict_track_yaml_rejects_unknown_fields_and_empty_serialized_tracks() {
-        let source = |track: &str| format!("characters: {{A: {{asset: a}}}}\nscenes: [{{id: shot, duration: 4, events: [], composition: {{clip_weight_tracks: {{A: {track}}}}}}}]");
+        let source = |track: &str| {
+            format!("characters: {{A: {{asset: a}}}}\nscenes: [{{id: shot, duration: 4, events: [], composition: {{clip_weight_tracks: {{A: {track}}}}}}}]")
+        };
         assert!(parse(&source("[{time: 0, weights: {walk: 0.5}}]")).is_ok());
-        for track in ["[]", "[{time: 0, weights: {}, extra: 1}]", "[{time: 0, weights: {extra: 1}}]", "[{time: 0, weights: {}, easing: cubic}]", "[{time: true, weights: {}}]", "[{time: 0}]"] {
+        for track in [
+            "[]",
+            "[{time: 0, weights: {}, extra: 1}]",
+            "[{time: 0, weights: {extra: 1}}]",
+            "[{time: 0, weights: {}, easing: cubic}]",
+            "[{time: true, weights: {}}]",
+            "[{time: 0}]",
+        ] {
             assert!(parse(&source(track)).is_err(), "{track}");
         }
     }

@@ -183,7 +183,10 @@ impl TrackDraft {
                             ui.label("Time (seconds)");
                             if key.time.is_finite() {
                                 let mut edited = key.time;
-                                if ui.add(egui::DragValue::new(&mut edited).speed(0.05)).changed() {
+                                if ui
+                                    .add(egui::DragValue::new(&mut edited).speed(0.05))
+                                    .changed()
+                                {
                                     key.time = edited;
                                 }
                             } else {
@@ -208,7 +211,9 @@ impl TrackDraft {
                                     *weight = edited;
                                 }
                             } else {
-                                ui.label(format!("{label}: invalid value; reset or remove this key"));
+                                ui.label(format!(
+                                    "{label}: invalid value; reset or remove this key"
+                                ));
                             }
                         }
                         egui::ComboBox::from_id_salt("strength_easing")
@@ -357,20 +362,35 @@ mod tests {
         let mut draft = TrackDraft::new(&script.scenes[0], 0, "B");
         draft.keys = vec![ClipWeightKeyframe {
             time: 0.5,
-            weights: ClipWeights { posture: 0.8, walk: 0.6, gesture: 0.2 },
+            weights: ClipWeights {
+                posture: 0.8,
+                walk: 0.6,
+                gesture: 0.2,
+            },
             easing: ActorEasing::Smoothstep,
         }];
         let updated = draft.apply(SOURCE).unwrap();
         let parsed = motion_script::parse(&updated).unwrap();
-        assert_eq!(parsed.scenes[0].composition.clip_weight_tracks["B"], draft.keys);
+        assert_eq!(
+            parsed.scenes[0].composition.clip_weight_tracks["B"],
+            draft.keys
+        );
         let mut actual = serde_json::to_value(&parsed).unwrap();
         actual["scenes"][0]["composition"]["clip_weight_tracks"]
-            .as_object_mut().unwrap().remove("B");
+            .as_object_mut()
+            .unwrap()
+            .remove("B");
         assert_eq!(actual, serde_json::to_value(&script).unwrap());
         draft.keys.clear();
         let restored = motion_script::parse(&draft.apply(&updated).unwrap()).unwrap();
-        assert_eq!(serde_json::to_value(&restored).unwrap(), serde_json::to_value(&script).unwrap());
-        assert_eq!(restored.scenes[0].composition.sample_clip_weights("B", 1.0), script.scenes[0].composition.clip_weights["B"]);
+        assert_eq!(
+            serde_json::to_value(&restored).unwrap(),
+            serde_json::to_value(&script).unwrap()
+        );
+        assert_eq!(
+            restored.scenes[0].composition.sample_clip_weights("B", 1.0),
+            script.scenes[0].composition.clip_weights["B"]
+        );
     }
 
     #[test]
@@ -379,7 +399,11 @@ mod tests {
         let mut draft = TrackDraft::new(&script.scenes[0], 0, "A");
         draft.keys.push(ClipWeightKeyframe {
             time: f64::NAN,
-            weights: ClipWeights { posture: -0.5, walk: f64::INFINITY, gesture: 1.5 },
+            weights: ClipWeights {
+                posture: -0.5,
+                walk: f64::INFINITY,
+                gesture: 1.5,
+            },
             easing: ActorEasing::Hold,
         });
         let ctx = egui::Context::default();
@@ -416,14 +440,15 @@ mod tests {
         draft.keys[0].time = 4.5;
         assert!(!draft.valid());
         assert!(draft.apply(SOURCE).is_err());
-        draft.keys = (0..257).map(|index| ClipWeightKeyframe {
-            time: index as f64 / 100.0,
-            ..key.clone()
-        }).collect();
+        draft.keys = (0..257)
+            .map(|index| ClipWeightKeyframe {
+                time: index as f64 / 100.0,
+                ..key.clone()
+            })
+            .collect();
         assert!(!draft.valid());
         assert!(draft.apply(SOURCE).is_err());
     }
-
 
     #[test]
     fn animated_track_add_can_reach_subsecond_scene_and_fractional_tail() {
@@ -448,5 +473,4 @@ mod tests {
         draft.keys.clear();
         assert_eq!(draft.next_key_time(), None);
     }
-
 }
