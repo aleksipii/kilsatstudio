@@ -16,6 +16,7 @@ mod gpu_check_panel;
 mod gpu_check_worker;
 mod keyframe_editor;
 mod kokoro_setup;
+mod live_clip_editor;
 mod managed_license_evidence;
 mod native_compositor;
 mod playback;
@@ -130,6 +131,7 @@ struct Studio {
     clip_draft: Option<(String, clip_editor::Draft)>,
     clip_track_draft: Option<(String, clip_editor::TrackDraft)>,
     clip_library_draft: Option<(String, usize, String, clip_library::State)>,
+    live_clip_draft: Option<(String, usize, String, live_clip_editor::State)>,
     selected_bone: String,
     asset_worker: asset_worker::Worker,
     asset_pending: Option<(String, String, motion_project::ProjectDocument)>,
@@ -269,6 +271,7 @@ impl Default for Studio {
             keyframe_draft: None,
             bone_draft: None,
             clip_library_draft: None,
+            live_clip_draft: None,
             clip_draft: None,
             clip_track_draft: None,
             selected_bone: "hip".into(),
@@ -1098,6 +1101,7 @@ impl Studio {
         self.clip_draft = None;
         self.clip_track_draft = None;
         self.clip_library_draft = None;
+        self.live_clip_draft = None;
         self.document_changed();
         self.settings_draft = None;
         self.settings_draft_source = None;
@@ -1123,6 +1127,7 @@ impl Studio {
         self.clip_draft = None;
         self.clip_track_draft = None;
         self.clip_library_draft = None;
+        self.live_clip_draft = None;
         self.settings_draft = None;
         self.settings_draft_source = None;
         self.settings_error = None;
@@ -1543,6 +1548,15 @@ impl Studio {
         }
     }
     fn advanced_canvas_needed(&self) -> bool {
+        // Keep prepared library tracks in the existing bounded compositor worker.
+        if self.script.as_ref().is_some_and(|script| {
+            script
+                .scenes
+                .iter()
+                .any(|scene| !scene.composition.clip_instances.is_empty())
+        }) {
+            return true;
+        }
         self.script
             .as_ref()
             .and_then(|s| s.scenes.get(self.scene_index))
@@ -2885,6 +2899,7 @@ impl Studio {
             self.clip_draft = None;
             self.clip_track_draft = None;
             self.clip_library_draft = None;
+            self.live_clip_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2912,6 +2927,7 @@ impl Studio {
                     .into();
             self.clip_track_draft = None;
             self.clip_library_draft = None;
+            self.live_clip_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
@@ -2994,6 +3010,7 @@ impl Studio {
         {
             self.status = "Clip library belongs to an earlier source, scene or actor; reload before applying.".into();
             self.clip_library_draft = None;
+            self.live_clip_draft = None;
             return;
         }
         let result = action.apply(&self.source, scene_index, actor);
@@ -3049,6 +3066,106 @@ impl Studio {
             let source = self.source.clone();
             let actor = actor.to_string();
             self.apply_library_action(action, &source, self.scene_index, &actor);
+        }
+    }
+
+    fn apply_live_clip_action(
+        &mut self,
+        action: live_clip_editor::Action,
+        source: &str,
+        scene_index: usize,
+        actor: &str,
+    ) {
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        let current_actor = self.selected_actor.as_deref().or_else(|| {
+            self.script
+                .as_ref()
+                .and_then(|script| script.characters.keys().next().map(String::as_str))
+        });
+        if source != self.source || scene_index != self.scene_index || current_actor != Some(actor)
+        {
+            self.status = "Live clip draft belongs to an earlier source, scene or actor; reload before applying.".into();
+            self.live_clip_draft = None;
+            return;
+        }
+        let existing = |id: &str| {
+            self.script
+                .as_ref()?
+                .scenes
+                .get(scene_index)?
+                .composition
+                .clip_instances
+                .iter()
+                .find(|instance| instance.id == id)
+        };
+        let targets_actor = match &action {
+            live_clip_editor::Action::Upsert { instance } => {
+                instance.actor == actor
+                    && existing(&instance.id).is_none_or(|old| old.actor == actor)
+            }
+            live_clip_editor::Action::Remove { id }
+            | live_clip_editor::Action::Reorder { id, .. } => {
+                existing(id).is_some_and(|old| old.actor == actor)
+            }
+        };
+        if !targets_actor {
+            self.status = "Select the instance's actor before editing this live clip.".into();
+            return;
+        }
+        let result = action.apply(&self.source, scene_index);
+        self.apply_structure(result);
+        if self.source != source
+            && self
+                .script
+                .as_ref()
+                .is_some_and(|script| script.characters.contains_key(actor))
+        {
+            self.selected_actor = Some(actor.into());
+        }
+    }
+
+    fn live_clip_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
+        if !self
+            .live_clip_draft
+            .as_ref()
+            .is_some_and(|(source, index, selected, _)| {
+                source == &self.source && *index == self.scene_index && selected == actor
+            })
+        {
+            self.live_clip_draft = Some((
+                self.source.clone(),
+                self.scene_index,
+                actor.into(),
+                live_clip_editor::State::default(),
+            ));
+        }
+        let mut action = None;
+        ui.add_enabled_ui(
+            !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
+            |ui| {
+                egui::CollapsingHeader::new("Live authored clips").show(ui, |ui| {
+                    if let Some((_, _, _, draft)) = &mut self.live_clip_draft {
+                        action = draft.ui(ui, script, self.scene_index, actor);
+                    }
+                });
+            },
+        );
+        if let Some(action) = action {
+            let source = self.source.clone();
+            let actor = actor.to_string();
+            self.apply_live_clip_action(action, &source, self.scene_index, &actor);
         }
     }
 
@@ -3159,6 +3276,7 @@ impl Studio {
         self.bone_inspector_ui(ui);
         self.clip_inspector_ui(ui);
         self.clip_library_ui(ui);
+        self.live_clip_ui(ui);
         self.voice_inspector_ui(ui);
         self.event_inspector_ui(ui);
         ui.add_space(12.0);
@@ -5892,6 +6010,147 @@ mod clip_library_integration_tests {
                 "A",
             );
             assert_eq!(studio.source, SOURCE);
+        }
+    }
+}
+
+#[cfg(test)]
+mod live_clip_integration_tests {
+    use super::*;
+    const SOURCE: &str = "project: {width: 256, height: 256}\ncharacters: {A: {asset: a}, B: {asset: b}}\nanimation_clips: {tilt: {duration: 1, bone_tracks: {head: [{at: 0, x: 0}, {at: 1, x: 12}]}}}\nscenes: [{id: shot, duration: 2, events: []}]";
+    fn studio() -> Studio {
+        let mut studio = Studio::default();
+        studio.source = SOURCE.into();
+        studio.validate();
+        studio.selected_actor = Some("A".into());
+        studio
+    }
+    fn instance(id: &str) -> motion_script::ClipInstance {
+        motion_script::ClipInstance {
+            id: id.into(),
+            clip: "tilt".into(),
+            actor: "A".into(),
+            at: 0.25,
+            duration: 1.0,
+            weight: 0.5,
+        }
+    }
+    #[test]
+    fn live_edits_persist_order_and_undo_and_select_cached_preview() {
+        let mut studio = studio();
+        assert!(!studio.advanced_canvas_needed());
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert {
+                instance: instance("one"),
+            },
+            SOURCE,
+            0,
+            "A",
+        );
+        let first = studio.source.clone();
+        assert_ne!(first, SOURCE);
+        assert!(studio.advanced_canvas_needed());
+        assert_eq!(studio.selected_actor.as_deref(), Some("A"));
+        let document = motion_project::ProjectDocument::new(first.clone()).unwrap();
+        let restored = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        assert_eq!(
+            motion_script::parse(&restored.source).unwrap().scenes[0]
+                .composition
+                .clip_instances[0],
+            instance("one")
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, SOURCE);
+        assert!(!studio.advanced_canvas_needed());
+        studio.undo_edit(true);
+        assert_eq!(studio.source, first);
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert {
+                instance: instance("two"),
+            },
+            &first,
+            0,
+            "A",
+        );
+        let added = studio.source.clone();
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Reorder {
+                id: "two".into(),
+                new_index: 0,
+            },
+            &added,
+            0,
+            "A",
+        );
+        let ordered = studio.source.clone();
+        let rows = &studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .clip_instances;
+        assert_eq!(
+            rows.iter().map(|row| row.id.as_str()).collect::<Vec<_>>(),
+            vec!["two", "one"]
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, added);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, ordered);
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Remove { id: "two".into() },
+            &ordered,
+            0,
+            "A",
+        );
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0]
+                .composition
+                .clip_instances,
+            vec![instance("one")]
+        );
+    }
+    #[test]
+    fn live_edits_reject_stale_invalid_busy_and_foreign_actor_actions() {
+        for context in 0..9 {
+            let mut studio = studio();
+            let mut source = SOURCE.to_string();
+            let mut row = instance("one");
+            match context {
+                0 => source.push(' '),
+                1 => studio.scene_index = 1,
+                2 => studio.selected_actor = Some("B".into()),
+                3 => row.weight = f64::NAN,
+                4 => studio.busy = true,
+                5 => studio.diagnostics_busy = true,
+                6 => studio.export_busy = true,
+                7 => studio.setup_busy = true,
+                _ => row.actor = "B".into(),
+            }
+            studio.apply_live_clip_action(
+                live_clip_editor::Action::Upsert { instance: row },
+                &source,
+                0,
+                "A",
+            );
+            assert_eq!(studio.source, SOURCE);
+        }
+        let mut studio = studio();
+        let mut foreign = instance("other");
+        foreign.actor = "B".into();
+        studio.source = motion_script::upsert_clip_instance(SOURCE, 0, foreign).unwrap();
+        studio.validate();
+        studio.selected_actor = Some("A".into());
+        let source = studio.source.clone();
+        let mut update = instance("other");
+        update.weight = 1.0;
+        for action in [
+            live_clip_editor::Action::Upsert { instance: update },
+            live_clip_editor::Action::Remove { id: "other".into() },
+            live_clip_editor::Action::Reorder {
+                id: "other".into(),
+                new_index: 0,
+            },
+        ] {
+            studio.apply_live_clip_action(action, &source, 0, "A");
+            assert_eq!(studio.source, source);
         }
     }
 }

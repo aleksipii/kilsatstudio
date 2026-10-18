@@ -4,6 +4,8 @@
 mod artist_blending_tests;
 #[cfg(test)]
 mod clip_library_tests;
+#[cfg(test)]
+mod live_clip_tests;
 mod media;
 mod preview_scene;
 pub use preview_scene::ScenePreview;
@@ -89,6 +91,30 @@ fn mouths_at(manifest: &SceneManifest, sample: u64) -> Vec<(&str, Viseme)> {
         .collect()
 }
 
+// Conservative live-layer work per frame. Count all instances regardless of their
+// current window/weight so seeks and later frames cannot bypass preflight. Every
+// actor scans the instance list; each layer also visits seven joints, searches
+// referenced tracks and blends their sampled local transforms.
+pub(crate) fn live_clip_frame_work(script: &Script, scene_index: usize) -> u64 {
+    let Some(scene) = script.scenes.get(scene_index) else {
+        return u64::MAX;
+    };
+    let instances = &scene.composition.clip_instances;
+    let scans = (instances.len() as u64).saturating_mul(script.characters.len() as u64);
+    instances.iter().fold(scans, |work, instance| {
+        let tracks = script
+            .animation_clips
+            .get(&instance.clip)
+            .map_or(u64::MAX, |clip| {
+                clip.bone_tracks.values().fold(7u64, |cost, keys| {
+                    let search = u64::from(usize::BITS - keys.len().max(1).leading_zeros());
+                    cost.saturating_add(search.saturating_add(4))
+                })
+            });
+        work.saturating_add(tracks)
+    })
+}
+
 fn validate(script: &Script, index: usize, rendered: &RenderedScene) -> Result<u64, Error> {
     validate_mode(script, index, rendered, true)
 }
@@ -141,9 +167,11 @@ fn validate_mode(
             .flat_map(|bones| bones.values())
             .map(Vec::len)
             .sum::<usize>();
-    if count.saturating_mul(keys as u64) > 1_000_000 {
+    if count.saturating_mul((keys as u64).saturating_add(live_clip_frame_work(script, index)))
+        > 1_000_000
+    {
         return Err(invalid(
-            "keyframe evaluation exceeds one million key visits",
+            "keyframe/live-clip evaluation exceeds one million work units",
         ));
     }
     let expected_samples = (scene.duration * SAMPLE_RATE as f64).round() as u64;
@@ -353,6 +381,66 @@ fn frame_jobs(script: &Script, png: bool) -> motion_jobs::Config {
     }
 }
 
+// A single validated animation snapshot is shared by the bounded frame workers.
+// Callers perform source/work-budget preflight before cloning the immutable script.
+struct PreparedFrames<'a> {
+    script: &'a Script,
+    validated: motion_scene::ValidatedScript,
+}
+impl<'a> PreparedFrames<'a> {
+    fn new(script: &'a Script) -> Result<Self, Error> {
+        let validated = motion_scene::ValidatedScript::new(std::sync::Arc::new(script.clone()))
+            .map_err(|e| invalid(e.to_string()))?;
+        Ok(Self { script, validated })
+    }
+    fn encode_frame(
+        &self,
+        scene_index: usize,
+        rendered: &RenderedScene,
+        i: u64,
+        png: bool,
+        cancel: &CancellationToken,
+        art: Option<&ArtContext>,
+    ) -> Result<(u64, f64, Vec<u8>), Error> {
+        let script = self.script;
+        check(cancel)?;
+        let sample = i
+            .checked_mul(SAMPLE_RATE as u64)
+            .ok_or_else(|| invalid("frame clock overflow"))?
+            / script.project.fps as u64;
+        let time = sample as f64 / SAMPLE_RATE as f64;
+        let mut pose = self
+            .validated
+            .evaluate(scene_index, time)
+            .map_err(|e| invalid(e.to_string()))?;
+        let mouths = mouths_at(&rendered.manifest, sample);
+        motion_scene::apply_speech(&mut pose, &mouths);
+        let svg = match art {
+            Some(art) => motion_render::render_svg_with_art(
+                &pose,
+                pose.width,
+                pose.height,
+                &mouths,
+                &script.scenes[scene_index].id,
+                &art.document,
+                &art.images,
+            ),
+            None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
+        }
+        .map_err(|e| invalid(e.to_string()))?;
+        check(cancel)?;
+        let encoded = if png {
+            media::rasterize(&svg)?
+        } else {
+            svg.into_bytes()
+        };
+        check(cancel)?;
+        Ok((sample, time, encoded))
+    }
+}
+
+// Preserve the compact fixture helper used across export test modules.
+#[cfg(test)]
 fn encode_frame(
     script: &Script,
     scene_index: usize,
@@ -363,36 +451,8 @@ fn encode_frame(
     art: Option<&ArtContext>,
 ) -> Result<(u64, f64, Vec<u8>), Error> {
     check(cancel)?;
-    let sample = i
-        .checked_mul(SAMPLE_RATE as u64)
-        .ok_or_else(|| invalid("frame clock overflow"))?
-        / script.project.fps as u64;
-    let time = sample as f64 / SAMPLE_RATE as f64;
-    let mut pose =
-        motion_scene::evaluate(script, scene_index, time).map_err(|e| invalid(e.to_string()))?;
-    let mouths = mouths_at(&rendered.manifest, sample);
-    motion_scene::apply_speech(&mut pose, &mouths);
-    let svg = match art {
-        Some(art) => motion_render::render_svg_with_art(
-            &pose,
-            pose.width,
-            pose.height,
-            &mouths,
-            &script.scenes[scene_index].id,
-            &art.document,
-            &art.images,
-        ),
-        None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
-    }
-    .map_err(|e| invalid(e.to_string()))?;
-    check(cancel)?;
-    let encoded = if png {
-        media::rasterize(&svg)?
-    } else {
-        svg.into_bytes()
-    };
-    check(cancel)?;
-    Ok((sample, time, encoded))
+    bounded_json(script, MAX_SOURCE)?;
+    PreparedFrames::new(script)?.encode_frame(scene_index, rendered, i, png, cancel, art)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -408,6 +468,7 @@ fn export_sequence(
 ) -> Result<Report, Error> {
     check(cancel)?;
     let total = validate(script, scene_index, rendered)?;
+    let prepared = PreparedFrames::new(script)?;
     if let Some(art) = art {
         art.document
             .validate()
@@ -472,8 +533,10 @@ fn export_sequence(
                 "artwork exceeds 32 MiB encoded / 16 million decoded pixel budget",
             ));
         }
-        let pose =
-            motion_scene::evaluate(script, scene_index, 0.0).map_err(|e| invalid(e.to_string()))?;
+        let pose = prepared
+            .validated
+            .evaluate(scene_index, 0.0)
+            .map_err(|e| invalid(e.to_string()))?;
         motion_render::render_svg_with_art(
             &pose,
             pose.width,
@@ -520,7 +583,7 @@ fn export_sequence(
             total as usize,
             config,
             || cancel.is_cancelled(),
-            |i| encode_frame(script, scene_index, rendered, i as u64, png, cancel, art),
+            |i| prepared.encode_frame(scene_index, rendered, i as u64, png, cancel, art),
             |i, (sample, time, encoded)| {
                 check(cancel)?;
                 let i = i as u64;
@@ -1007,6 +1070,59 @@ mod tests {
             assert!(!dest.exists());
         }
     }
+    #[test]
+    fn inactive_live_layers_cannot_bypass_export_work_preflight() {
+        let (mut script, mut rendered) = fixture();
+        script.project.fps = 120;
+        script.scenes[0].duration = 10.0;
+        rendered.audio.samples.resize(240_000, 0.0);
+        rendered.manifest.total_frames = 240_000;
+        let clip = motion_script::AnimationClip {
+            duration: 1.0,
+            bone_tracks: [
+                "hip",
+                "chest",
+                "head",
+                "left_hand",
+                "right_hand",
+                "left_foot",
+                "right_foot",
+            ]
+            .iter()
+            .map(|bone| (bone.to_string(), vec![motion_script::ActorKey::default()]))
+            .collect(),
+        };
+        script.animation_clips.insert("rest".into(), clip);
+        script.scenes[0].composition.clip_instances = (0..32)
+            .map(|i| motion_script::ClipInstance {
+                id: format!("layer{i}"),
+                clip: "rest".into(),
+                actor: "EMMA".into(),
+                at: 9.0,
+                duration: 1.0,
+                weight: 0.0,
+            })
+            .collect();
+        script.validate().unwrap();
+        assert!(bounded_json(&script, MAX_SOURCE).is_ok());
+        let dest = destination();
+        let result = export_scene(
+            &script,
+            0,
+            &rendered,
+            &dest,
+            &CancellationToken::new(),
+            |_| {},
+        );
+        assert!(
+            matches!(result, Err(Error::Invalid(message)) if message.contains("keyframe/live-clip"))
+        );
+        assert!(!dest.exists());
+        // The same otherwise-valid scene remains within budget without live layers.
+        script.scenes[0].composition.clip_instances.clear();
+        assert_eq!(validate(&script, 0, &rendered).unwrap(), 1200);
+    }
+
     #[test]
     fn overlap_rejected_for_same_actor_but_other_actor_allowed() {
         let (s, mut r) = fixture();

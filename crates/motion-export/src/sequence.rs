@@ -111,6 +111,7 @@ fn compose_svg(
     timeline: &SequenceTimeline,
     sample: u64,
     cancel: &CancellationToken,
+    validated: Option<&motion_scene::ValidatedScript>,
 ) -> Result<(Vec<u8>, Vec<Contribution>), Error> {
     let contributions = timeline
         .sample(sample)
@@ -125,7 +126,14 @@ fn compose_svg(
     let mut entries = Vec::with_capacity(2);
     for (slot, c) in contributions.into_iter().enumerate() {
         check(cancel)?;
-        let svg = scene_svg(script, rendered, art, c.scene_index, c.local_sample, None)?;
+        let svg = scene_svg(
+            script,
+            rendered,
+            art,
+            c.scene_index,
+            c.local_sample,
+            validated,
+        )?;
         if svg.len() > MAX_SVG_FRAME_BYTES {
             return Err(invalid("sequence SVG scene byte budget exceeded"));
         }
@@ -535,10 +543,12 @@ fn export_project_sequence(
 ) -> Result<Report, Error> {
     check(cancel)?;
     let (timeline, total) = preflight(script, rendered, art, true)?;
+    let validated = motion_scene::ValidatedScript::new(Arc::new(script.clone()))
+        .map_err(|e| invalid(e.to_string()))?;
     let total_samples = timeline.total_samples();
     for index in 0..rendered.len() {
         check(cancel)?;
-        image(script, rendered, art, index, 0, None, None)?;
+        image(script, rendered, art, index, 0, None, Some(&validated))?;
     }
     let audio = motion_voice::sequence::mix_sequence(&timeline, rendered, cancel).map_err(|e| {
         if cancel.is_cancelled() {
@@ -573,10 +583,26 @@ fn export_project_sequence(
                 .ok_or_else(|| invalid("frame clock overflow"))?
                 / u64::from(script.project.fps);
             let (bytes, entries) = if svg {
-                compose_svg(script, rendered, art, &timeline, sample, cancel)?
+                compose_svg(
+                    script,
+                    rendered,
+                    art,
+                    &timeline,
+                    sample,
+                    cancel,
+                    Some(&validated),
+                )?
             } else {
-                let (out, entries) =
-                    compose(script, rendered, art, &timeline, sample, None, cancel, None)?;
+                let (out, entries) = compose(
+                    script,
+                    rendered,
+                    art,
+                    &timeline,
+                    sample,
+                    None,
+                    cancel,
+                    Some(&validated),
+                )?;
                 (
                     out.encode_png().map_err(|e| invalid(e.to_string()))?,
                     entries,
@@ -904,7 +930,8 @@ mod tests {
         let timeline = SequenceTimeline::compile(&script).unwrap();
         let cancel = CancellationToken::new();
         for sample in [0, 6000, 12000, 18000, 23999] {
-            let (svg, _) = compose_svg(&script, &scenes, None, &timeline, sample, &cancel).unwrap();
+            let (svg, _) =
+                compose_svg(&script, &scenes, None, &timeline, sample, &cancel, None).unwrap();
             let svg = String::from_utf8(svg).unwrap();
             let raster =
                 resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())

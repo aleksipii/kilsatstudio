@@ -19,6 +19,8 @@ not complete their redistribution review; see the
 
 ## Current capabilities
 
+- Reference authored clips as ordered live bone layers with activation windows and constant weights; see [live clip blending](docs/live-clip-blending.md).
+
 - Capture, inspect and reuse project-local authored bone clips with explicit replacement and Undo/Redo; see the [clip library guide](docs/animation-clip-library.md).
 
 - Edit, open and save MotionScript; validate actor references, parameters and timing.
