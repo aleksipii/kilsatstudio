@@ -256,6 +256,11 @@ fn preflight(
             if layer.active.is_some_and(|r| r.end > scene.duration) {
                 return Err(invalid("artwork visibility exceeds scene"));
             }
+            if let Some(shape) = &layer.clip_shape {
+                shape
+                    .validate_scene_duration(scene.duration)
+                    .map_err(|error| invalid(error.to_string()))?;
+            }
             geometry = geometry
                 .checked_add(match &layer.content {
                     motion_art::Content::Stroke { points, .. } => points.len() as u64,
@@ -265,6 +270,11 @@ fn preflight(
             if let Some(motion_art::ClipShape::Polygon { points }) = &layer.clip_shape {
                 geometry = geometry
                     .checked_add(points.len() as u64)
+                    .ok_or_else(|| invalid("mask geometry overflow"))?;
+            }
+            if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {
+                geometry = geometry
+                    .checked_add(u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8)
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
             }
             if layer.visible {

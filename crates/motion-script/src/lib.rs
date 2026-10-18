@@ -100,6 +100,12 @@ pub struct ClipInstance {
     pub fade_out: f64,
     #[serde(default)]
     pub weight_keys: Vec<InstanceWeightKey>,
+    /// Repeat at the library clip's original speed; otherwise stretch once.
+    #[serde(default)]
+    pub looping: bool,
+    /// Empty selects all authored joints; names do not include descendants.
+    #[serde(default)]
+    pub joint_mask: Vec<String>,
 }
 /// Instance-local scalar multiplier; outgoing easing controls the next interval.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -986,9 +992,14 @@ fn edit_source(
     }
     let mut candidate = parse(source)?;
     edit(&mut candidate)?;
-    candidate.validate()?;
-    let output = serde_yaml::to_string(&candidate)?;
-    if output.len() > LIMIT {
+    to_source(&candidate)
+}
+
+/// Validate and encode an edited document as bounded, readable MotionScript YAML.
+pub fn to_source(script: &Script) -> Result<String, Error> {
+    script.validate()?;
+    let output = serde_yaml::to_string(script)?;
+    if output.len() > 1_048_576 {
         return Err(Error::Validation(
             "updated screenplay exceeds one MiB".into(),
         ));
@@ -1105,6 +1116,17 @@ impl Script {
                     return Err(fail(format!(
                         "{}: instance {} references unknown clip {} or actor {}",
                         s.id, instance.id, instance.clip, instance.actor
+                    )));
+                }
+                let mut selected = std::collections::BTreeSet::new();
+                if instance.joint_mask.len() > HUMANOID_BONES.len()
+                    || instance.joint_mask.iter().any(|joint| {
+                        !HUMANOID_BONES.contains(&joint.as_str()) || !selected.insert(joint)
+                    })
+                {
+                    return Err(fail(format!(
+                        "{}: instance {} joint mask requires at most seven unique humanoid joints",
+                        s.id, instance.id
                     )));
                 }
                 let count = actor_instances.entry(&instance.actor).or_insert(0usize);
@@ -2806,6 +2828,8 @@ mod live_clip_instance_tests {
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
+            looping: false,
+            joint_mask: Vec::new(),
         }
     }
 
@@ -2815,6 +2839,41 @@ mod live_clip_instance_tests {
             weight,
             easing,
         }
+    }
+
+    #[test]
+    fn looping_masks_default_roundtrip_and_reject_invalid_selections() {
+        let source = source();
+        let mut layer = instance("masked");
+        let original = upsert_clip_instance(&source, 1, layer.clone()).unwrap();
+        let without_fields = original
+            .lines()
+            .filter(|line| {
+                !line.trim_start().starts_with("looping:")
+                    && !line.trim_start().starts_with("joint_mask:")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert_eq!(
+            parse(&without_fields).unwrap().scenes[1]
+                .composition
+                .clip_instances[0],
+            layer
+        );
+        layer.looping = true;
+        layer.joint_mask = vec!["head".into(), "right_hand".into()];
+        let updated = upsert_clip_instance(&source, 1, layer.clone()).unwrap();
+        assert_eq!(
+            parse(&updated).unwrap().scenes[1]
+                .composition
+                .clip_instances[0],
+            layer
+        );
+        for mask in [vec!["head", "head"], vec!["unknown"], vec!["head"; 8]] {
+            layer.joint_mask = mask.into_iter().map(str::to_owned).collect();
+            assert!(upsert_clip_instance(&updated, 1, layer.clone()).is_err());
+        }
+        assert!(parse(&updated.replace("looping: true", "looping: forever")).is_err());
     }
 
     #[test]

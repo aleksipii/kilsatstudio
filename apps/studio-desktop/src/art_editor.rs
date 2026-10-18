@@ -1,7 +1,7 @@
 //! Artwork edits expose one transaction to the shared project history.
 use eframe::egui;
 use motion_art::{
-    BlendMode, ClipShape, Color, Content, Document, Layer, Plane, Point, Rect, TimeRange,
+    BlendMode, ClipShape, Color, Content, Document, Layer, MaskKey, Plane, Point, Rect, TimeRange,
 };
 use std::collections::BTreeMap;
 pub struct SceneContext<'a> {
@@ -54,7 +54,54 @@ fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
     .map_err(|e| e.to_string())?;
     Ok(points)
 }
-fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
+fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
+    if text.len() > 24_576 {
+        return Err("Mask keys exceed 24 KiB".into());
+    }
+    let mut keys = Vec::new();
+    for row in text.split_whitespace() {
+        if keys.len() >= motion_art::MAX_MASK_KEYS {
+            return Err("Use at most 128 mask keys".into());
+        }
+        let values: Vec<f64> = row
+            .split(',')
+            .map(|value| value.parse().map_err(|_| "Invalid mask key number"))
+            .collect::<Result<_, _>>()?;
+        if values.len() != 6 {
+            return Err("Use time,x,y,width,height,feather for each key".into());
+        }
+        keys.push(MaskKey {
+            time: values[0],
+            rect: Rect {
+                x: values[1],
+                y: values[2],
+                width: values[3],
+                height: values[4],
+            },
+            feather: values[5],
+        });
+    }
+    ClipShape::SoftEllipse {
+        rect: Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 1.0,
+            height: 1.0,
+        },
+        feather: 0.0,
+        keys: keys.clone(),
+    }
+    .validate()
+    .map_err(|error| error.to_string())?;
+    if !duration.is_finite()
+        || duration <= 0.0
+        || keys.last().is_some_and(|key| key.time > duration)
+    {
+        return Err("Mask keys must fit within the scene duration".into());
+    }
+    Ok(keys)
+}
+fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
     egui::ComboBox::from_label("Blend")
         .selected_text(format!("{:?}", layer.blend))
         .show_ui(ui, |ui| {
@@ -65,6 +112,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
     let mut kind = match &layer.clip_shape {
         Some(ClipShape::Ellipse { .. }) => 2,
         Some(ClipShape::Polygon { .. }) => 3,
+        Some(ClipShape::SoftEllipse { .. }) => 4,
         None => {
             if layer.clip.is_some() {
                 1
@@ -75,11 +123,25 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
     };
     let previous = kind;
     egui::ComboBox::from_label("Clip mask")
-        .selected_text(["None", "Rectangle", "Ellipse", "Polygon"][kind])
+        .selected_text(
+            [
+                "None",
+                "Rectangle",
+                "Ellipse",
+                "Polygon",
+                "Soft / animated ellipse",
+            ][kind],
+        )
         .show_ui(ui, |ui| {
-            for (value, label) in ["None", "Rectangle", "Ellipse", "Polygon"]
-                .into_iter()
-                .enumerate()
+            for (value, label) in [
+                "None",
+                "Rectangle",
+                "Ellipse",
+                "Polygon",
+                "Soft / animated ellipse",
+            ]
+            .into_iter()
+            .enumerate()
             {
                 ui.selectable_value(&mut kind, value, label);
             }
@@ -88,7 +150,9 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
         let rect = layer
             .clip
             .or(match &layer.clip_shape {
-                Some(ClipShape::Ellipse { rect }) => Some(*rect),
+                Some(ClipShape::Ellipse { rect } | ClipShape::SoftEllipse { rect, .. }) => {
+                    Some(*rect)
+                }
                 _ => None,
             })
             .unwrap_or(Rect {
@@ -102,6 +166,13 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
         match kind {
             1 => layer.clip = Some(rect),
             2 => layer.clip_shape = Some(ClipShape::Ellipse { rect }),
+            4 => {
+                layer.clip_shape = Some(ClipShape::SoftEllipse {
+                    rect,
+                    feather: 0.25,
+                    keys: Vec::new(),
+                })
+            }
             3 => {
                 layer.clip_shape = Some(ClipShape::Polygon {
                     points: vec![
@@ -128,7 +199,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
         }
     }
     let rect = match &mut layer.clip_shape {
-        Some(ClipShape::Ellipse { rect }) => Some(rect),
+        Some(ClipShape::Ellipse { rect } | ClipShape::SoftEllipse { rect, .. }) => Some(rect),
         _ => layer.clip.as_mut(),
     };
     if let Some(rect) = rect {
@@ -173,6 +244,44 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer) {
             }
         }
         ui.data_mut(|d| d.insert_temp(id, draft));
+    }
+    if let Some(ClipShape::SoftEllipse { feather, keys, .. }) = &mut layer.clip_shape {
+        ui.add(egui::Slider::new(feather, 0.0..=1.0).text("Feather (inward)"));
+        ui.weak("0 = hard edge, 1 = fade from center. The base shape is used when no keys exist.");
+        ui.label("Animation keys: time,x,y,width,height,feather (scene seconds). Linear interpolation; first/last key holds.");
+        let id = ui.id().with(("soft-mask-keys", &layer.id));
+        let error_id = id.with("error");
+        let initial = keys
+            .iter()
+            .map(|key| {
+                format!(
+                    "{},{},{},{},{},{}",
+                    key.time, key.rect.x, key.rect.y, key.rect.width, key.rect.height, key.feather
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut draft = ui
+            .data_mut(|data| data.get_temp::<String>(id))
+            .unwrap_or(initial);
+        ui.add(
+            egui::TextEdit::multiline(&mut draft)
+                .desired_rows(4)
+                .char_limit(24_576),
+        );
+        if ui.button("Apply mask animation keys").clicked() {
+            match parse_mask_keys(&draft, duration) {
+                Ok(next) => {
+                    *keys = next;
+                    ui.data_mut(|data| data.remove::<String>(error_id));
+                }
+                Err(error) => ui.data_mut(|data| data.insert_temp(error_id, error)),
+            }
+        }
+        if let Some(error) = ui.data_mut(|data| data.get_temp::<String>(error_id)) {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
+        ui.data_mut(|data| data.insert_temp(id, draft));
     }
     if layer.clip_shape.is_some() || layer.blend != BlendMode::Normal {
         ui.weak("Inspect this mask/blend in the shared scene preview, Whole project preview or PNG/MP4 export.");
@@ -242,7 +351,7 @@ impl Editor {
     ui.add(egui::Slider::new(&mut layer.opacity,0.0..=1.0).text("Opacity"));
     if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("W",&mut rect.width),("H",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
     egui::ComboBox::from_label("Follow actor translation").selected_text(layer.attachment.as_deref().unwrap_or("World")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"World");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
-    compositing_controls(ui, layer);
+    compositing_controls(ui, layer, scene.duration);
     ui.horizontal(|ui| {if ui.button("Lower").clicked() && index>0 {next.layers.swap(index,index-1);}
    if ui.button("Raise").clicked() && index+1<next.layers.len(){next.layers.swap(index,index+1);}
    if ui.button("Delete layer").clicked(){next.layers.remove(index);self.selected=None;}});
@@ -489,6 +598,70 @@ pub fn paint(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn soft_mask_key_drafts_validate_before_changing_document_history() {
+        let keys = parse_mask_keys("0,0,0,20,20,0\n2,10,5,40,30,1", 2.0).unwrap();
+        assert_eq!(keys.len(), 2);
+        assert_eq!(keys[1].feather, 1.0);
+        for invalid in [
+            "0,0,0,20,20,NaN",
+            "0,0,0,20,20,1.1",
+            "3,0,0,20,20,0",
+            "1,0,0,20,20,0 1,0,0,20,20,1",
+            "0,0,0,0,20,0",
+            "0,0,0,20,20",
+        ] {
+            assert!(parse_mask_keys(invalid, 2.0).is_err(), "{invalid}");
+        }
+        assert!(parse_mask_keys("", 2.0).unwrap().is_empty());
+        let mut document = Document::default();
+        let mut editor = Editor::default();
+        let candidate = Document {
+            layers: vec![Layer {
+                id: "soft".into(),
+                scene_id: "s".into(),
+                name: "Soft mask".into(),
+                visible: true,
+                plane: Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                blend: BlendMode::Normal,
+                clip_shape: Some(ClipShape::SoftEllipse {
+                    rect: keys[0].rect,
+                    feather: 0.0,
+                    keys,
+                }),
+                content: Content::Rectangle {
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 100.0,
+                        height: 100.0,
+                    },
+                    color: Color {
+                        r: 255,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
+                },
+            }],
+        };
+        editor.commit(&mut document, candidate.clone());
+        assert_eq!(document, candidate);
+        assert_eq!(editor.take_transaction_before(), Some(Document::default()));
+        let mut invalid = candidate.clone();
+        let Some(ClipShape::SoftEllipse { keys, .. }) = &mut invalid.layers[0].clip_shape else {
+            panic!("soft mask")
+        };
+        keys[1].time = 0.0;
+        editor.commit(&mut document, invalid);
+        assert_eq!(document, candidate);
+        assert!(editor.take_transaction_before().is_none());
+        assert!(editor.error.is_some());
+    }
     #[test]
     fn thumbnail_preserves_landscape_and_portrait_aspect() {
         assert_eq!(

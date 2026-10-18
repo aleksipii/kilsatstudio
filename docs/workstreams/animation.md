@@ -17,7 +17,8 @@ Implemented in `motion-animation`:
 
 This original library foundation is now integrated with persisted original-rig
 per-bone editing and shared preview/export. The current status and next bounded
-work package are recorded below. Custom/textured rigs and joint masks remain open.
+work packages are recorded below. Custom/textured rigs remain open; the latest
+source extension adds original-rig joint selection and looping.
 No Mac/device acceptance is implied by these unit tests.
 
 Run the two-joint sampling/blending example with:
@@ -208,3 +209,42 @@ Exact source/run/artifact evidence is in [master progress](../master-progress.md
 Hardware/perceptual acceptance stays open. Earlier deferred weight/fade entries
 above describe the historical first-package boundary; PR #41 completes that
 bounded extension. Loops, joint masks, custom rigs and general mixing remain open.
+
+
+## Live looping and joint selection (source implemented; CI/integration pending)
+
+The next bounded extension adds strict, defaulted `ClipInstance.looping: bool`
+and `joint_mask: Vec<String>`. False/empty preserve existing projects exactly.
+Looping uses original clip seconds modulo library duration inside the unchanged
+half-open instance window. A cycle boundary returns to clip time zero. Fades and
+animated weights continue on instance-local time across cycles. No automatic
+endpoint smoothing or key retiming is added.
+
+An empty mask selects every authored clip joint. A nonempty mask contains at most
+seven unique original-rig joint names and affects only selected authored offsets,
+without descendant expansion. Missing/unselected joints preserve accumulated
+values. Overlapping clips retain source-order override blending; this is neither
+normalized mixing nor a general arbitrary-rig pose mask. Mask validation applies
+to inactive and zero-weight instances as well.
+
+Native detached controls expose looping and joint selection through the existing
+explicit Apply/history path. Selecting individual joints starts with all seven;
+the UI retains at least one selection, and disabling it restores all clip joints.
+Reset timing, weight, fades and weight keys deliberately preserves looping mode
+and joint selection. Script/project persistence carries both fields. The user
+contract and YAML are in [live layer controls](../live-clip-blending.md).
+
+Six new regressions cover strict/default schema and atomic persistence, original
+speed versus stretch mapping, two cycle resets, half-open endpoints, repeated and
+backward seeks, masked source-order blending and fades that continue across loop
+boundaries. Actual SVG/PNG and sample-clock preview fixtures compare independently
+authored hand offsets, preserve an excluded head track, distinguish masked/all
+joint output and verify project round trips and default compatibility. These are
+source tests awaiting final CI; no physical motion or performance acceptance is
+claimed. Export work preflight counts modulo and bounded joint-selection checks.
+
+Historical deferred entries in PR #40/#41 above retain their original package
+boundaries. This extension addresses looping and original-rig joint masks only.
+Custom rig definitions, textured parts, deformation, additive/normalized mixing,
+clip events, cross-project exchange and physical Mac motion acceptance remain
+open. Final checked evidence belongs in [master progress](../master-progress.md).

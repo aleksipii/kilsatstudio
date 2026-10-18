@@ -2,6 +2,10 @@
 //! Uses original procedural characters; no fonts, network assets, or video encoder.
 #[cfg(feature = "gpu")]
 pub mod gpu;
+#[cfg(feature = "gpu")]
+pub mod gpu_scene;
+#[cfg(feature = "gpu")]
+pub mod scene_commands;
 
 use motion_lipsync::Viseme;
 use motion_scene::{
@@ -48,13 +52,7 @@ type Artwork<'a> = (
     &'a std::collections::BTreeMap<String, motion_art::ImageResource>,
 );
 
-fn render_scene(
-    scene: &EvaluatedScene,
-    width: u32,
-    height: u32,
-    mouths: &[(&str, Viseme)],
-    artwork: Option<Artwork<'_>>,
-) -> Result<String, Error> {
+pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) -> Result<(), Error> {
     if [scene.width, scene.height, width, height]
         .iter()
         .any(|&v| v == 0 || v > MAX_DIMENSION)
@@ -111,6 +109,17 @@ fn render_scene(
             return Err(Error::InvalidActor(index));
         }
     }
+    Ok(())
+}
+
+fn render_scene(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    artwork: Option<Artwork<'_>>,
+) -> Result<String, Error> {
+    validate_scene(scene, width, height)?;
     let scale = (width as f64 / scene.width as f64).min(height as f64 / scene.height as f64);
     let ox = (width as f64 - scene.width as f64 * scale) * 0.5;
     let oy = (height as f64 - scene.height as f64 * scale) * 0.5;
@@ -274,7 +283,19 @@ fn append_art(
         if let Some(r) = layer.clip {
             write!(svg,"<defs><clipPath id=\"art{index}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">",r.x,r.y,r.width,r.height).unwrap();
         }
-        if let Some(shape) = &layer.clip_shape {
+        if let Some(motion_art::ClipShape::SoftEllipse { .. }) = &layer.clip_shape {
+            let (r, feather) = layer
+                .clip_shape
+                .as_ref()
+                .unwrap()
+                .sample_ellipse(scene.time)
+                .unwrap();
+            if feather == 0.0 {
+                write!(svg, "<defs><clipPath id=\"art{index}\"><ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">", r.x + r.width / 2.0, r.y + r.height / 2.0, r.width / 2.0, r.height / 2.0).unwrap();
+            } else {
+                write!(svg, "<defs><radialGradient id=\"art{index}fade\"><stop offset=\"{}\" stop-color=\"white\"/><stop offset=\"1\" stop-color=\"white\" stop-opacity=\"0\"/></radialGradient><mask id=\"art{index}\" maskUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"url(#art{index}fade)\"/></mask></defs><g mask=\"url(#art{index})\">", 1.0 - feather, r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
+            }
+        } else if let Some(shape) = &layer.clip_shape {
             write!(svg, "<defs><clipPath id=\"art{index}\">").unwrap();
             match shape {
                 motion_art::ClipShape::Ellipse { rect: r } => {
@@ -287,6 +308,9 @@ fn append_art(
                         r.height / 2.0
                     )
                     .unwrap();
+                }
+                motion_art::ClipShape::SoftEllipse { .. } => {
+                    return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into()))
                 }
                 motion_art::ClipShape::Polygon { points } => {
                     svg.push_str("<polygon points=\"");

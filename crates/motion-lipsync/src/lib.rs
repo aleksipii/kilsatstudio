@@ -1,5 +1,6 @@
 //! Explicit alignment provenance: synthesis tokens are not phoneme timestamps.
 pub mod cache;
+pub mod engine_reuse;
 pub mod estimated_cache;
 mod import;
 pub mod rhubarb;

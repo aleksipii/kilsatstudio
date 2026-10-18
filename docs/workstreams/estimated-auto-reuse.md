@@ -1,11 +1,55 @@
 # Automatic estimated-result reuse workstream
 
-Status: implementation plan based on repository inspection, 2026-10-18.
-Automatic engine memoization is **not implemented or accepted**. This document
+Status: input-index foundation implemented in source; CI acceptance pending,
+2026-10-18. Production automatic engine memoization is **not enabled or accepted**. This document
 does not establish the contents, behavior or licenses of a real Rhubarb package.
 No recognizer, model download or hardware test was run for this inspection.
 
 ## Current implementation
+
+`motion-lipsync/src/engine_reuse.rs` now supplies a separate input-index storage
+API. Schema-v1 request identity covers exact decoded PCM (including sample rate,
+channels and frame count), exact transcript bytes, recognizer, the fixed
+JSON/GHX/two-thread/converter contract, and OS/architecture. PCM hashing checks
+cancellation between 1,024-sample chunks. This identity is not environment
+verification: a public request hash cannot authorize automatic reuse.
+
+`VerifiedEnvironment` has private fields and no production constructor. Only
+module-local test fixtures construct synthetic tokens. No supported real package
+profile, resource discovery, dependency closure, controlled execution snapshot or
+runtime-policy verification has been implemented. Production Estimate therefore
+continues to execute explicitly and displays the reason automatic reuse is
+unavailable. Worker and panel distinguish `Fresh` from `ExplicitArchiveLoad`;
+they do not advertise synthetic index tests as production hits.
+
+The storage API uses `estimated-alignments/engine-index-v1` when given the existing
+archive root. Domain-separated request/environment keys select strict schema-v1
+index records limited to 16 KiB. Lookup rechecks exact request inputs, schema,
+identity, original executable/version provenance and the validated immutable
+archive payload. Only a missing index is a miss; malformed records, oversized or
+nonregular files, dangling archive keys and conflicting results are errors.
+Publication writes the archive first, then uses an exclusively created owned
+staging file and a no-replace hard link for the index. Identical concurrent
+publication is idempotent; conflicting archives remain preserved and never
+silently replace the index winner.
+
+Cancellation is cooperative and checked around index I/O, hashing and publication.
+A cancellation before the hard-link commit point removes owned staging while a
+complete archive entry may remain. Cancellation after that commit point may leave
+a complete index; it still prevents successful candidate delivery. This does not
+promise rollback of committed immutable files or hard deadlines for disk stalls.
+The existing archive's bounded 4 MiB reads/writes do not yet check cancellation
+between chunks. Filesystem checks are not a complete symlink-swap or package
+execution TOCTOU defense; no production verification or automatic hit is enabled
+on their strength.
+
+Six new synthetic index tests cover exact input/environment invalidation,
+corruption and dangling archive errors, immutable conflicting outputs, concurrent
+publication, cancellation during fingerprinting/before I/O and cancellation after
+archive/staging creation. They establish storage control flow only; execution and
+quality evidence for a real offline package remain separate. These tests are
+written but CI acceptance is pending for this source change.
+
 
 `motion-lipsync/src/estimated_cache.rs` stores immutable complete
 `EstimatedVisemeAlignment` documents. Its result key includes cues, executable
@@ -149,13 +193,14 @@ storage rather than claiming hard real-time cancellation.
 
 ## Actual blocker and delivery boundary
 
-Input identity, bounded index storage and worker status can be implemented with
-synthetic fixtures now. Enabling automatic hits for arbitrary configured Rhubarb
+Input identity, bounded index storage and explicit worker origin/bypass status are
+implemented in source with synthetic fixtures; CI acceptance is pending. Enabling automatic hits for arbitrary configured Rhubarb
 executables cannot be justified from this repository: there is no inspected,
 pinned execution-resource/dependency closure or controlled process environment.
-The next deliverable should therefore ship the index/control-flow tests with
-production eligibility fail-closed, then enable one real package profile only
-after its resource-loading and license evidence is reviewed. A synthetic profile
+The next deliverable must connect lookup/miss execution/publication using one
+real verified package profile, only after its resource-loading, controlled
+execution and license evidence is reviewed. Until then production eligibility
+remains fail-closed. A synthetic profile
 must remain test-only and must not complete the master-progress automatic reuse
 checkbox.
 

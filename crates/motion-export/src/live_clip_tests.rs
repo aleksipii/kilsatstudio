@@ -397,3 +397,90 @@ fn animated_overlaps_keep_source_order_and_default_envelopes_keep_existing_frame
         );
     }
 }
+
+#[test]
+fn looping_masked_instances_match_authored_frames_across_cycles_and_project_roundtrip() {
+    let mut script = motion_script::parse(SOURCE).unwrap();
+    script.scenes[0].duration = 5.0;
+    // A leaf joint's rotation does not move its plotted skeleton point. Use
+    // translation so the excluded head track also changes actual pixels.
+    let clip = script.animation_clips.get_mut("reach").unwrap();
+    clip.bone_tracks.get_mut("head").unwrap()[0].x = 24.0;
+    let layer = &mut script.scenes[0].composition.clip_instances[0];
+    layer.duration = 4.5;
+    layer.looping = true;
+    layer.joint_mask = vec!["right_hand".into()];
+    let document =
+        motion_project::ProjectDocument::new(serde_json::to_string(&script).unwrap()).unwrap();
+    let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+    let actual = motion_script::parse(&loaded.source).unwrap();
+    assert_eq!(
+        actual.scenes[0].composition.clip_instances,
+        script.scenes[0].composition.clip_instances
+    );
+    // Original clip duration two seconds, instance starts at .25. The mask
+    // deliberately excludes the clip's head translation. Samples cross two cycle
+    // resets, run backwards, repeat and include the half-open instance endpoint.
+    for (frame, x) in [
+        (38, None),
+        (2, Some(12.0)),
+        (10, Some(16.0)),
+        (18, Some(12.0)),
+        (26, Some(16.0)),
+        (34, Some(12.0)),
+        (14, Some(20.0)),
+        (6, Some(12.0)),
+        (10, Some(16.0)),
+    ] {
+        let mut expected = actual.clone();
+        expected.scenes[0].composition.clip_instances.clear();
+        if let Some(x) = x {
+            let hand = &mut expected.scenes[0]
+                .composition
+                .bone_tracks
+                .get_mut("EMMA")
+                .unwrap()
+                .get_mut("right_hand")
+                .unwrap()[0];
+            hand.x = x;
+            hand.y = 4.0;
+            hand.scale_x = 1.25;
+        }
+        assert_frames_and_preview(&actual, &expected, frame);
+    }
+    let mut all_joints = actual.clone();
+    all_joints.scenes[0].composition.clip_instances[0]
+        .joint_mask
+        .clear();
+    let rendered = rendered_for(&actual);
+    let cancel = CancellationToken::new();
+    for png in [false, true] {
+        assert_ne!(
+            encode_frame(&actual, 0, &rendered, 10, png, &cancel, None)
+                .unwrap()
+                .2,
+            encode_frame(&all_joints, 0, &rendered, 10, png, &cancel, None)
+                .unwrap()
+                .2
+        );
+    }
+}
+
+#[test]
+fn omitted_loop_and_mask_keep_existing_pixels_and_explicit_all_joint_selection_matches() {
+    let original = motion_script::parse(SOURCE).unwrap();
+    let explicit = motion_script::parse(&SOURCE.replace(
+        "weight: 0.5}",
+        "weight: 0.5, looping: false, joint_mask: []}",
+    ))
+    .unwrap();
+    let mut selected = explicit.clone();
+    selected.scenes[0].composition.clip_instances[0].joint_mask = motion_script::HUMANOID_BONES
+        .iter()
+        .map(|name| (*name).to_owned())
+        .collect();
+    for frame in [0, 2, 4, 5, 6] {
+        assert_frames_and_preview(&explicit, &original, frame);
+        assert_frames_and_preview(&selected, &original, frame);
+    }
+}

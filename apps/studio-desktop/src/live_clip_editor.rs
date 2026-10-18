@@ -114,6 +114,8 @@ impl State {
                     fade_in: 0.0,
                     fade_out: 0.0,
                     weight_keys: Vec::new(),
+                    looping: false,
+                    joint_mask: Vec::new(),
                 });
                 self.editing = false;
                 self.confirm_delete = false;
@@ -140,6 +142,42 @@ impl State {
             });
         if previous != draft.clip {
             self.confirm_delete = false;
+        }
+        if ui
+            .checkbox(&mut draft.looping, "Loop at original clip speed")
+            .changed()
+        {
+            self.confirm_delete = false;
+        }
+        ui.small("Looping repeats the library clip in seconds; fades and weight keys span the whole instance. Otherwise the clip stretches once to fit.");
+        let mut masked = !draft.joint_mask.is_empty();
+        if ui
+            .checkbox(&mut masked, "Select individual joints")
+            .changed()
+        {
+            draft.joint_mask = if masked {
+                motion_script::HUMANOID_BONES
+                    .iter()
+                    .map(|name| (*name).to_owned())
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            self.confirm_delete = false;
+        }
+        if masked {
+            for name in motion_script::HUMANOID_BONES {
+                let mut selected = draft.joint_mask.iter().any(|joint| joint == name);
+                if ui.checkbox(&mut selected, name).changed() {
+                    if selected {
+                        draft.joint_mask.push(name.to_owned());
+                    } else if draft.joint_mask.len() > 1 {
+                        draft.joint_mask.retain(|joint| joint != name);
+                    }
+                    self.confirm_delete = false;
+                }
+            }
+            ui.small("Choose at least one joint. Selection affects these offsets only, without descendant expansion. Disable selection to use all clip joints.");
         }
         for (label, value) in [
             ("Start (seconds)", &mut draft.at),
@@ -198,6 +236,7 @@ impl State {
             .add_enabled(
                 next_time.is_some()
                     && envelope_valid(draft)
+                    && mask_valid(draft)
                     && envelope_budget(script, scene_index, draft, self.editing, 1),
                 egui::Button::new("Add weight key"),
             )
@@ -291,6 +330,14 @@ fn reset_envelope(draft: &mut ClipInstance, script: &Script) {
     draft.weight_keys.clear();
 }
 
+fn mask_valid(draft: &ClipInstance) -> bool {
+    let mut selected = std::collections::BTreeSet::new();
+    draft.joint_mask.len() <= motion_script::HUMANOID_BONES.len()
+        && draft.joint_mask.iter().all(|joint| {
+            motion_script::HUMANOID_BONES.contains(&joint.as_str()) && selected.insert(joint)
+        })
+}
+
 fn envelope_valid(draft: &ClipInstance) -> bool {
     draft.duration.is_finite()
         && draft.duration > 0.0
@@ -380,6 +427,33 @@ mod tests {
     use super::*;
     const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 2}, {at: 2, x: 8}]}}}}]\n";
 
+    #[test]
+    fn looping_joint_selection_is_detached_persisted_and_validated() {
+        let source = captured();
+        let mut draft = instance("masked");
+        draft.looping = true;
+        draft.joint_mask = vec!["head".into()];
+        assert!(mask_valid(&draft));
+        assert!(motion_script::parse(&source).unwrap().scenes[0]
+            .composition
+            .clip_instances
+            .is_empty());
+        let saved = Action::Upsert {
+            instance: draft.clone(),
+        }
+        .apply(&source, 0)
+        .unwrap();
+        assert_eq!(
+            motion_script::parse(&saved).unwrap().scenes[0]
+                .composition
+                .clip_instances[0],
+            draft
+        );
+        draft.joint_mask.push("head".into());
+        assert!(!mask_valid(&draft));
+        assert!(Action::Upsert { instance: draft }.apply(&saved, 0).is_err());
+    }
+
     fn captured() -> String {
         motion_script::capture_animation_clip(SOURCE, 0, "A", "Nod", false).unwrap()
     }
@@ -395,6 +469,8 @@ mod tests {
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
+            looping: false,
+            joint_mask: Vec::new(),
         }
     }
 

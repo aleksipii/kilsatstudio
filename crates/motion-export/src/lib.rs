@@ -8,6 +8,8 @@ mod clip_library_tests;
 mod live_clip_tests;
 mod media;
 mod preview_scene;
+#[cfg(test)]
+mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
 mod sequence;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art};
@@ -121,6 +123,8 @@ pub(crate) fn live_clip_frame_work(script: &Script, scene_index: usize) -> u64 {
         work.saturating_add(tracks)
             .saturating_add(weight_search)
             .saturating_add(fade_work)
+            .saturating_add(7 * instance.joint_mask.len() as u64)
+            .saturating_add(u64::from(instance.looping))
     })
 }
 
@@ -496,6 +500,11 @@ fn export_sequence(
                     "artwork visibility interval exceeds scene duration",
                 ));
             }
+            if let Some(shape) = &layer.clip_shape {
+                shape
+                    .validate_scene_duration(script.scenes[scene_index].duration)
+                    .map_err(|error| invalid(error.to_string()))?;
+            }
             // Preflight future images too: frame zero may precede their start time.
             if layer.visible {
                 if let motion_art::Content::Image { asset_id, .. } = &layer.content {
@@ -520,6 +529,9 @@ fn export_sequence(
                 content
                     + match &l.clip_shape {
                         Some(motion_art::ClipShape::Polygon { points }) => points.len() as u64,
+                        Some(motion_art::ClipShape::SoftEllipse { keys, .. }) => {
+                            u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8
+                        }
                         _ => 0,
                     }
             })
@@ -1113,6 +1125,8 @@ mod tests {
                 fade_in: 0.0,
                 fade_out: 0.0,
                 weight_keys: Vec::new(),
+                looping: false,
+                joint_mask: Vec::new(),
             })
             .collect();
         script.validate().unwrap();
@@ -1162,6 +1176,8 @@ mod tests {
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
+            looping: false,
+            joint_mask: Vec::new(),
         }];
         let prototype = script.scenes[0].composition.clip_instances[0].clone();
         for index in 1..4 {
