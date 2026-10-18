@@ -9,7 +9,14 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #41 merged as `19667de847753bd1e0c7628e596449da3b061aa7` after final Linux/macOS CI passed.
+PR #42 merged as `ed149b4d363c490b2025733c8e9644e268dcd4bf` after final Linux/macOS CI passed.
+Final signed preview ZIPs now receive a bounded offline inventory sidecar with
+exact member hashes and current resource-boundary checks. CI attaches both ZIP
+and report. Collection explicitly leaves distribution approval false; target
+build graphs, native provenance, notices and legal review remain open.
+The release branch is synchronized with this progress record.
+
+Earlier PR #41 merged as `19667de847753bd1e0c7628e596449da3b061aa7` after final Linux/macOS CI passed.
 Live original-rig layers now support per-instance animated weight curves and
 linear entrance/exit fades, detached native editing, source Undo/Redo and project
 persistence. Exact defaults retain the prior constant-weight behavior. The
@@ -54,7 +61,7 @@ and final redistribution clearance remain open.
 | Rule clips, authored offsets, project clip capture/reuse/retiming and ordered live original-rig layers with weight curves/fades; ellipse/polygon masks and multiply/screen CPU composition | Looping/joint masks, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
-| CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
+| CPU SVG/PNG/MP4, bounded frames, optional GPU fixture, dependency inventory and final-ZIP fact sidecar | Full GPU scene parity, physical Metal/performance and final license clearance |
 
 Maintain this summary and the full checklist after each authorized merge. A new
 implementation remains pending until its relevant checks pass; hardware gates
@@ -209,6 +216,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Actual Rhubarb engine/device/corpus quality acceptance; stub tests do not establish these.
 - [x] Consented managed Kokoro provisioning with pinned asset revisions, sizes and SHA256.
 - [x] Reproducible Cargo/Python/model/voice/binary evidence inventory with fail-closed unresolved gate.
+- [x] Final signed preview ZIP/member inventory, exact package resources and CI sidecar (PR #42).
 - [ ] Complete artifact-specific dependency/asset license and redistribution audit.
 - [x] Real local English Kokoro CPU WAV on Apple Silicon (user report 2026-10-16: M1, macOS 27.1, both voices; see [acceptance](kokoro-in-app-acceptance.md#recorded-mac-evidence)).
 - [ ] Offline synthesis after provisioning with networking disabled.
@@ -1024,19 +1032,35 @@ ordered override weights, not a normalized or additive mixer. No real recognizer
 model, GPU device or physical Mac acceptance is performed by fixture tests. See
 [live clip blending](live-clip-blending.md).
 
-## Final package inventory (source implemented, pending integration)
+## Final package inventory (PR #42, merged 2026-10-18)
 
-- [ ] Integrate bounded offline final-ZIP/member inventory and exact current
+- [x] Integrate bounded offline final-ZIP/member inventory and exact current
   resource boundary, licenses, generated metadata and build-info checks.
-- [ ] Integrate explicit signature/AppleDouble observations, optional helper
+- [x] Integrate explicit signature/AppleDouble observations, optional helper
   component identity, atomic external sidecar and distinct collection/strict exits.
-- [ ] Integrate post-signing macOS CI report attachment, independent review and
+- [x] Integrate post-signing macOS CI report attachment, independent review and
   package/security regression tests.
 - [ ] Collect actual target/feature/compiler/native-linkage evidence and reviewed
   upstream artifact notices, license alternatives and redistribution obligations.
 - [ ] Final third-party license clearance, GPU parity, automatic estimated-result
   reuse and physical Mac/hardware/model quality acceptance.
 
-See [final package audit](final-package-audit.md). Source is pending final checks;
+Final source `6bf46d2f2edebcfbd217e5d2927467b88ffb886f` passed Audio foundation 39128020733 and Apple Silicon
+preview 39128020717. CI verified fmt/check/strict Clippy, 420/419 default Rust tests
+on Linux/macOS, 14 adapter-free GPU tests/feature Clippy per platform, 55 runtime
+and 49 repository Python tests per platform, and three actual media encoder
+tests. The 20 new offline audit tests cover exact resources/licenses/generated
+metadata, optional helper, unsafe ZIPs, budgets, malformed XML/DEFLATE, strict
+exits and atomic output/alias protection. Local 49-test Python suite passed;
+independent review found no remaining blockers. No Rust code/dependency changed.
+
+Final signed ZIP collection in Mac CI passed with 21 file records,
+`package_valid: true` and `distribution_approved: false`. Observed final ZIP
+SHA256: `c869d8ebd96a1821a400bb9efa8f79f01cfc29d639969dbd8a148c5f38edfc89`.
+ZIP and external sidecar artifact: https://github.com/aleksipii/kilsatstudio/actions/runs/39128020717/artifacts/12137460298
+Artifact container SHA256 (distinct from contained preview ZIP): `c44972df2bb305ad4dc8eccd184d3fdeaaa7a65bfdc97163c53ef80c2ce4cb8b`.
+
+See [final package audit](final-package-audit.md). This post-merge record changes
+documentation only;
 package-boundary success never grants distribution approval. No external assets,
 recognizer, GPU device or physical Mac acceptance is exercised by fixture tests.

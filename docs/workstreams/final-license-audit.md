@@ -55,7 +55,9 @@ hashes or turn collected text into reviewed obligations.
 ## Artifact-specific audit manifest
 
 The next report must bind one concrete ZIP and avoid a repository-wide approval
-flag. Proposed schema (not yet implemented):
+flag. Initial final-ZIP/member sidecar implemented in PR #42; component/build-graph
+review extensions below remain proposed. The example expresses the broader
+review target, not completed evidence:
 
 ```json
 {
@@ -94,15 +96,20 @@ The final ZIP hash belongs in an external sidecar: embedding the hash of the
 containing ZIP inside that ZIP would create a self-reference. A pre-signing hash
 must never be represented as the final signed-file hash.
 
-## Next bounded implementation: final-package inventory validator
+## Final-package inventory validator (PR #42)
 
-Add an offline `scripts/package_audit.py` plus
-`tests/test_package_audit.py`; invoke it after signing and ZIP creation in preview
-CI. This increment collects package facts and validates the defined boundary;
-it cannot close the final license review gate.
+Integrated offline `scripts/package_audit.py` plus `tests/test_package_audit.py`;
+preview CI invokes it after signing and ZIP creation and attaches the external
+sidecar with the package. This increment collects package facts and validates
+the defined boundary; it cannot close the final license review gate. See the
+[implementation guide](../final-package-audit.md) and
+[final checks](../master-progress.md) for actual bounds and evidence.
 
-1. Accept explicitly supplied final ZIP, expected commit/target/profile and
-   optional existing build-evidence JSON; never install, download, run Cargo/pip,
+Build-evidence/graph ingestion is deferred. The implemented report explicitly
+marks separate desktop/helper graphs, compiler identity and native linkage as
+not collected; there is no graph-validation option or inferred graph approval.
+
+1. Accept explicitly supplied final ZIP, expected commit/target/profile; never install, download, run Cargo/pip,
    execute packaged binaries or import package code.
 2. Stream hashes under explicit archive/member/count/report budgets. Reject
    traversal/absolute paths, backslash ambiguity, duplicate normalized paths,
@@ -112,8 +119,8 @@ it cannot close the final license review gate.
    BUILD-INFO fields, executable paths and current resource allowlist; enumerate
    signing metadata explicitly. Unknown members fail boundary validation rather
    than silently broadening the shipped set. The optional helper is recorded as
-   present or absent and requires its own supplied graph when graph validation
-   is requested. Unknown entries remain visible in a failure report.
+   present or absent and has its own unreviewed component identity;
+   target graphs remain a later extension. Unknown entries remain visible in a failure report.
 4. Write the external sidecar atomically, bind it to the exact input ZIP hash,
    retain `distribution_approved: false` and unresolved obligations. Distinguish
    invalid package/evidence (exit 2) from successfully collected but unresolved
@@ -121,16 +128,17 @@ it cannot close the final license review gate.
 
 Acceptance tests:
 
-- [ ] Valid desktop-only and desktop-plus-helper fixtures produce deterministic
-  final-byte records and distinct executable graphs; changing one byte changes
-  both the member and ZIP identities.
-- [ ] Missing/altered LICENSE copies, inconsistent build info, unexpected bundled
-  model/wheel/FFmpeg/native files and missing helper graph fail explicitly.
-- [ ] Traversal, duplicate names, symlinks, special files, oversized/expanding
+- [x] Valid desktop-only and desktop-plus-helper fixtures produce deterministic
+  final-byte records and distinct executable identities (graphs uncollected);
+  changing one byte changes both the member and ZIP identities.
+- [x] Missing/altered LICENSE copies, inconsistent build info, unexpected bundled
+  model/wheel/FFmpeg/native files fail explicitly. Missing helper graphs remain
+  visibly uncollected.
+- [x] Traversal, duplicate names, symlinks, special files, oversized/expanding
   members and aggregate/count limits fail without extraction or execution.
-- [ ] Missing notices, SPDX-only declarations, unknown native provenance and
+- [x] Missing notices, SPDX-only declarations, unknown native provenance and
   unreviewed obligations can never produce distribution approval or strict exit 0.
-- [ ] Existing packaging and license-inventory suites remain green; macOS CI
+- [x] Existing packaging and license-inventory suites remain green; macOS CI
   attaches the real ZIP and hash-bound audit sidecar from the same build.
 
 ## Release blockers
@@ -139,5 +147,4 @@ Actual target graphs, signed artifact audit and complete selected environment ar
 not available in this mapping. Original wheel hashes/transitive lock, exact
 upstream license/NOTICE corpus, native-library/source obligations and pinned
 model/voice/language rights remain unresolved. Human review must assess the
-assembled boundary before any redistribution clearance claim. This document
-creates the work plan; it does not claim the proposed validator is implemented.
+assembled boundary before any redistribution clearance claim. PR #42 implements the bounded inventory validator, not these release approvals.
