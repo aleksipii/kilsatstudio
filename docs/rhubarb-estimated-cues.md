@@ -74,8 +74,10 @@ non-finite, unordered, overlapping, unknown or sample-collapsing cues.
 Synthetic process fixtures test execution, provenance changes, limits, cancellation
 and serialization only. Real-engine compatibility across supported platforms,
 licensed recognizer-resource identity, real-audio cue accuracy, user corrections,
-Mac device synchronization, native automatic-execution controls, project timing
-persistence and estimated-cue caching are still open. Selected-line/scene/sequence
+Mac device synchronization, project timing persistence and estimated-cue caching
+are still open. PR #31 added explicit native execution and Apply controls for an
+already prepared line; see [native alignment](native-alignment.md).
+Selected-line/scene/sequence
 preparation now imports these cues through one typed input path; preview and
 export share their exact sample intervals. UI labels imported cues as estimated,
 uncached and quality not measured. Export manifests use an explicit
