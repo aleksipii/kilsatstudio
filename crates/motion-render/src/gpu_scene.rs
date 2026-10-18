@@ -382,7 +382,7 @@ pub fn compare_decoded_rgba(
 }
 
 const SHADER: &str = r#"
-struct Shape { inverse: vec4<f32>, origin: vec4<f32>, geometry: vec4<f32>, color: vec4<f32>, meta: vec4<f32>, };
+struct Shape { inverse: vec4<f32>, origin: vec4<f32>, geometry: vec4<f32>, color: vec4<f32>, parameters: vec4<f32>, };
 struct Scene { canvas: vec4<f32>, background: vec4<f32>, settings: vec4<f32>, };
 @group(0) @binding(0) var<storage, read> shapes: array<Shape>;
 @group(0) @binding(1) var<uniform> scene: Scene;
@@ -396,18 +396,18 @@ fn box_distance(p: vec2<f32>, half_size: vec2<f32>) -> f32 {
 }
 fn distance_to_shape(p: vec2<f32>, s: Shape) -> f32 {
  let g=s.geometry;
- if s.meta.x < .5 { return length(p-g.xy)-g.z; }
- if s.meta.x < 1.5 { return box_distance(p-g.xy,g.zw-vec2(s.meta.y))-s.meta.y; }
+ if s.parameters.x < .5 { return length(p-g.xy)-g.z; }
+ if s.parameters.x < 1.5 { return box_distance(p-g.xy,g.zw-vec2(s.parameters.y))-s.parameters.y; }
  let delta=g.zw-g.xy;
  let len=length(delta);
- if len < .000001 { return length(p-g.xy)-s.meta.y; }
- if s.meta.x < 2.5 {
+ if len < .000001 { return length(p-g.xy)-s.parameters.y; }
+ if s.parameters.x < 2.5 {
   let t=clamp(dot(p-g.xy,delta)/dot(delta,delta),0.,1.);
-  return length(p-g.xy-t*delta)-s.meta.y;
+  return length(p-g.xy-t*delta)-s.parameters.y;
  }
  let axis=delta/len;
  let v=p-(g.xy+g.zw)*.5;
- return box_distance(vec2(dot(v,axis),dot(v,vec2(-axis.y,axis.x))),vec2(len*.5,s.meta.y));
+ return box_distance(vec2(dot(v,axis),dot(v,vec2(-axis.y,axis.x))),vec2(len*.5,s.parameters.y));
 }
 @fragment fn fs(@builtin(position) pixel: vec4<f32>) -> @location(0) vec4<f32> {
  let p=pixel.xy;
