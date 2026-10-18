@@ -9,6 +9,14 @@ dialogue workbench. It is an actively developed foundation, not a production-rea
 animation suite. All Kilsat Studio source is independently authored; no Storytold
 source code or dependencies are used.
 
+## License
+
+Original Kilsat Studio source and documentation are licensed under the
+[MIT License](LICENSE). Third-party libraries, model weights, voices, language
+data and external tools retain their own licenses. This source license does
+not complete their redistribution review; see the
+[dependency audit](docs/dependency-audit.md).
+
 ## Current capabilities
 
 - Edit, open and save MotionScript; validate actor references, parameters and timing.

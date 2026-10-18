@@ -49,6 +49,39 @@ Save the project after Apply. Strengths live in MotionScript source inside
 `.kilsat`; no project format migration or external animation asset is needed.
 Deleting a character also removes its scene-local strength overrides.
 
+## Animated strengths
+
+Inspector → **Animated layer strengths** edits a separate per-actor track. Add
+keys, set their scene-local times, strengths and outgoing easing, then click
+**Apply animated strengths**. Times must strictly increase within the scene;
+at most 256 keys are accepted. Linear interpolates each strength independently,
+smoothstep eases both ends, and hold keeps the earlier value until the next key.
+Before the first key and after the last, the endpoint value is held. Seeking
+samples directly from scene time, without accumulating frame history.
+
+```yaml
+composition:
+  clip_weights:
+    EMMA: {posture: 0.4, walk: 0.8, gesture: 0.5}
+  clip_weight_tracks:
+    EMMA:
+      - time: 0
+        weights: {posture: 0.4, walk: 0.8, gesture: 0}
+        easing: smoothstep
+      - time: 2
+        weights: {posture: 1, walk: 0.2, gesture: 1}
+        easing: hold
+```
+
+A track overrides all three static strengths for that actor. Missing fields
+inside `weights` default to 1. Remove all keys in the draft and Apply to remove
+the track and resume the saved static strengths. A serialized empty track is
+rejected. Reset restores the loaded draft; removing a draft does not write the
+source until Apply. Source, actor or scene changes discard unapplied keys.
+Track changes share the same Undo/Redo, project storage and preview/export
+pipeline as static strengths. Shortening a scene is rejected if it would leave
+keys outside its duration; edit the track first.
+
 ## Validation and remaining scope
 
 Tests cover missing/default strengths, invalid data, independent zero/partial
@@ -58,7 +91,7 @@ fixtures compare default frames and actual weighted SVG/PNG frames with shared
 preview at the same speech sample positions.
 
 This implements controls for three existing procedural layers. Editable custom
-clip libraries, time-varying blend tracks, arbitrary rigs, textured/deformed
+clip libraries, blending of arbitrary authored clips, arbitrary rigs, textured/deformed
 parts, inverse kinematics, advanced mask painting and physical Mac visual/motion
 acceptance remain open. No perceptual motion-quality or GPU-parity gate is
 completed by synthetic fixtures.

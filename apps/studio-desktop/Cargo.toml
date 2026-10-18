@@ -2,6 +2,7 @@
 name = "studio-desktop"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 motion-art = { path = "../../crates/motion-art" }

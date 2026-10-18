@@ -52,7 +52,10 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
         gpu_probe = Path(gpu_probe)
         if gpu_probe.is_symlink() or not gpu_probe.is_file() or not os.access(gpu_probe, os.X_OK):
             raise ValueError('gpu probe must be a non-symlink executable file')
-    required = ['examples', 'services/kokoro-runtime/runtime.py',
+    license_path = repo / 'LICENSE'
+    if license_path.is_symlink() or not license_path.is_file() or not license_path.stat().st_size:
+        raise ValueError('missing or unsafe LICENSE: provide the non-empty repository source license')
+    required = ['LICENSE', 'examples', 'services/kokoro-runtime/runtime.py',
                 'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
                 'services/kokoro-runtime/acceptance.py',
                 'services/kokoro-runtime/setup_kokoro.py',
@@ -114,6 +117,14 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
     return destination
 
 
+def stage_distribution(repo, binary, directory, commit, arch, profile, gpu_probe=None):
+    """Stage the app and a source license readable without opening its bundle."""
+    directory = Path(directory)
+    bundle = stage_bundle(repo, binary, directory / APP_NAME, commit, arch, profile, gpu_probe)
+    shutil.copy2(bundle / 'Contents/Resources/LICENSE', directory / 'LICENSE')
+    return bundle
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', type=Path, default=Path(__file__).resolve().parents[1])
@@ -131,17 +142,18 @@ def main():
         parser.error('output must be a new .zip file; existing output is never overwritten')
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='kilsat-package-') as temporary:
-        bundle = stage_bundle(args.repo, args.binary, Path(temporary) / APP_NAME,
-                              args.commit, args.arch, args.profile, args.gpu_probe)
+        bundle = stage_distribution(args.repo, args.binary, temporary,
+                                    args.commit, args.arch, args.profile, args.gpu_probe)
         if args.gpu_probe is not None:
             helper = bundle / 'Contents/Resources/bin/gpu_probe'
             subprocess.run(['codesign', '--force', '--sign', '-', str(helper)], check=True)
             subprocess.run(['codesign', '--verify', '--strict', str(helper)], check=True)
         subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)
         subprocess.run(['codesign', '--verify', '--deep', '--strict', str(bundle)], check=True)
-        # ditto preserves executable permissions and the enclosing app directory.
-        subprocess.run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
-                        str(bundle), str(output)], check=True)
+        # Archive the staging directory's contents: the app and adjacent LICENSE.
+        # ditto preserves executable permissions and the app's directory layout.
+        subprocess.run(['ditto', '-c', '-k', '--sequesterRsrc',
+                        temporary, str(output)], check=True)
     print(output)
 
 
