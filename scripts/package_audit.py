@@ -309,6 +309,11 @@ def main(argv=None):
             report['errors'].append('required CodeResources signature metadata is missing')
             report['package_valid'] = False
         write_report(report, args.output)
+        print(json.dumps(dict(package_valid=report['package_valid'],
+                              distribution_approved=report['distribution_approved'],
+                              archive_sha256=report['artifact']['sha256'],
+                              file_count=len(report['files']), errors=report['errors']),
+                         sort_keys=True))
     except (OSError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         return 2
