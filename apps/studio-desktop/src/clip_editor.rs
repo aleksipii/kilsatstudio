@@ -54,6 +54,10 @@ impl Draft {
             ("Walk", &mut self.weights.walk),
             ("Gesture", &mut self.weights.gesture),
         ] {
+            if !weight.is_finite() {
+                ui.label(format!("{label}: invalid value; reset the draft to recover"));
+                continue;
+            }
             let mut edited = *weight;
             let response = ui.add(
                 egui::Slider::new(&mut edited, 0.0..=1.0)
