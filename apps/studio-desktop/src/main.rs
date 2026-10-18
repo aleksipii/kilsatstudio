@@ -1463,10 +1463,16 @@ impl Studio {
                 self.alignment_audio.clone(),
             ) {
                 let expected: Arc<dyn alignment_worker::PreparedAudio> = audio;
-                match self
-                    .native_alignment
-                    .start(id, expected, self.scene_alignment.clone())
-                {
+                let cache_root = self
+                    .kokoro_config()
+                    .cache_directory
+                    .join("estimated-alignments");
+                match self.native_alignment.start(
+                    id,
+                    expected,
+                    self.scene_alignment.clone(),
+                    cache_root,
+                ) {
                     Ok(()) => {
                         self.stop_playback();
                         self.busy = true;
@@ -2114,7 +2120,7 @@ impl Studio {
 fn alignment_status_text(status: AlignmentStatus) -> &'static str {
     match status {
         AlignmentStatus::EstimatedImported => {
-            "Estimated Rhubarb mouth cues imported · uncached · quality not measured"
+            "Estimated Rhubarb mouth cues imported · separate from phoneme cache · quality not measured"
         }
         AlignmentStatus::None => "No alignment · mouth at rest",
         AlignmentStatus::LegacyUnbound => {
@@ -5474,6 +5480,7 @@ mod native_integration_tests {
             identity: stale,
             json: "replacement".into(),
             scene_json: "replacement map".into(),
+            cache: Default::default(),
         });
         assert_eq!(studio.alignment, "existing selected timing");
         assert_eq!(studio.scene_alignment, "existing map");

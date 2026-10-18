@@ -23,7 +23,21 @@ impl PreparedAudio for AudioBuffer {
         self
     }
 }
+#[derive(Clone, Debug)]
+pub enum Action {
+    Estimate,
+    Load { key: String },
+}
+#[derive(Debug, Default)]
+pub struct CacheInfo {
+    pub key: Option<String>,
+    pub hit: bool,
+    pub message: String,
+    pub provenance: String,
+}
 pub struct Request {
+    pub cache_root: PathBuf,
+    pub action: Action,
     pub identity: Identity,
     pub audio: Arc<dyn PreparedAudio>,
     pub scene_alignments: String,
@@ -33,6 +47,7 @@ pub struct Request {
 }
 #[derive(Debug)]
 pub struct Ready {
+    pub cache: CacheInfo,
     pub identity: Identity,
     pub json: String,
     pub scene_json: String,
@@ -60,14 +75,35 @@ fn execute(request: &Request) -> Result<Ready, String> {
         serde_json::from_str(&request.scene_alignments)
             .map_err(|e| format!("Scene alignment JSON: {e}"))?
     };
-    let alignment = rhubarb::align(
-        &request.executable,
-        &request.identity.audio_path,
-        &request.identity.transcript,
-        request.recognizer,
-        || request.cancel.is_cancelled(),
-    )
-    .map_err(|e| e.to_string())?;
+    let archive = motion_lipsync::estimated_cache::EstimatedCache::new(request.cache_root.clone());
+    let (alignment, mut cache) = match &request.action {
+        Action::Estimate => (
+            rhubarb::align(
+                &request.executable,
+                &request.identity.audio_path,
+                &request.identity.transcript,
+                request.recognizer,
+                || request.cancel.is_cancelled(),
+            )
+            .map_err(|e| e.to_string())?,
+            CacheInfo::default(),
+        ),
+        Action::Load { key } => (
+            archive
+                .load(key, request.audio.audio(), &request.identity.transcript)
+                .map_err(|e| format!("Saved estimated timing: {e}"))?,
+            CacheInfo {
+                key: Some(key.clone()),
+                hit: true,
+                message: String::new(),
+                provenance: String::new(),
+            },
+        ),
+    };
+    cache.provenance = format!(
+        "Original tool: {}; recognizer: {:?}",
+        alignment.tool_version, alignment.recognizer
+    );
     // A cache path can have been replaced since preparation. Exact PCM and text,
     // rather than the path, determine whether this result can be applied.
     alignment
@@ -80,14 +116,28 @@ fn execute(request: &Request) -> Result<Ready, String> {
     request.cancel.check().map_err(|e| e.to_string())?;
     scene_alignments.insert(
         request.identity.line_id,
-        motion_lipsync::cache::AlignmentInput::Estimated(alignment),
+        motion_lipsync::cache::AlignmentInput::Estimated(alignment.clone()),
     );
     let scene_json = serde_json::to_string_pretty(&scene_alignments).map_err(|e| e.to_string())?;
     if scene_json.len() > MAX_JSON_BYTES {
         return Err("Combined scene alignment exceeds 100 KB; shorten dialogue or remove unused alignment entries and retry".into());
     }
     request.cancel.check().map_err(|e| e.to_string())?;
+    if matches!(request.action, Action::Estimate) {
+        match archive.store(
+            &alignment,
+            request.audio.audio(),
+            &request.identity.transcript,
+        ) {
+            Ok(key) => cache.key = Some(key),
+            Err(error) => {
+                cache.message = format!("Timing is usable, but saving it failed: {error}")
+            }
+        }
+    }
+    request.cancel.check().map_err(|e| e.to_string())?;
     Ok(Ready {
+        cache,
         identity: request.identity.clone(),
         json,
         scene_json,
@@ -133,7 +183,7 @@ impl Worker {
         if self.active.is_some() {
             return Err("Alignment worker is busy; wait for cancellation to finish".into());
         }
-        if !request.executable.is_absolute() {
+        if matches!(request.action, Action::Estimate) && !request.executable.is_absolute() {
             return Err("Choose an explicit absolute Rhubarb executable path".into());
         }
         let cancel = request.cancel.clone();
@@ -170,6 +220,8 @@ mod tests {
     use super::*;
     fn request() -> Request {
         Request {
+            cache_root: std::env::temp_dir().join("not-written-estimated-cache"),
+            action: Action::Estimate,
             identity: Identity {
                 generation: 3,
                 line_id: 4,
@@ -191,6 +243,7 @@ mod tests {
     fn bounded_until_completion_is_consumed() {
         let mut worker = Worker::with_runner(|r| {
             Ok(Ready {
+                cache: CacheInfo::default(),
                 identity: r.identity.clone(),
                 json: "stub".into(),
                 scene_json: "{}".into(),
@@ -207,6 +260,32 @@ mod tests {
             std::thread::sleep(std::time::Duration::from_millis(1));
         }
         panic!("worker did not finish");
+    }
+    #[test]
+    fn cached_request_does_not_require_an_executable() {
+        let mut worker = Worker::with_runner(|r| {
+            assert!(matches!(&r.action, Action::Load { key } if key == &"a".repeat(64)));
+            Ok(Ready {
+                cache: CacheInfo::default(),
+                identity: r.identity.clone(),
+                json: "saved".into(),
+                scene_json: "{}".into(),
+            })
+        });
+        let mut r = request();
+        r.executable = PathBuf::new();
+        r.action = Action::Load {
+            key: "a".repeat(64),
+        };
+        worker.submit(r).unwrap();
+        for _ in 0..1000 {
+            if let Some(update) = worker.poll() {
+                assert_eq!(update.result.unwrap().json, "saved");
+                return;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(1));
+        }
+        panic!("cached request did not finish");
     }
     #[test]
     fn cancellation_reaches_active_worker() {
@@ -246,6 +325,7 @@ mod tests {
         }
         let _cleanup = Cleanup(path.clone());
         let mut r = request();
+        r.cache_root = path.join("saved");
         r.executable = path.join("stub");
         std::fs::write(&r.executable, b"#!/bin/bash\nif [ \"$1\" = \"--version\" ]; then printf 'synthetic-worker-test'; else printf '%s' '{\"metadata\":{\"duration\":0.01},\"mouthCues\":[{\"start\":0.0,\"end\":0.01,\"value\":\"D\"}]}'; fi\n").unwrap();
         std::fs::set_permissions(&r.executable, std::fs::Permissions::from_mode(0o700)).unwrap();
@@ -265,6 +345,24 @@ mod tests {
         assert_eq!(map.len(), 2);
         assert!(map.contains_key(&r.identity.line_id));
         assert!(map.contains_key(&99));
+        let original_root = r.cache_root.clone();
+        r.cache_root = path.join("blocked-cache");
+        std::fs::write(&r.cache_root, b"file blocks directory").unwrap();
+        let usable = execute(&r).unwrap();
+        assert!(usable.cache.message.contains("saving it failed"));
+        assert!(usable.cache.key.is_none());
+        r.cache_root = original_root;
+        let key = ready.cache.key.clone().unwrap();
+        std::fs::remove_file(&r.executable).unwrap();
+        std::fs::remove_file(&r.identity.audio_path).unwrap();
+        r.executable = PathBuf::new();
+        r.action = Action::Load { key };
+        let saved = execute(&r).unwrap();
+        assert!(saved.cache.hit);
+        assert_eq!(saved.json, ready.json);
+        r.identity.transcript = "changed".into();
+        assert!(execute(&r).is_err());
+        r.identity.transcript = "hello".into();
         r.audio = Arc::new(AudioBuffer {
             sample_rate: 24000,
             channels: 1,

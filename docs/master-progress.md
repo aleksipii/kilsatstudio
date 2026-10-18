@@ -662,6 +662,25 @@ always leaves production acceptance `not_granted`. Full GPU scene parity,
 physical Mac acceptance and final artifact-specific license clearance remain open.
 See [estimated mouth-shape evidence](viseme-quality.md).
 
+## Selected estimated-cue cache (2026-10-18, pending integration)
+
+- [ ] Integrate immutable saved estimated results selected by a full-content key,
+  exact PCM/text validation and preserved original tool/recognizer provenance.
+- [ ] Integrate best-effort save after explicit Estimate, explicit Load cached
+  timing and separate Apply on the existing bounded native worker.
+- [ ] Validate corruption/bounds/schema, concurrent publication, owned cleanup,
+  no-engine load and stale/mismatched prepared audio/text.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Automatic fresh-engine memoization with verified external resource identity.
+- [ ] Project timing persistence, real corpus quality and physical Mac synchronization.
+
+This increment is explicit selected-result reuse. It does not infer the current
+recognizer environment from a binary hash or automatically substitute past cues
+for a new execution. The source is awaiting Rust formatting/build/tests in CI;
+no local Rust toolchain is available. Full GPU parity, advanced artist tools,
+physical acceptance and final license clearance remain open.
+See [saved estimated timing](estimated-cue-cache.md).
+
 ## Whole-project SVG sequence export (PR #33, merged 2026-10-18)
 
 - [x] Integrate vector SVG/WAV sequence export with cuts/crossfades, namespaced
