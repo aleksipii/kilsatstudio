@@ -673,6 +673,69 @@ pub fn apply_animation_clip(
     })
 }
 
+/// Copy every clip bone track into an explicit scene-local interval, replacing target tracks.
+/// Only key times change; the library entry and other scene stages remain independent.
+pub fn apply_animation_clip_retimed(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    name: &str,
+    at: f64,
+    duration: f64,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let end = at + duration;
+        if !at.is_finite() || at < 0.0 || !duration.is_finite() || duration <= 0.0 {
+            return Err(Error::Validation(
+                "retimed clip requires a finite nonnegative start and finite positive duration"
+                    .into(),
+            ));
+        }
+        if !end.is_finite() || end <= at {
+            return Err(Error::Validation(
+                "retimed clip interval overflows or collapses at this numeric precision".into(),
+            ));
+        }
+        if !candidate.characters.contains_key(actor) {
+            return Err(Error::Validation(format!("unknown clip actor {actor}")));
+        }
+        let clip = candidate
+            .animation_clips
+            .get(name)
+            .ok_or_else(|| Error::Validation(format!("unknown animation clip {name}")))?;
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if end > scene.duration {
+            return Err(Error::Validation(format!(
+                "retimed clip {name} ends at {end}, exceeding target scene duration {}",
+                scene.duration
+            )));
+        }
+        let mut tracks = clip.bone_tracks.clone();
+        for (bone, keys) in &mut tracks {
+            let mut previous = None;
+            for key in keys {
+                let mapped = at + (key.at / clip.duration) * duration;
+                if !mapped.is_finite()
+                    || mapped < at
+                    || mapped > end
+                    || previous.is_some_and(|time| mapped <= time)
+                {
+                    return Err(Error::Validation(format!(
+                        "retimed clip {name} bone {bone}: key times overflow or collapse; choose a wider interval or smaller start"
+                    )));
+                }
+                key.at = mapped;
+                previous = Some(mapped);
+            }
+        }
+        scene.composition.bone_tracks.insert(actor.into(), tracks);
+        Ok(())
+    })
+}
+
 /// Remove only the library entry; previously applied independent tracks remain intact.
 pub fn remove_animation_clip(source: &str, name: &str) -> Result<String, Error> {
     edit_source(source, |candidate| {
@@ -2216,6 +2279,130 @@ mod animation_library_tests {
     use super::*;
     fn source() -> String {
         "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: source, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 2}, {at: 4, x: 4}]}, B: {chest: [{at: 0, y: 3}]}}}}, {id: target, duration: 6, events: [], composition: {bone_tracks: {B: {chest: [{at: 0, y: 9}]}}}}, {id: short, duration: 2, events: []}]".into()
+    }
+    #[test]
+    fn retimed_clip_maps_all_bones_and_preserves_values_and_independent_state() {
+        let mut script = parse(&source()).unwrap();
+        let keys = [0.0, 1.0, 4.0].map(|at| ActorKey {
+            at,
+            x: 2.0,
+            y: -3.0,
+            rotation: 0.7,
+            scale_x: 1.2,
+            scale_y: 0.8,
+            easing: ActorEasing::Smoothstep,
+        });
+        let tracks: BTreeMap<_, _> = HUMANOID_BONES
+            .into_iter()
+            .map(|bone| (bone.into(), keys.to_vec()))
+            .collect();
+        script.scenes[1]
+            .composition
+            .actor_tracks
+            .insert("B".into(), keys.to_vec());
+        script.scenes[1]
+            .composition
+            .clip_weights
+            .insert(
+                "B".into(),
+                ClipWeights {
+                    walk: 0.3,
+                    ..Default::default()
+                },
+            );
+        script.animation_clips.insert(
+            "clip".into(),
+            AnimationClip {
+                duration: 4.0,
+                bone_tracks: tracks.clone(),
+            },
+        );
+        let source = serde_yaml::to_string(&script).unwrap();
+        let before = parse(&source).unwrap();
+        let result = apply_animation_clip_retimed(&source, 1, "B", "clip", 2.0, 2.0).unwrap();
+        let after = parse(&result).unwrap();
+        for (bone, original) in &tracks {
+            let mapped = &after.scenes[1].composition.bone_tracks["B"][bone];
+            for ((key, original), time) in mapped.iter().zip(original).zip([2.0, 2.5, 4.0]) {
+                let mut expected = original.clone();
+                expected.at = time;
+                assert_eq!(key, &expected);
+            }
+        }
+        let mut restored = after.clone();
+        restored.scenes[1].composition.bone_tracks =
+            before.scenes[1].composition.bone_tracks.clone();
+        assert_eq!(serde_yaml::to_string(&restored).unwrap(), source);
+        let removed = parse(&remove_animation_clip(&result, "clip").unwrap()).unwrap();
+        assert_eq!(
+            removed.scenes[1].composition.bone_tracks,
+            after.scenes[1].composition.bone_tracks
+        );
+    }
+    #[test]
+    fn retimed_clip_compresses_long_clips_without_changing_original_apply() {
+        let source = capture_animation_clip(&source(), 0, "A", "clip", false).unwrap();
+        assert!(apply_animation_clip(&source, 2, "B", "clip").is_err());
+        let compressed = apply_animation_clip_retimed(&source, 2, "B", "clip", 0.5, 1.5).unwrap();
+        let compressed = parse(&compressed).unwrap();
+        let keys = &compressed.scenes[2].composition.bone_tracks["B"]["head"];
+        assert_eq!(keys[0].at, 0.5);
+        assert_eq!(keys[1].at, 2.0);
+        let original = parse(&apply_animation_clip(&source, 1, "B", "clip").unwrap()).unwrap();
+        assert_eq!(
+            original.scenes[1].composition.bone_tracks["B"],
+            original.animation_clips["clip"].bone_tracks
+        );
+    }
+    #[test]
+    fn retimed_clip_rejects_invalid_intervals_references_and_precision_collapse() {
+        let source = capture_animation_clip(&source(), 0, "A", "clip", false).unwrap();
+        for (at, duration) in [
+            (-1.0, 1.0),
+            (f64::NAN, 1.0),
+            (f64::INFINITY, 1.0),
+            (0.0, 0.0),
+            (0.0, -1.0),
+            (0.0, f64::NAN),
+            (0.0, f64::INFINITY),
+            (f64::MAX, f64::MAX),
+            (5.0, 2.0),
+            (1.0, f64::MIN_POSITIVE),
+        ] {
+            assert!(apply_animation_clip_retimed(&source, 1, "B", "clip", at, duration).is_err());
+        }
+        for (index, actor, name) in [
+            (99, "B", "clip"),
+            (1, "missing", "clip"),
+            (1, "B", "missing"),
+        ] {
+            assert!(apply_animation_clip_retimed(&source, index, actor, name, 0.0, 1.0).is_err());
+        }
+        let mut script = parse(&source).unwrap();
+        script
+            .animation_clips
+            .get_mut("clip")
+            .unwrap()
+            .bone_tracks
+            .get_mut("head")
+            .unwrap()
+            .insert(
+                1,
+                ActorKey {
+                    at: f64::MIN_POSITIVE,
+                    ..Default::default()
+                },
+            );
+        let source = serde_yaml::to_string(&script).unwrap();
+        assert!(parse(&source).is_ok());
+        let error = apply_animation_clip_retimed(&source, 1, "B", "clip", 1.0, 1.0)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("collapse"), "{error}");
+        assert_eq!(
+            parse(&source).unwrap().animation_clips["clip"].bone_tracks["head"][1].at,
+            f64::MIN_POSITIVE
+        );
     }
     #[test]
     fn capture_apply_replace_remove_are_independent_and_preserve_other_state() {
