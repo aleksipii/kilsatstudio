@@ -9,8 +9,9 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #37 merged as `0aa890bb6fa6ce597ba5f2a21fd942db720b7389` after its final
-Linux/macOS CI passed. PR #36 merged earlier as
+PR #38 merged as `797e7d4fb3c97b9577bef56a8570f25c49f2c34c` after its final
+Linux/macOS CI passed. PR #37 merged earlier as
+`0aa890bb6fa6ce597ba5f2a21fd942db720b7389`; PR #36 as
 `e49f7add105409ed4d98859d1be4b55ae1c803b1`; PR #35 as
 `6bd988ab162adb64cdcea621bb01600099abbeb2`; PR #34 as
 `f89c59b8113b3b578c82fe648850615e704fdaf0`; PR #33 as
@@ -32,7 +33,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
-| Rule clips, authored offsets and project-local bone clip capture/reuse; ellipse/polygon masks and multiply/screen CPU composition | Live custom-clip blending/retiming, feathered/image masks, groups and physical Mac compositing acceptance |
+| Rule clips, authored offsets and project-local bone clip capture/reuse and explicit copied-key retiming; ellipse/polygon masks and multiply/screen CPU composition | Live custom-clip instances/blending, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
@@ -110,7 +111,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Artist-controlled per-scene/actor posture, walk and gesture strengths with shared evaluation (PR #35).
 - [x] Scene-local animated procedural strength tracks with outgoing easing and native editor (PR #36).
 - [x] Named project-local authored bone clip library with capture/explicit overwrite, inspection, copied-track application and deletion (PR #37).
-- [ ] Live custom-clip instances, arbitrary authored clip blending, retiming and cross-project libraries.
+- [x] Explicit copied-clip start/duration retiming with native controls, atomic validation and shared tracks (PR #38).
+- [ ] Live custom-clip instances, arbitrary authored clip blending and cross-project libraries.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -162,6 +164,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native procedural layer strength editor with Apply, unified Undo/Redo and project persistence (PR #35).
 - [x] Animated procedural strength key editor with timing/easing, explicit Apply and safe track removal (PR #36).
 - [x] Native project clip library with detached names/selection, explicit replacement/deletion confirmations and unified source history (PR #37).
+- [x] Opt-in clip start/duration controls, explicit reset and replacement confirmation after timing edits (PR #38).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -856,21 +859,42 @@ physical acceptance and final third-party licenses remain open.
 See [clip library](animation-clip-library.md).
 
 
-## Explicit authored clip retiming (2026-10-18, pending integration)
+## Explicit authored clip retiming (PR #38, merged 2026-10-18)
 
-- [ ] Integrate atomic start/duration mapping of copied authored bone keys,
+- [x] Integrate atomic start/duration mapping of copied authored bone keys,
   finite scene bounds, preserved transforms/easing and precision-collapse rejection.
-- [ ] Integrate opt-in native retiming controls, explicit target replacement,
+- [x] Integrate opt-in native retiming controls, explicit target replacement,
   detached invalid values and confirmation resets after option changes.
-- [ ] Validate saved source, one-edit Undo/Redo, unchanged library data and
+- [x] Validate saved source, one-edit Undo/Redo, unchanged library data and
   actual SVG/PNG/sample-clock preview against independently retimed tracks.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Live clip instances, arbitrary clip blending, cross-project exchange,
   custom/textured rigs and physical motion acceptance.
 - [ ] Full GPU parity, automatic fresh-engine estimated-result reuse and final
   third-party artifact/license clearance.
 
-Implementation is pending CI. Local Rust tooling is unavailable. Retiming copies
-keys into existing scene tracks; endpoint holding remains normal bone-track
-behavior rather than introducing a live activation window. No hardware or
-perceptual acceptance is implied. See [clip library](animation-clip-library.md).
+Final source head `fc18aac32c5bc9068885601b23db9d21e323df85` passed Audio
+foundation 39090819205 and Apple Silicon preview 39090819133. CI validated
+formatting, workspace check, strict Clippy, 388 default Rust tests on Linux and
+387 on macOS, 14 adapter-free GPU tests/feature Clippy per platform, 55 runtime
+plus 29 inventory/packaging Python tests and three actual encoder tests.
+Arm64 packaging/signature and license-byte checks passed. Rust checks ran in CI
+because no local toolchain was available. Independent review found no blocker.
+Numeric tests cover all seven bones, preserved transform/easing data, compression,
+shifted placement, invalid intervals/references, overflow and precision collapse.
+Native tests cover detached invalid drafts, action routing, original Apply,
+source Undo/Redo and .kilsat persistence. Actual SVG/PNG regressions use
+independently retimed tracks and compare sample-clock preview before/after keys
+and during repeated/backwards seeks. A difference check originally chose a time
+where both mappings correctly cross the same pose; the corrected quarter-second
+check verifies independent geometry and visible pixel differences. Explicit
+Reset copied key timing restores valid draft values and clears approval.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39090819133/artifacts/12122542757
+SHA256: `81a68cc17af367e3c1a06237c4aa3f8b09b4ac1c833b273f37baa91247b9e01c`.
+This post-merge record changes no implementation. Retiming copies keys into
+existing tracks; endpoint holding remains normal bone-track behavior rather than
+introducing a live activation window. No real recognizer/model, GPU device,
+physical Mac or perceptual acceptance was performed. Full GPU parity, automatic
+fresh-engine estimated-result reuse, live custom-clip blending, arbitrary rigs
+and final third-party artifact/license clearance remain open.
+See [clip library](animation-clip-library.md).

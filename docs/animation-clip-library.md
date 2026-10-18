@@ -18,7 +18,9 @@ Explicit retiming is described below.
 ## Explicit start time and duration
 
 Enable **Scale and offset copied key times**, then enter the start time and
-positive duration in scene seconds. Confirm target replacement after editing
+positive duration in scene seconds. **Reset copied key timing** restores start
+zero and the original clip duration in the draft, clearing replacement approval.
+Confirm target replacement after editing
 those values and Apply. All keys are mapped with
 `new_time = start + (old_time / clip_duration) * duration`; transform values and
 outgoing easing remain unchanged. For example, a two-second clip applied at
