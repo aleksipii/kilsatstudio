@@ -30,8 +30,16 @@ scenes:
         - {id: reach_a, clip: reach, actor: EMMA, at: 0.25, duration: 0.5, weight: 0.5}
 "#;
 
+fn rendered_for(script: &Script) -> RenderedScene {
+    let (_, mut rendered) = crate::tests::fixture();
+    let samples = (script.scenes[0].duration * SAMPLE_RATE as f64).round() as u64;
+    rendered.manifest.total_frames = samples;
+    rendered.audio.samples.resize(samples as usize, 0.0);
+    rendered
+}
+
 fn assert_frames_and_preview(actual: &Script, expected: &Script, frame: u64) {
-    let (_, rendered) = crate::tests::fixture();
+    let rendered = rendered_for(actual);
     let cancel = CancellationToken::new();
     for png in [false, true] {
         let encoded = encode_frame(actual, 0, &rendered, frame, png, &cancel, None)
@@ -282,7 +290,7 @@ fn faded_animated_weights_match_authored_pixels_after_roundtrip_and_repeated_see
         actual.scenes[0].composition.clip_instances,
         script.scenes[0].composition.clip_instances
     );
-    let (_, rendered) = crate::tests::fixture();
+    let rendered = rendered_for(&actual);
     let preview = ScenePreview::new(
         Arc::new(actual.clone()),
         0,
