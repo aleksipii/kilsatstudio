@@ -6,41 +6,146 @@ The current development environment is Linux and cannot physically certify a
 Mac, Metal adapter, Mac audio device, or real Kokoro installation/playback.
 No model installation, asset downloads or inference were performed for this review.
 
-## Current rendering architecture
+## GPU ownership and inspected status (2026-10-18)
 
-- `motion-scene` evaluates scene state; `motion-render` emits deterministic SVG.
-- `motion-export/src/media.rs` rasterizes that SVG through resvg 0.45.1 and
-  tiny-skia on the CPU, then invokes an explicitly selected local FFmpeg for MP4.
-- Desktop `draw_scene` and `art_editor::paint` submit egui painter primitives;
-  desktop eframe 0.31.1 enables `glow`, not a verified Metal offscreen renderer.
-- A GPU-backed application window does not establish GPU scene export, identical
-  preview/export composition, or a verified Metal path. These remain open.
+GPU workstream owner: `gpu_parity`. This section is a source inspection and
+implementation contract, not a completed renderer or hardware result. Existing
+Mac/Kokoro and license gates below retain their independent acceptance criteria.
 
-## Smallest reviewable GPU implementation
+| Boundary | Actual implementation | Still open |
+| --- | --- | --- |
+| Opt-in GPU fixture | `crates/motion-render/src/gpu.rs`: `Backend`, `render_fixture`, `row_layout`, `compare_fixture`; locked wgpu 24.0.5, explicit Metal/Vulkan/GL, genuine shader geometry/texture composition and readback | Decoded PNG parity, transparent-edge comparisons, device execution/evidence |
+| Complete evaluated scene | `crates/motion-render/src/lib.rs`: `render_svg_with_mouths`, `render_svg_with_art` consume `motion_scene::EvaluatedScene`; `motion-export/src/media.rs::rasterize_scaled` uses CPU resvg/tiny-skia | GPU equivalent of actor skeleton/face/visemes, camera, scene fades, timed artwork, image textures, masks and blend modes |
+| Preview/export | `motion-export/src/preview_scene.rs::ScenePreview` and `sequence.rs::SequencePreview`, `render_sequence_frame` use shared evaluated scenes and CPU rasterization; desktop `main.rs::native_canvas_ui` and `sequence_worker.rs` use that path for advanced composition; simpler `draw_scene`/`art_editor::paint` use egui primitives | One explicit production GPU backend shared by preview and export; native painter equivalence; full-scene parity and performance |
+| Packaged Metal check | `apps/studio-desktop/src/gpu_check_panel.rs`, `gpu_check_worker.rs`, `motion-render/examples/gpu_probe.rs`; explicit bundled helper, report validation, watchdog/cancel | Retained physical Metal run tied to package/commit, device loss, in-flight cancellation, performance and real scene evidence |
 
-- [ ] Write an architecture decision selecting the GPU API/backend and preserving
-  the evaluated scene as input. Define color space, premultiplied alpha, texture
-  lifetime, clipping, blend order and bounded readback ownership explicitly.
-- [ ] Add an opt-in offscreen backend for one fixture: background, textured quad,
-  transformed actor primitive and clipped translucent foreground. Keep CPU export
-  available with a visible backend selection and actionable initialization errors.
-- [ ] Render into an offscreen RGBA texture, copy with row-padding accounted for,
-  and produce a PNG from readback. Do not label a GPU upload of an already CPU
-  rasterized final frame as GPU scene rendering.
-- [ ] Compare decoded pixels against the CPU fixture using a documented tolerance
-  for antialiasing/color differences. Check transparent edges, clip boundaries,
-  plane order and the exact same scene/sample time; byte-identical PNG is optional.
-- [ ] Add bounded allocation, oversized-frame rejection, cancellation, resource
-  cleanup and repeated-render tests. Exercise unavailable-adapter and device-loss
-  behavior without silently claiming that a CPU fallback passed the GPU test.
-- [ ] On a real Mac, explicitly select/verify Metal and record adapter name, backend,
-  macOS version, CPU/GPU, commit, dimensions and readback result. Reject software
-  adapters for the hardware proof. Retain a validation-layer/error-scope report.
-- [ ] Measure warm/cold wall time, GPU duration where supported, memory and readback
-  separately from encoding; compare the same scene against CPU. A speedup is not
-  assumed, and a single fixture is not full-scene feature parity.
-- [ ] Only after parity coverage, route shared preview/export composition through
-  the selected backend and extend tests to masks, blending, rigging and transitions.
+A GPU-backed eframe/glow window is not GPU scene export. The helper renders only
+an original fixture, not MotionScript. Uploading a CPU-resvg final frame to a GPU
+texture must never count as GPU scene rendering. Existing `compare_fixture`
+checks a few interior pixels with channel tolerance 2, not full raster equivalence.
+The real-adapter test remains explicitly opt-in/ignored in default tests.
+
+## Next bounded implementation: evaluated primitive scene backend
+
+Implement a default-disabled, offscreen **experimental subset**, separate from
+production backend selection. Its purpose is to replace fixture-only geometry
+with the actual evaluated-scene input without hiding unsupported features.
+Nothing in this subsection is marked implemented.
+
+Files and interfaces:
+
+- Preserve `gpu::render_fixture` and packaged fixture report schema unchanged.
+  Add `crates/motion-render/src/gpu_scene.rs` behind `gpu`, with a reusable
+  `GpuSceneRenderer` owning device, target and bounded buffers. Proposed
+  `render(&EvaluatedScene, width, height, mouths, cancel) -> Result<gpu::Frame, Error>`
+  accepts already evaluated state and per-actor visemes. Do not introduce another
+  animation evaluator, document parser or sample clock.
+- Add an adapter-free validated primitive command builder in
+  `crates/motion-render/src/scene_commands.rs`, shared with the existing SVG
+  emission where practical. Preserve SVG output defaults and public render APIs.
+  It must handle letterboxing/canvas clipping, camera, ordered actors, root
+  transforms, authored skeleton points, face/visemes and whole-scene opacity.
+  Refactor in small reviewed changes; shader paths must not approximate silently
+  by dropping labels, facial details, strokes or unsupported art.
+- Add an explicit experimental `gpu_scene_probe` example accepting a local
+  script/scene/sample and selected backend. Use shared scene evaluation; emit PNG,
+  report and CPU reference only after successful bounded render/readback.
+  This first increment accepts no artwork and no sequence transitions; requests
+  with these features return a typed `UnsupportedFeature` before adapter/output
+  creation. Keep it out of production export/desktop selection until its own
+  coverage passes. CPU remains an explicit independently selected path.
+- Keep image/mask/blend semantics in `motion-art`, scene evaluation in
+  `motion-scene`, speech/sample placement in `motion-export`/`motion-voice`.
+  No dependency from `motion-render` back to `motion-export`.
+
+Acceptance for this increment:
+
+- [ ] Adapter-free command tests cover empty/background scene, letterboxing,
+  camera pan/zoom, root rotation/nonuniform scale, each viseme, skeleton offsets,
+  actor order and scene opacity. Validate finite inputs and all geometry budgets
+  before GPU initialization; malformed/unsupported requests leave output absent.
+- [ ] Preserve existing SVG regression behavior and fixtures in
+  `motion-render/src/lib.rs`; add shared-command tests proving exactly the same
+  evaluated scene/sample reaches both renderers. Include animated procedural
+  strengths and copied/retimed bone tracks through existing shared evaluation.
+- [ ] On an explicitly selected adapter, compare decoded GPU/CPU full images at
+  fixed samples, including transparent/stroke edges. First establish and document
+  color-space, alpha and antialiasing differences; report max/RMS channel error,
+  changed-pixel fraction and edge/interior results separately. Freeze justified
+  tolerance before declaring acceptance; do not raise it to hide missing geometry.
+- [ ] Output tightly packed top-left RGBA and decoded PNG with matching dimensions;
+  account for 256-byte readback row padding. Test odd widths, repeated renders,
+  changed dimensions, cancellation and adapter/init errors without CPU fallback.
+- [ ] Default CI never requests an adapter; optional feature fmt/check/strict Clippy
+  and adapter-free tests pass. Opt-in real-adapter tests retain backend/device,
+  exact commit, dimensions, samples, image hashes and validation errors.
+
+Resource contract for the first increment: retain explicit 64–2048 output bounds,
+32 MiB readback ceiling and 10-second cooperative initialization/readback deadline
+from the fixture. Preserve at most 256 actors and existing finite/coordinate
+validation; use checked arithmetic and reject geometry expansion above an explicit
+preallocated vertex/index budget. Proposed total host+GPU owned frame/geometry
+budget is 128 MiB (driver overhead excluded), one in-flight render/readback, no
+per-frame thread creation and no unbounded cache. Account for CPU reference/PNG
+buffers separately in the probe; no hidden full-resolution duplicates. Existing
+fixture target+readback+returned RGBA is about 48 MiB at 2048 square. Native driver
+calls cannot be forcibly interrupted; retain a child-process watchdog for device
+probes rather than claiming the cooperative deadline can kill a blocked driver.
+
+## Remaining full-scene parity gates
+
+These follow the primitive-scene increment; they are separate from its acceptance.
+
+- [ ] Add decoded original `motion_art::ImageResource` textures, background and
+  foreground `Plane` order, document order, visibility and half-open time ranges.
+  Keep camera/canvas clipping and complete-scene opacity identical to CPU output.
+- [ ] Add rectangle/ellipse/simple-polygon `ClipShape`, polygon limits and isolated
+  normal/multiply/screen `BlendMode` composition. Define linear versus sRGB color
+  conversion, premultiplied alpha at every boundary and offscreen layer ownership.
+  Scissor-only rectangular fixture clipping does not implement these masks.
+- [ ] Cover actual alpha-image edges, overlapping translucent strokes/images,
+  mask boundaries and backdrop-dependent multiply/screen pixels. Reuse
+  `preview_scene.rs::advanced_mask_blending_and_visibility_match_export`,
+  `sequence.rs::advanced_clips_and_backdrop_blends_are_real_raster_pixels`, and
+  `timed_art_is_composited_before_complete_frame_crossfade` as behavioral cases.
+- [ ] GPU sequence composition uses `SequenceTimeline` sample contributions from
+  `sequence.rs`, including exact cuts and crossfade overlap. Compose complete
+  incoming/outgoing scene targets before weighting; test pre-roll, boundaries,
+  random seek, repeated seek and prepared speech mouth samples. Preserve
+  `vector_sequence_raster_matches_png_cuts_crossfades_and_mask_namespaces` and
+  `preview_matches_export_pixels_and_scales_original_coordinates` CPU references.
+- [ ] Extend `ScenePreview`/`SequencePreview` and PNG/MP4 export through one explicit
+  backend option only after coverage. Keep CPU SVG vector export a distinct format.
+  Preview/export image comparison must use the same selected GPU backend and
+  original coordinates/sample clock. Surface unsupported/backend/device errors;
+  never call silent CPU fallback GPU success.
+- [ ] Preserve resource limits: `motion-art` has 1024 layers, 65,536 points/layer,
+  262,144 total points and 256 mask vertices; CPU renderer dimensions allow up to
+  8192, which the initial GPU subset intentionally rejects above 2048. Export
+  permits at most 10,000 frames and 256 MiB output, with 64 MiB sequence SVG-frame
+  ceiling. Retain existing preflight image-occurrence/vertex-work budgets and add
+  texture residency, isolated-layer targets and two-scene overlap to checked GPU
+  allocation totals. Supporting all 8192 dimensions needs a separate budget review.
+
+## Physical Metal and performance evidence (still open)
+
+- [ ] Run packaged explicit Metal fixture check on a physical supported Mac; retain
+  BUILD-INFO, package digest, commit, native architecture, macOS/chip, adapter,
+  report/raw RGBA hashes and validation evidence. Reject CPU/unknown/mismatched
+  adapters. See `docs/gpu-device-check.md`; CI builds/signatures are separate.
+- [ ] Run the experimental evaluated-scene comparisons on that same explicit Metal
+  path, retain CPU/GPU decoded images and metrics, then repeat the eventual full
+  masks/images/blending/transition corpus. Fixture success alone passes none of
+  the complete-scene/native-preview/export gates.
+- [ ] Exercise initialization failure, actual device loss and cancellation during
+  readback; verify repeated execution and resource cleanup. Mocked failure checks
+  supplement actual evidence and must be identified separately.
+- [ ] Measure cold/warm CPU and GPU wall time, GPU timestamps where supported,
+  peak memory and readback separately from PNG/FFmpeg encoding, using identical
+  scenes/samples/resolutions. Retain observations without presuming acceleration.
+
+This inspection executed no adapter, Metal device, visual quality or benchmark
+run. No new test execution is asserted by this planning document.
 
 ## Mac/Kokoro device acceptance
 

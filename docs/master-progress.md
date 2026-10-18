@@ -46,16 +46,13 @@ require actual evidence.
 
 | Workstream | Owner in this increment | Integration boundary |
 | --- | --- | --- |
-| Architecture/integration | Parent agent | Workspace, shared interfaces, final checks |
-| Compiler / project | Existing modules + parent | Validated script/schema integration |
-| Rigging/animation | `per_bone` + parent | Authored bone tracks, editor and shared evaluation |
-| Rendering | `preview_preflight` + parent | Geometric masks and verified backdrop blending |
-| Desktop UX/history | `sequence_revision` + parent | Unified document history and source/context guards |
-| Speech | `automatic_alignment` | Bounded estimated cues, exact-PCM import and shared sample clock |
-| GPU/audit | `license_audit` + parent | Optional offscreen fixture and evidence inventory |
-| Scheduling | Existing bounded frame/decode workers | Bounded execution and cancellation |
-| QA/release | Independent review + parent | Packaging tests, integrated checks |
-| Documentation | All owners + parent | This tracker and feature documentation |
+| Architecture/integration | Parent agent | Shared interfaces, ownership, review, progress and release synchronization |
+| GPU scene parity | `gpu_parity` | [GPU implementation/evidence plan](workstreams/gpu-release-gates.md); renderer subset, shared preview/export and device gates |
+| Automatic estimated-result reuse | `estimated_auto_reuse` | [Verified environment and cache plan](workstreams/estimated-auto-reuse.md); identity, fail-closed lookup and bounded worker |
+| Live clip blending | `live_clip_blending` | [Animation implementation plan](workstreams/animation.md); persistent instances, sampling, deterministic blend order and editor/history |
+| Physical Mac acceptance | `mac_acceptance` | [Mac acceptance plan](workstreams/mac-device-acceptance.md); real device, offline speech, Metal and synchronization evidence |
+| Final artifact license review | `final_license_audit` | [Release audit plan](workstreams/final-license-audit.md); exact shipping artifacts, notices and unresolved redistribution evidence |
+| QA and integration review | Parent + workstream owners | Applicable checks, evidence and cross-stream interface coordination |
 
 Owners describe responsibilities, not completed acceptance. Agent assignment is
 maintained by the parent; shared files are changed only by their assigned owner.
@@ -898,3 +895,22 @@ physical Mac or perceptual acceptance was performed. Full GPU parity, automatic
 fresh-engine estimated-result reuse, live custom-clip blending, arbitrary rigs
 and final third-party artifact/license clearance remain open.
 See [clip library](animation-clip-library.md).
+
+
+## Five open workstreams assigned (2026-10-18)
+
+- [x] Assign a separate agent to each of the five requested open workstreams.
+- [x] Inspect current implementations and record bounded next changes, interfaces,
+  acceptance tests and evidence blockers in the linked workstream documents.
+- [ ] Implement and verify full GPU scene/native parity.
+- [ ] Implement automatic estimated-result lookup with verified resources/environment.
+- [ ] Implement persistent live clip instances and deterministic authored-clip blending.
+- [ ] Collect and review physical Mac/device/offline/synchronization acceptance evidence.
+- [ ] Complete the final artifact-specific third-party license/redistribution review.
+
+This assignment increment changes documentation only. No renderer, inference,
+live blend evaluator or release approval is implemented by these plans. The
+parent owns shared schema/scene/desktop files and coordinates implementation
+before agents may edit overlapping production code. The existing user-reported
+M1 Kokoro speech evidence is retained; it does not close the remaining device
+gates. Plans and agent ownership are not completed product acceptance.
