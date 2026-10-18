@@ -271,10 +271,22 @@ impl State {
 }
 
 fn reference_counts(script: &Script, name: &str) -> (usize, usize) {
-    let counts: Vec<usize> = script.scenes.iter().map(|scene| {
-        scene.composition.clip_instances.iter().filter(|instance| instance.clip == name).count()
-    }).collect();
-    (counts.iter().filter(|count| **count > 0).count(), counts.iter().sum())
+    let counts: Vec<usize> = script
+        .scenes
+        .iter()
+        .map(|scene| {
+            scene
+                .composition
+                .clip_instances
+                .iter()
+                .filter(|instance| instance.clip == name)
+                .count()
+        })
+        .collect();
+    (
+        counts.iter().filter(|count| **count > 0).count(),
+        counts.iter().sum(),
+    )
 }
 
 /// Nonfinite drafts remain visible and invalid rather than silently becoming valid.
@@ -303,19 +315,42 @@ mod tests {
 
     #[test]
     fn live_references_are_counted_and_cannot_be_deleted_from_library() {
-        let captured = Action::Capture { name: "Nod".into(), replace: false }
-            .apply(SOURCE, 0, "A").unwrap();
-        let source = motion_script::upsert_clip_instance(&captured, 0, motion_script::ClipInstance {
-            id: "live".into(), clip: "Nod".into(), actor: "B".into(), at: 0.0, duration: 4.0, weight: 1.0,
-        }).unwrap();
+        let captured = Action::Capture {
+            name: "Nod".into(),
+            replace: false,
+        }
+        .apply(SOURCE, 0, "A")
+        .unwrap();
+        let source = motion_script::upsert_clip_instance(
+            &captured,
+            0,
+            motion_script::ClipInstance {
+                id: "live".into(),
+                clip: "Nod".into(),
+                actor: "B".into(),
+                at: 0.0,
+                duration: 4.0,
+                weight: 1.0,
+            },
+        )
+        .unwrap();
         let script = motion_script::parse(&source).unwrap();
         assert_eq!(reference_counts(&script, "Nod"), (1, 1));
         assert_eq!(reference_counts(&script, "Missing"), (0, 0));
-        assert!(Action::Remove { name: "Nod".into() }.apply(&source, 0, "A").is_err());
-        let mut state = State { selected: "Nod".into(), confirm_delete: true, context: Some((0, "A".into())), ..State::default() };
+        assert!(Action::Remove { name: "Nod".into() }
+            .apply(&source, 0, "A")
+            .is_err());
+        let mut state = State {
+            selected: "Nod".into(),
+            confirm_delete: true,
+            context: Some((0, "A".into())),
+            ..State::default()
+        };
         let ctx = egui::Context::default();
         let _ = ctx.run(egui::RawInput::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |ui| { assert!(state.ui(ui, &script, 0, "A").is_none()); });
+            egui::CentralPanel::default().show(ctx, |ui| {
+                assert!(state.ui(ui, &script, 0, "A").is_none());
+            });
         });
         assert!(!state.confirm_delete);
     }

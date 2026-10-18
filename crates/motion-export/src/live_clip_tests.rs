@@ -208,8 +208,7 @@ fn live_library_replacement_survives_project_roundtrip_without_mutating_copied_t
     assert_eq!(loaded.source, source);
     let before = motion_script::parse(&loaded.source).unwrap();
     let replacement =
-        motion_script::capture_animation_clip(&loaded.source, 0, "EMMA", "reach", true)
-            .unwrap();
+        motion_script::capture_animation_clip(&loaded.source, 0, "EMMA", "reach", true).unwrap();
     let after = motion_script::parse(&replacement).unwrap();
     assert_eq!(
         before.scenes[1].composition.bone_tracks,

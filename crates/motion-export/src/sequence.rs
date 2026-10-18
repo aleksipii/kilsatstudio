@@ -126,7 +126,14 @@ fn compose_svg(
     let mut entries = Vec::with_capacity(2);
     for (slot, c) in contributions.into_iter().enumerate() {
         check(cancel)?;
-        let svg = scene_svg(script, rendered, art, c.scene_index, c.local_sample, validated)?;
+        let svg = scene_svg(
+            script,
+            rendered,
+            art,
+            c.scene_index,
+            c.local_sample,
+            validated,
+        )?;
         if svg.len() > MAX_SVG_FRAME_BYTES {
             return Err(invalid("sequence SVG scene byte budget exceeded"));
         }

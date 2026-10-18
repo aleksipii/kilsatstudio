@@ -533,8 +533,10 @@ fn export_sequence(
                 "artwork exceeds 32 MiB encoded / 16 million decoded pixel budget",
             ));
         }
-        let pose =
-            prepared.validated.evaluate(scene_index, 0.0).map_err(|e| invalid(e.to_string()))?;
+        let pose = prepared
+            .validated
+            .evaluate(scene_index, 0.0)
+            .map_err(|e| invalid(e.to_string()))?;
         motion_render::render_svg_with_art(
             &pose,
             pose.width,
@@ -1078,7 +1080,13 @@ mod tests {
         let clip = motion_script::AnimationClip {
             duration: 1.0,
             bone_tracks: [
-                "hip", "chest", "head", "left_hand", "right_hand", "left_foot", "right_foot",
+                "hip",
+                "chest",
+                "head",
+                "left_hand",
+                "right_hand",
+                "left_foot",
+                "right_foot",
             ]
             .iter()
             .map(|bone| (bone.to_string(), vec![motion_script::ActorKey::default()]))

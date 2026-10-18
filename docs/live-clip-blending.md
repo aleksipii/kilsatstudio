@@ -9,7 +9,8 @@ and weight, then explicitly Apply. Existing instance IDs remain fixed while edit
 The ordered rows show the entire scene, including other actors. Select an actor
 to edit or move its rows. Up/Down changes the row's position in the complete
 scene list. Removing an instance needs confirmation and leaves its definition
-and independently copied tracks intact. Reset discards an unapplied draft.
+and independently copied tracks intact. Reset restores draft timing and weight
+without changing the instance ID or selected clip.
 Source/scene/actor changes discard drafts. Every source action supports unified
 Undo/Redo and `.kilsat` persistence; YAML formatting and comments are normalized
 as in the existing editors.

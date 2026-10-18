@@ -167,14 +167,22 @@ impl Track {
 /// Interpolate validated local authored offsets without constructing temporary tracks.
 /// Exact endpoints preserve their representation; interior angles use the same
 /// shortest arc (negative half-turn tie) as keyframe tracks.
-pub fn blend_humanoid_offset(a: Transform2, b: Transform2, weight: f64) -> Result<Transform2, Error> {
+pub fn blend_humanoid_offset(
+    a: Transform2,
+    b: Transform2,
+    weight: f64,
+) -> Result<Transform2, Error> {
     if !weight.is_finite() || !(0.0..=1.0).contains(&weight) {
         return Err(Error::InvalidWeight);
     }
     if !valid_humanoid_offset(a) || !valid_humanoid_offset(b) {
         return Err(Error::InvalidPose);
     }
-    let value = if weight == 0.0 { a } else if weight == 1.0 { b } else {
+    let value = if weight == 0.0 {
+        a
+    } else if weight == 1.0 {
+        b
+    } else {
         interpolate_transform(a, b, weight)
     };
     if !valid_humanoid_offset(value) {
@@ -186,18 +194,15 @@ pub fn blend_humanoid_offset(a: Transform2, b: Transform2, weight: f64) -> Resul
 fn interpolate_transform(a: Transform2, b: Transform2, t: f64) -> Transform2 {
     let lerp = |a: f64, b: f64| a + (b - a) * t;
     let rotation_delta = (b.rotation - a.rotation + std::f64::consts::PI)
-            .rem_euclid(std::f64::consts::TAU)
-            - std::f64::consts::PI;
+        .rem_euclid(std::f64::consts::TAU)
+        - std::f64::consts::PI;
     Transform2 {
-            translation: Vec2::new(
-                lerp(a.translation.x, b.translation.x),
-                lerp(a.translation.y, b.translation.y),
-            ),
-            rotation: (a.rotation + rotation_delta * t).rem_euclid(std::f64::consts::TAU),
-            scale: Vec2::new(
-                lerp(a.scale.x, b.scale.x),
-                lerp(a.scale.y, b.scale.y),
-            ),
+        translation: Vec2::new(
+            lerp(a.translation.x, b.translation.x),
+            lerp(a.translation.y, b.translation.y),
+        ),
+        rotation: (a.rotation + rotation_delta * t).rem_euclid(std::f64::consts::TAU),
+        scale: Vec2::new(lerp(a.scale.x, b.scale.x), lerp(a.scale.y, b.scale.y)),
     }
 }
 /// Local skeleton points with neutral posture. Walk phase is elapsed seconds
@@ -371,30 +376,63 @@ mod offset_blend_tests {
     use super::*;
     #[test]
     fn offsets_blend_independent_components_endpoints_and_rotation() {
-        let a = Transform2 { translation: Vec2::new(10.0, -20.0), rotation: 170f64.to_radians(), scale: Vec2::new(0.5, 2.0) };
-        let b = Transform2 { translation: Vec2::new(30.0, 40.0), rotation: (-170f64).to_radians(), scale: Vec2::new(2.5, 4.0) };
-        assert_eq!(blend_humanoid_offset(a,b,0.0).unwrap(), a);
-        assert_eq!(blend_humanoid_offset(a,b,1.0).unwrap(), b);
-        let mid = blend_humanoid_offset(a,b,0.5).unwrap();
-        assert_eq!(mid.translation, Vec2::new(20.0,10.0));
-        assert_eq!(mid.scale, Vec2::new(1.5,3.0));
-        assert!((mid.rotation-std::f64::consts::PI).abs()<1e-12);
-        let half = blend_humanoid_offset(Transform2::default(), Transform2 {rotation: std::f64::consts::PI, ..Default::default()}, 0.5).unwrap();
-        assert!((half.rotation-1.5*std::f64::consts::PI).abs()<1e-12);
+        let a = Transform2 {
+            translation: Vec2::new(10.0, -20.0),
+            rotation: 170f64.to_radians(),
+            scale: Vec2::new(0.5, 2.0),
+        };
+        let b = Transform2 {
+            translation: Vec2::new(30.0, 40.0),
+            rotation: (-170f64).to_radians(),
+            scale: Vec2::new(2.5, 4.0),
+        };
+        assert_eq!(blend_humanoid_offset(a, b, 0.0).unwrap(), a);
+        assert_eq!(blend_humanoid_offset(a, b, 1.0).unwrap(), b);
+        let mid = blend_humanoid_offset(a, b, 0.5).unwrap();
+        assert_eq!(mid.translation, Vec2::new(20.0, 10.0));
+        assert_eq!(mid.scale, Vec2::new(1.5, 3.0));
+        assert!((mid.rotation - std::f64::consts::PI).abs() < 1e-12);
+        let half = blend_humanoid_offset(
+            Transform2::default(),
+            Transform2 {
+                rotation: std::f64::consts::PI,
+                ..Default::default()
+            },
+            0.5,
+        )
+        .unwrap();
+        assert!((half.rotation - 1.5 * std::f64::consts::PI).abs() < 1e-12);
     }
     #[test]
     fn offsets_validate_extreme_angles_and_weights_without_clamping() {
-        let a = Transform2 { rotation: 1000.0, ..Default::default() };
-        let b = Transform2 { rotation: -1000.0, ..Default::default() };
-        let mid = blend_humanoid_offset(a,b,0.5).unwrap();
+        let a = Transform2 {
+            rotation: 1000.0,
+            ..Default::default()
+        };
+        let b = Transform2 {
+            rotation: -1000.0,
+            ..Default::default()
+        };
+        let mid = blend_humanoid_offset(a, b, 0.5).unwrap();
         assert!(valid_humanoid_offset(mid));
-        let delta = (b.rotation-a.rotation+std::f64::consts::PI).rem_euclid(std::f64::consts::TAU)-std::f64::consts::PI;
-        let expected = a.rotation+delta*0.5;
-        assert!((mid.rotation.sin()-expected.sin()).abs()<1e-12);
-        for weight in [f64::NAN, f64::INFINITY,-0.1,1.1] {
-            assert_eq!(blend_humanoid_offset(a,b,weight), Err(Error::InvalidWeight));
+        let delta = (b.rotation - a.rotation + std::f64::consts::PI)
+            .rem_euclid(std::f64::consts::TAU)
+            - std::f64::consts::PI;
+        let expected = a.rotation + delta * 0.5;
+        assert!((mid.rotation.sin() - expected.sin()).abs() < 1e-12);
+        for weight in [f64::NAN, f64::INFINITY, -0.1, 1.1] {
+            assert_eq!(
+                blend_humanoid_offset(a, b, weight),
+                Err(Error::InvalidWeight)
+            );
         }
-        let invalid = Transform2 {rotation:1001.0,..Default::default()};
-        assert_eq!(blend_humanoid_offset(invalid,b,0.0), Err(Error::InvalidPose));
+        let invalid = Transform2 {
+            rotation: 1001.0,
+            ..Default::default()
+        };
+        assert_eq!(
+            blend_humanoid_offset(invalid, b, 0.0),
+            Err(Error::InvalidPose)
+        );
     }
 }
