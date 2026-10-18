@@ -79,9 +79,14 @@ jobs:
                   if archive.read(root + helper) != source:
                       raise SystemExit(f'Packaged {helper} differs from source')
           PY
+      - name: Inventory final signed ZIP (not license approval)
+        run: |
+          python3 scripts/package_audit.py --archive dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --target aarch64-apple-darwin --profile debug --require-signature-metadata --output dist/Kilsat-Studio-Preview-arm64.audit.json
       - uses: actions/upload-artifact@v4
         with:
           name: Kilsat-Studio-Preview-arm64
-          path: dist/Kilsat-Studio-Preview-arm64.zip
+          path: |
+            dist/Kilsat-Studio-Preview-arm64.zip
+            dist/Kilsat-Studio-Preview-arm64.audit.json
           if-no-files-found: error
           retention-days: 14
