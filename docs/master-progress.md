@@ -9,8 +9,9 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #33 merged as `504166d85daa15e88f937a777a17123162df5e8a` after its final
-Linux/macOS CI passed. PR #32 merged earlier as
+PR #34 merged as `f89c59b8113b3b578c82fe648850615e704fdaf0` after its final
+Linux/macOS CI passed. PR #33 merged earlier as
+`504166d85daa15e88f937a777a17123162df5e8a`; PR #32 as
 `f2e7b79f23968ac3b32637680ff2c48ac7f43453`; PR #31 as
 `82f1b3116f6d8647e20076b0e2803f2fd2adedba`; PR #30 as
 `de41228c0b68daece521cef1406361b21df0c3a6`. The release branch
@@ -30,7 +31,7 @@ and final redistribution clearance remain open.
 | Persisted per-bone tracks/editor, shared preview/export and additive rule layering | Custom rig authoring, textures/deformation and artist clip blending |
 | Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
-| Managed Kokoro, bound cache, reported M1 speech and opt-in estimated Rhubarb cues | Offline/device acceptance, estimated-cue cache and measured recognizer quality |
+| Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional GPU fixture and dependency inventory | Full GPU scene parity, physical Metal/performance and final license clearance |
 
 Maintain this summary and the full checklist after each authorized merge. A new
@@ -183,7 +184,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Exact-PCM/transcript/provider/config/manual-edit alignment cache with atomic writes and headless import workflow.
 - [x] Exact-PCM/current-text bound alignment envelopes and shared line/scene desktop cache integration.
 - [x] Native explicit estimated-aligner execution controls (PR #31).
-- [ ] Estimated-cue cache.
+- [x] Explicit saved estimated-cue cache and native exact-PCM/text reload (PR #34).
+- [ ] Automatic engine-result cache lookup with verified resources/environment.
 - [x] Estimated cues preserve separate provenance and integer-sample trim/offset evaluation in preview/export.
 - [ ] Validated forced-aligner integration and editable timing tools.
 - [ ] Annotated real-audio corpus and measured timing error.
@@ -662,25 +664,6 @@ always leaves production acceptance `not_granted`. Full GPU scene parity,
 physical Mac acceptance and final artifact-specific license clearance remain open.
 See [estimated mouth-shape evidence](viseme-quality.md).
 
-## Selected estimated-cue cache (2026-10-18, pending integration)
-
-- [ ] Integrate immutable saved estimated results selected by a full-content key,
-  exact PCM/text validation and preserved original tool/recognizer provenance.
-- [ ] Integrate best-effort save after explicit Estimate, explicit Load cached
-  timing and separate Apply on the existing bounded native worker.
-- [ ] Validate corruption/bounds/schema, concurrent publication, owned cleanup,
-  no-engine load and stale/mismatched prepared audio/text.
-- [ ] Final Linux/macOS CI, independent review and merge.
-- [ ] Automatic fresh-engine memoization with verified external resource identity.
-- [ ] Project timing persistence, real corpus quality and physical Mac synchronization.
-
-This increment is explicit selected-result reuse. It does not infer the current
-recognizer environment from a binary hash or automatically substitute past cues
-for a new execution. The source is awaiting Rust formatting/build/tests in CI;
-no local Rust toolchain is available. Full GPU parity, advanced artist tools,
-physical acceptance and final license clearance remain open.
-See [saved estimated timing](estimated-cue-cache.md).
-
 ## Whole-project SVG sequence export (PR #33, merged 2026-10-18)
 
 - [x] Integrate vector SVG/WAV sequence export with cuts/crossfades, namespaced
@@ -714,3 +697,37 @@ corrects two stale unchecked items already completed in PR #31:
 selected advanced CPU frames and explicit native estimated-aligner controls.
 Estimated-cue caching, full-scene GPU parity, real corpus quality, physical Mac
 acceptance and final artifact-specific license clearance remain open.
+
+## Selected estimated-cue cache (PR #34, merged 2026-10-18)
+
+- [x] Integrate immutable saved estimated results selected by a full-content key,
+  exact PCM/text validation and preserved original tool/recognizer provenance.
+- [x] Integrate best-effort save after explicit Estimate, explicit Load cached
+  timing and separate Apply on the existing bounded native worker.
+- [x] Validate corruption/bounds/schema, concurrent publication, owned cleanup,
+  no-engine load and stale/mismatched prepared audio/text.
+- [x] Final Linux/macOS CI, independent review and merge.
+- [ ] Automatic fresh-engine memoization with verified external resource identity.
+- [ ] Project timing persistence, real corpus quality and physical Mac synchronization.
+
+This increment is explicit selected-result reuse. It does not infer the current
+recognizer environment from a binary hash or automatically substitute past cues
+for a new execution. Final head `f5fc7d7334332fdc02218e7817bd170101a7ed75`
+passed Audio foundation 39083898741 and Apple Silicon preview 39083898740:
+Linux/macOS formatting, workspace check, strict Clippy, 345 default Rust tests,
+14 adapter-free GPU tests/feature Clippy, 55 runtime plus 26 inventory/packaging
+Python tests, three actual encoder tests and arm64 package/signature checks.
+Rust checks ran in CI because no local toolchain was available. Independent
+review found no blocker; same-frame settings/action handling was corrected.
+Synthetic workflow tests save a result, remove the stub executable and WAV,
+reload the selected entry and reject changed PCM/text. Save failures retain
+usable timing with an explicit warning. Corrupt existing entries are preserved;
+concurrent identical publication and owned staging cleanup have regressions.
+The original result provenance is retained and no engine executes on Load.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39083898740/artifacts/12119862185
+SHA256: `5423e84b9cabc704d5bdf6e91271483f294c235ace22b0d03cc4f7cf219bb3d1`.
+This post-merge record changes no implementation. No real recognizer/model,
+GPU-device or physical Mac acceptance was performed. Full GPU parity, advanced
+artist tools, automatic engine memoization, physical acceptance and final license
+clearance remain open.
+See [saved estimated timing](estimated-cue-cache.md).
