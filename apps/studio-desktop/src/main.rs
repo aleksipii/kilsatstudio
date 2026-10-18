@@ -5820,6 +5820,55 @@ mod clip_library_integration_tests {
     }
 
     #[test]
+    fn retimed_library_apply_is_one_saved_undoable_edit() {
+        let mut studio = studio();
+        studio.source = SOURCE.replace(
+            "[{at: 0, x: 12}]",
+            "[{at: 0, x: 0}, {at: 1, x: 12, easing: smoothstep}]",
+        );
+        studio.validate();
+        let initial = studio.source.clone();
+        studio.apply_library_action(
+            clip_library::Action::Capture {
+                name: "nod".into(),
+                replace: false,
+            },
+            &initial,
+            0,
+            "A",
+        );
+        let captured = studio.source.clone();
+        let library = studio.script.as_ref().unwrap().animation_clips.clone();
+        studio.selected_actor = Some("B".into());
+        studio.apply_library_action(
+            clip_library::Action::ApplyRetimed {
+                name: "nod".into(),
+                at: 0.25,
+                duration: 0.5,
+            },
+            &captured,
+            0,
+            "B",
+        );
+        let edited = studio.source.clone();
+        assert_ne!(edited, captured);
+        let script = studio.script.as_ref().unwrap();
+        assert_eq!(script.animation_clips, library);
+        let keys = &script.scenes[0].composition.bone_tracks["B"]["head"];
+        assert_eq!((keys[0].at, keys[1].at), (0.25, 0.75));
+        assert_eq!((keys[0].x, keys[1].x), (0.0, 12.0));
+        assert_eq!(keys[1].easing, motion_script::ActorEasing::Smoothstep);
+        assert_eq!(studio.selected_actor.as_deref(), Some("B"));
+        let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
+        let restored = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        assert_eq!(restored.source, edited);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, captured);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+    }
+
+    #[test]
     fn library_actions_reject_stale_or_busy_context_without_source_changes() {
         for context in 0..7 {
             let mut studio = studio();

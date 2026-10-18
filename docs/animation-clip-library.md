@@ -11,9 +11,28 @@ select the target actor and scene, confirm **Replace all bone tracks**, then
 click **Apply selected bone clip**. This replaces every authored bone track on
 the target, including removing target tracks not present in the clip. Other
 actors, root movement, procedural strengths, facial animation, speech, camera
-and artwork remain unchanged. Key times and easing are copied unchanged;
-there is no automatic retiming. The target scene must be at least as long as
-the captured source scene.
+and artwork remain unchanged. By default, key times and easing are copied
+unchanged and the target scene must be at least as long as the source scene.
+Explicit retiming is described below.
+
+## Explicit start time and duration
+
+Enable **Scale and offset copied key times**, then enter the start time and
+positive duration in scene seconds. Confirm target replacement after editing
+those values and Apply. All keys are mapped with
+`new_time = start + (old_time / clip_duration) * duration`; transform values and
+outgoing easing remain unchanged. For example, a two-second clip applied at
+three seconds with duration one maps keys at 0, 1 and 2 to 3, 3.5 and 4 seconds.
+The stored library clip remains unchanged. Compression can fit a longer source
+clip into a shorter target scene.
+
+Start must be finite and nonnegative, duration finite and positive, and their
+sum must fit inside the scene. If floating-point precision would collapse two
+keys onto one time, the edit fails atomically. There is no silent clamping,
+trimming or sorting. The operation still replaces all target bone tracks.
+These are copied keyframes, not a live clip window: ordinary bone-track
+sampling holds the first/last key outside its range. Retiming does not activate
+or deactivate a pose at the chosen bounds, and does not shift speech or events.
 
 The clip is copied into editable scene tracks, not linked. Further per-bone
 editing, replacing the library entry or deleting it will not change previous
@@ -50,6 +69,6 @@ validation. Existing projects without `animation_clips` use an empty library.
 
 Tests compare copied tracks with independent expected SVG/PNG output, shared
 sample-clock preview, repeated/backwards seeking and project round trips.
-Arbitrary rigs, textured parts, live clip instances, clip retiming, layering of
+Arbitrary rigs, textured parts, live clip instances, layered retiming, blending of
 multiple custom clips and cross-project library exchange remain open. No GPU,
 physical Mac or perceptual motion-quality acceptance is established by fixtures.

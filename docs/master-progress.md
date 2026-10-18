@@ -854,3 +854,23 @@ offsets into the existing shared evaluator; live instances/blending/retiming,
 custom/textured rigs, full GPU parity, automatic fresh-engine estimated reuse,
 physical acceptance and final third-party licenses remain open.
 See [clip library](animation-clip-library.md).
+
+
+## Explicit authored clip retiming (2026-10-18, pending integration)
+
+- [ ] Integrate atomic start/duration mapping of copied authored bone keys,
+  finite scene bounds, preserved transforms/easing and precision-collapse rejection.
+- [ ] Integrate opt-in native retiming controls, explicit target replacement,
+  detached invalid values and confirmation resets after option changes.
+- [ ] Validate saved source, one-edit Undo/Redo, unchanged library data and
+  actual SVG/PNG/sample-clock preview against independently retimed tracks.
+- [ ] Final Linux/macOS CI, independent review and merge.
+- [ ] Live clip instances, arbitrary clip blending, cross-project exchange,
+  custom/textured rigs and physical motion acceptance.
+- [ ] Full GPU parity, automatic fresh-engine estimated-result reuse and final
+  third-party artifact/license clearance.
+
+Implementation is pending CI. Local Rust tooling is unavailable. Retiming copies
+keys into existing scene tracks; endpoint holding remains normal bone-track
+behavior rather than introducing a live activation window. No hardware or
+perceptual acceptance is implied. See [clip library](animation-clip-library.md).

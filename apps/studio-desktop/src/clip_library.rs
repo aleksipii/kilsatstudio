@@ -4,9 +4,21 @@ use motion_script::Script;
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
-    Capture { name: String, replace: bool },
-    Apply { name: String },
-    Remove { name: String },
+    Capture {
+        name: String,
+        replace: bool,
+    },
+    Apply {
+        name: String,
+    },
+    ApplyRetimed {
+        name: String,
+        at: f64,
+        duration: f64,
+    },
+    Remove {
+        name: String,
+    },
 }
 
 impl Action {
@@ -23,6 +35,16 @@ impl Action {
             Self::Apply { name } => {
                 motion_script::apply_animation_clip(source, scene_index, actor, &name)
             }
+            Self::ApplyRetimed { name, at, duration } => {
+                motion_script::apply_animation_clip_retimed(
+                    source,
+                    scene_index,
+                    actor,
+                    &name,
+                    at,
+                    duration,
+                )
+            }
             Self::Remove { name } => motion_script::remove_animation_clip(source, &name),
         }
     }
@@ -36,6 +58,9 @@ pub struct State {
     replace_target: bool,
     confirm_delete: bool,
     context: Option<(usize, String)>,
+    retime: bool,
+    at: f64,
+    duration: f64,
 }
 
 impl State {
@@ -52,10 +77,16 @@ impl State {
             self.replace_capture = false;
             self.replace_target = false;
             self.confirm_delete = false;
+            self.retime = false;
+            self.at = 0.0;
+            self.duration = script
+                .animation_clips
+                .get(&self.selected)
+                .map_or(0.0, |clip| clip.duration);
             self.context = Some(context);
         }
         ui.small("Project-local clips contain authored bone tracks. Root movement, procedural strengths, speech and facial animation are not copied.");
-        ui.small("Applying replaces ALL target actor bone tracks. Key times stay unchanged; clips are not retimed. Apply supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Applying replaces ALL target actor bone tracks. Key times stay unchanged unless retiming is enabled. Apply supports Undo. YAML formatting is normalized and comments are removed.");
         let scene = script.scenes.get(scene_index);
         let valid_target = scene.is_some() && script.characters.contains_key(actor);
         let has_tracks = scene
@@ -113,6 +144,12 @@ impl State {
                 }
             });
         if previous != self.selected {
+            self.retime = false;
+            self.at = 0.0;
+            self.duration = script
+                .animation_clips
+                .get(&self.selected)
+                .map_or(0.0, |clip| clip.duration);
             self.replace_target = false;
             self.confirm_delete = false;
         }
@@ -123,11 +160,51 @@ impl State {
                 clip.duration,
                 clip.bone_tracks.len()
             ));
-            let fits = scene.is_some_and(|scene| clip.duration <= scene.duration);
+            if ui
+                .checkbox(&mut self.retime, "Scale and offset copied key times")
+                .changed()
+            {
+                self.replace_target = false;
+            }
+            if self.retime {
+                ui.small("Copied tracks are independent. Bone tracks hold their endpoint poses before and after their keys; this does not create a live clip window or mix clips.");
+                ui.horizontal(|ui| {
+                    ui.label("Start (seconds)");
+                    if time_field(ui, &mut self.at) {
+                        self.replace_target = false;
+                    }
+                    ui.label("Duration (seconds)");
+                    if time_field(ui, &mut self.duration) {
+                        self.replace_target = false;
+                    }
+                });
+                if ui.button("Reset copied key timing").clicked() {
+                    self.at = 0.0;
+                    self.duration = clip.duration;
+                    self.replace_target = false;
+                }
+            }
+            let fits = scene.is_some_and(|scene| {
+                if self.retime {
+                    self.at.is_finite()
+                        && self.at >= 0.0
+                        && self.duration.is_finite()
+                        && self.duration > 0.0
+                        && (self.at + self.duration).is_finite()
+                        && self.at + self.duration > self.at
+                        && self.at + self.duration <= scene.duration
+                } else {
+                    clip.duration <= scene.duration
+                }
+            });
             if !fits {
                 ui.colored_label(
                     egui::Color32::LIGHT_RED,
-                    "The selected clip is longer than this scene; choose a longer target scene.",
+                    if self.retime {
+                        "Start must be finite and nonnegative; duration must be positive and the end must fit this scene."
+                    } else {
+                        "The selected clip is longer than this scene; enable retiming to compress it or choose a longer target scene."
+                    },
                 );
             }
             ui.checkbox(
@@ -141,8 +218,16 @@ impl State {
                 )
                 .clicked()
             {
-                action = Some(Action::Apply {
-                    name: self.selected.clone(),
+                action = Some(if self.retime {
+                    Action::ApplyRetimed {
+                        name: self.selected.clone(),
+                        at: self.at,
+                        duration: self.duration,
+                    }
+                } else {
+                    Action::Apply {
+                        name: self.selected.clone(),
+                    }
                 });
                 self.replace_target = false;
             }
@@ -171,6 +256,24 @@ impl State {
     }
 }
 
+/// Nonfinite drafts remain visible and invalid rather than silently becoming valid.
+fn time_field(ui: &mut egui::Ui, value: &mut f64) -> bool {
+    if !value.is_finite() {
+        ui.colored_label(egui::Color32::LIGHT_RED, value.to_string());
+        return false;
+    }
+    let mut edited = *value;
+    if ui
+        .add(egui::DragValue::new(&mut edited).speed(0.05))
+        .changed()
+    {
+        *value = edited;
+        true
+    } else {
+        false
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -194,6 +297,9 @@ mod tests {
             replace_target: true,
             confirm_delete: true,
             context: Some((0, "A".into())),
+            retime: true,
+            at: 1.0,
+            duration: 2.0,
         };
         let ctx = egui::Context::default();
         let _ = ctx.run(egui::RawInput::default(), |ctx| {
@@ -202,6 +308,9 @@ mod tests {
             });
         });
         assert_eq!(state.name, "Draft name");
+        assert!(!state.retime);
+        assert_eq!(state.at, 0.0);
+        assert_eq!(state.duration, 4.0);
         assert!(!state.replace_capture && !state.replace_target && !state.confirm_delete);
         assert_eq!(serde_json::to_value(&script).unwrap(), before);
     }
@@ -234,5 +343,74 @@ mod tests {
         }
         .apply(&captured, 0, "A")
         .is_err());
+    }
+
+    #[test]
+    fn retimed_action_maps_key_times_and_rejects_invalid_drafts() {
+        let captured = Action::Capture {
+            name: "Nod".into(),
+            replace: false,
+        }
+        .apply(SOURCE, 0, "A")
+        .unwrap();
+        let applied = Action::ApplyRetimed {
+            name: "Nod".into(),
+            at: 1.0,
+            duration: 2.0,
+        }
+        .apply(&captured, 0, "B")
+        .unwrap();
+        let script = motion_script::parse(&applied).unwrap();
+        let keys = &script.scenes[0].composition.bone_tracks["B"]["head"];
+        assert_eq!(keys[0].at, 1.0);
+        assert_eq!(keys[1].at, 2.0);
+        for (at, duration) in [
+            (f64::NAN, 2.0),
+            (0.0, f64::INFINITY),
+            (-1.0, 2.0),
+            (0.0, 0.0),
+            (3.0, 2.0),
+        ] {
+            assert!(Action::ApplyRetimed {
+                name: "Nod".into(),
+                at,
+                duration,
+            }
+            .apply(&captured, 0, "B")
+            .is_err());
+        }
+    }
+
+    #[test]
+    fn painting_preserves_nonfinite_retiming_drafts_without_applying() {
+        let captured = Action::Capture {
+            name: "Nod".into(),
+            replace: false,
+        }
+        .apply(SOURCE, 0, "A")
+        .unwrap();
+        let script = motion_script::parse(&captured).unwrap();
+        let mut state = State {
+            selected: "Nod".into(),
+            retime: true,
+            at: f64::NAN,
+            duration: f64::INFINITY,
+            replace_target: true,
+            context: Some((0, "B".into())),
+            ..State::default()
+        };
+        let ctx = egui::Context::default();
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                assert!(state.ui(ui, &script, 0, "B").is_none());
+            });
+        });
+        assert!(state.at.is_nan());
+        assert_eq!(state.duration, f64::INFINITY);
+        assert!(state.retime);
+        assert_eq!(
+            motion_script::parse(&captured).unwrap().scenes[0].composition,
+            script.scenes[0].composition
+        );
     }
 }
