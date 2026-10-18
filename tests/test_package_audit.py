@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import plistlib
 import stat
+import struct
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -267,6 +268,27 @@ class PackageAuditTests(unittest.TestCase):
 
     def test_malformed_zip_yields_invalid_report(self):
         self.archive.write_bytes(b'not a zip')
+        self.assert_invalid(self.collect())
+
+    def test_malformed_xml_plist_returns_invalid_report_instead_of_raising(self):
+        self.stage()
+        self.write_zip(replacements={APP + '/Contents/Info.plist':
+                                     b'<?xml version="1.0"?><plist><dict><key>broken</dict>'})
+        self.assert_invalid(self.collect())
+
+    def test_corrupt_deflate_payload_returns_invalid_report_instead_of_raising(self):
+        self.stage()
+        self.write_zip()
+        with zipfile.ZipFile(self.archive) as archive:
+            member = archive.getinfo('LICENSE')
+            self.assertEqual(member.compress_type, zipfile.ZIP_DEFLATED)
+            offset = member.header_offset
+        raw = bytearray(self.archive.read_bytes())
+        name_length, extra_length = struct.unpack_from('<HH', raw, offset + 26)
+        payload_offset = offset + 30 + name_length + extra_length
+        # BTYPE=3 is reserved by DEFLATE: fail decompression before CRC validation.
+        raw[payload_offset] = (raw[payload_offset] & ~7) | 7
+        self.archive.write_bytes(raw)
         self.assert_invalid(self.collect())
 
     def test_atomic_report_and_cli_collection_strict_and_invalid_exits(self):

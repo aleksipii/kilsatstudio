@@ -17,6 +17,8 @@ import struct
 import sys
 import tempfile
 import zipfile
+import zlib
+from xml.parsers.expat import ExpatError
 
 MAX_ARCHIVE_BYTES = 128 * 1024 * 1024
 MAX_MEMBER_BYTES = 128 * 1024 * 1024
@@ -259,7 +261,8 @@ def audit_package(archive, repo, commit, target, profile):
         report['gpu_helper_present'] = HELPER in observed
         report['signature_metadata_present'] = SIGNATURE in observed
     except (OSError, ValueError, RuntimeError, zipfile.BadZipFile, EOFError,
-            NotImplementedError, plistlib.InvalidFileException) as exc:
+            NotImplementedError, plistlib.InvalidFileException, ExpatError,
+            zlib.error, struct.error) as exc:
         errors.append(str(exc))
     report['files'].sort(key=lambda row: row['path'])
     report['errors'] = sorted(set(errors))
