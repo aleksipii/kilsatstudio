@@ -872,7 +872,7 @@ mod tests {
                 },
             });
         }
-        let per_image = ((art.images["pixel"].png().len() as u64 + 2) / 3) * 4 + 256;
+        let per_image = (art.images["pixel"].png().len() as u64).div_ceil(3) * 4 + 256;
         assert!(embedded_image_budget(&art, per_image * 499).is_err());
         assert_eq!(
             embedded_image_budget(&art, per_image * 500).unwrap(),
