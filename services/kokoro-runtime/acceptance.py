@@ -38,6 +38,17 @@ def intervals(document, audio_hash, duration, role):
     return rows
 
 
+def validate_review(review, fingerprint):
+    if type(review.get('schema_version')) is not int or review['schema_version'] != 1 or review.get('audio_sha256') != fingerprint:
+        raise ValueError('human review must bind schema version 1 to the exact WAV hash')
+    for field in ('reviewer', 'reviewed_at', 'device', 'notes'):
+        if not isinstance(review.get(field), str) or not review[field].strip():
+            raise ValueError(f'human review requires nonempty {field}')
+    for field in ('listening', 'device_playback', 'animation_sync'):
+        if review.get(field) not in ('pass', 'fail', 'not_tested'):
+            raise ValueError(f'human review requires explicit {field}: pass/fail/not_tested')
+
+
 def evaluate(wav, smoke, reference, candidate, review):
     fingerprint = sha256(wav)
     if type(smoke.get('schema_version')) is not int or smoke['schema_version'] != 1 or smoke.get('output_sha256') != fingerprint:
@@ -58,14 +69,7 @@ def evaluate(wav, smoke, reference, candidate, review):
     errors = sorted(abs(a[key] - b[key]) for a, b in zip(ref, cand) for key in ('start', 'end'))
     metrics = dict(boundaries=len(errors), mean_ms=1000 * sum(errors) / len(errors),
                    max_ms=1000 * errors[-1], p95_ms=1000 * errors[math.ceil(.95 * len(errors)) - 1])
-    if type(review.get('schema_version')) is not int or review['schema_version'] != 1 or review.get('audio_sha256') != fingerprint:
-        raise ValueError('human review must bind schema version 1 to the exact WAV hash')
-    for field in ('reviewer', 'reviewed_at', 'device', 'notes'):
-        if not isinstance(review.get(field), str) or not review[field].strip():
-            raise ValueError(f'human review requires nonempty {field}')
-    for field in ('listening', 'device_playback', 'animation_sync'):
-        if review.get(field) not in ('pass', 'fail', 'not_tested'):
-            raise ValueError(f'human review requires explicit {field}: pass/fail/not_tested')
+    validate_review(review, fingerprint)
     return dict(schema_version=1, audio_sha256=fingerprint, audio=measured, provenance=origin,
                 mac_arm64_recording=(kind == 'recorded_local_model' and origin.get('system') == 'Darwin'
                                      and origin.get('architecture') == 'arm64'),

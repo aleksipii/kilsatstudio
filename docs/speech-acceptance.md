@@ -1,5 +1,9 @@
 # Offline speech evidence and human acceptance
 
+For native Rhubarb estimated mouth shapes, use the separate
+[mouth-shape evaluator](viseme-quality.md). The phoneme procedure below requires
+matching ordered phoneme labels and must not be used to relabel Rhubarb shapes.
+
 - [x] Opt-in local-model macOS smoke runner and immutable output evidence.
 - [x] Corpus text, language, speed and identifier recorded with smoke evidence.
 - [x] Offline WAV hash/measurement checks and manual-reference boundary comparison.

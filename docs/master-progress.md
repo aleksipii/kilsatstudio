@@ -1,7 +1,7 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-16. A checked item identifies integrated, inspected implementation, not a
+2026-10-18. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
@@ -627,3 +627,22 @@ This post-merge edit records evidence only and changes no implementation.
 No real engine, speech inference or GPU hardware execution is claimed here.
 See [native compositor](native-compositor.md), [native alignment](native-alignment.md),
 [Metal device check](gpu-device-check.md) and [retained provenance](license-provenance.md).
+
+## Estimated mouth-shape quality tooling (2026-10-18, pending integration)
+
+- [ ] Integrate offline Rhubarb mouth-shape comparison against manual sample-based
+  references, with whole-recording and active-union agreement, exact confusion
+  counts and boundary errors only for matching collapsed shape sequences.
+- [ ] Integrate exact WAV/decoded-PCM/current-text evidence binding, bounded input
+  snapshots, exclusive report publication and shared Rust/Python PCM golden vector.
+- [ ] Complete final CI, independent review and merge for this increment.
+- [ ] Run representative real Rhubarb corpus and review audible/visible timing;
+  establish reviewed targets and physical Mac synchronization evidence.
+
+Local validation: 55 runtime tests (44 existing, 11 new) and 26 inventory/packaging
+tests passed. No local Rust toolchain is available in this restored workspace;
+the new Rust golden-vector regression and workspace checks require CI. These
+tests use synthetic audio; no recognizer, model or GPU was executed. The evaluator
+always leaves production acceptance `not_granted`. Full GPU scene parity,
+physical Mac acceptance and final artifact-specific license clearance remain open.
+See [estimated mouth-shape evidence](viseme-quality.md).

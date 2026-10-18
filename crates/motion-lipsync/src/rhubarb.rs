@@ -524,6 +524,22 @@ pub fn align(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pcm_identity_matches_offline_quality_evidence_golden_vector() {
+        // Shared with the Python evidence reader, including signed PCM16 extrema.
+        let audio = motion_audio::AudioBuffer {
+            sample_rate: 24000,
+            channels: 1,
+            samples: [-32768_i32, -1, 0, 1, 32767]
+                .into_iter()
+                .map(|sample| sample as f32 / 32768.0)
+                .collect(),
+        };
+        assert_eq!(
+            pcm_identity(&audio).unwrap(),
+            "161dcb72c4cbb1b6ba7ce5a0520fdb05d1446c8f84a4246fc24f03504984a855"
+        );
+    }
     fn raw(duration: f64, cues: serde_json::Value) -> Vec<u8> {
         serde_json::to_vec(&serde_json::json!({"metadata":{"duration":duration},"mouthCues":cues}))
             .unwrap()

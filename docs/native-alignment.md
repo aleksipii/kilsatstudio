@@ -27,3 +27,7 @@ state behavior. They do not establish actual recognizer execution, intelligibili
 perceptual lip-sync quality, macOS device playback or redistribution rights.
 A real, licensed local installation and representative Mac audio/video comparisons
 remain acceptance requirements.
+
+Compare saved estimated cues with manual mouth-shape annotations using the
+[offline quality evaluator](viseme-quality.md). This records agreement and
+transition errors on the exact audio; it does not grant quality acceptance.
