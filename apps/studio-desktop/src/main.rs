@@ -6033,6 +6033,9 @@ mod live_clip_integration_tests {
             at: 0.25,
             duration: 1.0,
             weight: 0.5,
+            fade_in: 0.0,
+            fade_out: 0.0,
+            weight_keys: Vec::new(),
         }
     }
     #[test]
@@ -6107,6 +6110,59 @@ mod live_clip_integration_tests {
             vec![instance("one")]
         );
     }
+    #[test]
+    fn envelope_edits_are_saved_and_undoable_and_invalid_duration_is_atomic() {
+        let mut studio = studio();
+        let mut row = instance("animated");
+        row.fade_in = 0.25;
+        row.fade_out = 0.25;
+        row.weight_keys = vec![
+            motion_script::InstanceWeightKey {
+                time: 0.0,
+                weight: 0.0,
+                easing: motion_script::ActorEasing::Linear,
+            },
+            motion_script::InstanceWeightKey {
+                time: 1.0,
+                weight: 1.0,
+                easing: motion_script::ActorEasing::Hold,
+            },
+        ];
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert {
+                instance: row.clone(),
+            },
+            SOURCE,
+            0,
+            "A",
+        );
+        let edited = studio.source.clone();
+        assert_ne!(edited, SOURCE);
+        let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
+        let restored = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        let script = motion_script::parse(&restored.source).unwrap();
+        assert_eq!(
+            script.scenes[0].composition.clip_instances,
+            vec![row.clone()]
+        );
+        assert_eq!(
+            script.scenes[0].composition.clip_instances[0].sample_weight(0.5),
+            0.125
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, SOURCE);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+        row.duration = 0.1;
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert { instance: row },
+            &edited,
+            0,
+            "A",
+        );
+        assert_eq!(studio.source, edited);
+    }
+
     #[test]
     fn live_edits_reject_stale_invalid_busy_and_foreign_actor_actions() {
         for context in 0..9 {

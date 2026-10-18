@@ -30,8 +30,16 @@ scenes:
         - {id: reach_a, clip: reach, actor: EMMA, at: 0.25, duration: 0.5, weight: 0.5}
 "#;
 
+fn rendered_for(script: &Script) -> RenderedScene {
+    let (_, mut rendered) = crate::tests::fixture();
+    let samples = (script.scenes[0].duration * SAMPLE_RATE as f64).round() as u64;
+    rendered.manifest.total_frames = samples;
+    rendered.audio.samples.resize(samples as usize, 0.0);
+    rendered
+}
+
 fn assert_frames_and_preview(actual: &Script, expected: &Script, frame: u64) {
-    let (_, rendered) = crate::tests::fixture();
+    let rendered = rendered_for(actual);
     let cancel = CancellationToken::new();
     for png in [false, true] {
         let encoded = encode_frame(actual, 0, &rendered, frame, png, &cancel, None)
@@ -239,6 +247,151 @@ fn live_library_replacement_survives_project_roundtrip_without_mutating_copied_t
                 .unwrap()
                 .2,
             encode_frame(&after, 1, &rendered, 4, png, &cancel, None)
+                .unwrap()
+                .2
+        );
+    }
+}
+
+fn enveloped_script() -> Script {
+    let mut script = motion_script::parse(SOURCE).unwrap();
+    script.scenes[0].duration = 1.25;
+    script.animation_clips.get_mut("reach").unwrap().bone_tracks = BTreeMap::from([(
+        "right_hand".into(),
+        vec![motion_script::ActorKey {
+            x: 20.0,
+            ..Default::default()
+        }],
+    )]);
+    let instance = &mut script.scenes[0].composition.clip_instances[0];
+    instance.at = 0.0;
+    instance.duration = 1.0;
+    instance.fade_in = 0.25;
+    instance.fade_out = 0.25;
+    instance.weight_keys = [(0.0, 0.25), (0.5, 0.75), (1.0, 0.25)]
+        .into_iter()
+        .map(|(time, weight)| motion_script::InstanceWeightKey {
+            time,
+            weight,
+            easing: motion_script::ActorEasing::Linear,
+        })
+        .collect();
+    script
+}
+
+#[test]
+fn faded_animated_weights_match_authored_pixels_after_roundtrip_and_repeated_seeks() {
+    let script = enveloped_script();
+    let document =
+        motion_project::ProjectDocument::new(serde_json::to_string(&script).unwrap()).unwrap();
+    let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+    let actual = motion_script::parse(&loaded.source).unwrap();
+    assert_eq!(
+        actual.scenes[0].composition.clip_instances,
+        script.scenes[0].composition.clip_instances
+    );
+    let rendered = rendered_for(&actual);
+    let preview = ScenePreview::new(
+        Arc::new(actual.clone()),
+        0,
+        Arc::new(ArtContext::default()),
+        Some(Arc::new(rendered.manifest.clone())),
+    )
+    .unwrap();
+    // Static .5 times the independently interpolated multiplier, times both
+    // fades. Binary fractions keep exact authored offsets reproducible.
+    // Start/end have zero influence, so the authored base survives each edge.
+    for (frame, x, y, scale_x) in [
+        (8, 4.0, 2.0, 1.125),
+        (0, 4.0, 2.0, 1.125),
+        (4, 10.0, 1.25, 1.078125),
+        (2, 8.0, 1.5, 1.09375),
+        (6, 8.0, 1.5, 1.09375),
+        (1, 5.5, 1.8125, 1.11328125),
+        (4, 10.0, 1.25, 1.078125),
+    ] {
+        let mut expected = actual.clone();
+        expected.scenes[0].composition.clip_instances.clear();
+        let hand = &mut expected.scenes[0]
+            .composition
+            .bone_tracks
+            .get_mut("EMMA")
+            .unwrap()
+            .get_mut("right_hand")
+            .unwrap()[0];
+        hand.x = x;
+        hand.y = y;
+        hand.scale_x = scale_x;
+        assert_frames_and_preview(&actual, &expected, frame);
+        let cancel = CancellationToken::new();
+        let png = encode_frame(&expected, 0, &rendered, frame, true, &cancel, None)
+            .unwrap()
+            .2;
+        assert_eq!(
+            preview
+                .render(frame * SAMPLE_RATE as u64 / 8, 256, &cancel)
+                .unwrap()
+                .rgba,
+            resvg::tiny_skia::Pixmap::decode_png(&png).unwrap().data()
+        );
+    }
+}
+
+#[test]
+fn animated_overlaps_keep_source_order_and_default_envelopes_keep_existing_frames() {
+    let original = motion_script::parse(SOURCE).unwrap();
+    let explicit = motion_script::parse(&SOURCE.replace(
+        "weight: 0.5}",
+        "weight: 0.5, fade_in: 0, fade_out: 0, weight_keys: []}",
+    ))
+    .unwrap();
+    for frame in [1, 2, 4, 6] {
+        assert_frames_and_preview(&explicit, &original, frame);
+    }
+    let mut actual = enveloped_script();
+    let mut second = actual.animation_clips["reach"].clone();
+    second.bone_tracks.get_mut("right_hand").unwrap()[0].x = 36.0;
+    actual.animation_clips.insert("farther".into(), second);
+    let mut instance = actual.scenes[0].composition.clip_instances[0].clone();
+    instance.id = "reach_b".into();
+    instance.clip = "farther".into();
+    instance.weight_keys.truncate(1);
+    instance.weight_keys[0].weight = 0.5;
+    actual.scenes[0].composition.clip_instances.push(instance);
+    let mut expected = actual.clone();
+    expected.scenes[0].composition.clip_instances.clear();
+    let hand = &mut expected.scenes[0]
+        .composition
+        .bone_tracks
+        .get_mut("EMMA")
+        .unwrap()
+        .get_mut("right_hand")
+        .unwrap()[0];
+    // At .5 seconds: first weight .375, second .25. Authored base is
+    // (4,2,1.125), clip targets (20,0,1) and (36,0,1).
+    hand.x = 16.5;
+    hand.y = 0.9375;
+    hand.scale_x = 1.05859375;
+    assert_frames_and_preview(&actual, &expected, 4);
+    let mut reversed = actual.clone();
+    reversed.scenes[0].composition.clip_instances.reverse();
+    expected.scenes[0]
+        .composition
+        .bone_tracks
+        .get_mut("EMMA")
+        .unwrap()
+        .get_mut("right_hand")
+        .unwrap()[0]
+        .x = 15.0;
+    assert_frames_and_preview(&reversed, &expected, 4);
+    let (_, rendered) = crate::tests::fixture();
+    let cancel = CancellationToken::new();
+    for png in [false, true] {
+        assert_ne!(
+            encode_frame(&actual, 0, &rendered, 4, png, &cancel, None)
+                .unwrap()
+                .2,
+            encode_frame(&reversed, 0, &rendered, 4, png, &cancel, None)
                 .unwrap()
                 .2
         );

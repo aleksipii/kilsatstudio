@@ -185,3 +185,21 @@ and cross-project exchange remain open. Runtime tracks are prepared in immutable
 snapshots; preflight and snapshots may prepare separately, while production frames
 reuse the retained snapshot. Export work limits count all live instances, including
 inactive and zero-weight rows.
+
+
+## Live weight envelopes (source implemented, pending integration)
+
+The next bounded extension adds `fade_in`, `fade_out` and local
+`weight_keys: [{time, weight, easing}]` to live instances, defaulting to zero,
+zero and empty. Effective weight multiplies the static value by an endpoint-held
+key curve and linear entrance/exit factors. Keys use instance-local seconds;
+fade durations cannot overlap, and keys remain inside the instance duration.
+No looping, implicit retiming or normalized mixing is introduced.
+
+Scalar sampling uses binary search without key copies or per-sample allocations;
+the surrounding evaluator retains its existing bounded pose allocations. Schema
+limits all keys, including inactive/zero layers: 256 per instance, 8192 per scene
+and 65536 per project. Export work accounting includes curve searches/fades.
+Native drafts preserve invalid values and apply through existing source history.
+See [live layer controls](../live-clip-blending.md). CI and final integration are
+still pending; hardware/perceptual acceptance stays open.

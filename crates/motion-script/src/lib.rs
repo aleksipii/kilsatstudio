@@ -94,6 +94,63 @@ pub struct ClipInstance {
     pub duration: f64,
     #[serde(default = "full_clip_instance_weight")]
     pub weight: f64,
+    #[serde(default)]
+    pub fade_in: f64,
+    #[serde(default)]
+    pub fade_out: f64,
+    #[serde(default)]
+    pub weight_keys: Vec<InstanceWeightKey>,
+}
+/// Instance-local scalar multiplier; outgoing easing controls the next interval.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InstanceWeightKey {
+    pub time: f64,
+    pub weight: f64,
+    #[serde(default)]
+    pub easing: ActorEasing,
+}
+impl ClipInstance {
+    /// Sample a validated instance on the scene clock, with a half-open active
+    /// interval. Keys use local seconds, endpoint clamping and outgoing easing.
+    /// This allocation-free sampler assumes source validation has succeeded.
+    pub fn sample_weight(&self, scene_time: f64) -> f64 {
+        if !scene_time.is_finite() || scene_time < self.at || scene_time >= self.at + self.duration
+        {
+            return 0.0;
+        }
+        let local = scene_time - self.at;
+        let upper = self.weight_keys.partition_point(|key| key.time <= local);
+        let multiplier = if self.weight_keys.is_empty() {
+            1.0
+        } else if upper == 0 {
+            self.weight_keys[0].weight
+        } else {
+            let left = &self.weight_keys[upper - 1];
+            if let Some(right) = self.weight_keys.get(upper) {
+                let t = (local - left.time) / (right.time - left.time);
+                let t = match left.easing {
+                    ActorEasing::Linear => t,
+                    ActorEasing::Smoothstep => t * t * (3.0 - 2.0 * t),
+                    ActorEasing::Hold => 0.0,
+                };
+                left.weight + (right.weight - left.weight) * t
+            } else {
+                left.weight
+            }
+        };
+        let fade_in = if self.fade_in > 0.0 {
+            (local / self.fade_in).min(1.0)
+        } else {
+            1.0
+        };
+        let fade_out = if self.fade_out > 0.0 {
+            ((self.duration - local) / self.fade_out).min(1.0)
+        } else {
+            1.0
+        };
+        self.weight * multiplier * fade_in * fade_out
+    }
 }
 fn full_clip_instance_weight() -> f64 {
     1.0
@@ -1012,6 +1069,7 @@ impl Script {
         }
         let mut ids = std::collections::BTreeSet::new();
         let mut project_instances = 0usize;
+        let mut project_instance_keys = 0usize;
         for s in &self.scenes {
             if s.id.trim().is_empty()
                 || !ids.insert(&s.id)
@@ -1031,6 +1089,7 @@ impl Script {
                     s.id
                 )));
             }
+            let mut scene_instance_keys = 0usize;
             let mut instance_ids = std::collections::BTreeSet::new();
             let mut actor_instances = BTreeMap::new();
             for instance in &composition.clip_instances {
@@ -1068,6 +1127,39 @@ impl Script {
                     || !(0.0..=1.0).contains(&instance.weight)
                 {
                     return Err(fail(format!("{}: instance {} requires finite start >= 0, duration > 0, distinct end within scene, and weight 0..1", s.id, instance.id)));
+                }
+                if !instance.fade_in.is_finite()
+                    || !instance.fade_out.is_finite()
+                    || instance.fade_in < 0.0
+                    || instance.fade_out < 0.0
+                    || instance.fade_in > instance.duration
+                    || instance.fade_out > instance.duration
+                    || instance.fade_in + instance.fade_out > instance.duration
+                {
+                    return Err(fail(format!("{}: instance {} requires finite nonnegative fades with sum within duration", s.id, instance.id)));
+                }
+                scene_instance_keys =
+                    scene_instance_keys.saturating_add(instance.weight_keys.len());
+                project_instance_keys =
+                    project_instance_keys.saturating_add(instance.weight_keys.len());
+                if instance.weight_keys.len() > 256
+                    || scene_instance_keys > 8192
+                    || project_instance_keys > 65536
+                {
+                    return Err(fail(format!("{}: instance weight keys exceed 256 per instance, 8192 per scene or 65536 per project", s.id)));
+                }
+                let mut previous = None;
+                for key in &instance.weight_keys {
+                    if !key.time.is_finite()
+                        || key.time < 0.0
+                        || key.time > instance.duration
+                        || previous.is_some_and(|time| key.time <= time)
+                        || !key.weight.is_finite()
+                        || !(0.0..=1.0).contains(&key.weight)
+                    {
+                        return Err(fail(format!("{}: instance {} requires strictly increasing local key times within duration and finite weights 0..1", s.id, instance.id)));
+                    }
+                    previous = Some(key.time);
                 }
             }
             if !safe_background_color(&composition.background_color) {
@@ -2711,7 +2803,152 @@ mod live_clip_instance_tests {
             at: 1.0,
             duration: 2.0,
             weight: 1.0,
+            fade_in: 0.0,
+            fade_out: 0.0,
+            weight_keys: Vec::new(),
         }
+    }
+
+    fn weight_key(time: f64, weight: f64, easing: ActorEasing) -> InstanceWeightKey {
+        InstanceWeightKey {
+            time,
+            weight,
+            easing,
+        }
+    }
+
+    #[test]
+    fn instance_envelope_samples_products_endpoints_easing_and_seeks() {
+        let mut item = instance("envelope");
+        item.duration = 4.0;
+        item.weight = 0.8;
+        for time in [1.0, 1.25, 4.999] {
+            assert_eq!(item.sample_weight(time), 0.8);
+        }
+        for time in [0.0, 5.0, f64::NAN, f64::INFINITY] {
+            assert_eq!(item.sample_weight(time), 0.0);
+        }
+        item.fade_in = 1.0;
+        item.fade_out = 1.0;
+        item.weight_keys = vec![
+            weight_key(1.0, 0.25, ActorEasing::Linear),
+            weight_key(3.0, 0.75, ActorEasing::Hold),
+        ];
+        assert_eq!(item.sample_weight(1.0), 0.0);
+        assert_eq!(item.sample_weight(1.5), 0.1);
+        assert_eq!(item.sample_weight(3.0), 0.4);
+        assert!((item.sample_weight(4.5) - 0.3).abs() < 1e-12);
+        assert_eq!(item.sample_weight(2.0), 0.2); // backward seek is stateless
+        item.fade_in = 0.0;
+        item.fade_out = 0.0;
+        item.weight_keys = vec![
+            weight_key(0.0, 0.0, ActorEasing::Smoothstep),
+            weight_key(4.0, 1.0, ActorEasing::Linear),
+        ];
+        assert_eq!(item.sample_weight(2.0), 0.125);
+        item.weight_keys[0].easing = ActorEasing::Hold;
+        assert_eq!(item.sample_weight(4.999), 0.0);
+        item.weight_keys[1].time = 2.0;
+        assert_eq!(item.sample_weight(3.0), 0.8);
+        let mut adjacent = instance("next");
+        adjacent.at = 5.0;
+        assert_eq!(item.sample_weight(5.0), 0.0);
+        assert_eq!(adjacent.sample_weight(5.0), 1.0);
+    }
+
+    #[test]
+    fn instance_envelopes_validate_even_when_weight_zero_and_edits_are_atomic() {
+        let source = source();
+        let mut item = instance("envelope");
+        item.weight = 0.0;
+        for invalid in [f64::NAN, f64::INFINITY, -0.01, 2.01] {
+            item.fade_in = invalid;
+            assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
+            item.fade_in = 0.0;
+            item.fade_out = invalid;
+            assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
+            item.fade_out = 0.0;
+        }
+        item.fade_in = 1.0;
+        item.fade_out = 1.01;
+        assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
+        item.fade_out = 1.0;
+        item.weight_keys = vec![weight_key(2.0, 1.0, ActorEasing::Linear)];
+        let valid = upsert_clip_instance(&source, 1, item.clone()).unwrap();
+        item.duration = 1.0;
+        assert!(upsert_clip_instance(&valid, 1, item.clone()).is_err());
+        assert_eq!(
+            parse(&valid).unwrap().scenes[1].composition.clip_instances[0].duration,
+            2.0
+        );
+        item.fade_in = 0.0;
+        item.fade_out = 0.0;
+        item.duration = 2.0;
+        for invalid in [f64::NAN, f64::INFINITY, -0.1, 2.01] {
+            item.weight_keys = vec![weight_key(invalid, 0.5, ActorEasing::Linear)];
+            assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
+        }
+        for invalid in [f64::NAN, f64::INFINITY, -0.1, 1.01] {
+            item.weight_keys = vec![weight_key(0.0, invalid, ActorEasing::Linear)];
+            assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
+        }
+        for times in [[1.0, 1.0], [1.0, 0.0]] {
+            item.weight_keys = times
+                .map(|t| weight_key(t, 1.0, ActorEasing::Linear))
+                .to_vec();
+            assert!(upsert_clip_instance(&source, 1, item.clone()).is_err());
+        }
+        for yaml in [
+            "{time: 0, weight: 1, unknown: 0}",
+            "{time: true, weight: 1}",
+            "{time: 0, weight: true}",
+            "{time: 0, weight: 1, easing: missing}",
+        ] {
+            assert!(serde_yaml::from_str::<InstanceWeightKey>(yaml).is_err());
+        }
+    }
+
+    #[test]
+    fn instance_envelope_key_budgets_cover_instance_scene_and_project() {
+        let mut script = parse(&source()).unwrap();
+        let mut item = instance("keys");
+        item.weight_keys = (0..256)
+            .map(|i| weight_key(i as f64 / 256.0, 1.0, ActorEasing::Linear))
+            .collect();
+        script.scenes[1].composition.clip_instances = vec![item.clone()];
+        assert!(script.validate().is_ok());
+        script.scenes[1].composition.clip_instances[0]
+            .weight_keys
+            .push(weight_key(2.0, 1.0, ActorEasing::Linear));
+        assert!(script.validate().is_err());
+        let layers: Vec<_> = (0..32)
+            .map(|i| {
+                let mut layer = item.clone();
+                layer.id = format!("key-{i}");
+                layer
+            })
+            .collect();
+        script.scenes[1].composition.clip_instances = layers.clone();
+        assert!(script.validate().is_ok());
+        let mut extra = item;
+        extra.id = "extra".into();
+        extra.actor = "A".into();
+        script.scenes[1].composition.clip_instances.push(extra);
+        assert!(script.validate().is_err());
+        script.scenes[1].composition.clip_instances = layers;
+        let template = script.scenes[1].clone();
+        script.scenes = (0..8)
+            .map(|i| {
+                let mut scene = template.clone();
+                scene.id = format!("scene-{i}");
+                scene
+            })
+            .collect();
+        assert!(script.validate().is_ok());
+        let mut extra_scene = template;
+        extra_scene.id = "over-budget".into();
+        script.scenes.push(extra_scene);
+        assert!(script.validate().is_err());
     }
 
     #[test]

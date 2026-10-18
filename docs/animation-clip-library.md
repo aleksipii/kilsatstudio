@@ -72,6 +72,6 @@ validation. Existing projects without `animation_clips` use an empty library.
 
 Tests compare copied tracks with independent expected SVG/PNG output, shared
 sample-clock preview, repeated/backwards seeking and project round trips.
-Arbitrary rigs, textured parts, animated layer weights/fades, looping and
+Arbitrary rigs, textured parts, looping, joint masks and
 cross-project library exchange remain open. No GPU,
 physical Mac or perceptual motion-quality acceptance is established by fixtures.
