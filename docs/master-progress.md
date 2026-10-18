@@ -9,8 +9,9 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-PR #34 merged as `f89c59b8113b3b578c82fe648850615e704fdaf0` after its final
-Linux/macOS CI passed. PR #33 merged earlier as
+PR #35 merged as `6bd988ab162adb64cdcea621bb01600099abbeb2` after its final
+Linux/macOS CI passed. PR #34 merged earlier as
+`f89c59b8113b3b578c82fe648850615e704fdaf0`; PR #33 as
 `504166d85daa15e88f937a777a17123162df5e8a`; PR #32 as
 `f2e7b79f23968ac3b32637680ff2c48ac7f43453`; PR #31 as
 `82f1b3116f6d8647e20076b0e2803f2fd2adedba`; PR #30 as
@@ -28,7 +29,7 @@ and final redistribution clearance remain open.
 | Completed | Still open |
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
-| Persisted per-bone tracks/editor, shared preview/export and additive rule layering | Custom rig authoring, textures/deformation and artist clip blending |
+| Persisted per-bone tracks/editor, shared preview/export and per-actor procedural layer strengths | Custom rig authoring, textures/deformation and animated custom-clip blending |
 | Rule clips plus authored bone offsets; ellipse/polygon masks and multiply/screen CPU composition | Artist clip libraries, feathered/image masks, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
@@ -104,7 +105,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persisted parent-local per-bone tracks and detached editor in shared preview/export.
 - [ ] Arbitrary rig definition editing, textured parts and deformation.
 - [x] Authored bone offsets layer over rule clips in shared evaluation.
-- [ ] Artist-controlled weighted clip/track blending and clip library editing.
+- [x] Artist-controlled per-scene/actor posture, walk and gesture strengths with shared evaluation (PR #35).
+- [ ] Editable custom clips, animated blend tracks and clip library editing.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -153,6 +155,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Actor layer order/visibility and composition camera-key editor.
 - [x] Character root-transform keyframe editor plus pen/rectangle/ellipse canvas tools and rectangular masks.
 - [x] Native detached per-bone editor and validated ellipse/polygon mask/blend controls.
+- [x] Native procedural layer strength editor with Apply, unified Undo/Redo and project persistence (PR #35).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -732,21 +735,35 @@ artist tools, automatic engine memoization, physical acceptance and final licens
 clearance remain open.
 See [saved estimated timing](estimated-cue-cache.md).
 
-## Artist procedural layer strengths (2026-10-18, pending integration)
+## Artist procedural layer strengths (PR #35, merged 2026-10-18)
 
-- [ ] Integrate per-scene/actor posture, walk and gesture strengths with strict
+- [x] Integrate per-scene/actor posture, walk and gesture strengths with strict
   defaults, finite range validation, atomic edits and character cleanup.
-- [ ] Integrate shared weighted evaluation while retaining authored bone offsets,
+- [x] Integrate shared weighted evaluation while retaining authored bone offsets,
   facial/root/speech stages and existing default geometry.
-- [ ] Integrate detached native Inspector controls, explicit Apply, unified
+- [x] Integrate detached native Inspector controls, explicit Apply, unified
   Undo/Redo, project persistence and stale/busy draft guards.
-- [ ] Validate actual SVG/PNG frames and shared preview on the speech sample clock.
-- [ ] Final Linux/macOS CI, independent review and merge.
+- [x] Validate actual SVG/PNG frames and shared preview on the speech sample clock.
+- [x] Final Linux/macOS CI, independent review and merge.
 - [ ] Editable custom clips, animated blend tracks, arbitrary/textured rigs,
   advanced masks and physical Mac motion/artist acceptance.
 
-Source implementation is awaiting Rust formatting/build/tests in CI; no local
-Rust toolchain is available. These are controls for the three existing procedural
-layers, not completion of all advanced artist tools. Full GPU parity, automatic
-fresh-engine memoization, physical acceptance and final licenses remain open.
+Final source head `fa03a4fecc0404b80d1b6c44d354ccaaca8ade98` passed Audio
+foundation 39085331814 and Apple Silicon preview 39085331803. CI validated
+formatting, workspace check, strict Clippy, 359 default Rust tests on Linux and
+358 on macOS, 14 adapter-free GPU tests/feature Clippy per platform, 55 runtime
+plus 26 inventory/packaging Python tests and three actual encoder tests.
+Arm64 packaging/signature checks passed. Rust checks ran in CI because no
+local toolchain was available. Independent review found no blocker. A headless
+regression caught Slider normalizing a nonfinite draft during paint; invalid
+values now remain detached and block Apply until explicitly reset.
+Actual SVG/PNG regressions cover absent versus explicit default weights,
+gesture suppression, preserved authored offsets and sample-clock preview/export.
+Mac package: https://github.com/aleksipii/kilsatstudio/actions/runs/39085331803/artifacts/12120487413
+SHA256: `e88a51f79cc8842e6ee205afa59496efd95d149bb34c8a7043d81b2ebde317a4`.
+This post-merge record changes no implementation. No real recognizer/model,
+GPU device or physical Mac acceptance was executed. These are controls for the
+three existing procedural layers; advanced artist tools remain incomplete.
+Full GPU parity, automatic fresh-engine memoization, physical acceptance and
+final licenses remain open.
 See [artist layer strengths](artist-clip-weights.md).
