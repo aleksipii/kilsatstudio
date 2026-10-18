@@ -399,7 +399,11 @@ mod tests {
     #[test]
     fn worker_exports_selected_vector_or_raster_format_without_encoder() {
         let worker = Worker::new();
-        worker.submit(Task::Prepare(Box::new(request(7)))).unwrap();
+        // Verify worker dispatch and real formats without a full-HD performance gate.
+        let mut input = request(7);
+        input.script.project.width = 64;
+        input.script.project.height = 64;
+        worker.submit(Task::Prepare(Box::new(input))).unwrap();
         let Update::Prepared { result, .. } = finish(&worker) else {
             panic!("wrong update")
         };
