@@ -766,7 +766,7 @@ fn normalized_chest_rotation_stays_continuous_as_weight_crosses_one() {
     let first_clip = actual.animation_clips.get_mut("reach").unwrap();
     first_clip.bone_tracks.clear();
     first_clip.bone_tracks.insert("chest".into(), vec![motion_script::ActorKey {
-        rotation: 3.0, ..Default::default()
+        rotation: 3.0, y: 3.0, ..Default::default()
     }]);
     let mut second_clip = first_clip.clone();
     second_clip.bone_tracks.get_mut("chest").unwrap()[0].rotation = -2.75;
