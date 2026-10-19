@@ -1,6 +1,8 @@
 //! Persisted scene artwork and bounded raster resources shared by preview/export.
 mod resource;
-pub use resource::{decode_image, load_image, ImageResource, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGE_SIDE};
+pub use resource::{
+    decode_image, load_image, ImageResource, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGE_SIDE,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 

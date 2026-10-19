@@ -4,26 +4,77 @@ use motion_art::{ArtUnit, BlendMode, Color, Content, Document, Group, Layer, Pla
 #[test]
 fn supplied_studio_demo_reopens_and_shares_normalized_rig_group_preview_pixels() {
     use std::sync::Arc;
-    let document = motion_project::decode(include_bytes!("../../../examples/studio-production-demo.kilsat")).unwrap();
+    let document = motion_project::decode(include_bytes!(
+        "../../../examples/studio-production-demo.kilsat"
+    ))
+    .unwrap();
     let reopened = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
     assert_eq!(reopened.source, document.source);
     let script = motion_script::parse(&reopened.source).unwrap();
-    let art = Arc::new(ArtContext { document: reopened.art, images: BTreeMap::new() });
+    let art = Arc::new(ArtContext {
+        document: reopened.art,
+        images: BTreeMap::new(),
+    });
     let preview = ScenePreview::new(Arc::new(script.clone()), 0, art.clone(), None).unwrap();
     let cancel = CancellationToken::new();
     for sample in [72000u64, 0, 24000, 48000, 24000] {
         let scene = motion_scene::evaluate(&script, 0, sample as f64 / 24000.0).unwrap();
-        assert_eq!(scene.actors.iter().find(|actor| actor.id == "PUPPET").unwrap().rigid_parts.len(), 3);
-        let svg = motion_render::render_svg_with_art(&scene, 640, 360, &[], "studio_demo", &art.document, &art.images).unwrap();
-        let pixels = resvg::tiny_skia::Pixmap::decode_png(&media::rasterize(&svg).unwrap()).unwrap();
-        assert_eq!(preview.render(sample, 640, &cancel).unwrap().rgba, pixels.data());
+        assert_eq!(
+            scene
+                .actors
+                .iter()
+                .find(|actor| actor.id == "PUPPET")
+                .unwrap()
+                .rigid_parts
+                .len(),
+            3
+        );
+        let svg = motion_render::render_svg_with_art(
+            &scene,
+            640,
+            360,
+            &[],
+            "studio_demo",
+            &art.document,
+            &art.images,
+        )
+        .unwrap();
+        let pixels =
+            resvg::tiny_skia::Pixmap::decode_png(&media::rasterize(&svg).unwrap()).unwrap();
+        assert_eq!(
+            preview.render(sample, 640, &cancel).unwrap().rgba,
+            pixels.data()
+        );
     }
     let mut expected = script.clone();
     expected.scenes[0].composition.clip_instances.clear();
-    expected.scenes[0].composition.bone_tracks.insert("EMMA".into(), BTreeMap::from([("right_hand".into(), vec![motion_script::ActorKey { x: 19.0, y: -25.0, ..Default::default() }])]));
+    expected.scenes[0].composition.bone_tracks.insert(
+        "EMMA".into(),
+        BTreeMap::from([(
+            "right_hand".into(),
+            vec![motion_script::ActorKey {
+                x: 19.0,
+                y: -25.0,
+                ..Default::default()
+            }],
+        )]),
+    );
     let actual = motion_scene::evaluate(&script, 0, 1.0).unwrap();
     let expected = motion_scene::evaluate(&expected, 0, 1.0).unwrap();
-    assert_eq!(actual.actors.iter().find(|actor| actor.id == "EMMA").unwrap().skeleton, expected.actors.iter().find(|actor| actor.id == "EMMA").unwrap().skeleton);
+    assert_eq!(
+        actual
+            .actors
+            .iter()
+            .find(|actor| actor.id == "EMMA")
+            .unwrap()
+            .skeleton,
+        expected
+            .actors
+            .iter()
+            .find(|actor| actor.id == "EMMA")
+            .unwrap()
+            .skeleton
+    );
 }
 
 fn leaf(id: &str, color: Color, x: f64) -> Layer {
