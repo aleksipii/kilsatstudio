@@ -117,6 +117,7 @@ mod tests {
     use super::*;
     fn script(durations: &[f64]) -> Script {
         Script {
+            rig_clips: Default::default(),
             project: Default::default(),
             characters: Default::default(),
             animation_clips: Default::default(),

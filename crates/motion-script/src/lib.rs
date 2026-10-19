@@ -380,6 +380,10 @@ impl Default for Project {
 pub struct Script {
     #[serde(default)]
     pub animation_clips: BTreeMap<String, AnimationClip>,
+    /// Project-local joint-track clips for custom rigs, copied onto actors with
+    /// explicit joint retargeting. Independent of the original-rig library above.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub rig_clips: BTreeMap<String, RigClip>,
     #[serde(default)]
     pub project: Project,
     pub characters: BTreeMap<String, Character>,
@@ -392,6 +396,13 @@ pub struct Script {
 pub struct AnimationClip {
     pub duration: f64,
     pub bone_tracks: BTreeMap<String, Vec<ActorKey>>,
+}
+/// Reusable custom-rig joint offsets keyed by joint id; times are clip-local seconds.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RigClip {
+    pub duration: f64,
+    pub joint_tracks: BTreeMap<String, Vec<ActorKey>>,
 }
 fn valid_clip_name(name: &str) -> bool {
     !name.is_empty()
@@ -876,6 +887,164 @@ pub fn apply_animation_clip_retimed(
     })
 }
 
+/// Capture an actor's authored joint tracks for the current scene as a reusable clip.
+pub fn capture_rig_clip(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    name: &str,
+    replace: bool,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        if !valid_clip_name(name) {
+            return Err(Error::Validation(
+                "clip name requires 1..64 ASCII letters, digits, underscores or hyphens".into(),
+            ));
+        }
+        if candidate.rig_clips.contains_key(name) && !replace {
+            return Err(Error::Validation(format!(
+                "rig clip {name} already exists; explicitly enable replacement"
+            )));
+        }
+        let scene = candidate
+            .scenes
+            .get(scene_index)
+            .ok_or_else(missing_event)?;
+        let tracks = scene
+            .composition
+            .joint_tracks
+            .get(actor)
+            .filter(|tracks| !tracks.is_empty())
+            .ok_or_else(|| {
+                Error::Validation(format!(
+                    "{actor}: author at least one joint track before capturing a rig clip"
+                ))
+            })?;
+        candidate.rig_clips.insert(
+            name.into(),
+            RigClip {
+                duration: scene.duration,
+                joint_tracks: tracks.clone(),
+            },
+        );
+        Ok(())
+    })
+}
+
+/// How a rig clip is copied onto a target custom-rig actor.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RigClipPlacement {
+    /// Clip joint id to target joint id. Unlisted clip joints keep their ids.
+    pub joint_map: BTreeMap<String, String>,
+    /// Multiplies translation offsets to suit a larger or smaller rig (0.01–100).
+    pub translation_scale: f64,
+    /// Scene-local `(start, duration)`; `None` keeps clip times (needs the clip to fit).
+    pub interval: Option<(f64, f64)>,
+}
+impl Default for RigClipPlacement {
+    fn default() -> Self {
+        Self {
+            joint_map: BTreeMap::new(),
+            translation_scale: 1.0,
+            interval: None,
+        }
+    }
+}
+
+/// Replace the target actor's joint tracks with a retargeted, optionally retimed copy
+/// of a library clip. Every mapped joint must exist in the target rig and no two clip
+/// joints may map to the same target; the library entry is never modified.
+pub fn apply_rig_clip(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    name: &str,
+    placement: &RigClipPlacement,
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        if !placement.translation_scale.is_finite()
+            || !(0.01..=100.0).contains(&placement.translation_scale)
+        {
+            return Err(Error::Validation(
+                "translation scale must be finite and between 0.01 and 100".into(),
+            ));
+        }
+        let rig = candidate
+            .characters
+            .get(actor)
+            .and_then(|character| character.rig.as_ref())
+            .ok_or_else(|| Error::Validation(format!("{actor} has no custom rig")))?;
+        let clip = candidate
+            .rig_clips
+            .get(name)
+            .ok_or_else(|| Error::Validation(format!("unknown rig clip {name}")))?;
+        let (offset, span) = match placement.interval {
+            Some((at, duration)) => {
+                if !at.is_finite() || at < 0.0 || !duration.is_finite() || duration <= 0.0 {
+                    return Err(Error::Validation(
+                        "retimed rig clip requires a finite nonnegative start and positive duration"
+                            .into(),
+                    ));
+                }
+                (at, duration)
+            }
+            None => (0.0, clip.duration),
+        };
+        let end = offset + span;
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if !end.is_finite() || end > scene.duration {
+            return Err(Error::Validation(format!(
+                "rig clip {name} ends at {end}, exceeding target scene duration {}",
+                scene.duration
+            )));
+        }
+        let mut tracks = BTreeMap::new();
+        for (joint, keys) in &clip.joint_tracks {
+            let target = placement.joint_map.get(joint).unwrap_or(joint);
+            if !rig.joints.iter().any(|candidate| &candidate.id == target) {
+                return Err(Error::Validation(format!(
+                    "rig clip {name}: clip joint {joint} maps to {target}, which {actor}'s rig does not have; add a joint mapping"
+                )));
+            }
+            let mut mapped_keys = keys.clone();
+            let mut previous = None;
+            for key in &mut mapped_keys {
+                let at = offset + (key.at / clip.duration) * span;
+                if !at.is_finite() || at > end || previous.is_some_and(|time| at <= time) {
+                    return Err(Error::Validation(format!(
+                        "rig clip {name} joint {joint}: key times overflow or collapse; choose a wider interval"
+                    )));
+                }
+                key.at = at;
+                key.x *= placement.translation_scale;
+                key.y *= placement.translation_scale;
+                previous = Some(at);
+            }
+            if tracks.insert(target.clone(), mapped_keys).is_some() {
+                return Err(Error::Validation(format!(
+                    "rig clip {name}: two clip joints map to target joint {target}"
+                )));
+            }
+        }
+        scene.composition.joint_tracks.insert(actor.into(), tracks);
+        Ok(())
+    })
+}
+
+/// Delete a rig clip definition. Applied copies in scenes are independent and stay.
+pub fn remove_rig_clip(source: &str, name: &str) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        candidate
+            .rig_clips
+            .remove(name)
+            .map(|_| ())
+            .ok_or_else(|| Error::Validation(format!("unknown rig clip {name}")))
+    })
+}
+
 /// Add or update an instance by scene-local ID, preserving its existing layer position.
 pub fn upsert_clip_instance(
     source: &str,
@@ -1115,6 +1284,37 @@ impl Script {
                     .is_err()
                 {
                     return Err(fail(format!("clip {name}: require original rig bones, 1..4096 increasing finite keys within the clip, bounded offsets/rotation within ±1000, scale 0.1..4, and at most 65536 library keys")));
+                }
+            }
+        }
+        if self.rig_clips.len() > 64 {
+            return Err(fail("custom-rig library exceeds 64 clips".into()));
+        }
+        let mut rig_library_keys = 0usize;
+        for (name, clip) in &self.rig_clips {
+            if !valid_clip_name(name)
+                || !clip.duration.is_finite()
+                || clip.duration <= 0.0
+                || clip.duration > 600.0
+                || clip.joint_tracks.is_empty()
+            {
+                return Err(fail(format!("rig clip {name}: require a 1..64 ASCII identifier, duration above zero and at most 600 seconds, and at least one joint track")));
+            }
+            for (joint, keys) in &clip.joint_tracks {
+                rig_library_keys = rig_library_keys.saturating_add(keys.len());
+                if rig_library_keys > 65536
+                    || joint.is_empty()
+                    || joint.len() > 128
+                    || keys.iter().any(|key| {
+                        key.at > clip.duration
+                            || !motion_animation::valid_humanoid_offset(key.animation_key().value)
+                    })
+                    || motion_animation::Track::new(
+                        keys.iter().map(ActorKey::animation_key).collect(),
+                    )
+                    .is_err()
+                {
+                    return Err(fail(format!("rig clip {name} joint {joint}: require 1..4096 increasing finite keys within the clip, bounded offsets/rotation within ±1000, scale 0.1..4, and at most 65536 library keys")));
                 }
             }
         }
@@ -2992,6 +3192,128 @@ mod live_clip_instance_tests {
         }
     }
 
+    const TWO_RIGS: &str = "characters:
+  P:
+    asset: custom
+    rig:
+      version: 1
+      id: p
+      joints: [{id: root, parent: null}, {id: arm, parent: root, x: 5}]
+      parts: [{id: a, joint: arm, points: [[0, 0], [2, 0], [0, 2]], color: [1, 2, 3, 255]}]
+  Q:
+    asset: custom
+    rig:
+      version: 1
+      id: q
+      joints: [{id: hip, parent: null}, {id: wing, parent: hip, x: 9}]
+      parts: [{id: b, joint: wing, points: [[0, 0], [2, 0], [0, 2]], color: [4, 5, 6, 255]}]
+  PLAIN: {asset: x}
+scenes:
+  - {id: s, duration: 4, events: []}
+  - {id: t, duration: 2, events: []}
+";
+    fn authored() -> String {
+        let keys = [
+            ActorKey {
+                x: 2.0,
+                ..ActorKey::default()
+            },
+            ActorKey {
+                at: 2.0,
+                x: 4.0,
+                rotation: 1.0,
+                ..ActorKey::default()
+            },
+        ];
+        apply_joint_track(TWO_RIGS, 0, "P", "arm", &keys).unwrap()
+    }
+    #[test]
+    fn rig_clips_capture_retarget_retime_scale_and_reject_bad_mappings() {
+        let source = authored();
+        let captured = capture_rig_clip(&source, 0, "P", "wave", false).unwrap();
+        let script = parse(&captured).unwrap();
+        assert_eq!(script.rig_clips["wave"].duration, 4.0);
+        assert_eq!(script.rig_clips["wave"].joint_tracks["arm"].len(), 2);
+        // Replacement is explicit; empty captures and bad names fail.
+        assert!(capture_rig_clip(&captured, 0, "P", "wave", false).is_err());
+        assert!(capture_rig_clip(&captured, 0, "P", "wave", true).is_ok());
+        assert!(capture_rig_clip(TWO_RIGS, 0, "P", "none", false).is_err());
+        assert!(capture_rig_clip(&source, 0, "P", "bad name", false).is_err());
+        // Identity placement onto another rig needs a mapping; unmapped joints are named.
+        let error = apply_rig_clip(&captured, 0, "Q", "wave", &RigClipPlacement::default())
+            .unwrap_err()
+            .to_string();
+        assert!(
+            error.contains("add a joint mapping") && error.contains("arm"),
+            "{error}"
+        );
+        let placement = RigClipPlacement {
+            joint_map: BTreeMap::from([("arm".into(), "wing".into())]),
+            translation_scale: 2.0,
+            interval: None,
+        };
+        let applied = apply_rig_clip(&captured, 0, "Q", "wave", &placement).unwrap();
+        let q = &parse(&applied).unwrap().scenes[0].composition.joint_tracks["Q"]["wing"];
+        assert_eq!(
+            (q[0].at, q[0].x, q[1].at, q[1].x, q[1].rotation),
+            (0.0, 4.0, 2.0, 8.0, 1.0)
+        );
+        // The library entry is untouched and the source actor keeps its own track.
+        let after = parse(&applied).unwrap();
+        assert_eq!(after.rig_clips, parse(&captured).unwrap().rig_clips);
+        assert_eq!(
+            after.scenes[0].composition.joint_tracks["P"]["arm"][1].x,
+            4.0
+        );
+        // Retiming maps clip time proportionally into an explicit scene interval.
+        let retimed = RigClipPlacement {
+            interval: Some((1.0, 2.0)),
+            ..RigClipPlacement::default()
+        };
+        let placed = apply_rig_clip(&captured, 0, "P", "wave", &retimed).unwrap();
+        let keys = &parse(&placed).unwrap().scenes[0].composition.joint_tracks["P"]["arm"];
+        assert_eq!((keys[0].at, keys[1].at), (1.0, 2.0));
+        // A clip longer than the scene, bad scale, plain actors and collisions fail.
+        assert!(apply_rig_clip(&captured, 1, "P", "wave", &RigClipPlacement::default()).is_err());
+        for scale in [0.0, 101.0, f64::NAN] {
+            let bad = RigClipPlacement {
+                translation_scale: scale,
+                ..RigClipPlacement::default()
+            };
+            assert!(apply_rig_clip(&captured, 0, "P", "wave", &bad).is_err());
+        }
+        assert!(
+            apply_rig_clip(&captured, 0, "PLAIN", "wave", &RigClipPlacement::default()).is_err()
+        );
+        assert!(
+            apply_rig_clip(&captured, 0, "P", "missing", &RigClipPlacement::default()).is_err()
+        );
+        let overshoot = RigClipPlacement {
+            interval: Some((3.5, 1.0)),
+            ..RigClipPlacement::default()
+        };
+        assert!(apply_rig_clip(&captured, 0, "P", "wave", &overshoot).is_err());
+        // Removing the definition leaves applied copies; unknown names fail.
+        let removed = remove_rig_clip(&applied, "wave").unwrap();
+        let after = parse(&removed).unwrap();
+        assert!(after.rig_clips.is_empty());
+        assert!(after.scenes[0].composition.joint_tracks.contains_key("Q"));
+        assert!(remove_rig_clip(&removed, "wave").is_err());
+    }
+    #[test]
+    fn invalid_rig_clip_definitions_fail_script_validation() {
+        let valid = capture_rig_clip(&authored(), 0, "P", "wave", false).unwrap();
+        for (from, to) in [
+            ("duration: 4", "duration: 0"),
+            ("duration: 4", "duration: 700"),
+            ("at: 2", "at: 5"),
+            ("wave:", "bad name:"),
+        ] {
+            let source = valid.replace(from, to);
+            assert_ne!(source, valid, "{from}");
+            assert!(parse(&source).is_err(), "{to}");
+        }
+    }
     #[test]
     fn joint_tracks_roundtrip_apply_remove_and_character_cleanup() {
         let source = "characters:\n  P:\n    asset: custom\n    rig:\n      version: 1\n      id: p\n      joints: [{id: root, parent: null}, {id: arm, parent: root, x: 5}]\n      parts: [{id: a, joint: arm, points: [[0, 0], [2, 0], [0, 2]], color: [1, 2, 3, 255]}]\nscenes:\n  - {id: s, duration: 2, events: []}\n";

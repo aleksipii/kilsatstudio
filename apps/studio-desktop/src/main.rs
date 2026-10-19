@@ -22,6 +22,7 @@ mod managed_license_evidence;
 mod native_compositor;
 mod playback;
 mod project_history;
+mod rig_clip_editor;
 mod runtime_check;
 mod scene_settings;
 mod scene_worker;
@@ -132,6 +133,7 @@ struct Studio {
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
     bone_draft: Option<(String, bone_editor::Draft)>,
     joint_draft: Option<(String, bone_editor::Draft)>,
+    rig_clips: rig_clip_editor::State,
     selected_joint: String,
     custom_rig_draft: Option<(String, custom_rig_editor::Draft)>,
     clip_draft: Option<(String, clip_editor::Draft)>,
@@ -279,6 +281,7 @@ impl Default for Studio {
             keyframe_draft: None,
             bone_draft: None,
             joint_draft: None,
+            rig_clips: rig_clip_editor::State::default(),
             selected_joint: String::new(),
             clip_library_draft: None,
             live_clip_draft: None,
@@ -3091,7 +3094,9 @@ impl Studio {
         if !joints.contains(&self.selected_joint) {
             self.selected_joint = joints[0].clone();
         }
+        let actor_owned = actor.to_owned();
         let mut apply = false;
+        let mut clip_action = None;
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
             |ui| {
@@ -3123,11 +3128,40 @@ impl Studio {
                     if let Some((_, draft)) = &mut self.joint_draft {
                         apply = draft.ui(ui);
                     }
+                    ui.separator();
+                    clip_action = self.rig_clips.ui(ui, script);
                 });
             },
         );
         if apply {
             self.apply_joint_draft();
+        }
+        if let Some(action) = clip_action {
+            let actor = actor_owned;
+            let result = match action {
+                rig_clip_editor::Action::Capture { name, replace } => {
+                    motion_script::capture_rig_clip(
+                        &self.source,
+                        self.scene_index,
+                        &actor,
+                        &name,
+                        replace,
+                    )
+                }
+                rig_clip_editor::Action::Apply { name, placement } => {
+                    motion_script::apply_rig_clip(
+                        &self.source,
+                        self.scene_index,
+                        &actor,
+                        &name,
+                        &placement,
+                    )
+                }
+                rig_clip_editor::Action::Remove { name } => {
+                    motion_script::remove_rig_clip(&self.source, &name)
+                }
+            };
+            self.apply_structure(result);
         }
     }
 

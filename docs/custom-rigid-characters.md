@@ -116,3 +116,24 @@ bone/live tracks, animated procedural strength tracks and nondefault static
 procedural strengths with actionable errors. Remove unsupported original-rig
 tracks before assigning a custom definition; default strengths remain compatible.
 No physical Mac editing or motion quality acceptance is implied by these checks.
+
+## Rig clip library and retargeting
+
+`rig_clips` in the screenplay stores reusable joint-track clips (at most 64 clips,
+65,536 keys, 600 s each). In the **Custom rig joint keyframes** section, name a clip
+and **Capture joint tracks** to copy the selected actor's tracks for the current
+scene (replacement needs the explicit checkbox). **Apply to selected actor** copies
+the clip onto the actor's rig, replacing its joint tracks in that scene:
+
+- *Joint mapping*: `clip_joint=target_joint` lines. Unlisted joints keep their ids;
+  every target joint must exist, and two clip joints may not map to one target. The
+  error names the first unmapped joint.
+- *Translation scale* (0.01–100) multiplies x/y offsets for larger or smaller rigs.
+- *Place in scene interval* maps clip times proportionally into a start/duration;
+  without it the clip must fit the scene unchanged.
+
+Applied copies and the library entry are independent; deleting a clip leaves copies.
+Everything is one validated, undoable source edit. This copies and retargets by
+joint id and scale only: it is not live instancing, mirroring, blending of several
+clips, IK or automatic bone matching, and it carries no rotation/scale correction
+between rigs with different rest orientations. No physical Mac review was done.
