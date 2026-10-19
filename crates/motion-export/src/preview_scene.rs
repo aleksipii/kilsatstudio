@@ -69,7 +69,7 @@ impl ScenePreview {
                 motion_art::Content::Stroke { points, .. } => points.len(),
                 _ => 1,
             };
-            if let Some(motion_art::ClipShape::Polygon { points }) = &layer.clip_shape {
+            if let Some(motion_art::ClipShape::Polygon { points, .. }) = &layer.clip_shape {
                 geometry += points.len();
             }
             if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {

@@ -100,8 +100,28 @@ export work rejection before a destination is created. Linux/macOS CI passed the
 recorded in [master progress](master-progress.md). This does not establish
 physical Mac rendering acceptance.
 
-Still open: groups and nested group compositing, feathered polygons, arbitrary
+Still open: arbitrary
 animated mask paths, mask painting and erasing, pressure-sensitive brush input,
 image retouching, GPU parity and physical Mac acceptance. The elliptical feather
 is an inward radial coverage ramp; it is not a general Gaussian blur or painted
 alpha mask.
+
+## Feathered polygon masks
+
+A polygon `clip_shape` accepts an optional `feather`: a Gaussian standard deviation
+in scene units (0–1000, default 0, omitted from saved files when zero), so older
+documents load unchanged. Unlike the ellipse's inward ramp, the blur is centred on
+the boundary: the edge has about half coverage, with softening both inside and
+outside. Vertex rules are unchanged. The inspector exposes a logarithmic slider.
+
+```json
+{ "type": "polygon", "points": [{"x":20,"y":20},{"x":80,"y":20},{"x":80,"y":80},{"x":20,"y":80}], "feather": 4 }
+```
+
+CPU preview, SVG and PNG exports render it as an SVG mask holding a blurred polygon
+(filter region four standard deviations wide). Polygon feather is not animated and
+the experimental GPU path rejects it with an explicit unsupported-feature error.
+Export work budgets do not yet charge for blur area beyond the canvas bound.
+Tests cover hard-edge equivalence, edge coverage, monotonic left/right-symmetric
+ramps, validation bounds, persistence, legacy JSON, and identical preview/PNG/SVG
+pixels. They do not establish physical Mac rendering acceptance.

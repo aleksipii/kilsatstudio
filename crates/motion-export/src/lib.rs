@@ -592,7 +592,7 @@ fn export_sequence(
                 };
                 content
                     + match &l.clip_shape {
-                        Some(motion_art::ClipShape::Polygon { points }) => points.len() as u64,
+                        Some(motion_art::ClipShape::Polygon { points, .. }) => points.len() as u64,
                         Some(motion_art::ClipShape::SoftEllipse { keys, .. }) => {
                             u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8
                         }

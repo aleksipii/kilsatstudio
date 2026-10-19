@@ -52,6 +52,7 @@ fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
     }
     ClipShape::Polygon {
         points: points.clone(),
+        feather: 0.0,
     }
     .validate()
     .map_err(|e| e.to_string())?;
@@ -178,6 +179,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
             }
             3 => {
                 layer.clip_shape = Some(ClipShape::Polygon {
+                    feather: 0.0,
                     points: vec![
                         Point {
                             x: rect.x,
@@ -218,7 +220,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
             }
         });
     }
-    if let Some(ClipShape::Polygon { points }) = &mut layer.clip_shape {
+    if let Some(ClipShape::Polygon { points, feather }) = &mut layer.clip_shape {
         let id = ui.id().with(("mask-vertices", &layer.id));
         let initial = points
             .iter()
@@ -247,6 +249,12 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
             }
         }
         ui.data_mut(|d| d.insert_temp(id, draft));
+        ui.add(
+            egui::Slider::new(feather, 0.0..=motion_art::MAX_POLYGON_FEATHER)
+                .logarithmic(true)
+                .text("Feather (blur σ, scene units)"),
+        );
+        ui.weak("0 = hard edge. Positive values blur the boundary; the edge keeps about half coverage. CPU preview/export only; the experimental GPU path reports it as unsupported.");
     }
     if let Some(ClipShape::SoftEllipse { feather, keys, .. }) = &mut layer.clip_shape {
         ui.add(egui::Slider::new(feather, 0.0..=1.0).text("Feather (inward)"));
@@ -1014,7 +1022,10 @@ mod tests {
         let before = document.clone();
         let mut editor = Editor::default();
         let mut next = before.clone();
-        next.layers[0].clip_shape = Some(ClipShape::Polygon { points });
+        next.layers[0].clip_shape = Some(ClipShape::Polygon {
+            points,
+            feather: 0.0,
+        });
         next.layers[0].blend = BlendMode::Screen;
         editor.commit(&mut document, next);
         assert_ne!(document, before);
