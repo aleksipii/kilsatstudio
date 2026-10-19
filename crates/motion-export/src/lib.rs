@@ -592,13 +592,16 @@ fn export_sequence(
                 };
                 content
                     + match &l.clip_shape {
-                        Some(motion_art::ClipShape::Polygon { points, .. }) => points.len() as u64,
-                        Some(motion_art::ClipShape::Painted { strokes, .. }) => {
+                        Some(shape @ motion_art::ClipShape::Polygon { points, .. }) => {
+                            points.len() as u64 + shape.motion_search_cost()
+                        }
+                        Some(shape @ motion_art::ClipShape::Painted { strokes, .. }) => {
                             strokes
                                 .iter()
                                 .map(|stroke| stroke.render_cost() as u64)
                                 .sum::<u64>()
                                 + 1
+                                + shape.motion_search_cost()
                         }
                         Some(
                             shape @ (motion_art::ClipShape::SoftEllipse { .. }

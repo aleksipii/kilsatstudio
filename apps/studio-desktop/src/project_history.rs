@@ -422,6 +422,7 @@ mod tests {
         for erase in [false, true, false] {
             if doc.art.layers[0].clip_shape.is_none() {
                 doc.art.layers[0].clip_shape = Some(motion_art::ClipShape::Painted {
+                    motion: Vec::new(),
                     base_visible: false,
                     strokes: Vec::new(),
                 });

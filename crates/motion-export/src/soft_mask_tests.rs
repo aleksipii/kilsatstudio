@@ -217,6 +217,7 @@ fn animated_mask_sampling_work_is_bounded_before_writing_frames() {
 fn square(feather: f64) -> ClipShape {
     let point = |x, y| motion_art::Point { x, y };
     ClipShape::Polygon {
+        motion: Vec::new(),
         points: vec![
             point(20.0, 20.0),
             point(80.0, 20.0),
@@ -317,6 +318,15 @@ fn render_row(
     art: &ArtContext,
     y: usize,
 ) -> Result<Vec<u8>, Error> {
+    render_row_at(script, rendered, art, 0, y)
+}
+fn render_row_at(
+    script: &Script,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    index: u64,
+    y: usize,
+) -> Result<Vec<u8>, Error> {
     let cancel = CancellationToken::new();
     let preview = ScenePreview::new(
         Arc::new(script.clone()),
@@ -324,9 +334,9 @@ fn render_row(
         Arc::new(art.clone()),
         Some(Arc::new(rendered.manifest.clone())),
     )?;
-    let (sample, _, png) = encode_frame(script, 0, rendered, 0, true, &cancel, Some(art))?;
+    let (sample, _, png) = encode_frame(script, 0, rendered, index, true, &cancel, Some(art))?;
     let png = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
-    let (_, _, svg) = encode_frame(script, 0, rendered, 0, false, &cancel, Some(art))?;
+    let (_, _, svg) = encode_frame(script, 0, rendered, index, false, &cancel, Some(art))?;
     let svg = String::from_utf8(svg).unwrap();
     let raster =
         resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
@@ -430,6 +440,7 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
     let (script, rendered, mut art) = fixture();
     for base_visible in [false, true] {
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes: Vec::new(),
         });
@@ -443,6 +454,7 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
             hardness: 1.0,
         }];
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes: strokes.clone(),
         });
@@ -457,6 +469,7 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
             hardness: 1.0,
         });
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes: strokes.clone(),
         });
@@ -472,6 +485,7 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
             hardness: 1.0,
         });
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes,
         });
@@ -518,6 +532,7 @@ fn dormant_painted_mask_export_work_is_rejected_before_output_creation() {
     rendered.manifest.total_frames = 900_000;
     art.document.layers[0].visible = false;
     art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        motion: Vec::new(),
         base_visible: true,
         strokes: vec![motion_art::MaskStroke {
             points: (0..500)
@@ -563,6 +578,7 @@ fn soft_pressure_masks_have_gradual_edges_variable_width_and_ordered_repainting(
             hardness: 0.0,
         }];
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes: strokes.clone(),
         });
@@ -577,6 +593,7 @@ fn soft_pressure_masks_have_gradual_edges_variable_width_and_ordered_repainting(
         overlapping[0].points = vec![Point { x: 50.0, y: 50.0 }; 8];
         overlapping[0].pressures = vec![1.0; 8];
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes: overlapping,
         });
@@ -589,6 +606,7 @@ fn soft_pressure_masks_have_gradual_edges_variable_width_and_ordered_repainting(
             hardness: 1.0,
         });
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible,
             strokes,
         });
@@ -598,6 +616,7 @@ fn soft_pressure_masks_have_gradual_edges_variable_width_and_ordered_repainting(
         assert_eq!(row[50], if base_visible { 255 } else { 0 });
     }
     art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        motion: Vec::new(),
         base_visible: false,
         strokes: vec![MaskStroke {
             points: vec![Point { x: 25.0, y: 50.0 }, Point { x: 75.0, y: 50.0 }],
@@ -622,6 +641,7 @@ fn soft_brush_expansion_is_charged_before_sequence_output_creation() {
     // Raw point work fits comfortably; expanded soft-brush geometry does not.
     art.document.layers[0].visible = false;
     art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        motion: Vec::new(),
         base_visible: true,
         strokes: vec![motion_art::MaskStroke {
             points: (0..100)
@@ -672,6 +692,7 @@ fn pressure_stroke_self_crossing_and_sharp_turns_do_not_cancel_coverage() {
     use motion_art::{MaskStroke, Point};
     let (script, rendered, mut art) = fixture();
     art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        motion: Vec::new(),
         base_visible: false,
         strokes: vec![MaskStroke {
             // A bow tie crosses itself, then reverses over its first diagonal.
@@ -772,4 +793,158 @@ fn animated_image_masks_match_static_expectations_and_preview_export_on_reverse_
             "frame {index}"
         );
     }
+}
+
+fn motion(time: f64, x: f64, rotation: f64) -> motion_art::MaskMotionKey {
+    motion_art::MaskMotionKey {
+        time,
+        x,
+        rotation,
+        ..Default::default()
+    }
+}
+fn bar(feather: f64, motion: Vec<motion_art::MaskMotionKey>) -> ClipShape {
+    let point = |x, y| motion_art::Point { x, y };
+    ClipShape::Polygon {
+        points: vec![
+            point(20.0, 40.0),
+            point(80.0, 40.0),
+            point(80.0, 60.0),
+            point(20.0, 60.0),
+        ],
+        feather,
+        motion,
+    }
+}
+
+#[test]
+fn polygon_motion_translates_rotates_seeks_deterministically_and_agrees_across_outputs() {
+    let (script, rendered, mut art) = fixture();
+    // Frames are quarter seconds: index 3 is t=0.75, the last key.
+    art.document.layers[0].clip_shape = Some(bar(
+        0.0,
+        vec![motion(0.0, 0.0, 0.0), motion(0.75, 30.0, 0.0)],
+    ));
+    art.document.validate().unwrap();
+    let start = render_row_at(&script, &rendered, &art, 0, 50).unwrap();
+    assert!(start[..20].iter().all(|v| *v == 0) && start[20..80].iter().all(|v| *v == 255));
+    let end = render_row_at(&script, &rendered, &art, 3, 50).unwrap();
+    assert!(end[..50].iter().all(|v| *v == 0), "{end:?}");
+    assert!(end[50..100].iter().all(|v| *v == 255), "{end:?}");
+    // Halfway (t=0.375 is between frames) and out-of-order seeks stay deterministic.
+    for index in [3u64, 1, 0, 3, 2, 1] {
+        let again = render_row_at(&script, &rendered, &art, index, 50).unwrap();
+        let expected_shift = [0, 10, 20, 30][index as usize];
+        assert_eq!(again[20 + expected_shift - 2], 0, "{index}");
+        assert_eq!(again[20 + expected_shift + 2], 255, "{index}");
+    }
+    // A quarter turn about the bar's own centre makes it tall instead of wide.
+    art.document.layers[0].clip_shape = Some(bar(
+        0.0,
+        vec![
+            motion(0.0, 0.0, 0.0),
+            motion(0.75, 0.0, std::f64::consts::FRAC_PI_2),
+        ],
+    ));
+    let column = |index| {
+        (0..100)
+            .map(|y| {
+                let cancel = CancellationToken::new();
+                let preview = ScenePreview::new(
+                    Arc::new(script.clone()),
+                    0,
+                    Arc::new(art.clone()),
+                    Some(Arc::new(rendered.manifest.clone())),
+                )
+                .unwrap();
+                let (sample, _, _) =
+                    encode_frame(&script, 0, &rendered, index, true, &cancel, Some(&art)).unwrap();
+                let frame = preview.render(sample, 1024, &cancel).unwrap();
+                red(&frame, 50, y)
+            })
+            .collect::<Vec<_>>()
+    };
+    let flat = column(0);
+    let tall = column(3);
+    assert!(flat[45..55].iter().all(|v| *v == 255) && flat[..35].iter().all(|v| *v == 0));
+    assert!(tall[25..75].iter().all(|v| *v >= 250), "{tall:?}");
+    assert!(tall[..15].iter().all(|v| *v == 0) && tall[85..].iter().all(|v| *v == 0));
+}
+
+#[test]
+fn feathered_polygon_and_painted_masks_move_with_their_motion_tracks() {
+    let (script, rendered, mut art) = fixture();
+    art.document.layers[0].clip_shape = Some(bar(
+        3.0,
+        vec![motion(0.0, 0.0, 0.0), motion(0.75, 20.0, 0.0)],
+    ));
+    art.document.validate().unwrap();
+    let row = render_row_at(&script, &rendered, &art, 3, 50).unwrap();
+    // The left edge moved from x=20 to x=40 and stays about half covered there.
+    assert!(row[10] == 0 && row[30] < 20, "{row:?}");
+    assert!((100..=156).contains(&row[40]), "{row:?}");
+    assert!(row[60] == 255);
+    let painted = |motion| ClipShape::Painted {
+        base_visible: false,
+        strokes: vec![motion_art::MaskStroke {
+            points: vec![motion_art::Point { x: 30.0, y: 50.0 }],
+            radius: 8.0,
+            erase: false,
+            pressures: Vec::new(),
+            hardness: 1.0,
+        }],
+        motion,
+    };
+    art.document.layers[0].clip_shape = Some(painted(vec![
+        motion(0.0, 0.0, 0.0),
+        motion(0.75, 40.0, 0.0),
+    ]));
+    art.document.validate().unwrap();
+    let before = render_row_at(&script, &rendered, &art, 0, 50).unwrap();
+    let after = render_row_at(&script, &rendered, &art, 3, 50).unwrap();
+    assert_eq!((before[30], before[70]), (255, 0), "{before:?}");
+    assert_eq!((after[30], after[70]), (0, 255), "{after:?}");
+}
+
+#[test]
+fn mask_motion_validates_bounds_scene_duration_persistence_and_legacy_json() {
+    let valid = bar(0.0, vec![motion(0.0, 0.0, 0.0), motion(0.5, 10.0, 1.0)]);
+    valid.validate().unwrap();
+    assert_eq!(valid.key_count(), 2);
+    assert!(valid.validate_scene_duration(0.5).is_ok());
+    assert!(valid.validate_scene_duration(0.4).is_err());
+    let mut bad = [
+        vec![motion(0.5, 0.0, 0.0), motion(0.5, 1.0, 0.0)],
+        vec![motion(-1.0, 0.0, 0.0)],
+        vec![motion(0.0, f64::NAN, 0.0)],
+        vec![motion(0.0, 2.0e6, 0.0)],
+        vec![motion(0.0, 0.0, 2000.0)],
+        vec![motion_art::MaskMotionKey {
+            scale: 0.0,
+            ..Default::default()
+        }],
+        vec![motion_art::MaskMotionKey {
+            scale: 1000.0,
+            ..Default::default()
+        }],
+        (0..129).map(|i| motion(i as f64, 0.0, 0.0)).collect(),
+    ]
+    .into_iter();
+    assert!(bad.all(|keys| bar(0.0, keys).validate().is_err()));
+    let json = serde_json::to_string(&valid).unwrap();
+    assert_eq!(serde_json::from_str::<ClipShape>(&json).unwrap(), valid);
+    // Static shapes omit `motion`, and legacy documents without it still load.
+    assert!(!serde_json::to_string(&bar(0.0, Vec::new()))
+        .unwrap()
+        .contains("motion"));
+    let legacy: ClipShape =
+        serde_json::from_str(r#"{"type":"painted","base_visible":true,"strokes":[]}"#).unwrap();
+    assert_eq!(legacy.key_count(), 0);
+    assert!(legacy.sample_motion(1.0).is_none());
+    // Sampling interpolates linearly and holds the endpoints.
+    let held = valid.sample_motion(9.0).unwrap();
+    assert_eq!((held.x, held.rotation), (10.0, 1.0));
+    let mid = valid.sample_motion(0.25).unwrap();
+    assert_eq!((mid.x, mid.rotation), (5.0, 0.5));
+    assert_eq!(mid.pivot, motion_art::Point { x: 50.0, y: 50.0 });
 }

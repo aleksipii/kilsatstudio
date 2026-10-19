@@ -362,6 +362,7 @@ fn append_art(
         if let Some(motion_art::ClipShape::Painted {
             base_visible,
             strokes,
+            ..
         }) = &layer.clip_shape
         {
             // Bound the mask to content in layer-local coordinates, rather than
@@ -369,6 +370,13 @@ fn append_art(
             let r = artwork_content_bounds(&layer.content);
             let base = if *base_visible { "white" } else { "black" };
             write!(svg, "<defs><mask id=\"art{index}\" mask-type=\"luminance\" maskUnits=\"userSpaceOnUse\" maskContentUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"{base}\"/>", r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
+            let motion = layer
+                .clip_shape
+                .as_ref()
+                .and_then(|shape| shape.sample_motion(scene.time));
+            if let Some(motion) = &motion {
+                write!(svg, "<g transform=\"{}\">", motion.svg_transform()).unwrap();
+            }
             for (stroke_index, stroke) in strokes.iter().enumerate() {
                 let color = if stroke.erase { "black" } else { "white" };
                 if !stroke.pressures.is_empty() || stroke.hardness != 1.0 {
@@ -404,6 +412,9 @@ fn append_art(
                     write!(svg, "\" fill=\"none\" stroke=\"{color}\" stroke-width=\"{}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", stroke.radius * 2.0).unwrap();
                 }
             }
+            if motion.is_some() {
+                svg.push_str("</g>");
+            }
             write!(svg, "</mask></defs><g mask=\"url(#art{index})\">").unwrap();
         } else if let Some(motion_art::ClipShape::SoftEllipse { .. }) = &layer.clip_shape {
             let (r, feather) = layer
@@ -417,13 +428,19 @@ fn append_art(
             } else {
                 write!(svg, "<defs><radialGradient id=\"art{index}fade\"><stop offset=\"{}\" stop-color=\"white\"/><stop offset=\"1\" stop-color=\"white\" stop-opacity=\"0\"/></radialGradient><mask id=\"art{index}\" maskUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"url(#art{index}fade)\"/></mask></defs><g mask=\"url(#art{index})\">", 1.0 - feather, r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
             }
-        } else if let Some(motion_art::ClipShape::Polygon { points, feather }) = layer
+        } else if let Some(motion_art::ClipShape::Polygon {
+            points, feather, ..
+        }) = layer
             .clip_shape
             .as_ref()
             .filter(|shape| matches!(shape, motion_art::ClipShape::Polygon { feather, .. } if *feather > 0.0))
         {
             // Blurred white polygon as a luminance-free alpha mask; the region
             // covers four standard deviations so the tails are not truncated.
+            let motion = layer
+                .clip_shape
+                .as_ref()
+                .and_then(|shape| shape.sample_motion(scene.time));
             let margin = 4.0 * feather;
             let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
             for p in points {
@@ -433,11 +450,28 @@ fn append_art(
                 y1 = y1.max(p.y);
             }
             let (x, y, w, h) = (x0 - margin, y0 - margin, x1 - x0 + 2.0 * margin, y1 - y0 + 2.0 * margin);
-            write!(svg, "<defs><filter id=\"art{index}blur\" filterUnits=\"userSpaceOnUse\" x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\"><feGaussianBlur stdDeviation=\"{feather}\"/></filter><mask id=\"art{index}\" maskUnits=\"userSpaceOnUse\" x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\"><polygon fill=\"white\" filter=\"url(#art{index}blur)\" points=\"").unwrap();
+            // A moving polygon may leave its static bounds; the content bounds
+            // are the largest region the mask can ever need to cover.
+            let region = if motion.is_some() {
+                let r = artwork_content_bounds(&layer.content);
+                (r.x, r.y, r.width, r.height)
+            } else {
+                (x, y, w, h)
+            };
+            write!(svg, "<defs><filter id=\"art{index}blur\" filterUnits=\"userSpaceOnUse\" x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\"><feGaussianBlur stdDeviation=\"{feather}\"/></filter><mask id=\"art{index}\" maskUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\">", region.0, region.1, region.2, region.3).unwrap();
+            if let Some(motion) = &motion {
+                write!(svg, "<g transform=\"{}\">", motion.svg_transform()).unwrap();
+            }
+            svg.push_str("<polygon fill=\"white\" filter=\"url(#art");
+            write!(svg, "{index}blur)\" points=\"").unwrap();
             for p in points {
                 write!(svg, "{},{} ", p.x, p.y).unwrap();
             }
-            write!(svg, "\"/></mask></defs><g mask=\"url(#art{index})\">").unwrap();
+            svg.push_str("\"/>");
+            if motion.is_some() {
+                svg.push_str("</g>");
+            }
+            write!(svg, "</mask></defs><g mask=\"url(#art{index})\">").unwrap();
         } else if let Some(shape @ motion_art::ClipShape::Image {
             asset_id,
             channel,
@@ -480,7 +514,11 @@ fn append_art(
                     return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into()))
                 }
                 motion_art::ClipShape::Polygon { points, .. } => {
-                    svg.push_str("<polygon points=\"");
+                    svg.push_str("<polygon");
+                    if let Some(motion) = shape.sample_motion(scene.time) {
+                        write!(svg, " transform=\"{}\"", motion.svg_transform()).unwrap();
+                    }
+                    svg.push_str(" points=\"");
                     for p in points {
                         write!(svg, "{},{} ", p.x, p.y).unwrap();
                     }
@@ -901,6 +939,7 @@ mod timed_art_tests {
             hardness: 1.0,
         };
         item.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![
                 dab.clone(),
@@ -936,6 +975,7 @@ mod timed_art_tests {
         if let Some(ClipShape::Painted {
             base_visible,
             strokes,
+            ..
         }) = &mut doc.layers[0].clip_shape
         {
             *base_visible = true;

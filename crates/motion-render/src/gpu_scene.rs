@@ -706,6 +706,7 @@ mod tests {
                         stroke(8.0, 1.0, 1.0, true),
                         stroke(2.0, 1.0, 1.0, false),
                     ],
+                    motion: Vec::new(),
                 }),
             }],
             ..Default::default()

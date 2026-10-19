@@ -147,3 +147,21 @@ but measured edge/color parity remains open. Image masks are not feathered or
 paintable; the stretched image's edges are bilinear.
 Pixel tests use 100×1 strips to verify alpha versus luminance selection, the
 missing-resource failure, and identical preview/PNG/SVG pixels.
+
+## Animated polygon and painted masks
+
+Polygon and painted `clip_shape` values accept an optional `motion` array of keys
+`{time, x, y, scale, rotation}` (scene-local seconds; `x`/`y` translation, uniform
+`scale` 0.01–100 default 1, `rotation` in radians within ±1000, default 0). The
+shape translates, rotates and scales about the centre of its own bounding box
+(polygon vertices, or all stroke points for a painted mask); a painted mask's base
+coverage does not move, only its strokes. Values interpolate linearly, endpoints
+hold, and times must be increasing, finite and within the scene (at most 128 keys
+per mask, counted in the 8192-key document budget). Static shapes omit `motion`,
+so older projects load unchanged. Rendering is shared by CPU preview, SVG, PNG
+and video; export preflight charges the key lookup. The inspector's **Mask motion
+keys** box takes `time,x,y,scale,rotation` rows. The experimental GPU path reports
+animated polygon/painted masks as unsupported instead of drawing them static.
+Pixel tests check translation, a quarter-turn, feathered and painted motion,
+out-of-order seeks and preview/PNG/SVG agreement. Not covered: animated vertices
+or strokes, non-uniform scale, GPU support and physical Mac inspection.

@@ -272,6 +272,11 @@ fn preflight(
                     _ => 1,
                 })
                 .ok_or_else(|| invalid("art geometry overflow"))?;
+            if let Some(shape) = &layer.clip_shape {
+                geometry = geometry
+                    .checked_add(shape.motion_search_cost())
+                    .ok_or_else(|| invalid("mask geometry overflow"))?;
+            }
             if let Some(motion_art::ClipShape::Polygon { points, .. }) = &layer.clip_shape {
                 geometry = geometry
                     .checked_add(points.len() as u64)
@@ -1432,6 +1437,7 @@ mod tests {
         for shape in [
             ClipShape::Ellipse { rect },
             ClipShape::Polygon {
+                motion: Vec::new(),
                 feather: 0.0,
                 points: vec![
                     Point { x: 4.0, y: 0.0 },
@@ -1485,6 +1491,7 @@ mod tests {
             attachment: None,
             clip: None,
             clip_shape: Some(ClipShape::Polygon {
+                motion: Vec::new(),
                 points,
                 feather: 0.0,
             }),

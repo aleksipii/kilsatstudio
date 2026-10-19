@@ -460,6 +460,7 @@ mod tests {
         let mut doc = ProjectDocument::new(SOURCE).unwrap();
         let mut item = rectangle();
         item.clip_shape = Some(motion_art::ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: true,
             strokes: vec![motion_art::MaskStroke {
                 points: vec![motion_art::Point { x: 10.0, y: 12.0 }],

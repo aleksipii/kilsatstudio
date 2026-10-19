@@ -87,6 +87,9 @@ pub enum ClipShape {
         points: Vec<Point>,
         #[serde(default, skip_serializing_if = "is_zero")]
         feather: f64,
+        /// Optional scene-local motion about the polygon's bounding-box centre.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        motion: Vec<MaskMotionKey>,
     },
     /// Raster mask from a project image asset stretched over `rect`. Content is
     /// visible where the chosen channel of the image is opaque/bright.
@@ -102,6 +105,10 @@ pub enum ClipShape {
     Painted {
         base_visible: bool,
         strokes: Vec<MaskStroke>,
+        /// Optional scene-local motion of the strokes (not the base) about the
+        /// centre of their bounding box.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        motion: Vec<MaskMotionKey>,
     },
     /// Elliptical alpha mask with an inward, normalized radial feather.
     /// Keys use scene-local seconds; their first/last values hold outside the track.
@@ -262,6 +269,75 @@ pub struct RectMaskKey {
     pub time: f64,
     pub rect: Rect,
 }
+/// Scene-local rigid motion of a polygon or painted mask: translation, uniform
+/// scale and rotation (radians) about the shape's own centre. Endpoints hold.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(default, deny_unknown_fields)]
+pub struct MaskMotionKey {
+    pub time: f64,
+    pub x: f64,
+    pub y: f64,
+    pub scale: f64,
+    pub rotation: f64,
+}
+impl Default for MaskMotionKey {
+    fn default() -> Self {
+        Self {
+            time: 0.0,
+            x: 0.0,
+            y: 0.0,
+            scale: 1.0,
+            rotation: 0.0,
+        }
+    }
+}
+/// Sampled motion plus the pivot it applies about.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MaskMotion {
+    pub pivot: Point,
+    pub x: f64,
+    pub y: f64,
+    pub scale: f64,
+    pub rotation: f64,
+}
+impl MaskMotion {
+    /// SVG transform: translate, then rotate and scale about the pivot.
+    pub fn svg_transform(&self) -> String {
+        format!(
+            "translate({} {}) translate({} {}) rotate({}) scale({}) translate({} {})",
+            self.x,
+            self.y,
+            self.pivot.x,
+            self.pivot.y,
+            self.rotation.to_degrees(),
+            self.scale,
+            -self.pivot.x,
+            -self.pivot.y
+        )
+    }
+}
+fn validate_motion(keys: &[MaskMotionKey]) -> Result<(), Error> {
+    if keys.len() > MAX_MASK_KEYS {
+        return invalid("animated mask exceeds 128 keys");
+    }
+    let mut previous = None;
+    for key in keys {
+        if !key.time.is_finite()
+            || key.time < 0.0
+            || previous.is_some_and(|time| key.time <= time)
+            || !coordinate(key.x)
+            || !coordinate(key.y)
+            || !key.scale.is_finite()
+            || !(0.01..=100.0).contains(&key.scale)
+            || !key.rotation.is_finite()
+            || key.rotation.abs() > 1000.0
+        {
+            return invalid("mask motion keys require increasing finite nonnegative seconds, bounded translation, scale 0.01–100 and rotation within ±1000 radians");
+        }
+        previous = Some(key.time);
+    }
+    Ok(())
+}
 /// SVG/resvg sRGB backdrop blending. Normal preserves legacy source-over output.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -279,6 +355,22 @@ impl BlendMode {
 pub const MAX_MASK_POINTS: usize = 256;
 /// Largest polygon feather standard deviation, in scene units.
 pub const MAX_POLYGON_FEATHER: f64 = 1000.0;
+fn bounds_centre<'a>(points: impl Iterator<Item = &'a Point>) -> Point {
+    let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+    for p in points {
+        x0 = x0.min(p.x);
+        y0 = y0.min(p.y);
+        x1 = x1.max(p.x);
+        y1 = y1.max(p.y);
+    }
+    if x0 > x1 {
+        return Point { x: 0.0, y: 0.0 };
+    }
+    Point {
+        x: (x0 + x1) / 2.0,
+        y: (y0 + y1) / 2.0,
+    }
+}
 fn is_zero(value: &f64) -> bool {
     *value == 0.0
 }
@@ -293,6 +385,9 @@ impl ClipShape {
         let last_time = match self {
             Self::SoftEllipse { keys, .. } => keys.last().map(|key| key.time),
             Self::Image { keys, .. } => keys.last().map(|key| key.time),
+            Self::Polygon { motion, .. } | Self::Painted { motion, .. } => {
+                motion.last().map(|key| key.time)
+            }
             _ => None,
         };
         if last_time.is_some_and(|time| time > duration) {
@@ -337,12 +432,67 @@ impl ClipShape {
             Self::Polygon { .. } | Self::Image { .. } | Self::Painted { .. } => None,
         }
     }
+    /// Bounded per-sample lookup work for animated polygon/painted motion.
+    pub fn motion_search_cost(&self) -> u64 {
+        match self {
+            Self::Polygon { motion, .. } | Self::Painted { motion, .. } if !motion.is_empty() => {
+                u64::from(usize::BITS - motion.len().leading_zeros()) + 8
+            }
+            _ => 0,
+        }
+    }
     pub fn key_count(&self) -> usize {
         match self {
             Self::SoftEllipse { keys, .. } => keys.len(),
             Self::Image { keys, .. } => keys.len(),
+            Self::Polygon { motion, .. } | Self::Painted { motion, .. } => motion.len(),
             _ => 0,
         }
+    }
+    /// Sample polygon/painted motion independently of seek order. `None` when the
+    /// shape has no motion track (so renderers can keep the untransformed path).
+    pub fn sample_motion(&self, time: f64) -> Option<MaskMotion> {
+        let (keys, pivot) = match self {
+            Self::Polygon { points, motion, .. } => (motion, bounds_centre(points.iter())),
+            Self::Painted {
+                strokes, motion, ..
+            } => (
+                motion,
+                bounds_centre(strokes.iter().flat_map(|s| &s.points)),
+            ),
+            _ => return None,
+        };
+        if keys.is_empty() {
+            return None;
+        }
+        let at = |key: &MaskMotionKey| MaskMotion {
+            pivot,
+            x: key.x,
+            y: key.y,
+            scale: key.scale,
+            rotation: key.rotation,
+        };
+        if !time.is_finite() {
+            return Some(at(&keys[0]));
+        }
+        let index = keys.partition_point(|key| key.time <= time);
+        if index == 0 {
+            return Some(at(&keys[0]));
+        }
+        let left = keys[index - 1];
+        if index == keys.len() {
+            return Some(at(&left));
+        }
+        let right = keys[index];
+        let t = (time - left.time) / (right.time - left.time);
+        let lerp = |a: f64, b: f64| a + (b - a) * t;
+        Some(MaskMotion {
+            pivot,
+            x: lerp(left.x, right.x),
+            y: lerp(left.y, right.y),
+            scale: lerp(left.scale, right.scale),
+            rotation: lerp(left.rotation, right.rotation),
+        })
     }
     /// Sample the image mask independently of seek order, in scene-local seconds.
     pub fn sample_image_rect(&self, time: f64) -> Option<Rect> {
@@ -379,7 +529,10 @@ impl ClipShape {
     }
     pub fn validate(&self) -> Result<(), Error> {
         match self {
-            Self::Painted { strokes, .. } => {
+            Self::Painted {
+                strokes, motion, ..
+            } => {
+                validate_motion(motion)?;
                 if strokes.len() > MAX_MASK_STROKES {
                     return invalid("painted mask exceeds 512 strokes");
                 }
@@ -449,7 +602,12 @@ impl ClipShape {
                 }
                 Ok(())
             }
-            Self::Polygon { points, feather } => {
+            Self::Polygon {
+                points,
+                feather,
+                motion,
+            } => {
+                validate_motion(motion)?;
                 if !feather.is_finite() || !(0.0..=MAX_POLYGON_FEATHER).contains(feather) {
                     return invalid("polygon feather must be finite and between 0 and 1000");
                 }
@@ -1513,6 +1671,7 @@ mod tests {
             vec![Point { x: 0.0, y: 0.0 }; 257],
         ] {
             assert!(ClipShape::Polygon {
+                motion: Vec::new(),
                 points,
                 feather: 0.0
             }
@@ -1520,6 +1679,7 @@ mod tests {
             .is_err());
         }
         let concave = ClipShape::Polygon {
+            motion: Vec::new(),
             feather: 0.0,
             points: vec![
                 Point { x: 0.0, y: 0.0 },
@@ -1608,6 +1768,7 @@ mod tests {
         let mut item = layer();
         item.clip = None;
         item.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: true,
             strokes: vec![stroke; 9],
         });
@@ -1655,6 +1816,7 @@ mod tests {
         let mut item = layer();
         item.clip = None;
         item.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![
                 mask_stroke(),
@@ -1673,6 +1835,7 @@ mod tests {
         assert_eq!(doc, serde_json::from_str::<Document>(&encoded).unwrap());
         let before = doc.clone();
         item.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: true,
             strokes: vec![MaskStroke {
                 radius: f64::NAN,
@@ -1717,6 +1880,7 @@ mod tests {
             .is_err());
         }
         assert!(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: true,
             strokes: vec![mask_stroke(); MAX_MASK_STROKES + 1],
         }
@@ -1725,6 +1889,7 @@ mod tests {
         let mut item = layer();
         item.clip = None;
         item.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![mask_stroke(); MAX_MASK_STROKES],
         });
@@ -1743,6 +1908,7 @@ mod tests {
             ..mask_stroke()
         };
         item.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![long.clone(); MAX_TOTAL_POINTS / MAX_MASK_STROKE_POINTS],
         });
@@ -1756,6 +1922,7 @@ mod tests {
         .validate()
         .is_err());
         assert!(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![long; MAX_TOTAL_POINTS / MAX_MASK_STROKE_POINTS + 1],
         }
