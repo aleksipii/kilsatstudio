@@ -630,19 +630,19 @@ mod tests {
             },
         );
         a.plane = Plane::Background;
-        a.clip = Some(r);
         a.clip_shape = Some(ClipShape::SoftEllipse {
             rect: r,
             feather: 0.25,
             keys: vec![],
         });
-        let b = artwork_layer(
+        let mut b = artwork_layer(
             "b",
             Content::Image {
                 asset_id: "i".into(),
                 rect: r,
             },
         );
+        b.clip = Some(r);
         let document = Document {
             layers: vec![a, b],
             ..Default::default()
@@ -664,8 +664,8 @@ mod tests {
         .unwrap();
         assert_eq!(c.pixels, vec![u32::from_le_bytes([10, 20, 30, 128])]);
         let kinds: Vec<_> = c.commands.iter().map(|c| c.0[4][0]).collect();
-        assert_eq!(&kinds[..5], &[8.0, 9.0, 10.0, 5.0, 12.0]);
-        assert_eq!(&kinds[kinds.len() - 3..], &[8.0, 5.0, 12.0]);
+        assert_eq!(&kinds[..4], &[8.0, 10.0, 5.0, 12.0]);
+        assert_eq!(&kinds[kinds.len() - 4..], &[8.0, 9.0, 5.0, 12.0]);
         assert_eq!(c.commands[2].0[4][1], 0.25);
         assert!(build_with_art(
             &scene(),

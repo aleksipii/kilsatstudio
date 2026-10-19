@@ -355,7 +355,16 @@ fn group_targets_and_retained_images_share_single_scene_working_set_budget() {
     let image = motion_art::ImageResource::from_rgba(2000, 2000, vec![0; 2000 * 2000 * 4]).unwrap();
     art.images.insert("retained".into(), image);
     let destination = crate::tests::destination();
-    let error = export_png_scene_with_art(&script, 0, &rendered, &art, &destination, &CancellationToken::new(), |_| {}).unwrap_err();
+    let error = export_png_scene_with_art(
+        &script,
+        0,
+        &rendered,
+        &art,
+        &destination,
+        &CancellationToken::new(),
+        |_| {},
+    )
+    .unwrap_err();
     assert!(error.to_string().contains("grouped scene working set"));
     assert!(!destination.exists());
 }

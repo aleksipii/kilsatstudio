@@ -759,18 +759,24 @@ fn omitted_blend_mode_keeps_legacy_override_frames() {
     }
 }
 
-
 #[test]
 fn normalized_chest_rotation_stays_continuous_as_weight_crosses_one() {
     let mut actual = motion_script::parse(SOURCE).unwrap();
     let first_clip = actual.animation_clips.get_mut("reach").unwrap();
     first_clip.bone_tracks.clear();
-    first_clip.bone_tracks.insert("chest".into(), vec![motion_script::ActorKey {
-        rotation: 3.0, y: 3.0, ..Default::default()
-    }]);
+    first_clip.bone_tracks.insert(
+        "chest".into(),
+        vec![motion_script::ActorKey {
+            rotation: 3.0,
+            y: 3.0,
+            ..Default::default()
+        }],
+    );
     let mut second_clip = first_clip.clone();
     second_clip.bone_tracks.get_mut("chest").unwrap()[0].rotation = -2.75;
-    actual.animation_clips.insert("opposite".into(), second_clip);
+    actual
+        .animation_clips
+        .insert("opposite".into(), second_clip);
     let first = &mut actual.scenes[0].composition.clip_instances[0];
     first.normalized_group = Some("chest_turn".into());
     let mut second = first.clone();
@@ -779,11 +785,24 @@ fn normalized_chest_rotation_stays_continuous_as_weight_crosses_one() {
     actual.scenes[0].composition.clip_instances.push(second);
     // Dyadic inputs give independently exact expectations below/at/above S=1.
     // A contributor-anchored reference at S>=1 would instead snap by about pi.
-    for (weight, angle) in [(0.4990234375, 0.124755859375), (0.5, 0.125), (0.5009765625, 0.125)] {
-        for row in &mut actual.scenes[0].composition.clip_instances { row.weight = weight; }
+    for (weight, angle) in [
+        (0.4990234375, 0.124755859375),
+        (0.5, 0.125),
+        (0.5009765625, 0.125),
+    ] {
+        for row in &mut actual.scenes[0].composition.clip_instances {
+            row.weight = weight;
+        }
         let mut expected = actual.clone();
         expected.scenes[0].composition.clip_instances.clear();
-        expected.scenes[0].composition.bone_tracks.get_mut("EMMA").unwrap().get_mut("chest").unwrap()[0].rotation = angle;
+        expected.scenes[0]
+            .composition
+            .bone_tracks
+            .get_mut("EMMA")
+            .unwrap()
+            .get_mut("chest")
+            .unwrap()[0]
+            .rotation = angle;
         assert_frames_and_preview(&actual, &expected, 4);
         actual.scenes[0].composition.clip_instances.reverse();
         assert_frames_and_preview(&actual, &expected, 4);

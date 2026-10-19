@@ -522,7 +522,7 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
  let p=pixel.xy;
  var canvas=scene.canvas;
  var phase_opacity=scene.settings.x;
- var active=all(p>=canvas.xy) && all(p<canvas.xy+canvas.zw);
+ var inside_canvas=all(p>=canvas.xy) && all(p<canvas.xy+canvas.zw);
  var first_color=vec3(0.);
  var second_weight=1.;
  var colors: array<vec4<f32>,16>;
@@ -535,12 +535,12 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
   let s=shapes[i]; let kind=s.parameters.x;
   if kind>13.5 && kind<14.5 {
    second_weight=s.origin.y;
-   first_color=floor(clamp(select(vec3(0.),colors[0].rgb*phase_opacity,active),vec3(0.),vec3(1.))*255.+vec3(.5))/255.*(1.-second_weight);
+   first_color=floor(clamp(select(vec3(0.),colors[0].rgb*phase_opacity,inside_canvas),vec3(0.),vec3(1.))*255.+vec3(.5))/255.*(1.-second_weight);
    canvas=s.geometry; phase_opacity=s.origin.x;
-   active=all(p>=canvas.xy) && all(p<canvas.xy+canvas.zw);
+   inside_canvas=all(p>=canvas.xy) && all(p<canvas.xy+canvas.zw);
    colors[0]=vec4(s.color.rgb,1.); depth=0u; continue;
   }
-  if !active { continue; }
+  if !inside_canvas { continue; }
   let local=vec2(s.inverse.x*p.x+s.inverse.z*p.y,s.inverse.y*p.x+s.inverse.w*p.y)+s.origin.xy;
   if kind>7.5 && kind<8.5 {
    depth=depth+1u; colors[depth]=vec4(0.); masks[depth]=1.;
@@ -585,7 +585,7 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
   let coverage=1.-smoothstep(-s.origin.z,s.origin.z,distance);
   colors[depth]=over(vec4(s.color.rgb,coverage*s.color.a),colors[depth],0.);
  }
- let second_color=floor(clamp(select(vec3(0.),colors[0].rgb*phase_opacity,active),vec3(0.),vec3(1.))*255.+vec3(.5))/255.;
+ let second_color=floor(clamp(select(vec3(0.),colors[0].rgb*phase_opacity,inside_canvas),vec3(0.),vec3(1.))*255.+vec3(.5))/255.;
  return vec4(floor((first_color+second_color*second_weight)*255.+vec3(.5))/255.,1.);
 }
 

@@ -2924,14 +2924,27 @@ mod live_clip_instance_tests {
             }],
         );
         script.validate().unwrap();
-        script.scenes[1].composition.clip_weights.insert("B".into(), ClipWeights::default());
+        script.scenes[1]
+            .composition
+            .clip_weights
+            .insert("B".into(), ClipWeights::default());
         script.validate().unwrap();
-        script.scenes[1].composition.clip_weights.get_mut("B").unwrap().posture = 0.5;
+        script.scenes[1]
+            .composition
+            .clip_weights
+            .get_mut("B")
+            .unwrap()
+            .posture = 0.5;
         assert!(matches!(script.validate(), Err(Error::Unsupported(_))));
         script.scenes[1].composition.clip_weights.clear();
-        script.scenes[1].composition.clip_weight_tracks.insert("B".into(), vec![ClipWeightKeyframe {
-            time: 0.0, weights: ClipWeights::default(), easing: ActorEasing::Linear,
-        }]);
+        script.scenes[1].composition.clip_weight_tracks.insert(
+            "B".into(),
+            vec![ClipWeightKeyframe {
+                time: 0.0,
+                weights: ClipWeights::default(),
+                easing: ActorEasing::Linear,
+            }],
+        );
         assert!(matches!(script.validate(), Err(Error::Unsupported(_))));
         script.scenes[1].composition.clip_weight_tracks.clear();
         let valid = serde_yaml::to_string(&script).unwrap();
