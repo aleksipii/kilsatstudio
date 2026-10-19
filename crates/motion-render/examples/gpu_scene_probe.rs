@@ -16,6 +16,9 @@ use std::{
 const MAX_RETAINED_ASSET_BYTES: usize = 64 * 1024 * 1024;
 const MAX_DECODED_PIXELS: u64 = 4 * 1024 * 1024;
 fn bounded(path: &Path, limit: usize) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    if !std::fs::metadata(path)?.is_file() {
+        return Err("probe inputs must be regular local files".into());
+    }
     let file = std::fs::File::open(path)?;
     if !file.metadata()?.is_file() {
         return Err("probe inputs must be regular local files".into());

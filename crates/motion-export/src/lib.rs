@@ -579,7 +579,7 @@ fn export_sequence(
                 }
             }
         }
-        group_work(art, script, total, false)?;
+        let group_bytes = group_work(art, script, total, false)?;
         let geometry = art
             .document
             .layers
@@ -617,6 +617,22 @@ fn export_sequence(
             return Err(invalid(
                 "artwork exceeds 32 MiB encoded / 16 million decoded pixel budget",
             ));
+        }
+        if group_bytes > 0 {
+            let raster_bytes = if png {
+                u64::from(script.project.width) * u64::from(script.project.height) * 24
+            } else {
+                0
+            };
+            let working = group_bytes
+                .saturating_add(raster_bytes)
+                .saturating_add(image_bytes as u64 * 4)
+                .saturating_add(pixels.saturating_mul(8))
+                .saturating_add(rendered.audio.samples.len() as u64 * 4)
+                .saturating_add(16 * 1024 * 1024);
+            if working > MAX_BYTES {
+                return Err(invalid("grouped scene working set exceeds 256 MiB"));
+            }
         }
         let pose = prepared
             .validated

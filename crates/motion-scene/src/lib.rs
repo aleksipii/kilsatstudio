@@ -276,8 +276,7 @@ impl PreparedAnimation {
         time: f64,
         values: &mut [Option<motion_animation::Transform2>; 7],
     ) -> Result<(), Error> {
-        // Sorting stable IDs fixes both sum order and the rotation reference,
-        // independently of the artist's order within this contiguous block.
+        // Stable IDs fix floating-point sum order independently of row order.
         let mut contributors = instances.iter().collect::<Vec<_>>();
         contributors.sort_unstable_by(|a, b| a.id.cmp(&b.id));
         for (joint, value) in values.iter_mut().enumerate() {
@@ -299,11 +298,9 @@ impl PreparedAnimation {
             let residual = (1.0 - total).max(0.0);
             let divisor = total.max(1.0);
             let base = value.unwrap_or_default();
-            let reference = if residual > 0.0 {
-                base.rotation
-            } else {
-                samples[0].1.rotation
-            };
+            // Keep the authored-base anchor as total weight crosses one so a
+            // continuous envelope cannot introduce a rotation reference snap.
+            let reference = base.rotation;
             let mut combined = motion_animation::Transform2 {
                 translation: Vec2::new(
                     base.translation.x * residual,
@@ -1128,10 +1125,16 @@ mod live_instance_tests {
         second.normalized_group = Some("turn".into());
         script.scenes[0].composition.clip_instances = vec![first.clone(), second.clone()];
         let value = bone(&offsets(&script, 1.0), "head");
-        assert!((value.rotation - std::f64::consts::PI).abs() < 1e-12);
+        assert!(value.rotation.abs() < 1e-12);
         assert_eq!(value.scale.x, 3.0);
         script.scenes[0].composition.clip_instances.reverse();
         assert_eq!(bone(&offsets(&script, 1.0), "head"), value);
+        for weight in [0.4999, 0.5, 0.5001] {
+            first.weight = weight;
+            second.weight = weight;
+            script.scenes[0].composition.clip_instances = vec![first.clone(), second.clone()];
+            assert!(bone(&offsets(&script, 1.0), "head").rotation.abs() < 1e-12);
+        }
         first.weight = 0.25;
         second.weight = 0.25;
         script.scenes[0].composition.clip_instances = vec![first.clone(), second.clone()];

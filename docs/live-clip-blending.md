@@ -252,14 +252,16 @@ joints contribute no weight. Let `S` be their total effective weight:
 | `S >= 1` | Sum clip offsets with each weight divided by `S`; no preceding residual remains. |
 
 Translation and scale use the component-wise weighted sum. Rotation unwraps each
-sample by the shortest signed arc around a deterministic reference. When there
-is a base residual the reference is the preceding rotation; otherwise it is the
-rotation of the positive contributor with the lexicographically smallest stable
-instance ID. An exact half turn chooses the positive arc. Contributors are summed
-in that same stable ID order, so reordering rows within a group preserves the
-result, including floating-point accumulation. Renaming an instance can change
-the rotation reference for wide angle distributions. The combined offset still
-must satisfy the existing bounds; invalid composition returns a typed error.
+sample by the shortest signed arc around the preceding accumulated authored
+rotation, for every total weight. The anchor never switches when the total
+crosses one, so a continuous weight fade cannot introduce a reference-change
+snap. An exact half turn chooses the positive arc. Contributors are summed in
+stable instance ID order, so reordering rows within a group preserves the result,
+including floating-point accumulation. This is authored-base anchored local
+rotation blending, not a directional mean: clips at `+3` and `−3` radians around
+base zero cancel, including immediately below and above total weight one. The
+combined offset still must satisfy the existing bounds; invalid composition
+returns a typed error.
 
 For example, base head `x = 8`, two clips at `x = 40` and `x = 100`, each with
 weight `0.25`, produce `8 × 0.5 + 40 × 0.25 + 100 × 0.25 = 39`. At weight `1`
@@ -268,6 +270,7 @@ the first clip's weight. Fades, keyed weights, half-open activity and original-s
 loops are sampled once using the existing scene clock.
 
 This is mixing for the original seven-joint offset rig. Custom rigid rest shapes
-are a separate opt-in character format; original-rig bone tracks and live clips
-and gesture events are rejected for those actors rather than silently applying invisible animation.
+are a separate opt-in character format; original-rig bone tracks, live clips,
+gesture events, animated procedural strengths and nondefault static strengths
+are rejected for those actors rather than silently applying invisible animation.
 Root movement and root transform tracks remain supported.

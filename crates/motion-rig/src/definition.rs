@@ -52,6 +52,56 @@ fn valid_id(id: &str) -> bool {
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
 }
+fn cross(a: [f64; 2], b: [f64; 2], c: [f64; 2]) -> f64 {
+    (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+}
+fn on_segment(a: [f64; 2], b: [f64; 2], p: [f64; 2]) -> bool {
+    cross(a, b, p) == 0.0
+        && p[0] >= a[0].min(b[0])
+        && p[0] <= a[0].max(b[0])
+        && p[1] >= a[1].min(b[1])
+        && p[1] <= a[1].max(b[1])
+}
+fn intersects(a: [f64; 2], b: [f64; 2], c: [f64; 2], d: [f64; 2]) -> bool {
+    let ab_c = cross(a, b, c);
+    let ab_d = cross(a, b, d);
+    let cd_a = cross(c, d, a);
+    let cd_b = cross(c, d, b);
+    let opposite = |x: f64, y: f64| (x < 0.0 && y > 0.0) || (x > 0.0 && y < 0.0);
+    (opposite(ab_c, ab_d) && opposite(cd_a, cd_b))
+        || on_segment(a, b, c)
+        || on_segment(a, b, d)
+        || on_segment(c, d, a)
+        || on_segment(c, d, b)
+}
+// At most 64 vertices: bounded quadratic work during definition preparation,
+// never a frame-time repair. Simple concave polygons retain either winding.
+fn simple_polygon(points: &[[f64; 2]]) -> bool {
+    let n = points.len();
+    for i in 0..n {
+        let a = points[i];
+        let b = points[(i + 1) % n];
+        let c = points[(i + 2) % n];
+        if a == b {
+            return false;
+        }
+        // Adjacent collinear edges may continue forward, but must not retrace.
+        if cross(a, b, c) == 0.0
+            && (a[0] - b[0]) * (c[0] - b[0]) + (a[1] - b[1]) * (c[1] - b[1]) > 0.0
+        {
+            return false;
+        }
+        for j in (i + 1)..n {
+            if j == i + 1 || (i == 0 && j == n - 1) {
+                continue;
+            }
+            if intersects(a, b, points[j], points[(j + 1) % n]) {
+                return false;
+            }
+        }
+    }
+    true
+}
 impl RigDefinition {
     fn build(&self) -> Result<(Rig, BTreeMap<&str, usize>), Error> {
         if self.version != 1
@@ -100,7 +150,11 @@ impl RigDefinition {
             {
                 return Err(Error::InvalidDefinition);
             }
-            // Reject collapsed polygons; concave polygons remain supported by CPU paths.
+            // Reject crossings and retraced edges so nonzero and even-odd renderers
+            // agree on the accepted simple polygons, including concave outlines.
+            if !simple_polygon(&part.points) {
+                return Err(Error::InvalidDefinition);
+            }
             let area: f64 = part
                 .points
                 .iter()
@@ -218,5 +272,23 @@ mod tests {
         let mut d = original;
         d.joints[0].scale_x = 1e6;
         assert!(d.validate().is_err());
+    }
+    #[test]
+    fn nonzero_area_crossings_retraced_edges_and_touches_fail_but_concavity_is_valid() {
+        for points in [
+            vec![[0.0, 0.0], [4.0, 4.0], [0.0, 4.0], [3.0, 0.0]],
+            vec![[0.0, 0.0], [4.0, 0.0], [4.0, 0.0], [4.0, 4.0], [0.0, 4.0]],
+            vec![[0.0, 0.0], [4.0, 0.0], [2.0, 0.0], [4.0, 4.0], [0.0, 4.0]],
+            vec![[0.0, 0.0], [4.0, 0.0], [4.0, 4.0], [2.0, 0.0], [0.0, 4.0]],
+        ] {
+            let mut rig = definition();
+            rig.parts[0].points = points;
+            assert_eq!(rig.validate(), Err(Error::InvalidDefinition));
+        }
+        let mut rig = definition();
+        rig.parts[0].points = vec![[0.0, 0.0], [4.0, 0.0], [2.0, 2.0], [4.0, 4.0], [0.0, 4.0]];
+        assert!(rig.validate().is_ok());
+        rig.parts[0].points.reverse();
+        assert!(rig.validate().is_ok());
     }
 }

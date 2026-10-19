@@ -1291,6 +1291,9 @@ impl Script {
                 if !self.characters.contains_key(actor) || !weights.is_valid() {
                     return Err(fail(format!("{}: clip weights require a known actor and finite intensities 0..1 ({actor})", s.id)));
                 }
+                if self.characters[actor].rig.is_some() && *weights != ClipWeights::default() {
+                    return Err(Error::Unsupported(format!("procedural clip weights for custom-rig actor {actor}: remove nondefault original-rig strengths before assigning a custom rig")));
+                }
             }
             for (actor, keys) in &composition.clip_weight_tracks {
                 if !self.characters.contains_key(actor) || keys.is_empty() || keys.len() > 256 {
@@ -1298,6 +1301,9 @@ impl Script {
                         "{}: clip weight tracks require a known actor and 1..256 keys",
                         s.id
                     )));
+                }
+                if self.characters[actor].rig.is_some() {
+                    return Err(Error::Unsupported(format!("procedural clip weight track for custom-rig actor {actor}: remove original-rig strength animation before assigning a custom rig")));
                 }
                 let mut previous = None;
                 for key in keys {
@@ -2918,6 +2924,16 @@ mod live_clip_instance_tests {
             }],
         );
         script.validate().unwrap();
+        script.scenes[1].composition.clip_weights.insert("B".into(), ClipWeights::default());
+        script.validate().unwrap();
+        script.scenes[1].composition.clip_weights.get_mut("B").unwrap().posture = 0.5;
+        assert!(matches!(script.validate(), Err(Error::Unsupported(_))));
+        script.scenes[1].composition.clip_weights.clear();
+        script.scenes[1].composition.clip_weight_tracks.insert("B".into(), vec![ClipWeightKeyframe {
+            time: 0.0, weights: ClipWeights::default(), easing: ActorEasing::Linear,
+        }]);
+        assert!(matches!(script.validate(), Err(Error::Unsupported(_))));
+        script.scenes[1].composition.clip_weight_tracks.clear();
         let valid = serde_yaml::to_string(&script).unwrap();
         assert!(upsert_clip_instance(&valid, 1, instance("unsupported"))
             .unwrap_err()
