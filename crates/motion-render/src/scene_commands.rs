@@ -466,6 +466,9 @@ fn append_art(
                 }
                 if let Some(mask) = &layer.clip_shape {
                     match mask {
+                        ClipShape::Image { .. } => {
+                            return Err(Error::UnsupportedFeature("image mask"));
+                        }
                         ClipShape::Polygon { feather, .. } if *feather > 0.0 => {
                             return Err(Error::UnsupportedFeature("feathered polygon mask"));
                         }

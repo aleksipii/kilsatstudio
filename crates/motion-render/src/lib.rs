@@ -368,6 +368,25 @@ fn append_art(
                 write!(svg, "{},{} ", p.x, p.y).unwrap();
             }
             write!(svg, "\"/></mask></defs><g mask=\"url(#art{index})\">").unwrap();
+        } else if let Some(motion_art::ClipShape::Image {
+            asset_id,
+            rect: r,
+            channel,
+        }) = &layer.clip_shape
+        {
+            let image = images.get(asset_id).ok_or_else(|| {
+                Error::InvalidArtwork(format!("missing decoded mask image {asset_id}"))
+            })?;
+            if image.png().len() > motion_art::MAX_IMAGE_BYTES as usize {
+                return Err(Error::InvalidArtwork(
+                    "image encoded byte budget exceeded".into(),
+                ));
+            }
+            let mask_type = match channel {
+                motion_art::MaskChannel::Alpha => "alpha",
+                motion_art::MaskChannel::Luminance => "luminance",
+            };
+            write!(svg, "<defs><mask id=\"art{index}\" mask-type=\"{mask_type}\" maskUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><image x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" preserveAspectRatio=\"none\" href=\"{}\"/></mask></defs><g mask=\"url(#art{index})\">", r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height, image.data_uri()).unwrap();
         } else if let Some(shape) = &layer.clip_shape {
             write!(svg, "<defs><clipPath id=\"art{index}\">").unwrap();
             match shape {
@@ -382,7 +401,7 @@ fn append_art(
                     )
                     .unwrap();
                 }
-                motion_art::ClipShape::SoftEllipse { .. } => {
+                motion_art::ClipShape::SoftEllipse { .. } | motion_art::ClipShape::Image { .. } => {
                     return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into()))
                 }
                 motion_art::ClipShape::Polygon { points, .. } => {

@@ -125,3 +125,19 @@ Export work budgets do not yet charge for blur area beyond the canvas bound.
 Tests cover hard-edge equivalence, edge coverage, monotonic left/right-symmetric
 ramps, validation bounds, persistence, legacy JSON, and identical preview/PNG/SVG
 pixels. They do not establish physical Mac rendering acceptance.
+
+## Image masks
+
+`clip_shape` type `image` takes a project image `asset_id`, a `rect` over which
+the image is stretched (no aspect preservation, bilinear sampling), and a `channel`:
+`alpha` (default; opaque pixels show content) or `luminance` (bright pixels show
+content, weighted by alpha as in SVG, so transparent pixels show nothing).
+The asset must be an image asset in the project; project validation, history
+restore and export preflight check it like layer images, and the mask image counts
+toward the embedded-image and decoded-resource budgets. Rendering is shared by
+CPU preview, SVG, PNG and video; a missing resource is an error, never an unmasked
+draw. The inspector offers **Image (alpha / luminance)** once an image asset exists.
+The experimental GPU path rejects image masks as unsupported. Image masks are not
+animated, feathered or paintable; the stretched image's edges are bilinear.
+Pixel tests use 100×1 strips to verify alpha versus luminance selection, the
+missing-resource failure, and identical preview/PNG/SVG pixels.

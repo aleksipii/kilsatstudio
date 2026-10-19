@@ -295,3 +295,128 @@ fn polygon_feather_validates_persists_and_keeps_legacy_documents_readable() {
         soft
     );
 }
+
+fn image_mask(channel: motion_art::MaskChannel) -> ClipShape {
+    ClipShape::Image {
+        asset_id: "mask".into(),
+        rect: Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        },
+        channel,
+    }
+}
+
+/// Renders frame zero through preview, PNG and vector rasterisation (which must agree).
+fn render_row(
+    script: &Script,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    y: usize,
+) -> Result<Vec<u8>, Error> {
+    let cancel = CancellationToken::new();
+    let preview = ScenePreview::new(
+        Arc::new(script.clone()),
+        0,
+        Arc::new(art.clone()),
+        Some(Arc::new(rendered.manifest.clone())),
+    )?;
+    let (sample, _, png) = encode_frame(script, 0, rendered, 0, true, &cancel, Some(art))?;
+    let png = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+    let (_, _, svg) = encode_frame(script, 0, rendered, 0, false, &cancel, Some(art))?;
+    let svg = String::from_utf8(svg).unwrap();
+    let raster =
+        resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
+            .unwrap();
+    assert_eq!(png.data(), raster.data());
+    let frame = preview.render(sample, 1024, &cancel)?;
+    assert_eq!(frame.rgba, png.data());
+    Ok((0..100).map(|x| red(&frame, x, y)).collect())
+}
+
+#[test]
+fn image_masks_select_alpha_or_luminance_and_require_their_resource() {
+    let (script, rendered, mut art) = fixture();
+    // Left half opaque white, right half opaque black: alpha is full, luminance splits.
+    let strip = |left: [u8; 4], right: [u8; 4]| {
+        let rgba = (0..100)
+            .flat_map(|x| if x < 50 { left } else { right })
+            .collect();
+        motion_art::ImageResource::from_rgba(100, 1, rgba).unwrap()
+    };
+    let opaque = strip([255, 255, 255, 255], [0, 0, 0, 255]);
+    let clear = strip([255, 255, 255, 255], [255, 255, 255, 0]);
+    art.document.layers[0].clip_shape = Some(image_mask(motion_art::MaskChannel::Luminance));
+    art.document.validate().unwrap();
+    // Missing resource fails closed instead of drawing unmasked content.
+    assert!(render_row(&script, &rendered, &art, 50).is_err());
+
+    art.images.insert("mask".into(), opaque);
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    assert!(row[5..40].iter().all(|v| *v >= 250), "{row:?}");
+    assert!(row[60..95].iter().all(|v| *v <= 5), "{row:?}");
+
+    art.document.layers[0].clip_shape = Some(image_mask(motion_art::MaskChannel::Alpha));
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    assert!(row.iter().all(|v| *v == 255), "opaque image alpha: {row:?}");
+
+    art.images.insert("mask".into(), clear);
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    assert!(row[5..40].iter().all(|v| *v >= 250), "{row:?}");
+    assert!(row[60..95].iter().all(|v| *v <= 5), "{row:?}");
+
+    art.document.layers[0].clip_shape = Some(image_mask(motion_art::MaskChannel::Luminance));
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    // SVG luminance masks are weighted by alpha, so transparent white shows nothing.
+    assert!(row[5..40].iter().all(|v| *v >= 250), "{row:?}");
+    assert!(row[60..95].iter().all(|v| *v <= 5), "{row:?}");
+}
+
+#[test]
+fn image_mask_validates_references_and_persistence() {
+    let shape = image_mask(motion_art::MaskChannel::Luminance);
+    shape.validate().unwrap();
+    assert_eq!(shape.image_asset(), Some("mask"));
+    let ClipShape::Image { rect, .. } = &shape else {
+        unreachable!()
+    };
+    for bad in [
+        ClipShape::Image {
+            asset_id: String::new(),
+            rect: *rect,
+            channel: Default::default(),
+        },
+        ClipShape::Image {
+            asset_id: "mask".into(),
+            rect: Rect {
+                width: 0.0,
+                ..*rect
+            },
+            channel: Default::default(),
+        },
+    ] {
+        assert!(bad.validate().is_err());
+    }
+    assert_eq!(
+        serde_json::from_str::<ClipShape>(&serde_json::to_string(&shape).unwrap()).unwrap(),
+        shape
+    );
+    let legacy: ClipShape = serde_json::from_str(
+        r#"{"type":"image","asset_id":"m","rect":{"x":0,"y":0,"width":1,"height":1}}"#,
+    )
+    .unwrap();
+    assert!(matches!(
+        legacy,
+        ClipShape::Image {
+            channel: motion_art::MaskChannel::Alpha,
+            ..
+        }
+    ));
+    let (_, _, art) = fixture();
+    let layer = &art.document.layers[0];
+    let mut masked = layer.clone();
+    masked.clip_shape = Some(shape);
+    assert_eq!(masked.image_assets().collect::<Vec<_>>(), ["mask"]);
+}
