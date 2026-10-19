@@ -1,7 +1,7 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-18. A checked item identifies integrated, inspected implementation, not a
+2026-10-19. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
@@ -1159,3 +1159,23 @@ The package audit accepted 21 file records; build collection completed with
 units, upstream rights, physical device behavior, real recognizer quality or
 GPU/Metal execution. No model/voice assets were downloaded or inference run.
 This post-merge record changes documentation only.
+
+## Additive original-rig live clips (source implemented, pending integration)
+
+- [ ] Integrate strict default-compatible blend mode and checked signed local
+  additive translation/rotation and multiplicative scale, with accumulated bounds.
+- [ ] Integrate shared prepared sampling with existing saved order, loops, masks
+  and envelopes; preserve exact legacy override/default behavior.
+- [ ] Integrate detached native mode control, reset preservation, source history,
+  persistence and invalid-context/candidate protection.
+- [ ] Validate independently authored actual SVG/PNG/sample-clock preview frames,
+  mixed-mode ordering, visible parent rotation, repeated seeks and round trips.
+- [ ] Charge dormant/zero additive layers and reject excessive work before output.
+- [ ] Final Linux/macOS CI, independent review and authorized merge.
+- [ ] Normalized groups, arbitrary rigs/textures/deformation, cross-project clips,
+  physical Mac motion/performance acceptance and the other seven area workstreams.
+
+This source increment is not yet integrated. No real recognizer, model inference,
+GPU/device execution or final license clearance is claimed. See
+[live clip controls](live-clip-blending.md) and the initial
+[animation handoff](workstreams/next-character-animation.md).

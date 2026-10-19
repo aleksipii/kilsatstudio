@@ -120,11 +120,17 @@ pub(crate) fn live_clip_frame_work(script: &Script, scene_index: usize) -> u64 {
         };
         let fade_work =
             u64::from(instance.fade_in > 0.0) * 2 + u64::from(instance.fade_out > 0.0) * 2;
+        // Charge all seven possible joints, even when masked or dormant.
+        let additive_work = match instance.blend_mode {
+            motion_script::ClipBlendMode::Override => 0,
+            motion_script::ClipBlendMode::Additive => 56,
+        };
         work.saturating_add(tracks)
             .saturating_add(weight_search)
             .saturating_add(fade_work)
             .saturating_add(7 * instance.joint_mask.len() as u64)
             .saturating_add(u64::from(instance.looping))
+            .saturating_add(additive_work)
     })
 }
 
@@ -1127,6 +1133,7 @@ mod tests {
                 weight_keys: Vec::new(),
                 looping: false,
                 joint_mask: Vec::new(),
+                blend_mode: motion_script::ClipBlendMode::Override,
             })
             .collect();
         script.validate().unwrap();
@@ -1149,8 +1156,7 @@ mod tests {
         assert_eq!(validate(&script, 0, &rendered).unwrap(), 1200);
     }
 
-    #[test]
-    fn dormant_zero_weight_envelopes_cannot_bypass_export_work_budget() {
+    fn dormant_clip_fixture(count: usize) -> (Script, RenderedScene) {
         let (mut script, mut rendered) = fixture();
         script.project.fps = 240;
         script.scenes[0].duration = 37.5;
@@ -1178,13 +1184,20 @@ mod tests {
             weight_keys: Vec::new(),
             looping: false,
             joint_mask: Vec::new(),
+            blend_mode: motion_script::ClipBlendMode::Override,
         }];
         let prototype = script.scenes[0].composition.clip_instances[0].clone();
-        for index in 1..4 {
+        for index in 1..count {
             let mut row = prototype.clone();
             row.id = format!("later{index}");
             script.scenes[0].composition.clip_instances.push(row);
         }
+        (script, rendered)
+    }
+
+    #[test]
+    fn dormant_zero_weight_envelopes_cannot_bypass_export_work_budget() {
+        let (mut script, rendered) = dormant_clip_fixture(4);
         // The exact same scene fits without envelope search/fade work.
         assert_eq!(validate(&script, 0, &rendered).unwrap(), 9000);
         for row in &mut script.scenes[0].composition.clip_instances {
@@ -1197,6 +1210,29 @@ mod tests {
                     easing: motion_script::ActorEasing::Linear,
                 })
                 .collect();
+        }
+        script.validate().unwrap();
+        let output = destination();
+        let result = export_scene(
+            &script,
+            0,
+            &rendered,
+            &output,
+            &CancellationToken::new(),
+            |_| {},
+        );
+        assert!(
+            matches!(result, Err(Error::Invalid(message)) if message.contains("keyframe/live-clip"))
+        );
+        assert!(!output.exists());
+    }
+
+    #[test]
+    fn dormant_additive_layers_are_preflighted_before_output_creation() {
+        let (mut script, rendered) = dormant_clip_fixture(2);
+        assert_eq!(validate(&script, 0, &rendered).unwrap(), 9000);
+        for row in &mut script.scenes[0].composition.clip_instances {
+            row.blend_mode = motion_script::ClipBlendMode::Additive;
         }
         script.validate().unwrap();
         let output = destination();

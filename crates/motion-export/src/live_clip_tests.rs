@@ -484,3 +484,232 @@ fn omitted_loop_and_mask_keep_existing_pixels_and_explicit_all_joint_selection_m
         assert_frames_and_preview(&selected, &original, frame);
     }
 }
+
+fn additive_script() -> Script {
+    let mut script = motion_script::parse(SOURCE).unwrap();
+    let clip = script.animation_clips.get_mut("reach").unwrap();
+    clip.bone_tracks = BTreeMap::from([
+        (
+            "right_hand".into(),
+            vec![motion_script::ActorKey {
+                x: 20.0,
+                y: 6.0,
+                scale_x: 1.5,
+                ..Default::default()
+            }],
+        ),
+        (
+            "chest".into(),
+            vec![motion_script::ActorKey {
+                rotation: 0.5,
+                ..Default::default()
+            }],
+        ),
+    ]);
+    script.scenes[0]
+        .composition
+        .bone_tracks
+        .get_mut("EMMA")
+        .unwrap()
+        .get_mut("chest")
+        .unwrap()[0]
+        .rotation = 0.25;
+    script.scenes[0].composition.clip_instances[0].blend_mode =
+        motion_script::ClipBlendMode::Additive;
+    script
+}
+
+fn author_hand(script: &mut Script, x: f64, y: f64, scale_x: f64) {
+    let hand = &mut script.scenes[0]
+        .composition
+        .bone_tracks
+        .get_mut("EMMA")
+        .unwrap()
+        .get_mut("right_hand")
+        .unwrap()[0];
+    hand.x = x;
+    hand.y = y;
+    hand.scale_x = scale_x;
+}
+
+#[test]
+fn additive_weights_match_independent_hand_scale_and_parent_rotation_frames() {
+    for (weight, x, y, scale_x, rotation) in [
+        (0.0, 4.0, 2.0, 1.125, 0.25),
+        (0.5, 14.0, 5.0, 1.40625, 0.5),
+        (1.0, 24.0, 8.0, 1.6875, 0.75),
+    ] {
+        let mut actual = additive_script();
+        actual.scenes[0].composition.clip_instances[0].weight = weight;
+        // Authored expectations use base + weight * delta for translation and
+        // signed rotation, and 1.125 * (1 + weight * (1.5 - 1)) for scale.
+        // Chest rotation visibly moves its descendants, unlike a leaf rotation.
+        for frame in [6, 2, 4, 1, 5, 3, 7, 2] {
+            let mut expected = actual.clone();
+            expected.scenes[0].composition.clip_instances.clear();
+            if (2..6).contains(&frame) {
+                author_hand(&mut expected, x, y, scale_x);
+                expected.scenes[0]
+                    .composition
+                    .bone_tracks
+                    .get_mut("EMMA")
+                    .unwrap()
+                    .get_mut("chest")
+                    .unwrap()[0]
+                    .rotation = rotation;
+            }
+            assert_frames_and_preview(&actual, &expected, frame);
+        }
+    }
+}
+
+#[test]
+fn mixed_additive_override_orders_and_two_additive_layers_match_authored_frames() {
+    let mut actual = additive_script();
+    let mut second = actual.animation_clips["reach"].clone();
+    second.bone_tracks.remove("chest");
+    let hand = &mut second.bone_tracks.get_mut("right_hand").unwrap()[0];
+    hand.x = 36.0;
+    hand.y = 10.0;
+    hand.scale_x = 1.25;
+    actual.animation_clips.insert("farther".into(), second);
+    let mut instance = actual.scenes[0].composition.clip_instances[0].clone();
+    instance.id = "reach_b".into();
+    instance.clip = "farther".into();
+    instance.blend_mode = motion_script::ClipBlendMode::Override;
+    actual.scenes[0].composition.clip_instances.push(instance);
+    let document =
+        motion_project::ProjectDocument::new(serde_json::to_string(&actual).unwrap()).unwrap();
+    let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+    let reopened = motion_script::parse(&loaded.source).unwrap();
+    assert_eq!(
+        reopened.scenes[0].composition.clip_instances,
+        actual.scenes[0].composition.clip_instances
+    );
+    actual = reopened;
+    let mut expected = actual.clone();
+    expected.scenes[0].composition.clip_instances.clear();
+    expected.scenes[0]
+        .composition
+        .bone_tracks
+        .get_mut("EMMA")
+        .unwrap()
+        .get_mut("chest")
+        .unwrap()[0]
+        .rotation = 0.5;
+    // Additive first gives (14,5,1.40625), then half override to (36,10,1.25).
+    author_hand(&mut expected, 25.0, 7.5, 1.328125);
+    assert_frames_and_preview(&actual, &expected, 4);
+    actual.scenes[0].composition.clip_instances.reverse();
+    // Half override gives (20,6,1.1875), then additive adds (10,3), scale *1.25.
+    author_hand(&mut expected, 30.0, 9.0, 1.484375);
+    assert_frames_and_preview(&actual, &expected, 4);
+    actual.scenes[0].composition.clip_instances[0].blend_mode =
+        motion_script::ClipBlendMode::Additive;
+    // Both additive: (4+18+10,2+5+3), scale 1.125*1.125*1.25.
+    author_hand(&mut expected, 32.0, 10.0, 1.58203125);
+    assert_frames_and_preview(&actual, &expected, 4);
+}
+
+#[test]
+fn additive_loop_mask_and_continuing_envelope_survive_roundtrip_and_preview_seeks() {
+    let mut script = additive_script();
+    script.scenes[0].duration = 1.25;
+    let clip = script.animation_clips.get_mut("reach").unwrap();
+    clip.duration = 0.5;
+    clip.bone_tracks.insert(
+        "right_hand".into(),
+        vec![
+            motion_script::ActorKey {
+                x: 8.0,
+                y: 4.0,
+                scale_x: 1.5,
+                ..Default::default()
+            },
+            motion_script::ActorKey {
+                at: 0.5,
+                x: 24.0,
+                y: 4.0,
+                scale_x: 1.5,
+                ..Default::default()
+            },
+        ],
+    );
+    let layer = &mut script.scenes[0].composition.clip_instances[0];
+    layer.at = 0.0;
+    layer.duration = 1.0;
+    layer.looping = true;
+    layer.joint_mask = vec!["right_hand".into()];
+    layer.fade_in = 0.25;
+    layer.fade_out = 0.25;
+    layer.weight_keys = [(0.0, 0.25), (0.5, 0.75), (1.0, 0.25)]
+        .into_iter()
+        .map(|(time, weight)| motion_script::InstanceWeightKey {
+            time,
+            weight,
+            easing: motion_script::ActorEasing::Linear,
+        })
+        .collect();
+    let document =
+        motion_project::ProjectDocument::new(serde_json::to_string(&script).unwrap()).unwrap();
+    let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+    let actual = motion_script::parse(&loaded.source).unwrap();
+    assert_eq!(
+        actual.scenes[0].composition.clip_instances,
+        script.scenes[0].composition.clip_instances
+    );
+    let rendered = rendered_for(&actual);
+    let preview = ScenePreview::new(
+        Arc::new(actual.clone()),
+        0,
+        Arc::new(ArtContext::default()),
+        Some(Arc::new(rendered.manifest.clone())),
+    )
+    .unwrap();
+    // Effective weights at frames 1/2/4/6/7 are .09375/.25/.375/.25/.09375.
+    // Clip x samples are 12/16/8/16/20: the .5-second reset affects sampling,
+    // while the instance-local envelope continues. The chest mask stays exact.
+    for (frame, x, y, scale_x) in [
+        (8, 4.0, 2.0, 1.125),
+        (0, 4.0, 2.0, 1.125),
+        (4, 7.0, 3.5, 1.3359375),
+        (2, 8.0, 3.0, 1.265625),
+        (6, 8.0, 3.0, 1.265625),
+        (1, 5.125, 2.375, 1.177734375),
+        (7, 5.875, 2.375, 1.177734375),
+        (4, 7.0, 3.5, 1.3359375),
+    ] {
+        let mut expected = actual.clone();
+        expected.scenes[0].composition.clip_instances.clear();
+        author_hand(&mut expected, x, y, scale_x);
+        assert_frames_and_preview(&actual, &expected, frame);
+        let cancel = CancellationToken::new();
+        let png = encode_frame(&expected, 0, &rendered, frame, true, &cancel, None)
+            .unwrap()
+            .2;
+        assert_eq!(
+            preview
+                .render(frame * SAMPLE_RATE as u64 / 8, 256, &cancel)
+                .unwrap()
+                .rgba,
+            resvg::tiny_skia::Pixmap::decode_png(&png).unwrap().data()
+        );
+    }
+}
+
+#[test]
+fn omitted_blend_mode_keeps_legacy_override_frames() {
+    let original = motion_script::parse(SOURCE).unwrap();
+    let explicit = motion_script::parse(&SOURCE.replace(
+        "weight: 0.5}",
+        "weight: 0.5, blend_mode: override}",
+    ))
+    .unwrap();
+    assert_eq!(
+        original.scenes[0].composition.clip_instances[0].blend_mode,
+        motion_script::ClipBlendMode::Override
+    );
+    for frame in [0, 2, 4, 5, 6, 7] {
+        assert_frames_and_preview(&explicit, &original, frame);
+    }
+}

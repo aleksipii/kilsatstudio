@@ -11,7 +11,7 @@ to edit or move its rows. Up/Down changes the row's position in the complete
 scene list. Removing an instance needs confirmation and leaves its definition
 and independently copied tracks intact. Reset restores draft timing and static
 weight, clears fade durations and weight keys, and preserves the ID, selected clip,
-looping mode and joint selection.
+looping mode, joint selection and blend mode.
 Source/scene/actor changes discard drafts. Every source action supports unified
 Undo/Redo and `.kilsat` persistence; YAML formatting and comments are normalized
 as in the existing editors.
@@ -45,7 +45,7 @@ clip duration. Outside it the layer contributes nothing. Hard activation edges
 can pop when no envelope is authored. Optional fades and looping are described
 below. Authored hold-key jumps are not automatically smoothed.
 
-Start with the actor's ordinary authored local bone offsets, using identity for
+In the default override mode, start with the actor's ordinary authored local bone offsets, using identity for
 absent bones. Visit active rows in saved order. On each selected bone present in a clip,
 interpolate the current offset toward the sampled clip offset by its effective
 weight. Translation and scale interpolate linearly; rotation uses the existing
@@ -140,6 +140,51 @@ arbitrary rigs, per-joint blend weights, texture deformation or general additive
 pose mixing. Reset timing/weight/envelope controls preserve loop mode and mask;
 edit these controls explicitly to change them.
 
+## Additive local offsets
+
+The next extension adds `blend_mode: additive`; source implementation is pending
+final CI/integration. Omitted `blend_mode` means `override`, preserving existing
+documents and output. Select **Additive** in the detached instance editor, then
+Apply. Reset timing/weight/envelope controls preserve the chosen blend mode.
+
+Additive clips contain signed local deltas for the original seven-joint rig.
+For accumulated offset `base`, sampled clip `delta` and effective weight `w`:
+
+| Component | Additive result |
+| --- | --- |
+| Translation | `base + w * delta` |
+| Rotation | `base + w * delta`, using signed authored radians |
+| Scale | `base * (1 + w * (delta - 1))`, independently per axis |
+
+For example, base X 4 with clip delta X 20 and weight 0.5 produces X 14;
+override at that weight produces X 12. Base scale 1.125 and delta scale 1.5
+produce scale 1.40625. Identity delta is neutral. Rotation is added as a signed
+delta; it is not wrapped to the shortest arc during combination.
+
+```yaml
+clip_instances:
+  - id: extra_tilt
+    clip: tilt
+    actor: EMMA
+    at: 0
+    duration: 2
+    weight: 0.5
+    blend_mode: additive
+    joint_mask: [head]
+```
+
+Saved source order is retained. Override after additive can differ from additive
+after override. Loops, joint selection, fades and weight curves use the same
+sampling rules in both modes; effective weight is applied once. Missing or
+unselected joints preserve their earlier offsets. Zero influence preserves the
+base exactly. Inputs and accumulated outputs must remain finite and within the
+existing authored-transform bounds; reduce accumulated translations, rotations
+or scales when an evaluation error reports excessive poses. A later layer does
+not hide an invalid intermediate result.
+
+This is local-offset composition for the original rig. General normalized groups,
+arbitrary-rig pose blending, textures and deformation remain separate work.
+
 ## Live references versus copies
 
 Library replacement affects every live reference and displays affected scene
@@ -165,7 +210,7 @@ source-size limits remain. Prepared snapshots
 share referenced library tracks; instances and frames do not duplicate their
 keys. Unused definitions are not prepared. Export preflight conservatively
 counts inactive and zero-weight layers, scans, scalar/bone searches, fade
-arithmetic, loop mapping and joint-selection checks under the
+arithmetic, loop mapping, joint-selection checks and additive combination under the
 existing one-million-unit per-scene work budget. Preview also checks bounded
 per-frame sample work. These are protective estimates, not measured performance.
 
@@ -177,8 +222,8 @@ saved projects and source history. Actual SVG/PNG fixtures compare independently
 authored expectations and sample-clock preview including speech/root stages.
 Loop/mask regressions additionally compare two cycle resets, repeated/backward
 seeks, the excluded instance endpoint, preserved unselected joints, source-order
-blending, project round trips and default compatibility. The extension is source
-implemented; final CI and integration evidence will be recorded in master progress.
+blending, project round trips and default compatibility. Looping and joint masks
+passed PR #43 CI; additive integration is pending its own checks in master progress.
 Physical Mac motion quality, production performance, custom/textured rigs,
 deformation, general additive mixing and cross-project exchange remain open.
 This change does not complete GPU scene parity or recognizer-result memoization.

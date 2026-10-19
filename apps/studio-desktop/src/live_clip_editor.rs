@@ -1,6 +1,6 @@
 //! Detached live clip instance controls; all mutations use validated source actions.
 use eframe::egui;
-use motion_script::{ActorEasing, ClipInstance, InstanceWeightKey, Script};
+use motion_script::{ActorEasing, ClipBlendMode, ClipInstance, InstanceWeightKey, Script};
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
@@ -47,7 +47,7 @@ impl State {
             self.context = Some(context);
         }
         let scene = script.scenes.get(scene_index)?;
-        ui.small("Live library references use ordered override weights, not normalized or additive mixing. Later rows override earlier rows on shared bones. Windows include their start and exclude their end; fades soften these edges.");
+        ui.small("Live references combine in saved row order, without normalized weights. Additive then Override can differ from Override then Additive. Windows include their start and exclude their end; fades soften these edges.");
         ui.small("Editing a library clip changes every live reference. Apply and removal are explicit source edits with Undo; YAML formatting is normalized and comments are removed.");
         let mut action = None;
         for (index, instance) in scene.composition.clip_instances.iter().enumerate() {
@@ -111,6 +111,7 @@ impl State {
                     at: 0.0,
                     duration: clip.duration,
                     weight: 1.0,
+                    blend_mode: ClipBlendMode::Override,
                     fade_in: 0.0,
                     fade_out: 0.0,
                     weight_keys: Vec::new(),
@@ -143,6 +144,22 @@ impl State {
         if previous != draft.clip {
             self.confirm_delete = false;
         }
+        egui::ComboBox::from_id_salt("live_clip_blend_mode")
+            .selected_text(blend_mode_label(draft.blend_mode))
+            .show_ui(ui, |ui| {
+                for mode in [ClipBlendMode::Override, ClipBlendMode::Additive] {
+                    if ui
+                        .selectable_value(&mut draft.blend_mode, mode, blend_mode_label(mode))
+                        .changed()
+                    {
+                        self.confirm_delete = false;
+                    }
+                }
+            });
+        ui.small(match draft.blend_mode {
+            ClipBlendMode::Override => "Override interpolates earlier authored offsets toward this clip on shared joints, using shortest-arc rotation.",
+            ClipBlendMode::Additive => "Additive adds effective weight × signed translation and rotation deltas (radians) to earlier offsets; rotation is not shortened or wrapped. Scale multiplies by 1 + effective weight × (clip scale − 1); identity scale is neutral. Combined offsets must remain within supported bounds.",
+        });
         if ui
             .checkbox(&mut draft.looping, "Loop at original clip speed")
             .changed()
@@ -182,7 +199,7 @@ impl State {
         for (label, value) in [
             ("Start (seconds)", &mut draft.at),
             ("Duration (seconds)", &mut draft.duration),
-            ("Override weight (0–1)", &mut draft.weight),
+            (weight_label(draft.blend_mode), &mut draft.weight),
             ("Fade in (seconds)", &mut draft.fade_in),
             ("Fade out (seconds)", &mut draft.fade_out),
         ] {
@@ -193,7 +210,7 @@ impl State {
                 }
             });
         }
-        ui.small("Weight key times are relative to this instance, not the library clip or scene. The keyed scalar multiplies the override weight and linear fades; endpoint values are held and easing follows each key. Duration edits do not rescale keys or fades.");
+        ui.small("Weight key times are relative to this instance, not the library clip or scene. The keyed scalar multiplies the selected mode’s weight factor and linear fades; endpoint values are held and easing follows each key. Duration edits do not rescale keys or fades.");
         let mut remove = None;
         for (index, key) in draft.weight_keys.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
@@ -397,6 +414,20 @@ fn envelope_budget(
     draft.weight_keys.len() + extra <= 256 && scene_count <= 8192 && project_count <= 65536
 }
 
+fn blend_mode_label(mode: ClipBlendMode) -> &'static str {
+    match mode {
+        ClipBlendMode::Override => "Override",
+        ClipBlendMode::Additive => "Additive",
+    }
+}
+
+fn weight_label(mode: ClipBlendMode) -> &'static str {
+    match mode {
+        ClipBlendMode::Override => "Override weight (0–1)",
+        ClipBlendMode::Additive => "Additive weight factor (0–1)",
+    }
+}
+
 fn easing_label(easing: ActorEasing) -> &'static str {
     match easing {
         ActorEasing::Linear => "Linear",
@@ -426,6 +457,58 @@ fn number_field(ui: &mut egui::Ui, value: &mut f64) -> bool {
 mod tests {
     use super::*;
     const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 2}, {at: 2, x: 8}]}}}}]\n";
+
+    #[test]
+    fn additive_draft_applies_in_saved_order_and_invalid_edit_preserves_saved_mode() {
+        let source = captured();
+        let override_row = instance("base");
+        assert_eq!(override_row.blend_mode, ClipBlendMode::Override);
+        let saved = Action::Upsert {
+            instance: override_row.clone(),
+        }
+        .apply(&source, 0)
+        .unwrap();
+        let mut additive = instance("delta");
+        additive.blend_mode = ClipBlendMode::Additive;
+        let applied = Action::Upsert {
+            instance: additive.clone(),
+        }
+        .apply(&saved, 0)
+        .unwrap();
+        let reopened = motion_script::parse(&applied).unwrap();
+        assert_eq!(
+            reopened.scenes[0].composition.clip_instances,
+            vec![override_row.clone(), additive.clone()]
+        );
+        let reordered = Action::Reorder {
+            id: "delta".into(),
+            new_index: 0,
+        }
+        .apply(&applied, 0)
+        .unwrap();
+        assert_eq!(
+            motion_script::parse(&reordered).unwrap().scenes[0]
+                .composition
+                .clip_instances,
+            vec![additive.clone(), override_row]
+        );
+        additive.blend_mode = ClipBlendMode::Override;
+        additive.weight = f64::INFINITY;
+        assert!(Action::Upsert { instance: additive }
+            .apply(&reordered, 0)
+            .is_err());
+        assert_eq!(
+            motion_script::parse(&reordered).unwrap().scenes[0]
+                .composition
+                .clip_instances[0]
+                .blend_mode,
+            ClipBlendMode::Additive
+        );
+        assert!(motion_script::parse(&source).unwrap().scenes[0]
+            .composition
+            .clip_instances
+            .is_empty());
+    }
 
     #[test]
     fn looping_joint_selection_is_detached_persisted_and_validated() {
@@ -466,6 +549,7 @@ mod tests {
             at: 0.0,
             duration: 4.0,
             weight: 0.5,
+            blend_mode: ClipBlendMode::Override,
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
@@ -524,6 +608,7 @@ mod tests {
         let script = motion_script::parse(&captured()).unwrap();
         let before = serde_json::to_value(&script).unwrap();
         let mut draft = instance("draft");
+        draft.blend_mode = ClipBlendMode::Additive;
         draft.at = f64::NAN;
         draft.weight = f64::INFINITY;
         draft.fade_in = f64::NAN;
@@ -545,6 +630,10 @@ mod tests {
                 assert!(state.ui(ui, &script, 0, "B").is_none());
             });
         });
+        assert_eq!(
+            state.draft.as_ref().unwrap().blend_mode,
+            ClipBlendMode::Additive
+        );
         assert!(state.draft.as_ref().unwrap().at.is_nan());
         assert!(state.draft.as_ref().unwrap().fade_in.is_nan());
         assert!(state.draft.as_ref().unwrap().weight_keys[0].time.is_nan());
@@ -607,6 +696,9 @@ mod tests {
     fn key_addition_handles_subsecond_windows_and_explicit_reset_recovers_invalid_values() {
         let script = motion_script::parse(&captured()).unwrap();
         let mut draft = instance("draft");
+        draft.blend_mode = ClipBlendMode::Additive;
+        draft.looping = true;
+        draft.joint_mask = vec!["head".into()];
         draft.duration = 0.25;
         assert_eq!(next_key_time(&draft), Some(0.0));
         draft.weight_keys.push(InstanceWeightKey {
@@ -633,6 +725,9 @@ mod tests {
             (0.0, 1.0, 0.0, 0.0)
         );
         assert!(draft.weight_keys.is_empty());
+        assert_eq!(draft.blend_mode, ClipBlendMode::Additive);
+        assert!(draft.looping);
+        assert_eq!(draft.joint_mask, vec!["head"]);
     }
 
     #[test]

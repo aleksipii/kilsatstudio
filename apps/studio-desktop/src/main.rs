@@ -6092,6 +6092,7 @@ mod live_clip_integration_tests {
             weight_keys: Vec::new(),
             looping: false,
             joint_mask: Vec::new(),
+            blend_mode: motion_script::ClipBlendMode::Override,
         }
     }
     #[test]
@@ -6165,6 +6166,38 @@ mod live_clip_integration_tests {
                 .clip_instances,
             vec![instance("one")]
         );
+    }
+    #[test]
+    fn additive_mode_uses_existing_history_persistence_and_context_guards() {
+        let mut studio = studio();
+        let mut row = instance("additive");
+        row.blend_mode = motion_script::ClipBlendMode::Additive;
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert { instance: row.clone() },
+            SOURCE,
+            0,
+            "A",
+        );
+        let edited = studio.source.clone();
+        assert_ne!(edited, SOURCE);
+        let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
+        let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        assert_eq!(
+            motion_script::parse(&loaded.source).unwrap().scenes[0].composition.clip_instances[0],
+            row
+        );
+        studio.undo_edit(false);
+        assert_eq!(studio.source, SOURCE);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, edited);
+        row.weight = f64::NAN;
+        studio.apply_live_clip_action(
+            live_clip_editor::Action::Upsert { instance: row },
+            &edited,
+            0,
+            "A",
+        );
+        assert_eq!(studio.source, edited);
     }
     #[test]
     fn envelope_edits_are_saved_and_undoable_and_invalid_duration_is_atomic() {
