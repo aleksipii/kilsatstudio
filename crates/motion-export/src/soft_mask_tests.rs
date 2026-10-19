@@ -663,3 +663,34 @@ fn soft_brush_expansion_is_charged_before_sequence_output_creation() {
     );
     assert!(!dest.exists());
 }
+
+#[test]
+fn pressure_stroke_self_crossing_and_sharp_turns_do_not_cancel_coverage() {
+    use motion_art::{MaskStroke, Point};
+    let (script, rendered, mut art) = fixture();
+    art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        base_visible: false,
+        strokes: vec![MaskStroke {
+            // A bow tie crosses itself, then reverses over its first diagonal.
+            points: vec![
+                Point { x: 20.0, y: 20.0 },
+                Point { x: 80.0, y: 80.0 },
+                Point { x: 20.0, y: 80.0 },
+                Point { x: 80.0, y: 20.0 },
+                Point { x: 20.0, y: 20.0 },
+                Point { x: 80.0, y: 80.0 },
+            ],
+            radius: 10.0,
+            erase: false,
+            pressures: vec![0.4, 1.0, 0.6, 0.9, 0.7, 0.5],
+            hardness: 1.0,
+        }],
+    });
+    let crossing = render_row(&script, &rendered, &art, 50).unwrap();
+    assert_eq!(crossing[50], 255, "crossing segments must form a union");
+    assert_eq!(crossing[10], 0);
+    let turns = render_row(&script, &rendered, &art, 80).unwrap();
+    assert_eq!(turns[20], 255, "sharp turns retain their endpoint disk");
+    assert_eq!(turns[50], 255, "opposite winding must not punch a hole");
+    assert_eq!(turns[80], 255);
+}

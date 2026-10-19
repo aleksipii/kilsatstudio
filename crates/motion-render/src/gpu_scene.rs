@@ -661,28 +661,62 @@ mod tests {
         scene.opacity = 1.0;
         let stroke = |radius, pressure, hardness, erase| MaskStroke {
             points: vec![Point { x: 32.5, y: 32.5 }],
-            radius, pressures: vec![pressure], hardness, erase,
+            radius,
+            pressures: vec![pressure],
+            hardness,
+            erase,
         };
         let document = Document {
             layers: vec![Layer {
-                id: "mask".into(), scene_id: "s".into(), name: "mask".into(),
-                visible: true, plane: Plane::Foreground, active: None, opacity: 1.0,
-                attachment: None, clip: None, blend: BlendMode::Normal,
+                id: "mask".into(),
+                scene_id: "s".into(),
+                name: "mask".into(),
+                visible: true,
+                plane: Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                blend: BlendMode::Normal,
                 content: Content::Rectangle {
-                    rect: Rect { x: 0.0, y: 0.0, width: 64.0, height: 64.0 },
-                    color: Color { r: 255, g: 0, b: 0, a: 255 },
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 64.0,
+                        height: 64.0,
+                    },
+                    color: Color {
+                        r: 255,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
                 },
                 clip_shape: Some(ClipShape::Painted {
                     base_visible: false,
-                    strokes: vec![stroke(40.0, 0.5, 0.5, false),
-                        stroke(8.0, 1.0, 1.0, true), stroke(2.0, 1.0, 1.0, false)],
+                    strokes: vec![
+                        stroke(40.0, 0.5, 0.5, false),
+                        stroke(8.0, 1.0, 1.0, true),
+                        stroke(2.0, 1.0, 1.0, false),
+                    ],
                 }),
             }],
             ..Default::default()
         };
         let cancel = AtomicBool::new(false);
-        let frame = render_scene_with_art(&scene, 64, 64, &[], Labels::Require,
-            "s", &document, &std::collections::BTreeMap::new(), backend, &cancel).unwrap();
+        let frame = render_scene_with_art(
+            &scene,
+            64,
+            64,
+            &[],
+            Labels::Require,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new(),
+            backend,
+            &cancel,
+        )
+        .unwrap();
         let pixel = |x: usize| &frame.rgba[(32 * 64 + x) * 4..(32 * 64 + x) * 4 + 4];
         assert_eq!(pixel(32), &[255, 0, 0, 255]); // repaint restores erased centre
         assert_eq!(pixel(37), &[0, 0, 0, 255]); // erase remains outside repaint

@@ -163,8 +163,7 @@ impl MaskStroke {
     /// Exact swept disks for a linearly changing radius: endpoint disks and
     /// their common external tangent quad. A contained disk needs no quad.
     pub fn band_geometry(&self, scale: f64) -> Vec<MaskBrushPrimitive> {
-        let radius =
-            |i: usize| self.radius * self.pressures.get(i).copied().unwrap_or(1.0) * scale;
+        let radius = |i: usize| self.radius * self.pressures.get(i).copied().unwrap_or(1.0) * scale;
         let mut result = Vec::with_capacity(self.points.len().saturating_mul(2));
         for (i, &center) in self.points.iter().enumerate() {
             let r = radius(i);
@@ -1414,18 +1413,41 @@ mod tests {
         assert_eq!(stroke, mask_stroke());
         assert_eq!(serde_json::to_string(&stroke).unwrap(), legacy);
         for pressure in [f64::NAN, f64::INFINITY, -0.01, 1.01] {
-            assert!(MaskStroke { pressures: vec![pressure], ..stroke.clone() }.validate().is_err());
+            assert!(MaskStroke {
+                pressures: vec![pressure],
+                ..stroke.clone()
+            }
+            .validate()
+            .is_err());
         }
         for hardness in [f64::NAN, f64::INFINITY, -0.01, 1.01] {
-            assert!(MaskStroke { hardness, ..stroke.clone() }.validate().is_err());
+            assert!(MaskStroke {
+                hardness,
+                ..stroke.clone()
+            }
+            .validate()
+            .is_err());
         }
-        assert!(MaskStroke { pressures: vec![0.5, 1.0], ..stroke.clone() }.validate().is_err());
-        let zero = MaskStroke { pressures: vec![0.0], ..stroke.clone() };
+        assert!(MaskStroke {
+            pressures: vec![0.5, 1.0],
+            ..stroke.clone()
+        }
+        .validate()
+        .is_err());
+        let zero = MaskStroke {
+            pressures: vec![0.0],
+            ..stroke.clone()
+        };
         assert!(zero.band_geometry(1.0).is_empty());
-        let soft = MaskStroke { hardness: 0.0, ..stroke };
+        let soft = MaskStroke {
+            hardness: 0.0,
+            ..stroke
+        };
         assert_eq!(soft.coverage_bands().count(), 32);
         assert_eq!(soft.render_cost(), 64);
-        assert!(soft.coverage_bands().all(|(coverage, scale)| coverage > 0.0 && scale > 0.0));
+        assert!(soft
+            .coverage_bands()
+            .all(|(coverage, scale)| coverage > 0.0 && scale > 0.0));
     }
 
     #[test]
@@ -1441,8 +1463,15 @@ mod tests {
             base_visible: true,
             strokes: vec![stroke; 9],
         });
-        let doc = Document { layers: vec![item], ..Default::default() };
-        assert!(doc.validate().unwrap_err().to_string().contains("render work budget"));
+        let doc = Document {
+            layers: vec![item],
+            ..Default::default()
+        };
+        assert!(doc
+            .validate()
+            .unwrap_err()
+            .to_string()
+            .contains("render work budget"));
     }
 
     #[test]
@@ -1454,9 +1483,17 @@ mod tests {
         };
         let geometry = stroke.band_geometry(1.0);
         assert_eq!(geometry.len(), 3);
-        assert!(matches!(geometry[0], MaskBrushPrimitive::Circle { radius: 1.0, .. }));
-        assert!(matches!(geometry[1], MaskBrushPrimitive::Circle { radius: 4.0, .. }));
-        let MaskBrushPrimitive::Polygon { points } = &geometry[2] else { panic!("missing tangent"); };
+        assert!(matches!(
+            geometry[0],
+            MaskBrushPrimitive::Circle { radius: 1.0, .. }
+        ));
+        assert!(matches!(
+            geometry[1],
+            MaskBrushPrimitive::Circle { radius: 4.0, .. }
+        ));
+        let MaskBrushPrimitive::Polygon { points } = &geometry[2] else {
+            panic!("missing tangent");
+        };
         assert!(points.iter().all(|p| p.x.is_finite() && p.y.is_finite()));
         let contained = MaskStroke {
             points: vec![Point { x: 0.0, y: 0.0 }, Point { x: 1.0, y: 0.0 }],

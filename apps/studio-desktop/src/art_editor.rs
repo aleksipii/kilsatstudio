@@ -845,7 +845,8 @@ impl Editor {
                         * self
                             .mask_gesture
                             .as_ref()
-                            .map_or(1.0, |draft| draft.pressure.value())) as f32
+                            .map_or(1.0, |draft| draft.pressure.value()))
+                        as f32
                         * scale,
                     egui::Stroke::new(1.5_f32, color),
                 );
@@ -1232,7 +1233,10 @@ mod tests {
         assert_eq!(strokes[0].hardness, 0.25);
         assert_eq!(strokes[0].points.len(), 2);
         let encoded = serde_json::to_string(&document).unwrap();
-        assert_eq!(serde_json::from_str::<Document>(&encoded).unwrap(), document);
+        assert_eq!(
+            serde_json::from_str::<Document>(&encoded).unwrap(),
+            document
+        );
         assert_eq!(editor.revision(), 1);
         assert_eq!(editor.take_transaction_before(), Some(before));
         assert!(editor.take_transaction_before().is_none());
@@ -1277,18 +1281,12 @@ mod tests {
         assert!(pressure.update(&start, pos));
         assert_eq!(pressure.value(), 1.0);
         for force in [f32::NAN, f32::INFINITY, -0.1, 1.1] {
-            assert!(pressure.update(
-                &[mask_touch(1, egui::TouchPhase::Move, Some(force))],
-                pos
-            ));
+            assert!(pressure.update(&[mask_touch(1, egui::TouchPhase::Move, Some(force))], pos));
             assert_eq!(pressure.value(), 1.0);
         }
         assert!(!pressure.received_force);
         let mut disabled = PressureCapture::begin(false, &start, pos);
-        assert!(disabled.update(
-            &[mask_touch(1, egui::TouchPhase::Move, Some(0.25))],
-            pos
-        ));
+        assert!(disabled.update(&[mask_touch(1, egui::TouchPhase::Move, Some(0.25))], pos));
         assert_eq!(disabled.value(), 1.0);
         assert!(!disabled.received_force);
     }

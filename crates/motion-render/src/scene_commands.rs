@@ -487,23 +487,37 @@ fn append_art(
                                 for (coverage, radius_scale) in stroke.coverage_bands() {
                                     for primitive in stroke.band_geometry(radius_scale) {
                                         let record = match primitive {
-                                            motion_art::MaskBrushPrimitive::Circle { center, radius } => {
+                                            motion_art::MaskBrushPrimitive::Circle {
+                                                center,
+                                                radius,
+                                            } => {
                                                 cost += 2;
-                                                [[0.0, coverage as f32], [center.x as f32, center.y as f32],
-                                                    [radius as f32, 0.0], [0.0; 2], [0.0; 2]]
+                                                [
+                                                    [0.0, coverage as f32],
+                                                    [center.x as f32, center.y as f32],
+                                                    [radius as f32, 0.0],
+                                                    [0.0; 2],
+                                                    [0.0; 2],
+                                                ]
                                             }
-                                            motion_art::MaskBrushPrimitive::Polygon { points: vertices } => {
+                                            motion_art::MaskBrushPrimitive::Polygon {
+                                                points: vertices,
+                                            } => {
                                                 cost += 5;
-                                                [[1.0, coverage as f32],
+                                                [
+                                                    [1.0, coverage as f32],
                                                     [vertices[0].x as f32, vertices[0].y as f32],
                                                     [vertices[1].x as f32, vertices[1].y as f32],
                                                     [vertices[2].x as f32, vertices[2].y as f32],
-                                                    [vertices[3].x as f32, vertices[3].y as f32]]
+                                                    [vertices[3].x as f32, vertices[3].y as f32],
+                                                ]
                                             }
                                         };
                                         if result.points.len() + record.len() > MAX_GPU_POINTS
-                                            || u64::from(result.width) * u64::from(result.height)
-                                                * (*work + cost) > MAX_FRAGMENT_WORK
+                                            || u64::from(result.width)
+                                                * u64::from(result.height)
+                                                * (*work + cost)
+                                                > MAX_FRAGMENT_WORK
                                         {
                                             return Err(Error::Budget);
                                         }
@@ -514,8 +528,12 @@ fn append_art(
                                 result.commands.push(Command([
                                     inv,
                                     origin,
-                                    [offset as f32, count as f32,
-                                        f32::from(u8::from(!stroke.erase)), cost as f32],
+                                    [
+                                        offset as f32,
+                                        count as f32,
+                                        f32::from(u8::from(!stroke.erase)),
+                                        cost as f32,
+                                    ],
                                     [0.0; 4],
                                     [17.0, 0.0, 0.0, 0.0],
                                 ]));
@@ -704,25 +722,43 @@ mod tests {
             ..Document::default()
         };
         let commands = build_with_art(
-                &scene(),
-                64,
-                64,
-                &[],
-                Labels::OmitAcknowledged,
-                "s",
-                &document,
-                &std::collections::BTreeMap::new()
-            ).unwrap();
-        let mask = commands.commands.iter().find(|c| c.0[4][0] == 15.0).unwrap();
+            &scene(),
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new(),
+        )
+        .unwrap();
+        let mask = commands
+            .commands
+            .iter()
+            .find(|c| c.0[4][0] == 15.0)
+            .unwrap();
         assert_eq!(mask.0[2][0], 1.0);
     }
     #[test]
     fn painted_pressure_softness_order_and_crossfade_relocation_are_real_commands() {
         use motion_art::*;
-        let mut layer = artwork_layer("mask", Content::Rectangle {
-            rect: Rect { x: 0.0, y: 0.0, width: 20.0, height: 20.0 },
-            color: Color { r: 255, g: 0, b: 0, a: 255 },
-        });
+        let mut layer = artwork_layer(
+            "mask",
+            Content::Rectangle {
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 20.0,
+                },
+                color: Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+            },
+        );
         let stroke = MaskStroke {
             points: vec![Point { x: 2.0, y: 3.0 }, Point { x: 12.0, y: 3.0 }],
             radius: 4.0,
@@ -737,45 +773,106 @@ mod tests {
             base_visible: false,
             strokes: vec![stroke.clone(), erase, stroke],
         });
-        let document = Document { layers: vec![layer], ..Default::default() };
-        let make = || build_with_art(&scene(), 64, 64, &[], Labels::OmitAcknowledged,
-            "s", &document, &std::collections::BTreeMap::new()).unwrap();
+        let document = Document {
+            layers: vec![layer],
+            ..Default::default()
+        };
+        let make = || {
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &std::collections::BTreeMap::new(),
+            )
+            .unwrap()
+        };
         let commands = make();
-        let strokes: Vec<_> = commands.commands.iter().filter(|c| c.0[4][0] == 17.0).collect();
+        let strokes: Vec<_> = commands
+            .commands
+            .iter()
+            .filter(|c| c.0[4][0] == 17.0)
+            .collect();
         assert_eq!(strokes.len(), 3);
-        assert_eq!(strokes.iter().map(|c| c.0[2][2]).collect::<Vec<_>>(), vec![1.0, 0.0, 1.0]);
+        assert_eq!(
+            strokes.iter().map(|c| c.0[2][2]).collect::<Vec<_>>(),
+            vec![1.0, 0.0, 1.0]
+        );
         assert_eq!(strokes[0].0[2][1], 96.0);
-        let base = commands.commands.iter().find(|c| c.0[4][0] == 15.0).unwrap();
+        let base = commands
+            .commands
+            .iter()
+            .find(|c| c.0[4][0] == 15.0)
+            .unwrap();
         assert_eq!(base.0[2][0], 0.0);
         // Two endpoint disks have exactly the pressure ratio, followed by tangent quad.
         assert_eq!(commands.points[2][0] * 4.0, commands.points[7][0]);
         let offset = commands.points.len() as f32;
         let count = commands.commands.len();
         let mixed = crossfade(commands, make(), 0.5).unwrap();
-        let first = mixed.commands[..count].iter().find(|c| c.0[4][0] == 17.0).unwrap();
-        let second = mixed.commands[count + 1..].iter().find(|c| c.0[4][0] == 17.0).unwrap();
+        let first = mixed.commands[..count]
+            .iter()
+            .find(|c| c.0[4][0] == 17.0)
+            .unwrap();
+        let second = mixed.commands[count + 1..]
+            .iter()
+            .find(|c| c.0[4][0] == 17.0)
+            .unwrap();
         assert_eq!(second.0[2][0], first.0[2][0] + offset);
         assert!(mixed.pixels.is_empty());
     }
     #[test]
     fn painted_fragment_work_is_rejected_before_any_adapter() {
         use motion_art::*;
-        let mut layer = artwork_layer("mask", Content::Rectangle {
-            rect: Rect { x: 0.0, y: 0.0, width: 20.0, height: 20.0 },
-            color: Color { r: 255, g: 0, b: 0, a: 255 },
-        });
+        let mut layer = artwork_layer(
+            "mask",
+            Content::Rectangle {
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 20.0,
+                },
+                color: Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+            },
+        );
         layer.clip_shape = Some(ClipShape::Painted {
             base_visible: false,
             strokes: vec![MaskStroke {
                 points: vec![Point { x: 10.0, y: 10.0 }],
-                radius: 4.0, erase: false, pressures: vec![0.5], hardness: 0.5,
+                radius: 4.0,
+                erase: false,
+                pressures: vec![0.5],
+                hardness: 0.5,
             }],
         });
         let mut empty = scene();
         empty.actors.clear();
-        let document = Document { layers: vec![layer], ..Default::default() };
-        assert!(matches!(build_with_art(&empty, 2048, 2048, &[], Labels::Require,
-            "s", &document, &std::collections::BTreeMap::new()), Err(super::Error::Budget)));
+        let document = Document {
+            layers: vec![layer],
+            ..Default::default()
+        };
+        assert!(matches!(
+            build_with_art(
+                &empty,
+                2048,
+                2048,
+                &[],
+                Labels::Require,
+                "s",
+                &document,
+                &std::collections::BTreeMap::new()
+            ),
+            Err(super::Error::Budget)
+        ));
     }
     #[test]
     fn artwork_image_deduplication_masks_groups_and_order_are_real_commands() {
