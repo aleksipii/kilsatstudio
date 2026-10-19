@@ -714,7 +714,7 @@ impl Editor {
                 painter.circle_stroke(
                     position,
                     (self.mask_radius * scene.camera.zoom) as f32 * scale,
-                    egui::Stroke::new(1.5, color),
+                    egui::Stroke::new(1.5_f32, color),
                 );
                 if let Some(draft) = &self.mask_gesture {
                     for point in &draft.points {
