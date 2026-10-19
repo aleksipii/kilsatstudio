@@ -1,4 +1,6 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
+pub mod definition;
+pub use definition::{EvaluatedPart, RigDefinition, RigJointDefinition, RigidPartDefinition};
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {
     pub x: f64,
@@ -94,6 +96,8 @@ pub struct Rig {
 }
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
+    #[error("custom rig requires version 1, unique stable IDs, valid parent references and bounded rigid polygon attachments")]
+    InvalidDefinition,
     #[error(
         "rig needs 1..=256 unique named joints in parent-before-child order with finite transforms"
     )]

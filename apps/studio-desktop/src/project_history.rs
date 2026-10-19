@@ -223,6 +223,55 @@ mod tests {
         }
     }
     #[test]
+    fn grouped_artwork_roundtrips_through_chronological_history_and_rejects_cycles() {
+        let mut history = History::new(SOURCE);
+        let mut doc = document();
+        doc.art.layers.push(layer());
+        let original = Snapshot::capture(SOURCE, Some(&doc));
+        doc.art
+            .apply(motion_art::Command::CreateGroup(motion_art::Group {
+                id: "group".into(),
+                scene_id: doc.art.layers[0].scene_id.clone(),
+                plane: motion_art::Plane::Foreground,
+                name: "Group".into(),
+                visible: true,
+                opacity: 0.5,
+                blend: motion_art::BlendMode::Multiply,
+                children: Vec::new(),
+            }))
+            .unwrap();
+        doc.art
+            .apply(motion_art::Command::Move {
+                unit: motion_art::ArtUnit::Layer("drawn".into()),
+                parent: Some("group".into()),
+                index: 0,
+            })
+            .unwrap();
+        let grouped = Snapshot::capture(SOURCE, Some(&doc));
+        history.record(original.clone(), grouped.clone());
+        let source = format!("# after group\n{SOURCE}");
+        let source_edit = Snapshot::capture(&source, Some(&doc));
+        history.record(grouped.clone(), source_edit.clone());
+        assert_eq!(
+            history.navigate(source_edit, false).unwrap(),
+            Some(grouped.clone())
+        );
+        assert_eq!(
+            history.navigate(grouped.clone(), false).unwrap(),
+            Some(original.clone())
+        );
+        assert_eq!(
+            history.navigate(original, true).unwrap(),
+            Some(grouped.clone())
+        );
+        let mut bad = grouped.clone();
+        bad.project.as_mut().unwrap().art.groups[0]
+            .children
+            .push(motion_art::ArtUnit::Group("group".into()));
+        assert!(bad.validate().is_err());
+        assert_eq!(grouped.document().unwrap().art, doc.art);
+    }
+    #[test]
     fn interleaved_source_art_and_inventory_share_one_timeline_and_branch() {
         let mut history = History::new(SOURCE);
         let mut doc = document();

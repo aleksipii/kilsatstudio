@@ -429,6 +429,33 @@ pub fn align(
     recognizer: Recognizer,
     cancelled: impl Fn() -> bool,
 ) -> Result<EstimatedVisemeAlignment, AlignmentError> {
+    align_with_policy(executable, wav, transcript, recognizer, None, &cancelled)
+}
+pub(crate) fn align_controlled(
+    executable: &Path,
+    wav: &Path,
+    transcript: &str,
+    recognizer: Recognizer,
+    working_directory: &Path,
+    cancelled: &dyn Fn() -> bool,
+) -> Result<EstimatedVisemeAlignment, AlignmentError> {
+    align_with_policy(
+        executable,
+        wav,
+        transcript,
+        recognizer,
+        Some(working_directory),
+        &cancelled,
+    )
+}
+fn align_with_policy(
+    executable: &Path,
+    wav: &Path,
+    transcript: &str,
+    recognizer: Recognizer,
+    working_directory: Option<&Path>,
+    cancelled: &impl Fn() -> bool,
+) -> Result<EstimatedVisemeAlignment, AlignmentError> {
     if !executable.is_absolute() {
         return Err(error(
             "Rhubarb executable must be an explicit absolute path",
@@ -461,8 +488,21 @@ pub fn align(
     let text = stage.0.join("dialog.txt");
     create(&text, transcript.as_bytes())?;
     let version_file = stage.0.join("version.txt");
+    let command = || {
+        let mut command = Command::new(&executable);
+        if let Some(directory) = working_directory {
+            command
+                .env_clear()
+                .env("LC_ALL", "C")
+                .env("LANG", "C")
+                .env("PATH", "/usr/bin:/bin")
+                .env("HOME", &stage.0)
+                .current_dir(directory);
+        }
+        command
+    };
     execute(
-        Command::new(&executable).arg("--version"),
+        command().arg("--version"),
         &version_file,
         4096,
         Duration::from_secs(5),
@@ -477,7 +517,7 @@ pub fn align(
     }
     let output = stage.0.join("result.json");
     execute(
-        Command::new(&executable)
+        command()
             .args([
                 "--exportFormat",
                 "json",

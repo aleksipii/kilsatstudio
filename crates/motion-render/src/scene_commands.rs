@@ -1,4 +1,4 @@
-//! Adapter-free commands for the explicitly incomplete experimental GPU renderer.
+//! Adapter-free commands for the experimental GPU scene compositor.
 //! No font rasterizer is provided: actor labels require explicit acknowledgement.
 use motion_lipsync::Viseme;
 use motion_scene::{
@@ -41,6 +41,8 @@ pub struct SceneCommands {
     pub(crate) background: [f32; 4],
     pub(crate) opacity: f32,
     pub(crate) commands: Vec<Command>,
+    pub(crate) points: Vec<[f32; 2]>,
+    pub(crate) pixels: Vec<u32>,
 }
 impl SceneCommands {
     pub fn dimensions(&self) -> (u32, u32) {
@@ -57,8 +59,8 @@ impl SceneCommands {
     }
 }
 
-/// Only an evaluated actor scene is accepted. Artwork/sequence callers must use
-/// the explicit unsupported entry point rather than drop their extra content.
+/// Only an evaluated actor scene is accepted. Artwork callers must use
+/// `build_with_art`; sequence callers must explicitly compose complete requests.
 pub fn build(
     scene: &EvaluatedScene,
     width: u32,
@@ -77,9 +79,23 @@ pub fn build(
         ));
     }
     // Reserve a conservative upper bound before expanding any actor geometry.
-    let upper = scene.actors.len().checked_mul(16).ok_or(Error::Budget)?;
+    let upper = scene.actors.iter().try_fold(0usize, |sum, actor| {
+        sum.checked_add(if actor.rigid_parts.is_empty() {
+            16
+        } else {
+            actor.rigid_parts.len()
+        })
+        .ok_or(Error::Budget)
+    })?;
+    let polygon_work: u64 = scene
+        .actors
+        .iter()
+        .flat_map(|a| &a.rigid_parts)
+        .map(|p| p.points.len() as u64)
+        .sum();
     if upper > MAX_COMMANDS
-        || u64::from(width) * u64::from(height) * (upper as u64 + 1) > MAX_FRAGMENT_WORK
+        || u64::from(width) * u64::from(height) * (upper as u64 + polygon_work + 1)
+            > MAX_FRAGMENT_WORK
     {
         return Err(Error::Budget);
     }
@@ -100,6 +116,8 @@ pub fn build(
         background: [byte(1), byte(3), byte(5), 1.0],
         opacity: scene.opacity as f32,
         commands: Vec::with_capacity(upper),
+        points: Vec::new(),
+        pixels: Vec::new(),
     };
     let (cx, cy) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
     for actor in &scene.actors {
@@ -124,6 +142,24 @@ pub fn build(
             (0.75 / (actor.scale.x.min(actor.scale.y) * factor)) as f32,
             0.0,
         ];
+        if !actor.rigid_parts.is_empty() {
+            for part in &actor.rigid_parts {
+                let vertices: Vec<motion_art::Point> = part
+                    .points
+                    .iter()
+                    .map(|p| motion_art::Point { x: p.x, y: p.y })
+                    .collect();
+                let geometry = points(&mut result, &vertices)?;
+                result.commands.push(Command([
+                    inv,
+                    origin,
+                    geometry,
+                    part.color.map(|v| f32::from(v) / 255.0),
+                    [7.0, 0.0, 0.0, 0.0],
+                ]));
+            }
+            continue;
+        }
         let mut push = |kind: f32, geom: [f32; 4], color: [f32; 4], radius: f32| {
             result.commands.push(Command([
                 inv,
@@ -189,9 +225,367 @@ pub fn build(
     Ok(result)
 }
 
+/// Build genuine GPU artwork commands. The decoded source resources are uploaded,
+/// never a rasterized final frame. Labels retain the explicit omission policy.
+#[allow(clippy::too_many_arguments)]
+pub fn build_with_art(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    labels: Labels,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+) -> Result<SceneCommands, Error> {
+    document
+        .validate()
+        .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
+    let mut result = build(scene, width, height, mouths, labels)?;
+    let actors = std::mem::take(&mut result.commands);
+    let mut resources = std::collections::BTreeMap::new();
+    let mut work = command_work(&actors) + 1;
+    append_art(
+        &mut result,
+        scene,
+        scene_id,
+        document,
+        images,
+        motion_art::Plane::Background,
+        &mut resources,
+        &mut work,
+    )?;
+    result.commands.extend(actors);
+    append_art(
+        &mut result,
+        scene,
+        scene_id,
+        document,
+        images,
+        motion_art::Plane::Foreground,
+        &mut resources,
+        &mut work,
+    )?;
+    if result.commands.len() > MAX_COMMANDS
+        || u64::from(width) * u64::from(height) * work > MAX_FRAGMENT_WORK
+    {
+        return Err(Error::Budget);
+    }
+    Ok(result)
+}
+
+/// Compose already validated complete scene requests using the sequence evaluator's
+/// second contribution weight. Both scenes remain real GPU commands, including
+/// their own camera, artwork, masks, fades and opaque letterboxing.
+pub fn crossfade(
+    mut first: SceneCommands,
+    second: SceneCommands,
+    second_weight: f64,
+) -> Result<SceneCommands, Error> {
+    if first.dimensions() != second.dimensions()
+        || !second_weight.is_finite()
+        || !(0.0..=1.0).contains(&second_weight)
+    {
+        return Err(crate::Error::InvalidArtwork(
+            "GPU crossfade requires equal dimensions and finite weight 0..1".into(),
+        )
+        .into());
+    }
+    if first
+        .commands
+        .iter()
+        .chain(&second.commands)
+        .any(|c| c.0[4][0] == 14.0)
+    {
+        return Err(Error::UnsupportedFeature(
+            "nested complete-frame GPU transitions",
+        ));
+    }
+    if first.points.len() + second.points.len() > MAX_GPU_POINTS
+        || first.pixels.len() + second.pixels.len() > MAX_GPU_IMAGE_PIXELS
+        || first.commands.len() + second.commands.len() + 1 > MAX_COMMANDS
+    {
+        return Err(Error::Budget);
+    }
+    let work = command_work(&first.commands) + command_work(&second.commands) + 3;
+    if u64::from(first.width) * u64::from(first.height) * work > MAX_FRAGMENT_WORK {
+        return Err(Error::Budget);
+    }
+    let point_offset = first.points.len() as f32;
+    let pixel_offset = first.pixels.len() as f32;
+    first.commands.push(Command([
+        [0.0; 4],
+        [second.opacity, second_weight as f32, 0.0, 0.0],
+        second.canvas,
+        second.background,
+        [14.0, 0.0, 0.0, 0.0],
+    ]));
+    for mut command in second.commands {
+        let kind = command.0[4][0];
+        if kind == 5.0 {
+            command.0[4][1] += pixel_offset;
+        }
+        if kind == 6.0 || kind == 7.0 || kind == 11.0 {
+            command.0[2][0] += point_offset;
+        }
+        first.commands.push(command);
+    }
+    first.points.extend(second.points);
+    first.pixels.extend(second.pixels);
+    Ok(first)
+}
+fn command_work(commands: &[Command]) -> u64 {
+    commands
+        .iter()
+        .map(|c| {
+            let kind = c.0[4][0];
+            if kind == 6.0 || kind == 7.0 || kind == 11.0 {
+                c.0[2][1] as u64
+            } else if kind == 5.0 {
+                4
+            } else {
+                1
+            }
+        })
+        .sum()
+}
+
+const MAX_GPU_IMAGE_PIXELS: usize = 4 * 1024 * 1024;
+const MAX_GPU_POINTS: usize = 65_536;
+pub(crate) const MAX_COMPOSITION_DEPTH: usize = 16;
+
+fn art_error(error: motion_art::Error) -> Error {
+    crate::Error::InvalidArtwork(error.to_string()).into()
+}
+fn rect(r: motion_art::Rect) -> [f32; 4] {
+    [r.x as f32, r.y as f32, r.width as f32, r.height as f32]
+}
+fn color(c: motion_art::Color) -> [f32; 4] {
+    [c.r, c.g, c.b, c.a].map(|v| f32::from(v) / 255.0)
+}
+fn blend(mode: motion_art::BlendMode) -> f32 {
+    match mode {
+        motion_art::BlendMode::Normal => 0.0,
+        motion_art::BlendMode::Multiply => 1.0,
+        motion_art::BlendMode::Screen => 2.0,
+    }
+}
+fn points(result: &mut SceneCommands, values: &[motion_art::Point]) -> Result<[f32; 4], Error> {
+    let offset = result.points.len();
+    if offset
+        .checked_add(values.len())
+        .is_none_or(|n| n > MAX_GPU_POINTS)
+    {
+        return Err(Error::Budget);
+    }
+    result
+        .points
+        .extend(values.iter().map(|p| [p.x as f32, p.y as f32]));
+    Ok([offset as f32, values.len() as f32, 0.0, 0.0])
+}
+#[allow(clippy::too_many_arguments)]
+fn append_art(
+    result: &mut SceneCommands,
+    scene: &EvaluatedScene,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    plane: motion_art::Plane,
+    resources: &mut std::collections::BTreeMap<String, usize>,
+    work: &mut u64,
+) -> Result<(), Error> {
+    use motion_art::{ClipShape, CompositionStep, Content};
+    let factor = result.canvas[2] as f64 / scene.width as f64 * scene.camera.zoom;
+    let scale = result.canvas[2] as f64 / scene.width as f64;
+    let (cx, cy) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
+    let mut depth = 0usize;
+    for step in document
+        .composition(scene_id, plane, scene.time)
+        .map_err(art_error)?
+    {
+        match step {
+            CompositionStep::EnterGroup(group) => {
+                depth += 1;
+                if depth >= MAX_COMPOSITION_DEPTH {
+                    return Err(Error::Budget);
+                }
+                result.commands.push(Command([
+                    [0.0; 4],
+                    [0.0; 4],
+                    [group.opacity as f32, blend(group.blend), 0.0, 0.0],
+                    [0.0; 4],
+                    [8.0, 0.0, 0.0, 0.0],
+                ]));
+                *work += 1;
+            }
+            CompositionStep::LeaveGroup => {
+                depth -= 1;
+                result.commands.push(Command([
+                    [0.0; 4],
+                    [0.0; 4],
+                    [0.0; 4],
+                    [0.0; 4],
+                    [12.0, 0.0, 0.0, 0.0],
+                ]));
+                *work += 1;
+            }
+            CompositionStep::Layer(layer) => {
+                if depth + 1 >= MAX_COMPOSITION_DEPTH {
+                    return Err(Error::Budget);
+                }
+                let (x, y) = match &layer.attachment {
+                    Some(id) => match scene.actors.iter().find(|a| &a.id == id) {
+                        Some(actor) => (actor.x, actor.y),
+                        None => continue,
+                    },
+                    None => (0.0, 0.0),
+                };
+                let inv = [(1.0 / factor) as f32, 0.0, 0.0, (1.0 / factor) as f32];
+                let origin = [
+                    (-(result.canvas[0] as f64 + scale * cx) / factor - x) as f32,
+                    (-(result.canvas[1] as f64 + scale * cy) / factor - y) as f32,
+                    (0.75 / factor) as f32,
+                    0.0,
+                ];
+                result.commands.push(Command([
+                    inv,
+                    origin,
+                    [layer.opacity as f32, blend(layer.blend), 0.0, 0.0],
+                    [0.0; 4],
+                    [8.0, 0.0, 0.0, 0.0],
+                ]));
+                if let Some(r) = layer.clip {
+                    result.commands.push(Command([
+                        inv,
+                        origin,
+                        rect(r),
+                        [0.0; 4],
+                        [9.0, 0.0, 0.0, 0.0],
+                    ]));
+                    *work += 1;
+                }
+                if let Some(mask) = &layer.clip_shape {
+                    match mask {
+                        ClipShape::Polygon { points: vertices } => {
+                            let geometry = points(result, vertices)?;
+                            result.commands.push(Command([
+                                inv,
+                                origin,
+                                geometry,
+                                [0.0; 4],
+                                [11.0, 0.0, 0.0, 0.0],
+                            ]));
+                            *work += vertices.len() as u64;
+                        }
+                        _ => {
+                            let (r, feather) =
+                                mask.sample_ellipse(scene.time).ok_or(Error::Budget)?;
+                            result.commands.push(Command([
+                                inv,
+                                origin,
+                                rect(r),
+                                [0.0; 4],
+                                [10.0, feather as f32, 0.0, 0.0],
+                            ]));
+                            *work += 1;
+                        }
+                    }
+                }
+                let (kind, geometry, paint, parameters, cost) = match &layer.content {
+                    Content::Rectangle { rect: r, color: c } => (
+                        1.0,
+                        [
+                            (r.x + r.width / 2.0) as f32,
+                            (r.y + r.height / 2.0) as f32,
+                            (r.width / 2.0) as f32,
+                            (r.height / 2.0) as f32,
+                        ],
+                        color(*c),
+                        [1.0, 0.0, 0.0, 0.0],
+                        1,
+                    ),
+                    Content::Ellipse { rect: r, color: c } => {
+                        (4.0, rect(*r), color(*c), [4.0, 0.0, 0.0, 0.0], 1)
+                    }
+                    Content::Stroke {
+                        points: vertices,
+                        color: c,
+                        width,
+                    } => {
+                        let mut geometry = points(result, vertices)?;
+                        geometry[2] = (*width / 2.0) as f32;
+                        (
+                            6.0,
+                            geometry,
+                            color(*c),
+                            [6.0, 0.0, 0.0, 0.0],
+                            vertices.len() as u64,
+                        )
+                    }
+                    Content::Image { asset_id, rect: r } => {
+                        let image = images.get(asset_id).ok_or_else(|| {
+                            crate::Error::InvalidArtwork(format!(
+                                "missing decoded image {asset_id}"
+                            ))
+                        })?;
+                        let offset = if let Some(offset) = resources.get(asset_id) {
+                            *offset
+                        } else {
+                            let offset = result.pixels.len();
+                            let count = image.rgba().len() / 4;
+                            if offset
+                                .checked_add(count)
+                                .is_none_or(|n| n > MAX_GPU_IMAGE_PIXELS)
+                            {
+                                return Err(Error::Budget);
+                            }
+                            let pixels = image.rgba().as_chunks::<4>().0;
+                            result
+                                .pixels
+                                .extend(pixels.iter().copied().map(u32::from_le_bytes));
+                            resources.insert(asset_id.clone(), offset);
+                            offset
+                        };
+                        (
+                            5.0,
+                            rect(*r),
+                            [1.0; 4],
+                            [
+                                5.0,
+                                offset as f32,
+                                image.width() as f32,
+                                image.height() as f32,
+                            ],
+                            4,
+                        )
+                    }
+                };
+                debug_assert_eq!(kind, parameters[0]);
+                result
+                    .commands
+                    .push(Command([inv, origin, geometry, paint, parameters]));
+                result.commands.push(Command([
+                    [0.0; 4],
+                    [0.0; 4],
+                    [0.0; 4],
+                    [0.0; 4],
+                    [12.0, 0.0, 0.0, 0.0],
+                ]));
+                *work += cost + 2;
+            }
+        }
+        if result.commands.len() > MAX_COMMANDS
+            || u64::from(result.width) * u64::from(result.height) * *work > MAX_FRAGMENT_WORK
+        {
+            return Err(Error::Budget);
+        }
+    }
+    Ok(())
+}
+
 pub fn reject_artwork_or_sequence() -> Error {
     Error::UnsupportedFeature(
-        "artwork, image textures, masks, blend modes and sequence transitions",
+        "legacy geometry-only entry point does not load artwork or sample sequence transitions; use build_with_art/crossfade explicitly",
     )
 }
 
@@ -200,6 +594,227 @@ mod tests {
     use super::*;
     fn scene() -> EvaluatedScene {
         crate::tests::scene()
+    }
+    fn artwork_layer(id: &str, content: motion_art::Content) -> motion_art::Layer {
+        motion_art::Layer {
+            id: id.into(),
+            scene_id: "s".into(),
+            name: id.into(),
+            visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
+            opacity: 0.5,
+            attachment: None,
+            clip: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
+            content,
+        }
+    }
+    #[test]
+    fn artwork_image_deduplication_masks_groups_and_order_are_real_commands() {
+        use motion_art::*;
+        let r = Rect {
+            x: 10.0,
+            y: 20.0,
+            width: 30.0,
+            height: 40.0,
+        };
+        let mut a = artwork_layer(
+            "a",
+            Content::Image {
+                asset_id: "i".into(),
+                rect: r,
+            },
+        );
+        a.plane = Plane::Background;
+        a.clip_shape = Some(ClipShape::SoftEllipse {
+            rect: r,
+            feather: 0.25,
+            keys: vec![],
+        });
+        let mut b = artwork_layer(
+            "b",
+            Content::Image {
+                asset_id: "i".into(),
+                rect: r,
+            },
+        );
+        b.clip = Some(r);
+        let document = Document {
+            layers: vec![a, b],
+            ..Default::default()
+        };
+        let images = std::collections::BTreeMap::from([(
+            "i".into(),
+            ImageResource::from_rgba(1, 1, vec![10, 20, 30, 128]).unwrap(),
+        )]);
+        let c = build_with_art(
+            &scene(),
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &images,
+        )
+        .unwrap();
+        assert_eq!(c.pixels, vec![u32::from_le_bytes([10, 20, 30, 128])]);
+        let kinds: Vec<_> = c.commands.iter().map(|c| c.0[4][0]).collect();
+        assert_eq!(&kinds[..4], &[8.0, 10.0, 5.0, 12.0]);
+        assert_eq!(&kinds[kinds.len() - 4..], &[8.0, 9.0, 5.0, 12.0]);
+        assert_eq!(c.commands[1].0[4][1], 0.25);
+        assert!(build_with_art(
+            &scene(),
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new()
+        )
+        .is_err());
+    }
+    #[test]
+    fn isolated_groups_and_polygon_strokes_preserve_coverage_not_segment_overdraw() {
+        use motion_art::*;
+        let vertices = vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 20.0, y: 0.0 },
+            Point { x: 10.0, y: 20.0 },
+        ];
+        let mut layer = artwork_layer(
+            "a",
+            Content::Stroke {
+                points: vertices.clone(),
+                color: Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 128,
+                },
+                width: 4.0,
+            },
+        );
+        layer.clip_shape = Some(ClipShape::Polygon { points: vertices });
+        let document = Document {
+            layers: vec![layer],
+            groups: vec![Group {
+                id: "g".into(),
+                scene_id: "s".into(),
+                plane: Plane::Foreground,
+                name: "g".into(),
+                visible: true,
+                opacity: 0.5,
+                blend: BlendMode::Multiply,
+                children: vec![ArtUnit::Layer("a".into())],
+            }],
+            order: vec![ArtUnit::Group("g".into())],
+        };
+        let c = build_with_art(
+            &scene(),
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new(),
+        )
+        .unwrap();
+        let tail = &c.commands[c.commands.len() - 6..];
+        assert_eq!(
+            tail.iter().map(|c| c.0[4][0]).collect::<Vec<_>>(),
+            vec![8.0, 8.0, 11.0, 6.0, 12.0, 12.0]
+        );
+        assert_eq!(tail[0].0[2], [0.5, 1.0, 0.0, 0.0]);
+        assert_eq!(c.points.len(), 6);
+        assert_eq!(tail[3].0[2], [3.0, 3.0, 2.0, 0.0]);
+    }
+    #[test]
+    fn complete_frame_crossfade_relocates_source_resources_and_rejects_invalid_weights() {
+        use motion_art::*;
+        let r = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 20.0,
+            height: 20.0,
+        };
+        let document = Document {
+            layers: vec![artwork_layer(
+                "a",
+                Content::Image {
+                    asset_id: "i".into(),
+                    rect: r,
+                },
+            )],
+            ..Default::default()
+        };
+        let images = std::collections::BTreeMap::from([(
+            "i".into(),
+            ImageResource::from_rgba(1, 1, vec![1, 2, 3, 255]).unwrap(),
+        )]);
+        let make = || {
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &images,
+            )
+            .unwrap()
+        };
+        let n = make().command_count();
+        let mixed = crossfade(make(), make(), 0.25).unwrap();
+        assert_eq!(mixed.command_count(), n * 2 + 1);
+        assert_eq!(mixed.pixels.len(), 2);
+        assert_eq!(mixed.commands[n].0[4][0], 14.0);
+        assert_eq!(mixed.commands[n].0[1][1], 0.25);
+        assert_eq!(mixed.commands.last().unwrap().0[4][0], 12.0);
+        assert_eq!(mixed.commands[mixed.commands.len() - 2].0[4][1], 1.0);
+        assert!(crossfade(make(), make(), f64::NAN).is_err());
+        assert!(crossfade(mixed, make(), 0.5).is_err());
+        let other = build(&scene(), 65, 64, &[], Labels::OmitAcknowledged).unwrap();
+        assert!(crossfade(make(), other, 0.5).is_err());
+    }
+    #[test]
+    fn oversized_gpu_source_image_is_rejected_before_adapter_initialization() {
+        use motion_art::*;
+        let image = ImageResource::from_rgba(2049, 2048, vec![0; 2049 * 2048 * 4]).unwrap();
+        let images = std::collections::BTreeMap::from([("large".into(), image)]);
+        let document = Document {
+            layers: vec![artwork_layer(
+                "a",
+                Content::Image {
+                    asset_id: "large".into(),
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 10.0,
+                        height: 10.0,
+                    },
+                },
+            )],
+            ..Default::default()
+        };
+        assert!(matches!(
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &images
+            ),
+            Err(super::Error::Budget)
+        ));
     }
     #[test]
     fn labels_cannot_silently_disappear() {

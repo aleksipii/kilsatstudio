@@ -3,6 +3,7 @@ pub mod cache;
 pub mod engine_reuse;
 pub mod estimated_cache;
 mod import;
+pub mod local_package;
 pub mod rhubarb;
 pub use import::{arpabet_to_ipa, import_alignment_json, AlignmentAudio};
 

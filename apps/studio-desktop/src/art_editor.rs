@@ -29,6 +29,9 @@ pub struct Editor {
     transaction_before: Option<Document>,
     pub error: Option<String>,
     context: String,
+    group_draft: Option<motion_art::Group>,
+    move_parent: String,
+    move_index: usize,
 }
 fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
     if text.len() > 16_384 {
@@ -298,6 +301,8 @@ impl Editor {
             self.transaction_before = None;
             self.points.clear();
             self.selected = None;
+            self.group_draft = None;
+            self.move_parent.clear();
             self.context = context;
         }
     }
@@ -309,7 +314,19 @@ impl Editor {
         *self = Self::default();
         self.revision = revision;
     }
-    pub(crate) fn commit(&mut self, document: &mut Document, candidate: Document) {
+    pub(crate) fn commit(&mut self, document: &mut Document, mut candidate: Document) {
+        if !candidate.groups.is_empty() || !candidate.order.is_empty() {
+            for layer in &candidate.layers {
+                if !document.layers.iter().any(|old| old.id == layer.id) {
+                    let unit = motion_art::ArtUnit::Layer(layer.id.clone());
+                    if !candidate.order.contains(&unit)
+                        && !candidate.groups.iter().any(|g| g.children.contains(&unit))
+                    {
+                        candidate.order.push(unit);
+                    }
+                }
+            }
+        }
         if *document == candidate {
             return;
         }
@@ -338,6 +355,7 @@ impl Editor {
         egui::CollapsingHeader::new("Artwork / layers").show(ui,|ui| {
    ui.horizontal_wrapped(|ui| { for (tool,name) in [(Tool::Select,"Select"),(Tool::Pen,"Pen"),(Tool::Rectangle,"Rectangle"),(Tool::Ellipse,"Ellipse")] {if ui.selectable_value(&mut self.tool,tool,name).changed(){self.points.clear();}} });
    ui.weak("Drag on canvas to draw. Background layers render behind characters; foreground layers render above them. Save as .kilsat to retain artwork.");
+   self.group_controls(ui, document, scene_id);
    let mut next=document.clone();
    for layer in next.layers.iter_mut().filter(|l|l.scene_id==scene_id) { ui.horizontal(|ui| {ui.checkbox(&mut layer.visible,"");if ui.selectable_label(self.selected.as_deref()==Some(&layer.id),&layer.name).clicked(){self.selected=Some(layer.id.clone());}}); }
    if let Some(index)=next.layers.iter().position(|l|l.scene_id==scene_id && Some(&l.id)==self.selected.as_ref()) {
@@ -352,9 +370,9 @@ impl Editor {
     if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("W",&mut rect.width),("H",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
     egui::ComboBox::from_label("Follow actor translation").selected_text(layer.attachment.as_deref().unwrap_or("World")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"World");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
     compositing_controls(ui, layer, scene.duration);
-    ui.horizontal(|ui| {if ui.button("Lower").clicked() && index>0 {next.layers.swap(index,index-1);}
-   if ui.button("Raise").clicked() && index+1<next.layers.len(){next.layers.swap(index,index+1);}
-   if ui.button("Delete layer").clicked(){next.layers.remove(index);self.selected=None;}});
+    ui.horizontal(|ui| {if ui.add_enabled(index>0 && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Lower")).clicked() { next.layers.swap(index,index-1); }
+   if ui.add_enabled(index+1<next.layers.len() && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Raise")).clicked(){ next.layers.swap(index,index+1); }
+   if ui.button("Delete layer").clicked(){let id=next.layers[index].id.clone(); if let Err(error)=next.apply(motion_art::Command::Remove{id}) {self.error=Some(error.to_string());} self.selected=None;}});
    }
    let images: Vec<_> = assets.iter().filter(|a| a.kind == motion_project::AssetKind::Image).collect();
    if !images.is_empty() {
@@ -377,6 +395,76 @@ impl Editor {
    if self.dirty {ui.label("Artwork has unsaved changes");}
    if let Some(error)=&self.error{ui.colored_label(egui::Color32::LIGHT_RED,error);}
   });
+    }
+    fn group_controls(&mut self, ui: &mut egui::Ui, document: &mut Document, scene_id: &str) {
+        use motion_art::{ArtUnit, Command, Group};
+        ui.collapsing("Isolated groups / hierarchy", |ui| {
+            if ui.button("Create foreground group").clicked() {
+                let id = (1..).map(|n| format!("group-{n}")).find(|id| !document.layers.iter().any(|l| &l.id == id) && !document.groups.iter().any(|g| &g.id == id)).unwrap();
+                let mut candidate = document.clone();
+                let group = Group { id: id.clone(), scene_id: scene_id.into(), plane: Plane::Foreground, name: "Group".into(), visible: true, opacity: 1.0, blend: BlendMode::Normal, children: Vec::new() };
+                match candidate.apply(Command::CreateGroup(group.clone())) {
+                    Ok(()) => { self.commit(document, candidate); self.selected = Some(id); self.group_draft = Some(group); }
+                    Err(e) => self.error = Some(e.to_string()),
+                }
+            }
+            for plane in [Plane::Background, Plane::Foreground] {
+                if let Ok(steps) = document.composition(scene_id, plane, 0.0) {
+                    let mut depth: usize = 0;
+                    for step in steps {
+                        match step {
+                            motion_art::CompositionStep::EnterGroup(group) => {
+                                if ui.selectable_label(self.selected.as_deref() == Some(&group.id), format!("{}▣ {}", "  ".repeat(depth), group.name)).clicked() {
+                                    self.selected = Some(group.id.clone()); self.group_draft = Some(group.clone());
+                                }
+                                depth += 1;
+                            }
+                            motion_art::CompositionStep::LeaveGroup => depth = depth.saturating_sub(1),
+                            motion_art::CompositionStep::Layer(layer) => {
+                                if ui.selectable_label(self.selected.as_deref() == Some(&layer.id), format!("{}{}", "  ".repeat(depth), layer.name)).clicked() { self.selected = Some(layer.id.clone()); self.group_draft = None; }
+                            }
+                        }
+                    }
+                }
+            }
+            // Hidden groups remain selectable so visibility can always be restored.
+            for group in document.groups.iter().filter(|g| g.scene_id == scene_id && !g.visible) {
+                if ui.selectable_label(self.selected.as_deref() == Some(&group.id), format!("Hidden group: {}", group.name)).clicked() { self.selected = Some(group.id.clone()); self.group_draft = Some(group.clone()); }
+            }
+            let mut command = None;
+            if let Some(draft) = &mut self.group_draft {
+                ui.text_edit_singleline(&mut draft.name);
+                ui.checkbox(&mut draft.visible, "Visible subtree");
+                ui.add(egui::Slider::new(&mut draft.opacity, 0.0..=1.0).text("Isolated opacity"));
+                egui::ComboBox::from_label("Group plane").selected_text(format!("{:?}", draft.plane)).show_ui(ui, |ui| {
+                    ui.selectable_value(&mut draft.plane, Plane::Background, "Background");
+                    ui.selectable_value(&mut draft.plane, Plane::Foreground, "Foreground");
+                });
+                egui::ComboBox::from_label("Group blend").selected_text(format!("{:?}", draft.blend)).show_ui(ui, |ui| {
+                    for mode in [BlendMode::Normal, BlendMode::Multiply, BlendMode::Screen] { ui.selectable_value(&mut draft.blend, mode, format!("{mode:?}")); }
+                });
+                if ui.button("Apply group properties").clicked() { command = Some(Command::ReplaceGroup(draft.clone())); }
+                ui.weak("Ungroup keeps all children in order; removing opacity or blend can change appearance.");
+                if ui.button("Ungroup, keep children").clicked() { command = Some(Command::Ungroup { id: draft.id.clone() }); }
+            }
+            if let Some(id) = &self.selected {
+                let unit = if document.groups.iter().any(|g| &g.id == id) { ArtUnit::Group(id.clone()) } else { ArtUnit::Layer(id.clone()) };
+                ui.label("Move selected item: parent ID (empty = root), sibling index");
+                ui.text_edit_singleline(&mut self.move_parent);
+                ui.add(egui::DragValue::new(&mut self.move_index).range(0..=motion_art::MAX_LAYERS));
+                if ui.button("Apply hierarchy move").clicked() {
+                    command = Some(Command::Move { unit, parent: (!self.move_parent.is_empty()).then(|| self.move_parent.clone()), index: self.move_index });
+                }
+            }
+            if let Some(command) = command {
+                let ungroup = matches!(&command, Command::Ungroup { .. });
+                let mut candidate = document.clone();
+                match candidate.apply(command) {
+                    Ok(()) => { self.commit(document, candidate); if ungroup { self.selected = None; self.group_draft = None; } }
+                    Err(error) => self.error = Some(error.to_string()),
+                }
+            }
+        });
     }
     fn id(&self, document: &Document) -> String {
         (1..)
@@ -524,6 +612,11 @@ pub fn paint(
     ),
 ) {
     let (textures, plane) = resources;
+    // Grouped scenes must use the shared compositor, never a flattened painter fallback.
+    if !document.order.is_empty() || document.groups.iter().any(|g| g.scene_id == scene_id) {
+        return;
+    }
+
     let scale = (canvas.width() / scene.width as f32).min(canvas.height() / scene.height as f32);
     let origin =
         canvas.center() - egui::vec2(scene.width as f32, scene.height as f32) * scale * 0.5;
@@ -599,6 +692,36 @@ pub fn paint(
 #[cfg(test)]
 mod tests {
     #[test]
+    fn grouped_transactions_have_one_before_snapshot_and_invalid_apply_is_atomic() {
+        let mut editor = Editor::default();
+        let mut document = Document::default();
+        let before = document.clone();
+        let mut candidate = document.clone();
+        candidate
+            .apply(motion_art::Command::CreateGroup(motion_art::Group {
+                id: "group".into(),
+                scene_id: "s".into(),
+                plane: Plane::Foreground,
+                name: "Group".into(),
+                visible: true,
+                opacity: 0.5,
+                blend: BlendMode::Multiply,
+                children: Vec::new(),
+            }))
+            .unwrap();
+        editor.commit(&mut document, candidate);
+        assert_eq!(editor.take_transaction_before(), Some(before));
+        let committed = document.clone();
+        let revision = editor.revision();
+        let mut invalid = committed.clone();
+        invalid.groups[0].opacity = f64::NAN;
+        editor.commit(&mut document, invalid);
+        assert_eq!(document, committed);
+        assert_eq!(editor.revision(), revision);
+        assert!(editor.take_transaction_before().is_none());
+        assert!(editor.error.is_some());
+    }
+    #[test]
     fn soft_mask_key_drafts_validate_before_changing_document_history() {
         let keys = parse_mask_keys("0,0,0,20,20,0\n2,10,5,40,30,1", 2.0).unwrap();
         assert_eq!(keys.len(), 2);
@@ -648,6 +771,7 @@ mod tests {
                     },
                 },
             }],
+            ..Document::default()
         };
         editor.commit(&mut document, candidate.clone());
         assert_eq!(document, candidate);
@@ -833,6 +957,7 @@ mod tests {
             &mut document,
             Document {
                 layers: vec![layer],
+                ..Document::default()
             },
         );
         let before = document.clone();
@@ -884,6 +1009,7 @@ mod tests {
                     },
                 },
             }],
+            ..Document::default()
         };
         let before = document.clone();
         let mut editor = Editor::default();

@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 [dependencies]
 motion-animation = { path = "../motion-animation" }
+motion-rig = { path = "../motion-rig" }
 motion-script = { path = "../motion-script" }
 motion-lipsync = { path = "../motion-lipsync" }
 thiserror.workspace = true

@@ -72,7 +72,9 @@ pub fn load_image(path: &Path) -> Result<ImageResource, Error> {
     file.take(MAX_IMAGE_BYTES + 1).read_to_end(&mut bytes)?;
     decode_image(&bytes)
 }
-fn decode_image(bytes: &[u8]) -> Result<ImageResource, Error> {
+/// Decode bounded PNG/JPEG bytes without reopening the original asset path.
+/// Callers retaining evidence can preserve exactly the bytes that were decoded.
+pub fn decode_image(bytes: &[u8]) -> Result<ImageResource, Error> {
     if bytes.len() as u64 > MAX_IMAGE_BYTES {
         return invalid("encoded image exceeds 32 MiB");
     }

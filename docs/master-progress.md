@@ -9,6 +9,10 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+The next combined implementation is in progress on
+`feat/studio-production-workstreams`. Its six-area status is recorded in the
+pending section at the end; it does not yet change integrated acceptance below.
+
 PR #45 merged as `85ca2dcc2f4b26e8922e0af0d560155ebdfc9719` after final Linux/macOS CI passed.
 Original seven-joint live clips now offer explicit additive local offsets alongside
 default-compatible override, including native controls, saved projects, Undo/Redo,
@@ -1202,3 +1206,42 @@ Independent review found no remaining implementation blockers. No real recognize
 model inference, GPU/device execution or final license clearance is claimed. See
 [live clip controls](live-clip-blending.md) and the initial
 [animation handoff](workstreams/next-character-animation.md).
+
+## Combined production workstreams (source implemented, pending CI/integration)
+
+User requested all six remaining areas in one next PR. Six implementation owners
+worked on non-overlapping boundaries with parent integration. Checkboxes remain
+open until final CI/review and integration; no whole-product milestone is closed.
+
+- [ ] Normalized original-rig override groups: compatible explicit contiguous
+  groups, per-joint residual/normalization, stable signed-angle reference, native
+  controls and independent expected SVG/PNG/shared-preview tests.
+- [ ] Versioned custom rigid characters: stable joint hierarchy, bounded colored
+  polygon parts, cached rest evaluation, detached native definition editor,
+  source history and saved projects. Root motion works; original-rig bone/live
+  tracks and gestures are explicitly unsupported for custom actors.
+- [ ] Expanded experimental GPU composition: original decoded images, artwork,
+  custom polygons, existing hard/soft masks, isolated groups and backdrop blends,
+  bounded source-texture residency and whole-frame weighted crossfade commands.
+- [ ] Isolated nested artist groups: explicit mixed sibling order, visibility,
+  opacity applied once, normal/multiply/screen, native atomic controls/history,
+  shared CPU composition and dormant group work/memory preflight.
+- [ ] Automatic estimate reuse: explicit local self-contained Phonetic package
+  enrollment, exact package/environment identity, private controlled execution,
+  automatic hit/miss/publication and explicit fresh-run escape. Native loader
+  formats/resources have narrow supported boundaries; unknown packages remain
+  explicit-only. Enrollment is local trust, not quality or rights approval.
+- [ ] Offline release-license corpus/review-gap report and artifact-bound Mac
+  observation report: exact input identities, bounded evidence, atomic new-only
+  output, actionable unresolved gates and never automatic final approval.
+- [ ] Final Linux/macOS fmt/check/strict Clippy/default/optional GPU/Python/media
+  checks, independent review and authorized integration.
+
+Still open beyond these concrete increments: custom-rig animation tracks,
+textures/deformation and clip exchange; shared deterministic GPU fonts, measured
+full CPU/GPU parity, production GPU preview/export and physical Metal performance;
+image masks, polygon feathering, painting, pressure and retouching; actual enrolled
+recognizer execution/perceptual quality; physical Mac offline/audio/GUI acceptance;
+complete upstream license/NOTICE corpus, reviewed obligations, final packaged
+notices and authorized production signing/release. Source tests and evidence
+collectors cannot manufacture physical acceptance or rights clearance.

@@ -1,4 +1,4 @@
-//! Genuine evaluated-geometry GPU experiment; no CPU raster frame is uploaded.
+//! Genuine evaluated geometry/artwork GPU experiment; no CPU raster frame is uploaded.
 //! This renderer is intentionally absent from production preview/export selection.
 //! Font labels require explicit omission acknowledgement. Analytical antialiasing
 //! and smile joins differ from SVG; full-image CPU/GPU parity is not established.
@@ -10,13 +10,15 @@ use std::sync::{atomic::AtomicBool, Arc, Mutex};
 use std::time::{Duration, Instant};
 
 /// Reuses the adapter, device, queue and pipeline; only one render can be in flight.
-/// Targets/readback are released after each render, so resizing cannot grow a cache.
+/// Targets/readback are released after each render. Source image residency has a
+/// single bounded, exact-content cache entry, evicted before replacement.
 pub struct GpuSceneRenderer {
     device: wgpu::Device,
     queue: wgpu::Queue,
     pipeline: wgpu::RenderPipeline,
     info: wgpu::AdapterInfo,
     errors: Arc<Mutex<Vec<String>>>,
+    source_pixels: Option<(Vec<u32>, wgpu::Buffer)>,
 }
 
 /// Validate evaluated geometry, all dimensions and work budgets before adapter
@@ -31,6 +33,28 @@ pub fn render_scene(
     cancel: &AtomicBool,
 ) -> Result<Frame, Error> {
     let commands = scene_commands::build(scene, width, height, mouths, labels)?;
+    gpu::check(cancel, Instant::now() + Duration::from_secs(10))?;
+    GpuSceneRenderer::new(backend, cancel)?.render(&commands, cancel)
+}
+
+/// Explicit artwork-capable experiment; validates all source/command budgets before
+/// requesting any adapter. The caller supplies decoded local assets, not file paths.
+#[allow(clippy::too_many_arguments)]
+pub fn render_scene_with_art(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    labels: Labels,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    backend: Backend,
+    cancel: &AtomicBool,
+) -> Result<Frame, Error> {
+    let commands = scene_commands::build_with_art(
+        scene, width, height, mouths, labels, scene_id, document, images,
+    )?;
     gpu::check(cancel, Instant::now() + Duration::from_secs(10))?;
     GpuSceneRenderer::new(backend, cancel)?.render(&commands, cancel)
 }
@@ -127,6 +151,7 @@ impl GpuSceneRenderer {
             pipeline,
             info,
             errors,
+            source_pixels: None,
         })
     }
 
@@ -136,8 +161,10 @@ impl GpuSceneRenderer {
         let (width, height) = scene.dimensions();
         let (padded, bytes) = gpu::row_layout(width, height)?;
         // SceneCommands has private fields: only the checked builder constructs it.
-        // At 2048 square target+readback+returned pixels are 48 MiB; commands
-        // max out at 320 KiB each on host/device, well below the 128 MiB budget.
+        // At 2048 square target+readback+returned pixels are 48 MiB. Bounded source
+        // pixels, resident host/device copies and transient upload add at most
+        // 64 MiB; vertices/commands remain below the 128 MiB owned-resource target.
+        // Caller-owned decoded assets and command requests are separate budgets.
         let device = &self.device;
         // Per-frame errors use the bounded uncaptured-error collector. There is
         // no per-frame scope to leak if cancellation interrupts allocation or
@@ -190,6 +217,38 @@ impl GpuSceneRenderer {
             mapped_at_creation: false,
         });
         self.queue.write_buffer(&uniforms, 0, &uniform_bytes);
+        let point_bytes: Vec<u8> = scene
+            .points
+            .iter()
+            .flatten()
+            .flat_map(|v| v.to_le_bytes())
+            .collect();
+        let auxiliary = |name: &'static str, bytes: &[u8]| {
+            let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some(name),
+                size: (bytes.len() as u64).max(8),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            });
+            if !bytes.is_empty() {
+                self.queue.write_buffer(&buffer, 0, bytes);
+            }
+            buffer
+        };
+        let points = auxiliary("bounded artwork vertices", &point_bytes);
+        // One content-checked resident set: exact bytes prevent stale asset-ID reuse.
+        // Replacement evicts the previous buffer before allocating the next one.
+        if self
+            .source_pixels
+            .as_ref()
+            .is_none_or(|(content, _)| content != &scene.pixels)
+        {
+            self.source_pixels = None;
+            let pixel_bytes: Vec<u8> = scene.pixels.iter().flat_map(|v| v.to_le_bytes()).collect();
+            let buffer = auxiliary("bounded source image pixels", &pixel_bytes);
+            self.source_pixels = Some((scene.pixels.clone(), buffer));
+        }
+        let pixels = &self.source_pixels.as_ref().ok_or(Error::Budget)?.1;
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
             layout: &self.pipeline.get_bind_group_layout(0),
@@ -201,6 +260,14 @@ impl GpuSceneRenderer {
                 wgpu::BindGroupEntry {
                     binding: 1,
                     resource: uniforms.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: points.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: pixels.as_entire_binding(),
                 },
             ],
         });
@@ -386,6 +453,8 @@ struct Shape { inverse: vec4<f32>, origin: vec4<f32>, geometry: vec4<f32>, color
 struct Scene { canvas: vec4<f32>, background: vec4<f32>, settings: vec4<f32>, };
 @group(0) @binding(0) var<storage, read> shapes: array<Shape>;
 @group(0) @binding(1) var<uniform> scene: Scene;
+@group(0) @binding(2) var<storage, read> points: array<vec2<f32>>;
+@group(0) @binding(3) var<storage, read> pixels: array<u32>;
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
  var positions = array<vec2<f32>,3>(vec2(-1.,-1.),vec2(3.,-1.),vec2(-1.,3.));
  return vec4(positions[i],0.,1.);
@@ -409,19 +478,117 @@ fn distance_to_shape(p: vec2<f32>, s: Shape) -> f32 {
  let v=p-(g.xy+g.zw)*.5;
  return box_distance(vec2(dot(v,axis),dot(v,vec2(-axis.y,axis.x))),vec2(len*.5,s.parameters.y));
 }
+fn polygon(p: vec2<f32>, offset: u32, count: u32) -> f32 {
+ var winding=0i;
+ var distance=10000000.;
+ for(var i=0u; i<count; i=i+1u) {
+  let a=points[offset+i]; let b=points[offset+(i+1u)%count];
+  let edge=b-a; let delta=p-a;
+  let t=clamp(dot(delta,edge)/max(dot(edge,edge),.0000001),0.,1.);
+  distance=min(distance,length(delta-edge*t));
+  let cross=(b.x-a.x)*(p.y-a.y)-(p.x-a.x)*(b.y-a.y);
+  if a.y<=p.y && b.y>p.y && cross>0. { winding=winding+1i; }
+  if a.y>p.y && b.y<=p.y && cross<0. { winding=winding-1i; }
+ }
+ return select(distance,-distance,winding!=0i);
+}
+fn image_pixel(offset: u32, size: vec2<u32>, position: vec2<i32>) -> vec4<f32> {
+ let xy=vec2<u32>(clamp(position,vec2(0),vec2<i32>(size)-vec2(1)));
+ let value=pixels[offset+xy.y*size.x+xy.x];
+ let color=vec4<f32>(f32(value&255u),f32((value>>8u)&255u),f32((value>>16u)&255u),f32(value>>24u))/255.;
+ return vec4(color.rgb*color.a,color.a);
+}
+fn image_color(p: vec2<f32>, s: Shape) -> vec4<f32> {
+ let uv=(p-s.geometry.xy)/s.geometry.zw;
+ if any(uv<vec2(0.)) || any(uv>=vec2(1.)) { return vec4(0.); }
+ let size=vec2<u32>(s.parameters.zw);
+ let q=uv*vec2<f32>(size)-vec2(.5);
+ let low=vec2<i32>(floor(q)); let f=fract(q); let offset=u32(s.parameters.y);
+ let a=mix(image_pixel(offset,size,low),image_pixel(offset,size,low+vec2(1,0)),f.x);
+ let b=mix(image_pixel(offset,size,low+vec2(0,1)),image_pixel(offset,size,low+vec2(1,1)),f.x);
+ let value=mix(a,b,f.y);
+ return vec4(value.rgb/max(value.a,.0000001),value.a);
+}
+fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
+ // Source is straight RGBA; backdrop is premultiplied, byte-space sRGB.
+ let background=backdrop.rgb/max(backdrop.a,.0000001);
+ var mixed=source.rgb;
+ if mode>.5 && mode<1.5 { mixed=source.rgb*background; }
+ if mode>1.5 { mixed=source.rgb+background-source.rgb*background; }
+ let rgb=source.a*((1.-backdrop.a)*source.rgb+backdrop.a*mixed)+(1.-source.a)*backdrop.rgb;
+ return vec4(rgb,source.a+(1.-source.a)*backdrop.a);
+}
 @fragment fn fs(@builtin(position) pixel: vec4<f32>) -> @location(0) vec4<f32> {
  let p=pixel.xy;
- let canvas=scene.canvas;
- if any(p<canvas.xy) || any(p>=canvas.xy+canvas.zw) { return vec4(0.,0.,0.,1.); }
- var color=scene.background.rgb;
+ var canvas=scene.canvas;
+ var phase_opacity=scene.settings.x;
+ var inside_canvas=all(p>=canvas.xy) && all(p<canvas.xy+canvas.zw);
+ var first_color=vec3(0.);
+ var second_weight=1.;
+ var colors: array<vec4<f32>,16>;
+ var masks: array<f32,16>;
+ var opacities: array<f32,16>;
+ var blends: array<f32,16>;
+ colors[0]=vec4(scene.background.rgb,1.);
+ var depth=0u;
  for (var i=0u; i<u32(scene.settings.y); i=i+1u) {
-  let s=shapes[i];
+  let s=shapes[i]; let kind=s.parameters.x;
+  if kind>13.5 && kind<14.5 {
+   second_weight=s.origin.y;
+   first_color=floor(clamp(select(vec3(0.),colors[0].rgb*phase_opacity,inside_canvas),vec3(0.),vec3(1.))*255.+vec3(.5))/255.*(1.-second_weight);
+   canvas=s.geometry; phase_opacity=s.origin.x;
+   inside_canvas=all(p>=canvas.xy) && all(p<canvas.xy+canvas.zw);
+   colors[0]=vec4(s.color.rgb,1.); depth=0u; continue;
+  }
+  if !inside_canvas { continue; }
   let local=vec2(s.inverse.x*p.x+s.inverse.z*p.y,s.inverse.y*p.x+s.inverse.w*p.y)+s.origin.xy;
-  let coverage=1.-smoothstep(-s.origin.z,s.origin.z,distance_to_shape(local,s));
-  color=mix(color,s.color.rgb,coverage*s.color.a);
+  if kind>7.5 && kind<8.5 {
+   depth=depth+1u; colors[depth]=vec4(0.); masks[depth]=1.;
+   opacities[depth]=s.geometry.x; blends[depth]=s.geometry.y; continue;
+  }
+  if kind>11.5 && kind<12.5 {
+   let value=colors[depth];
+   let straight=vec4(value.rgb/max(value.a,.0000001),value.a*masks[depth]*opacities[depth]);
+   let mode=blends[depth]; depth=depth-1u;
+   colors[depth]=over(straight,colors[depth],mode); continue;
+  }
+  if kind>8.5 && kind<9.5 {
+   let distance=box_distance(local-(s.geometry.xy+s.geometry.zw*.5),s.geometry.zw*.5);
+   masks[depth]=masks[depth]*(1.-smoothstep(-s.origin.z,s.origin.z,distance)); continue;
+  }
+  if kind>9.5 && kind<10.5 {
+   let radius=s.geometry.zw*.5; let radial=length((local-s.geometry.xy-radius)/radius);
+   let feather=s.parameters.y;
+   var coverage=1.-smoothstep(1.-s.origin.z/min(radius.x,radius.y),1.+s.origin.z/min(radius.x,radius.y),radial);
+   if feather>0. { coverage=clamp((1.-radial)/feather,0.,1.); }
+   masks[depth]=masks[depth]*coverage; continue;
+  }
+  if kind>10.5 && kind<11.5 {
+   let distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
+   masks[depth]=masks[depth]*(1.-smoothstep(-s.origin.z,s.origin.z,distance)); continue;
+  }
+  if kind>4.5 && kind<5.5 { colors[depth]=over(image_color(local,s),colors[depth],0.); continue; }
+  var distance=0.;
+  if kind>3.5 && kind<4.5 {
+   let radius=s.geometry.zw*.5;
+   distance=(length((local-s.geometry.xy-radius)/radius)-1.)*min(radius.x,radius.y);
+  } else if kind>5.5 && kind<6.5 {
+   distance=10000000.;
+   let offset=u32(s.geometry.x); let count=u32(s.geometry.y);
+   for(var j=1u;j<count;j=j+1u) {
+    let a=points[offset+j-1u]; let delta=points[offset+j]-a;
+    let t=clamp(dot(local-a,delta)/max(dot(delta,delta),.0000001),0.,1.);
+    distance=min(distance,length(local-a-delta*t)-s.geometry.z);
+   }
+  } else if kind>6.5 && kind<7.5 { distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
+  } else { distance=distance_to_shape(local,s); }
+  let coverage=1.-smoothstep(-s.origin.z,s.origin.z,distance);
+  colors[depth]=over(vec4(s.color.rgb,coverage*s.color.a),colors[depth],0.);
  }
- return vec4(color*scene.settings.x,1.);
+ let second_color=floor(clamp(select(vec3(0.),colors[0].rgb*phase_opacity,inside_canvas),vec3(0.),vec3(1.))*255.+vec3(.5))/255.;
+ return vec4(floor((first_color+second_color*second_weight)*255.+vec3(.5))/255.,1.);
 }
+
 "#;
 
 #[cfg(test)]

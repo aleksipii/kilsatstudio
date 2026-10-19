@@ -5,6 +5,8 @@ mod artist_blending_tests;
 #[cfg(test)]
 mod clip_library_tests;
 #[cfg(test)]
+mod group_composition_tests;
+#[cfg(test)]
 mod live_clip_tests;
 mod media;
 mod preview_scene;
@@ -39,6 +41,48 @@ pub const MAX_FRAMES: u64 = 10_000;
 const MAX_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_SOURCE: usize = 1024 * 1024;
 const MAX_DIALOGUE: usize = 10_000;
+
+fn rigid_frame_work(script: &Script) -> u64 {
+    script
+        .characters
+        .values()
+        .filter_map(|character| character.rig.as_ref())
+        .flat_map(|rig| &rig.parts)
+        .fold(0u64, |work, part| {
+            work.saturating_add(part.points.len() as u64 * 4)
+        })
+}
+
+// Isolated group targets are additional raster work even if currently hidden.
+// Budget original canvas dimensions before frame allocation or output creation.
+fn group_work(art: &ArtContext, script: &Script, frames: u64, overlap: bool) -> Result<u64, Error> {
+    let mut per_scene = BTreeMap::<&str, u64>::new();
+    for group in &art.document.groups {
+        if !script.scenes.iter().any(|scene| scene.id == group.scene_id) {
+            return Err(invalid("unknown artwork group scene"));
+        }
+        *per_scene.entry(&group.scene_id).or_default() += 1;
+    }
+    let groups = per_scene.values().copied().max().unwrap_or(0);
+    if groups == 0 {
+        return Ok(0);
+    }
+    let pixels = u64::from(script.project.width) * u64::from(script.project.height);
+    let simultaneous = if overlap { 2 } else { 1 };
+    let visits = pixels.saturating_mul(groups).saturating_mul(simultaneous);
+    let bytes = pixels
+        .saturating_mul(4 * motion_art::MAX_GROUP_DEPTH as u64)
+        .saturating_mul(simultaneous);
+    if visits > 64 * 1024 * 1024
+        || visits.saturating_mul(frames) > 1_000_000_000
+        || bytes > 128 * 1024 * 1024
+    {
+        return Err(invalid(
+            "artwork isolated-group raster work/memory budget exceeded",
+        ));
+    }
+    Ok(bytes)
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Progress {
@@ -125,12 +169,21 @@ pub(crate) fn live_clip_frame_work(script: &Script, scene_index: usize) -> u64 {
             motion_script::ClipBlendMode::Override => 0,
             motion_script::ClipBlendMode::Additive => 56,
         };
+        // Group accumulation visits every joint and deterministically sorts
+        // contributors by ID. Charge dormant/zero contributors as well; the
+        // 128-row schema ceiling bounds comparison and rotation-reference work.
+        let normalized_work = if instance.normalized_group.is_some() {
+            112u64.saturating_add(7 * instances.len() as u64)
+        } else {
+            0
+        };
         work.saturating_add(tracks)
             .saturating_add(weight_search)
             .saturating_add(fade_work)
             .saturating_add(7 * instance.joint_mask.len() as u64)
             .saturating_add(u64::from(instance.looping))
             .saturating_add(additive_work)
+            .saturating_add(normalized_work)
     })
 }
 
@@ -186,8 +239,12 @@ fn validate_mode(
             .flat_map(|bones| bones.values())
             .map(Vec::len)
             .sum::<usize>();
-    if count.saturating_mul((keys as u64).saturating_add(live_clip_frame_work(script, index)))
-        > 1_000_000
+    let rigid_work = rigid_frame_work(script);
+    if count.saturating_mul(
+        (keys as u64)
+            .saturating_add(live_clip_frame_work(script, index))
+            .saturating_add(rigid_work),
+    ) > 1_000_000
     {
         return Err(invalid(
             "keyframe/live-clip evaluation exceeds one million work units",
@@ -522,6 +579,7 @@ fn export_sequence(
                 }
             }
         }
+        let group_bytes = group_work(art, script, total, false)?;
         let geometry = art
             .document
             .layers
@@ -559,6 +617,22 @@ fn export_sequence(
             return Err(invalid(
                 "artwork exceeds 32 MiB encoded / 16 million decoded pixel budget",
             ));
+        }
+        if group_bytes > 0 {
+            let raster_bytes = if png {
+                u64::from(script.project.width) * u64::from(script.project.height) * 24
+            } else {
+                0
+            };
+            let working = group_bytes
+                .saturating_add(raster_bytes)
+                .saturating_add(image_bytes as u64 * 4)
+                .saturating_add(pixels.saturating_mul(8))
+                .saturating_add(rendered.audio.samples.len() as u64 * 4)
+                .saturating_add(16 * 1024 * 1024);
+            if working > MAX_BYTES {
+                return Err(invalid("grouped scene working set exceeds 256 MiB"));
+            }
         }
         let pose = prepared
             .validated
@@ -605,7 +679,11 @@ fn export_sequence(
             total_frames: total,
         });
         let mut frames = Vec::with_capacity(total as usize);
-        let config = frame_jobs(script, png);
+        let mut config = frame_jobs(script, png);
+        if art.is_some_and(|art| !art.document.groups.is_empty()) {
+            config.workers = 1;
+            config.batch_size = 1;
+        }
         motion_jobs::ordered_map(
             total as usize,
             config,
@@ -1134,6 +1212,7 @@ mod tests {
                 looping: false,
                 joint_mask: Vec::new(),
                 blend_mode: motion_script::ClipBlendMode::Override,
+                normalized_group: None,
             })
             .collect();
         script.validate().unwrap();
@@ -1185,6 +1264,7 @@ mod tests {
             looping: false,
             joint_mask: Vec::new(),
             blend_mode: motion_script::ClipBlendMode::Override,
+            normalized_group: None,
         }];
         let prototype = script.scenes[0].composition.clip_instances[0].clone();
         for index in 1..count {
@@ -1394,6 +1474,7 @@ mod artwork_tests {
         let art = ArtContext {
             document: Document {
                 layers: vec![foreground, background],
+                ..Default::default()
             },
             images: BTreeMap::from([(
                 "red".into(),
@@ -1468,6 +1549,7 @@ mod artwork_tests {
         let mut art = ArtContext {
             document: Document {
                 layers: vec![image],
+                ..Default::default()
             },
             images: BTreeMap::new(),
         };
@@ -1539,6 +1621,7 @@ mod artwork_tests {
         let art = ArtContext {
             document: Document {
                 layers: vec![image, stroke],
+                ..Default::default()
             },
             images: BTreeMap::from([(
                 "red".into(),
@@ -1596,6 +1679,7 @@ mod artwork_tests {
                         },
                     },
                 )],
+                ..Default::default()
             },
             images: BTreeMap::from([(
                 "red".into(),
@@ -1648,6 +1732,7 @@ mod artwork_tests {
                         },
                     },
                 )],
+                ..Default::default()
             },
             images: BTreeMap::new(),
         };

@@ -337,6 +337,7 @@ mod tests {
                 looping: false,
                 joint_mask: Vec::new(),
                 blend_mode: motion_script::ClipBlendMode::Override,
+                normalized_group: None,
             },
         )
         .unwrap();

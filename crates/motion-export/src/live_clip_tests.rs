@@ -38,6 +38,53 @@ fn rendered_for(script: &Script) -> RenderedScene {
     rendered
 }
 
+#[test]
+fn normalized_groups_match_independently_authored_pixels_and_reopened_preview() {
+    let mut actual = motion_script::parse(SOURCE).unwrap();
+    let clip = actual.animation_clips.get_mut("reach").unwrap();
+    clip.bone_tracks.clear();
+    clip.bone_tracks.insert(
+        "right_hand".into(),
+        vec![motion_script::ActorKey {
+            x: 20.0,
+            y: 6.0,
+            scale_x: 1.5,
+            ..Default::default()
+        }],
+    );
+    let mut farther = clip.clone();
+    farther.bone_tracks.get_mut("right_hand").unwrap()[0].x = 40.0;
+    farther.bone_tracks.get_mut("right_hand").unwrap()[0].y = 10.0;
+    farther.bone_tracks.get_mut("right_hand").unwrap()[0].scale_x = 2.0;
+    actual.animation_clips.insert("farther".into(), farther);
+    let first = &mut actual.scenes[0].composition.clip_instances[0];
+    first.weight = 0.25;
+    first.normalized_group = Some("reach_mix".into());
+    let mut second = first.clone();
+    second.id = "reach_b".into();
+    second.clip = "farther".into();
+    actual.scenes[0].composition.clip_instances.push(second);
+    for (weight, x, y, scale) in [(0.25, 17.0, 5.0, 1.4375), (1.0, 30.0, 8.0, 1.75)] {
+        for row in &mut actual.scenes[0].composition.clip_instances {
+            row.weight = weight;
+        }
+        let document =
+            motion_project::ProjectDocument::new(serde_json::to_string(&actual).unwrap()).unwrap();
+        let reopened = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
+        let mut saved = motion_script::parse(&reopened.source).unwrap();
+        for frame in [6, 2, 5, 4, 1, 2] {
+            let mut expected = saved.clone();
+            expected.scenes[0].composition.clip_instances.clear();
+            if (2..6).contains(&frame) {
+                author_hand(&mut expected, x, y, scale);
+            }
+            assert_frames_and_preview(&saved, &expected, frame);
+            saved.scenes[0].composition.clip_instances.reverse();
+            assert_frames_and_preview(&saved, &expected, frame);
+        }
+    }
+}
+
 fn assert_frames_and_preview(actual: &Script, expected: &Script, frame: u64) {
     let rendered = rendered_for(actual);
     let cancel = CancellationToken::new();
@@ -709,5 +756,55 @@ fn omitted_blend_mode_keeps_legacy_override_frames() {
     );
     for frame in [0, 2, 4, 5, 6, 7] {
         assert_frames_and_preview(&explicit, &original, frame);
+    }
+}
+
+#[test]
+fn normalized_chest_rotation_stays_continuous_as_weight_crosses_one() {
+    let mut actual = motion_script::parse(SOURCE).unwrap();
+    let first_clip = actual.animation_clips.get_mut("reach").unwrap();
+    first_clip.bone_tracks.clear();
+    first_clip.bone_tracks.insert(
+        "chest".into(),
+        vec![motion_script::ActorKey {
+            rotation: 3.0,
+            y: 3.0,
+            ..Default::default()
+        }],
+    );
+    let mut second_clip = first_clip.clone();
+    second_clip.bone_tracks.get_mut("chest").unwrap()[0].rotation = -2.75;
+    actual
+        .animation_clips
+        .insert("opposite".into(), second_clip);
+    let first = &mut actual.scenes[0].composition.clip_instances[0];
+    first.normalized_group = Some("chest_turn".into());
+    let mut second = first.clone();
+    second.id = "reach_b".into();
+    second.clip = "opposite".into();
+    actual.scenes[0].composition.clip_instances.push(second);
+    // Dyadic inputs give independently exact expectations below/at/above S=1.
+    // A contributor-anchored reference at S>=1 would instead snap by about pi.
+    for (weight, angle) in [
+        (0.4990234375, 0.124755859375),
+        (0.5, 0.125),
+        (0.5009765625, 0.125),
+    ] {
+        for row in &mut actual.scenes[0].composition.clip_instances {
+            row.weight = weight;
+        }
+        let mut expected = actual.clone();
+        expected.scenes[0].composition.clip_instances.clear();
+        expected.scenes[0]
+            .composition
+            .bone_tracks
+            .get_mut("EMMA")
+            .unwrap()
+            .get_mut("chest")
+            .unwrap()[0]
+            .rotation = angle;
+        assert_frames_and_preview(&actual, &expected, 4);
+        actual.scenes[0].composition.clip_instances.reverse();
+        assert_frames_and_preview(&actual, &expected, 4);
     }
 }
