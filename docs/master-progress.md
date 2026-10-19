@@ -1343,3 +1343,15 @@ checks (`Layer::image_assets`), and an inspector control; the experimental GPU p
 reports it unsupported. On the Apple M1 Mac fmt, Clippy (no warnings) and
 `cargo test --workspace` passed with new pixel tests. Not done: animation, feathering
 of mask images, painting/erasing, GPU parity, CI on this branch and GUI inspection.
+
+## Custom-rig joint animation tracks (branch feat/custom-rig-joint-tracks, unmerged, stacked)
+
+Adds scene `composition.joint_tracks` for custom rigid characters: validated offset
+keys per actor and joint, a prepared rig (`PreparedRig`) so sampling only composes
+the hierarchy, shared scene evaluation for preview/SVG/PNG/video, an
+`apply_joint_track` source edit and character-removal cleanup. On the Apple M1 Mac
+fmt, Clippy (no warnings) and `cargo test --workspace` passed with new rig, scene
+and script tests (posed geometry, determinism across seeks, validation errors).
+Not done: a desktop key editor, reusable custom-rig clips and retargeting,
+textures/deformation, CI on this branch, physical Mac inspection and a rendered
+pixel test of a posed custom rig.

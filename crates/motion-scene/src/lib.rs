@@ -175,6 +175,9 @@ type BoneTracks = [Option<motion_animation::Track>; 7];
 #[derive(Default)]
 struct PreparedAnimation {
     rigid_parts: std::collections::BTreeMap<String, Vec<motion_rig::EvaluatedPart>>,
+    rigs: std::collections::BTreeMap<String, motion_rig::PreparedRig>,
+    /// Per scene and actor: joint index with its offset track.
+    joint_tracks: Vec<std::collections::BTreeMap<String, Vec<(usize, motion_animation::Track)>>>,
     library: std::collections::BTreeMap<String, BoneTracks>,
     scenes: Vec<std::collections::BTreeMap<String, BoneTracks>>,
 }
@@ -227,19 +230,51 @@ impl PreparedAnimation {
                     .collect::<Result<_, Error>>()
             })
             .collect::<Result<_, Error>>()?;
-        let rigid_parts = script
-            .characters
+        let mut rigid_parts = std::collections::BTreeMap::new();
+        let mut rigs = std::collections::BTreeMap::new();
+        for (id, character) in &script.characters {
+            if let Some(rig) = &character.rig {
+                let invalid = |error: motion_rig::Error| Error::InvalidAnimation(error.to_string());
+                let prepared = rig.prepare().map_err(invalid)?;
+                rigid_parts.insert(id.clone(), prepared.evaluate_parts(&[]).map_err(invalid)?);
+                rigs.insert(id.clone(), prepared);
+            }
+        }
+        let joint_tracks = script
+            .scenes
             .iter()
-            .filter_map(|(id, character)| {
-                character.rig.as_ref().map(|rig| {
-                    rig.evaluate_parts()
-                        .map(|parts| (id.clone(), parts))
-                        .map_err(|error| Error::InvalidAnimation(error.to_string()))
-                })
+            .map(|scene| {
+                scene
+                    .composition
+                    .joint_tracks
+                    .iter()
+                    .map(|(actor, tracks)| {
+                        let rig = rigs
+                            .get(actor)
+                            .ok_or_else(|| Error::InvalidAnimation(actor.clone()))?;
+                        let prepared = tracks
+                            .iter()
+                            .map(|(joint, keys)| {
+                                let index = rig
+                                    .joint_index(joint)
+                                    .ok_or_else(|| Error::InvalidAnimation(joint.clone()))?;
+                                let track = motion_animation::Track::new(
+                                    keys.iter()
+                                        .map(motion_script::ActorKey::animation_key)
+                                        .collect(),
+                                )?;
+                                Ok((index, track))
+                            })
+                            .collect::<Result<Vec<_>, Error>>()?;
+                        Ok((actor.clone(), prepared))
+                    })
+                    .collect::<Result<_, Error>>()
             })
             .collect::<Result<_, Error>>()?;
         Ok(Self {
             rigid_parts,
+            rigs,
+            joint_tracks,
             library,
             scenes,
         })
@@ -519,6 +554,18 @@ fn evaluate_validated(
                 &offsets,
                 weights,
             )?;
+            if let (Some(rig), Some(tracks)) = (
+                prepared.rigs.get(id),
+                prepared.joint_tracks[scene_index].get(id),
+            ) {
+                let offsets = tracks
+                    .iter()
+                    .map(|(joint, track)| Ok((*joint, track.sample(time_seconds)?)))
+                    .collect::<Result<Vec<_>, Error>>()?;
+                pose.rigid_parts = rig
+                    .evaluate_parts(&offsets)
+                    .map_err(|error| Error::InvalidAnimation(error.to_string()))?;
+            }
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
                 let value = motion_animation::Track::new(
@@ -1540,5 +1587,103 @@ mod live_instance_tests {
         assert_eq!(actual.actors[0].emotion, at.actors[0].emotion);
         apply_speech(&mut actual, &[("A", Viseme::A)]);
         assert_eq!(actual.actors[0].skeleton[HEAD], Vec2::new(24.0, -87.0));
+    }
+
+    const ARM_RIG: &str = "characters:
+  PUPPET:
+    asset: custom
+    rig:
+      version: 1
+      id: puppet
+      joints:
+        - {id: root, parent: null}
+        - {id: arm, parent: root, x: 10}
+      parts:
+        - {id: base, joint: root, points: [[0, 0], [1, 0], [0, 1]], color: [1, 2, 3, 255]}
+        - {id: hand, joint: arm, points: [[0, 0], [1, 0], [0, 1]], color: [9, 8, 7, 255]}
+  OTHER: {asset: plain}
+scenes:
+  - id: shot
+    duration: 2
+    events: []
+    composition:
+      joint_tracks:
+        PUPPET:
+          arm: [{at: 0}, {at: 2, rotation: 1.5707963267948966, x: 4}]
+";
+    fn hand(script: &Script, time: f64) -> Vec<Vec2> {
+        evaluate(script, 0, time).unwrap().actors[1].rigid_parts[1]
+            .points
+            .clone()
+    }
+    fn near(actual: &[Vec2], expected: [[f64; 2]; 3]) {
+        for (a, e) in actual.iter().zip(expected) {
+            assert!(
+                (a.x - e[0]).abs() < 1e-9 && (a.y - e[1]).abs() < 1e-9,
+                "{actual:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn custom_rig_joint_tracks_pose_child_parts_deterministically_and_leave_others_unchanged() {
+        let script = motion_script::parse(ARM_RIG).unwrap();
+        // Actors evaluate in character-id order: OTHER (no rig), then PUPPET.
+        assert!(evaluate(&script, 0, 1.0).unwrap().actors[0]
+            .rigid_parts
+            .is_empty());
+        near(&hand(&script, 0.0), [[10.0, 0.0], [11.0, 0.0], [10.0, 1.0]]);
+        // Halfway: rotation pi/4 about the joint (existing affine convention) and +2 in x.
+        let (sin, cos) = std::f64::consts::FRAC_PI_4.sin_cos();
+        near(
+            &hand(&script, 1.0),
+            [[12.0, 0.0], [12.0 + cos, sin], [12.0 - sin, cos]],
+        );
+        // The parent's part never moves.
+        let base = evaluate(&script, 0, 1.0).unwrap().actors[1].rigid_parts[0]
+            .points
+            .clone();
+        near(&base, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+        near(&hand(&script, 2.0), [[14.0, 0.0], [14.0, 1.0], [13.0, 0.0]]);
+        // Repeated and out-of-order seeks, and the prepared path, agree exactly.
+        let validated = ValidatedScript::new(std::sync::Arc::new(script.clone())).unwrap();
+        for time in [1.5, 0.25, 1.5, 2.0, 0.0] {
+            let direct = evaluate(&script, 0, time).unwrap();
+            assert_eq!(direct, validated.evaluate(0, time).unwrap());
+            assert_eq!(direct, evaluate(&script, 0, time).unwrap());
+        }
+        // Removing the track restores the rest pose.
+        let mut rest = script.clone();
+        rest.scenes[0].composition.joint_tracks.clear();
+        near(&hand(&rest, 1.0), [[10.0, 0.0], [11.0, 0.0], [10.0, 1.0]]);
+    }
+
+    #[test]
+    fn invalid_joint_tracks_fail_validation_with_actionable_errors() {
+        for (from, to, message) in [
+            ("arm: [", "wing: [", "has no joint wing"),
+            (
+                "PUPPET:\n          arm",
+                "OTHER:\n          arm",
+                "has no rig",
+            ),
+            (
+                "{at: 2, rotation",
+                "{at: 3, rotation",
+                "joint tracks require",
+            ),
+            (
+                "rotation: 1.5707963267948966, x: 4",
+                "scale_x: 0",
+                "joint tracks require",
+            ),
+            ("{at: 0}, ", "{at: 0}, {at: 0}, ", "joint tracks require"),
+        ] {
+            let source = ARM_RIG.replace(from, to);
+            assert_ne!(source, ARM_RIG, "{from}");
+            // Parsing validates the screenplay, so the actionable error surfaces there.
+            let error = motion_script::parse(&source).unwrap_err().to_string();
+            assert!(error.contains(message), "{to}: {error}");
+        }
     }
 }
