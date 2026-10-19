@@ -48,7 +48,7 @@ struct Declaration {
     files: BTreeMap<String, String>,
 }
 pub enum Inspection {
-    Eligible(LocalPackage),
+    Eligible(Box<LocalPackage>),
     Unavailable(String),
 }
 pub struct LocalPackage {
@@ -431,13 +431,13 @@ pub fn inspect(
         executable_hash,
         declaration.tool_version.clone(),
     );
-    Ok(Inspection::Eligible(LocalPackage {
+    Ok(Inspection::Eligible(Box::new(LocalPackage {
         root: root.to_path_buf(),
         declaration,
         declaration_bytes: bytes,
         runtime,
         environment,
-    }))
+    })))
 }
 /// Explicit local enrollment: the caller asserts that this package's Phonetic
 /// recognizer is self-contained. This pins bytes, not third-party audit evidence.

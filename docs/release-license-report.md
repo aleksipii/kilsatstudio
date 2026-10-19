@@ -13,6 +13,12 @@ python3 scripts/release_license_report.py --archive /local/preview.zip \
   --repo /local/matching-checkout --output /local/new-license-report.json --strict
 ```
 
+Supply canonical absolute input/root/output-parent paths. On macOS, resolve trusted
+OS aliases such as `/var` → `/private/var` before invoking these tools (for example,
+`Path(trusted_path).resolve()`). The collectors deliberately reject symlink
+components within supplied evidence paths; they do not silently resolve untrusted
+corpus references.
+
 The checkout must match the packaged resources. The collector reruns the trusted
 adjacent package auditor and requires an exactly matching supplied audit. Build
 artifact, executable observations and audit-byte identity must agree. Desktop and

@@ -1,0 +1,133 @@
+{
+  "format_version": 2,
+  "source": "# Original self-contained demo: no external artwork, speech or model assets.\nproject:\n  title: Rigid puppet, normalized clips and isolated artwork\n  fps: 24\n  width: 640\n  height: 360\ncharacters:\n  EMMA:\n    asset: characters/original-humanoid\n  PUPPET:\n    asset: characters/custom-rigid\n    rig:\n      version: 1\n      id: geometric_puppet\n      joints:\n        - {id: root, parent: null, x: 0, y: -40}\n        - {id: head, parent: root, x: 0, y: -46}\n        - {id: arm, parent: root, x: 24, y: -12, rotation: -0.35}\n      parts:\n        - id: body\n          joint: root\n          points: [[-22, -20], [22, -20], [17, 42], [-17, 42]]\n          color: [62, 163, 185, 255]\n        - id: arm_shape\n          joint: arm\n          points: [[-5, -6], [35, -6], [35, 6], [-5, 6]]\n          color: [237, 164, 84, 255]\n        - id: head_shape\n          joint: head\n          points: [[-20, -20], [20, -20], [24, 10], [0, 25], [-24, 10]]\n          color: [247, 207, 153, 255]\nanimation_clips:\n  reach_high:\n    duration: 2\n    bone_tracks:\n      right_hand:\n        - {at: 0, x: 0, y: 0}\n        - {at: 1, x: 8, y: -40}\n        - {at: 2, x: 0, y: 0}\n  reach_out:\n    duration: 2\n    bone_tracks:\n      right_hand:\n        - {at: 0, x: 0, y: 0}\n        - {at: 1, x: 30, y: -10}\n        - {at: 2, x: 0, y: 0}\nscenes:\n  - id: studio_demo\n    duration: 4\n    composition:\n      background_color: '#172b3b'\n      clip_instances:\n        - {id: high, clip: reach_high, actor: EMMA, at: 0, duration: 4, weight: 0.6, normalized_group: reach, looping: true}\n        - {id: out, clip: reach_out, actor: EMMA, at: 0, duration: 4, weight: 0.6, normalized_group: reach, looping: true}\n    events:\n      - {type: move, actor: EMMA, at: 0, x: 200, y: 265, duration: 1}\n      - {type: move, actor: PUPPET, at: 0, x: 450, y: 265, duration: 2}\n",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "warm_light",
+        "scene_id": "studio_demo",
+        "name": "Warm Light",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 80,
+            "y": 30,
+            "width": 270,
+            "height": 250
+          },
+          "color": {
+            "r": 242,
+            "g": 154,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cool_light",
+        "scene_id": "studio_demo",
+        "name": "Cool Light",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 230,
+            "y": 30,
+            "width": 300,
+            "height": 250
+          },
+          "color": {
+            "r": 68,
+            "g": 163,
+            "b": 196,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stage",
+        "scene_id": "studio_demo",
+        "name": "Stage",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 65,
+            "y": 295,
+            "width": 510,
+            "height": 12
+          },
+          "color": {
+            "r": 156,
+            "g": 201,
+            "b": 216,
+            "a": 255
+          }
+        }
+      }
+    ],
+    "groups": [
+      {
+        "id": "lighting",
+        "scene_id": "studio_demo",
+        "plane": "background",
+        "name": "Isolated lighting",
+        "visible": true,
+        "opacity": 0.45,
+        "blend": "normal",
+        "children": [
+          {
+            "type": "group",
+            "id": "overlap_lights"
+          }
+        ]
+      },
+      {
+        "id": "overlap_lights",
+        "scene_id": "studio_demo",
+        "plane": "background",
+        "name": "Nested warm and cool",
+        "visible": true,
+        "opacity": 0.7,
+        "blend": "screen",
+        "children": [
+          {
+            "type": "layer",
+            "id": "warm_light"
+          },
+          {
+            "type": "layer",
+            "id": "cool_light"
+          }
+        ]
+      }
+    ],
+    "order": [
+      {
+        "type": "group",
+        "id": "lighting"
+      },
+      {
+        "type": "layer",
+        "id": "stage"
+      }
+    ]
+  }
+}

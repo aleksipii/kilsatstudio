@@ -1,6 +1,6 @@
 //! Persisted scene artwork and bounded raster resources shared by preview/export.
 mod resource;
-pub use resource::{load_image, ImageResource, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGE_SIDE};
+pub use resource::{decode_image, load_image, ImageResource, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGE_SIDE};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
@@ -584,8 +584,9 @@ impl Document {
     /// Apply a typed edit transactionally. Reference checks belong to the project boundary.
     pub fn apply(&mut self, command: Command) -> Result<(), Error> {
         let mut next = self.clone();
-        if !next.groups.is_empty()
-            || !matches!(
+        if next.order.is_empty()
+            && next.groups.is_empty()
+            && !matches!(
                 &command,
                 Command::Add(_)
                     | Command::Replace(_)
@@ -593,9 +594,7 @@ impl Document {
                     | Command::Reorder { .. }
             )
         {
-            if next.order.is_empty() && next.groups.is_empty() {
-                next.order = next.root_order();
-            }
+            next.order = next.root_order();
         }
         match command {
             Command::CreateGroup(group) => {

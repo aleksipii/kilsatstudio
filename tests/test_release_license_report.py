@@ -27,8 +27,8 @@ class ReleaseLicenseReportTests(unittest.TestCase):
         self.fixture.setUp()
         self.addCleanup(self.fixture.doCleanups)
         self.fixture.stage(helper=True)
-        self.archive = self.fixture.write_zip()
-        self.root = self.fixture.root
+        self.archive = self.fixture.write_zip().resolve()
+        self.root = self.fixture.root.resolve()
         self.audit = self.fixture.collect()
         self.audit_path = self.root / 'audit.json'
         self.build_path = self.root / 'build.json'

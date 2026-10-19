@@ -120,3 +120,42 @@ or Metal performance acceptance is inferred from adapter-free tests. Production
 preview/export keep their existing CPU backend. Physical GPU images, decoded
 reference comparisons, full Unicode text resources and shared production backend
 acceptance remain open.
+
+### Exercise artwork and crossfades on a real Mac
+
+The existing helper accepts a saved `.kilsat` project as well as a MotionScript
+file. The argument count and explicit label omission remain unchanged. For a
+project without crossfades, render scene index 0 at scene-local 0.5 seconds:
+
+```sh
+cargo run -p motion-render --features gpu --example gpu_scene_probe -- \
+  --metal --omit-labels-acknowledged /absolute/path/project.kilsat \
+  0 0.5 640 360 /absolute/path/new-evidence-directory
+```
+
+Use `sequence` instead of the scene index to sample the existing 24 kHz project
+sequence clock, including authored cuts and complete-scene crossfades:
+
+```sh
+cargo run -p motion-render --features gpu --example gpu_scene_probe -- \
+  --metal --omit-labels-acknowledged /absolute/path/project.kilsat \
+  sequence 1.5 640 360 /absolute/path/new-crossfade-evidence-directory
+```
+
+The helper reads regular local files only, resolves active artwork image references
+through `motion_project::resolve_asset`, and decodes the exact bounded bytes it
+retains. It bounds combined retained encoded assets to 64 MiB and decoded source
+images to 4 Mi pixels before adapter initialization. All GPU command and fragment
+budgets still apply. Requests exceeding those limits fail explicitly.
+
+The new output directory contains raw `scene.rgba`, exact original project/script
+input plus SHA-256, screenplay source, exact active image bytes plus hashes, and
+`replay.kilsat` with retained image paths. Replay covers the sampled frame only:
+unused images, audio and speech/model assets are not copied. A single-scene run
+retains `reference.svg`; an overlap retains separate `reference-0.svg` and
+`reference-1.svg` with the original sequence weights in `report.json`. Each SVG
+contains the same evaluated scene and artwork **with CPU font labels**, so these
+files are not a claimed label-matched pixel comparison. Rasterize and compose
+references using the documented byte-space contract before measuring differences.
+The helper never synthesizes speech or downloads assets; mouths remain at rest.
+No physical acceptance or performance result is claimed merely by building it.

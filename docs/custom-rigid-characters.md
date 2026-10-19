@@ -50,3 +50,25 @@ This increment supports editable rigid colored polygons. Texture bindings, mesh
 skinning, custom-rig animation clips, retargeting and a visual joint/vertex canvas
 remain separate work. Physical Mac editing and rendering acceptance require actual
 device evidence; source fixtures and CI do not establish that acceptance.
+
+## Try the integrated example
+
+Open `examples/studio-production-demo.kilsat` with the desktop Open project action.
+It contains only original colored shapes and inline source; it has no asset paths
+to resolve, no speech events and no model or network requirement. Play or seek the
+four-second scene. The polygon puppet moves to the right through a root movement;
+the original humanoid moves left and loops two hand clips in the same normalized
+group. The warm and cool background shapes belong to a nested isolated artwork
+group, with separate group opacity and screen blending.
+
+Select PUPPET and open Custom rigid character. Change the head polygon color or
+its joint's `rotation`, Apply, then Undo/Redo. Save a copy and reopen it to check
+persistence. Select EMMA and inspect the adjacent `high` and `out` live rows: both
+use group `reach` and weight `0.6`. Changing a row weight changes the normalized
+contribution; changing row order inside this group preserves the weighted result.
+Seek repeatedly across the two-second loop boundary. The puppet intentionally has
+no humanoid bone tracks, live clips, gesture events or speech deformation.
+
+This example makes the source changes reviewable. Its JSON structure was checked
+when created; repository CI must establish full Rust project decoding, evaluation
+and rendering. Manual desktop actions above remain a physical Mac acceptance task.
