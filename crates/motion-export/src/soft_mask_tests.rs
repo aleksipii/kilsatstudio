@@ -433,10 +433,7 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
         let row = render_row(&script, &rendered, &art, 50).unwrap();
         assert!(row.iter().all(|v| *v == if base_visible { 255 } else { 0 }));
         let mut strokes = vec![MaskStroke {
-            points: vec![
-                Point { x: 20.0, y: 50.0 },
-                Point { x: 80.0, y: 50.0 },
-            ],
+            points: vec![Point { x: 20.0, y: 50.0 }, Point { x: 80.0, y: 50.0 }],
             radius: 15.0,
             erase: false,
         }];

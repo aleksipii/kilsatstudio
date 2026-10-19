@@ -1788,12 +1788,18 @@ impl Studio {
                 motion_scene::evaluate(script, self.scene_index, self.playhead),
                 self.project_document.as_mut(),
             ) {
-                let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy
-                    && !playing && canvas.shown == Some(sample);
-                let response = ui.add_enabled_ui(enabled, |ui| {
-                    ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
-                }).inner;
-                self.art_editor.gesture(&response, rect, &evaluated, &scene.id, &mut document.art);
+                let enabled = !self.busy
+                    && !self.diagnostics_busy
+                    && !self.export_busy
+                    && !playing
+                    && canvas.shown == Some(sample);
+                let response = ui
+                    .add_enabled_ui(enabled, |ui| {
+                        ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
+                    })
+                    .inner;
+                self.art_editor
+                    .gesture(&response, rect, &evaluated, &scene.id, &mut document.art);
             }
         }
         self.record_art_transaction();
@@ -1855,9 +1861,11 @@ impl Studio {
                     });
                     if let Some(document) = &mut self.project_document {
                         let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy;
-                        let response = ui.add_enabled_ui(enabled, |ui| {
-                            ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
-                        }).inner;
+                        let response = ui
+                            .add_enabled_ui(enabled, |ui| {
+                                ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
+                            })
+                            .inner;
                         self.art_editor.gesture(
                             &response,
                             rect,

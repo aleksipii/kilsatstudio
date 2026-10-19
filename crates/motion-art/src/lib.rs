@@ -129,9 +129,14 @@ impl MaskStroke {
             || self.points.len() > MAX_MASK_STROKE_POINTS
             || !self.radius.is_finite()
             || !(0.05..=MAX_MASK_RADIUS).contains(&self.radius)
-            || self.points.iter().any(|p| !coordinate(p.x) || !coordinate(p.y))
+            || self
+                .points
+                .iter()
+                .any(|p| !coordinate(p.x) || !coordinate(p.y))
         {
-            return invalid("mask stroke requires 1–2048 bounded finite points and radius 0.05–2048");
+            return invalid(
+                "mask stroke requires 1–2048 bounded finite points and radius 0.05–2048",
+            );
         }
         Ok(())
     }
@@ -648,7 +653,10 @@ impl Document {
                     if mask_stroke_count > MAX_TOTAL_MASK_STROKES {
                         return invalid("artwork exceeds 4096 mask strokes");
                     }
-                    point_count += strokes.iter().map(|stroke| stroke.points.len()).sum::<usize>();
+                    point_count += strokes
+                        .iter()
+                        .map(|stroke| stroke.points.len())
+                        .sum::<usize>();
                 }
                 if let ClipShape::Polygon { points, .. } = shape {
                     point_count += points.len();

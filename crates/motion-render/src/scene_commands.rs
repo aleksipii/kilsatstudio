@@ -628,14 +628,39 @@ mod tests {
         let mut layer = artwork_layer(
             "painted",
             Content::Rectangle {
-                rect: Rect { x: 0.0, y: 0.0, width: 20.0, height: 20.0 },
-                color: Color { r: 255, g: 0, b: 0, a: 255 },
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 20.0,
+                },
+                color: Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
             },
         );
-        layer.clip_shape = Some(ClipShape::Painted { base_visible: true, strokes: vec![] });
-        let document = Document { layers: vec![layer], ..Document::default() };
+        layer.clip_shape = Some(ClipShape::Painted {
+            base_visible: true,
+            strokes: vec![],
+        });
+        let document = Document {
+            layers: vec![layer],
+            ..Document::default()
+        };
         assert!(matches!(
-            build_with_art(&scene(), 64, 64, &[], Labels::OmitAcknowledged, "s", &document, &std::collections::BTreeMap::new()),
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &std::collections::BTreeMap::new()
+            ),
             Err(Error::UnsupportedFeature("painted vector mask"))
         ));
     }
