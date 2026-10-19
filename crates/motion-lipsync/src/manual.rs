@@ -13,7 +13,9 @@ pub const MAX_EDIT_CUES: usize = 1024;
 
 pub fn validate_cues(cues: &[MouthCue], frames: u64) -> Result<(), AlignmentError> {
     if frames == 0 || cues.len() > MAX_EDIT_CUES {
-        return Err(AlignmentError("manual timing exceeds its cue/audio budget".into()));
+        return Err(AlignmentError(
+            "manual timing exceeds its cue/audio budget".into(),
+        ));
     }
     let mut previous = 0;
     for cue in cues {
@@ -120,7 +122,11 @@ mod tests {
     #[test]
     fn edits_preserve_manual_provenance_exact_boundaries_and_pcm_binding() {
         let (mut audio, original) = fixture();
-        let cues = vec![MouthCue { start_sample: 10, end_sample: 20, shape: 'D' }];
+        let cues = vec![MouthCue {
+            start_sample: 10,
+            end_sample: 20,
+            shape: 'D',
+        }];
         let bound = bind_edits(&original, &cues, &audio, "hello").unwrap();
         let alignment = bound.alignment.as_ref().unwrap();
         assert!(matches!(alignment.source, AlignmentSource::Manual));
@@ -154,7 +160,12 @@ mod tests {
         let first = bind_edits(&original, &cues, &audio, "hello").unwrap();
         for cue in &cues {
             assert_eq!(
-                first.alignment.as_ref().unwrap().viseme_at(cue.start_sample as f64 / 24000.0).unwrap(),
+                first
+                    .alignment
+                    .as_ref()
+                    .unwrap()
+                    .viseme_at(cue.start_sample as f64 / 24000.0)
+                    .unwrap(),
                 crate::rhubarb::shape_viseme(cue.shape).unwrap()
             );
         }
@@ -169,13 +180,29 @@ mod tests {
     #[test]
     fn malformed_and_oversized_edits_fail_without_reordering() {
         for cue in [
-            MouthCue { start_sample: 20, end_sample: 20, shape: 'A' },
-            MouthCue { start_sample: 20, end_sample: 241, shape: 'A' },
-            MouthCue { start_sample: 0, end_sample: 1, shape: '?' },
+            MouthCue {
+                start_sample: 20,
+                end_sample: 20,
+                shape: 'A',
+            },
+            MouthCue {
+                start_sample: 20,
+                end_sample: 241,
+                shape: 'A',
+            },
+            MouthCue {
+                start_sample: 0,
+                end_sample: 1,
+                shape: '?',
+            },
         ] {
             assert!(validate_cues(&[cue], 240).is_err());
         }
-        let cue = MouthCue { start_sample: 0, end_sample: 1, shape: 'X' };
+        let cue = MouthCue {
+            start_sample: 0,
+            end_sample: 1,
+            shape: 'X',
+        };
         assert!(validate_cues(&[cue.clone(), cue.clone()], 240).is_err());
         assert!(validate_cues(&vec![cue; MAX_EDIT_CUES + 1], 240).is_err());
         assert!(validate_cues(&[], 240).is_ok()); // Explicit all-rest edit.

@@ -341,7 +341,11 @@ mod tests {
         doc.timing.scene = "{\"7\":{\"alignment\":null}}".into();
         let decoded = decode(&encode(&doc).unwrap()).unwrap();
         assert_eq!(decoded.timing, doc.timing);
-        for invalid in ["[1]".to_owned(), "{".to_owned(), " ".repeat(MAX_TIMING_BYTES + 1)] {
+        for invalid in [
+            "[1]".to_owned(),
+            "{".to_owned(),
+            " ".repeat(MAX_TIMING_BYTES + 1),
+        ] {
             doc.timing.line = invalid;
             assert!(encode(&doc).is_err());
         }

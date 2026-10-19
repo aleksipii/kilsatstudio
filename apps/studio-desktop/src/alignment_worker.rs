@@ -27,8 +27,12 @@ impl PreparedAudio for AudioBuffer {
 pub enum Action {
     Estimate,
     EstimateFresh,
-    EnrollAndEstimate { expected_version: String },
-    Load { key: String },
+    EnrollAndEstimate {
+        expected_version: String,
+    },
+    Load {
+        key: String,
+    },
     Manual {
         original: Box<motion_lipsync::rhubarb::EstimatedVisemeAlignment>,
         cues: Vec<motion_lipsync::rhubarb::MouthCue>,
@@ -101,7 +105,8 @@ fn execute(request: &Request) -> Result<Ready, String> {
         let input = motion_lipsync::cache::AlignmentInput::Bound(bound);
         let json = serde_json::to_string_pretty(&input).map_err(|e| e.to_string())?;
         scene_alignments.insert(request.identity.line_id, input);
-        let scene_json = serde_json::to_string_pretty(&scene_alignments).map_err(|e| e.to_string())?;
+        let scene_json =
+            serde_json::to_string_pretty(&scene_alignments).map_err(|e| e.to_string())?;
         if json.len() > MAX_JSON_BYTES || scene_json.len() > MAX_JSON_BYTES {
             return Err("Manual timing exceeds the editor's 100 KB input limit".into());
         }
@@ -380,7 +385,8 @@ mod tests {
             cues: vec![],
         };
         let other = motion_lipsync::cache::AlignmentInput::Estimated(original.clone());
-        r.scene_alignments = serde_json::to_string(&std::collections::BTreeMap::from([(99, other)])).unwrap();
+        r.scene_alignments =
+            serde_json::to_string(&std::collections::BTreeMap::from([(99, other)])).unwrap();
         r.action = Action::Manual {
             original: Box::new(original),
             cues: vec![motion_lipsync::rhubarb::MouthCue {
@@ -392,13 +398,27 @@ mod tests {
         let ready = execute(&r).unwrap();
         assert_eq!(ready.cache.origin, ResultOrigin::Manual);
         assert!(ready.cache.key.is_none());
-        let map: std::collections::BTreeMap<u64, motion_lipsync::cache::AlignmentInput> = serde_json::from_str(&ready.scene_json).unwrap();
+        let map: std::collections::BTreeMap<u64, motion_lipsync::cache::AlignmentInput> =
+            serde_json::from_str(&ready.scene_json).unwrap();
         assert!(map.contains_key(&99));
-        assert!(matches!(map.get(&r.identity.line_id), Some(motion_lipsync::cache::AlignmentInput::Bound(_))));
-        let input: motion_lipsync::cache::AlignmentInput = serde_json::from_str(&ready.json).unwrap();
-        let motion_lipsync::cache::AlignmentInput::Bound(bound) = input else { panic!("manual result was not bound"); };
-        assert!(matches!(bound.alignment.unwrap().source, motion_lipsync::AlignmentSource::Manual));
-        r.audio = Arc::new(AudioBuffer { sample_rate: 24000, channels: 1, samples: vec![0.5; 24] });
+        assert!(matches!(
+            map.get(&r.identity.line_id),
+            Some(motion_lipsync::cache::AlignmentInput::Bound(_))
+        ));
+        let input: motion_lipsync::cache::AlignmentInput =
+            serde_json::from_str(&ready.json).unwrap();
+        let motion_lipsync::cache::AlignmentInput::Bound(bound) = input else {
+            panic!("manual result was not bound");
+        };
+        assert!(matches!(
+            bound.alignment.unwrap().source,
+            motion_lipsync::AlignmentSource::Manual
+        ));
+        r.audio = Arc::new(AudioBuffer {
+            sample_rate: 24000,
+            channels: 1,
+            samples: vec![0.5; 24],
+        });
         assert!(execute(&r).unwrap_err().contains("PCM"));
         r.cancel.cancel();
         assert!(execute(&r).is_err());

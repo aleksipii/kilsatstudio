@@ -931,18 +931,21 @@ impl Studio {
         }
     }
     fn record_source_edit(&mut self, before: &str, after: &str) {
-        self.history.record(
-            self.history_snapshot(before),
-            self.history_snapshot(after),
-        );
+        self.history
+            .record(self.history_snapshot(before), self.history_snapshot(after));
     }
     fn snapshot(&self) -> project_history::Snapshot {
         self.history_snapshot(&self.source)
     }
     fn history_snapshot(&self, source: &str) -> project_history::Snapshot {
         let document = self.project_document.clone().map(|mut document| {
-            let timing = motion_project::TimingDocument { line: self.alignment.clone(), scene: self.scene_alignment.clone() };
-            if timing.validate().is_ok() { document.timing = timing; }
+            let timing = motion_project::TimingDocument {
+                line: self.alignment.clone(),
+                scene: self.scene_alignment.clone(),
+            };
+            if timing.validate().is_ok() {
+                document.timing = timing;
+            }
             document
         });
         project_history::Snapshot::capture(source, document.as_ref())
@@ -955,8 +958,13 @@ impl Studio {
         let Some(document) = self.project_document.as_mut() else {
             return;
         };
-        let timing = motion_project::TimingDocument { line: self.alignment.clone(), scene: self.scene_alignment.clone() };
-        if timing.validate().is_ok() { document.timing = timing; }
+        let timing = motion_project::TimingDocument {
+            line: self.alignment.clone(),
+            scene: self.scene_alignment.clone(),
+        };
+        if timing.validate().is_ok() {
+            document.timing = timing;
+        }
         let mut before = document.clone();
         before.art = before_art;
         before.source = self.source.clone();
@@ -1000,8 +1008,16 @@ impl Studio {
                 self.art_editor.reset();
                 self.art_editor.dirty = art_dirty;
                 self.asset_dirty |= inventory_changed;
-                self.alignment = self.project_document.as_ref().map(|d| d.timing.line.clone()).unwrap_or_default();
-                self.scene_alignment = self.project_document.as_ref().map(|d| d.timing.scene.clone()).unwrap_or_default();
+                self.alignment = self
+                    .project_document
+                    .as_ref()
+                    .map(|d| d.timing.line.clone())
+                    .unwrap_or_default();
+                self.scene_alignment = self
+                    .project_document
+                    .as_ref()
+                    .map(|d| d.timing.scene.clone())
+                    .unwrap_or_default();
                 self.stop_playback();
                 self.invalidate_scene();
                 self.jobs.clear();
@@ -1354,7 +1370,10 @@ impl Studio {
                         .map_err(|e| e.to_string())?,
                 );
                 doc.source = self.source.clone();
-                doc.timing = motion_project::TimingDocument { line: self.alignment.clone(), scene: self.scene_alignment.clone() };
+                doc.timing = motion_project::TimingDocument {
+                    line: self.alignment.clone(),
+                    scene: self.scene_alignment.clone(),
+                };
                 motion_project::save_atomic(Path::new(&self.script_path), &doc)
                     .map_err(|e| e.to_string())?;
                 Ok(doc)
@@ -1372,10 +1391,16 @@ impl Studio {
             }
             return;
         }
-        if !self.alignment.trim().is_empty() || !self.scene_alignment.trim().is_empty()
-            || self.project_document.as_ref().is_some_and(|d| !d.timing.is_empty())
+        if !self.alignment.trim().is_empty()
+            || !self.scene_alignment.trim().is_empty()
+            || self
+                .project_document
+                .as_ref()
+                .is_some_and(|d| !d.timing.is_empty())
         {
-            self.status = "Reviewed mouth timing requires .kilsat. Change the save path before saving.".into();
+            self.status =
+                "Reviewed mouth timing requires .kilsat. Change the save path before saving."
+                    .into();
             return;
         }
         if self
@@ -1594,13 +1619,22 @@ impl Studio {
         self.flush_text_edit();
         let mut before = match &self.project_document {
             Some(document) => document.clone(),
-            None => motion_project::ProjectDocument::new(self.source.clone()).map_err(|e| e.to_string())?,
+            None => motion_project::ProjectDocument::new(self.source.clone())
+                .map_err(|e| e.to_string())?,
         };
         before.source = self.source.clone();
-        let prior_timing = motion_project::TimingDocument { line: self.alignment.clone(), scene: self.scene_alignment.clone() };
-        if prior_timing.validate().is_ok() { before.timing = prior_timing; }
+        let prior_timing = motion_project::TimingDocument {
+            line: self.alignment.clone(),
+            scene: self.scene_alignment.clone(),
+        };
+        if prior_timing.validate().is_ok() {
+            before.timing = prior_timing;
+        }
         let mut after = before.clone();
-        after.timing = motion_project::TimingDocument { line: line.clone(), scene: scene.clone() };
+        after.timing = motion_project::TimingDocument {
+            line: line.clone(),
+            scene: scene.clone(),
+        };
         after.validate().map_err(|e| e.to_string())?;
         self.history.record(
             project_history::Snapshot::capture(&self.source, Some(&before)),
@@ -3601,7 +3635,8 @@ impl Studio {
         ui.separator();
         self.native_alignment_ui(ui);
         egui::CollapsingHeader::new("Metal device check").show(ui, |ui| self.gpu_check.ui(ui));
-        egui::CollapsingHeader::new("Performance observations").show(ui, |ui| self.ui_metrics.ui(ui));
+        egui::CollapsingHeader::new("Performance observations")
+            .show(ui, |ui| self.ui_metrics.ui(ui));
         egui::CollapsingHeader::new("Kokoro runtime / alignment").show(ui, |ui| {
             self.runtime_ui(ui);
         });
@@ -4278,7 +4313,8 @@ fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         let measurement_start = self.ui_metrics.enabled.then(Instant::now);
-        let background_work = self.busy || self.export_busy || self.diagnostics_busy || self.sequence_panel.busy();
+        let background_work =
+            self.busy || self.export_busy || self.diagnostics_busy || self.sequence_panel.busy();
         let was_sequence_busy = self.sequence_panel.busy();
         self.sync_sequence_resources();
         self.sequence_panel.tick(ctx);
@@ -6936,7 +6972,9 @@ mod timing_persistence_tests {
         let mut studio = Studio::default();
         studio.source = "project: {}\ncharacters: {}\nscenes:\n  - id: timing\n    duration: 1\n    events: []\n".into();
         studio.validate();
-        studio.commit_reviewed_timing("{}".into(), "{}".into()).unwrap();
+        studio
+            .commit_reviewed_timing("{}".into(), "{}".into())
+            .unwrap();
         let before = studio.source.clone();
         let after = before.replace("project: {}", "project: {title: Changed}");
         studio.record_source_edit(&before, &after);
@@ -6950,8 +6988,17 @@ mod timing_persistence_tests {
         assert_eq!(studio.source, after);
         assert!(studio.alignment.is_empty());
         assert!(studio.scene_alignment.is_empty());
-        studio.commit_reviewed_timing("{}".into(), "{}".into()).unwrap();
-        let path = std::env::temp_dir().join(format!("kilsat-unsaved-timing-{}-{}.yaml", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        studio
+            .commit_reviewed_timing("{}".into(), "{}".into())
+            .unwrap();
+        let path = std::env::temp_dir().join(format!(
+            "kilsat-unsaved-timing-{}-{}.yaml",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
         studio.script_path = path.to_string_lossy().into_owned();
         studio.save_script();
         assert!(!path.exists());
@@ -6963,7 +7010,9 @@ mod timing_persistence_tests {
         let mut studio = Studio::default();
         studio.source = "project: {}\ncharacters: {}\nscenes:\n  - id: timing\n    duration: 1\n    events: []\n".into();
         studio.validate();
-        studio.commit_reviewed_timing("{}".into(), "{\"0\":{}}".into()).unwrap();
+        studio
+            .commit_reviewed_timing("{}".into(), "{\"0\":{}}".into())
+            .unwrap();
         let saved = motion_project::encode(studio.project_document.as_ref().unwrap()).unwrap();
         let reopened = motion_project::decode(&saved).unwrap();
         assert_eq!(reopened.timing.line, "{}");
@@ -6975,7 +7024,9 @@ mod timing_persistence_tests {
         assert_eq!(studio.alignment, "{}");
         assert_eq!(studio.scene_alignment, "{\"0\":{}}");
         let before = studio.snapshot();
-        assert!(studio.commit_reviewed_timing("invalid".into(), "{}".into()).is_err());
+        assert!(studio
+            .commit_reviewed_timing("invalid".into(), "{}".into())
+            .is_err());
         assert_eq!(studio.snapshot(), before);
     }
 }

@@ -1,6 +1,6 @@
 //! Opt-in bounded measurements of application update work, not input or GPU latency.
-use std::{collections::VecDeque, time::Duration};
 use eframe::egui;
+use std::{collections::VecDeque, time::Duration};
 
 const CAPACITY: usize = 256;
 #[derive(Default)]
@@ -10,17 +10,27 @@ pub struct Metrics {
 }
 impl Metrics {
     pub fn record(&mut self, elapsed: Duration, busy: bool) {
-        if !self.enabled { return; }
-        if self.samples.len() == CAPACITY { self.samples.pop_front(); }
-        self.samples.push_back((elapsed.as_secs_f64() * 1000.0, busy));
+        if !self.enabled {
+            return;
+        }
+        if self.samples.len() == CAPACITY {
+            self.samples.pop_front();
+        }
+        self.samples
+            .push_back((elapsed.as_secs_f64() * 1000.0, busy));
     }
     fn summary(&self, busy: Option<bool>) -> serde_json::Value {
-        let mut values: Vec<_> = self.samples.iter()
+        let mut values: Vec<_> = self
+            .samples
+            .iter()
             .filter(|(_, active)| busy.is_none_or(|b| *active == b))
-            .map(|(ms, _)| *ms).collect();
+            .map(|(ms, _)| *ms)
+            .collect();
         values.sort_by(f64::total_cmp);
         let n = values.len();
-        if n == 0 { return serde_json::json!({"samples":0}); }
+        if n == 0 {
+            return serde_json::json!({"samples":0});
+        }
         serde_json::json!({"samples":n,"mean_ms":values.iter().sum::<f64>() / n as f64,
             "p95_ms":values[(n * 95).div_ceil(100) - 1],"max_ms":values[n - 1]})
     }
@@ -38,14 +48,20 @@ impl Metrics {
         let summary = self.summary(None);
         ui.label(format!("{} retained samples", self.samples.len()));
         if !self.samples.is_empty() {
-            ui.label(format!("Mean {:.2} ms · p95 {:.2} ms · max {:.2} ms",
+            ui.label(format!(
+                "Mean {:.2} ms · p95 {:.2} ms · max {:.2} ms",
                 summary["mean_ms"].as_f64().unwrap_or(0.0),
                 summary["p95_ms"].as_f64().unwrap_or(0.0),
-                summary["max_ms"].as_f64().unwrap_or(0.0)));
+                summary["max_ms"].as_f64().unwrap_or(0.0)
+            ));
         }
         ui.horizontal(|ui| {
-            if ui.button("Copy timing report").clicked() { ui.ctx().copy_text(self.report().to_string()); }
-            if ui.button("Clear measurements").clicked() { self.samples.clear(); }
+            if ui.button("Copy timing report").clicked() {
+                ui.ctx().copy_text(self.report().to_string());
+            }
+            if ui.button("Clear measurements").clicked() {
+                self.samples.clear();
+            }
         });
     }
 }
@@ -59,7 +75,9 @@ mod tests {
         assert!(metrics.samples.is_empty());
         metrics.enabled = true;
         metrics.record(Duration::from_secs(10), true);
-        for i in 0..CAPACITY { metrics.record(Duration::from_millis(2), i % 2 == 0); }
+        for i in 0..CAPACITY {
+            metrics.record(Duration::from_millis(2), i % 2 == 0);
+        }
         let report = metrics.report();
         assert_eq!(report["all"]["samples"], CAPACITY);
         assert_eq!(report["all"]["max_ms"], 2.0);

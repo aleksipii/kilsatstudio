@@ -421,7 +421,12 @@ impl ClipShape {
                 }
                 Ok(())
             }
-            Self::Image { asset_id, rect, keys, .. } => {
+            Self::Image {
+                asset_id,
+                rect,
+                keys,
+                ..
+            } => {
                 if !identifier(asset_id) {
                     return invalid("invalid mask image asset identifier");
                 }
@@ -436,7 +441,9 @@ impl ClipShape {
                         || key.time < 0.0
                         || previous.is_some_and(|time| key.time <= time)
                     {
-                        return invalid("image mask keys require increasing finite nonnegative seconds");
+                        return invalid(
+                            "image mask keys require increasing finite nonnegative seconds",
+                        );
                     }
                     previous = Some(key.time);
                 }
@@ -1262,12 +1269,32 @@ mod tests {
     }
     #[test]
     fn image_mask_track_is_bounded_deterministic_and_backward_compatible() {
-        let base = Rect { x: 0.0, y: 0.0, width: 10.0, height: 10.0 };
+        let base = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 10.0,
+            height: 10.0,
+        };
         let keys = vec![
-            RectMaskKey { time: 0.0, rect: base },
-            RectMaskKey { time: 2.0, rect: Rect { x: 20.0, width: 30.0, ..base } },
+            RectMaskKey {
+                time: 0.0,
+                rect: base,
+            },
+            RectMaskKey {
+                time: 2.0,
+                rect: Rect {
+                    x: 20.0,
+                    width: 30.0,
+                    ..base
+                },
+            },
         ];
-        let shape = ClipShape::Image { asset_id: "mask".into(), rect: base, channel: MaskChannel::Alpha, keys: keys.clone() };
+        let shape = ClipShape::Image {
+            asset_id: "mask".into(),
+            rect: base,
+            channel: MaskChannel::Alpha,
+            keys: keys.clone(),
+        };
         shape.validate().unwrap();
         assert_eq!(shape.key_count(), 2);
         assert!(shape.validate_scene_duration(1.0).is_err());
@@ -1280,11 +1307,15 @@ mod tests {
         }
         for bad in [f64::NAN, f64::INFINITY, -1.0, 0.0] {
             let mut invalid = shape.clone();
-            if let ClipShape::Image { keys, .. } = &mut invalid { keys[1].time = bad; }
+            if let ClipShape::Image { keys, .. } = &mut invalid {
+                keys[1].time = bad;
+            }
             assert!(invalid.validate().is_err());
         }
         let mut excessive = shape.clone();
-        if let ClipShape::Image { keys, .. } = &mut excessive { *keys = vec![keys[0]; MAX_MASK_KEYS + 1]; }
+        if let ClipShape::Image { keys, .. } = &mut excessive {
+            *keys = vec![keys[0]; MAX_MASK_KEYS + 1];
+        }
         assert!(excessive.validate().is_err());
         let mut invalid_rect = shape.clone();
         if let ClipShape::Image { keys, .. } = &mut invalid_rect {
@@ -1297,15 +1328,25 @@ mod tests {
             item.id = format!("mask{index}");
             item.clip = None;
             item.clip_shape = Some(ClipShape::Image {
-                asset_id: "mask".into(), rect: base, channel: MaskChannel::Alpha,
-                keys: (0..MAX_MASK_KEYS).map(|index| RectMaskKey { time: index as f64, rect: base }).collect(),
+                asset_id: "mask".into(),
+                rect: base,
+                channel: MaskChannel::Alpha,
+                keys: (0..MAX_MASK_KEYS)
+                    .map(|index| RectMaskKey {
+                        time: index as f64,
+                        rect: base,
+                    })
+                    .collect(),
             });
             doc.layers.push(item);
         }
         assert!(doc.validate().unwrap_err().to_string().contains("8192"));
         let json = serde_json::to_string(&shape).unwrap();
         assert_eq!(serde_json::from_str::<ClipShape>(&json).unwrap(), shape);
-        let legacy: ClipShape = serde_json::from_str(r#"{"type":"image","asset_id":"mask","rect":{"x":0,"y":0,"width":10,"height":10}}"#).unwrap();
+        let legacy: ClipShape = serde_json::from_str(
+            r#"{"type":"image","asset_id":"mask","rect":{"x":0,"y":0,"width":10,"height":10}}"#,
+        )
+        .unwrap();
         assert_eq!(legacy.key_count(), 0);
         assert!(!serde_json::to_string(&legacy).unwrap().contains("keys"));
     }

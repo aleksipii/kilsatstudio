@@ -359,9 +359,9 @@ fn image_resource(
     resources: &mut std::collections::BTreeMap<String, usize>,
     asset_id: &str,
 ) -> Result<(usize, u32, u32), Error> {
-    let image = images.get(asset_id).ok_or_else(|| {
-        crate::Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
-    })?;
+    let image = images
+        .get(asset_id)
+        .ok_or_else(|| crate::Error::InvalidArtwork(format!("missing decoded image {asset_id}")))?;
     let offset = if let Some(offset) = resources.get(asset_id) {
         *offset
     } else {
@@ -572,9 +572,7 @@ fn append_art(
                             }
                         }
                         ClipShape::Image {
-                            asset_id,
-                            channel,
-                            ..
+                            asset_id, channel, ..
                         } => {
                             let (offset, width, height) =
                                 image_resource(result, images, resources, asset_id)?;
@@ -987,11 +985,7 @@ mod tests {
             *channel = MaskChannel::Alpha;
         }
         let alpha = make(&document, &images).unwrap();
-        let alpha_mask = alpha
-            .commands
-            .iter()
-            .find(|c| c.0[4][0] == 18.0)
-            .unwrap();
+        let alpha_mask = alpha.commands.iter().find(|c| c.0[4][0] == 18.0).unwrap();
         assert_eq!(alpha_mask.0[3][0], 0.0);
         let huge = std::collections::BTreeMap::from([(
             "i".into(),
@@ -1006,10 +1000,7 @@ mod tests {
                 },
                 RectMaskKey {
                     time: 2.0,
-                    rect: Rect {
-                        x: 30.0,
-                        ..bounds
-                    },
+                    rect: Rect { x: 30.0, ..bounds },
                 },
             ];
         }

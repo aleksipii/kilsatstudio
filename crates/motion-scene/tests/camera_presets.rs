@@ -17,7 +17,10 @@ fn camera_templates_share_the_deterministic_scene_clock() {
         assert_eq!(middle.zoom, zoom);
         let _ = motion_scene::evaluate(&script, 0, 4.0).unwrap();
         let _ = motion_scene::evaluate(&script, 0, 0.0).unwrap();
-        assert_eq!(motion_scene::evaluate(&script, 0, 2.0).unwrap().camera, middle);
+        assert_eq!(
+            motion_scene::evaluate(&script, 0, 2.0).unwrap().camera,
+            middle
+        );
         let endpoint = motion_scene::evaluate(&script, 0, 4.0).unwrap().camera;
         let keys = &script.scenes[0].composition.camera;
         assert_eq!(endpoint.x, keys[1].x);

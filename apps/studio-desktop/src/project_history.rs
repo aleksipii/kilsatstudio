@@ -233,8 +233,14 @@ mod tests {
         after.timing.line = "{\"alignment\":null}".into();
         after.timing.scene = "{\"7\":{\"alignment\":null}}".into();
         let mut history = History::new(SOURCE);
-        history.record(Snapshot::capture(SOURCE, Some(&before)), Snapshot::capture(SOURCE, Some(&after)));
-        let undo = history.navigate(Snapshot::capture(SOURCE, Some(&after)), false).unwrap().unwrap();
+        history.record(
+            Snapshot::capture(SOURCE, Some(&before)),
+            Snapshot::capture(SOURCE, Some(&after)),
+        );
+        let undo = history
+            .navigate(Snapshot::capture(SOURCE, Some(&after)), false)
+            .unwrap()
+            .unwrap();
         assert!(undo.document().unwrap().timing.is_empty());
         let redo = history.navigate(undo, true).unwrap().unwrap();
         assert_eq!(redo.document().unwrap().timing, after.timing);

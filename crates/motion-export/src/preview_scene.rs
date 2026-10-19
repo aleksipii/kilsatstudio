@@ -79,7 +79,11 @@ impl ScenePreview {
                     .sum::<usize>()
                     + 1;
             }
-            if let Some(shape @ (motion_art::ClipShape::SoftEllipse { .. } | motion_art::ClipShape::Image { .. })) = &layer.clip_shape {
+            if let Some(
+                shape @ (motion_art::ClipShape::SoftEllipse { .. }
+                | motion_art::ClipShape::Image { .. }),
+            ) = &layer.clip_shape
+            {
                 geometry += (usize::BITS - shape.key_count().max(1).leading_zeros()) as usize + 8;
             }
             if layer.visible {

@@ -270,10 +270,15 @@ impl Panel {
             self.active = None;
             match update.result {
                 Ok(ready) => {
-                    self.timing_draft = serde_json::from_str::<motion_lipsync::rhubarb::EstimatedVisemeAlignment>(&ready.json)
-                        .ok()
-                        .filter(|value| value.cues.len() <= motion_lipsync::manual::MAX_EDIT_CUES)
-                        .map(|original| TimingDraft { cues: original.cues.clone(), original });
+                    self.timing_draft = serde_json::from_str::<
+                        motion_lipsync::rhubarb::EstimatedVisemeAlignment,
+                    >(&ready.json)
+                    .ok()
+                    .filter(|value| value.cues.len() <= motion_lipsync::manual::MAX_EDIT_CUES)
+                    .map(|original| TimingDraft {
+                        cues: original.cues.clone(),
+                        original,
+                    });
                     if let Some(key) = &ready.cache.key {
                         self.cache_key = key.clone();
                     }

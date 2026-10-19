@@ -318,15 +318,20 @@ fn exchange_error(message: impl Into<String>) -> motion_script::Error {
 fn export_library(script: &Script, selected: Option<&str>) -> Result<String, motion_script::Error> {
     script.validate()?;
     let clips = if let Some(name) = selected {
-        let clip = script.animation_clips.get(name).ok_or_else(|| exchange_error("Select an existing clip to export"))?;
+        let clip = script
+            .animation_clips
+            .get(name)
+            .ok_or_else(|| exchange_error("Select an existing clip to export"))?;
         serde_json::to_value(std::collections::BTreeMap::from([(name, clip)]))
             .map_err(|error| exchange_error(error.to_string()))?
     } else {
-        serde_json::to_value(&script.animation_clips).map_err(|error| exchange_error(error.to_string()))?
+        serde_json::to_value(&script.animation_clips)
+            .map_err(|error| exchange_error(error.to_string()))?
     };
     let text = serde_json::to_string_pretty(&serde_json::json!({
         "format": "kilsat-clip-library", "version": 1, "rig": "original-seven-bone", "clips": clips
-    })).map_err(|error| exchange_error(error.to_string()))?;
+    }))
+    .map_err(|error| exchange_error(error.to_string()))?;
     if text.len() > EXCHANGE_LIMIT {
         return Err(exchange_error("Clip exchange exceeds the one MiB limit"));
     }
@@ -335,28 +340,43 @@ fn export_library(script: &Script, selected: Option<&str>) -> Result<String, mot
 
 fn import_library(source: &str, text: &str, replace: bool) -> Result<String, motion_script::Error> {
     if source.len() > EXCHANGE_LIMIT || text.len() > EXCHANGE_LIMIT {
-        return Err(exchange_error("Clip exchange and screenplay are limited to one MiB each"));
+        return Err(exchange_error(
+            "Clip exchange and screenplay are limited to one MiB each",
+        ));
     }
-    let envelope: serde_json::Value = serde_json::from_str(text).map_err(|error| exchange_error(format!("Clip library JSON: {error}")))?;
-    let object = envelope.as_object().ok_or_else(|| exchange_error("Clip library must be a JSON object"))?;
-    if object.len() != 4 || envelope["format"] != "kilsat-clip-library" || envelope["version"].as_u64() != Some(1) || envelope["rig"] != "original-seven-bone" {
+    let envelope: serde_json::Value = serde_json::from_str(text)
+        .map_err(|error| exchange_error(format!("Clip library JSON: {error}")))?;
+    let object = envelope
+        .as_object()
+        .ok_or_else(|| exchange_error("Clip library must be a JSON object"))?;
+    if object.len() != 4
+        || envelope["format"] != "kilsat-clip-library"
+        || envelope["version"].as_u64() != Some(1)
+        || envelope["rig"] != "original-seven-bone"
+    {
         return Err(exchange_error("Expected kilsat-clip-library version 1 for the original-seven-bone rig with only format, version, rig and clips fields"));
     }
-    let clips: std::collections::BTreeMap<String, motion_script::AnimationClip> = serde_json::from_value(envelope["clips"].clone()).map_err(|error| exchange_error(format!("Clip library: {error}")))?;
+    let clips: std::collections::BTreeMap<String, motion_script::AnimationClip> =
+        serde_json::from_value(envelope["clips"].clone())
+            .map_err(|error| exchange_error(format!("Clip library: {error}")))?;
     if clips.is_empty() || clips.len() > 64 {
         return Err(exchange_error("Import requires 1..64 clips"));
     }
     let mut candidate = motion_script::parse(source)?;
     for (name, clip) in clips {
         if !replace && candidate.animation_clips.contains_key(&name) {
-            return Err(exchange_error(format!("Clip {name} already exists; explicitly enable replacement")));
+            return Err(exchange_error(format!(
+                "Clip {name} already exists; explicitly enable replacement"
+            )));
         }
         candidate.animation_clips.insert(name, clip);
     }
     candidate.validate()?;
     let output = serde_yaml::to_string(&candidate)?;
     if output.len() > EXCHANGE_LIMIT {
-        return Err(exchange_error("Imported screenplay exceeds the one MiB limit"));
+        return Err(exchange_error(
+            "Imported screenplay exceeds the one MiB limit",
+        ));
     }
     Ok(output)
 }
@@ -406,17 +426,30 @@ mod tests {
 
     #[test]
     fn portable_library_import_is_atomic_validated_and_cross_project() {
-        let captured = Action::Capture { name: "Nod".into(), replace: false }.apply(SOURCE, 0, "A").unwrap();
+        let captured = Action::Capture {
+            name: "Nod".into(),
+            replace: false,
+        }
+        .apply(SOURCE, 0, "A")
+        .unwrap();
         let script = motion_script::parse(&captured).unwrap();
         let text = export_library(&script, Some("Nod")).unwrap();
         let target = "characters: {Other: {asset: other}}\nscenes: [{id: elsewhere, duration: 8, events: []}]\n";
-        let imported = Action::Import { text: text.clone(), replace: false }.apply(target, 0, "Other").unwrap();
+        let imported = Action::Import {
+            text: text.clone(),
+            replace: false,
+        }
+        .apply(target, 0, "Other")
+        .unwrap();
         let parsed = motion_script::parse(&imported).unwrap();
         assert_eq!(parsed.animation_clips["Nod"], script.animation_clips["Nod"]);
         assert!(parsed.scenes[0].composition.bone_tracks.is_empty());
         assert!(import_library(&imported, &text, false).is_err());
         assert!(import_library(&imported, &text, true).is_ok());
-        assert_eq!(motion_script::parse(target).unwrap().animation_clips.len(), 0);
+        assert_eq!(
+            motion_script::parse(target).unwrap().animation_clips.len(),
+            0
+        );
         let mut value: serde_json::Value = serde_json::from_str(&text).unwrap();
         value["version"] = serde_json::json!(2);
         assert!(import_library(target, &value.to_string(), false).is_err());
@@ -431,20 +464,41 @@ mod tests {
 
     #[test]
     fn invalid_import_preserves_existing_live_instance_definitions() {
-        let captured = Action::Capture { name: "Nod".into(), replace: false }.apply(SOURCE, 0, "A").unwrap();
+        let captured = Action::Capture {
+            name: "Nod".into(),
+            replace: false,
+        }
+        .apply(SOURCE, 0, "A")
+        .unwrap();
         let mut script = motion_script::parse(&captured).unwrap();
-        script.scenes[0].composition.clip_instances.push(motion_script::ClipInstance {
-            id: "live".into(), clip: "Nod".into(), actor: "B".into(), at: 0.0,
-            duration: 4.0, weight: 1.0, fade_in: 0.0, fade_out: 0.0,
-            weight_keys: Vec::new(), looping: false, joint_mask: Vec::new(),
-            blend_mode: motion_script::ClipBlendMode::Override, normalized_group: None,
-        });
+        script.scenes[0]
+            .composition
+            .clip_instances
+            .push(motion_script::ClipInstance {
+                id: "live".into(),
+                clip: "Nod".into(),
+                actor: "B".into(),
+                at: 0.0,
+                duration: 4.0,
+                weight: 1.0,
+                fade_in: 0.0,
+                fade_out: 0.0,
+                weight_keys: Vec::new(),
+                looping: false,
+                joint_mask: Vec::new(),
+                blend_mode: motion_script::ClipBlendMode::Override,
+                normalized_group: None,
+            });
         script.validate().unwrap();
         let source = serde_yaml::to_string(&script).unwrap();
-        let mut value: serde_json::Value = serde_json::from_str(&export_library(&script, None).unwrap()).unwrap();
+        let mut value: serde_json::Value =
+            serde_json::from_str(&export_library(&script, None).unwrap()).unwrap();
         value["clips"]["Nod"]["bone_tracks"] = serde_json::json!({"not_a_bone": [{"at": 0}]});
         assert!(import_library(&source, &value.to_string(), true).is_err());
-        assert_eq!(motion_script::parse(&source).unwrap().animation_clips["Nod"], script.animation_clips["Nod"]);
+        assert_eq!(
+            motion_script::parse(&source).unwrap().animation_clips["Nod"],
+            script.animation_clips["Nod"]
+        );
     }
 
     #[test]
