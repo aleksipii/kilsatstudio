@@ -39,6 +39,7 @@ struct RetainedImage {
     bytes: Vec<u8>,
     path: String,
 }
+type LoadedImages = (BTreeMap<String, motion_art::ImageResource>, Vec<RetainedImage>);
 struct Inputs {
     source: String,
     project: Option<motion_project::ProjectDocument>,
@@ -105,13 +106,7 @@ fn load_images(
     path: &Path,
     project: Option<&motion_project::ProjectDocument>,
     scenes: &[(&str, motion_scene::EvaluatedScene)],
-) -> Result<
-    (
-        BTreeMap<String, motion_art::ImageResource>,
-        Vec<RetainedImage>,
-    ),
-    Box<dyn std::error::Error>,
-> {
+) -> Result<LoadedImages, Box<dyn std::error::Error>> {
     let Some(project) = project else {
         return Ok((BTreeMap::new(), Vec::new()));
     };

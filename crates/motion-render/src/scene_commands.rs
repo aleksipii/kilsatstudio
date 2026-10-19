@@ -539,12 +539,8 @@ fn append_art(
                             {
                                 return Err(Error::Budget);
                             }
-                            result.pixels.extend(
-                                image
-                                    .rgba()
-                                    .chunks_exact(4)
-                                    .map(|p| u32::from_le_bytes([p[0], p[1], p[2], p[3]])),
-                            );
+                            let pixels = image.rgba().as_chunks::<4>().0;
+                            result.pixels.extend(pixels.iter().copied().map(u32::from_le_bytes));
                             resources.insert(asset_id.clone(), offset);
                             offset
                         };
