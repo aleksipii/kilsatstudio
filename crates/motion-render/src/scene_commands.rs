@@ -815,7 +815,7 @@ mod tests {
                 &document,
                 &images
             ),
-            Err(Error::Budget)
+            Err(crate::gpu::Error::Budget)
         ));
     }
     #[test]
