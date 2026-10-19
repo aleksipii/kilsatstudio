@@ -327,7 +327,7 @@ mod tests {
             .unwrap();
         assert_eq!(parts[0].points[1].x, 20.0);
         assert_eq!(parts[0].points[1].y, -20.0);
-        assert!(ProjectDocument::new(&source.replace("version: 1", "version: 2")).is_err());
+        assert!(ProjectDocument::new(source.replace("version: 1", "version: 2")).is_err());
     }
     #[test]
     fn artwork_group_missing_scene_is_rejected_before_project_save() {
