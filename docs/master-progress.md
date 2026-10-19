@@ -1297,3 +1297,31 @@ to inspect custom rigid parts, normalized clips and nested groups. See
 [local package reuse](workstreams/estimated-auto-reuse.md) and
 [release/Mac reports](release-license-report.md). This post-merge record changes
 documentation only.
+
+## Physical Mac GPU probe and native Rhubarb run (2026-10-19)
+
+Run by hand on one Mac, outside CI, from `main` at `6a09873`.
+
+- Machine: iMac21,2, Apple M1, macOS 27.0.1, native arm64, Rust 1.99.1.
+- Metal fixture probe: `cargo run -p motion-render --features gpu --example gpu_probe -- --metal <new dir>`.
+  Report: adapter `Apple M1`, backend `Metal`, device type `IntegratedGpu`, 256x256
+  `rgba8unorm-linear`, `interior_probes: passed-tolerance-2`, empty `validation_errors`,
+  `full_scene_parity: false`. SHA256 `report.json`
+  `edba908c4fce2e1a4d91908a6194cea6def30a069c488e59e65e06f0d0fb2508`, `fixture.rgba`
+  `0e86ddf8a97a89ca162fd9d805c45d41d99f4ba98fbfdc557080d75f78f6027b`.
+  This is the fixture gate only; evaluated-scene parity and performance remain open.
+- Rhubarb 1.14.0 official macOS release (zip SHA256
+  `f991deacac6c973a14a4431a16a58b842f436531e120cfaea142c87c0d3ab4c5`) is x86_64-only.
+  Under Rosetta 2 it started (`--version`) but crashed with SIGSEGV on speech input
+  (phonetic and PocketSphinx, 16 and 24 kHz) when run directly, so the fault is in the
+  binary, not in `motion-lipsync`. Cause not investigated.
+- A native arm64 build of the v1.14.0 tag (CMake, Homebrew Boost 1.92, `rhubarb`
+  target only, `res/` copied from the release) ran successfully. Executable SHA256
+  `75364e2772d9f23ee8035f794a889b53eea755af54cc243ca7b5cf7089bc5314`.
+- `motion-lipsync` example `rhubarb_align` with that executable (PocketSphinx) wrote
+  estimated cues (`source: estimated_rhubarb`, 75,977 frames at 24 kHz) for a macOS
+  `say` voice line. This shows the execution chain works on Apple Silicon.
+
+Not established: lip-sync perceptual quality (input is `say`, not Kokoro, and has no
+manual annotation comparison), Rhubarb/PocketSphinx redistribution terms, a packaged
+arm64 Rhubarb, Metal scene parity or performance, and any other physical Mac gate.
