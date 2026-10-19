@@ -39,7 +39,11 @@ struct RetainedImage {
     bytes: Vec<u8>,
     path: String,
 }
-type LoadedImages = (BTreeMap<String, motion_art::ImageResource>, Vec<RetainedImage>);
+type LoadedImages = (
+    BTreeMap<String, motion_art::ImageResource>,
+    Vec<RetainedImage>,
+);
+type SceneSamples = Vec<(usize, f64, f64)>;
 struct Inputs {
     source: String,
     project: Option<motion_project::ProjectDocument>,
@@ -77,7 +81,7 @@ fn samples(
     script: &motion_script::Script,
     selector: &str,
     seconds: f64,
-) -> Result<Vec<(usize, f64, f64)>, Box<dyn std::error::Error>> {
+) -> Result<SceneSamples, Box<dyn std::error::Error>> {
     if selector != "sequence" {
         // Preserve the legacy script-only selector's explicit transition rejection.
         if script
