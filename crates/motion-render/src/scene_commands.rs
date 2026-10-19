@@ -467,7 +467,7 @@ fn append_art(
                 if let Some(mask) = &layer.clip_shape {
                     match mask {
                         ClipShape::Painted { .. } => {
-                            return Err(super::Error::UnsupportedFeature("painted vector mask"));
+                            return Err(Error::UnsupportedFeature("painted vector mask"));
                         }
                         ClipShape::Image { .. } => {
                             return Err(Error::UnsupportedFeature("image mask"));
@@ -661,7 +661,7 @@ mod tests {
                 &document,
                 &std::collections::BTreeMap::new()
             ),
-            Err(Error::UnsupportedFeature("painted vector mask"))
+            Err(super::Error::UnsupportedFeature("painted vector mask"))
         ));
     }
     #[test]
