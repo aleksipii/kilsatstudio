@@ -712,7 +712,10 @@ mod tests {
             &std::collections::BTreeMap::new(),
         )
         .unwrap();
-        assert!(commands.commands.iter().any(|command| command.0[4][0] == 17.0));
+        assert!(commands
+            .commands
+            .iter()
+            .any(|command| command.0[4][0] == 17.0));
     }
     #[test]
     fn painted_masks_compile_with_explicit_base_before_adapter_creation() {
