@@ -119,8 +119,8 @@ outside. Vertex rules are unchanged. The inspector exposes a logarithmic slider.
 ```
 
 CPU preview, SVG and PNG exports render it as an SVG mask holding a blurred polygon
-(filter region four standard deviations wide). Polygon feather is not animated and
-the experimental GPU path rejects it with an explicit unsupported-feature error.
+(filter region four standard deviations wide). Polygon feather is not animated. The experimental GPU path draws it as a
+Gaussian step at the signed boundary distance (details below).
 Export work budgets do not yet charge for blur area beyond the canvas bound.
 Tests cover hard-edge equivalence, edge coverage, monotonic left/right-symmetric
 ramps, validation bounds, persistence, legacy JSON, and identical preview/PNG/SVG
@@ -165,3 +165,15 @@ animated polygon/painted masks as unsupported instead of drawing them static.
 Pixel tests check translation, a quarter-turn, feathered and painted motion,
 out-of-order seeks and preview/PNG/SVG agreement. Not covered: animated vertices
 or strokes, non-uniform scale, GPU support and physical Mac inspection.
+
+### Experimental GPU feathered polygons
+
+The GPU experiment supports a polygon `feather` as `0.5 * erfc(d / (sigma * sqrt 2))`,
+where `d` is the signed distance to the polygon boundary (negative inside) and
+`erfc` uses the Abramowitz and Stegun 7.1.26 approximation (error about 1.5e-7). This
+equals the CPU's Gaussian blur along straight edges away from corners. It is not a
+true blur of the shape: near convex corners it is too strong and in narrow or concave
+regions it differs, so GPU and CPU pixels are not equal there. The CPU path (resvg
+blur) is not compared pixel-for-pixel; an ignored hardware test checks Metal against
+an independent analytic Gaussian edge profile within 3/255 at 24 positions along one
+straight edge. Animated polygon motion remains unsupported on the GPU path.

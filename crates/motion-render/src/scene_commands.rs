@@ -341,7 +341,7 @@ fn command_work(commands: &[Command]) -> u64 {
             let kind = c.0[4][0];
             if kind == 17.0 {
                 c.0[2][3] as u64
-            } else if kind == 6.0 || kind == 7.0 || kind == 11.0 {
+            } else if kind == 6.0 || kind == 7.0 || kind == 11.0 || kind == 19.0 {
                 c.0[2][1] as u64 + 1
             } else if kind == 5.0 || kind == 18.0 {
                 4
@@ -600,8 +600,21 @@ fn append_art(
                             ]));
                             *work += 4;
                         }
-                        ClipShape::Polygon { feather, .. } if *feather > 0.0 => {
-                            return Err(Error::UnsupportedFeature("feathered polygon mask"));
+                        ClipShape::Polygon {
+                            points: vertices,
+                            feather,
+                            ..
+                        } if *feather > 0.0 => {
+                            let geometry = points(result, vertices)?;
+                            result.commands.push(Command([
+                                inv,
+                                origin,
+                                geometry,
+                                [0.0; 4],
+                                [19.0, *feather as f32, 0.0, 0.0],
+                            ]));
+                            // Full-canvas erf evaluation per vertex edge, like the hard polygon.
+                            *work += vertices.len() as u64;
                         }
                         ClipShape::Polygon {
                             points: vertices, ..

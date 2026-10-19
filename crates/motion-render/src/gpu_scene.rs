@@ -492,6 +492,13 @@ fn polygon(p: vec2<f32>, offset: u32, count: u32) -> f32 {
  }
  return select(distance,-distance,winding!=0i);
 }
+fn erfc_approx(x: f32) -> f32 {
+ // Abramowitz and Stegun 7.1.26, maximum absolute error about 1.5e-7.
+ let t=1./(1.+.3275911*abs(x));
+ let poly=t*(.254829592+t*(-.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))));
+ let tail=poly*exp(-x*x);
+ return select(2.-tail,tail,x>=0.);
+}
 fn image_pixel(offset: u32, size: vec2<u32>, position: vec2<i32>) -> vec4<f32> {
  let xy=vec2<u32>(clamp(position,vec2(0),vec2<i32>(size)-vec2(1)));
  let value=pixels[offset+xy.y*size.x+xy.x];
@@ -569,6 +576,13 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
   }
   if kind>14.5 && kind<15.5 {
    masks[depth]=s.geometry.x; continue;
+  }
+  if kind>18.5 && kind<19.5 {
+   // Gaussian-blurred half-plane at the signed boundary distance (negative inside).
+   // This matches the CPU blur along straight edges; corners and thin shapes differ.
+   let distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
+   masks[depth]=masks[depth]*.5*erfc_approx(distance/(s.parameters.y*1.41421356));
+   continue;
   }
   if kind>16.5 && kind<17.5 {
    var coverage=0.;
@@ -730,6 +744,171 @@ mod tests {
         assert_eq!(pixel(37), &[0, 0, 0, 255]); // erase remains outside repaint
         assert!((i32::from(pixel(45)[0]) - 179).abs() <= 12); // soft pressure edge
         assert_eq!(pixel(56), &[0, 0, 0, 255]); // outside pressure-scaled footprint
+        assert!(frame.validation_errors.is_empty());
+    }
+    /// Independent reference: erf by Maclaurin series (accurate for |x| < 3).
+    fn erf_series(x: f64) -> f64 {
+        let (mut term, mut sum) = (x, x);
+        for n in 1..60 {
+            term *= -x * x / f64::from(n);
+            sum += term / f64::from(2 * n + 1);
+        }
+        sum * 2.0 / std::f64::consts::PI.sqrt()
+    }
+    #[test]
+    fn feathered_polygon_command_is_emitted_with_sigma_and_shader_budget() {
+        use motion_art::*;
+        let mut scene = crate::tests::scene();
+        scene.actors.clear();
+        let mut layer = Layer {
+            id: "mask".into(),
+            scene_id: "s".into(),
+            name: "mask".into(),
+            visible: true,
+            plane: Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            blend: BlendMode::Normal,
+            content: Content::Rectangle {
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 64.0,
+                    height: 64.0,
+                },
+                color: Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+            },
+            clip_shape: None,
+        };
+        let point = |x, y| Point { x, y };
+        layer.clip_shape = Some(ClipShape::Polygon {
+            points: vec![
+                point(16.0, 16.0),
+                point(48.0, 16.0),
+                point(48.0, 48.0),
+                point(16.0, 48.0),
+            ],
+            feather: 3.0,
+            motion: Vec::new(),
+        });
+        let document = Document {
+            layers: vec![layer],
+            ..Default::default()
+        };
+        let commands = crate::scene_commands::build_with_art(
+            &scene,
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new(),
+        )
+        .unwrap();
+        let masks: Vec<_> = commands
+            .commands
+            .iter()
+            .filter(|c| c.0[4][0] == 19.0)
+            .collect();
+        assert_eq!(masks.len(), 1);
+        assert_eq!(masks[0].0[4][1], 3.0);
+        assert_eq!(masks[0].0[2][1], 4.0); // four vertices
+    }
+    #[test]
+    #[ignore = "requires explicit KILSAT_GPU_BACKEND and actual GPU; not hardware acceptance"]
+    fn feathered_polygon_real_gpu_matches_gaussian_edge_profile() {
+        use motion_art::*;
+        let backend = match std::env::var("KILSAT_GPU_BACKEND").as_deref() {
+            Ok("metal") => Backend::Metal,
+            Ok("vulkan") => Backend::Vulkan,
+            Ok("gl") => Backend::Gl,
+            _ => panic!("set KILSAT_GPU_BACKEND explicitly"),
+        };
+        let mut scene = crate::tests::scene();
+        scene.width = 64;
+        scene.height = 64;
+        scene.camera.x = 0.0;
+        scene.camera.y = 0.0;
+        scene.camera.zoom = 1.0;
+        scene.actors.clear();
+        scene.background_color = "#000000".into();
+        scene.opacity = 1.0;
+        let sigma = 3.0;
+        let point = |x, y| Point { x, y };
+        let document = Document {
+            layers: vec![Layer {
+                id: "mask".into(),
+                scene_id: "s".into(),
+                name: "mask".into(),
+                visible: true,
+                plane: Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                blend: BlendMode::Normal,
+                content: Content::Rectangle {
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 64.0,
+                        height: 64.0,
+                    },
+                    color: Color {
+                        r: 255,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
+                },
+                clip_shape: Some(ClipShape::Polygon {
+                    points: vec![
+                        point(16.0, 16.0),
+                        point(48.0, 16.0),
+                        point(48.0, 48.0),
+                        point(16.0, 48.0),
+                    ],
+                    feather: sigma,
+                    motion: Vec::new(),
+                }),
+            }],
+            ..Default::default()
+        };
+        let cancel = AtomicBool::new(false);
+        let frame = render_scene_with_art(
+            &scene,
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new(),
+            backend,
+            &cancel,
+        )
+        .unwrap();
+        // Away from corners the edge is a straight Gaussian-blurred step.
+        for x in 4..28usize {
+            let distance = 16.0 - (x as f64 + 0.5); // negative inside the polygon
+            let coverage = 0.5 * (1.0 - erf_series(distance / (sigma * std::f64::consts::SQRT_2)));
+            let expected = 255.0 * coverage;
+            let actual = f64::from(frame.rgba[(32 * 64 + x) * 4]);
+            assert!(
+                (actual - expected).abs() <= 3.0,
+                "x={x}: {actual} vs {expected}"
+            );
+        }
+        assert_eq!(frame.rgba[(32 * 64 + 32) * 4], 255);
+        assert_eq!(frame.rgba[(32 * 64 + 2) * 4], 0);
         assert!(frame.validation_errors.is_empty());
     }
     #[test]
