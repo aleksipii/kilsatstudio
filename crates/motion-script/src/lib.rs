@@ -83,7 +83,22 @@ impl Default for Composition {
         }
     }
 }
-/// Ordered scene-local override layer referencing a project animation clip.
+/// How a live clip combines with the accumulated original-rig authored offset.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ClipBlendMode {
+    #[default]
+    Override,
+    Additive,
+}
+impl ClipBlendMode {
+    fn is_override(&self) -> bool {
+        *self == Self::Override
+    }
+}
+/// Ordered scene-local layer referencing a project animation clip.
+/// Mixed modes retain saved row order; additive then override can differ from
+/// override then additive.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ClipInstance {
@@ -94,6 +109,8 @@ pub struct ClipInstance {
     pub duration: f64,
     #[serde(default = "full_clip_instance_weight")]
     pub weight: f64,
+    #[serde(default, skip_serializing_if = "ClipBlendMode::is_override")]
+    pub blend_mode: ClipBlendMode,
     #[serde(default)]
     pub fade_in: f64,
     #[serde(default)]
@@ -2825,6 +2842,7 @@ mod live_clip_instance_tests {
             at: 1.0,
             duration: 2.0,
             weight: 1.0,
+            blend_mode: ClipBlendMode::Override,
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
@@ -3008,6 +3026,53 @@ mod live_clip_instance_tests {
         extra_scene.id = "over-budget".into();
         script.scenes.push(extra_scene);
         assert!(script.validate().is_err());
+    }
+
+    #[test]
+    fn blend_modes_default_strict_roundtrip_and_atomic_upsert() {
+        let yaml = "{id: a, clip: head, actor: B, at: 0, duration: 1}";
+        let legacy: ClipInstance = serde_yaml::from_str(yaml).unwrap();
+        assert_eq!(legacy.blend_mode, ClipBlendMode::Override);
+        assert!(!serde_yaml::to_string(&legacy)
+            .unwrap()
+            .contains("blend_mode"));
+        for (name, mode) in [
+            ("override", ClipBlendMode::Override),
+            ("additive", ClipBlendMode::Additive),
+        ] {
+            let explicit =
+                format!("{{id: a, clip: head, actor: B, at: 0, duration: 1, blend_mode: {name}}}");
+            let item: ClipInstance = serde_yaml::from_str(&explicit).unwrap();
+            assert_eq!(item.blend_mode, mode);
+            assert_eq!(
+                serde_yaml::from_str::<ClipInstance>(&serde_yaml::to_string(&item).unwrap())
+                    .unwrap(),
+                item
+            );
+        }
+        for mode in ["Additive", "replace", "null", "1", "{additive: true}"] {
+            let invalid =
+                format!("{{id: a, clip: head, actor: B, at: 0, duration: 1, blend_mode: {mode}}}");
+            assert!(serde_yaml::from_str::<ClipInstance>(&invalid).is_err());
+        }
+        let original = source();
+        let mut additive = instance("add");
+        additive.blend_mode = ClipBlendMode::Additive;
+        let saved = upsert_clip_instance(&original, 1, additive.clone()).unwrap();
+        let saved = upsert_clip_instance(&saved, 1, instance("over")).unwrap();
+        let reopened = parse(&saved).unwrap();
+        assert_eq!(
+            reopened.scenes[1].composition.clip_instances,
+            vec![additive.clone(), instance("over")]
+        );
+        let before = saved.clone();
+        additive.duration = 99.0;
+        assert!(upsert_clip_instance(&saved, 1, additive).is_err());
+        assert_eq!(saved, before);
+        assert_eq!(
+            parse(&saved).unwrap().scenes[1].composition.clip_instances,
+            reopened.scenes[1].composition.clip_instances
+        );
     }
 
     #[test]

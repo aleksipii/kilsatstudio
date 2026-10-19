@@ -248,3 +248,20 @@ boundaries. This extension addresses looping and original-rig joint masks only.
 Custom rig definitions, textured parts, deformation, additive/normalized mixing,
 clip events, cross-project exchange and physical Mac motion acceptance remain
 open. Final checked evidence belongs in [master progress](../master-progress.md).
+
+## Additive original-rig offsets (source implemented, pending integration)
+
+Default-compatible `blend_mode` selects existing override or opt-in additive
+signed local translation/rotation and weighted multiplicative scale. Checked
+combination validates both inputs even at zero weight, returns the base exactly
+at zero, and rejects excessive accumulated offsets before a scene is returned.
+Prepared tracks, saved order, masks, loops and instance-local envelopes are reused.
+Native detached controls use existing Apply/history/persistence/context guards;
+reset preserves mode. Dormant/zero layers retain conservative export work charges.
+
+Tests cover independent numeric bounds and signed angles, strict/default schema,
+ordered accumulation, loop/mask/envelope sampling, visible parent-joint rotation,
+actual SVG/PNG/sample-clock preview, repeated seeks, project persistence and Undo.
+Final CI and integration evidence is pending. See [live layer controls](../live-clip-blending.md).
+Normalized blend groups, arbitrary rigs, textures/deformation, clip exchange and
+physical motion/performance acceptance remain open.

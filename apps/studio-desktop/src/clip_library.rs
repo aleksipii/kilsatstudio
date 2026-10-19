@@ -336,6 +336,7 @@ mod tests {
                 weight_keys: Vec::new(),
                 looping: false,
                 joint_mask: Vec::new(),
+                blend_mode: motion_script::ClipBlendMode::Override,
             },
         )
         .unwrap();

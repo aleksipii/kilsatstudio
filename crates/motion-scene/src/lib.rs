@@ -276,11 +276,16 @@ impl PreparedAnimation {
                     continue;
                 }
                 if let Some(track) = track {
-                    *value = Some(motion_animation::blend_humanoid_offset(
-                        value.unwrap_or_default(),
-                        track.sample(clip_time)?,
-                        weight,
-                    )?);
+                    let sampled = track.sample(clip_time)?;
+                    let base = value.unwrap_or_default();
+                    *value = Some(match instance.blend_mode {
+                        motion_script::ClipBlendMode::Override => {
+                            motion_animation::blend_humanoid_offset(base, sampled, weight)?
+                        }
+                        motion_script::ClipBlendMode::Additive => {
+                            motion_animation::add_humanoid_offset(base, sampled, weight)?
+                        }
+                    });
                 }
             }
         }
@@ -933,6 +938,7 @@ mod live_instance_tests {
             at,
             duration,
             weight,
+            blend_mode: motion_script::ClipBlendMode::Override,
             fade_in: 0.0,
             fade_out: 0.0,
             weight_keys: Vec::new(),
@@ -958,6 +964,123 @@ mod live_instance_tests {
             .map(|(_, v)| *v)
             .unwrap_or_default()
     }
+    #[test]
+    fn additive_accumulates_nonidentity_base_and_mixed_modes_keep_saved_order() {
+        let mut script = script();
+        let mut first = instance("a", "first", 1.0, 2.0, 0.5);
+        first.blend_mode = motion_script::ClipBlendMode::Additive;
+        let mut second = instance("b", "second", 1.0, 2.0, 0.5);
+        second.blend_mode = motion_script::ClipBlendMode::Additive;
+        script.scenes[0].composition.clip_instances = vec![first, second];
+        // At local1 first samples40: base8 + .5*40 + .5*100 =78.
+        let actual = offsets(&script, 2.0);
+        assert_eq!(bone(&actual, "head").translation.x, 78.0);
+        assert_eq!(bone(&actual, "right_hand").translation.y, 10.0);
+        script.scenes[0].composition.clip_instances[1].blend_mode =
+            motion_script::ClipBlendMode::Override;
+        // Additive then override: (8 +20)*.5 +100*.5 =64.
+        assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 64.0);
+        script.scenes[0].composition.clip_instances.reverse();
+        // Override then additive: 8*.5 +100*.5 +20 =74.
+        assert_eq!(bone(&offsets(&script, 2.0), "head").translation.x, 74.0);
+    }
+
+    #[test]
+    fn additive_loops_masks_missing_joints_and_instance_envelopes_share_sampling() {
+        let mut script = script();
+        let mut layer = instance("add", "first", 1.0, 5.0, 0.8);
+        layer.blend_mode = motion_script::ClipBlendMode::Additive;
+        layer.looping = true;
+        layer.fade_in = 4.0;
+        layer.fade_out = 1.0;
+        layer.joint_mask = vec!["head".into(), "right_hand".into()];
+        layer.weight_keys = vec![motion_script::InstanceWeightKey {
+            time: 0.0,
+            weight: 0.5,
+            easing: motion_script::ActorEasing::Linear,
+        }];
+        script.scenes[0].composition.clip_instances = vec![layer];
+        // Static .8 * keyed .5 * entrance * exit, applied once to
+        // the original-speed sample, including cycle resets at times3 and5.
+        // Entrance occupies local0..4; exit occupies local4..5.
+        for (time, expected) in [
+            (0.0, 8.0),
+            (1.0, 8.0),
+            (2.0, 12.0),
+            (3.0, 12.0),
+            (4.5, 25.5),
+            (5.0, 16.0),
+            (5.5, 14.0),
+            (6.0, 8.0),
+            (2.0, 12.0),
+        ] {
+            let actual = offsets(&script, time);
+            assert!((bone(&actual, "head").translation.x - expected).abs() < 1e-12);
+            assert_eq!(bone(&actual, "right_hand"), Transform2::default());
+        }
+        let prepared = ValidatedScript::new(std::sync::Arc::new(script.clone())).unwrap();
+        for time in [5.5, 6.0, 4.5, 0.0, 3.0, 5.0, 2.0, 1.0, 2.0] {
+            assert_eq!(
+                prepared.evaluate(0, time).unwrap(),
+                evaluate(&script, 0, time).unwrap()
+            );
+        }
+        script.scenes[0].composition.clip_instances[0].joint_mask = vec!["right_hand".into()];
+        assert_eq!(bone(&offsets(&script, 3.0), "head").translation.x, 8.0);
+    }
+
+    #[test]
+    fn additive_parent_rotation_and_translation_match_independent_authored_tracks() {
+        let source = "characters: {A: {asset: a}}\nanimation_clips:\n  delta:\n    duration: 2\n    bone_tracks:\n      chest: [{at: 0, rotation: -40, x: 12}]\n      right_hand: [{at: 0, x: 10}]\nscenes:\n  - id: shot\n    duration: 2\n    events: []\n    composition:\n      bone_tracks:\n        A:\n          chest: [{at: 0, rotation: 30, x: 8}]\n          right_hand: [{at: 0, x: 6}]\n";
+        let mut script = motion_script::parse(source).unwrap();
+        let mut layer = instance("a", "delta", 0.0, 2.0, 0.5);
+        layer.blend_mode = motion_script::ClipBlendMode::Additive;
+        script.scenes[0].composition.clip_instances = vec![layer];
+        let expected_source = source
+            .replace("rotation: 30, x: 8", "rotation: 10, x: 14")
+            .replace(
+                "right_hand: [{at: 0, x: 6}]",
+                "right_hand: [{at: 0, x: 11}]",
+            );
+        let expected = motion_script::parse(&expected_source).unwrap();
+        let actual = evaluate(&script, 0, 1.0).unwrap();
+        let expected = evaluate(&expected, 0, 1.0).unwrap();
+        for (actual, expected) in actual.actors[0]
+            .skeleton
+            .iter()
+            .zip(expected.actors[0].skeleton)
+        {
+            assert!((actual.x - expected.x).abs() < 1e-10);
+            assert!((actual.y - expected.y).abs() < 1e-10);
+        }
+    }
+
+    #[test]
+    fn additive_combination_bounds_fail_without_publishing_a_scene() {
+        let mut script = script();
+        script
+            .animation_clips
+            .get_mut("second")
+            .unwrap()
+            .bone_tracks
+            .get_mut("head")
+            .unwrap()[0]
+            .x = 1000.0;
+        let mut layer = instance("large", "second", 0.0, 2.0, 1.0);
+        layer.blend_mode = motion_script::ClipBlendMode::Additive;
+        script.scenes[0].composition.clip_instances = vec![layer];
+        let prepared = ValidatedScript::new(std::sync::Arc::new(script.clone())).unwrap();
+        assert!(matches!(
+            evaluate(&script, 0, 1.0),
+            Err(Error::Animation(motion_animation::Error::InvalidPose))
+        ));
+        assert!(matches!(
+            prepared.evaluate(0, 1.0),
+            Err(Error::Animation(motion_animation::Error::InvalidPose))
+        ));
+        assert!(prepared.evaluate(0, 2.0).is_ok());
+    }
+
     #[test]
     fn loops_repeat_original_seconds_and_masks_preserve_unselected_offsets() {
         let mut script = script();

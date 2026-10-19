@@ -191,6 +191,41 @@ pub fn blend_humanoid_offset(
     Ok(value)
 }
 
+/// Add a signed parent-local authored delta to an original-rig offset.
+/// Translation and rotation add; scale multiplies by the weighted deviation
+/// from identity. Inputs are checked even at zero weight, which returns the
+/// original base exactly. Combined offsets must still fit authored bounds.
+pub fn add_humanoid_offset(
+    base: Transform2,
+    delta: Transform2,
+    weight: f64,
+) -> Result<Transform2, Error> {
+    if !weight.is_finite() || !(0.0..=1.0).contains(&weight) {
+        return Err(Error::InvalidWeight);
+    }
+    if !valid_humanoid_offset(base) || !valid_humanoid_offset(delta) {
+        return Err(Error::InvalidPose);
+    }
+    if weight == 0.0 {
+        return Ok(base);
+    }
+    let value = Transform2 {
+        translation: Vec2::new(
+            base.translation.x + weight * delta.translation.x,
+            base.translation.y + weight * delta.translation.y,
+        ),
+        rotation: base.rotation + weight * delta.rotation,
+        scale: Vec2::new(
+            base.scale.x * (1.0 + weight * (delta.scale.x - 1.0)),
+            base.scale.y * (1.0 + weight * (delta.scale.y - 1.0)),
+        ),
+    };
+    if !valid_humanoid_offset(value) {
+        return Err(Error::InvalidPose);
+    }
+    Ok(value)
+}
+
 fn interpolate_transform(a: Transform2, b: Transform2, t: f64) -> Transform2 {
     let lerp = |a: f64, b: f64| a + (b - a) * t;
     let rotation_delta = (b.rotation - a.rotation + std::f64::consts::PI)
@@ -374,6 +409,117 @@ mod tests {
 #[cfg(test)]
 mod offset_blend_tests {
     use super::*;
+    #[test]
+    fn additive_components_signed_rotation_and_exact_zero() {
+        let base = Transform2 {
+            translation: Vec2::new(10.0, -20.0),
+            rotation: 3.0,
+            scale: Vec2::new(0.5, 2.0),
+        };
+        let delta = Transform2 {
+            translation: Vec2::new(30.0, 40.0),
+            rotation: -8.0,
+            scale: Vec2::new(3.0, 0.5),
+        };
+        for (weight, translation, rotation, scale) in [
+            (0.0, Vec2::new(10.0, -20.0), 3.0, Vec2::new(0.5, 2.0)),
+            (0.5, Vec2::new(25.0, 0.0), -1.0, Vec2::new(1.0, 1.5)),
+            (1.0, Vec2::new(40.0, 20.0), -5.0, Vec2::new(1.5, 1.0)),
+        ] {
+            let actual = add_humanoid_offset(base, delta, weight).unwrap();
+            assert_eq!(actual.translation, translation);
+            assert_eq!(actual.rotation, rotation);
+            assert_eq!(actual.scale, scale);
+            assert_eq!(
+                add_humanoid_offset(base, Transform2::default(), weight).unwrap(),
+                base
+            );
+        }
+        let signed_zero = Transform2 {
+            translation: Vec2::new(-0.0, -0.0),
+            rotation: -0.0,
+            ..Default::default()
+        };
+        let zero = add_humanoid_offset(signed_zero, delta, -0.0).unwrap();
+        assert_eq!(zero.translation.x.to_bits(), (-0.0f64).to_bits());
+        assert_eq!(zero.translation.y.to_bits(), (-0.0f64).to_bits());
+        assert_eq!(zero.rotation.to_bits(), (-0.0f64).to_bits());
+    }
+
+    #[test]
+    fn additive_rejects_invalid_inputs_even_at_zero_and_combined_bounds() {
+        let identity = Transform2::default();
+        for weight in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -0.1, 1.1] {
+            assert_eq!(
+                add_humanoid_offset(identity, identity, weight),
+                Err(Error::InvalidWeight)
+            );
+        }
+        for invalid in [
+            Transform2 {
+                translation: Vec2::new(f64::NAN, 0.0),
+                ..identity
+            },
+            Transform2 {
+                translation: Vec2::new(0.0, 1001.0),
+                ..identity
+            },
+            Transform2 {
+                rotation: f64::INFINITY,
+                ..identity
+            },
+            Transform2 {
+                rotation: -1001.0,
+                ..identity
+            },
+            Transform2 {
+                scale: Vec2::new(0.09, 1.0),
+                ..identity
+            },
+            Transform2 {
+                scale: Vec2::new(1.0, 4.01),
+                ..identity
+            },
+        ] {
+            assert_eq!(
+                add_humanoid_offset(invalid, identity, 0.0),
+                Err(Error::InvalidPose)
+            );
+            assert_eq!(
+                add_humanoid_offset(identity, invalid, 0.0),
+                Err(Error::InvalidPose)
+            );
+        }
+        for offset in [
+            Transform2 {
+                translation: Vec2::new(600.0, 0.0),
+                ..identity
+            },
+            Transform2 {
+                translation: Vec2::new(0.0, -600.0),
+                ..identity
+            },
+            Transform2 {
+                rotation: -600.0,
+                ..identity
+            },
+            Transform2 {
+                scale: Vec2::new(3.0, 1.0),
+                ..identity
+            },
+            Transform2 {
+                scale: Vec2::new(1.0, 0.2),
+                ..identity
+            },
+        ] {
+            assert!(valid_humanoid_offset(offset));
+            assert_eq!(
+                add_humanoid_offset(offset, offset, 1.0),
+                Err(Error::InvalidPose)
+            );
+        }
+    }
+
     #[test]
     fn offsets_blend_independent_components_endpoints_and_rotation() {
         let a = Transform2 {
