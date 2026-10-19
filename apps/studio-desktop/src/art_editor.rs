@@ -1,8 +1,8 @@
 //! Artwork edits expose one transaction to the shared project history.
 use eframe::egui;
 use motion_art::{
-    BlendMode, ClipShape, Color, Content, Document, Layer, MaskKey, MaskStroke, Plane, Point, Rect,
-    TimeRange,
+    BlendMode, ClipShape, Color, Content, Document, Layer, MaskKey, MaskMotionKey, MaskStroke,
+    Plane, Point, Rect, TimeRange,
 };
 use std::collections::BTreeMap;
 pub struct SceneContext<'a> {
@@ -168,12 +168,92 @@ fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
         });
     }
     ClipShape::Polygon {
+        motion: Vec::new(),
         points: points.clone(),
         feather: 0.0,
     }
     .validate()
     .map_err(|e| e.to_string())?;
     Ok(points)
+}
+fn parse_motion_keys(text: &str, duration: f64) -> Result<Vec<MaskMotionKey>, String> {
+    if text.len() > 24_576 {
+        return Err("Motion keys exceed 24 KiB".into());
+    }
+    let mut keys = Vec::new();
+    for row in text.split_whitespace() {
+        if keys.len() >= motion_art::MAX_MASK_KEYS {
+            return Err("Use at most 128 motion keys".into());
+        }
+        let values: Vec<f64> = row
+            .split(',')
+            .map(|value| value.parse().map_err(|_| "Invalid motion key number"))
+            .collect::<Result<_, _>>()?;
+        if values.len() != 5 {
+            return Err("Use time,x,y,scale,rotation for each key".into());
+        }
+        keys.push(MaskMotionKey {
+            time: values[0],
+            x: values[1],
+            y: values[2],
+            scale: values[3],
+            rotation: values[4],
+        });
+    }
+    ClipShape::Polygon {
+        points: vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 1.0, y: 0.0 },
+            Point { x: 0.0, y: 1.0 },
+        ],
+        feather: 0.0,
+        motion: keys.clone(),
+    }
+    .validate()
+    .map_err(|error| error.to_string())?;
+    if !duration.is_finite()
+        || duration <= 0.0
+        || keys.last().is_some_and(|key| key.time > duration)
+    {
+        return Err("Motion keys must fit within the scene duration".into());
+    }
+    Ok(keys)
+}
+fn motion_key_controls(
+    ui: &mut egui::Ui,
+    layer_id: &str,
+    motion: &mut Vec<MaskMotionKey>,
+    duration: f64,
+) {
+    ui.label("Mask motion keys: time,x,y,scale,rotation(rad), moving the shape about its own centre (scene seconds, linear, first/last hold). Empty = static.");
+    let id = ui.id().with(("mask-motion-keys", layer_id));
+    let error_id = id.with("error");
+    let initial = motion
+        .iter()
+        .map(|k| format!("{},{},{},{},{}", k.time, k.x, k.y, k.scale, k.rotation))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut draft = ui
+        .data_mut(|data| data.get_temp::<String>(id))
+        .unwrap_or(initial);
+    ui.add(
+        egui::TextEdit::multiline(&mut draft)
+            .desired_rows(3)
+            .char_limit(24_576),
+    );
+    if ui.button("Apply mask motion").clicked() {
+        match parse_motion_keys(&draft, duration) {
+            Ok(next) => {
+                *motion = next;
+                ui.data_mut(|data| data.remove::<String>(error_id));
+            }
+            Err(error) => ui.data_mut(|data| data.insert_temp(error_id, error)),
+        }
+    }
+    if let Some(error) = ui.data_mut(|data| data.get_temp::<String>(error_id)) {
+        ui.colored_label(egui::Color32::LIGHT_RED, error);
+    }
+    ui.data_mut(|data| data.insert_temp(id, draft));
 }
 fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
     if text.len() > 24_576 {
@@ -348,6 +428,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         match kind {
             6 => {
                 layer.clip_shape = Some(ClipShape::Painted {
+                    motion: Vec::new(),
                     base_visible: true,
                     strokes: Vec::new(),
                 })
@@ -371,6 +452,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
             }
             3 => {
                 layer.clip_shape = Some(ClipShape::Polygon {
+                    motion: Vec::new(),
                     feather: 0.0,
                     points: vec![
                         Point {
@@ -419,8 +501,10 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
     if let Some(ClipShape::Painted {
         base_visible,
         strokes,
+        motion,
     }) = &mut layer.clip_shape
     {
+        motion_key_controls(ui, &layer.id, motion, duration);
         ui.checkbox(
             base_visible,
             "Initially show all content (unchecked: hide all)",
@@ -487,7 +571,13 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         }
         ui.data_mut(|data| data.insert_temp(id, draft));
     }
-    if let Some(ClipShape::Polygon { points, feather }) = &mut layer.clip_shape {
+    if let Some(ClipShape::Polygon {
+        points,
+        feather,
+        motion,
+    }) = &mut layer.clip_shape
+    {
+        motion_key_controls(ui, &layer.id, motion, duration);
         let id = ui.id().with(("mask-vertices", &layer.id));
         let initial = points
             .iter()
@@ -1207,6 +1297,7 @@ mod tests {
                 attachment: None,
                 clip: None,
                 clip_shape: Some(ClipShape::Painted {
+                    motion: Vec::new(),
                     base_visible: false,
                     strokes: Vec::new(),
                 }),
@@ -1948,6 +2039,7 @@ mod tests {
         let mut editor = Editor::default();
         let mut next = before.clone();
         next.layers[0].clip_shape = Some(ClipShape::Polygon {
+            motion: Vec::new(),
             points,
             feather: 0.0,
         });

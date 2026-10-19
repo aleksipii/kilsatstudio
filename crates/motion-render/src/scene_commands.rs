@@ -498,10 +498,18 @@ fn append_art(
                     *work += 1;
                 }
                 if let Some(mask) = &layer.clip_shape {
+                    if mask.key_count() > 0
+                        && matches!(mask, ClipShape::Polygon { .. } | ClipShape::Painted { .. })
+                    {
+                        return Err(Error::UnsupportedFeature(
+                            "animated polygon or painted mask",
+                        ));
+                    }
                     match mask {
                         ClipShape::Painted {
                             base_visible,
                             strokes,
+                            ..
                         } => {
                             result.commands.push(Command([
                                 inv,
@@ -761,6 +769,7 @@ mod tests {
             },
         );
         layer.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: true,
             strokes: vec![],
         });
@@ -817,6 +826,7 @@ mod tests {
         erase.erase = true;
         erase.hardness = 1.0;
         layer.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![stroke.clone(), erase, stroke],
         });
@@ -892,6 +902,7 @@ mod tests {
             },
         );
         layer.clip_shape = Some(ClipShape::Painted {
+            motion: Vec::new(),
             base_visible: false,
             strokes: vec![MaskStroke {
                 points: vec![Point { x: 10.0, y: 10.0 }],
@@ -1118,6 +1129,7 @@ mod tests {
             },
         );
         layer.clip_shape = Some(ClipShape::Polygon {
+            motion: Vec::new(),
             points: vertices,
             feather: 0.0,
         });
@@ -1237,6 +1249,64 @@ mod tests {
             ),
             Err(super::Error::Budget)
         ));
+    }
+    #[test]
+    fn animated_polygon_and_painted_masks_are_reported_unsupported_not_drawn_static() {
+        use motion_art::*;
+        let points = vec![
+            Point { x: 0.0, y: 0.0 },
+            Point { x: 20.0, y: 0.0 },
+            Point { x: 10.0, y: 20.0 },
+        ];
+        let motion = vec![MaskMotionKey::default()];
+        for shape in [
+            ClipShape::Polygon {
+                points: points.clone(),
+                feather: 0.0,
+                motion: motion.clone(),
+            },
+            ClipShape::Painted {
+                base_visible: true,
+                strokes: Vec::new(),
+                motion: motion.clone(),
+            },
+        ] {
+            let mut layer = artwork_layer(
+                "a",
+                Content::Rectangle {
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 10.0,
+                        height: 10.0,
+                    },
+                    color: Color {
+                        r: 1,
+                        g: 2,
+                        b: 3,
+                        a: 255,
+                    },
+                },
+            );
+            layer.clip_shape = Some(shape);
+            let document = Document {
+                layers: vec![layer],
+                ..Default::default()
+            };
+            assert!(matches!(
+                build_with_art(
+                    &scene(),
+                    64,
+                    64,
+                    &[],
+                    Labels::OmitAcknowledged,
+                    "s",
+                    &document,
+                    &std::collections::BTreeMap::new()
+                ),
+                Err(super::Error::UnsupportedFeature(_))
+            ));
+        }
     }
     #[test]
     fn labels_cannot_silently_disappear() {
