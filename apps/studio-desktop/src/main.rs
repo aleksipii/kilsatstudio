@@ -6173,7 +6173,9 @@ mod live_clip_integration_tests {
         let mut row = instance("additive");
         row.blend_mode = motion_script::ClipBlendMode::Additive;
         studio.apply_live_clip_action(
-            live_clip_editor::Action::Upsert { instance: row.clone() },
+            live_clip_editor::Action::Upsert {
+                instance: row.clone(),
+            },
             SOURCE,
             0,
             "A",
@@ -6183,7 +6185,9 @@ mod live_clip_integration_tests {
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
         let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
         assert_eq!(
-            motion_script::parse(&loaded.source).unwrap().scenes[0].composition.clip_instances[0],
+            motion_script::parse(&loaded.source).unwrap().scenes[0]
+                .composition
+                .clip_instances[0],
             row
         );
         studio.undo_edit(false);

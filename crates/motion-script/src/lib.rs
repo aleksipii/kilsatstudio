@@ -3033,23 +3033,26 @@ mod live_clip_instance_tests {
         let yaml = "{id: a, clip: head, actor: B, at: 0, duration: 1}";
         let legacy: ClipInstance = serde_yaml::from_str(yaml).unwrap();
         assert_eq!(legacy.blend_mode, ClipBlendMode::Override);
-        assert!(!serde_yaml::to_string(&legacy).unwrap().contains("blend_mode"));
+        assert!(!serde_yaml::to_string(&legacy)
+            .unwrap()
+            .contains("blend_mode"));
         for (name, mode) in [
             ("override", ClipBlendMode::Override),
             ("additive", ClipBlendMode::Additive),
         ] {
-            let explicit = format!("{{id: a, clip: head, actor: B, at: 0, duration: 1, blend_mode: {name}}}");
+            let explicit =
+                format!("{{id: a, clip: head, actor: B, at: 0, duration: 1, blend_mode: {name}}}");
             let item: ClipInstance = serde_yaml::from_str(&explicit).unwrap();
             assert_eq!(item.blend_mode, mode);
             assert_eq!(
-                serde_yaml::from_str::<ClipInstance>(&serde_yaml::to_string(&item).unwrap()).unwrap(),
+                serde_yaml::from_str::<ClipInstance>(&serde_yaml::to_string(&item).unwrap())
+                    .unwrap(),
                 item
             );
         }
         for mode in ["Additive", "replace", "null", "1", "{additive: true}"] {
-            let invalid = format!(
-                "{{id: a, clip: head, actor: B, at: 0, duration: 1, blend_mode: {mode}}}"
-            );
+            let invalid =
+                format!("{{id: a, clip: head, actor: B, at: 0, duration: 1, blend_mode: {mode}}}");
             assert!(serde_yaml::from_str::<ClipInstance>(&invalid).is_err());
         }
         let original = source();

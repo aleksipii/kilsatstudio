@@ -700,11 +700,9 @@ fn additive_loop_mask_and_continuing_envelope_survive_roundtrip_and_preview_seek
 #[test]
 fn omitted_blend_mode_keeps_legacy_override_frames() {
     let original = motion_script::parse(SOURCE).unwrap();
-    let explicit = motion_script::parse(&SOURCE.replace(
-        "weight: 0.5}",
-        "weight: 0.5, blend_mode: override}",
-    ))
-    .unwrap();
+    let explicit =
+        motion_script::parse(&SOURCE.replace("weight: 0.5}", "weight: 0.5, blend_mode: override}"))
+            .unwrap();
     assert_eq!(
         original.scenes[0].composition.clip_instances[0].blend_mode,
         motion_script::ClipBlendMode::Override
