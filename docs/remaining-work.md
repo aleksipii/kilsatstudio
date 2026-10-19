@@ -1,14 +1,14 @@
 # Remaining studio work and active agents
 
-Updated 2026-10-19. This is the execution list for the next increment after PR #54.
+Updated 2026-10-19. The first packages below merged in PR #55 after PR #54.
 The authoritative requirements, completion marks and acceptance evidence remain
 in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
 
-`[x]` means integrated and checked; `[ ]` means still open. Work in the table is
-in progress until the parent records the merge and actual CI evidence here and in
-the master tracker. Code tests cannot grant physical-device or rights approval.
+`[x]` means integrated and checked; `[ ]` means still open. The table's concrete
+packages are integrated; its final column remains open. Code tests cannot grant
+physical-device or rights approval. Delivery evidence is below and in the master.
 
 | Area / agent | Current concrete package | Further work left open |
 | --- | --- | --- |
@@ -23,18 +23,32 @@ the master tracker. Code tests cannot grant physical-device or rights approval.
 
 ## Acceptance for this increment
 
-- [ ] Integrate the concrete packages above without duplicating clocks, renderers
+- [x] Integrate the concrete packages above without duplicating clocks, renderers
   or document histories; preserve old project defaults and unrelated work.
-- [ ] Run relevant format/check/strict Clippy/Rust, Python, GPU shader/contracts
+- [x] Run relevant format/check/strict Clippy/Rust, Python, GPU shader/contracts
   and media CI; record real counts and distinguish ignored hardware tests.
-- [ ] Review changed public types, enum consumers, duration/resource preflight,
+- [x] Review changed public types, enum consumers, duration/resource preflight,
   history/persistence, cancellation and source-context protection.
-- [ ] Update this file and [master-progress.md](master-progress.md) after merge
+- [x] Update this file and [master-progress.md](master-progress.md) after merge
   with exact source/merge identities, actual checks and still-open scope.
 - [ ] Collect external Mac, real-speech, GPU-quality/performance and licensing
   evidence. These gates remain open until supplied and reviewed.
 
 ## Existing completed baseline
+
+PR #55: merge `c03bfe21779e9ed357c700f930f6d10086a5da86`, final source
+`c98ac9cbb1cc909114ebd3707ebe3a0f53194f3a`. Linux/macOS CI passed fmt, check,
+strict Clippy, **543/542 default Rust tests**, **35 GPU library + 2 probe tests**
+per platform (3 hardware tests ignored), **3 real FFmpeg tests**, and **55 runtime
+plus 82 repository Python tests** per platform. Three encoder tests ignored by the
+default suite were explicitly run by the media job. Apple Silicon packaging passed.
+See the [CI run](https://github.com/aleksipii/kilsatstudio/actions/runs/39248869347)
+and [Mac package](https://github.com/aleksipii/kilsatstudio/actions/runs/39248869339/artifacts/12185025968).
+Source review corrected timing loss on YAML save, runtime/history invalidation,
+stale mask drafts and measurement wording. Manual timing currently starts from a
+fresh/reused/loaded estimate; directly reopening applied manual edits and waveform
+dragging remain open. Update timings are wall-clock observations, not measured
+input/display latency or process-wide memory. Final rights approval is unchanged.
 
 - [x] Custom rigid definitions and custom-rig joint tracks/editor (PRs #46/#50).
 - [x] Original-rig override/additive/normalized clips, weights/fades, loops and

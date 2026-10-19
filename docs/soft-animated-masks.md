@@ -137,7 +137,13 @@ restore and export preflight check it like layer images, and the mask image coun
 toward the embedded-image and decoded-resource budgets. Rendering is shared by
 CPU preview, SVG, PNG and video; a missing resource is an error, never an unmasked
 draw. The inspector offers **Image (alpha / luminance)** once an image asset exists.
-The experimental GPU path rejects image masks as unsupported. Image masks are not
-animated, feathered or paintable; the stretched image's edges are bilinear.
+PR #55 adds experimental GPU alpha/luminance masks and scene-local image rectangle
+animation. Optional `keys` contain `{time, rect}` values: linear interpolation,
+first/last hold, at most 128 strictly increasing keys within the scene. Empty
+keys preserve the original static rect. The Inspector offers explicit Apply for
+`time,x,y,width,height` rows. The document shares an 8192-key budget across image
+and ellipse masks. Production preview/export use CPU; GPU samples the same rect
+but measured edge/color parity remains open. Image masks are not feathered or
+paintable; the stretched image's edges are bilinear.
 Pixel tests use 100×1 strips to verify alpha versus luminance selection, the
 missing-resource failure, and identical preview/PNG/SVG pixels.

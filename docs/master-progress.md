@@ -9,6 +9,15 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PR [#55](https://github.com/aleksipii/kilsatstudio/pull/55) merged as
+`c03bfe21779e9ed357c700f930f6d10086a5da86` on 2026-10-19 after final Linux/macOS CI.
+Six agents and parent integration advanced the first packages across the remaining
+areas: original-rig clip exchange, animated image-mask bounds, reviewed manual
+mouth timings with project/history storage, camera presets, experimental GPU image
+masks, update-time observations and Mac scenario evidence coverage. The linked
+[remaining work list](remaining-work.md) records completed packages and the next
+open work separately. External acceptance and all M1–M6 gates remain open.
+
 PR [#54](https://github.com/aleksipii/kilsatstudio/pull/54) merged as
 `dceb8a79b9bebee386e74e312eeb6c767c804a74` on 2026-10-19 after final Linux/macOS CI.
 It adds optional real touch-force samples, soft coverage bands and experimental
@@ -133,9 +142,9 @@ require actual evidence.
 
 ## Ownership and current increment
 
-The next active execution list is [remaining-work.md](remaining-work.md), with
-named agents, bounded implementation packages and separate external acceptance.
-It is subordinate to this tracker; in-progress work is not yet a completed gate.
+The execution list is [remaining-work.md](remaining-work.md), with named agents,
+integrated first packages, next open work and separate external acceptance.
+It is subordinate to this tracker; a scoped delivery does not close a product gate.
 
 PR #46 delivery (2026-10-19): `normalized_groups`, `custom_rigs`, `gpu_complete`,
 `artist_groups`, `speech_production_reuse` and `release_mac_evidence`; parent
@@ -196,7 +205,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Atomic event/voice/settings source edits and tests.
 - [x] Scene add/duplicate/delete and character add/delete with reference/final-scene protection.
 - [x] Validated scene camera keyframes and deterministic pan/zoom evaluation.
-- [ ] Camera event commands or cinematic rule presets beyond scene camera tracks.
+- [x] Explicit push/pull/pan camera presets expanded into existing editable keys (PR #55).
+- [ ] Camera event commands and reusable/conditional cinematic rules.
 - [x] Timed solid background-color tracks shared by preview and export.
 - [x] Timed background image placement shared by native preview and export.
 - [x] Validated outgoing cuts/crossfades, compiled sample timeline and headless PNG/WAV sequence export.
@@ -236,7 +246,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Live clip original-speed looping and explicit original-rig joint selection, including native controls and shared evaluation (PR #43).
 - [x] Explicit original-rig additive live offsets with checked accumulation and default-compatible override (PR #45).
 - [x] Explicit normalized original-rig override groups with per-joint residuals and continuous authored-base-anchored rotations (PR #46).
-- [ ] Arbitrary-rig pose mixing and cross-project libraries.
+- [x] Versioned original-rig clip clipboard exchange between projects with explicit replacement (PR #55).
+- [ ] Arbitrary-rig pose mixing, custom-rig clip exchange and retargeting.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -252,6 +263,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persisted soft animated ellipse masks in shared SVG/PNG/native preview and sequence evaluation (PR #43).
 - [x] Bounded isolated nested artwork groups with explicit sibling order, native history controls and shared CPU composition (PR #46).
 - [x] Image alpha/luminance masks and polygon feathering (PRs #48–#49 via #51).
+- [x] Scene-local image-mask rectangle animation, explicit native key Apply and shared CPU/GPU sampling (PR #55).
 - [x] Vector mask painting/erasing with shared history and CPU preview/export (PR #53).
 - [x] Soft mask brushes, optional actual touch-force samples and experimental painted-mask GPU commands (PR #54).
 - [ ] Mac stylus input, animated painting, retouching, measured GPU mask parity and physical Mac compositing acceptance.
@@ -341,7 +353,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Automatic lookup/miss/publication and fresh bypass for explicitly trusted self-contained local Phonetic packages with exact package/runtime identity and controlled execution (PR #46).
 - [ ] Actual supplied recognizer compatibility, audited complete environment and real-audio quality acceptance.
 - [x] Estimated cues preserve separate provenance and integer-sample trim/offset evaluation in preview/export.
-- [ ] Validated forced-aligner integration and editable timing tools.
+- [x] Bounded sample/shape edits from reviewed estimates, exact-audio manual provenance, project save and shared Undo/Redo (PR #55).
+- [ ] Direct reopening/editing of applied manual envelopes, waveform dragging and validated forced-aligner integration.
 - [ ] Annotated real-audio corpus and measured timing error.
 - [ ] Perceptual mouth-quality assessment across voices/speeds/pauses.
 - [ ] Physical-device seek/pause/offset/trim/overlap synchronization checks.
@@ -376,6 +389,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Runnable JSON export benchmark with debug Linux smoke measurement.
 - [ ] Production release-profile and Apple Silicon benchmark series.
 - [ ] UI responsiveness measurements under real workloads.
+- [x] Opt-in bounded elapsed application-update observations and copyable tracked-job summaries (PR #55); this is instrumentation, not responsiveness acceptance.
 
 ## 9. QA and release
 
@@ -1497,3 +1511,64 @@ Outer artifact container digest:
 `1795739a6f130242b17ea2b0a441844fa552ad9eba6177fa0deab88aa6153d6a`.
 Package validation passed with `distribution_approved=false`. Automated build and
 shader tests do not grant physical-device, licensing or M1–M6 acceptance.
+
+## Remaining workstream increment — PR #55 delivery evidence
+
+The requested linked [execution list](remaining-work.md) assigns all eight areas
+to six agents plus parent performance/integration. These first concrete packages
+are integrated; the full remaining product backlog is not complete.
+
+- [x] Original-rig clip clipboard exchange: strict version/rig/size checks,
+  selected/all export, explicit matching-name replacement, atomic import and
+  existing source/history integration. Custom-rig retargeting stays open.
+- [x] Image-mask rectangle keys: scene-local linear interpolation/end holds,
+  strict duration/key/bounds validation, native explicit Apply, shared CPU/GPU
+  sampling and key/work preflight. Reverse-seek CPU preview/PNG/SVG tests use
+  independently sampled static rectangles as their pixel oracle.
+- [x] Manual mouth timing from reviewed estimated cues: sample/shape table,
+  split/delete/rest/reset, worker verification of exact PCM/text, separate Manual
+  provenance and edit identity without recognizer execution or cache overwrite.
+  Representative phoneme labels carry artist-selected visemes, not a measured
+  transcription. Optional bounded project timing metadata survives `.kilsat`
+  save/reload and shared Undo/Redo; YAML save refuses to lose timing. History
+  snapshots retain runtime invalidations. Applied manual envelopes cannot yet be
+  reopened directly into this table; waveform dragging/forced alignment stay open.
+- [x] Push/pull/left/right cinematic camera presets expanded to two editable
+  existing camera keys, explicit track replacement and detached Apply/history.
+- [x] Experimental GPU alpha/luminance image masks with existing bounded image
+  residency, bilinear sampling, animation and crossfade offset relocation. Naga
+  and command tests passed; hardware/edge/color acceptance remains open.
+- [x] Opt-in 256-sample elapsed update-wall-time window and copyable summary for
+  explicitly tracked job flags. This measures neither CPU usage nor input/display
+  latency; production responsiveness/memory/Apple Silicon benchmarks remain open.
+- [x] Mac operator report requires named coverage for 24 scenarios across eight
+  broad gates, with hashed retained evidence references and contradictory/unknown
+  claims rejected. Old broad labels remain readable but incomplete, never approved.
+- [ ] Custom-rig clip libraries/mixing/retargeting, textures/deformation/idle,
+  polygon/paint animation, image retouch, audio cues/conditional rules/general
+  compiled editing, broader timing/real-speech quality, production GPU/full parity,
+  process-wide budgets/DAG scheduling, physical Mac acceptance and final licences.
+
+Merge: `c03bfe21779e9ed357c700f930f6d10086a5da86`. Final tested source:
+`c98ac9cbb1cc909114ebd3707ebe3a0f53194f3a`, tree
+`7229f16b89d49fd8667407e3c45d99c8142abed6`, identical to the merge tree.
+[Linux/macOS CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39248869347)
+passed fmt, workspace check, strict all-target Clippy, **543 Linux / 542 macOS**
+default Rust tests (3 encoder tests ignored per platform), **35 GPU library + 2
+probe tests** per platform and feature Clippy (3 physical GPU tests ignored).
+All **3 actual FFmpeg tests** ran separately and passed. Each platform passed
+**55 runtime + 82 repository Python tests**. Local Python suites, whitespace and
+new guide link targets passed; local Rust tools were unavailable. Independent
+review fixes covered timing persistence/history/YAML loss, mask draft context,
+GPU/public-type consumers, budgets and honest measurement terminology.
+
+[Apple Silicon package CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39248869339)
+passed for that source. The
+[arm64 preview artifact](https://github.com/aleksipii/kilsatstudio/actions/runs/39248869339/artifacts/12185025968)
+contains final preview ZIP SHA-256
+`0a1f1b2412729da5d84632bb7afea72e9cd56e3aaa40a3661b911b57add7b19b`;
+outer artifact digest
+`e3053c51c59c2f33828b357003c8dca522687bccc7b1742d62adff219885ece6`.
+Package validation passed with `distribution_approved=false`. No physical Mac,
+GPU device, recognizer quality, rights clearance or complete milestone acceptance
+was newly executed/granted. Main and `kilsatstudio1.0` include this delivery record.

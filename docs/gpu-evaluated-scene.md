@@ -1,5 +1,14 @@
 # Experimental evaluated-scene GPU renderer
 
+PR #55 adds image alpha/luminance mask commands using the existing bounded,
+deduplicated decoded-pixel storage and bilinear sampling. Animated image bounds
+use the shared scene-local mask evaluator; crossfades relocate mask pixel offsets.
+Missing resources and work budgets fail before adapter creation. Adapter-free
+command/shader tests passed; the physical image-mask probe is ignored by default.
+This is experimental support, not full CPU/GPU color/edge parity or production
+GPU selection. See [remaining work](remaining-work.md) and
+[master progress](master-progress.md).
+
 The `gpu` feature now includes `gpu_scene::GpuSceneRenderer` and the
 `gpu_scene_probe` example. This is an original GPU analytical-shape renderer that
 receives an already evaluated scene, uploads bounded shape commands, composes
