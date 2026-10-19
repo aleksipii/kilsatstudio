@@ -467,7 +467,7 @@ fn append_art(
                 if let Some(mask) = &layer.clip_shape {
                     match mask {
                         ClipShape::Painted { .. } => {
-                            return Err(Error::UnsupportedFeature("painted vector mask"));
+                            return Err(super::Error::UnsupportedFeature("painted vector mask"));
                         }
                         ClipShape::Image { .. } => {
                             return Err(Error::UnsupportedFeature("image mask"));
