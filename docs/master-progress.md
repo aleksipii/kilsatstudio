@@ -9,6 +9,13 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+The next mask increment implements optional sampled pressure, soft coverage bands
+and experimental GPU painted-mask commands on its task branch; integration and
+CI are pending. Physical Mac input/Metal checks remain unexecuted. See
+[painted masks](painted-masks.md) and the
+[manual Mac procedure](painted-mask-mac-acceptance.md); completion will be recorded
+only after successful checks and authorized integration.
+
 PR [#53](https://github.com/aleksipii/kilsatstudio/pull/53) merged as
 `5251cc5ddc850f1b2c9493a0076bae5fce0a64b0` on 2026-10-19 after final Linux/macOS CI.
 Vector mask painting/erasing stores ordered bounded strokes, explicit initial

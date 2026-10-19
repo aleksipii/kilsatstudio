@@ -380,6 +380,26 @@ mod tests {
         }
     }
     #[test]
+    fn painted_mask_input_fixture_validates_and_roundtrips_without_assets() {
+        let fixture = include_str!("../../../examples/painted-mask-input.kilsat");
+        let document = decode(fixture.as_bytes()).unwrap();
+        document.validate().unwrap();
+        let script = motion_script::parse(&document.source).unwrap();
+        assert_eq!(script.scenes[0].id, "painted_mask_input");
+        assert!(document.assets.is_empty());
+        assert_eq!(document.art.layers.len(), 3);
+        assert!(document.art.layers.iter().any(|layer| {
+            matches!(&layer.clip_shape, Some(motion_art::ClipShape::Painted { strokes, .. })
+                if strokes.iter().any(|stroke| !stroke.pressures.is_empty())
+                    && strokes.iter().any(|stroke| stroke.hardness < 1.0))
+        }));
+        let decoded = decode(&encode(&document).unwrap()).unwrap();
+        assert_eq!(decoded.source, document.source);
+        assert_eq!(decoded.assets, document.assets);
+        assert_eq!(decoded.art, document.art);
+    }
+
+    #[test]
     fn painted_mask_persists_without_assets_and_invalid_edits_are_atomic() {
         let mut doc = ProjectDocument::new(SOURCE).unwrap();
         let mut item = rectangle();
@@ -389,6 +409,8 @@ mod tests {
                 points: vec![motion_art::Point { x: 10.0, y: 12.0 }],
                 radius: 4.0,
                 erase: true,
+                pressures: vec![0.4],
+                hardness: 0.25,
             }],
         });
         doc.apply_art(motion_art::Command::Add(item.clone()))
@@ -400,7 +422,7 @@ mod tests {
         let Some(motion_art::ClipShape::Painted { strokes, .. }) = &mut item.clip_shape else {
             unreachable!()
         };
-        strokes[0].radius = -1.0;
+        strokes[0].pressures[0] = 1.1;
         assert!(doc.apply_art(motion_art::Command::Replace(item)).is_err());
         assert_eq!(doc.art, before);
     }

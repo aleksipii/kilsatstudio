@@ -280,7 +280,7 @@ fn preflight(
             if let Some(motion_art::ClipShape::Painted { strokes, .. }) = &layer.clip_shape {
                 let work = strokes
                     .iter()
-                    .map(|stroke| stroke.points.len() as u64 + 1)
+                    .map(|stroke| stroke.render_cost() as u64)
                     .sum::<u64>()
                     + 1;
                 geometry = geometry

@@ -407,6 +407,8 @@ mod tests {
                 points: vec![motion_art::Point { x: 5.0, y: 5.0 }],
                 radius: if erase { 2.0 } else { 4.0 },
                 erase,
+                pressures: vec![if erase { 0.25 } else { 0.75 }],
+                hardness: 0.5,
             });
             let next = Snapshot::capture(SOURCE, Some(&doc));
             history.record(previous, next.clone());
