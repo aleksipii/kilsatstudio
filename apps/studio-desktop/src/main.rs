@@ -129,6 +129,8 @@ struct Studio {
     art_resources: art_resources::Resources,
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
     bone_draft: Option<(String, bone_editor::Draft)>,
+    joint_draft: Option<(String, bone_editor::Draft)>,
+    selected_joint: String,
     custom_rig_draft: Option<(String, custom_rig_editor::Draft)>,
     clip_draft: Option<(String, clip_editor::Draft)>,
     clip_track_draft: Option<(String, clip_editor::TrackDraft)>,
@@ -273,6 +275,8 @@ impl Default for Studio {
             sequence_art_revision: 0,
             keyframe_draft: None,
             bone_draft: None,
+            joint_draft: None,
+            selected_joint: String::new(),
             clip_library_draft: None,
             live_clip_draft: None,
             clip_draft: None,
@@ -1156,6 +1160,7 @@ impl Studio {
     fn invalidate_scene(&mut self) {
         self.custom_rig_draft = None;
         self.bone_draft = None;
+        self.joint_draft = None;
         self.clip_draft = None;
         self.clip_track_draft = None;
         self.clip_library_draft = None;
@@ -1183,6 +1188,7 @@ impl Studio {
     fn reset_scene(&mut self) {
         self.custom_rig_draft = None;
         self.bone_draft = None;
+        self.joint_draft = None;
         self.clip_draft = None;
         self.clip_track_draft = None;
         self.clip_library_draft = None;
@@ -2934,10 +2940,100 @@ impl Studio {
         {
             self.status = "Bone draft belongs to an earlier source, scene, actor or bone; reload the draft before applying.".into();
             self.bone_draft = None;
+            self.joint_draft = None;
             return;
         }
         let result = draft.apply(&self.source);
         self.apply_structure(result);
+    }
+
+    fn apply_joint_draft(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        let Some((source, draft)) = &self.joint_draft else {
+            return;
+        };
+        let current_actor = self.selected_actor.as_deref().or_else(|| {
+            self.script
+                .as_ref()?
+                .characters
+                .keys()
+                .next()
+                .map(String::as_str)
+        });
+        if source != &self.source
+            || draft.scene_index != self.scene_index
+            || current_actor != Some(draft.actor.as_str())
+            || draft.bone != self.selected_joint
+        {
+            self.status = "Joint draft belongs to an earlier source, scene, actor or joint; reload the draft before applying.".into();
+            self.joint_draft = None;
+            return;
+        }
+        let result = draft.apply(&self.source);
+        self.apply_structure(result);
+    }
+
+    fn joint_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
+        let Some(rig) = script.characters.get(actor).and_then(|c| c.rig.as_ref()) else {
+            return;
+        };
+        let joints: Vec<String> = rig.joints.iter().map(|j| j.id.clone()).collect();
+        if !joints.contains(&self.selected_joint) {
+            self.selected_joint = joints[0].clone();
+        }
+        let mut apply = false;
+        ui.add_enabled_ui(
+            !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
+            |ui| {
+                egui::CollapsingHeader::new("Custom rig joint keyframes").show(ui, |ui| {
+                    egui::ComboBox::from_id_salt("authored_joint")
+                        .selected_text(&self.selected_joint)
+                        .show_ui(ui, |ui| {
+                            for joint in &joints {
+                                ui.selectable_value(&mut self.selected_joint, joint.clone(), joint);
+                            }
+                        });
+                    if !self.joint_draft.as_ref().is_some_and(|(source, draft)| {
+                        source == &self.source
+                            && draft.scene_index == self.scene_index
+                            && draft.actor == actor
+                            && draft.bone == self.selected_joint
+                    }) {
+                        self.joint_draft = Some((
+                            self.source.clone(),
+                            bone_editor::Draft::for_joint(
+                                scene,
+                                self.scene_index,
+                                actor,
+                                &self.selected_joint,
+                            ),
+                        ));
+                    }
+                    ui.small("Changing scene, actor or joint reloads saved keys and discards unapplied changes.");
+                    if let Some((_, draft)) = &mut self.joint_draft {
+                        apply = draft.ui(ui);
+                    }
+                });
+            },
+        );
+        if apply {
+            self.apply_joint_draft();
+        }
     }
 
     fn apply_clip_draft(&mut self) {
@@ -3399,6 +3495,7 @@ impl Studio {
         self.keyframe_inspector_ui(ui);
         self.custom_rig_ui(ui);
         self.bone_inspector_ui(ui);
+        self.joint_inspector_ui(ui);
         self.clip_inspector_ui(ui);
         self.clip_library_ui(ui);
         self.live_clip_ui(ui);
@@ -5808,6 +5905,47 @@ mod bone_and_compositor_tests {
         assert_eq!(studio.source, original);
         studio.undo_edit(true);
         assert_eq!(studio.source, bone_source);
+    }
+    #[test]
+    fn joint_draft_applies_through_history_and_rejects_stale_context() {
+        let rig = "characters:\n  P:\n    asset: custom\n    rig:\n      version: 1\n      id: p\n      joints: [{id: root, parent: null}, {id: arm, parent: root, x: 5}]\n      parts: [{id: a, joint: arm, points: [[0, 0], [2, 0], [0, 2]], color: [1, 2, 3, 255]}]\nscenes:\n  - {id: shot, duration: 4, events: []}\n";
+        let ready = || {
+            let mut studio = Studio::default();
+            studio.source = rig.into();
+            studio.validate();
+            studio.selected_actor = Some("P".into());
+            studio.selected_joint = "arm".into();
+            let script = studio.script.as_ref().unwrap();
+            let mut draft = bone_editor::Draft::for_joint(&script.scenes[0], 0, "P", "arm");
+            draft.keys.push(motion_script::ActorKey {
+                rotation: 0.25,
+                ..Default::default()
+            });
+            studio.joint_draft = Some((studio.source.clone(), draft));
+            studio
+        };
+        let mut studio = ready();
+        let original = studio.source.clone();
+        studio.apply_joint_draft();
+        assert_ne!(studio.source, original);
+        let keys = &studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .joint_tracks["P"]["arm"];
+        assert_eq!(keys[0].rotation, 0.25);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        for context in 0..4 {
+            let mut studio = ready();
+            let original = studio.source.clone();
+            match context {
+                0 => studio.joint_draft.as_mut().unwrap().0.push(' '),
+                1 => studio.scene_index += 1,
+                2 => studio.selected_joint = "root".into(),
+                _ => studio.joint_draft.as_mut().unwrap().1.keys[0].scale_x = 0.0,
+            }
+            studio.apply_joint_draft();
+            assert_eq!(studio.source, original);
+        }
     }
     #[test]
     fn stale_bone_context_and_invalid_offsets_preserve_source() {

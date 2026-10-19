@@ -80,7 +80,10 @@ the edit is rejected atomically; remove the track first. The rig is validated on
 per project; each sample only composes the hierarchy, so preview, SVG/PNG and video
 export share one deterministic evaluation. Rotation interpolates by the shortest
 direction, so a half-turn between two keys is ambiguous; use intermediate keys.
-There is no desktop key editor yet (author in the screenplay source), original-rig
+The inspector's **Custom rig joint keyframes** section (shown when the selected
+actor has a rig) edits one joint's keys per scene with the same detached draft as
+bone keys: Apply is an atomic, undoable source transaction; changing scene, actor or
+joint discards unapplied edits; an empty list removes the track. Original-rig
 bone tracks and clips stay unsupported for custom actors, and nothing here
 establishes physical Mac rendering acceptance.
 
