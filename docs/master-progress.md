@@ -9,11 +9,16 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-The next combined implementation is in progress on
-`feat/studio-production-workstreams`. Its six-area status is recorded in the
-pending section at the end; it does not yet change integrated acceptance below.
+PR #46 merged as `45f31bd02352da9ac9c17ab9b5407b89198bdb2c` after final Linux/macOS CI.
+The six-area delivery adds normalized original-rig groups, editable custom rigid
+characters, isolated artwork groups, expanded experimental GPU composition,
+explicitly enrolled local-package automatic estimate reuse, and Mac/license
+observation reports. Full GPU/native parity, broader artist/character tools,
+actual recognizer/device quality and final rights/release approval remain open.
+Exact checks and artifact identities are recorded in the final section. The
+release branch is synchronized with this implementation and progress record.
 
-PR #45 merged as `85ca2dcc2f4b26e8922e0af0d560155ebdfc9719` after final Linux/macOS CI passed.
+Earlier PR #45 merged as `85ca2dcc2f4b26e8922e0af0d560155ebdfc9719` after final Linux/macOS CI passed.
 Original seven-joint live clips now offer explicit additive local offsets alongside
 default-compatible override, including native controls, saved projects, Undo/Redo,
 shared preview/export and conservative work limits. Independent rendered fixtures
@@ -86,17 +91,22 @@ and final redistribution clearance remain open.
 | Completed | Still open |
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
-| Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
-| Rule clips, authored offsets, project clip capture/reuse/retiming and ordered override/additive live original-rig layers with weight curves/fades, loops and joint selection; soft animated ellipse/polygon masks and multiply/screen CPU composition | Image masks, polygon feathering, groups and physical Mac compositing acceptance |
+| Persisted per-bone tracks/editor, procedural strengths and editable versioned custom rigid characters with shared rest-part/root rendering | Custom-rig joint animation, textures/deformation and arbitrary custom-clip blending |
+| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups and existing CPU masks/blends | Image masks, polygon feathering, painting/pressure/retouching and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
-| Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
-| CPU SVG/PNG/MP4, bounded frames, optional evaluated-geometry GPU experiment, engine index foundation and final-ZIP/build observations | Full GPU scene parity, physical Metal/performance and final license clearance |
+| Managed Kokoro, bound cache, reported M1 speech, estimated cues/archive and automatic reuse for explicitly enrolled self-contained local Phonetic packages | Real package compatibility/audited closure, offline/device acceptance and measured recognizer quality |
+| CPU SVG/PNG/MP4, bounded experimental GPU artwork/masks/groups/blends/crossfades, input reuse and bound package/build/review-gap reports | Shared GPU fonts, full measured scene parity/production backend, physical Metal/performance and final license clearance |
 
 Maintain this summary and the full checklist after each authorized merge. A new
 implementation remains pending until its relevant checks pass; hardware gates
 require actual evidence.
 
 ## Ownership and current increment
+
+PR #46 delivery (2026-10-19): `normalized_groups`, `custom_rigs`, `gpu_complete`,
+`artist_groups`, `speech_production_reuse` and `release_mac_evidence`; parent
+integrated shared boundaries, tests, review findings, CI and release progress.
+The broader eight-area ownership below remains active for unfinished work.
 
 Previous parallel implementation increment (2026-10-18, integrated in PR #43):
 `gpu_scene_implementation`, `animation_loop_masks`, `artist_mask_tools`,
@@ -178,7 +188,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Headless per-joint PoseTrack sampler and validated weighted pose-blending API.
 - [x] Rule-based keyframe clip library in shared preview/export: emotion posture blending, walk, wave/point/nod/shrug gestures and viseme-driven speech head motion.
 - [x] Persisted parent-local per-bone tracks and detached editor in shared preview/export.
-- [ ] Arbitrary rig definition editing, textured parts and deformation.
+- [x] Versioned editable custom rig hierarchy and colored rigid polygon parts, native definition editor, persistence and shared root/rest rendering (PR #46).
+- [ ] Custom-rig joint animation, textured parts and deformation.
 - [x] Authored bone offsets layer over rule clips in shared evaluation.
 - [x] Artist-controlled per-scene/actor posture, walk and gesture strengths with shared evaluation (PR #35).
 - [x] Scene-local animated procedural strength tracks with outgoing easing and native editor (PR #36).
@@ -188,7 +199,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Per-instance animated weight curves, linear fades, shared sampling and native authoring (PR #41).
 - [x] Live clip original-speed looping and explicit original-rig joint selection, including native controls and shared evaluation (PR #43).
 - [x] Explicit original-rig additive live offsets with checked accumulation and default-compatible override (PR #45).
-- [ ] Normalized groups, arbitrary-rig pose mixing and cross-project libraries.
+- [x] Explicit normalized original-rig override groups with per-joint residuals and continuous authored-base-anchored rotations (PR #46).
+- [ ] Arbitrary-rig pose mixing and cross-project libraries.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -202,7 +214,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persisted ordered/visible/opacity image and basic drawing layers with rectangular clip masks.
 - [x] Validated ellipse/simple-polygon masks and normal/multiply/screen shared CPU blending.
 - [x] Persisted soft animated ellipse masks in shared SVG/PNG/native preview and sequence evaluation (PR #43).
-- [ ] Groups, image masks, polygon feathering and physical Mac compositing acceptance.
+- [x] Bounded isolated nested artwork groups with explicit sibling order, native history controls and shared CPU composition (PR #46).
+- [ ] Image masks, polygon feathering, painting/pressure/retouching and physical Mac compositing acceptance.
 - [x] Selected-scene shared CPU-composited advanced frames and final integration checks (PR #31).
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
@@ -211,6 +224,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Shared scaled raster transition preview and sequence MP4 compositing.
 - [x] SVG project sequence compositing (PR #33).
 - [x] Default-disabled evaluated-scene geometry GPU experiment with explicit label omissions, work bounds and decoded RGBA diagnostics (PR #43).
+- [x] Expanded experimental GPU images, rigid parts, existing masks, isolated groups, backdrop blends and whole-frame crossfades; replayable project/sequence probe (PR #46).
 - [ ] Verified production GPU preview.
 - [x] Optional genuine offscreen GPU fixture, shader validation, bounded readback and explicit backend/device metadata.
 - [ ] Full-scene GPU renderer/parity and actual macOS Metal hardware evidence.
@@ -248,6 +262,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native detached soft ellipse mask/key authoring with atomic Apply and shared history (PR #43).
 - [x] Native stable-ID scene reorder actions with validated transitions and source Undo/Redo (PR #43).
 - [x] Native override/additive live-instance mode control with Apply, reset preservation and shared history (PR #45).
+- [x] Native normalized clip groups, custom rigid-character definition editing and nested artwork group controls through existing history (PR #46).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -274,6 +289,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Consented managed Kokoro provisioning with pinned asset revisions, sizes and SHA256.
 - [x] Reproducible Cargo/Python/model/voice/binary evidence inventory with fail-closed unresolved gate.
 - [x] Final signed preview ZIP/member inventory, exact package resources and CI sidecar (PR #42).
+- [x] Offline artifact-bound license corpus/review-gap and Mac observation reports with bounded inputs and no automatic approval (PR #46).
 - [ ] Complete artifact-specific dependency/asset license and redistribution audit.
 - [x] Real local English Kokoro CPU WAV on Apple Silicon (user report 2026-10-16: M1, macOS 27.1, both voices; see [acceptance](kokoro-in-app-acceptance.md#recorded-mac-evidence)).
 - [ ] Offline synthesis after provisioning with networking disabled.
@@ -282,7 +298,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native explicit estimated-aligner execution controls (PR #31).
 - [x] Explicit saved estimated-cue cache and native exact-PCM/text reload (PR #34).
 - [x] Immutable exact-request engine-index foundation with private eligibility, corruption/conflict/cancellation checks and explicit result origin (PR #43).
-- [ ] Automatic engine-result cache lookup with verified resources/environment.
+- [x] Automatic lookup/miss/publication and fresh bypass for explicitly trusted self-contained local Phonetic packages with exact package/runtime identity and controlled execution (PR #46).
+- [ ] Actual supplied recognizer compatibility, audited complete environment and real-audio quality acceptance.
 - [x] Estimated cues preserve separate provenance and integer-sample trim/offset evaluation in preview/export.
 - [ ] Validated forced-aligner integration and editable timing tools.
 - [ ] Annotated real-audio corpus and measured timing error.
@@ -1207,35 +1224,37 @@ model inference, GPU/device execution or final license clearance is claimed. See
 [live clip controls](live-clip-blending.md) and the initial
 [animation handoff](workstreams/next-character-animation.md).
 
-## Combined production workstreams (source implemented, pending CI/integration)
+## Combined production workstreams (PR #46, merged 2026-10-19)
 
 User requested all six remaining areas in one next PR. Six implementation owners
-worked on non-overlapping boundaries with parent integration. Checkboxes remain
-open until final CI/review and integration; no whole-product milestone is closed.
+worked on separate boundaries with parent integration. The scoped implementations
+below passed final checks and merged; the entire six-area production backlog is
+not complete. No whole-product milestone or external acceptance gate is closed.
 
-- [ ] Normalized original-rig override groups: compatible explicit contiguous
-  groups, per-joint residual/normalization, stable signed-angle reference, native
+- [x] Normalized original-rig override groups: compatible explicit contiguous
+  groups, per-joint residual/normalization, continuous authored-base rotation anchor, native
   controls and independent expected SVG/PNG/shared-preview tests.
-- [ ] Versioned custom rigid characters: stable joint hierarchy, bounded colored
+- [x] Versioned custom rigid characters: stable joint hierarchy, bounded colored
   polygon parts, cached rest evaluation, detached native definition editor,
   source history and saved projects. Root motion works; original-rig bone/live
   tracks and gestures are explicitly unsupported for custom actors.
-- [ ] Expanded experimental GPU composition: original decoded images, artwork,
+- [x] Expanded experimental GPU composition: original decoded images, artwork,
   custom polygons, existing hard/soft masks, isolated groups and backdrop blends,
   bounded source-texture residency and whole-frame weighted crossfade commands.
-- [ ] Isolated nested artist groups: explicit mixed sibling order, visibility,
+- [x] Isolated nested artist groups: explicit mixed sibling order, visibility,
   opacity applied once, normal/multiply/screen, native atomic controls/history,
   shared CPU composition and dormant group work/memory preflight.
-- [ ] Automatic estimate reuse: explicit local self-contained Phonetic package
+- [x] Automatic estimate reuse: explicit local self-contained Phonetic package
   enrollment, exact package/environment identity, private controlled execution,
   automatic hit/miss/publication and explicit fresh-run escape. Native loader
   formats/resources have narrow supported boundaries; unknown packages remain
   explicit-only. Enrollment is local trust, not quality or rights approval.
-- [ ] Offline release-license corpus/review-gap report and artifact-bound Mac
+- [x] Offline release-license corpus/review-gap report and artifact-bound Mac
   observation report: exact input identities, bounded evidence, atomic new-only
   output, actionable unresolved gates and never automatic final approval.
-- [ ] Final Linux/macOS fmt/check/strict Clippy/default/optional GPU/Python/media
+- [x] Final Linux/macOS fmt/check/strict Clippy/default/optional GPU/Python/media
   checks, independent review and authorized integration.
+- [ ] Finish the remaining software and external acceptance work listed below.
 
 Still open beyond these concrete increments: custom-rig animation tracks,
 textures/deformation and clip exchange; shared deterministic GPU fonts, measured
@@ -1245,3 +1264,36 @@ recognizer execution/perceptual quality; physical Mac offline/audio/GUI acceptan
 complete upstream license/NOTICE corpus, reviewed obligations, final packaged
 notices and authorized production signing/release. Source tests and evidence
 collectors cannot manufacture physical acceptance or rights clearance.
+
+Final source `6f25ccd808cc383312162a9df3d131c37fd079b2` passed Audio foundation
+39211804287 and Apple Silicon preview 39211804376. Workspace fmt/check/strict
+Clippy passed with 492 Linux / 491 macOS default Rust tests (32 new), 28 adapter-free
+optional GPU library tests and two project-probe tests per platform, feature
+Clippy, 55 runtime / 79 repository Python tests per platform (20 new repository
+tests), and three actual media encoder tests. GPU contracts run independently
+on both platforms. No local Rust toolchain was available.
+
+Independent review findings were corrected: normalized rotations no longer
+switch anchors at total weight one; accepted rig polygons are simple; isolated
+single-scene targets share the retained-image/audio working-set budget; probe
+inputs reject nonregular files before opening; Mac fixtures use canonical OS
+paths; package manifests/copies retain cumulative bounds. Targeted numeric,
+actual SVG/PNG/preview, persistence/history, malformed-input and resource tests
+passed. CI formatting, type/lint and shader validation findings were fixed before
+the final successful source. No adapter was requested by default GPU tests.
+
+Mac preview, package/build reports and retained inputs:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39211804376/artifacts/12167669246
+Artifact container SHA256: `0efd67320e8f17ae8bf79bd4abfda17cbd0fa44c71b1f490eb2bc0a774e43315`.
+Final signed preview ZIP SHA256: `788b404698e01b9fa0b142e9e1ad0a20959ef461e19f52c8f195614787e9b403`.
+The final audit accepted 21 file records with `distribution_approved: false`.
+No real recognizer/model, physical Mac/GPU execution, perceptual quality,
+performance measurement or final license clearance is claimed.
+
+Open the original asset-free [studio demo](../examples/studio-production-demo.kilsat)
+to inspect custom rigid parts, normalized clips and nested groups. See
+[rig editing](custom-rigid-characters.md), [clip controls](live-clip-blending.md),
+[GPU experiment/probe](gpu-evaluated-scene.md),
+[local package reuse](workstreams/estimated-auto-reuse.md) and
+[release/Mac reports](release-license-report.md). This post-merge record changes
+documentation only.

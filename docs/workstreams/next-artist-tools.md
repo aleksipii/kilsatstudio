@@ -1,5 +1,14 @@
 # Next artist tools implementation handoff
 
+## PR #46 delivery and remaining scope
+
+PR #46 delivers the first isolated nested-group package: explicit mixed ordering,
+native atomic controls/history and shared CPU composition with dormant/combined
+memory budgets. Exact CI and independent pixel evidence is in
+[master progress](../master-progress.md). Image masks, polygon feathering,
+painting, pressure and retouching remain open. The specification below is retained
+as the inspected baseline, not a claim that groups are still unimplemented.
+
 Status: source inspected 2026-10-18; specification only. The parent integrator
 owns scheduling, shared-file allocation and completion evidence. This document
 changes no production behavior and closes no product or hardware gate.

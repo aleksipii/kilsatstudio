@@ -72,3 +72,11 @@ no humanoid bone tracks, live clips, gesture events or speech deformation.
 This example makes the source changes reviewable. Its JSON structure was checked
 when created; repository CI must establish full Rust project decoding, evaluation
 and rendering. Manual desktop actions above remain a physical Mac acceptance task.
+
+PR #46 passed final Linux/macOS CI, including saved-project/history, context-guard,
+simple-polygon and shared-render/preview regressions. Exact evidence is in
+[master progress](master-progress.md). Custom actors reject original-rig gestures,
+bone/live tracks, animated procedural strength tracks and nondefault static
+procedural strengths with actionable errors. Remove unsupported original-rig
+tracks before assigning a custom definition; default strengths remain compatible.
+No physical Mac editing or motion quality acceptance is implied by these checks.

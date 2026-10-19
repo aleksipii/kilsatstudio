@@ -16,10 +16,12 @@ Font labels are **unsupported by default**. `Labels::Require` rejects any actor
 before adapter initialization. An experimental caller must explicitly choose
 `Labels::OmitAcknowledged`; the probe additionally requires the command-line
 acknowledgement below. Omitted labels and analytical antialiasing/stroke joins
-mean this is not CPU/SVG/native parity. Artwork, image resources, masks, blend
-modes and sequence transitions are unsupported. Do not feed a scene stripped of
-these features into the primitive-only API and describe that as full rendering.
-The script-only probe rejects non-cut transitions and loads no project artwork.
+mean this is not CPU/SVG/native parity. The basic `build`/`render_scene` API is
+geometry-only. PR #46 adds bounded artwork/images, masks, isolated groups,
+backdrop blending and crossfade commands through `build_with_art` and the project/
+sequence probe documented below. The probe accepts `.kilsat` files; its legacy
+numeric scene selector still rejects transitions, while `sequence` uses the shared
+sequence clock. Production GPU backend selection and measured parity remain open.
 
 An explicit hardware experiment, off the desktop event loop:
 

@@ -1,11 +1,14 @@
 # Automatic estimated-result reuse workstream
 
-Status: input-index foundation integrated in PR #43 after Linux/macOS CI,
-2026-10-18. Production automatic engine memoization is **not enabled or accepted**. This document
-does not establish the contents, behavior or licenses of a real Rhubarb package.
-No recognizer, model download or hardware test was run for this inspection.
+Status: PR #46 integrates automatic lookup/miss/publication for explicitly trusted
+self-contained local Phonetic packages, with Linux/macOS CI evidence in
+[master progress](../master-progress.md). Enrollment is a local package-completeness
+assertion, not externally reviewed environment closure, physical compatibility,
+license approval or measured quality. No real recognizer/model/hardware run is
+claimed. The PR #43 foundation below is retained as historical context; the
+explicit enrollment section documents the current opt-in path.
 
-## Current implementation
+## PR #43 index foundation (historical)
 
 `motion-lipsync/src/engine_reuse.rs` now supplies a separate input-index storage
 API. Schema-v1 request identity covers exact decoded PCM (including sample rate,
@@ -209,7 +212,7 @@ See [saved estimated timing](../estimated-cue-cache.md),
 [Rhubarb execution](../rhubarb-estimated-cues.md) and
 [alignment workstream](alignment.md).
 
-## Explicit local package enrollment (implementation awaiting CI)
+## Explicit local package enrollment (PR #46, integrated)
 
 The new opt-in local profile is an explicit trust boundary: the operator asserts
 that a selected Phonetic package is self-contained. This is not an externally

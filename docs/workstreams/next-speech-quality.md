@@ -1,5 +1,14 @@
 # Next speech and mouth-quality workstream
 
+## PR #46 delivery and remaining scope
+
+PR #46 adds an opt-in explicitly trusted self-contained local Phonetic package
+profile and automatic worker lookup/miss/publication, with exact package/runtime
+identity and controlled execution. See [current local enrollment](estimated-auto-reuse.md)
+and [master progress](../master-progress.md). This local trust assertion does not
+supply externally audited closure, actual package execution, forced alignment or
+real-audio quality; those gates below remain open.
+
 Owner: speech/lipsync workstream. Planning handoff, 2026-10-18.
 Scope: inspected repository implementation and existing recorded evidence only.
 No production code changed, recognizer/model executed, asset downloaded, timing

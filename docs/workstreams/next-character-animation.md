@@ -1,5 +1,15 @@
 # Character and animation: next implementation handoff
 
+## PR #46 delivery and remaining scope
+
+PR #46 delivery: normalized original-rig groups and the first versioned custom
+rig/colored rigid-part editor are integrated with final CI evidence in
+[master progress](../master-progress.md). Normalized rotations consistently anchor
+to the accumulated authored base to keep weight thresholds continuous. Custom
+rigs currently render cached rest parts plus root motion; custom joint tracks,
+textures/deformation, idle and cross-project exchange remain open. The inspection
+and contracts below describe their dated baseline.
+
 Planning-only owner: `character_animation_owner`. Inspected 2026-10-18 on
 the integrated PR #43 source baseline. This document changes no production behavior and
 marks no acceptance gate complete. The parent owns integration and shared-file
@@ -13,8 +23,8 @@ native mode control, history/persistence, conservative work limits and independe
 SVG/PNG/sample-clock preview tests. Final Linux/macOS CI passed; exact evidence
 is in [master progress](../master-progress.md). Physical Mac motion quality remains
 open. The original inspection and contract below are retained as the baseline,
-not a claim that additive mode is still unimplemented. Package 2 is the next
-animation implementation boundary; broader rigs and product gates remain open.
+not a claim that additive mode is still unimplemented. The PR #46 update above supersedes package 2 as the next
+implementation boundary; broader rigs and product gates remain open.
 
 ## Inspected implementation
 
@@ -145,7 +155,7 @@ Undo an additive instance, independently expected geometry/pixels pass, defaults
 remain compatible and all applicable checks pass. A new enum/helper alone is
 incomplete. Physical acceptance must stay open until actually exercised.
 
-## Ordered remaining packages and dependencies
+## Ordered packages and dependencies (baseline sequencing)
 
 | Order | Concrete next outcome | Required boundary and acceptance |
 | --- | --- | --- |

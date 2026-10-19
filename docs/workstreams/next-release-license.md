@@ -1,5 +1,14 @@
 # Release and license remaining-work handoff
 
+## PR #46 delivery and remaining scope
+
+PR #46 implements the offline corpus/review-gap report described below and a
+separate artifact-bound Mac observation report. See [report guide](../release-license-report.md)
+and [master progress](../master-progress.md) for actual checks. Supplied evidence
+is checked for integrity; final distribution/device approval is never granted
+automatically. Actual upstream corpus, qualified review, fulfilled notices,
+production signing and release authority remain open.
+
 Owner: `release_license_owner`. Status: assigned, open; specification only.
 Inspected 2026-10-18 on `docs/remaining-work-owners`, HEAD
 `f433c902492d4c4978950e32262746859ca102ac`. This handoff implements no

@@ -1,5 +1,15 @@
 # GPU production workstream handoff after PR #43
 
+## PR #46 delivery and remaining scope
+
+PR #46 adds experimental GPU artwork/images, custom rigid polygons, existing
+masks, isolated groups/blends and complete-frame crossfade commands, plus a
+replayable project/sequence probe. Adapter-free contracts and strict feature
+Clippy passed on Linux/macOS; see [master progress](../master-progress.md).
+Shared reviewed fonts, measured full parity, production preview/export backend,
+physical Metal and performance remain open. The inspection below predates this
+expanded command coverage.
+
 Owner: GPU production agent; integration owner: parent. Inspected 2026-10-18 on
 `feat/studio-open-workstreams`. This is a source-based assignment and implementation
 specification, not production implementation or device acceptance. Scope owned by

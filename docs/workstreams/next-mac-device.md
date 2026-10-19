@@ -1,5 +1,13 @@
 # Next Mac device acceptance package
 
+## PR #46 delivery and remaining scope
+
+PR #46 adds an offline artifact-bound operator observation collector; see
+[report guide](../release-license-report.md) and [master progress](../master-progress.md).
+Its synthetic tests do not run a physical Mac procedure. Offline Kokoro, device
+switch/recovery, timing, Finder, shortcuts, accessibility and complete interactive
+acceptance below remain open.
+
 Owner: `mac_device_owner`. Planning only, 2026-10-18. No physical device,
 model, recognizer, Finder or graphical acceptance was executed for this handoff.
 Use [the existing device procedure](mac-device-acceptance.md) and
