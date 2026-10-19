@@ -41,7 +41,7 @@ class MacAcceptanceTests(unittest.TestCase):
         (self.root / 'capture.txt').write_bytes(b'synthetic observation')
         item['evidence'] = [dict(path='capture.txt', **mac.identity(b'synthetic observation'))]
         result = self.collect()
-        self.assertEqual(len(result['unresolved']), 9)
+        self.assertEqual(len(result['unresolved']), 9 + len(mac.SCENARIOS['launch-project']))
         self.assertEqual(result['physical_device_acceptance'], 'not_granted')
         (self.root / 'capture.txt').write_bytes(b'changed')
         with self.assertRaisesRegex(ValueError, 'digest/size'):
@@ -68,8 +68,65 @@ class MacAcceptanceTests(unittest.TestCase):
         self.value['observations'] = [dict(gate=gate, status='pass', steps='Fixture', expected='Fixture', actual='Fixture',
                                          evidence=[dict(path='report.txt', **mac.identity(data))]) for gate in mac.GATES]
         result = self.collect()
-        self.assertEqual({x['gate'] for x in result['unresolved']}, {'authority-review', 'build-attestation'})
+        self.assertEqual(sum('scenario' in x for x in result['unresolved']), sum(map(len, mac.SCENARIOS.values())))
         self.assertEqual(result['physical_device_acceptance'], 'not_granted')
+
+    def test_complete_scenarios_still_cannot_grant_acceptance(self):
+        data = b'Synthetic detailed operator observations, not actual device evidence'
+        (self.root / 'report.txt').write_bytes(data)
+        self.value['observations'] = [dict(
+            gate=gate, status='pass', steps='Fixture', expected='Fixture', actual='Fixture',
+            evidence=[dict(path='report.txt', **mac.identity(data))],
+            scenarios=[dict(scenario=scenario, status='pass', steps='Fixture procedure',
+                            expected='Fixture expectation', actual='Fixture observation',
+                            evidence_paths=['report.txt']) for scenario in mac.SCENARIOS[gate]])
+            for gate in mac.GATES]
+        result = self.collect()
+        self.assertEqual({x['gate'] for x in result['unresolved']}, {'authority-review', 'build-attestation'})
+        self.assertFalse(result['distribution_approved'])
+        self.assertEqual(result['physical_device_acceptance'], 'not_granted')
+
+    def test_scenario_evidence_and_contradictions_rejected(self):
+        data = b'Synthetic observation'
+        (self.root / 'report.txt').write_bytes(data)
+        scenario = dict(scenario='launch', status='pass', steps='Fixture', expected='Fixture',
+                        actual='Fixture', evidence_paths=['unretained.txt'])
+        gate = dict(gate='launch-project', status='pass', steps='Fixture', expected='Fixture', actual='Fixture',
+                    evidence=[dict(path='report.txt', **mac.identity(data))], scenarios=[scenario])
+        self.value['observations'] = [gate]
+        with self.assertRaisesRegex(ValueError, 'unique retained'):
+            self.collect()
+        scenario['evidence_paths'] = []
+        with self.assertRaisesRegex(ValueError, 'tested scenario requires'):
+            self.collect()
+        scenario['evidence_paths'] = ['report.txt']
+        scenario['status'] = 'fail'
+        with self.assertRaisesRegex(ValueError, 'passing gate'):
+            self.collect()
+        gate['status'] = 'not_tested'
+        with self.assertRaisesRegex(ValueError, 'untested gate'):
+            self.collect()
+        gate['status'] = 'fail'
+        result = self.collect()
+        self.assertIn(dict(gate='launch-project', scenario='launch', reason='fail'), result['unresolved'])
+        scenario['scenario'] = 'invented'
+        with self.assertRaisesRegex(ValueError, 'unknown/duplicate device scenario'):
+            self.collect()
+
+    def test_duplicate_scenarios_and_duplicate_paths_rejected(self):
+        data = b'Synthetic observation'
+        (self.root / 'report.txt').write_bytes(data)
+        scenario = dict(scenario='launch', status='pass', steps='Fixture', expected='Fixture', actual='Fixture',
+                        evidence_paths=['report.txt'])
+        gate = dict(gate='launch-project', status='pass', steps='Fixture', expected='Fixture', actual='Fixture',
+                    evidence=[dict(path='report.txt', **mac.identity(data))], scenarios=[scenario, scenario])
+        self.value['observations'] = [gate]
+        with self.assertRaisesRegex(ValueError, 'unknown/duplicate device scenario'):
+            self.collect()
+        gate['scenarios'] = [scenario]
+        scenario['evidence_paths'] = ['report.txt', 'report.txt']
+        with self.assertRaisesRegex(ValueError, 'unique retained'):
+            self.collect()
 
     def test_cli_strict_and_preserves_report(self):
         self.collect()

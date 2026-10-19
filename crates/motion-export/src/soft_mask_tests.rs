@@ -306,6 +306,7 @@ fn image_mask(channel: motion_art::MaskChannel) -> ClipShape {
             height: 100.0,
         },
         channel,
+        keys: Vec::new(),
     }
 }
 
@@ -387,6 +388,7 @@ fn image_mask_validates_references_and_persistence() {
             asset_id: String::new(),
             rect: *rect,
             channel: Default::default(),
+            keys: Vec::new(),
         },
         ClipShape::Image {
             asset_id: "mask".into(),
@@ -395,6 +397,7 @@ fn image_mask_validates_references_and_persistence() {
                 ..*rect
             },
             channel: Default::default(),
+            keys: Vec::new(),
         },
     ] {
         assert!(bad.validate().is_err());
@@ -693,4 +696,36 @@ fn pressure_stroke_self_crossing_and_sharp_turns_do_not_cancel_coverage() {
     assert_eq!(turns[20], 255, "sharp turns retain their endpoint disk");
     assert_eq!(turns[50], 255, "opposite winding must not punch a hole");
     assert_eq!(turns[80], 255);
+}
+
+#[test]
+fn animated_image_masks_match_static_expectations_and_preview_export_on_reverse_seeks() {
+    let (script, rendered, mut art) = fixture();
+    art.images.insert("mask".into(), motion_art::ImageResource::from_rgba(1, 1, vec![255; 4]).unwrap());
+    let base = Rect { x: 0.0, y: 0.0, width: 40.0, height: 100.0 };
+    art.document.layers[0].clip_shape = Some(ClipShape::Image {
+        asset_id: "mask".into(), rect: base, channel: motion_art::MaskChannel::Alpha,
+        keys: vec![
+            motion_art::RectMaskKey { time: 0.0, rect: base },
+            motion_art::RectMaskKey { time: 1.0, rect: Rect { x: 60.0, ..base } },
+        ],
+    });
+    art.document = serde_json::from_str(&serde_json::to_string(&art.document).unwrap()).unwrap();
+    let preview = ScenePreview::new(Arc::new(script.clone()), 0, Arc::new(art.clone()), Some(Arc::new(rendered.manifest.clone()))).unwrap();
+    let cancel = CancellationToken::new();
+    for index in [3, 0, 2, 1, 2] {
+        let (sample, _, png) = encode_frame(&script, 0, &rendered, index, true, &cancel, Some(&art)).unwrap();
+        let actual = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+        assert_eq!(preview.render(sample, 1024, &cancel).unwrap().rgba, actual.data());
+        let (_, _, svg) = encode_frame(&script, 0, &rendered, index, false, &cancel, Some(&art)).unwrap();
+        let svg_png = media::rasterize_scaled(&String::from_utf8(svg).unwrap(), None).unwrap();
+        assert_eq!(resvg::tiny_skia::Pixmap::decode_png(&svg_png).unwrap().data(), actual.data());
+        let mut expected = art.clone();
+        expected.document.layers[0].clip_shape = Some(ClipShape::Image {
+            asset_id: "mask".into(), rect: Rect { x: 60.0 * (index as f64 * 0.25).min(1.0), ..base },
+            channel: motion_art::MaskChannel::Alpha, keys: Vec::new(),
+        });
+        let (_, _, expected_png) = encode_frame(&script, 0, &rendered, index, true, &cancel, Some(&expected)).unwrap();
+        assert_eq!(actual.data(), resvg::tiny_skia::Pixmap::decode_png(&expected_png).unwrap().data(), "frame {index}");
+    }
 }

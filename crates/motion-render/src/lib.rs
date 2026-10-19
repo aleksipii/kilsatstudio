@@ -438,12 +438,15 @@ fn append_art(
                 write!(svg, "{},{} ", p.x, p.y).unwrap();
             }
             write!(svg, "\"/></mask></defs><g mask=\"url(#art{index})\">").unwrap();
-        } else if let Some(motion_art::ClipShape::Image {
+        } else if let Some(shape @ motion_art::ClipShape::Image {
             asset_id,
-            rect: r,
             channel,
+            ..
         }) = &layer.clip_shape
         {
+            let r = shape.sample_image_rect(scene.time).ok_or_else(|| {
+                Error::InvalidArtwork("image mask rectangle is unavailable".into())
+            })?;
             let image = images.get(asset_id).ok_or_else(|| {
                 Error::InvalidArtwork(format!("missing decoded mask image {asset_id}"))
             })?;

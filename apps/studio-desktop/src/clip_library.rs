@@ -19,6 +19,10 @@ pub enum Action {
     Remove {
         name: String,
     },
+    Import {
+        text: String,
+        replace: bool,
+    },
 }
 
 impl Action {
@@ -46,6 +50,7 @@ impl Action {
                 )
             }
             Self::Remove { name } => motion_script::remove_animation_clip(source, &name),
+            Self::Import { text, replace } => import_library(source, &text, replace),
         }
     }
 }
@@ -61,6 +66,9 @@ pub struct State {
     retime: bool,
     at: f64,
     duration: f64,
+    exchange: String,
+    replace_import: bool,
+    exchange_status: String,
 }
 
 impl State {
@@ -75,6 +83,7 @@ impl State {
         let context = (scene_index, actor.to_owned());
         if self.context.as_ref() != Some(&context) {
             self.replace_capture = false;
+            self.replace_import = false;
             self.replace_target = false;
             self.confirm_delete = false;
             self.retime = false;
@@ -266,8 +275,90 @@ impl State {
             self.confirm_delete = false;
             ui.small("Select a captured clip to inspect or apply it.");
         }
+        ui.separator();
+        ui.collapsing("Share clips between projects", |ui| {
+            ui.small("Version 1 · original seven-bone rig only. Copy the JSON text into another project's clip library. Custom rigs, textures, speech and assets are not included.");
+            ui.horizontal(|ui| {
+                if ui.add_enabled(!self.selected.is_empty(), egui::Button::new("Copy selected clip")).clicked() {
+                    match export_library(script, Some(&self.selected)) {
+                        Ok(text) => { ui.ctx().copy_text(text); self.exchange_status = "Clip copied. Paste it into the destination project below.".into(); }
+                        Err(error) => self.exchange_status = error.to_string(),
+                    }
+                }
+                if ui.add_enabled(!script.animation_clips.is_empty(), egui::Button::new("Copy all clips")).clicked() {
+                    match export_library(script, None) {
+                        Ok(text) => { ui.ctx().copy_text(text); self.exchange_status = "Library copied.".into(); }
+                        Err(error) => self.exchange_status = error.to_string(),
+                    }
+                }
+            });
+            if ui.add(egui::TextEdit::multiline(&mut self.exchange).char_limit(EXCHANGE_LIMIT).desired_rows(5).hint_text("Paste exported clip library JSON")).changed() {
+                self.replace_import = false;
+                self.exchange_status.clear();
+            }
+            ui.checkbox(&mut self.replace_import, "Replace matching clip names (also changes their live instances)");
+            ui.small("Import is one Undo step. Every affected live reference must remain valid. YAML comments and formatting are normalized.");
+            if ui.add_enabled(!self.exchange.trim().is_empty(), egui::Button::new("Import clips into this project")).clicked() {
+                action = Some(Action::Import { text: self.exchange.clone(), replace: self.replace_import });
+                self.replace_import = false;
+            }
+            if !self.exchange_status.is_empty() { ui.label(&self.exchange_status); }
+        });
         action
     }
+}
+
+const EXCHANGE_LIMIT: usize = 1024 * 1024;
+
+fn exchange_error(message: impl Into<String>) -> motion_script::Error {
+    motion_script::Error::Validation(message.into())
+}
+
+/// A portable, asset-free library; importing always validates the whole destination.
+fn export_library(script: &Script, selected: Option<&str>) -> Result<String, motion_script::Error> {
+    script.validate()?;
+    let clips = if let Some(name) = selected {
+        let clip = script.animation_clips.get(name).ok_or_else(|| exchange_error("Select an existing clip to export"))?;
+        serde_json::to_value(std::collections::BTreeMap::from([(name, clip)]))
+            .map_err(|error| exchange_error(error.to_string()))?
+    } else {
+        serde_json::to_value(&script.animation_clips).map_err(|error| exchange_error(error.to_string()))?
+    };
+    let text = serde_json::to_string_pretty(&serde_json::json!({
+        "format": "kilsat-clip-library", "version": 1, "rig": "original-seven-bone", "clips": clips
+    })).map_err(|error| exchange_error(error.to_string()))?;
+    if text.len() > EXCHANGE_LIMIT {
+        return Err(exchange_error("Clip exchange exceeds the one MiB limit"));
+    }
+    Ok(text)
+}
+
+fn import_library(source: &str, text: &str, replace: bool) -> Result<String, motion_script::Error> {
+    if source.len() > EXCHANGE_LIMIT || text.len() > EXCHANGE_LIMIT {
+        return Err(exchange_error("Clip exchange and screenplay are limited to one MiB each"));
+    }
+    let envelope: serde_json::Value = serde_json::from_str(text).map_err(|error| exchange_error(format!("Clip library JSON: {error}")))?;
+    let object = envelope.as_object().ok_or_else(|| exchange_error("Clip library must be a JSON object"))?;
+    if object.len() != 4 || envelope["format"] != "kilsat-clip-library" || envelope["version"].as_u64() != Some(1) || envelope["rig"] != "original-seven-bone" {
+        return Err(exchange_error("Expected kilsat-clip-library version 1 for the original-seven-bone rig with only format, version, rig and clips fields"));
+    }
+    let clips: std::collections::BTreeMap<String, motion_script::AnimationClip> = serde_json::from_value(envelope["clips"].clone()).map_err(|error| exchange_error(format!("Clip library: {error}")))?;
+    if clips.is_empty() || clips.len() > 64 {
+        return Err(exchange_error("Import requires 1..64 clips"));
+    }
+    let mut candidate = motion_script::parse(source)?;
+    for (name, clip) in clips {
+        if !replace && candidate.animation_clips.contains_key(&name) {
+            return Err(exchange_error(format!("Clip {name} already exists; explicitly enable replacement")));
+        }
+        candidate.animation_clips.insert(name, clip);
+    }
+    candidate.validate()?;
+    let output = serde_yaml::to_string(&candidate)?;
+    if output.len() > EXCHANGE_LIMIT {
+        return Err(exchange_error("Imported screenplay exceeds the one MiB limit"));
+    }
+    Ok(output)
 }
 
 fn reference_counts(script: &Script, name: &str) -> (usize, usize) {
@@ -312,6 +403,49 @@ mod tests {
     use super::*;
 
     const SOURCE: &str = "characters: {A: {asset: a}, B: {asset: b}}\nscenes: [{id: shot, duration: 4, events: [], composition: {bone_tracks: {A: {head: [{at: 0, x: 2}, {at: 2, x: 8}]}}}}]\n";
+
+    #[test]
+    fn portable_library_import_is_atomic_validated_and_cross_project() {
+        let captured = Action::Capture { name: "Nod".into(), replace: false }.apply(SOURCE, 0, "A").unwrap();
+        let script = motion_script::parse(&captured).unwrap();
+        let text = export_library(&script, Some("Nod")).unwrap();
+        let target = "characters: {Other: {asset: other}}\nscenes: [{id: elsewhere, duration: 8, events: []}]\n";
+        let imported = Action::Import { text: text.clone(), replace: false }.apply(target, 0, "Other").unwrap();
+        let parsed = motion_script::parse(&imported).unwrap();
+        assert_eq!(parsed.animation_clips["Nod"], script.animation_clips["Nod"]);
+        assert!(parsed.scenes[0].composition.bone_tracks.is_empty());
+        assert!(import_library(&imported, &text, false).is_err());
+        assert!(import_library(&imported, &text, true).is_ok());
+        assert_eq!(motion_script::parse(target).unwrap().animation_clips.len(), 0);
+        let mut value: serde_json::Value = serde_json::from_str(&text).unwrap();
+        value["version"] = serde_json::json!(2);
+        assert!(import_library(target, &value.to_string(), false).is_err());
+        value["version"] = serde_json::json!(1);
+        value["unexpected"] = serde_json::json!(true);
+        assert!(import_library(target, &value.to_string(), false).is_err());
+        value.as_object_mut().unwrap().remove("unexpected");
+        value["clips"]["Nod"]["bone_tracks"]["head"][0]["at"] = serde_json::json!(-1);
+        assert!(import_library(target, &value.to_string(), false).is_err());
+        assert!(import_library(target, &" ".repeat(EXCHANGE_LIMIT + 1), false).is_err());
+    }
+
+    #[test]
+    fn invalid_import_preserves_existing_live_instance_definitions() {
+        let captured = Action::Capture { name: "Nod".into(), replace: false }.apply(SOURCE, 0, "A").unwrap();
+        let mut script = motion_script::parse(&captured).unwrap();
+        script.scenes[0].composition.clip_instances.push(motion_script::ClipInstance {
+            id: "live".into(), clip: "Nod".into(), actor: "B".into(), at: 0.0,
+            duration: 4.0, weight: 1.0, fade_in: 0.0, fade_out: 0.0,
+            weight_keys: Vec::new(), looping: false, joint_mask: Vec::new(),
+            blend_mode: motion_script::ClipBlendMode::Override, normalized_group: None,
+        });
+        script.validate().unwrap();
+        let source = serde_yaml::to_string(&script).unwrap();
+        let mut value: serde_json::Value = serde_json::from_str(&export_library(&script, None).unwrap()).unwrap();
+        value["clips"]["Nod"]["bone_tracks"] = serde_json::json!({"not_a_bone": [{"at": 0}]});
+        assert!(import_library(&source, &value.to_string(), true).is_err());
+        assert_eq!(motion_script::parse(&source).unwrap().animation_clips["Nod"], script.animation_clips["Nod"]);
+    }
 
     #[test]
     fn live_references_are_counted_and_cannot_be_deleted_from_library() {
@@ -382,6 +516,7 @@ mod tests {
             retime: true,
             at: 1.0,
             duration: 2.0,
+            ..State::default()
         };
         let ctx = egui::Context::default();
         let _ = ctx.run(egui::RawInput::default(), |ctx| {

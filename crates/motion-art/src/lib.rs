@@ -95,6 +95,8 @@ pub enum ClipShape {
         rect: Rect,
         #[serde(default)]
         channel: MaskChannel,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        keys: Vec<RectMaskKey>,
     },
     /// Ordered opaque vector paint/erase strokes over explicit initial coverage.
     Painted {
@@ -253,6 +255,13 @@ pub struct MaskKey {
     pub rect: Rect,
     pub feather: f64,
 }
+/// Scene-local image-mask rectangle key; endpoints hold outside the track.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct RectMaskKey {
+    pub time: f64,
+    pub rect: Rect,
+}
 /// SVG/resvg sRGB backdrop blending. Normal preserves legacy source-over output.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -281,10 +290,13 @@ impl ClipShape {
         if !duration.is_finite() || duration <= 0.0 {
             return invalid("mask scene duration must be finite and positive");
         }
-        if let Self::SoftEllipse { keys, .. } = self {
-            if keys.last().is_some_and(|key| key.time > duration) {
-                return invalid("artwork mask key exceeds its scene duration");
-            }
+        let last_time = match self {
+            Self::SoftEllipse { keys, .. } => keys.last().map(|key| key.time),
+            Self::Image { keys, .. } => keys.last().map(|key| key.time),
+            _ => None,
+        };
+        if last_time.is_some_and(|time| time > duration) {
+            return invalid("artwork mask key exceeds its scene duration");
         }
         Ok(())
     }
@@ -324,6 +336,39 @@ impl ClipShape {
             }
             Self::Polygon { .. } | Self::Image { .. } | Self::Painted { .. } => None,
         }
+    }
+    pub fn key_count(&self) -> usize {
+        match self {
+            Self::SoftEllipse { keys, .. } => keys.len(),
+            Self::Image { keys, .. } => keys.len(),
+            _ => 0,
+        }
+    }
+    /// Sample the image mask independently of seek order, in scene-local seconds.
+    pub fn sample_image_rect(&self, time: f64) -> Option<Rect> {
+        let Self::Image { rect, keys, .. } = self else {
+            return None;
+        };
+        if keys.is_empty() || !time.is_finite() {
+            return Some(*rect);
+        }
+        let index = keys.partition_point(|key| key.time <= time);
+        if index == 0 {
+            return Some(keys[0].rect);
+        }
+        let left = keys[index - 1];
+        if index == keys.len() {
+            return Some(left.rect);
+        }
+        let right = keys[index];
+        let t = (time - left.time) / (right.time - left.time);
+        let lerp = |a: f64, b: f64| a + (b - a) * t;
+        Some(Rect {
+            x: lerp(left.rect.x, right.rect.x),
+            y: lerp(left.rect.y, right.rect.y),
+            width: lerp(left.rect.width, right.rect.width),
+            height: lerp(left.rect.height, right.rect.height),
+        })
     }
     /// Project image asset used by an image mask, if any.
     pub fn image_asset(&self) -> Option<&str> {
@@ -376,11 +421,26 @@ impl ClipShape {
                 }
                 Ok(())
             }
-            Self::Image { asset_id, rect, .. } => {
+            Self::Image { asset_id, rect, keys, .. } => {
                 if !identifier(asset_id) {
                     return invalid("invalid mask image asset identifier");
                 }
-                rect.validate()
+                rect.validate()?;
+                if keys.len() > MAX_MASK_KEYS {
+                    return invalid("animated mask exceeds 128 keys");
+                }
+                let mut previous = None;
+                for key in keys {
+                    key.rect.validate()?;
+                    if !key.time.is_finite()
+                        || key.time < 0.0
+                        || previous.is_some_and(|time| key.time <= time)
+                    {
+                        return invalid("image mask keys require increasing finite nonnegative seconds");
+                    }
+                    previous = Some(key.time);
+                }
+                Ok(())
             }
             Self::Polygon { points, feather } => {
                 if !feather.is_finite() || !(0.0..=MAX_POLYGON_FEATHER).contains(feather) {
@@ -740,11 +800,9 @@ impl Document {
             }
             if let Some(shape) = &layer.clip_shape {
                 shape.validate()?;
-                if let ClipShape::SoftEllipse { keys, .. } = shape {
-                    mask_key_count += keys.len();
-                    if mask_key_count > MAX_TOTAL_MASK_KEYS {
-                        return invalid("artwork exceeds 8192 animated mask keys");
-                    }
+                mask_key_count += shape.key_count();
+                if mask_key_count > MAX_TOTAL_MASK_KEYS {
+                    return invalid("artwork exceeds 8192 animated mask keys");
                 }
                 if let ClipShape::Painted { strokes, .. } = shape {
                     mask_render_cost += strokes.iter().map(MaskStroke::render_cost).sum::<usize>();
@@ -1201,6 +1259,55 @@ mod tests {
         }
         .validate()
         .is_err());
+    }
+    #[test]
+    fn image_mask_track_is_bounded_deterministic_and_backward_compatible() {
+        let base = Rect { x: 0.0, y: 0.0, width: 10.0, height: 10.0 };
+        let keys = vec![
+            RectMaskKey { time: 0.0, rect: base },
+            RectMaskKey { time: 2.0, rect: Rect { x: 20.0, width: 30.0, ..base } },
+        ];
+        let shape = ClipShape::Image { asset_id: "mask".into(), rect: base, channel: MaskChannel::Alpha, keys: keys.clone() };
+        shape.validate().unwrap();
+        assert_eq!(shape.key_count(), 2);
+        assert!(shape.validate_scene_duration(1.0).is_err());
+        assert!(shape.validate_scene_duration(2.0).is_ok());
+        for time in [1.0, 3.0, -1.0, 1.0] {
+            let actual = shape.sample_image_rect(time).unwrap();
+            let t = time.clamp(0.0, 2.0) / 2.0;
+            assert_eq!(actual.x, 20.0 * t);
+            assert_eq!(actual.width, 10.0 + 20.0 * t);
+        }
+        for bad in [f64::NAN, f64::INFINITY, -1.0, 0.0] {
+            let mut invalid = shape.clone();
+            if let ClipShape::Image { keys, .. } = &mut invalid { keys[1].time = bad; }
+            assert!(invalid.validate().is_err());
+        }
+        let mut excessive = shape.clone();
+        if let ClipShape::Image { keys, .. } = &mut excessive { *keys = vec![keys[0]; MAX_MASK_KEYS + 1]; }
+        assert!(excessive.validate().is_err());
+        let mut invalid_rect = shape.clone();
+        if let ClipShape::Image { keys, .. } = &mut invalid_rect {
+            keys[1].rect.width = 0.0;
+        }
+        assert!(invalid_rect.validate().is_err());
+        let mut doc = Document::default();
+        for index in 0..65 {
+            let mut item = layer();
+            item.id = format!("mask{index}");
+            item.clip = None;
+            item.clip_shape = Some(ClipShape::Image {
+                asset_id: "mask".into(), rect: base, channel: MaskChannel::Alpha,
+                keys: (0..MAX_MASK_KEYS).map(|index| RectMaskKey { time: index as f64, rect: base }).collect(),
+            });
+            doc.layers.push(item);
+        }
+        assert!(doc.validate().unwrap_err().to_string().contains("8192"));
+        let json = serde_json::to_string(&shape).unwrap();
+        assert_eq!(serde_json::from_str::<ClipShape>(&json).unwrap(), shape);
+        let legacy: ClipShape = serde_json::from_str(r#"{"type":"image","asset_id":"mask","rect":{"x":0,"y":0,"width":10,"height":10}}"#).unwrap();
+        assert_eq!(legacy.key_count(), 0);
+        assert!(!serde_json::to_string(&legacy).unwrap().contains("keys"));
     }
     fn layer() -> Layer {
         Layer {

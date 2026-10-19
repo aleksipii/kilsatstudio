@@ -581,6 +581,13 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    }
    masks[depth]=mix(masks[depth],s.geometry.z,coverage); continue;
   }
+  if kind>17.5 && kind<18.5 {
+   let value=image_color(local,s);
+   var coverage=value.a;
+   // SVG luminance weights over sampled byte-space sRGB; linear-light parity is unproven.
+   if s.color.x>.5 { coverage=dot(value.rgb,vec3(.2125,.7154,.0721))*value.a; }
+   masks[depth]=masks[depth]*coverage; continue;
+  }
   if kind>4.5 && kind<5.5 { colors[depth]=over(image_color(local,s),colors[depth],0.); continue; }
   var distance=0.;
   if kind>3.5 && kind<4.5 {
@@ -723,6 +730,88 @@ mod tests {
         assert!((i32::from(pixel(45)[0]) - 179).abs() <= 12); // soft pressure edge
         assert_eq!(pixel(56), &[0, 0, 0, 255]); // outside pressure-scaled footprint
         assert!(frame.validation_errors.is_empty());
+    }
+    #[test]
+    #[ignore = "requires explicit KILSAT_GPU_BACKEND and actual GPU; not hardware acceptance"]
+    fn image_mask_alpha_and_luminance_real_gpu_interior_probes() {
+        use motion_art::*;
+        let backend = match std::env::var("KILSAT_GPU_BACKEND").as_deref() {
+            Ok("metal") => Backend::Metal,
+            Ok("vulkan") => Backend::Vulkan,
+            Ok("gl") => Backend::Gl,
+            _ => panic!("set KILSAT_GPU_BACKEND explicitly"),
+        };
+        let mut scene = crate::tests::scene();
+        scene.width = 64;
+        scene.height = 64;
+        scene.camera.x = 0.0;
+        scene.camera.y = 0.0;
+        scene.camera.zoom = 1.0;
+        scene.actors.clear();
+        scene.background_color = "#000000".into();
+        scene.opacity = 1.0;
+        let bounds = Rect {
+            x: 16.0,
+            y: 16.0,
+            width: 32.0,
+            height: 32.0,
+        };
+        let images = std::collections::BTreeMap::from([(
+            "mask".into(),
+            ImageResource::from_rgba(1, 1, vec![255, 0, 0, 128]).unwrap(),
+        )]);
+        let cancel = AtomicBool::new(false);
+        let mut renderer = GpuSceneRenderer::new(backend, &cancel).unwrap();
+        for (channel, expected) in [(MaskChannel::Alpha, 128), (MaskChannel::Luminance, 27)] {
+            let document = Document {
+                layers: vec![Layer {
+                    id: "masked".into(),
+                    scene_id: "s".into(),
+                    name: "masked".into(),
+                    visible: true,
+                    plane: Plane::Foreground,
+                    active: None,
+                    opacity: 1.0,
+                    attachment: None,
+                    clip: None,
+                    blend: BlendMode::Normal,
+                    content: Content::Rectangle {
+                        rect: bounds,
+                        color: Color {
+                            r: 255,
+                            g: 255,
+                            b: 255,
+                            a: 255,
+                        },
+                    },
+                    clip_shape: Some(ClipShape::Image {
+                        asset_id: "mask".into(),
+                        rect: bounds,
+                        channel,
+                        keys: Vec::new(),
+                    }),
+                }],
+                ..Default::default()
+            };
+            let commands = scene_commands::build_with_art(
+                &scene,
+                64,
+                64,
+                &[],
+                Labels::Require,
+                "s",
+                &document,
+                &images,
+            )
+            .unwrap();
+            let frame = renderer.render(&commands, &cancel).unwrap();
+            let center = (32 * 64 + 32) * 4;
+            assert!((i32::from(frame.rgba[center]) - expected).abs() <= 1);
+            assert_eq!(frame.rgba[center], frame.rgba[center + 1]);
+            assert_eq!(frame.rgba[center], frame.rgba[center + 2]);
+            assert_eq!(&frame.rgba[..4], &[0, 0, 0, 255]);
+            assert!(frame.validation_errors.is_empty());
+        }
     }
     #[test]
     fn cancellation_and_unsupported_labels_precede_device_initialization() {

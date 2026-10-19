@@ -222,6 +222,37 @@ fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
     }
     Ok(keys)
 }
+fn parse_image_mask_keys(text: &str, duration: f64) -> Result<Vec<motion_art::RectMaskKey>, String> {
+    if text.len() > 24_576 {
+        return Err("Mask keys exceed 24 KiB".into());
+    }
+    let mut keys = Vec::new();
+    for row in text.split_whitespace() {
+        if keys.len() >= motion_art::MAX_MASK_KEYS {
+            return Err("Use at most 128 mask keys".into());
+        }
+        let values: Vec<f64> = row
+            .split(',')
+            .map(|value| value.parse().map_err(|_| "Invalid mask key number"))
+            .collect::<Result<_, _>>()?;
+        if values.len() != 5 {
+            return Err("Use time,x,y,width,height for each key".into());
+        }
+        keys.push(motion_art::RectMaskKey {
+            time: values[0],
+            rect: Rect { x: values[1], y: values[2], width: values[3], height: values[4] },
+        });
+    }
+    let shape = ClipShape::Image {
+        asset_id: "mask".into(),
+        rect: Rect { x: 0.0, y: 0.0, width: 1.0, height: 1.0 },
+        channel: Default::default(),
+        keys: keys.clone(),
+    };
+    shape.validate().map_err(|error| error.to_string())?;
+    shape.validate_scene_duration(duration).map_err(|error| error.to_string())?;
+    Ok(keys)
+}
 fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, images: &[&str]) {
     egui::ComboBox::from_label("Blend")
         .selected_text(format!("{:?}", layer.blend))
@@ -313,6 +344,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                     asset_id: images[0].to_string(),
                     rect,
                     channel: motion_art::MaskChannel::Alpha,
+                    keys: Vec::new(),
                 })
             }
             4 => {
@@ -402,7 +434,28 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                     ui.selectable_value(channel, value, format!("{value:?}"));
                 }
             });
-        ui.weak("The image is stretched over X/Y/W/H. Alpha: opaque pixels show content. Luminance: bright pixels show content. CPU preview/export only.");
+        ui.weak("The image is stretched over X/Y/W/H. Alpha: opaque pixels show content. Luminance: bright pixels show content. Production preview/export use CPU; image masks also support the explicit GPU experiment.");
+    }
+    if let Some(ClipShape::Image { keys, .. }) = &mut layer.clip_shape {
+        ui.label("Image mask keys: time,x,y,width,height (scene seconds). Linear; endpoints hold.");
+        let initial = keys.iter().map(|key| format!("{},{},{},{},{}", key.time, key.rect.x, key.rect.y, key.rect.width, key.rect.height)).collect::<Vec<_>>().join("\n");
+        let id = ui.id().with(("image-mask-keys", &layer.id, &initial));
+        let error_id = id.with("error");
+        let mut draft = ui.data_mut(|data| data.get_temp::<String>(id)).unwrap_or(initial);
+        ui.add(egui::TextEdit::multiline(&mut draft).desired_rows(4).char_limit(24_576));
+        if ui.button("Apply image mask animation keys").clicked() {
+            match parse_image_mask_keys(&draft, duration) {
+                Ok(next) => {
+                    *keys = next;
+                    ui.data_mut(|data| data.remove::<String>(error_id));
+                }
+                Err(error) => ui.data_mut(|data| data.insert_temp(error_id, error)),
+            }
+        }
+        if let Some(error) = ui.data(|data| data.get_temp::<String>(error_id)) {
+            ui.colored_label(egui::Color32::LIGHT_RED, error);
+        }
+        ui.data_mut(|data| data.insert_temp(id, draft));
     }
     if let Some(ClipShape::Polygon { points, feather }) = &mut layer.clip_shape {
         let id = ui.id().with(("mask-vertices", &layer.id));
@@ -1098,6 +1151,13 @@ pub fn paint(
 }
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn image_mask_key_drafts_validate_before_commit() {
+        assert!(super::parse_image_mask_keys("0,0,0,10,10 1,20,0,10,10", 1.0).is_ok());
+        for text in ["0,0,0,10,10 0,20,0,10,10", "2,0,0,10,10", "0,0,0,0,10", "NaN,0,0,10,10", "0,0,0,10"] {
+            assert!(super::parse_image_mask_keys(text, 1.0).is_err(), "{text}");
+        }
+    }
     fn mask_document() -> Document {
         Document {
             layers: vec![Layer {

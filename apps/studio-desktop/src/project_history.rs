@@ -10,6 +10,7 @@ struct Metadata {
     format_version: u32,
     assets: Vec<motion_project::AssetReference>,
     art: motion_art::Document,
+    timing: motion_project::TimingDocument,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Snapshot {
@@ -25,6 +26,7 @@ impl Snapshot {
             format_version: d.format_version,
             assets: d.assets.clone(),
             art: d.art.clone(),
+            timing: d.timing.clone(),
         });
         let mut result = Self {
             source: source.into(),
@@ -45,6 +47,7 @@ impl Snapshot {
                 source: self.source.clone(),
                 assets: p.assets.clone(),
                 art: p.art.clone(),
+                timing: p.timing.clone(),
             })
     }
     fn validate(&self) -> Result<(), String> {
@@ -58,6 +61,7 @@ impl Snapshot {
                 return Err("Invalid history project metadata".into());
             }
             p.art.validate().map_err(|e| e.to_string())?;
+            p.timing.validate().map_err(|e| e.to_string())?;
             let mut ids = std::collections::BTreeSet::new();
             for asset in &p.assets {
                 if asset.id.trim().is_empty()
@@ -221,6 +225,24 @@ mod tests {
                 },
             },
         }
+    }
+    #[test]
+    fn timing_apply_is_one_history_step_and_roundtrips_without_audio_buffers() {
+        let before = document();
+        let mut after = before.clone();
+        after.timing.line = "{\"alignment\":null}".into();
+        after.timing.scene = "{\"7\":{\"alignment\":null}}".into();
+        let mut history = History::new(SOURCE);
+        history.record(Snapshot::capture(SOURCE, Some(&before)), Snapshot::capture(SOURCE, Some(&after)));
+        let undo = history.navigate(Snapshot::capture(SOURCE, Some(&after)), false).unwrap().unwrap();
+        assert!(undo.document().unwrap().timing.is_empty());
+        let redo = history.navigate(undo, true).unwrap().unwrap();
+        assert_eq!(redo.document().unwrap().timing, after.timing);
+        let mut invalid = after;
+        invalid.timing.scene = "not JSON".into();
+        let current = Snapshot::capture(SOURCE, Some(&invalid));
+        assert!(history.navigate(current, false).is_err());
+        assert!(history.can_undo());
     }
     #[test]
     fn grouped_artwork_roundtrips_through_chronological_history_and_rejects_cycles() {

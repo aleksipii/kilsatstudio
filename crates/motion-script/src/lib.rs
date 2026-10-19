@@ -1,4 +1,6 @@
 //! Strict MotionScript scene and dialogue schema.
+mod camera_presets;
+pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;

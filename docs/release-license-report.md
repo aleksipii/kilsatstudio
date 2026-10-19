@@ -86,6 +86,29 @@ not prove that procedure was performed. At most 64 observations, 128 evidence
 references per observation, 16 MiB per file and 128 MiB total are read. Keep large
 recordings separately; provide bounded human reports with their recording hashes.
 
+Each gate may now include `scenarios`: objects containing `scenario`, `status`,
+`steps`, `expected`, `actual`, and `evidence_paths`. The paths must uniquely
+reference already hash-checked evidence in that same gate. Tested scenarios need
+at least one retained reference. Passing gates cannot contain failed scenarios;
+untested gates cannot contain tested scenarios. Required scenario identifiers are
+published in the report's `required_scenarios` map and in
+`scripts/mac_acceptance_report.py::SCENARIOS`. Missing scenarios are explicitly
+unresolved even when a broad gate label says `pass`. Existing schema-1 inputs
+remain readable; previous broad pass claims alone cannot establish full procedure
+coverage. There are at most 32 scenarios per gate and 128 references per scenario;
+references reuse checked files without rereading their contents.
+
+For example, inside a `launch-project` observation whose `evidence` includes
+`launch.txt`, use:
+
+```json
+{"scenario":"launch","status":"pass","steps":"Opened the named build from Finder",
+ "expected":"Editor opens","actual":"Editor opened","evidence_paths":["launch.txt"]}
+```
+
+This illustrative record is not evidence of an actual launch. A complete set of
+scenario claims still leaves authority review and build attestation open.
+
 Both collectors publish new reports atomically without replacing previous files.
 Exit 0 means collection succeeded, strict exit 1 means gaps remain, exit 2 means
 invalid inputs/output failure. Every report always has

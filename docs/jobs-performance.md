@@ -1,5 +1,23 @@
 # Bounded export workers and measurement
 
+## Native application update observations
+
+The Inspector's **Performance observations** panel offers opt-in measurement of
+elapsed application-update wall time. It retains only 256 samples and can copy a
+versioned JSON report with mean, nearest-rank p95 and maximum duration. Separate
+summaries cover the explicitly tracked speech/export/diagnostics/sequence job
+flags; they do not describe every worker. Measurement does not request additional
+frames or perform filesystem IO. Clear or disable it between workloads.
+
+These are observations of the update callback, including blocking/descheduling
+inside that callback. They are not CPU usage, input-to-display latency, frame
+presentation time, audio latency or process memory measurements. Retain build,
+hardware and exact workload alongside reports; release-profile Apple Silicon
+benchmarks and actual responsiveness acceptance remain open in
+[remaining work](remaining-work.md) and [master progress](master-progress.md).
+
+## Export workers
+
 SVG and PNG sequence exports use `motion-jobs::ordered_map`; MP4 inherits the
 PNG path before invoking the explicitly configured local FFmpeg. Existing export
 APIs and `floor(frame * 24000 / fps)` timing are unchanged.

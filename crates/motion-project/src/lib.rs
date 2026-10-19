@@ -14,6 +14,39 @@ pub const FORMAT_VERSION: u32 = 2;
 pub const MAX_DOCUMENT_BYTES: usize = 4 * 1024 * 1024;
 pub const MAX_SOURCE_BYTES: usize = 1024 * 1024;
 pub const MAX_ASSETS: usize = 4096;
+pub const MAX_TIMING_BYTES: usize = 100_000;
+
+/// Optional editor timing inputs. Syntax is checked here; exact audio/text
+/// identity is checked when the selected dialogue audio is prepared.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct TimingDocument {
+    #[serde(default)]
+    pub line: String,
+    #[serde(default)]
+    pub scene: String,
+}
+impl TimingDocument {
+    pub fn is_empty(&self) -> bool {
+        self.line.is_empty() && self.scene.is_empty()
+    }
+    pub fn validate(&self) -> Result<(), Error> {
+        for (name, text) in [("line", &self.line), ("scene", &self.scene)] {
+            if text.len() > MAX_TIMING_BYTES {
+                return invalid(&format!("{name} timing exceeds 100 KB"));
+            }
+            if text.trim().is_empty() {
+                continue;
+            }
+            let value: serde_json::Value = serde_json::from_str(text)
+                .map_err(|e| Error::Validation(format!("{name} timing JSON: {e}")))?;
+            if !value.is_object() {
+                return invalid(&format!("{name} timing must be a JSON object"));
+            }
+        }
+        Ok(())
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -38,6 +71,8 @@ pub struct ProjectDocument {
     pub source: String,
     pub assets: Vec<AssetReference>,
     pub art: motion_art::Document,
+    #[serde(default, skip_serializing_if = "TimingDocument::is_empty")]
+    pub timing: TimingDocument,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -61,6 +96,7 @@ impl ProjectDocument {
             source: source.into(),
             assets: vec![],
             art: motion_art::Document::default(),
+            timing: TimingDocument::default(),
         };
         document.validate()?;
         Ok(document)
@@ -75,6 +111,7 @@ impl ProjectDocument {
         if self.assets.len() > MAX_ASSETS {
             return invalid("more than 4096 asset references");
         }
+        self.timing.validate()?;
         let script = motion_script::parse(&self.source)?;
         self.art
             .validate()
@@ -192,6 +229,7 @@ pub fn decode(bytes: &[u8]) -> Result<ProjectDocument, Error> {
             source: old.source,
             assets: old.assets,
             art: motion_art::Document::default(),
+            timing: TimingDocument::default(),
         }
     } else if version == u64::from(FORMAT_VERSION) {
         serde_json::from_slice(bytes)?
@@ -292,6 +330,20 @@ mod tests {
     impl Drop for Dir {
         fn drop(&mut self) {
             let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+    #[test]
+    fn timing_inputs_roundtrip_with_optional_legacy_default_and_bounded_json() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let old = encode(&doc).unwrap();
+        assert!(decode(&old).unwrap().timing.is_empty());
+        doc.timing.line = "{\"alignment\":null}".into();
+        doc.timing.scene = "{\"7\":{\"alignment\":null}}".into();
+        let decoded = decode(&encode(&doc).unwrap()).unwrap();
+        assert_eq!(decoded.timing, doc.timing);
+        for invalid in ["[1]".to_owned(), "{".to_owned(), " ".repeat(MAX_TIMING_BYTES + 1)] {
+            doc.timing.line = invalid;
+            assert!(encode(&doc).is_err());
         }
     }
     #[test]
