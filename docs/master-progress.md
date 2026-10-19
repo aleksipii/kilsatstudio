@@ -9,6 +9,18 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PRs #47–#51 reached main on 2026-10-19. #47 merged first (`511b008`, Mac Metal probe and
+native arm64 Rhubarb record). Stacked PRs #48 (feathered polygon masks), #49 (image
+masks) and #50 (custom-rig joint tracks plus the desktop joint key editor) were merged
+into their stacked base branches (`7e7c5a8`, `1b75639`, `8e689d0`), so they reached
+main only through the integration PR #51 (`678e41b`). Linux/macOS CI (fmt, check,
+Clippy, tests, GPU contracts, media encoding, Apple Silicon preview) passed on each
+head and on #51, and fmt/Clippy/`cargo test --workspace` passed locally on an Apple M1.
+Still open: mask painting/erasing and pressure input, animated polygon/image masks,
+GPU parity for the new masks, reusable custom-rig clips and retargeting, textures and
+deformation, perceptual Rhubarb/Kokoro quality, packaged arm64 Rhubarb, licence
+corpus, and physical Mac GUI/audio acceptance. No GUI was exercised by hand.
+
 PR #46 merged as `45f31bd02352da9ac9c17ab9b5407b89198bdb2c` after final Linux/macOS CI.
 The six-area delivery adds normalized original-rig groups, editable custom rigid
 characters, isolated artwork groups, expanded experimental GPU composition,
@@ -1326,7 +1338,7 @@ Not established: lip-sync perceptual quality (input is `say`, not Kokoro, and ha
 manual annotation comparison), Rhubarb/PocketSphinx redistribution terms, a packaged
 arm64 Rhubarb, Metal scene parity or performance, and any other physical Mac gate.
 
-## Feathered polygon masks (branch feat/polygon-mask-feather, unmerged)
+## Feathered polygon masks (PR #48, on main via #51)
 
 Adds optional polygon `feather` (blur sigma, scene units) through `motion-art`
 validation/persistence, the shared SVG renderer, and the inspector slider; the
@@ -1335,7 +1347,7 @@ check, Clippy (no warnings) and `cargo test --workspace` passed, including new
 pixel tests. Not done: feather animation, image masks, painting, GPU feather
 parity, blur-area work budgeting, CI on this branch, and physical GUI inspection.
 
-## Image masks (branch feat/image-masks, unmerged, stacked on feathered polygons)
+## Image masks (PR #49, on main via #51)
 
 Adds `clip_shape` type `image` (project image asset, rect, alpha or luminance channel)
 through `motion-art` validation, shared SVG rendering, project/history/export asset
@@ -1344,7 +1356,7 @@ reports it unsupported. On the Apple M1 Mac fmt, Clippy (no warnings) and
 `cargo test --workspace` passed with new pixel tests. Not done: animation, feathering
 of mask images, painting/erasing, GPU parity, CI on this branch and GUI inspection.
 
-## Custom-rig joint animation tracks (branch feat/custom-rig-joint-tracks, unmerged, stacked)
+## Custom-rig joint animation tracks (PR #50, on main via #51; includes the desktop joint key editor)
 
 Adds scene `composition.joint_tracks` for custom rigid characters: validated offset
 keys per actor and joint, a prepared rig (`PreparedRig`) so sampling only composes
