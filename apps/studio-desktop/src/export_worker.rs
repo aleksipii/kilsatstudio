@@ -195,6 +195,7 @@ mod tests {
             format: Format::Svg,
             ffmpeg: PathBuf::new(),
             script: Script {
+                rig_clips: Default::default(),
                 project: Default::default(),
                 characters: Default::default(),
                 animation_clips: Default::default(),

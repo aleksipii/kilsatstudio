@@ -1686,4 +1686,58 @@ scenes:
             assert!(error.contains(message), "{to}: {error}");
         }
     }
+
+    #[test]
+    fn retargeted_rig_clip_poses_a_differently_named_rig_like_the_source() {
+        let source = "characters:
+  A:
+    asset: custom
+    rig:
+      version: 1
+      id: a
+      joints: [{id: root, parent: null}, {id: arm, parent: root, x: 10}]
+      parts: [{id: h, joint: arm, points: [[0, 0], [1, 0], [0, 1]], color: [1, 2, 3, 255]}]
+  B:
+    asset: custom
+    rig:
+      version: 1
+      id: b
+      joints: [{id: hip, parent: null}, {id: wing, parent: hip, x: 10}]
+      parts: [{id: h, joint: wing, points: [[0, 0], [1, 0], [0, 1]], color: [1, 2, 3, 255]}]
+scenes:
+  - {id: shot, duration: 2, events: []}
+";
+        let keys = [
+            motion_script::ActorKey::default(),
+            motion_script::ActorKey {
+                at: 2.0,
+                x: 6.0,
+                rotation: 1.0,
+                ..Default::default()
+            },
+        ];
+        let authored = motion_script::apply_joint_track(source, 0, "A", "arm", &keys).unwrap();
+        let captured = motion_script::capture_rig_clip(&authored, 0, "A", "swing", false).unwrap();
+        let placement = motion_script::RigClipPlacement {
+            joint_map: [("arm".to_string(), "wing".to_string())].into(),
+            ..Default::default()
+        };
+        let applied =
+            motion_script::apply_rig_clip(&captured, 0, "B", "swing", &placement).unwrap();
+        let script = motion_script::parse(&applied).unwrap();
+        for time in [0.0, 0.5, 1.3, 2.0] {
+            let scene = evaluate(&script, 0, time).unwrap();
+            let part = |id: &str| {
+                scene
+                    .actors
+                    .iter()
+                    .find(|a| a.id == id)
+                    .unwrap()
+                    .rigid_parts[0]
+                    .points
+                    .clone()
+            };
+            assert_eq!(part("A"), part("B"), "t={time}");
+        }
+    }
 }

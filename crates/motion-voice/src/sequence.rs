@@ -172,6 +172,7 @@ mod tests {
 
     fn fixture(durations: &[f64], overlap: Option<f64>) -> (SequenceTimeline, Vec<RenderedScene>) {
         let mut script = Script {
+            rig_clips: Default::default(),
             project: Default::default(),
             characters: Default::default(),
             animation_clips: Default::default(),
