@@ -9,20 +9,22 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-The next mask increment implements optional sampled pressure, soft coverage bands
-and experimental GPU painted-mask commands on its task branch; integration and
-CI are pending. Physical Mac input/Metal checks remain unexecuted. See
-[painted masks](painted-masks.md) and the
-[manual Mac procedure](painted-mask-mac-acceptance.md); completion will be recorded
-only after successful checks and authorized integration.
+PR [#54](https://github.com/aleksipii/kilsatstudio/pull/54) merged as
+`dceb8a79b9bebee386e74e312eeb6c767c804a74` on 2026-10-19 after final Linux/macOS CI.
+It adds optional real touch-force samples, soft coverage bands and experimental
+GPU painted-mask commands. Pressure capture requires backend force events; Mac
+stylus/tablet support is not established. Physical Mac input/Metal checks remain
+unexecuted. See [painted masks](painted-masks.md), the
+[manual Mac procedure](painted-mask-mac-acceptance.md) and delivery evidence below.
+Main and the release branch include this implementation and progress record.
 
 PR [#53](https://github.com/aleksipii/kilsatstudio/pull/53) merged as
 `5251cc5ddc850f1b2c9493a0076bae5fce0a64b0` on 2026-10-19 after final Linux/macOS CI.
 Vector mask painting/erasing stores ordered bounded strokes, explicit initial
 coverage and round dabs, with native brush/eraser gestures, shared Undo/Redo and
 CPU preview/export. See [painted masks](painted-masks.md) and the evidence below.
-Pressure, soft brushes, animated paint, experimental GPU support and physical Mac
-input acceptance remain open. No product milestone or device/license gate is
+At that merge, pressure, soft brushes, animated paint, experimental GPU support and physical Mac
+input acceptance remained open. No product milestone or device/license gate is
 closed by this implementation. The release branch is synchronized with this record.
 
 PRs #47–#51 reached main on 2026-10-19. #47 merged first (`511b008`, Mac Metal probe and
@@ -120,7 +122,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, procedural strengths and editable versioned custom rigid characters with shared rest-part/root rendering | Custom-rig joint animation, textures/deformation and arbitrary custom-clip blending |
-| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups, image masks, polygon feathering and vector mask painting/erasing | Pressure, soft/animated painting, retouching, GPU mask parity and physical Mac compositing acceptance |
+| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups, image masks, polygon feathering, vector mask painting/erasing, soft edges and optional event pressure | Mac stylus input, animated painting, retouching, measured GPU mask parity and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated cues/archive and automatic reuse for explicitly enrolled self-contained local Phonetic packages | Real package compatibility/audited closure, offline/device acceptance and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded experimental GPU artwork/masks/groups/blends/crossfades, input reuse and bound package/build/review-gap reports | Shared GPU fonts, full measured scene parity/production backend, physical Metal/performance and final license clearance |
@@ -245,7 +247,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Bounded isolated nested artwork groups with explicit sibling order, native history controls and shared CPU composition (PR #46).
 - [x] Image alpha/luminance masks and polygon feathering (PRs #48–#49 via #51).
 - [x] Vector mask painting/erasing with shared history and CPU preview/export (PR #53).
-- [ ] Pressure, soft/animated painting, retouching, GPU mask parity and physical Mac compositing acceptance.
+- [x] Soft mask brushes, optional actual touch-force samples and experimental painted-mask GPU commands (PR #54).
+- [ ] Mac stylus input, animated painting, retouching, measured GPU mask parity and physical Mac compositing acceptance.
 - [x] Selected-scene shared CPU-composited advanced frames and final integration checks (PR #31).
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
@@ -293,7 +296,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Native stable-ID scene reorder actions with validated transitions and source Undo/Redo (PR #43).
 - [x] Native override/additive live-instance mode control with Apply, reset preservation and shared history (PR #45).
 - [x] Native normalized clip groups, custom rigid-character definition editing and nested artwork group controls through existing history (PR #46).
-- [ ] Pressure brushes, advanced mask painting and image retouching.
+- [x] Soft mask painting and optional pressure samples supplied by actual input events (PR #54).
+- [ ] Physical Mac stylus support, animated mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
 - [x] Whole-project sequence preview/playback, global sample seek, waveform and PNG/MP4 export controls.
@@ -1428,3 +1432,62 @@ Package validation passed; `distribution_approved` remains false. This automated
 build establishes neither physical Mac input/audio acceptance nor final licences,
 notarization, real-model quality or full GPU/native parity. M1–M6 remain subject
 to their existing open acceptance gates.
+
+## Soft pressure masks and experimental GPU masks — PR #54 delivery evidence
+
+- [x] Backward-compatible `MaskStroke.pressures` and `hardness`: empty samples
+  mean full radius, hardness defaults to 1, values are finite and bounded, and
+  nonempty samples match point count. Radius interpolates continuously; zero
+  pressure contributes no coverage. Old hard fixed-radius SVG output is preserved.
+- [x] Shared swept endpoint disks/tangent quads and 32 nested soft coverage bands.
+  One gesture takes maximum coverage, avoiding opacity buildup and winding holes;
+  later paint/erase gestures retain ordered composition. Model validation caps
+  expanded work at 1,048,576 units and all preview/export preflights charge it.
+- [x] Native hardness/pressure controls, actual initiating-contact `Touch.force`
+  capture, mouse/missing-force full-radius fallback, stationary pressure samples,
+  contact/cancel/context rejection, persistence and one shared Undo transaction.
+  This establishes input-event handling, not Mac stylus driver support.
+- [x] Experimental GPU painted-mask commands use shared band geometry, ordered
+  coverage and crossfade resource relocation. Existing point/command/fragment-work
+  budgets reject excessive work before adapter initialization. Production scene
+  preview/export remain CPU; image masks and feathered polygons remain explicitly
+  unsupported in the experiment. Full pixel/edge parity is not established.
+- [x] Self-contained [manual input fixture](../examples/painted-mask-input.kilsat)
+  and [physical Mac procedure](painted-mask-mac-acceptance.md). The documented
+  256×144 Metal probe fits an adapter-free work-budget test. The fixture is decoded,
+  source-parsed, validated and roundtripped by CI.
+- [ ] Execute physical Mac mouse/tablet/force, Finder, accessibility and complete
+  input workflow; retain actual current-build evidence. All manual observations
+  start `not_tested`. The Linux host has no physical Mac, native tablet or Metal.
+- [ ] Run the ignored painted-mask hardware probe and independent CPU/GPU decoded
+  comparisons, set justified edge tolerances and measure Metal performance.
+  Animated paint, raster retouch, full GPU/native parity, device/audio acceptance,
+  real-model quality and final licensing/distribution approval remain open.
+
+Final tested source: `8f5693441a7b494ad052f6e8ead89f6b6dab0882`. Merge tree
+`7ed741ea8542b8b65dec3ba89b886c02fdd98365` matches the tested implementation.
+[Linux/macOS CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39244528956)
+passed fmt, workspace check, strict all-target Clippy and default all-target Rust
+tests: **525 Linux / 524 macOS**, with three intentionally ignored encoder tests
+each. Separate GPU jobs each passed **34 library + 2 probe tests** and strict
+optional-feature Clippy; **two physical GPU tests remained ignored**, including
+the new painted-mask probe. Naga validated the extended shader without an adapter.
+The media job explicitly passed all **3 real FFmpeg tests**. Each platform passed
+**55 runtime + 79 repository Python tests**. Local Python suites and whitespace
+checks passed; Rust tooling was unavailable locally. Independent static review
+found no remaining blocker; it explicitly retained GPU edge/parity acceptance.
+
+Actual CPU pixels cover soft ramps, varying-pressure width, paint/erase/repaint,
+duplicate-point nonaccumulation, self-crossing/sharp-turn coverage and shared
+preview/PNG/SVG output. Real egui event tests cover device force, fallback and
+gesture cancellation; project/history tests retain both new fields.
+
+[Apple Silicon build/package CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39244528752)
+passed for the same source. Download the
+[arm64 preview artifact](https://github.com/aleksipii/kilsatstudio/actions/runs/39244528752/artifacts/12183420529).
+Inner final preview ZIP SHA-256:
+`a9de2b211accaac38c780bd18de54fc51eb903623ae9860d85975fb63aa22bfc`.
+Outer artifact container digest:
+`1795739a6f130242b17ea2b0a441844fa552ad9eba6177fa0deab88aa6153d6a`.
+Package validation passed with `distribution_approved=false`. Automated build and
+shader tests do not grant physical-device, licensing or M1–M6 acceptance.
