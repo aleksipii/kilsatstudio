@@ -105,7 +105,7 @@ fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
     }
     Ok(keys)
 }
-fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
+fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, images: &[&str]) {
     egui::ComboBox::from_label("Blend")
         .selected_text(format!("{:?}", layer.blend))
         .show_ui(ui, |ui| {
@@ -117,6 +117,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         Some(ClipShape::Ellipse { .. }) => 2,
         Some(ClipShape::Polygon { .. }) => 3,
         Some(ClipShape::SoftEllipse { .. }) => 4,
+        Some(ClipShape::Image { .. }) => 5,
         None => {
             if layer.clip.is_some() {
                 1
@@ -134,6 +135,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
                 "Ellipse",
                 "Polygon",
                 "Soft / animated ellipse",
+                "Image (alpha / luminance)",
             ][kind],
         )
         .show_ui(ui, |ui| {
@@ -143,10 +145,18 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
                 "Ellipse",
                 "Polygon",
                 "Soft / animated ellipse",
+                "Image (alpha / luminance)",
             ]
             .into_iter()
             .enumerate()
             {
+                if value == 5 && images.is_empty() {
+                    ui.add_enabled(
+                        false,
+                        egui::Label::new("Image mask (import an image first)"),
+                    );
+                    continue;
+                }
                 ui.selectable_value(&mut kind, value, label);
             }
         });
@@ -154,9 +164,11 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         let rect = layer
             .clip
             .or(match &layer.clip_shape {
-                Some(ClipShape::Ellipse { rect } | ClipShape::SoftEllipse { rect, .. }) => {
-                    Some(*rect)
-                }
+                Some(
+                    ClipShape::Ellipse { rect }
+                    | ClipShape::SoftEllipse { rect, .. }
+                    | ClipShape::Image { rect, .. },
+                ) => Some(*rect),
                 _ => None,
             })
             .unwrap_or(Rect {
@@ -170,6 +182,13 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         match kind {
             1 => layer.clip = Some(rect),
             2 => layer.clip_shape = Some(ClipShape::Ellipse { rect }),
+            5 => {
+                layer.clip_shape = Some(ClipShape::Image {
+                    asset_id: images[0].to_string(),
+                    rect,
+                    channel: motion_art::MaskChannel::Alpha,
+                })
+            }
             4 => {
                 layer.clip_shape = Some(ClipShape::SoftEllipse {
                     rect,
@@ -204,7 +223,11 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
         }
     }
     let rect = match &mut layer.clip_shape {
-        Some(ClipShape::Ellipse { rect } | ClipShape::SoftEllipse { rect, .. }) => Some(rect),
+        Some(
+            ClipShape::Ellipse { rect }
+            | ClipShape::SoftEllipse { rect, .. }
+            | ClipShape::Image { rect, .. },
+        ) => Some(rect),
         _ => layer.clip.as_mut(),
     };
     if let Some(rect) = rect {
@@ -219,6 +242,29 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64) {
                 ui.add(egui::DragValue::new(value).speed(1.0));
             }
         });
+    }
+    if let Some(ClipShape::Image {
+        asset_id, channel, ..
+    }) = &mut layer.clip_shape
+    {
+        egui::ComboBox::from_label("Mask image")
+            .selected_text(asset_id.as_str())
+            .show_ui(ui, |ui| {
+                for id in images {
+                    ui.selectable_value(asset_id, id.to_string(), *id);
+                }
+            });
+        egui::ComboBox::from_label("Mask channel")
+            .selected_text(format!("{channel:?}"))
+            .show_ui(ui, |ui| {
+                for value in [
+                    motion_art::MaskChannel::Alpha,
+                    motion_art::MaskChannel::Luminance,
+                ] {
+                    ui.selectable_value(channel, value, format!("{value:?}"));
+                }
+            });
+        ui.weak("The image is stretched over X/Y/W/H. Alpha: opaque pixels show content. Luminance: bright pixels show content. CPU preview/export only.");
     }
     if let Some(ClipShape::Polygon { points, feather }) = &mut layer.clip_shape {
         let id = ui.id().with(("mask-vertices", &layer.id));
@@ -377,7 +423,8 @@ impl Editor {
     ui.add(egui::Slider::new(&mut layer.opacity,0.0..=1.0).text("Opacity"));
     if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("W",&mut rect.width),("H",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
     egui::ComboBox::from_label("Follow actor translation").selected_text(layer.attachment.as_deref().unwrap_or("World")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"World");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
-    compositing_controls(ui, layer, scene.duration);
+    let image_ids: Vec<&str> = assets.iter().filter(|a| a.kind == motion_project::AssetKind::Image).map(|a| a.id.as_str()).collect();
+    compositing_controls(ui, layer, scene.duration, &image_ids);
     ui.horizontal(|ui| {if ui.add_enabled(index>0 && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Lower")).clicked() { next.layers.swap(index,index-1); }
    if ui.add_enabled(index+1<next.layers.len() && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Raise")).clicked(){ next.layers.swap(index,index+1); }
    if ui.button("Delete layer").clicked(){let id=next.layers[index].id.clone(); if let Err(error)=next.apply(motion_art::Command::Remove{id}) {self.error=Some(error.to_string());} self.selected=None;}});

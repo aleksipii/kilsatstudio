@@ -76,7 +76,7 @@ impl ScenePreview {
                 geometry += (usize::BITS - keys.len().max(1).leading_zeros()) as usize + 8;
             }
             if layer.visible {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !art.images.contains_key(asset_id) {
                         return Err(invalid("missing artwork image resource"));
                     }

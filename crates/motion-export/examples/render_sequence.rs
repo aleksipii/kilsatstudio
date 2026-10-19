@@ -37,12 +37,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut encoded_bytes = 0usize;
         let mut decoded_pixels = 0u64;
         for layer in &project.art.layers {
-            if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+            for asset_id in layer.image_assets() {
                 if !images.contains_key(asset_id) {
                     let asset = project
                         .assets
                         .iter()
-                        .find(|a| &a.id == asset_id)
+                        .find(|a| a.id == asset_id)
                         .ok_or("missing image asset")?;
                     let path = motion_project::resolve_asset(input, asset)?;
                     let image = motion_art::load_image(&path)?;
@@ -54,7 +54,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 .into(),
                         );
                     }
-                    images.insert(asset_id.clone(), image);
+                    images.insert(asset_id.to_string(), image);
                 }
             }
         }

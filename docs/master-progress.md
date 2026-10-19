@@ -1334,3 +1334,12 @@ experimental GPU path reports it unsupported. On the Apple M1 Mac, fmt, workspac
 check, Clippy (no warnings) and `cargo test --workspace` passed, including new
 pixel tests. Not done: feather animation, image masks, painting, GPU feather
 parity, blur-area work budgeting, CI on this branch, and physical GUI inspection.
+
+## Image masks (branch feat/image-masks, unmerged, stacked on feathered polygons)
+
+Adds `clip_shape` type `image` (project image asset, rect, alpha or luminance channel)
+through `motion-art` validation, shared SVG rendering, project/history/export asset
+checks (`Layer::image_assets`), and an inspector control; the experimental GPU path
+reports it unsupported. On the Apple M1 Mac fmt, Clippy (no warnings) and
+`cargo test --workspace` passed with new pixel tests. Not done: animation, feathering
+of mask images, painting/erasing, GPU parity, CI on this branch and GUI inspection.

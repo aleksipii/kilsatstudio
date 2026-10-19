@@ -570,7 +570,7 @@ fn export_sequence(
             }
             // Preflight future images too: frame zero may precede their start time.
             if layer.visible {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !art.images.contains_key(asset_id) {
                         return Err(invalid(format!(
                             "missing artwork image resource: {asset_id}"

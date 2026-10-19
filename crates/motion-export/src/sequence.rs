@@ -167,7 +167,7 @@ fn compose_svg(
 fn embedded_image_budget(art: &ArtContext, limit: u64) -> Result<u64, Error> {
     let mut scenes = std::collections::BTreeMap::<&str, u64>::new();
     for layer in &art.document.layers {
-        if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+        for asset_id in layer.image_assets() {
             if let Some(image) = art.images.get(asset_id) {
                 let encoded = (image.png().len() as u64)
                     .checked_add(2)
@@ -283,7 +283,7 @@ fn preflight(
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
             }
             if layer.visible {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !a.images.contains_key(asset_id) {
                         return Err(invalid("missing future artwork image"));
                     }
