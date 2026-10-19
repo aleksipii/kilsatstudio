@@ -167,25 +167,6 @@ fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_las
     ui.small("Outgoing transitions appear in Whole project preview and PNG/MP4 sequence export. Selected-scene preview and exports remain scene-local.");
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn drawing_controls_does_not_create_layer_overrides() {
-        let mut value = Composition::default();
-        let before = serde_json::to_value(&value).unwrap();
-        let ctx = egui::Context::default();
-        let _ = ctx.run(Default::default(), |ctx| {
-            egui::CentralPanel::default().show(ctx, |panel| {
-                ui(panel, &mut value, &["EMMA".into()], 5.0, true);
-            });
-        });
-        assert_eq!(serde_json::to_value(&value).unwrap(), before);
-    }
-}
-
-/// Edits only the detached composition. The existing Apply settings action owns
-/// validation and the single source/history transaction.
 fn camera_presets_ui(ui: &mut egui::Ui, value: &mut Composition, duration: f64) {
     let replacing = !value.camera.is_empty();
     ui.collapsing("Cinematic camera presets", |ui| {
@@ -220,3 +201,23 @@ fn camera_presets_ui(ui: &mut egui::Ui, value: &mut Composition, duration: f64) 
         });
     });
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn drawing_controls_does_not_create_layer_overrides() {
+        let mut value = Composition::default();
+        let before = serde_json::to_value(&value).unwrap();
+        let ctx = egui::Context::default();
+        let _ = ctx.run(Default::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |panel| {
+                ui(panel, &mut value, &["EMMA".into()], 5.0, true);
+            });
+        });
+        assert_eq!(serde_json::to_value(&value).unwrap(), before);
+    }
+}
+
+/// Edits only the detached composition. The existing Apply settings action owns
+/// validation and the single source/history transaction.
