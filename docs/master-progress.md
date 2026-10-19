@@ -1325,3 +1325,12 @@ Run by hand on one Mac, outside CI, from `main` at `6a09873`.
 Not established: lip-sync perceptual quality (input is `say`, not Kokoro, and has no
 manual annotation comparison), Rhubarb/PocketSphinx redistribution terms, a packaged
 arm64 Rhubarb, Metal scene parity or performance, and any other physical Mac gate.
+
+## Feathered polygon masks (branch feat/polygon-mask-feather, unmerged)
+
+Adds optional polygon `feather` (blur sigma, scene units) through `motion-art`
+validation/persistence, the shared SVG renderer, and the inspector slider; the
+experimental GPU path reports it unsupported. On the Apple M1 Mac, fmt, workspace
+check, Clippy (no warnings) and `cargo test --workspace` passed, including new
+pixel tests. Not done: feather animation, image masks, painting, GPU feather
+parity, blur-area work budgeting, CI on this branch, and physical GUI inspection.

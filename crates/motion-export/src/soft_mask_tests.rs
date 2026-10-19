@@ -213,3 +213,85 @@ fn animated_mask_sampling_work_is_bounded_before_writing_frames() {
     );
     assert!(!dest.exists());
 }
+
+fn square(feather: f64) -> ClipShape {
+    let point = |x, y| motion_art::Point { x, y };
+    ClipShape::Polygon {
+        points: vec![
+            point(20.0, 20.0),
+            point(80.0, 20.0),
+            point(80.0, 80.0),
+            point(20.0, 80.0),
+        ],
+        feather,
+    }
+}
+
+#[test]
+fn feathered_polygon_blurs_around_the_edge_and_agrees_across_preview_png_and_svg() {
+    let (script, rendered, mut art) = fixture();
+    let cancel = CancellationToken::new();
+    let mut row = |feather: f64| {
+        art.document.layers[0].clip_shape = Some(square(feather));
+        art.document.validate().unwrap();
+        let preview = ScenePreview::new(
+            Arc::new(script.clone()),
+            0,
+            Arc::new(art.clone()),
+            Some(Arc::new(rendered.manifest.clone())),
+        )
+        .unwrap();
+        let (sample, _, png) =
+            encode_frame(&script, 0, &rendered, 0, true, &cancel, Some(&art)).unwrap();
+        let png = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+        let (_, _, svg) =
+            encode_frame(&script, 0, &rendered, 0, false, &cancel, Some(&art)).unwrap();
+        let svg = String::from_utf8(svg).unwrap();
+        let raster =
+            resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
+                .unwrap();
+        let frame = preview.render(sample, 1024, &cancel).unwrap();
+        assert_eq!(png.data(), raster.data());
+        assert_eq!(frame.rgba, png.data());
+        (0..100).map(|x| red(&frame, x, 50)).collect::<Vec<_>>()
+    };
+    let hard = row(0.0);
+    assert!(hard[..20].iter().all(|v| *v == 0));
+    assert!(hard[20..80].iter().all(|v| *v == 255));
+    assert!(hard[80..].iter().all(|v| *v == 0));
+
+    let soft = row(4.0);
+    assert_eq!(soft[50], 255);
+    assert_eq!(soft[0], 0);
+    assert_eq!(soft[99], 0);
+    // Edge pixel centres sit half a unit either side of x=20: about half coverage.
+    assert!((100..=156).contains(&soft[20]), "{}", soft[20]);
+    assert!(soft[19] > 0, "feather must bleed outside the polygon");
+    assert!(soft[21] < 255, "feather must soften inside the polygon");
+    // Coverage rises monotonically across the left edge and mirrors the right edge.
+    assert!(soft[8..=35].windows(2).all(|w| w[0] <= w[1]));
+    for offset in 0..12 {
+        let (left, right) = (soft[20 + offset], soft[79 - offset]);
+        assert!(left.abs_diff(right) <= 2, "{offset}: {left} {right}");
+    }
+}
+
+#[test]
+fn polygon_feather_validates_persists_and_keeps_legacy_documents_readable() {
+    assert!(square(0.0).validate().is_ok());
+    assert!(square(1000.0).validate().is_ok());
+    for bad in [-0.5, f64::NAN, f64::INFINITY, 1000.5] {
+        assert!(square(bad).validate().is_err(), "{bad}");
+    }
+    let legacy: ClipShape = serde_json::from_str(
+        r#"{"type":"polygon","points":[{"x":0,"y":0},{"x":4,"y":0},{"x":0,"y":4}]}"#,
+    )
+    .unwrap();
+    assert!(matches!(legacy, ClipShape::Polygon { feather, .. } if feather == 0.0));
+    assert!(!serde_json::to_string(&legacy).unwrap().contains("feather"));
+    let soft = square(2.5);
+    assert_eq!(
+        serde_json::from_str::<ClipShape>(&serde_json::to_string(&soft).unwrap()).unwrap(),
+        soft
+    );
+}

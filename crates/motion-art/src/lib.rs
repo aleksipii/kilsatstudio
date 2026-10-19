@@ -81,8 +81,12 @@ pub enum ClipShape {
     Ellipse {
         rect: Rect,
     },
+    /// Simple polygon. A positive `feather` is a Gaussian standard deviation in
+    /// scene units centred on the boundary (about half coverage on the edge).
     Polygon {
         points: Vec<Point>,
+        #[serde(default, skip_serializing_if = "is_zero")]
+        feather: f64,
     },
     /// Elliptical alpha mask with an inward, normalized radial feather.
     /// Keys use scene-local seconds; their first/last values hold outside the track.
@@ -115,6 +119,11 @@ impl BlendMode {
     }
 }
 pub const MAX_MASK_POINTS: usize = 256;
+/// Largest polygon feather standard deviation, in scene units.
+pub const MAX_POLYGON_FEATHER: f64 = 1000.0;
+fn is_zero(value: &f64) -> bool {
+    *value == 0.0
+}
 pub const MAX_MASK_KEYS: usize = 128;
 pub const MAX_TOTAL_MASK_KEYS: usize = 8192;
 impl ClipShape {
@@ -197,7 +206,10 @@ impl ClipShape {
                 }
                 Ok(())
             }
-            Self::Polygon { points } => {
+            Self::Polygon { points, feather } => {
+                if !feather.is_finite() || !(0.0..=MAX_POLYGON_FEATHER).contains(feather) {
+                    return invalid("polygon feather must be finite and between 0 and 1000");
+                }
                 if !(3..=MAX_MASK_POINTS).contains(&points.len())
                     || points.iter().any(|p| !coordinate(p.x) || !coordinate(p.y))
                 {
@@ -546,7 +558,7 @@ impl Document {
                         return invalid("artwork exceeds 8192 animated mask keys");
                     }
                 }
-                if let ClipShape::Polygon { points } = shape {
+                if let ClipShape::Polygon { points, .. } = shape {
                     point_count += points.len();
                 }
                 if point_count > MAX_TOTAL_POINTS {
@@ -1150,9 +1162,15 @@ mod tests {
             ],
             vec![Point { x: 0.0, y: 0.0 }; 257],
         ] {
-            assert!(ClipShape::Polygon { points }.validate().is_err());
+            assert!(ClipShape::Polygon {
+                points,
+                feather: 0.0
+            }
+            .validate()
+            .is_err());
         }
         let concave = ClipShape::Polygon {
+            feather: 0.0,
             points: vec![
                 Point { x: 0.0, y: 0.0 },
                 Point { x: 4.0, y: 0.0 },

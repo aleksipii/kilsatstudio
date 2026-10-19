@@ -347,6 +347,27 @@ fn append_art(
             } else {
                 write!(svg, "<defs><radialGradient id=\"art{index}fade\"><stop offset=\"{}\" stop-color=\"white\"/><stop offset=\"1\" stop-color=\"white\" stop-opacity=\"0\"/></radialGradient><mask id=\"art{index}\" maskUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"url(#art{index}fade)\"/></mask></defs><g mask=\"url(#art{index})\">", 1.0 - feather, r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
             }
+        } else if let Some(motion_art::ClipShape::Polygon { points, feather }) = layer
+            .clip_shape
+            .as_ref()
+            .filter(|shape| matches!(shape, motion_art::ClipShape::Polygon { feather, .. } if *feather > 0.0))
+        {
+            // Blurred white polygon as a luminance-free alpha mask; the region
+            // covers four standard deviations so the tails are not truncated.
+            let margin = 4.0 * feather;
+            let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+            for p in points {
+                x0 = x0.min(p.x);
+                y0 = y0.min(p.y);
+                x1 = x1.max(p.x);
+                y1 = y1.max(p.y);
+            }
+            let (x, y, w, h) = (x0 - margin, y0 - margin, x1 - x0 + 2.0 * margin, y1 - y0 + 2.0 * margin);
+            write!(svg, "<defs><filter id=\"art{index}blur\" filterUnits=\"userSpaceOnUse\" x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\"><feGaussianBlur stdDeviation=\"{feather}\"/></filter><mask id=\"art{index}\" maskUnits=\"userSpaceOnUse\" x=\"{x}\" y=\"{y}\" width=\"{w}\" height=\"{h}\"><polygon fill=\"white\" filter=\"url(#art{index}blur)\" points=\"").unwrap();
+            for p in points {
+                write!(svg, "{},{} ", p.x, p.y).unwrap();
+            }
+            write!(svg, "\"/></mask></defs><g mask=\"url(#art{index})\">").unwrap();
         } else if let Some(shape) = &layer.clip_shape {
             write!(svg, "<defs><clipPath id=\"art{index}\">").unwrap();
             match shape {
@@ -364,7 +385,7 @@ fn append_art(
                 motion_art::ClipShape::SoftEllipse { .. } => {
                     return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into()))
                 }
-                motion_art::ClipShape::Polygon { points } => {
+                motion_art::ClipShape::Polygon { points, .. } => {
                     svg.push_str("<polygon points=\"");
                     for p in points {
                         write!(svg, "{},{} ", p.x, p.y).unwrap();
