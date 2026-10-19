@@ -48,8 +48,8 @@ The experimental GPU compositor supports painted-mask commands using the same
 coverage-band geometry and ordered paint/erase calculation. It remains an explicit
 experiment; production preview/export use CPU. Command, geometry and fragment-work
 limits can reject complex masks or high resolutions. This does not establish full
-GPU/native pixel parity, Metal performance or support for feathered polygon
-masks. Image masks joined the experiment in PR #55. Animated paint, raster retouch
+GPU/native pixel parity or Metal performance. Feathered polygons joined the experiment later
+with an edge-profile approximation (see soft masks). Image masks joined the experiment in PR #55. Animated paint, raster retouch
 and physical Mac input acceptance remain open.
 
 Validation bounds stroke count, individual and aggregate point counts, finite
