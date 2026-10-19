@@ -1609,10 +1609,14 @@ impl Studio {
     fn advanced_canvas_needed(&self) -> bool {
         // Keep prepared library tracks in the existing bounded compositor worker.
         if self.script.as_ref().is_some_and(|script| {
-            script.characters.values().any(|character| character.rig.is_some()) || script
-                .scenes
-                .iter()
-                .any(|scene| !scene.composition.clip_instances.is_empty())
+            script
+                .characters
+                .values()
+                .any(|character| character.rig.is_some())
+                || script
+                    .scenes
+                    .iter()
+                    .any(|scene| !scene.composition.clip_instances.is_empty())
         }) {
             return true;
         }
@@ -3229,32 +3233,63 @@ impl Studio {
     }
 
     fn custom_rig_ui(&mut self, ui: &mut egui::Ui) {
-        let Some(script) = &self.script else { return; };
-        let Some(actor) = self.selected_actor.as_deref()
-            .or_else(|| script.characters.keys().next().map(String::as_str)) else { return; };
-        if !self.custom_rig_draft.as_ref().is_some_and(|(source, draft)|
-            source == &self.source && draft.actor == actor) {
-            self.custom_rig_draft = Some((self.source.clone(), custom_rig_editor::Draft::for_actor(script, actor)));
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(actor) = self
+            .selected_actor
+            .as_deref()
+            .or_else(|| script.characters.keys().next().map(String::as_str))
+        else {
+            return;
+        };
+        if !self
+            .custom_rig_draft
+            .as_ref()
+            .is_some_and(|(source, draft)| source == &self.source && draft.actor == actor)
+        {
+            self.custom_rig_draft = Some((
+                self.source.clone(),
+                custom_rig_editor::Draft::for_actor(script, actor),
+            ));
         }
         let mut action = 0;
-        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy, |ui| {
-            egui::CollapsingHeader::new("Custom character rig").show(ui, |ui| {
-                if let Some((_, draft)) = &mut self.custom_rig_draft { action = draft.ui(ui); }
-            });
-        });
-        if action != 0 { self.apply_custom_rig_draft(action); }
+        ui.add_enabled_ui(
+            !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
+            |ui| {
+                egui::CollapsingHeader::new("Custom character rig").show(ui, |ui| {
+                    if let Some((_, draft)) = &mut self.custom_rig_draft {
+                        action = draft.ui(ui);
+                    }
+                });
+            },
+        );
+        if action != 0 {
+            self.apply_custom_rig_draft(action);
+        }
     }
 
     fn apply_custom_rig_draft(&mut self, action: u8) {
-        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy { return; }
-        let Some((source, draft)) = &self.custom_rig_draft else { return; };
-        let selected = self.selected_actor.as_deref().or_else(|| self.script.as_ref()
-            .and_then(|script| script.characters.keys().next().map(String::as_str)));
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        let Some((source, draft)) = &self.custom_rig_draft else {
+            return;
+        };
+        let selected = self.selected_actor.as_deref().or_else(|| {
+            self.script
+                .as_ref()
+                .and_then(|script| script.characters.keys().next().map(String::as_str))
+        });
         if source != &self.source || selected != Some(draft.actor.as_str()) {
             self.status = "Character/source changed; reopen the custom rig draft.".into();
             return;
         }
-        let result = match action { 1 => draft.apply(source), 2 => draft.remove(source), _ => return };
+        let result = match action {
+            1 => draft.apply(source),
+            2 => draft.remove(source),
+            _ => return,
+        };
         self.apply_structure(result.map_err(motion_script::Error::Validation));
     }
 
@@ -4168,11 +4203,13 @@ fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
 
 /// The direct egui painter cannot implement SVG arbitrary masks/blending.
 fn requires_composited_preview(art: &motion_art::Document, scene_id: &str, time: f64) -> bool {
-    !art.order.is_empty() || art.groups.iter().any(|group| group.scene_id == scene_id) || art.layers.iter().any(|layer| {
-        layer.scene_id == scene_id
-            && layer.is_active(time)
-            && (layer.clip_shape.is_some() || layer.blend != motion_art::BlendMode::Normal)
-    })
+    !art.order.is_empty()
+        || art.groups.iter().any(|group| group.scene_id == scene_id)
+        || art.layers.iter().any(|layer| {
+            layer.scene_id == scene_id
+                && layer.is_active(time)
+                && (layer.clip_shape.is_some() || layer.blend != motion_art::BlendMode::Normal)
+        })
 }
 
 fn draw_scene(
@@ -6130,7 +6167,7 @@ mod live_clip_integration_tests {
             looping: false,
             joint_mask: Vec::new(),
             blend_mode: motion_script::ClipBlendMode::Override,
-                normalized_group: None,
+            normalized_group: None,
         }
     }
     #[test]
@@ -6614,7 +6651,6 @@ mod native_integration_tests {
     }
 }
 
-
 #[cfg(test)]
 mod custom_rig_history_integration_tests {
     use super::*;
@@ -6650,15 +6686,23 @@ mod custom_rig_history_integration_tests {
             studio.setup_busy = false;
         }
         let script = motion_script::parse(&original).unwrap();
-        studio.custom_rig_draft = Some((original.clone(), custom_rig_editor::Draft::for_actor(&script, "ALEX")));
+        studio.custom_rig_draft = Some((
+            original.clone(),
+            custom_rig_editor::Draft::for_actor(&script, "ALEX"),
+        ));
         studio.apply_custom_rig_draft(1);
         let edited = studio.source.clone();
         assert_ne!(edited, original);
-        let expected = motion_script::parse(&edited).unwrap().characters["ALEX"].rig.clone();
+        let expected = motion_script::parse(&edited).unwrap().characters["ALEX"]
+            .rig
+            .clone();
         assert!(expected.is_some());
         let document = motion_project::ProjectDocument::new(edited.clone()).unwrap();
         let loaded = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
-        assert_eq!(motion_script::parse(&loaded.source).unwrap().characters["ALEX"].rig, expected);
+        assert_eq!(
+            motion_script::parse(&loaded.source).unwrap().characters["ALEX"].rig,
+            expected
+        );
         studio.undo_edit(false);
         assert_eq!(studio.source, original);
         studio.undo_edit(true);

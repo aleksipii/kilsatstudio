@@ -319,7 +319,9 @@ impl Editor {
             for layer in &candidate.layers {
                 if !document.layers.iter().any(|old| old.id == layer.id) {
                     let unit = motion_art::ArtUnit::Layer(layer.id.clone());
-                    if !candidate.order.contains(&unit) && !candidate.groups.iter().any(|g| g.children.contains(&unit)) {
+                    if !candidate.order.contains(&unit)
+                        && !candidate.groups.iter().any(|g| g.children.contains(&unit))
+                    {
                         candidate.order.push(unit);
                     }
                 }
@@ -611,7 +613,9 @@ pub fn paint(
 ) {
     let (textures, plane) = resources;
     // Grouped scenes must use the shared compositor, never a flattened painter fallback.
-    if !document.order.is_empty() || document.groups.iter().any(|g| g.scene_id == scene_id) { return; }
+    if !document.order.is_empty() || document.groups.iter().any(|g| g.scene_id == scene_id) {
+        return;
+    }
 
     let scale = (canvas.width() / scene.width as f32).min(canvas.height() / scene.height as f32);
     let origin =
@@ -693,16 +697,24 @@ mod tests {
         let mut document = Document::default();
         let before = document.clone();
         let mut candidate = document.clone();
-        candidate.apply(motion_art::Command::CreateGroup(motion_art::Group {
-            id: "group".into(), scene_id: "s".into(), plane: Plane::Foreground,
-            name: "Group".into(), visible: true, opacity: 0.5,
-            blend: BlendMode::Multiply, children: Vec::new(),
-        })).unwrap();
+        candidate
+            .apply(motion_art::Command::CreateGroup(motion_art::Group {
+                id: "group".into(),
+                scene_id: "s".into(),
+                plane: Plane::Foreground,
+                name: "Group".into(),
+                visible: true,
+                opacity: 0.5,
+                blend: BlendMode::Multiply,
+                children: Vec::new(),
+            }))
+            .unwrap();
         editor.commit(&mut document, candidate);
         assert_eq!(editor.take_transaction_before(), Some(before));
         let committed = document.clone();
         let revision = editor.revision();
-        let mut invalid = committed.clone(); invalid.groups[0].opacity = f64::NAN;
+        let mut invalid = committed.clone();
+        invalid.groups[0].opacity = f64::NAN;
         editor.commit(&mut document, invalid);
         assert_eq!(document, committed);
         assert_eq!(editor.revision(), revision);
@@ -759,7 +771,8 @@ mod tests {
                     },
                 },
             }],
-         ..Document::default()};
+            ..Document::default()
+        };
         editor.commit(&mut document, candidate.clone());
         assert_eq!(document, candidate);
         assert_eq!(editor.take_transaction_before(), Some(Document::default()));
@@ -944,7 +957,8 @@ mod tests {
             &mut document,
             Document {
                 layers: vec![layer],
-             ..Document::default()},
+                ..Document::default()
+            },
         );
         let before = document.clone();
         let mut invalid = before.clone();
@@ -995,7 +1009,8 @@ mod tests {
                     },
                 },
             }],
-         ..Document::default()};
+            ..Document::default()
+        };
         let before = document.clone();
         let mut editor = Editor::default();
         let mut next = before.clone();

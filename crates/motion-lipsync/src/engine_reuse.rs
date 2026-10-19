@@ -93,8 +93,16 @@ pub struct VerifiedEnvironment {
     version: String,
 }
 impl VerifiedEnvironment {
-    pub(crate) fn from_inspected_package(manifest: String, executable: String, version: String) -> Self {
-        Self { manifest, executable, version }
+    pub(crate) fn from_inspected_package(
+        manifest: String,
+        executable: String,
+        version: String,
+    ) -> Self {
+        Self {
+            manifest,
+            executable,
+            version,
+        }
     }
 }
 /// Unknown packages remain eligible for explicit execution, never automatic reuse.

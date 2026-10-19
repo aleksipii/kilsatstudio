@@ -319,7 +319,12 @@ mod tests {
         let reopened = decode(&encode(&document).unwrap()).unwrap();
         assert_eq!(reopened.source, source);
         let script = motion_script::parse(&reopened.source).unwrap();
-        let parts = script.characters["PUPPET"].rig.as_ref().unwrap().evaluate_parts().unwrap();
+        let parts = script.characters["PUPPET"]
+            .rig
+            .as_ref()
+            .unwrap()
+            .evaluate_parts()
+            .unwrap();
         assert_eq!(parts[0].points[1].x, 20.0);
         assert_eq!(parts[0].points[1].y, -20.0);
         assert!(ProjectDocument::new(&source.replace("version: 1", "version: 2")).is_err());
@@ -328,11 +333,19 @@ mod tests {
     fn artwork_group_missing_scene_is_rejected_before_project_save() {
         let mut document = ProjectDocument::new(SOURCE).unwrap();
         document.art.groups.push(motion_art::Group {
-            id: "group".into(), scene_id: "missing".into(), plane: motion_art::Plane::Foreground,
-            name: "Group".into(), visible: true, opacity: 1.0, blend: motion_art::BlendMode::Normal,
+            id: "group".into(),
+            scene_id: "missing".into(),
+            plane: motion_art::Plane::Foreground,
+            name: "Group".into(),
+            visible: true,
+            opacity: 1.0,
+            blend: motion_art::BlendMode::Normal,
             children: Vec::new(),
         });
-        document.art.order.push(motion_art::ArtUnit::Group("group".into()));
+        document
+            .art
+            .order
+            .push(motion_art::ArtUnit::Group("group".into()));
         assert!(document.art.validate().is_ok());
         let error = encode(&document).unwrap_err().to_string();
         assert!(error.contains("group references a scene"));

@@ -99,21 +99,37 @@ fn execute(request: &Request) -> Result<Ready, String> {
     let (alignment, mut cache) = match &request.action {
         Action::Estimate | Action::EstimateFresh | Action::EnrollAndEstimate { .. } => {
             let inspection = motion_lipsync::local_package::inspect(
-                &request.executable, request.recognizer, &cancel,
-            ).map_err(|e| e.to_string())?;
+                &request.executable,
+                request.recognizer,
+                &cancel,
+            )
+            .map_err(|e| e.to_string())?;
             match inspection {
                 motion_lipsync::local_package::Inspection::Unavailable(reason) => (
-                    rhubarb::align(&request.executable, &request.identity.audio_path,
-                        &request.identity.transcript, request.recognizer, cancel)
-                        .map_err(|e| e.to_string())?,
-                    CacheInfo { message: reason, ..Default::default() },
+                    rhubarb::align(
+                        &request.executable,
+                        &request.identity.audio_path,
+                        &request.identity.transcript,
+                        request.recognizer,
+                        cancel,
+                    )
+                    .map_err(|e| e.to_string())?,
+                    CacheInfo {
+                        message: reason,
+                        ..Default::default()
+                    },
                 ),
                 motion_lipsync::local_package::Inspection::Eligible(local) => {
                     let identity = motion_lipsync::engine_reuse::RequestIdentity::new(
-                        request.audio.audio(), &request.identity.transcript,
-                        request.recognizer, &cancel,
-                    ).map_err(|e| e.to_string())?;
-                    let cached = if matches!(request.action, Action::EstimateFresh) { None } else {
+                        request.audio.audio(),
+                        &request.identity.transcript,
+                        request.recognizer,
+                        &cancel,
+                    )
+                    .map_err(|e| e.to_string())?;
+                    let cached = if matches!(request.action, Action::EstimateFresh) {
+                        None
+                    } else {
                         index.lookup(&identity, local.environment(),
                             request.audio.audio(), &request.identity.transcript, &cancel)
                             .map_err(|e| format!("Automatic saved timing: {e}. The existing entry was preserved; Run fresh bypasses the index."))?
@@ -121,8 +137,16 @@ fn execute(request: &Request) -> Result<Ready, String> {
                     local.recheck(&cancel).map_err(|e| e.to_string())?;
                     let (alignment, origin) = match cached {
                         Some(value) => (value, ResultOrigin::AutomaticReuse),
-                        None => (local.execute(&request.identity.audio_path,
-                            &request.identity.transcript, &cancel).map_err(|e| e.to_string())?, ResultOrigin::Fresh),
+                        None => (
+                            local
+                                .execute(
+                                    &request.identity.audio_path,
+                                    &request.identity.transcript,
+                                    &cancel,
+                                )
+                                .map_err(|e| e.to_string())?,
+                            ResultOrigin::Fresh,
+                        ),
                     };
                     package = Some(local);
                     fingerprint = Some(identity);
@@ -132,7 +156,7 @@ fn execute(request: &Request) -> Result<Ready, String> {
                     })
                 }
             }
-        },
+        }
         Action::Load { key } => (
             archive
                 .load(key, request.audio.audio(), &request.identity.transcript)
@@ -183,8 +207,15 @@ fn execute(request: &Request) -> Result<Ready, String> {
     if let (Some(package), Some(identity)) = (&package, &fingerprint) {
         package.recheck(&cancel).map_err(|e| e.to_string())?;
         if cache.origin == ResultOrigin::Fresh && !matches!(request.action, Action::EstimateFresh) {
-            index.publish(identity, package.environment(), &alignment,
-                request.audio.audio(), &request.identity.transcript, &cancel)
+            index
+                .publish(
+                    identity,
+                    package.environment(),
+                    &alignment,
+                    request.audio.audio(),
+                    &request.identity.transcript,
+                    &cancel,
+                )
                 .map_err(|e| format!("Automatic timing publication: {e}"))?;
         }
         package.recheck(&cancel).map_err(|e| e.to_string())?;
@@ -442,10 +473,21 @@ mod tests {
     #[test]
     fn enrolled_exact_hit_needs_neither_an_executable_process_nor_the_wav_path() {
         use sha2::{Digest, Sha256};
-        let path = std::env::temp_dir().join(format!("automatic-estimate-hit-{}-{}", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        let path = std::env::temp_dir().join(format!(
+            "automatic-estimate-hit-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
         std::fs::create_dir(&path).unwrap();
         struct Cleanup(PathBuf);
-        impl Drop for Cleanup { fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); } }
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
         let root = Cleanup(std::fs::canonicalize(path).unwrap());
         let package_root = root.0.join("package");
         std::fs::create_dir(&package_root).unwrap();
@@ -457,31 +499,83 @@ mod tests {
         let mut binary = vec![0u8; 64];
         if std::env::consts::OS == "macos" {
             binary[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
-            binary[4..8].copy_from_slice(&(if std::env::consts::ARCH == "aarch64" { 0x0100000cu32 } else { 0x01000007u32 }).to_le_bytes());
+            binary[4..8].copy_from_slice(
+                &(if std::env::consts::ARCH == "aarch64" {
+                    0x0100000cu32
+                } else {
+                    0x01000007u32
+                })
+                .to_le_bytes(),
+            );
             binary[12..16].copy_from_slice(&2u32.to_le_bytes());
         } else {
             binary[..6].copy_from_slice(b"\x7fELF\x02\x01");
-            binary[18..20].copy_from_slice(&(if std::env::consts::ARCH == "aarch64" { 183u16 } else { 62u16 }).to_le_bytes());
+            binary[18..20].copy_from_slice(
+                &(if std::env::consts::ARCH == "aarch64" {
+                    183u16
+                } else {
+                    62u16
+                })
+                .to_le_bytes(),
+            );
             binary[54..56].copy_from_slice(&56u16.to_le_bytes());
         }
         std::fs::write(&r.executable, &binary).unwrap();
-        motion_lipsync::local_package::enroll(&r.executable, "synthetic-no-process", &|| false).unwrap();
-        let motion_lipsync::local_package::Inspection::Eligible(package) = motion_lipsync::local_package::inspect(&r.executable, r.recognizer, &|| false).unwrap() else { panic!("fixture enrollment") };
-        let fingerprint = motion_lipsync::engine_reuse::RequestIdentity::new(r.audio.audio(), &r.identity.transcript, r.recognizer, &|| false).unwrap();
+        motion_lipsync::local_package::enroll(&r.executable, "synthetic-no-process", &|| false)
+            .unwrap();
+        let motion_lipsync::local_package::Inspection::Eligible(package) =
+            motion_lipsync::local_package::inspect(&r.executable, r.recognizer, &|| false).unwrap()
+        else {
+            panic!("fixture enrollment")
+        };
+        let fingerprint = motion_lipsync::engine_reuse::RequestIdentity::new(
+            r.audio.audio(),
+            &r.identity.transcript,
+            r.recognizer,
+            &|| false,
+        )
+        .unwrap();
         let alignment = rhubarb::EstimatedVisemeAlignment {
-            schema_version: 1, source: "estimated_rhubarb".into(), tool_version: "synthetic-no-process".into(),
+            schema_version: 1,
+            source: "estimated_rhubarb".into(),
+            tool_version: "synthetic-no-process".into(),
             executable_sha256: format!("{:x}", Sha256::digest(&binary)),
             pcm_sha256: rhubarb::pcm_identity(r.audio.audio()).unwrap(),
             transcript_sha256: format!("{:x}", Sha256::digest(r.identity.transcript.as_bytes())),
-            recognizer: r.recognizer, sample_rate: 24000, frame_count: 24,
-            cues: vec![rhubarb::MouthCue { start_sample: 0, end_sample: 24, shape: 'A' }],
+            recognizer: r.recognizer,
+            sample_rate: 24000,
+            frame_count: 24,
+            cues: vec![rhubarb::MouthCue {
+                start_sample: 0,
+                end_sample: 24,
+                shape: 'A',
+            }],
         };
-        motion_lipsync::engine_reuse::EngineIndex::new(&r.cache_root).publish(&fingerprint, package.environment(), &alignment, r.audio.audio(), &r.identity.transcript, &|| false).unwrap();
+        motion_lipsync::engine_reuse::EngineIndex::new(&r.cache_root)
+            .publish(
+                &fingerprint,
+                package.environment(),
+                &alignment,
+                r.audio.audio(),
+                &r.identity.transcript,
+                &|| false,
+            )
+            .unwrap();
         let ready = execute(&r).unwrap();
         assert_eq!(ready.cache.origin, ResultOrigin::AutomaticReuse);
         assert!(ready.cache.provenance.contains("synthetic-no-process"));
-        assert_eq!(serde_json::from_str::<rhubarb::EstimatedVisemeAlignment>(&ready.json).unwrap().cues, alignment.cues);
-        let index_path = std::fs::read_dir(r.cache_root.join("engine-index-v1")).unwrap().next().unwrap().unwrap().path();
+        assert_eq!(
+            serde_json::from_str::<rhubarb::EstimatedVisemeAlignment>(&ready.json)
+                .unwrap()
+                .cues,
+            alignment.cues
+        );
+        let index_path = std::fs::read_dir(r.cache_root.join("engine-index-v1"))
+            .unwrap()
+            .next()
+            .unwrap()
+            .unwrap()
+            .path();
         std::fs::write(&index_path, b"corrupt").unwrap();
         assert!(execute(&r).unwrap_err().contains("Automatic saved timing"));
         assert_eq!(std::fs::read(index_path).unwrap(), b"corrupt");

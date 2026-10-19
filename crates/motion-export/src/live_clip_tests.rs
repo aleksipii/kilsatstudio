@@ -43,9 +43,15 @@ fn normalized_groups_match_independently_authored_pixels_and_reopened_preview() 
     let mut actual = motion_script::parse(SOURCE).unwrap();
     let clip = actual.animation_clips.get_mut("reach").unwrap();
     clip.bone_tracks.clear();
-    clip.bone_tracks.insert("right_hand".into(), vec![motion_script::ActorKey {
-        x: 20.0, y: 6.0, scale_x: 1.5, ..Default::default()
-    }]);
+    clip.bone_tracks.insert(
+        "right_hand".into(),
+        vec![motion_script::ActorKey {
+            x: 20.0,
+            y: 6.0,
+            scale_x: 1.5,
+            ..Default::default()
+        }],
+    );
     let mut farther = clip.clone();
     farther.bone_tracks.get_mut("right_hand").unwrap()[0].x = 40.0;
     farther.bone_tracks.get_mut("right_hand").unwrap()[0].y = 10.0;
@@ -59,14 +65,19 @@ fn normalized_groups_match_independently_authored_pixels_and_reopened_preview() 
     second.clip = "farther".into();
     actual.scenes[0].composition.clip_instances.push(second);
     for (weight, x, y, scale) in [(0.25, 17.0, 5.0, 1.4375), (1.0, 30.0, 8.0, 1.75)] {
-        for row in &mut actual.scenes[0].composition.clip_instances { row.weight = weight; }
-        let document = motion_project::ProjectDocument::new(serde_json::to_string(&actual).unwrap()).unwrap();
+        for row in &mut actual.scenes[0].composition.clip_instances {
+            row.weight = weight;
+        }
+        let document =
+            motion_project::ProjectDocument::new(serde_json::to_string(&actual).unwrap()).unwrap();
         let reopened = motion_project::decode(&motion_project::encode(&document).unwrap()).unwrap();
         let mut saved = motion_script::parse(&reopened.source).unwrap();
         for frame in [6, 2, 5, 4, 1, 2] {
             let mut expected = saved.clone();
             expected.scenes[0].composition.clip_instances.clear();
-            if (2..6).contains(&frame) { author_hand(&mut expected, x, y, scale); }
+            if (2..6).contains(&frame) {
+                author_hand(&mut expected, x, y, scale);
+            }
             assert_frames_and_preview(&saved, &expected, frame);
             saved.scenes[0].composition.clip_instances.reverse();
             assert_frames_and_preview(&saved, &expected, frame);

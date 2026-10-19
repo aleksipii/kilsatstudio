@@ -245,8 +245,11 @@ fn preflight(
     }
     if let Some(a) = art {
         a.document.validate().map_err(|e| invalid(e.to_string()))?;
-        working = working.saturating_add(group_work(a, script, if export { total } else { 1 }, true)?);
-        if working > MAX_BYTES { return Err(invalid("sequence group working set exceeds 256 MiB")); }
+        working =
+            working.saturating_add(group_work(a, script, if export { total } else { 1 }, true)?);
+        if working > MAX_BYTES {
+            return Err(invalid("sequence group working set exceeds 256 MiB"));
+        }
         let embedded = embedded_image_budget(a, 32 * 1024 * 1024)?;
         let mut geometry = 0u64;
         for layer in &a.document.layers {

@@ -1045,7 +1045,8 @@ impl Script {
         }
         for (id, character) in &self.characters {
             if let Some(rig) = &character.rig {
-                rig.validate().map_err(|error| fail(format!("character {id}: {error}")))?;
+                rig.validate()
+                    .map_err(|error| fail(format!("character {id}: {error}")))?;
             }
         }
         if self.animation_clips.len() > 64 {
@@ -1135,10 +1136,18 @@ impl Script {
             for instance in &composition.clip_instances {
                 if let Some(group) = instance.normalized_group.as_deref() {
                     if !valid_clip_name(group) || instance.blend_mode != ClipBlendMode::Override {
-                        return Err(fail(format!("{}: normalized group requires a valid ID and override mode", s.id)));
+                        return Err(fail(format!(
+                            "{}: normalized group requires a valid ID and override mode",
+                            s.id
+                        )));
                     }
-                    if previous_group != Some((group, instance.actor.as_str())) && !groups.insert(group) {
-                        return Err(fail(format!("{}: normalized group {group} must be one contiguous same-actor block", s.id)));
+                    if previous_group != Some((group, instance.actor.as_str()))
+                        && !groups.insert(group)
+                    {
+                        return Err(fail(format!(
+                            "{}: normalized group {group} must be one contiguous same-actor block",
+                            s.id
+                        )));
                     }
                     previous_group = Some((group, instance.actor.as_str()));
                 } else {
@@ -1323,7 +1332,11 @@ impl Script {
             }
             let mut bone_key_count = 0usize;
             for (actor, tracks) in &composition.bone_tracks {
-                if self.characters.get(actor).is_some_and(|character| character.rig.is_some()) {
+                if self
+                    .characters
+                    .get(actor)
+                    .is_some_and(|character| character.rig.is_some())
+                {
                     return Err(fail(format!("{}: original-rig bone tracks are unsupported for custom-rig actor {actor}; remove its bone tracks before assigning a custom rig", s.id)));
                 }
                 if !self.characters.contains_key(actor) || tracks.is_empty() {
@@ -2897,20 +2910,41 @@ mod live_clip_instance_tests {
         let definition: motion_rig::RigDefinition = serde_yaml::from_str("version: 1\nid: custom\njoints: [{id: root, parent: null}]\nparts: [{id: shape, joint: root, points: [[0, 0], [2, 0], [0, 2]], color: [255, 0, 0, 255]}]").unwrap();
         let mut script = parse(&source()).unwrap();
         script.characters.get_mut("B").unwrap().rig = Some(definition);
-        script.scenes[1].composition.actor_tracks.insert("B".into(), vec![ActorKey { x: 10.0, ..ActorKey::default() }]);
+        script.scenes[1].composition.actor_tracks.insert(
+            "B".into(),
+            vec![ActorKey {
+                x: 10.0,
+                ..ActorKey::default()
+            }],
+        );
         script.validate().unwrap();
         let valid = serde_yaml::to_string(&script).unwrap();
-        assert!(upsert_clip_instance(&valid, 1, instance("unsupported")).unwrap_err().to_string().contains("custom-rig"));
-        script.scenes[1].composition.bone_tracks.insert("B".into(), BTreeMap::from([("head".into(), vec![ActorKey::default()])]));
-        assert!(script.validate().unwrap_err().to_string().contains("custom-rig"));
+        assert!(upsert_clip_instance(&valid, 1, instance("unsupported"))
+            .unwrap_err()
+            .to_string()
+            .contains("custom-rig"));
+        script.scenes[1].composition.bone_tracks.insert(
+            "B".into(),
+            BTreeMap::from([("head".into(), vec![ActorKey::default()])]),
+        );
+        assert!(script
+            .validate()
+            .unwrap_err()
+            .to_string()
+            .contains("custom-rig"));
         script.scenes[1].composition.bone_tracks.clear();
         script.scenes[1].events.push(Event::Gesture {
-            at: 0.0, actor: "B".into(), value: "wave".into(), duration: 1.0,
+            at: 0.0,
+            actor: "B".into(),
+            value: "wave".into(),
+            duration: 1.0,
         });
         assert!(matches!(script.validate(), Err(Error::Unsupported(_))));
         let legacy = parse(&source()).unwrap();
         assert!(legacy.characters["A"].rig.is_none());
-        assert!(!serde_yaml::to_string(&legacy.characters["A"]).unwrap().contains("rig:"));
+        assert!(!serde_yaml::to_string(&legacy.characters["A"])
+            .unwrap()
+            .contains("rig:"));
     }
 
     #[test]
@@ -2943,7 +2977,9 @@ mod live_clip_instance_tests {
         bad.normalized_group = Some("reach".into());
         assert!(upsert_clip_instance(&separated, 1, bad).is_err());
         assert_eq!(saved, before);
-        assert!(parse(&saved.replace("normalized_group: reach", "normalized_group: [reach]")).is_err());
+        assert!(
+            parse(&saved.replace("normalized_group: reach", "normalized_group: [reach]")).is_err()
+        );
         let legacy = serde_yaml::to_string(&instance("legacy")).unwrap();
         assert!(!legacy.contains("normalized_group"));
     }

@@ -227,13 +227,22 @@ impl PreparedAnimation {
                     .collect::<Result<_, Error>>()
             })
             .collect::<Result<_, Error>>()?;
-        let rigid_parts = script.characters.iter().filter_map(|(id, character)| {
-            character.rig.as_ref().map(|rig| {
-                rig.evaluate_parts().map(|parts| (id.clone(), parts))
-                    .map_err(|error| Error::InvalidAnimation(error.to_string()))
+        let rigid_parts = script
+            .characters
+            .iter()
+            .filter_map(|(id, character)| {
+                character.rig.as_ref().map(|rig| {
+                    rig.evaluate_parts()
+                        .map(|parts| (id.clone(), parts))
+                        .map_err(|error| Error::InvalidAnimation(error.to_string()))
+                })
             })
-        }).collect::<Result<_, Error>>()?;
-        Ok(Self { rigid_parts, library, scenes })
+            .collect::<Result<_, Error>>()?;
+        Ok(Self {
+            rigid_parts,
+            library,
+            scenes,
+        })
     }
     fn instance_tracks<'a>(
         &'a self,
@@ -241,9 +250,13 @@ impl PreparedAnimation {
         instance: &motion_script::ClipInstance,
         time: f64,
     ) -> Result<(&'a BoneTracks, f64), Error> {
-        let clip = script.animation_clips.get(&instance.clip)
+        let clip = script
+            .animation_clips
+            .get(&instance.clip)
             .ok_or_else(|| Error::InvalidAnimation(instance.clip.clone()))?;
-        let tracks = self.library.get(&instance.clip)
+        let tracks = self
+            .library
+            .get(&instance.clip)
             .ok_or_else(|| Error::InvalidAnimation(instance.clip.clone()))?;
         let local = time - instance.at;
         let clip_time = if instance.looping {
@@ -286,9 +299,16 @@ impl PreparedAnimation {
             let residual = (1.0 - total).max(0.0);
             let divisor = total.max(1.0);
             let base = value.unwrap_or_default();
-            let reference = if residual > 0.0 { base.rotation } else { samples[0].1.rotation };
+            let reference = if residual > 0.0 {
+                base.rotation
+            } else {
+                samples[0].1.rotation
+            };
             let mut combined = motion_animation::Transform2 {
-                translation: Vec2::new(base.translation.x * residual, base.translation.y * residual),
+                translation: Vec2::new(
+                    base.translation.x * residual,
+                    base.translation.y * residual,
+                ),
                 rotation: reference,
                 scale: Vec2::new(base.scale.x * residual, base.scale.y * residual),
             };
@@ -300,10 +320,14 @@ impl PreparedAnimation {
                 combined.scale.y += sample.scale.y * weight;
                 // Exact half turns consistently choose the positive arc.
                 let mut delta = (sample.rotation - reference).rem_euclid(std::f64::consts::TAU);
-                if delta > std::f64::consts::PI { delta -= std::f64::consts::TAU; }
+                if delta > std::f64::consts::PI {
+                    delta -= std::f64::consts::TAU;
+                }
                 combined.rotation += weight * delta;
             }
-            *value = Some(motion_animation::blend_humanoid_offset(base, combined, 1.0)?);
+            *value = Some(motion_animation::blend_humanoid_offset(
+                base, combined, 1.0,
+            )?);
         }
         Ok(())
     }
@@ -327,7 +351,9 @@ impl PreparedAnimation {
         while index < instances.len() {
             let instance = &instances[index];
             if let Some(group) = &instance.normalized_group {
-                let end = index + instances[index..].partition_point(|row| row.normalized_group.as_ref() == Some(group));
+                let end = index
+                    + instances[index..]
+                        .partition_point(|row| row.normalized_group.as_ref() == Some(group));
                 if instance.actor == actor {
                     self.normalized_offsets(script, &instances[index..end], time, &mut values)?;
                 }
@@ -369,8 +395,11 @@ impl PreparedAnimation {
     }
 }
 fn selected_joint(instance: &motion_script::ClipInstance, joint: usize) -> bool {
-    instance.joint_mask.is_empty() || instance.joint_mask.iter()
-        .any(|name| name == motion_animation::HUMANOID_BONES[joint])
+    instance.joint_mask.is_empty()
+        || instance
+            .joint_mask
+            .iter()
+            .any(|name| name == motion_animation::HUMANOID_BONES[joint])
 }
 impl ValidatedScript {
     pub fn new(script: std::sync::Arc<Script>) -> Result<Self, Error> {
@@ -1077,10 +1106,22 @@ mod live_instance_tests {
     fn normalized_group_rotation_reference_ties_and_scale_have_independent_results() {
         let mut script = script();
         let key = |rotation, scale_x| motion_script::ActorKey {
-            rotation, scale_x, ..motion_script::ActorKey::default()
+            rotation,
+            scale_x,
+            ..motion_script::ActorKey::default()
         };
-        script.animation_clips.get_mut("first").unwrap().bone_tracks.insert("head".into(), vec![key(3.0, 2.0)]);
-        script.animation_clips.get_mut("second").unwrap().bone_tracks.insert("head".into(), vec![key(-3.0, 4.0)]);
+        script
+            .animation_clips
+            .get_mut("first")
+            .unwrap()
+            .bone_tracks
+            .insert("head".into(), vec![key(3.0, 2.0)]);
+        script
+            .animation_clips
+            .get_mut("second")
+            .unwrap()
+            .bone_tracks
+            .insert("head".into(), vec![key(-3.0, 4.0)]);
         let mut first = instance("a", "first", 0.0, 4.0, 1.0);
         first.normalized_group = Some("turn".into());
         let mut second = instance("b", "second", 0.0, 4.0, 1.0);
@@ -1097,11 +1138,19 @@ mod live_instance_tests {
         let value = bone(&offsets(&script, 1.0), "head");
         assert_eq!(value.rotation, 0.0);
         assert_eq!(value.scale.x, 2.0);
-        script.animation_clips.get_mut("first").unwrap().bone_tracks.insert("head".into(), vec![key(-std::f64::consts::PI, 2.0)]);
+        script
+            .animation_clips
+            .get_mut("first")
+            .unwrap()
+            .bone_tracks
+            .insert("head".into(), vec![key(-std::f64::consts::PI, 2.0)]);
         second.weight = 0.0;
         first.weight = 0.5;
         script.scenes[0].composition.clip_instances = vec![first, second];
-        assert!((bone(&offsets(&script, 1.0), "head").rotation - std::f64::consts::FRAC_PI_2).abs() < 1e-12);
+        assert!(
+            (bone(&offsets(&script, 1.0), "head").rotation - std::f64::consts::FRAC_PI_2).abs()
+                < 1e-12
+        );
     }
 
     #[test]
@@ -1113,7 +1162,9 @@ mod live_instance_tests {
         first.fade_in = 2.0;
         first.fade_out = 1.0;
         first.weight_keys = vec![motion_script::InstanceWeightKey {
-            time: 0.0, weight: 0.5, easing: motion_script::ActorEasing::Linear,
+            time: 0.0,
+            weight: 0.5,
+            easing: motion_script::ActorEasing::Linear,
         }];
         let mut second = instance("b", "second", 0.0, 1.0, 0.0);
         second.normalized_group = Some("reach".into());
@@ -1121,9 +1172,19 @@ mod live_instance_tests {
         script.validate().unwrap();
         let prepared = PreparedAnimation::new(&script).unwrap();
         // Effective weights .125/.25/.125; loop clip x40/20/50.
-        for (time, x) in [(2.0, 12.0), (3.0, 11.0), (4.5, 13.25), (5.0, 8.0), (0.0, 8.0), (3.0, 11.0)] {
+        for (time, x) in [
+            (2.0, 12.0),
+            (3.0, 11.0),
+            (4.5, 13.25),
+            (5.0, 8.0),
+            (0.0, 8.0),
+            (3.0, 11.0),
+        ] {
             let actual = prepared.offsets(&script, 0, "A", time).unwrap();
-            assert!((bone(&actual, "head").translation.x - x).abs() < 1e-12, "{time}");
+            assert!(
+                (bone(&actual, "head").translation.x - x).abs() < 1e-12,
+                "{time}"
+            );
         }
     }
 

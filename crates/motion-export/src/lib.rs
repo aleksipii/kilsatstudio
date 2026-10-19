@@ -43,8 +43,14 @@ const MAX_SOURCE: usize = 1024 * 1024;
 const MAX_DIALOGUE: usize = 10_000;
 
 fn rigid_frame_work(script: &Script) -> u64 {
-    script.characters.values().filter_map(|character| character.rig.as_ref())
-        .flat_map(|rig| &rig.parts).fold(0u64, |work, part| work.saturating_add(part.points.len() as u64 * 4))
+    script
+        .characters
+        .values()
+        .filter_map(|character| character.rig.as_ref())
+        .flat_map(|rig| &rig.parts)
+        .fold(0u64, |work, part| {
+            work.saturating_add(part.points.len() as u64 * 4)
+        })
 }
 
 // Isolated group targets are additional raster work even if currently hidden.
@@ -58,13 +64,22 @@ fn group_work(art: &ArtContext, script: &Script, frames: u64, overlap: bool) -> 
         *per_scene.entry(&group.scene_id).or_default() += 1;
     }
     let groups = per_scene.values().copied().max().unwrap_or(0);
-    if groups == 0 { return Ok(0); }
+    if groups == 0 {
+        return Ok(0);
+    }
     let pixels = u64::from(script.project.width) * u64::from(script.project.height);
     let simultaneous = if overlap { 2 } else { 1 };
     let visits = pixels.saturating_mul(groups).saturating_mul(simultaneous);
-    let bytes = pixels.saturating_mul(4 * motion_art::MAX_GROUP_DEPTH as u64).saturating_mul(simultaneous);
-    if visits > 64 * 1024 * 1024 || visits.saturating_mul(frames) > 1_000_000_000 || bytes > 128 * 1024 * 1024 {
-        return Err(invalid("artwork isolated-group raster work/memory budget exceeded"));
+    let bytes = pixels
+        .saturating_mul(4 * motion_art::MAX_GROUP_DEPTH as u64)
+        .saturating_mul(simultaneous);
+    if visits > 64 * 1024 * 1024
+        || visits.saturating_mul(frames) > 1_000_000_000
+        || bytes > 128 * 1024 * 1024
+    {
+        return Err(invalid(
+            "artwork isolated-group raster work/memory budget exceeded",
+        ));
     }
     Ok(bytes)
 }
@@ -225,8 +240,11 @@ fn validate_mode(
             .map(Vec::len)
             .sum::<usize>();
     let rigid_work = rigid_frame_work(script);
-    if count.saturating_mul((keys as u64).saturating_add(live_clip_frame_work(script, index)).saturating_add(rigid_work))
-        > 1_000_000
+    if count.saturating_mul(
+        (keys as u64)
+            .saturating_add(live_clip_frame_work(script, index))
+            .saturating_add(rigid_work),
+    ) > 1_000_000
     {
         return Err(invalid(
             "keyframe/live-clip evaluation exceeds one million work units",
@@ -1230,7 +1248,7 @@ mod tests {
             looping: false,
             joint_mask: Vec::new(),
             blend_mode: motion_script::ClipBlendMode::Override,
-                normalized_group: None,
+            normalized_group: None,
         }];
         let prototype = script.scenes[0].composition.clip_instances[0].clone();
         for index in 1..count {

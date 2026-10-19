@@ -439,7 +439,14 @@ pub(crate) fn align_controlled(
     working_directory: &Path,
     cancelled: &dyn Fn() -> bool,
 ) -> Result<EstimatedVisemeAlignment, AlignmentError> {
-    align_with_policy(executable, wav, transcript, recognizer, Some(working_directory), &cancelled)
+    align_with_policy(
+        executable,
+        wav,
+        transcript,
+        recognizer,
+        Some(working_directory),
+        &cancelled,
+    )
 }
 fn align_with_policy(
     executable: &Path,
@@ -484,8 +491,13 @@ fn align_with_policy(
     let command = || {
         let mut command = Command::new(&executable);
         if let Some(directory) = working_directory {
-            command.env_clear().env("LC_ALL", "C").env("LANG", "C")
-                .env("PATH", "/usr/bin:/bin").env("HOME", &stage.0).current_dir(directory);
+            command
+                .env_clear()
+                .env("LC_ALL", "C")
+                .env("LANG", "C")
+                .env("PATH", "/usr/bin:/bin")
+                .env("HOME", &stage.0)
+                .current_dir(directory);
         }
         command
     };

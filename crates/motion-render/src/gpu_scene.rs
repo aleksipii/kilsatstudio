@@ -52,7 +52,9 @@ pub fn render_scene_with_art(
     backend: Backend,
     cancel: &AtomicBool,
 ) -> Result<Frame, Error> {
-    let commands = scene_commands::build_with_art(scene, width, height, mouths, labels, scene_id, document, images)?;
+    let commands = scene_commands::build_with_art(
+        scene, width, height, mouths, labels, scene_id, document, images,
+    )?;
     gpu::check(cancel, Instant::now() + Duration::from_secs(10))?;
     GpuSceneRenderer::new(backend, cancel)?.render(&commands, cancel)
 }
@@ -215,7 +217,12 @@ impl GpuSceneRenderer {
             mapped_at_creation: false,
         });
         self.queue.write_buffer(&uniforms, 0, &uniform_bytes);
-        let point_bytes: Vec<u8> = scene.points.iter().flatten().flat_map(|v| v.to_le_bytes()).collect();
+        let point_bytes: Vec<u8> = scene
+            .points
+            .iter()
+            .flatten()
+            .flat_map(|v| v.to_le_bytes())
+            .collect();
         let auxiliary = |name: &'static str, bytes: &[u8]| {
             let buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(name),
@@ -223,13 +230,19 @@ impl GpuSceneRenderer {
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             });
-            if !bytes.is_empty() { self.queue.write_buffer(&buffer, 0, bytes); }
+            if !bytes.is_empty() {
+                self.queue.write_buffer(&buffer, 0, bytes);
+            }
             buffer
         };
         let points = auxiliary("bounded artwork vertices", &point_bytes);
         // One content-checked resident set: exact bytes prevent stale asset-ID reuse.
         // Replacement evicts the previous buffer before allocating the next one.
-        if self.source_pixels.as_ref().is_none_or(|(content, _)| content != &scene.pixels) {
+        if self
+            .source_pixels
+            .as_ref()
+            .is_none_or(|(content, _)| content != &scene.pixels)
+        {
             self.source_pixels = None;
             let pixel_bytes: Vec<u8> = scene.pixels.iter().flat_map(|v| v.to_le_bytes()).collect();
             let buffer = auxiliary("bounded source image pixels", &pixel_bytes);
@@ -248,8 +261,14 @@ impl GpuSceneRenderer {
                     binding: 1,
                     resource: uniforms.as_entire_binding(),
                 },
-                wgpu::BindGroupEntry { binding: 2, resource: points.as_entire_binding() },
-                wgpu::BindGroupEntry { binding: 3, resource: pixels.as_entire_binding() },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: points.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: pixels.as_entire_binding(),
+                },
             ],
         });
         let readback = device.create_buffer(&wgpu::BufferDescriptor {

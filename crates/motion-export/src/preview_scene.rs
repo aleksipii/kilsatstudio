@@ -28,7 +28,9 @@ impl ScenePreview {
         {
             return Err(invalid("preview script work budget exceeded"));
         }
-        if live_clip_frame_work(&script, index).saturating_add(rigid_frame_work(&script)) > 1_000_000 {
+        if live_clip_frame_work(&script, index).saturating_add(rigid_frame_work(&script))
+            > 1_000_000
+        {
             return Err(invalid("preview live clip sample work budget exceeded"));
         }
         let validated = motion_scene::ValidatedScript::new(script.clone())

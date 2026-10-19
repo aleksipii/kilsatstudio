@@ -154,20 +154,29 @@ impl State {
                         .changed()
                     {
                         self.confirm_delete = false;
-                        if mode == ClipBlendMode::Additive { draft.normalized_group = None; }
+                        if mode == ClipBlendMode::Additive {
+                            draft.normalized_group = None;
+                        }
                     }
                 }
             });
         let mut grouped = draft.normalized_group.is_some();
-        if ui.checkbox(&mut grouped, "Normalize an override group").changed() {
+        if ui
+            .checkbox(&mut grouped, "Normalize an override group")
+            .changed()
+        {
             draft.normalized_group = grouped.then(|| "group".into());
-            if grouped { draft.blend_mode = ClipBlendMode::Override; }
+            if grouped {
+                draft.blend_mode = ClipBlendMode::Override;
+            }
             self.confirm_delete = false;
         }
         if let Some(group) = &mut draft.normalized_group {
             ui.horizontal(|ui| {
                 ui.label("Group ID");
-                if ui.text_edit_singleline(group).changed() { self.confirm_delete = false; }
+                if ui.text_edit_singleline(group).changed() {
+                    self.confirm_delete = false;
+                }
             });
             ui.small("Use the same ID on consecutive override rows for one actor. Per joint, positive active selected clips normalize above total weight 1; below 1, the earlier pose fills the remainder. Group position preserves surrounding stack order.");
         }
@@ -364,20 +373,35 @@ fn reset_envelope(draft: &mut ClipInstance, script: &Script) {
 }
 
 fn normalized_group_valid(rows: &[ClipInstance], draft: &ClipInstance, editing: bool) -> bool {
-    let mut candidates = rows.iter().map(|row| {
-        if editing && row.id == draft.id { draft } else { row }
-    }).collect::<Vec<_>>();
-    if !editing { candidates.push(draft); }
+    let mut candidates = rows
+        .iter()
+        .map(|row| {
+            if editing && row.id == draft.id {
+                draft
+            } else {
+                row
+            }
+        })
+        .collect::<Vec<_>>();
+    if !editing {
+        candidates.push(draft);
+    }
     let mut seen = std::collections::BTreeSet::new();
     let mut previous: Option<(&str, &str)> = None;
     for row in candidates {
         if let Some(group) = row.normalized_group.as_deref() {
-            if group.is_empty() || group.len() > 64
-                || !group.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
-                || row.blend_mode != ClipBlendMode::Override {
+            if group.is_empty()
+                || group.len() > 64
+                || !group
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+                || row.blend_mode != ClipBlendMode::Override
+            {
                 return false;
             }
-            if previous != Some((group, row.actor.as_str())) && !seen.insert(group) { return false; }
+            if previous != Some((group, row.actor.as_str())) && !seen.insert(group) {
+                return false;
+            }
             previous = Some((group, row.actor.as_str()));
         } else {
             previous = None;
@@ -501,27 +525,51 @@ mod tests {
     fn normalized_group_drafts_apply_roundtrip_reset_and_reject_invalid_blocks() {
         let mut first = instance("a");
         first.normalized_group = Some("reach".into());
-        let saved = Action::Upsert { instance: first.clone() }.apply(&captured(), 0).unwrap();
+        let saved = Action::Upsert {
+            instance: first.clone(),
+        }
+        .apply(&captured(), 0)
+        .unwrap();
         let mut second = instance("b");
         second.normalized_group = Some("reach".into());
         let script = motion_script::parse(&saved).unwrap();
-        assert!(normalized_group_valid(&script.scenes[0].composition.clip_instances, &second, false));
-        let saved = Action::Upsert { instance: second.clone() }.apply(&saved, 0).unwrap();
+        assert!(normalized_group_valid(
+            &script.scenes[0].composition.clip_instances,
+            &second,
+            false
+        ));
+        let saved = Action::Upsert {
+            instance: second.clone(),
+        }
+        .apply(&saved, 0)
+        .unwrap();
         let reopened = motion_script::parse(&saved).unwrap();
         assert_eq!(reopened.scenes[0].composition.clip_instances[1], second);
         reset_envelope(&mut second, &reopened);
         assert_eq!(second.normalized_group.as_deref(), Some("reach"));
         second.actor = "A".into();
-        assert!(!normalized_group_valid(&reopened.scenes[0].composition.clip_instances, &second, true));
-        assert!(Action::Upsert { instance: second }.apply(&saved, 0).is_err());
+        assert!(!normalized_group_valid(
+            &reopened.scenes[0].composition.clip_instances,
+            &second,
+            true
+        ));
+        assert!(Action::Upsert { instance: second }
+            .apply(&saved, 0)
+            .is_err());
         let mut gap = instance("gap");
         gap.normalized_group = None;
         let saved_gap = Action::Upsert { instance: gap }.apply(&saved, 0).unwrap();
         let mut after = instance("after");
         after.normalized_group = Some("reach".into());
         let parsed = motion_script::parse(&saved_gap).unwrap();
-        assert!(!normalized_group_valid(&parsed.scenes[0].composition.clip_instances, &after, false));
-        assert!(Action::Upsert { instance: after }.apply(&saved_gap, 0).is_err());
+        assert!(!normalized_group_valid(
+            &parsed.scenes[0].composition.clip_instances,
+            &after,
+            false
+        ));
+        assert!(Action::Upsert { instance: after }
+            .apply(&saved_gap, 0)
+            .is_err());
     }
 
     #[test]

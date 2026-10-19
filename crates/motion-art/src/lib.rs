@@ -291,8 +291,16 @@ pub struct Document {
 }
 /// An item has exactly one owner: the root order or one group's children.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(tag = "type", content = "id", rename_all = "snake_case", deny_unknown_fields)]
-pub enum ArtUnit { Layer(String), Group(String) }
+#[serde(
+    tag = "type",
+    content = "id",
+    rename_all = "snake_case",
+    deny_unknown_fields
+)]
+pub enum ArtUnit {
+    Layer(String),
+    Group(String),
+}
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Group {
@@ -307,7 +315,11 @@ pub struct Group {
     pub children: Vec<ArtUnit>,
 }
 #[derive(Debug, Clone, Copy)]
-pub enum CompositionStep<'a> { EnterGroup(&'a Group), Layer(&'a Layer), LeaveGroup }
+pub enum CompositionStep<'a> {
+    EnterGroup(&'a Group),
+    Layer(&'a Layer),
+    LeaveGroup,
+}
 pub const MAX_GROUPS: usize = 256;
 pub const MAX_GROUP_DEPTH: usize = 8;
 pub const MAX_GROUP_CHILDREN: usize = 128;
@@ -348,35 +360,70 @@ impl Layer {
 impl Document {
     fn root_order(&self) -> Vec<ArtUnit> {
         if self.groups.is_empty() && self.order.is_empty() {
-            self.layers.iter().map(|l| ArtUnit::Layer(l.id.clone())).collect()
-        } else { self.order.clone() }
+            self.layers
+                .iter()
+                .map(|l| ArtUnit::Layer(l.id.clone()))
+                .collect()
+        } else {
+            self.order.clone()
+        }
     }
     pub fn unit_scope(&self, unit: &ArtUnit) -> Option<(&str, Plane)> {
         match unit {
-            ArtUnit::Layer(id) => self.layers.iter().find(|l| &l.id == id).map(|l| (l.scene_id.as_str(), l.plane)),
-            ArtUnit::Group(id) => self.groups.iter().find(|g| &g.id == id).map(|g| (g.scene_id.as_str(), g.plane)),
+            ArtUnit::Layer(id) => self
+                .layers
+                .iter()
+                .find(|l| &l.id == id)
+                .map(|l| (l.scene_id.as_str(), l.plane)),
+            ArtUnit::Group(id) => self
+                .groups
+                .iter()
+                .find(|g| &g.id == id)
+                .map(|g| (g.scene_id.as_str(), g.plane)),
         }
     }
     fn validate_groups(&self) -> Result<(), Error> {
-        if self.groups.len() > MAX_GROUPS { return invalid("artwork exceeds 256 groups"); }
+        if self.groups.len() > MAX_GROUPS {
+            return invalid("artwork exceeds 256 groups");
+        }
         let mut ids: BTreeSet<&str> = self.layers.iter().map(|l| l.id.as_str()).collect();
         for group in &self.groups {
-            if !identifier(&group.id) || !ids.insert(&group.id) || !identifier(&group.scene_id)
-                || group.name.len() > 512 || group.name.chars().any(char::is_control)
-                || !group.opacity.is_finite() || !(0.0..=1.0).contains(&group.opacity)
-                || group.children.len() > MAX_GROUP_CHILDREN {
+            if !identifier(&group.id)
+                || !ids.insert(&group.id)
+                || !identifier(&group.scene_id)
+                || group.name.len() > 512
+                || group.name.chars().any(char::is_control)
+                || !group.opacity.is_finite()
+                || !(0.0..=1.0).contains(&group.opacity)
+                || group.children.len() > MAX_GROUP_CHILDREN
+            {
                 return invalid("invalid group identifiers, properties or child budget");
             }
         }
-        fn visit(doc: &Document, units: &[ArtUnit], parent: Option<(&str, Plane)>, depth: usize,
-                 seen: &mut BTreeSet<String>) -> Result<(), Error> {
+        fn visit(
+            doc: &Document,
+            units: &[ArtUnit],
+            parent: Option<(&str, Plane)>,
+            depth: usize,
+            seen: &mut BTreeSet<String>,
+        ) -> Result<(), Error> {
             for unit in units {
-                let id = match unit { ArtUnit::Layer(id) | ArtUnit::Group(id) => id };
-                let Some(scope) = doc.unit_scope(unit) else { return invalid("unknown artwork order item"); };
-                if !seen.insert(id.clone()) { return invalid("duplicate or cyclic artwork ownership"); }
-                if parent.is_some_and(|p| p != scope) { return invalid("group children must share scene and plane"); }
+                let id = match unit {
+                    ArtUnit::Layer(id) | ArtUnit::Group(id) => id,
+                };
+                let Some(scope) = doc.unit_scope(unit) else {
+                    return invalid("unknown artwork order item");
+                };
+                if !seen.insert(id.clone()) {
+                    return invalid("duplicate or cyclic artwork ownership");
+                }
+                if parent.is_some_and(|p| p != scope) {
+                    return invalid("group children must share scene and plane");
+                }
                 if let ArtUnit::Group(id) = unit {
-                    if depth >= MAX_GROUP_DEPTH { return invalid("artwork exceeds group depth 8"); }
+                    if depth >= MAX_GROUP_DEPTH {
+                        return invalid("artwork exceeds group depth 8");
+                    }
                     let group = doc.groups.iter().find(|g| &g.id == id).unwrap();
                     visit(doc, &group.children, Some(scope), depth + 1, seen)?;
                 }
@@ -385,21 +432,46 @@ impl Document {
         }
         let mut seen = BTreeSet::new();
         visit(self, &self.root_order(), None, 0, &mut seen)?;
-        if seen.len() != self.layers.len() + self.groups.len() { return invalid("every artwork item must appear exactly once in sibling order"); }
+        if seen.len() != self.layers.len() + self.groups.len() {
+            return invalid("every artwork item must appear exactly once in sibling order");
+        }
         Ok(())
     }
     /// Validated bounded traversal; opacity and blend remain isolated group operations.
-    pub fn composition<'a>(&'a self, scene: &str, plane: Plane, time: f64) -> Result<Vec<CompositionStep<'a>>, Error> {
+    pub fn composition<'a>(
+        &'a self,
+        scene: &str,
+        plane: Plane,
+        time: f64,
+    ) -> Result<Vec<CompositionStep<'a>>, Error> {
         self.validate()?;
-        fn emit<'a>(doc: &'a Document, units: &[ArtUnit], scene: &str, plane: Plane, time: f64,
-                    out: &mut Vec<CompositionStep<'a>>) {
+        fn emit<'a>(
+            doc: &'a Document,
+            units: &[ArtUnit],
+            scene: &str,
+            plane: Plane,
+            time: f64,
+            out: &mut Vec<CompositionStep<'a>>,
+        ) {
             for unit in units {
-                if doc.unit_scope(unit) != Some((scene, plane)) { continue; }
+                if doc.unit_scope(unit) != Some((scene, plane)) {
+                    continue;
+                }
                 match unit {
-                    ArtUnit::Layer(id) => { let l = doc.layers.iter().find(|l| &l.id == id).unwrap();
-                        if l.is_active(time) { out.push(CompositionStep::Layer(l)); } }
-                    ArtUnit::Group(id) => { let g = doc.groups.iter().find(|g| &g.id == id).unwrap();
-                        if g.visible { out.push(CompositionStep::EnterGroup(g)); emit(doc, &g.children, scene, plane, time, out); out.push(CompositionStep::LeaveGroup); } }
+                    ArtUnit::Layer(id) => {
+                        let l = doc.layers.iter().find(|l| &l.id == id).unwrap();
+                        if l.is_active(time) {
+                            out.push(CompositionStep::Layer(l));
+                        }
+                    }
+                    ArtUnit::Group(id) => {
+                        let g = doc.groups.iter().find(|g| &g.id == id).unwrap();
+                        if g.visible {
+                            out.push(CompositionStep::EnterGroup(g));
+                            emit(doc, &g.children, scene, plane, time, out);
+                            out.push(CompositionStep::LeaveGroup);
+                        }
+                    }
                 }
             }
         }
@@ -408,14 +480,28 @@ impl Document {
         Ok(result)
     }
     fn detach(&mut self, unit: &ArtUnit) -> Result<(Option<String>, usize), Error> {
-        if let Some(index) = self.order.iter().position(|u| u == unit) { self.order.remove(index); return Ok((None,index)); }
+        if let Some(index) = self.order.iter().position(|u| u == unit) {
+            self.order.remove(index);
+            return Ok((None, index));
+        }
         for group in &mut self.groups {
-            if let Some(index) = group.children.iter().position(|u| u == unit) { group.children.remove(index); return Ok((Some(group.id.clone()),index)); }
+            if let Some(index) = group.children.iter().position(|u| u == unit) {
+                group.children.remove(index);
+                return Ok((Some(group.id.clone()), index));
+            }
         }
         invalid("artwork item has no sibling owner")
     }
     fn siblings(&mut self, parent: Option<&str>) -> Result<&mut Vec<ArtUnit>, Error> {
-        match parent { None => Ok(&mut self.order), Some(id) => self.groups.iter_mut().find(|g| g.id == id).map(|g| &mut g.children).ok_or_else(|| Error::Validation("group does not exist".into())) }
+        match parent {
+            None => Ok(&mut self.order),
+            Some(id) => self
+                .groups
+                .iter_mut()
+                .find(|g| g.id == id)
+                .map(|g| &mut g.children)
+                .ok_or_else(|| Error::Validation("group does not exist".into())),
+        }
     }
     pub fn validate(&self) -> Result<(), Error> {
         if self.layers.len() > MAX_LAYERS {
@@ -498,28 +584,57 @@ impl Document {
     /// Apply a typed edit transactionally. Reference checks belong to the project boundary.
     pub fn apply(&mut self, command: Command) -> Result<(), Error> {
         let mut next = self.clone();
-        if !next.groups.is_empty() || !matches!(&command, Command::Add(_) | Command::Replace(_) | Command::Remove { .. } | Command::Reorder { .. }) {
-            if next.order.is_empty() && next.groups.is_empty() { next.order = next.root_order(); }
+        if !next.groups.is_empty()
+            || !matches!(
+                &command,
+                Command::Add(_)
+                    | Command::Replace(_)
+                    | Command::Remove { .. }
+                    | Command::Reorder { .. }
+            )
+        {
+            if next.order.is_empty() && next.groups.is_empty() {
+                next.order = next.root_order();
+            }
         }
         match command {
-            Command::CreateGroup(group) => { next.order.push(ArtUnit::Group(group.id.clone())); next.groups.push(group); }
+            Command::CreateGroup(group) => {
+                next.order.push(ArtUnit::Group(group.id.clone()));
+                next.groups.push(group);
+            }
             Command::ReplaceGroup(group) => {
-                let Some(target) = next.groups.iter_mut().find(|g| g.id == group.id) else { return invalid("group does not exist"); };
+                let Some(target) = next.groups.iter_mut().find(|g| g.id == group.id) else {
+                    return invalid("group does not exist");
+                };
                 *target = group;
             }
-            Command::Move { unit, parent, index } => {
+            Command::Move {
+                unit,
+                parent,
+                index,
+            } => {
                 next.detach(&unit)?;
                 let siblings = next.siblings(parent.as_deref())?;
-                if index > siblings.len() { return invalid("sibling index out of bounds"); }
+                if index > siblings.len() {
+                    return invalid("sibling index out of bounds");
+                }
                 siblings.insert(index, unit);
             }
             Command::Ungroup { id } => {
-                let Some(index) = next.groups.iter().position(|g| g.id == id) else { return invalid("group does not exist"); };
+                let Some(index) = next.groups.iter().position(|g| g.id == id) else {
+                    return invalid("group does not exist");
+                };
                 let (parent, position) = next.detach(&ArtUnit::Group(id))?;
                 let group = next.groups.remove(index);
-                next.siblings(parent.as_deref())?.splice(position..position, group.children);
+                next.siblings(parent.as_deref())?
+                    .splice(position..position, group.children);
             }
-            Command::Add(layer) => { if !next.order.is_empty() || !next.groups.is_empty() { next.order.push(ArtUnit::Layer(layer.id.clone())); } next.layers.push(layer); },
+            Command::Add(layer) => {
+                if !next.order.is_empty() || !next.groups.is_empty() {
+                    next.order.push(ArtUnit::Layer(layer.id.clone()));
+                }
+                next.layers.push(layer);
+            }
             Command::Replace(layer) => {
                 let Some(target) = next.layers.iter_mut().find(|v| v.id == layer.id) else {
                     return invalid("layer does not exist");
@@ -530,7 +645,9 @@ impl Document {
                 let Some(index) = next.layers.iter().position(|v| v.id == id) else {
                     return invalid("layer does not exist");
                 };
-                if !next.order.is_empty() || !next.groups.is_empty() { next.detach(&ArtUnit::Layer(id))?; }
+                if !next.order.is_empty() || !next.groups.is_empty() {
+                    next.detach(&ArtUnit::Layer(id))?;
+                }
                 next.layers.remove(index);
             }
             Command::Reorder { id, index } => {
@@ -541,7 +658,9 @@ impl Document {
                     let unit = ArtUnit::Layer(id);
                     let (parent, _) = next.detach(&unit)?;
                     let siblings = next.siblings(parent.as_deref())?;
-                    if index > siblings.len() { return invalid("sibling order index out of bounds"); }
+                    if index > siblings.len() {
+                        return invalid("sibling order index out of bounds");
+                    }
                     siblings.insert(index, unit);
                     next.validate()?;
                     *self = next;
@@ -563,63 +682,128 @@ impl Document {
 pub enum Command {
     CreateGroup(Group),
     ReplaceGroup(Group),
-    Move { unit: ArtUnit, parent: Option<String>, index: usize },
-    Ungroup { id: String },
+    Move {
+        unit: ArtUnit,
+        parent: Option<String>,
+        index: usize,
+    },
+    Ungroup {
+        id: String,
+    },
     Add(Layer),
     Replace(Layer),
-    Remove { id: String },
-    Reorder { id: String, index: usize },
+    Remove {
+        id: String,
+    },
+    Reorder {
+        id: String,
+        index: usize,
+    },
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     fn group(id: &str) -> Group {
-        Group { id: id.into(), scene_id: "intro".into(), plane: Plane::Foreground,
-            name: id.into(), visible: true, opacity: 0.5, blend: BlendMode::Normal, children: Vec::new() }
+        Group {
+            id: id.into(),
+            scene_id: "intro".into(),
+            plane: Plane::Foreground,
+            name: id.into(),
+            visible: true,
+            opacity: 0.5,
+            blend: BlendMode::Normal,
+            children: Vec::new(),
+        }
     }
     #[test]
     fn legacy_order_nested_roundtrip_and_ungroup_preserve_children() {
-        let mut doc = Document { layers: vec![layer()], ..Document::default() };
+        let mut doc = Document {
+            layers: vec![layer()],
+            ..Document::default()
+        };
         let legacy = serde_json::to_value(&doc).unwrap();
         assert!(legacy.get("groups").is_none());
         assert!(legacy.get("order").is_none());
         doc.apply(Command::CreateGroup(group("outer"))).unwrap();
         doc.apply(Command::CreateGroup(group("inner"))).unwrap();
-        doc.apply(Command::Move { unit: ArtUnit::Layer("stable".into()), parent: Some("inner".into()), index: 0 }).unwrap();
-        doc.apply(Command::Move { unit: ArtUnit::Group("inner".into()), parent: Some("outer".into()), index: 0 }).unwrap();
-        let restored: Document = serde_json::from_str(&serde_json::to_string(&doc).unwrap()).unwrap();
+        doc.apply(Command::Move {
+            unit: ArtUnit::Layer("stable".into()),
+            parent: Some("inner".into()),
+            index: 0,
+        })
+        .unwrap();
+        doc.apply(Command::Move {
+            unit: ArtUnit::Group("inner".into()),
+            parent: Some("outer".into()),
+            index: 0,
+        })
+        .unwrap();
+        let restored: Document =
+            serde_json::from_str(&serde_json::to_string(&doc).unwrap()).unwrap();
         assert_eq!(doc, restored);
         let steps = doc.composition("intro", Plane::Foreground, 0.0).unwrap();
         assert_eq!(steps.len(), 5);
         assert!(matches!(steps[0], CompositionStep::EnterGroup(g) if g.id == "outer"));
         assert!(matches!(steps[2], CompositionStep::Layer(l) if l.id == "stable"));
         doc.apply(Command::Ungroup { id: "inner".into() }).unwrap();
-        assert_eq!(doc.groups[0].children, vec![ArtUnit::Layer("stable".into())]);
+        assert_eq!(
+            doc.groups[0].children,
+            vec![ArtUnit::Layer("stable".into())]
+        );
         doc.apply(Command::Ungroup { id: "outer".into() }).unwrap();
         assert_eq!(doc.order, vec![ArtUnit::Layer("stable".into())]);
         assert_eq!(doc.layers.len(), 1);
     }
     #[test]
     fn invalid_hierarchy_edits_are_atomic_and_hidden_ancestors_hide_timed_leaves() {
-        let mut doc = Document { layers: vec![layer()], ..Document::default() };
+        let mut doc = Document {
+            layers: vec![layer()],
+            ..Document::default()
+        };
         doc.apply(Command::CreateGroup(group("outer"))).unwrap();
-        doc.apply(Command::Move { unit: ArtUnit::Layer("stable".into()), parent: Some("outer".into()), index: 0 }).unwrap();
+        doc.apply(Command::Move {
+            unit: ArtUnit::Layer("stable".into()),
+            parent: Some("outer".into()),
+            index: 0,
+        })
+        .unwrap();
         let before = doc.clone();
         for command in [
-            Command::Move { unit: ArtUnit::Group("outer".into()), parent: Some("outer".into()), index: 0 },
-            Command::Move { unit: ArtUnit::Layer("stable".into()), parent: Some("missing".into()), index: 0 },
-            Command::Move { unit: ArtUnit::Layer("stable".into()), parent: None, index: 42 },
-        ] { assert!(doc.apply(command).is_err()); assert_eq!(doc, before); }
-        let mut bad = group("outer"); bad.plane = Plane::Background;
+            Command::Move {
+                unit: ArtUnit::Group("outer".into()),
+                parent: Some("outer".into()),
+                index: 0,
+            },
+            Command::Move {
+                unit: ArtUnit::Layer("stable".into()),
+                parent: Some("missing".into()),
+                index: 0,
+            },
+            Command::Move {
+                unit: ArtUnit::Layer("stable".into()),
+                parent: None,
+                index: 42,
+            },
+        ] {
+            assert!(doc.apply(command).is_err());
+            assert_eq!(doc, before);
+        }
+        let mut bad = group("outer");
+        bad.plane = Plane::Background;
         assert!(doc.apply(Command::ReplaceGroup(bad)).is_err());
         assert_eq!(doc, before);
-        let mut duplicate = doc.clone(); duplicate.order.push(ArtUnit::Layer("stable".into()));
+        let mut duplicate = doc.clone();
+        duplicate.order.push(ArtUnit::Layer("stable".into()));
         assert!(duplicate.validate().is_err());
-        let mut orphan = doc.clone(); orphan.groups[0].children.clear();
+        let mut orphan = doc.clone();
+        orphan.groups[0].children.clear();
         assert!(orphan.validate().is_err());
         doc.groups[0].visible = false;
-        assert!(doc.composition("intro", Plane::Foreground, 5.0).unwrap().is_empty());
+        assert!(doc
+            .composition("intro", Plane::Foreground, 5.0)
+            .unwrap()
+            .is_empty());
     }
     #[test]
     fn depth_and_child_limits_are_checked_before_traversal() {
@@ -627,13 +811,27 @@ mod tests {
         for n in 0..MAX_GROUP_DEPTH {
             let id = format!("g{n}");
             doc.apply(Command::CreateGroup(group(&id))).unwrap();
-            if n > 0 { doc.apply(Command::Move { unit: ArtUnit::Group(id), parent: Some(format!("g{}", n - 1)), index: 0 }).unwrap(); }
+            if n > 0 {
+                doc.apply(Command::Move {
+                    unit: ArtUnit::Group(id),
+                    parent: Some(format!("g{}", n - 1)),
+                    index: 0,
+                })
+                .unwrap();
+            }
         }
         doc.apply(Command::CreateGroup(group("too-deep"))).unwrap();
         let before = doc.clone();
-        assert!(doc.apply(Command::Move { unit: ArtUnit::Group("too-deep".into()), parent: Some("g7".into()), index: 0 }).is_err());
+        assert!(doc
+            .apply(Command::Move {
+                unit: ArtUnit::Group("too-deep".into()),
+                parent: Some("g7".into()),
+                index: 0
+            })
+            .is_err());
         assert_eq!(doc, before);
-        let mut bad = group("bad"); bad.children = vec![ArtUnit::Layer("missing".into()); MAX_GROUP_CHILDREN + 1];
+        let mut bad = group("bad");
+        bad.children = vec![ArtUnit::Layer("missing".into()); MAX_GROUP_CHILDREN + 1];
         assert!(doc.apply(Command::CreateGroup(bad)).is_err());
         assert_eq!(doc, before);
     }
@@ -715,7 +913,8 @@ mod tests {
         source.clip_shape = Some(soft_mask());
         let mut document = Document {
             layers: vec![source.clone()],
-         ..Document::default()};
+            ..Document::default()
+        };
         document.validate().unwrap();
         let before = document.clone();
         for case in 0..8 {
@@ -840,7 +1039,8 @@ mod tests {
     fn invalid_intervals_are_rejected_transactionally() {
         let mut doc = Document {
             layers: vec![layer()],
-         ..Document::default()};
+            ..Document::default()
+        };
         let before = doc.clone();
         for (start, end) in [
             (-1.0, 2.0),
@@ -881,12 +1081,22 @@ mod tests {
     fn rejects_unbounded_geometry_and_point_budgets() {
         let mut item = layer();
         item.clip.as_mut().unwrap().width = 0.0;
-        assert!(Document { layers: vec![item], ..Document::default()}.validate().is_err());
+        assert!(Document {
+            layers: vec![item],
+            ..Document::default()
+        }
+        .validate()
+        .is_err());
         let mut item = layer();
         if let Content::Stroke { points, .. } = &mut item.content {
             points[1].x = f64::INFINITY;
         }
-        assert!(Document { layers: vec![item], ..Document::default()}.validate().is_err());
+        assert!(Document {
+            layers: vec![item],
+            ..Document::default()
+        }
+        .validate()
+        .is_err());
     }
     #[test]
     fn mask_shapes_roundtrip_and_reject_ambiguous_or_invalid_geometry() {
@@ -903,7 +1113,8 @@ mod tests {
         item.blend = BlendMode::Multiply;
         let doc = Document {
             layers: vec![item.clone()],
-         ..Document::default()};
+            ..Document::default()
+        };
         doc.validate().unwrap();
         let json = serde_json::to_string(&doc).unwrap();
         let restored: Document = serde_json::from_str(&json).unwrap();
@@ -915,8 +1126,9 @@ mod tests {
             height: 1.0,
         });
         assert!(Document {
-            layers: vec![item.clone()]
-        , ..Document::default()}
+            layers: vec![item.clone()],
+            ..Document::default()
+        }
         .validate()
         .is_err());
         item.clip = None;

@@ -92,9 +92,13 @@ pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) ->
             })
             || actor.rigid_parts.len() > 256
             || actor.rigid_parts.iter().any(|part| {
-                !(3..=64).contains(&part.points.len()) || part.points.iter().any(|p| {
-                    !p.x.is_finite() || !p.y.is_finite() || p.x.abs() > 1_000_000.0 || p.y.abs() > 1_000_000.0
-                })
+                !(3..=64).contains(&part.points.len())
+                    || part.points.iter().any(|p| {
+                        !p.x.is_finite()
+                            || !p.y.is_finite()
+                            || p.x.abs() > 1_000_000.0
+                            || p.y.abs() > 1_000_000.0
+                    })
             })
             || !actor.rotation.is_finite()
             || actor.rotation.abs() > 360_000.0
@@ -167,58 +171,66 @@ fn render_scene(
                 for point in &part.points {
                     write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
                 }
-                write!(svg, "\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{:.6}\"/>", part.color[0], part.color[1], part.color[2], f64::from(part.color[3]) / 255.0).unwrap();
+                write!(
+                    svg,
+                    "\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{:.6}\"/>",
+                    part.color[0],
+                    part.color[1],
+                    part.color[2],
+                    f64::from(part.color[3]) / 255.0
+                )
+                .unwrap();
             }
         } else {
-        let p = &actor.skeleton;
-        svg.push_str("<path d=\"");
-        for (a, b) in [
-            (HIP, CHEST),
-            (CHEST, HEAD),
-            (CHEST, LEFT_HAND),
-            (CHEST, RIGHT_HAND),
-            (HIP, LEFT_FOOT),
-            (HIP, RIGHT_FOOT),
-        ] {
+            let p = &actor.skeleton;
+            svg.push_str("<path d=\"");
+            for (a, b) in [
+                (HIP, CHEST),
+                (CHEST, HEAD),
+                (CHEST, LEFT_HAND),
+                (CHEST, RIGHT_HAND),
+                (HIP, LEFT_FOOT),
+                (HIP, RIGHT_FOOT),
+            ] {
+                write!(
+                    svg,
+                    "M{:.6} {:.6}L{:.6} {:.6}",
+                    p[a].x, p[a].y, p[b].x, p[b].y
+                )
+                .unwrap();
+            }
+            svg.push_str(
+                "\" fill=\"none\" stroke=\"#7eb9e2\" stroke-width=\"5\" stroke-linecap=\"round\"/>",
+            );
+            write!(svg,"<g transform=\"translate({:.6} {:.6})\"><circle r=\"25\" fill=\"#f5c8a2\"/><g fill=\"black\"><circle cx=\"-8\" cy=\"-4\" r=\"2.5\"/><circle cx=\"8\" cy=\"-4\" r=\"2.5\"/></g>",p[HEAD].x,p[HEAD].y).unwrap();
+            let viseme = mouths
+                .iter()
+                .find(|(id, _)| *id == actor.id)
+                .map(|(_, v)| *v)
+                .unwrap_or(Viseme::Rest);
+            let (w, h) = match viseme {
+                Viseme::A => (14.0, 14.0),
+                Viseme::O | Viseme::U => (8.0, 11.0),
+                Viseme::E | Viseme::I => (18.0, 6.0),
+                Viseme::Rest | Viseme::Closed => (13.0, 2.0),
+                _ => (12.0, 5.0),
+            };
             write!(
                 svg,
-                "M{:.6} {:.6}L{:.6} {:.6}",
-                p[a].x, p[a].y, p[b].x, p[b].y
+                "<rect x=\"{}\" y=\"{}\" width=\"{w}\" height=\"{h}\" rx=\"2\" fill=\"#7d2d39\"/>",
+                -w / 2.0,
+                10.0 - h / 2.0
             )
             .unwrap();
-        }
-        svg.push_str(
-            "\" fill=\"none\" stroke=\"#7eb9e2\" stroke-width=\"5\" stroke-linecap=\"round\"/>",
-        );
-        write!(svg,"<g transform=\"translate({:.6} {:.6})\"><circle r=\"25\" fill=\"#f5c8a2\"/><g fill=\"black\"><circle cx=\"-8\" cy=\"-4\" r=\"2.5\"/><circle cx=\"8\" cy=\"-4\" r=\"2.5\"/></g>",p[HEAD].x,p[HEAD].y).unwrap();
-        let viseme = mouths
-            .iter()
-            .find(|(id, _)| *id == actor.id)
-            .map(|(_, v)| *v)
-            .unwrap_or(Viseme::Rest);
-        let (w, h) = match viseme {
-            Viseme::A => (14.0, 14.0),
-            Viseme::O | Viseme::U => (8.0, 11.0),
-            Viseme::E | Viseme::I => (18.0, 6.0),
-            Viseme::Rest | Viseme::Closed => (13.0, 2.0),
-            _ => (12.0, 5.0),
-        };
-        write!(
-            svg,
-            "<rect x=\"{}\" y=\"{}\" width=\"{w}\" height=\"{h}\" rx=\"2\" fill=\"#7d2d39\"/>",
-            -w / 2.0,
-            10.0 - h / 2.0
-        )
-        .unwrap();
-        if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
-            svg.push_str(
+            if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
+                svg.push_str(
                 "<path d=\"M-8 9L0 14L8 9\" fill=\"none\" stroke=\"#7d2d39\" stroke-width=\"2\"/>",
             );
-        }
-        if actor.emotion == "surprised" {
-            svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
-        }
-        svg.push_str("</g>");
+            }
+            if actor.emotion == "surprised" {
+                svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
+            }
+            svg.push_str("</g>");
         }
         if actor.rotation != 0.0 || actor.scale.x != 1.0 || actor.scale.y != 1.0 {
             svg.push_str("</g>");
@@ -272,7 +284,8 @@ fn append_art(
     plane: motion_art::Plane,
 ) -> Result<(), Error> {
     use motion_art::Content;
-    let steps = document.composition(scene_id, plane, scene.time)
+    let steps = document
+        .composition(scene_id, plane, scene.time)
         .map_err(|e| Error::InvalidArtwork(e.to_string()))?;
     for step in steps {
         let layer = match step {
@@ -282,13 +295,25 @@ fn append_art(
                     motion_art::BlendMode::Multiply => "multiply",
                     motion_art::BlendMode::Screen => "screen",
                 };
-                write!(svg, "<g opacity=\"{:.6}\" style=\"isolation:isolate;mix-blend-mode:{blend}\">", group.opacity).unwrap();
+                write!(
+                    svg,
+                    "<g opacity=\"{:.6}\" style=\"isolation:isolate;mix-blend-mode:{blend}\">",
+                    group.opacity
+                )
+                .unwrap();
                 continue;
             }
-            motion_art::CompositionStep::LeaveGroup => { svg.push_str("</g>"); continue; }
+            motion_art::CompositionStep::LeaveGroup => {
+                svg.push_str("</g>");
+                continue;
+            }
             motion_art::CompositionStep::Layer(layer) => layer,
         };
-        let index = document.layers.iter().position(|l| l.id == layer.id).unwrap();
+        let index = document
+            .layers
+            .iter()
+            .position(|l| l.id == layer.id)
+            .unwrap();
         let (x, y) = match &layer.attachment {
             Some(id) => match scene.actors.iter().find(|a| &a.id == id) {
                 Some(a) => (a.x, a.y),
@@ -459,12 +484,17 @@ mod tests {
         let mut evaluated = motion_scene::evaluate(&script, 0, 0.5).unwrap();
         evaluated.actors[0].rotation = std::f64::consts::FRAC_PI_2;
         let svg = render_svg(&evaluated, 640, 360).unwrap();
-        assert!(svg.contains("<polygon points=\"10.000000,-20.000000 20.000000,-20.000000 10.000000,-10.000000 "));
+        assert!(svg.contains(
+            "<polygon points=\"10.000000,-20.000000 20.000000,-20.000000 10.000000,-10.000000 "
+        ));
         assert!(svg.contains("fill=\"#142850\" fill-opacity=\"0.501961\""));
         assert!(svg.contains("rotate(90.000000)"));
         assert!(!svg.contains("<circle r=\"25\""));
         evaluated.actors[0].rigid_parts[0].points[0].x = f64::NAN;
-        assert_eq!(render_svg(&evaluated, 640, 360), Err(Error::InvalidActor(0)));
+        assert_eq!(
+            render_svg(&evaluated, 640, 360),
+            Err(Error::InvalidActor(0))
+        );
     }
     #[test]
     fn deterministic_geometry_and_letterbox() {
@@ -646,7 +676,8 @@ mod timed_art_tests {
                 attached,
                 layer("bg2", Plane::Background, 2),
             ],
-         ..Default::default()};
+            ..Default::default()
+        };
         let svg = render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).unwrap();
         let positions = [
             svg.find("fill=\"#181f2c\"").unwrap(),
@@ -690,7 +721,8 @@ mod timed_art_tests {
                 hidden,
                 other_scene,
             ],
-         ..Default::default()};
+            ..Default::default()
+        };
         for (time, first, second) in [
             (2.5, true, true),
             (4.0, false, false),
@@ -726,7 +758,8 @@ mod timed_art_tests {
         };
         let doc = Document {
             layers: vec![image],
-         ..Default::default()};
+            ..Default::default()
+        };
         assert!(render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).is_ok());
         s.time = 1.0;
         assert!(matches!(
