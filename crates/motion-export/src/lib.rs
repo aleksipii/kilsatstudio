@@ -600,9 +600,10 @@ fn export_sequence(
                                 .sum::<u64>()
                                 + 1
                         }
-                        Some(motion_art::ClipShape::SoftEllipse { keys, .. }) => {
-                            u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8
-                        }
+                        Some(
+                            shape @ (motion_art::ClipShape::SoftEllipse { .. }
+                            | motion_art::ClipShape::Image { .. }),
+                        ) => u64::from(usize::BITS - shape.key_count().max(1).leading_zeros()) + 8,
                         _ => 0,
                     }
             })

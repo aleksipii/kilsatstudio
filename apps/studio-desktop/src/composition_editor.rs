@@ -1,6 +1,8 @@
 //! Detached composition controls; Apply is validated as one screenplay edit.
 use eframe::egui;
-use motion_script::{BackgroundKey, CameraKey, Composition, Layer, Transition};
+use motion_script::{
+    camera_preset_keys, BackgroundKey, CameraKey, CameraPreset, Composition, Layer, Transition,
+};
 
 pub fn ui(
     ui: &mut egui::Ui,
@@ -77,6 +79,7 @@ pub fn ui(
         ui.add(egui::DragValue::new(&mut value.fade_in).speed(0.1));
         ui.add(egui::DragValue::new(&mut value.fade_out).speed(0.1));
     });
+    camera_presets_ui(ui, value, duration);
     ui.small("Camera offsets are pixels from center. Key times remain in seconds.");
     let mut remove = None;
     for (index, key) in value.camera.iter_mut().enumerate() {
@@ -162,6 +165,43 @@ fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_las
         ui.small("Crossfade overlaps this scene's end with the next scene's start. Use a positive duration shorter than both scenes; incoming and outgoing overlaps may not overlap each other.");
     }
     ui.small("Outgoing transitions appear in Whole project preview and PNG/MP4 sequence export. Selected-scene preview and exports remain scene-local.");
+}
+
+/// Edits only the detached composition. The existing Apply settings action owns
+/// validation and the single source/history transaction.
+fn camera_presets_ui(ui: &mut egui::Ui, value: &mut Composition, duration: f64) {
+    let replacing = !value.camera.is_empty();
+    ui.collapsing("Cinematic camera presets", |ui| {
+        ui.small("Full-scene linear moves: zoom 1–1.25 or camera-center pan 100 pixels. Generated keys remain editable below.");
+        if replacing {
+            ui.small("These buttons replace ALL camera keys in this draft. Other scene settings stay unchanged. Apply settings commits; Undo restores the previous screenplay.");
+        } else {
+            ui.small("Choose a preset, then Apply settings to commit it with the other scene settings.");
+        }
+        ui.horizontal_wrapped(|ui| {
+            for (label, preset) in [
+                ("Push in", CameraPreset::PushIn),
+                ("Pull out", CameraPreset::PullOut),
+                ("Pan left", CameraPreset::PanLeft),
+                ("Pan right", CameraPreset::PanRight),
+            ] {
+                let label = if replacing {
+                    format!("Replace keys: {label}")
+                } else {
+                    label.into()
+                };
+                let clicked = ui
+                    .add_enabled(
+                        duration.is_finite() && duration > 0.0,
+                        egui::Button::new(label),
+                    )
+                    .clicked();
+                if let (true, Ok(keys)) = (clicked, camera_preset_keys(preset, duration)) {
+                    value.camera = keys;
+                }
+            }
+        });
+    });
 }
 
 #[cfg(test)]

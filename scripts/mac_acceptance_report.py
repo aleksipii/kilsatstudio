@@ -18,6 +18,49 @@ except ImportError:
 
 GATES = ('launch-project', 'offline-kokoro', 'audio-devices', 'seek-pause-sync',
          'real-speech-video', 'finder-events', 'shortcuts-accessibility', 'full-workflow')
+SCENARIOS = {
+    'launch-project': ('launch', 'project-round-trip', 'invalid-project-recovery'),
+    'offline-kokoro': ('uncached-network-disabled', 'voice-speed-variants', 'cache-reuse', 'cancel-retry'),
+    'audio-devices': ('named-device-playback', 'device-change-recovery'),
+    'seek-pause-sync': ('pause-resume', 'reverse-seek', 'scene-overlap', 'eof-restart', 'long-run-drift'),
+    'real-speech-video': ('real-speech-export', 'physical-playback-sync', 'export-cancel'),
+    'finder-events': ('double-click', 'open-with'),
+    'shortcuts-accessibility': ('keyboard-workflow', 'accessibility-workflow', 'pressure-soft-mask-input'),
+    'full-workflow': ('script-to-export', 'restart-recovery'),
+}
+
+
+def scenario_gaps(gate, evidence_paths):
+    """Check procedure coverage, without authenticating any human claim."""
+    required = SCENARIOS[gate['gate']]
+    seen, gaps = set(), []
+    for item in rows(gate.get('scenarios', []), 'device scenarios', 32):
+        key = item.get('scenario')
+        if key not in required or key in seen:
+            raise ValueError('unknown/duplicate device scenario')
+        seen.add(key)
+        status = item.get('status')
+        if status not in ('pass', 'fail', 'not_tested'):
+            raise ValueError('invalid scenario status')
+        for field in ('steps', 'expected', 'actual'):
+            text(item.get(field), 'scenario ' + field)
+        references = item.get('evidence_paths', [])
+        if not isinstance(references, list) or len(references) > 128:
+            raise ValueError('invalid scenario evidence paths')
+        paths = [relative(path) for path in references]
+        if len(set(paths)) != len(paths) or any(path not in evidence_paths for path in paths):
+            raise ValueError('scenario evidence must reference unique retained gate evidence')
+        if status in ('pass', 'fail') and not paths:
+            raise ValueError('tested scenario requires retained evidence')
+        if gate['status'] == 'not_tested' and status != 'not_tested':
+            raise ValueError('untested gate cannot contain tested scenarios')
+        if gate['status'] == 'pass' and status == 'fail':
+            raise ValueError('passing gate cannot contain failed scenario')
+        if status != 'pass':
+            gaps.append(dict(gate=gate['gate'], scenario=key, reason=status))
+    gaps += [dict(gate=gate['gate'], scenario=key, reason='not_tested')
+             for key in required if key not in seen]
+    return gaps
 
 
 def collect(archive, observations, evidence_root):
@@ -34,7 +77,7 @@ def collect(archive, observations, evidence_root):
     if any(x.is_symlink() for x in [root, *root.parents]) or not root.is_dir():
         raise ValueError('evidence root must be nonsymlink directory')
     input_inodes = {(Path(p).stat().st_dev, Path(p).stat().st_ino) for p in (archive, observations)}
-    gates, seen, total = [], set(), 0
+    gates, seen, total, coverage_gaps = [], set(), 0, []
     for gate in rows(value.get('observations'), 'observations', 64):
         key = gate.get('gate')
         if key not in GATES or key in seen:
@@ -62,15 +105,19 @@ def collect(archive, observations, evidence_root):
                 raise ValueError('device evidence total budget exceeded')
             if any(item.get(k) != v for k, v in identity(data).items()):
                 raise ValueError('device evidence digest/size mismatch')
+        coverage_gaps.extend(scenario_gaps(gate, paths))
         gates.append(gate)
     unresolved = [dict(gate='authority-review', reason='not_granted'),
                   dict(gate='build-attestation', reason='operator commit claim not independently bound to ZIP contents')]
     unresolved += [dict(gate=key, reason='not_tested') for key in GATES if key not in seen]
     unresolved += [dict(gate=x['gate'], reason=x['status']) for x in gates if x['status'] != 'pass']
+    unresolved += coverage_gaps
     return dict(schema_version=1, artifact=archive_id, input_observations=binding,
                 distribution_approved=False, physical_device_acceptance='not_granted',
                 operator_claims={k: value[k] for k in ('operator', 'utc_date', 'mac_model', 'chip', 'macos', 'build_commit')},
-                observations=sorted(gates, key=lambda x: x['gate']), unresolved=sorted(unresolved, key=lambda x: x['gate']),
+                required_scenarios=SCENARIOS,
+                observations=sorted(gates, key=lambda x: x['gate']),
+                unresolved=sorted(unresolved, key=lambda x: (x['gate'], x.get('scenario', ''))),
                 trust='Human supplied observations, not machine or operator attestation. Final acceptance requires separate authority review.')
 
 

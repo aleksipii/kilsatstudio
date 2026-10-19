@@ -6,6 +6,11 @@ use motion_lipsync::rhubarb::Recognizer;
 use motion_tts::CancellationToken;
 use std::{path::PathBuf, sync::Arc};
 
+struct TimingDraft {
+    original: motion_lipsync::rhubarb::EstimatedVisemeAlignment,
+    cues: Vec<motion_lipsync::rhubarb::MouthCue>,
+}
+
 pub struct Panel {
     worker: Worker,
     executable: String,
@@ -17,6 +22,7 @@ pub struct Panel {
     candidate: Option<Ready>,
     ready: Option<Ready>,
     status: String,
+    timing_draft: Option<TimingDraft>,
 }
 impl Panel {
     pub fn new() -> Self {
@@ -31,9 +37,10 @@ impl Panel {
             candidate: None,
             ready: None,
             status: String::new(),
+            timing_draft: None,
         }
     }
-    /// Returns true only on an explicit Estimate or Load click. The caller constructs the
+    /// Returns true only on an explicit Estimate, Load or Review click. The caller constructs the
     /// identity/audio request then; painting performs no file access or hashing.
     pub fn ui(&mut self, ui: &mut egui::Ui, can_run: bool) -> bool {
         let mut run = false;
@@ -77,11 +84,13 @@ impl Panel {
             if !can_run { ui.label("Prepare the selected dialogue line first."); }
             if self.busy() { ui.spinner(); ui.ctx().request_repaint_after(std::time::Duration::from_millis(40)); }
             if !self.status.is_empty() { ui.label(&self.status); }
+            let draft_changed = self.timing_draft.as_ref().is_some_and(|draft| draft.cues != draft.original.cues);
             if let Some(candidate)=&self.candidate {
                 ui.label(match candidate.cache.origin {
                     crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad => "Saved estimated result; no recognizer was executed.",
                     crate::alignment_worker::ResultOrigin::AutomaticReuse => "Automatically reused exact estimated result; no recognizer or version process was executed.",
                     crate::alignment_worker::ResultOrigin::Fresh => "Fresh local estimate.",
+                    crate::alignment_worker::ResultOrigin::Manual => "Explicit manual mouth-shape edits; no recognizer was executed.",
                 });
                 if let Some(key) = &candidate.cache.key {
                     ui.horizontal(|ui| {
@@ -91,9 +100,11 @@ impl Panel {
                 }
                 if !candidate.cache.message.is_empty() { ui.label(&candidate.cache.message); }
                 ui.label(&candidate.cache.provenance);
-                ui.label(format!("Estimated cues ready for line {} ({} bytes). Apply to reprepare the same audio.",candidate.identity.line_id,candidate.json.len()));
-                if ui.add_enabled(can_run && !self.busy(),egui::Button::new("Apply estimated timing")).clicked() { self.ready=self.candidate.take(); }
+                ui.label(format!("Timing ready for line {} ({} bytes). Apply to reprepare the same audio.",candidate.identity.line_id,candidate.json.len()));
+                if draft_changed { ui.label("Review manual edits below before applying the changed draft."); }
+                if ui.add_enabled(can_run && !self.busy() && !draft_changed,egui::Button::new("Apply reviewed timing")).clicked() { self.ready=self.candidate.take(); self.timing_draft=None; }
             }
+            run |= self.timing_editor(ui, can_run);
         });
         if settings_changed {
             let action = if run {
@@ -105,6 +116,91 @@ impl Panel {
             self.pending_action = action;
         }
         run
+    }
+    fn timing_editor(&mut self, ui: &mut egui::Ui, can_run: bool) -> bool {
+        let busy = self.busy();
+        let Some(draft) = self.timing_draft.as_mut() else {
+            return false;
+        };
+        let mut submit = false;
+        let mut action = None;
+        ui.collapsing("Edit mouth timing in audio samples", |ui| {
+            ui.label(format!(
+                "{} Hz; {} samples. Intervals are [start, end); gaps are rest. Shapes A–H/X describe mouths, not measured phonemes.",
+                draft.original.sample_rate, draft.original.frame_count
+            ));
+            ui.add_enabled_ui(!busy, |ui| {
+                let mut remove = None;
+                let mut split = None;
+                egui::ScrollArea::vertical()
+                    .id_salt("mouth-timing-cue-table")
+                    .max_height(260.0)
+                    .show_rows(ui, 26.0, draft.cues.len(), |ui, rows| {
+                        for index in rows {
+                            let cue = &mut draft.cues[index];
+                            ui.push_id(index, |ui| {
+                                ui.horizontal(|ui| {
+                                    ui.label(format!("{}", index + 1));
+                                    ui.add(egui::DragValue::new(&mut cue.start_sample).range(0.0..=draft.original.frame_count as f64).prefix("Start "));
+                                    ui.add(egui::DragValue::new(&mut cue.end_sample).range(0.0..=draft.original.frame_count as f64).prefix("End "));
+                                    egui::ComboBox::from_id_salt("shape")
+                                        .selected_text(cue.shape.to_string())
+                                        .show_ui(ui, |ui| {
+                                            for shape in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'X'] {
+                                                ui.selectable_value(&mut cue.shape, shape, shape.to_string());
+                                            }
+                                        });
+                                    if ui.button("Split").clicked() { split = Some(index); }
+                                    if ui.button("Delete").clicked() { remove = Some(index); }
+                                });
+                            });
+                        }
+                    });
+                if let Some(index) = remove {
+                    draft.cues.remove(index);
+                } else if let Some(index) = split {
+                    let cue = &draft.cues[index];
+                    if draft.cues.len() < motion_lipsync::manual::MAX_EDIT_CUES
+                        && cue.end_sample.saturating_sub(cue.start_sample) >= 2
+                    {
+                        let midpoint = cue.start_sample + (cue.end_sample - cue.start_sample) / 2;
+                        let right = motion_lipsync::rhubarb::MouthCue {
+                            start_sample: midpoint,
+                            end_sample: cue.end_sample,
+                            shape: cue.shape,
+                        };
+                        draft.cues[index].end_sample = midpoint;
+                        draft.cues.insert(index + 1, right);
+                    }
+                }
+                ui.horizontal(|ui| {
+                    let start = draft.cues.last().map_or(0, |cue| cue.end_sample);
+                    if ui.add_enabled(draft.cues.len() < motion_lipsync::manual::MAX_EDIT_CUES && start < draft.original.frame_count, egui::Button::new("Append rest cue")).clicked() {
+                        draft.cues.push(motion_lipsync::rhubarb::MouthCue {
+                            start_sample: start,
+                            end_sample: draft.original.frame_count,
+                            shape: 'X',
+                        });
+                    }
+                    if ui.button("Reset to estimate").clicked() {
+                        draft.cues.clone_from(&draft.original.cues);
+                    }
+                });
+                let valid = motion_lipsync::manual::validate_cues(&draft.cues, draft.original.frame_count);
+                if let Err(error) = &valid { ui.colored_label(egui::Color32::YELLOW, error.to_string()); }
+                if ui.add_enabled(can_run && valid.is_ok(), egui::Button::new("Review manual edits")).clicked() {
+                    action = Some(Action::Manual {
+                        original: Box::new(draft.original.clone()),
+                        cues: draft.cues.clone(),
+                    });
+                    submit = true;
+                }
+            });
+        });
+        if action.is_some() {
+            self.pending_action = action;
+        }
+        submit
     }
     pub fn start(
         &mut self,
@@ -118,6 +214,7 @@ impl Panel {
             .take()
             .ok_or("Choose Estimate or Load cached timing explicitly")?;
         let loading = matches!(action, Action::Load { .. });
+        let manual = matches!(action, Action::Manual { .. });
         let request = Request {
             cache_root,
             action,
@@ -132,9 +229,12 @@ impl Panel {
             Ok(()) => {
                 self.active = Some(identity);
                 self.candidate = None;
+                self.timing_draft = None;
                 self.ready = None;
                 self.status = if loading {
                     "Loading saved estimated timing…"
+                } else if manual {
+                    "Validating manual mouth timing against prepared audio…"
                 } else {
                     "Estimating prepared audio locally…"
                 }
@@ -170,10 +270,21 @@ impl Panel {
             self.active = None;
             match update.result {
                 Ok(ready) => {
+                    self.timing_draft = serde_json::from_str::<
+                        motion_lipsync::rhubarb::EstimatedVisemeAlignment,
+                    >(&ready.json)
+                    .ok()
+                    .filter(|value| value.cues.len() <= motion_lipsync::manual::MAX_EDIT_CUES)
+                    .map(|original| TimingDraft {
+                        cues: original.cues.clone(),
+                        original,
+                    });
                     if let Some(key) = &ready.cache.key {
                         self.cache_key = key.clone();
                     }
-                    self.status = if ready.cache.origin
+                    self.status = if ready.cache.origin == crate::alignment_worker::ResultOrigin::Manual {
+                        "Manual timing validated against exact audio and text. Apply explicitly; perceptual quality was not measured."
+                    } else if ready.cache.origin
                         == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad
                     {
                         "Saved estimated timing loaded. Review and apply explicitly."
@@ -202,6 +313,7 @@ impl Panel {
         self.candidate = None;
         self.ready = None;
         self.pending_action = None;
+        self.timing_draft = None;
         self.status = "Alignment cancelled; waiting for the local process to stop.".into();
     }
     pub fn invalidate(&mut self) {
@@ -210,6 +322,7 @@ impl Panel {
         self.candidate = None;
         self.ready = None;
         self.pending_action = None;
+        self.timing_draft = None;
         self.status =
             "Prepared line or timing settings changed; previous estimated timing discarded.".into();
     }

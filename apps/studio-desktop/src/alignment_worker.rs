@@ -27,8 +27,16 @@ impl PreparedAudio for AudioBuffer {
 pub enum Action {
     Estimate,
     EstimateFresh,
-    EnrollAndEstimate { expected_version: String },
-    Load { key: String },
+    EnrollAndEstimate {
+        expected_version: String,
+    },
+    Load {
+        key: String,
+    },
+    Manual {
+        original: Box<motion_lipsync::rhubarb::EstimatedVisemeAlignment>,
+        cues: Vec<motion_lipsync::rhubarb::MouthCue>,
+    },
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ResultOrigin {
@@ -36,6 +44,7 @@ pub enum ResultOrigin {
     Fresh,
     ExplicitArchiveLoad,
     AutomaticReuse,
+    Manual,
 }
 #[derive(Debug, Default)]
 pub struct CacheInfo {
@@ -84,6 +93,36 @@ fn execute(request: &Request) -> Result<Ready, String> {
         serde_json::from_str(&request.scene_alignments)
             .map_err(|e| format!("Scene alignment JSON: {e}"))?
     };
+    if let Action::Manual { original, cues } = &request.action {
+        let bound = motion_lipsync::manual::bind_edits(
+            original,
+            cues,
+            request.audio.audio(),
+            &request.identity.transcript,
+        )
+        .map_err(|e| e.to_string())?;
+        request.cancel.check().map_err(|e| e.to_string())?;
+        let input = motion_lipsync::cache::AlignmentInput::Bound(bound);
+        let json = serde_json::to_string_pretty(&input).map_err(|e| e.to_string())?;
+        scene_alignments.insert(request.identity.line_id, input);
+        let scene_json =
+            serde_json::to_string_pretty(&scene_alignments).map_err(|e| e.to_string())?;
+        if json.len() > MAX_JSON_BYTES || scene_json.len() > MAX_JSON_BYTES {
+            return Err("Manual timing exceeds the editor's 100 KB input limit".into());
+        }
+        request.cancel.check().map_err(|e| e.to_string())?;
+        return Ok(Ready {
+            cache: CacheInfo {
+                origin: ResultOrigin::Manual,
+                message: "Manual mouth-shape edits; no recognizer ran and no automatic estimate was overwritten.".into(),
+                provenance: format!("Edited from {} / {:?}; representative shape labels are not measured phonemes.", original.tool_version, original.recognizer),
+                ..Default::default()
+            },
+            identity: request.identity.clone(),
+            json,
+            scene_json,
+        });
+    }
     let archive = motion_lipsync::estimated_cache::EstimatedCache::new(request.cache_root.clone());
     let cancel = || request.cancel.is_cancelled();
     if let Action::EnrollAndEstimate { expected_version } = &request.action {
@@ -168,6 +207,7 @@ fn execute(request: &Request) -> Result<Ready, String> {
                 provenance: String::new(),
             },
         ),
+        Action::Manual { .. } => return Err("Manual timing was not handled".into()),
     };
     cache.provenance = format!(
         "Original tool: {}; recognizer: {:?}",
@@ -268,7 +308,9 @@ impl Worker {
         if self.active.is_some() {
             return Err("Alignment worker is busy; wait for cancellation to finish".into());
         }
-        if !matches!(request.action, Action::Load { .. }) && !request.executable.is_absolute() {
+        if !matches!(request.action, Action::Load { .. } | Action::Manual { .. })
+            && !request.executable.is_absolute()
+        {
             return Err("Choose an explicit absolute Rhubarb executable path".into());
         }
         let cancel = request.cancel.clone();
@@ -323,6 +365,63 @@ mod tests {
             recognizer: Recognizer::Phonetic,
             cancel: CancellationToken::new(),
         }
+    }
+    #[test]
+    fn manual_edits_need_no_paths_or_recognizer_and_preserve_other_lines() {
+        use sha2::{Digest, Sha256};
+        let mut r = request();
+        r.executable = PathBuf::new();
+        r.cache_root = PathBuf::from("/not-created-manual-test");
+        let original = motion_lipsync::rhubarb::EstimatedVisemeAlignment {
+            schema_version: 1,
+            source: "estimated_rhubarb".into(),
+            tool_version: "test-only".into(),
+            executable_sha256: "a".repeat(64),
+            pcm_sha256: motion_lipsync::rhubarb::pcm_identity(r.audio.audio()).unwrap(),
+            transcript_sha256: format!("{:x}", Sha256::digest(r.identity.transcript.as_bytes())),
+            recognizer: Recognizer::Phonetic,
+            sample_rate: 24000,
+            frame_count: 24,
+            cues: vec![],
+        };
+        let other = motion_lipsync::cache::AlignmentInput::Estimated(original.clone());
+        r.scene_alignments =
+            serde_json::to_string(&std::collections::BTreeMap::from([(99, other)])).unwrap();
+        r.action = Action::Manual {
+            original: Box::new(original),
+            cues: vec![motion_lipsync::rhubarb::MouthCue {
+                start_sample: 3,
+                end_sample: 12,
+                shape: 'G',
+            }],
+        };
+        let ready = execute(&r).unwrap();
+        assert_eq!(ready.cache.origin, ResultOrigin::Manual);
+        assert!(ready.cache.key.is_none());
+        let map: std::collections::BTreeMap<u64, motion_lipsync::cache::AlignmentInput> =
+            serde_json::from_str(&ready.scene_json).unwrap();
+        assert!(map.contains_key(&99));
+        assert!(matches!(
+            map.get(&r.identity.line_id),
+            Some(motion_lipsync::cache::AlignmentInput::Bound(_))
+        ));
+        let input: motion_lipsync::cache::AlignmentInput =
+            serde_json::from_str(&ready.json).unwrap();
+        let motion_lipsync::cache::AlignmentInput::Bound(bound) = input else {
+            panic!("manual result was not bound");
+        };
+        assert!(matches!(
+            bound.alignment.unwrap().source,
+            motion_lipsync::AlignmentSource::Manual
+        ));
+        r.audio = Arc::new(AudioBuffer {
+            sample_rate: 24000,
+            channels: 1,
+            samples: vec![0.5; 24],
+        });
+        assert!(execute(&r).unwrap_err().contains("PCM"));
+        r.cancel.cancel();
+        assert!(execute(&r).is_err());
     }
     #[test]
     fn bounded_until_completion_is_consumed() {

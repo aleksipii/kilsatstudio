@@ -322,7 +322,7 @@ pub fn crossfade(
     ]));
     for mut command in second.commands {
         let kind = command.0[4][0];
-        if kind == 5.0 {
+        if kind == 5.0 || kind == 18.0 {
             command.0[4][1] += pixel_offset;
         }
         if kind == 6.0 || kind == 7.0 || kind == 11.0 || kind == 17.0 {
@@ -343,13 +343,44 @@ fn command_work(commands: &[Command]) -> u64 {
                 c.0[2][3] as u64
             } else if kind == 6.0 || kind == 7.0 || kind == 11.0 {
                 c.0[2][1] as u64 + 1
-            } else if kind == 5.0 {
+            } else if kind == 5.0 || kind == 18.0 {
                 4
             } else {
                 1
             }
         })
         .sum()
+}
+
+/// Share decoded source storage between image content and alpha/luminance masks.
+fn image_resource(
+    result: &mut SceneCommands,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    resources: &mut std::collections::BTreeMap<String, usize>,
+    asset_id: &str,
+) -> Result<(usize, u32, u32), Error> {
+    let image = images
+        .get(asset_id)
+        .ok_or_else(|| crate::Error::InvalidArtwork(format!("missing decoded image {asset_id}")))?;
+    let offset = if let Some(offset) = resources.get(asset_id) {
+        *offset
+    } else {
+        let offset = result.pixels.len();
+        let count = image.rgba().len() / 4;
+        if offset
+            .checked_add(count)
+            .is_none_or(|n| n > MAX_GPU_IMAGE_PIXELS)
+        {
+            return Err(Error::Budget);
+        }
+        let pixels = image.rgba().as_chunks::<4>().0;
+        result
+            .pixels
+            .extend(pixels.iter().copied().map(u32::from_le_bytes));
+        resources.insert(asset_id.to_owned(), offset);
+        offset
+    };
+    Ok((offset, image.width(), image.height()))
 }
 
 const MAX_GPU_IMAGE_PIXELS: usize = 4 * 1024 * 1024;
@@ -540,8 +571,26 @@ fn append_art(
                                 *work += cost;
                             }
                         }
-                        ClipShape::Image { .. } => {
-                            return Err(Error::UnsupportedFeature("image mask"));
+                        ClipShape::Image {
+                            asset_id, channel, ..
+                        } => {
+                            let (offset, width, height) =
+                                image_resource(result, images, resources, asset_id)?;
+                            result.commands.push(Command([
+                                inv,
+                                origin,
+                                rect(mask.sample_image_rect(scene.time).ok_or(Error::Budget)?),
+                                [
+                                    f32::from(u8::from(
+                                        *channel == motion_art::MaskChannel::Luminance,
+                                    )),
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                ],
+                                [18.0, offset as f32, width as f32, height as f32],
+                            ]));
+                            *work += 4;
                         }
                         ClipShape::Polygon { feather, .. } if *feather > 0.0 => {
                             return Err(Error::UnsupportedFeature("feathered polygon mask"));
@@ -605,39 +654,13 @@ fn append_art(
                         )
                     }
                     Content::Image { asset_id, rect: r } => {
-                        let image = images.get(asset_id).ok_or_else(|| {
-                            crate::Error::InvalidArtwork(format!(
-                                "missing decoded image {asset_id}"
-                            ))
-                        })?;
-                        let offset = if let Some(offset) = resources.get(asset_id) {
-                            *offset
-                        } else {
-                            let offset = result.pixels.len();
-                            let count = image.rgba().len() / 4;
-                            if offset
-                                .checked_add(count)
-                                .is_none_or(|n| n > MAX_GPU_IMAGE_PIXELS)
-                            {
-                                return Err(Error::Budget);
-                            }
-                            let pixels = image.rgba().as_chunks::<4>().0;
-                            result
-                                .pixels
-                                .extend(pixels.iter().copied().map(u32::from_le_bytes));
-                            resources.insert(asset_id.clone(), offset);
-                            offset
-                        };
+                        let (offset, width, height) =
+                            image_resource(result, images, resources, asset_id)?;
                         (
                             5.0,
                             rect(*r),
                             [1.0; 4],
-                            [
-                                5.0,
-                                offset as f32,
-                                image.width() as f32,
-                                image.height() as f32,
-                            ],
+                            [5.0, offset as f32, width as f32, height as f32],
                             4,
                         )
                     }
@@ -897,6 +920,115 @@ mod tests {
             ),
             Err(super::Error::Budget)
         ));
+    }
+    #[test]
+    fn image_masks_share_sources_encode_channels_and_relocate_crossfades() {
+        use motion_art::*;
+        let bounds = Rect {
+            x: 10.0,
+            y: 20.0,
+            width: 30.0,
+            height: 40.0,
+        };
+        let mut layer = artwork_layer(
+            "masked",
+            Content::Image {
+                asset_id: "i".into(),
+                rect: bounds,
+            },
+        );
+        layer.clip_shape = Some(ClipShape::Image {
+            asset_id: "i".into(),
+            rect: bounds,
+            channel: MaskChannel::Luminance,
+            keys: Vec::new(),
+        });
+        let mut document = Document {
+            layers: vec![layer],
+            ..Default::default()
+        };
+        let images = std::collections::BTreeMap::from([(
+            "i".into(),
+            ImageResource::from_rgba(1, 1, vec![255, 0, 0, 128]).unwrap(),
+        )]);
+        let make = |document: &Document, images: &std::collections::BTreeMap<_, _>| {
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                document,
+                images,
+            )
+        };
+        let commands = make(&document, &images).unwrap();
+        assert_eq!(commands.pixels.len(), 1);
+        let mask = commands
+            .commands
+            .iter()
+            .find(|c| c.0[4][0] == 18.0)
+            .unwrap();
+        assert_eq!(mask.0[2], rect(bounds));
+        assert_eq!(mask.0[3][0], 1.0);
+        assert_eq!(mask.0[4], [18.0, 0.0, 1.0, 1.0]);
+        let mixed = crossfade(commands, make(&document, &images).unwrap(), 0.5).unwrap();
+        let masks: Vec<_> = mixed
+            .commands
+            .iter()
+            .filter(|c| c.0[4][0] == 18.0)
+            .collect();
+        assert_eq!(masks[1].0[4][1], 1.0);
+        assert!(make(&document, &std::collections::BTreeMap::new()).is_err());
+        if let Some(ClipShape::Image { channel, .. }) = &mut document.layers[0].clip_shape {
+            *channel = MaskChannel::Alpha;
+        }
+        let alpha = make(&document, &images).unwrap();
+        let alpha_mask = alpha.commands.iter().find(|c| c.0[4][0] == 18.0).unwrap();
+        assert_eq!(alpha_mask.0[3][0], 0.0);
+        let huge = std::collections::BTreeMap::from([(
+            "i".into(),
+            ImageResource::from_rgba(2049, 2048, vec![0; 2049 * 2048 * 4]).unwrap(),
+        )]);
+        assert!(matches!(make(&document, &huge), Err(super::Error::Budget)));
+        if let Some(ClipShape::Image { keys, .. }) = &mut document.layers[0].clip_shape {
+            *keys = vec![
+                RectMaskKey {
+                    time: 0.0,
+                    rect: bounds,
+                },
+                RectMaskKey {
+                    time: 2.0,
+                    rect: Rect { x: 30.0, ..bounds },
+                },
+            ];
+        }
+        let sample = |time| {
+            let mut evaluated = scene();
+            evaluated.time = time;
+            let commands = build_with_art(
+                &evaluated,
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &images,
+            )
+            .unwrap();
+            commands
+                .commands
+                .into_iter()
+                .find(|c| c.0[4][0] == 18.0)
+                .unwrap()
+        };
+        let middle = sample(1.0);
+        assert_eq!(middle.0[2][0], 20.0);
+        assert_eq!(sample(2.0).0[2][0], 30.0);
+        assert_eq!(middle, sample(1.0));
+        assert_eq!(sample(0.0).0[2][0], 10.0);
     }
     #[test]
     fn artwork_image_deduplication_masks_groups_and_order_are_real_commands() {

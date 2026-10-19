@@ -287,9 +287,15 @@ fn preflight(
                     .checked_add(work)
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
             }
-            if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {
+            if let Some(
+                shape @ (motion_art::ClipShape::SoftEllipse { .. }
+                | motion_art::ClipShape::Image { .. }),
+            ) = &layer.clip_shape
+            {
                 geometry = geometry
-                    .checked_add(u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8)
+                    .checked_add(
+                        u64::from(usize::BITS - shape.key_count().max(1).leading_zeros()) + 8,
+                    )
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
             }
             if layer.visible {

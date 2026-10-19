@@ -133,6 +133,10 @@ require actual evidence.
 
 ## Ownership and current increment
 
+The next active execution list is [remaining-work.md](remaining-work.md), with
+named agents, bounded implementation packages and separate external acceptance.
+It is subordinate to this tracker; in-progress work is not yet a completed gate.
+
 PR #46 delivery (2026-10-19): `normalized_groups`, `custom_rigs`, `gpu_complete`,
 `artist_groups`, `speech_production_reuse` and `release_mac_evidence`; parent
 integrated shared boundaries, tests, review findings, CI and release progress.
@@ -208,7 +212,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Original procedural Emma/Alex preview characters.
 - [x] Deterministic position interpolation and frame evaluation.
 - [x] Basic expressions and wave gesture.
-- [ ] Sprite parts and editable character definitions.
+- [x] Editable rigid character definitions (PR #46) and custom-rig joint tracks/editor (PR #50).
+- [ ] Textured sprite parts and deformation.
 - [x] Hierarchical transforms, bones and joints (`motion-rig`).
 - [x] Pose evaluation and original seven-joint procedural rig shared by preview/export.
 - [x] Deterministic procedural walk/wave presets and static rest pose.
@@ -219,7 +224,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Rule-based keyframe clip library in shared preview/export: emotion posture blending, walk, wave/point/nod/shrug gestures and viseme-driven speech head motion.
 - [x] Persisted parent-local per-bone tracks and detached editor in shared preview/export.
 - [x] Versioned editable custom rig hierarchy and colored rigid polygon parts, native definition editor, persistence and shared root/rest rendering (PR #46).
-- [ ] Custom-rig joint animation, textured parts and deformation.
+- [x] Custom-rig joint animation tracks and detached native joint editor (PR #50 via #51).
+- [ ] Custom-rig textured parts and deformation.
 - [x] Authored bone offsets layer over rule clips in shared evaluation.
 - [x] Artist-controlled per-scene/actor posture, walk and gesture strengths with shared evaluation (PR #35).
 - [x] Scene-local animated procedural strength tracks with outgoing easing and native editor (PR #36).
