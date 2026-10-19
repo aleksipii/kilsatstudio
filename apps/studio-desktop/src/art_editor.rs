@@ -370,8 +370,8 @@ impl Editor {
     if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("W",&mut rect.width),("H",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
     egui::ComboBox::from_label("Follow actor translation").selected_text(layer.attachment.as_deref().unwrap_or("World")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"World");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
     compositing_controls(ui, layer, scene.duration);
-    ui.horizontal(|ui| {if ui.button("Lower").clicked() && index>0 {if next.groups.is_empty() && next.order.is_empty() { next.layers.swap(index,index-1); }}
-   if ui.button("Raise").clicked() && index+1<next.layers.len(){if next.groups.is_empty() && next.order.is_empty() { next.layers.swap(index,index+1); }}
+    ui.horizontal(|ui| {if ui.add_enabled(index>0 && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Lower")).clicked() { next.layers.swap(index,index-1); }
+   if ui.add_enabled(index+1<next.layers.len() && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Raise")).clicked(){ next.layers.swap(index,index+1); }
    if ui.button("Delete layer").clicked(){let id=next.layers[index].id.clone(); if let Err(error)=next.apply(motion_art::Command::Remove{id}) {self.error=Some(error.to_string());} self.selected=None;}});
    }
    let images: Vec<_> = assets.iter().filter(|a| a.kind == motion_project::AssetKind::Image).collect();
