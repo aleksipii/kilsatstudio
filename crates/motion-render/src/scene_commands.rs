@@ -666,7 +666,7 @@ mod tests {
         let kinds: Vec<_> = c.commands.iter().map(|c| c.0[4][0]).collect();
         assert_eq!(&kinds[..4], &[8.0, 10.0, 5.0, 12.0]);
         assert_eq!(&kinds[kinds.len() - 4..], &[8.0, 9.0, 5.0, 12.0]);
-        assert_eq!(c.commands[2].0[4][1], 0.25);
+        assert_eq!(c.commands[1].0[4][1], 0.25);
         assert!(build_with_art(
             &scene(),
             64,
