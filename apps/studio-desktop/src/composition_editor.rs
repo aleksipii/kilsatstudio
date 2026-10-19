@@ -167,6 +167,8 @@ fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_las
     ui.small("Outgoing transitions appear in Whole project preview and PNG/MP4 sequence export. Selected-scene preview and exports remain scene-local.");
 }
 
+/// Edits only the detached composition. The existing Apply settings action owns
+/// validation and the single source/history transaction.
 fn camera_presets_ui(ui: &mut egui::Ui, value: &mut Composition, duration: f64) {
     let replacing = !value.camera.is_empty();
     ui.collapsing("Cinematic camera presets", |ui| {
@@ -218,6 +220,3 @@ mod tests {
         assert_eq!(serde_json::to_value(&value).unwrap(), before);
     }
 }
-
-/// Edits only the detached composition. The existing Apply settings action owns
-/// validation and the single source/history transaction.
