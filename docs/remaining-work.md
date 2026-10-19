@@ -12,11 +12,11 @@ physical-device or rights approval. Delivery evidence is below and in the master
 
 | Area / agent | Current concrete package | Further work left open |
 | --- | --- | --- |
-| Characters — `remaining_character` | Versioned bounded original-rig clip clipboard exchange between projects, explicit replacement and shared source history | Custom-rig clip libraries/retargeting/general mixing, textured parts, deformation, idle and physical motion review |
-| Artist tools — `remaining_artist` | Scene-local animated image-mask rectangles, native key editing, shared preview/export and seek tests | Polygon and painted-mask animation, retouch/image processing and physical stylus acceptance |
+| Characters — `remaining_character` | Versioned bounded original-rig clip clipboard exchange between projects, explicit replacement and shared source history | Live (non-copy) custom-rig clip instancing, mirroring, multi-clip mixing and rest-orientation correction, textured parts, deformation, idle and physical motion review (copy-based custom-rig clip library with joint mapping, translation scale and retiming: PR #57) |
+| Artist tools — `remaining_artist` | Scene-local animated image-mask rectangles, native key editing, shared preview/export and seek tests | Animated polygon vertices/painted strokes, non-uniform mask scale, retouch/image processing and physical stylus acceptance (rigid polygon/painted mask motion: PR #56) |
 | Speech — `remaining_speech` | Exact-audio sample-boundary mouth-shape editing, explicit manual provenance and Apply through existing history | Real forced-alignment integration, audited recognizer environment, annotated corpus and measured/perceptual quality |
 | Screenplay — `remaining_screenplay` | Validated cinematic push/pull/pan camera presets using existing camera tracks, detached native Apply | Separate audio cues, reusable/conditional animation rules and general editable compiled tracks |
-| GPU — `remaining_gpu` | Image alpha/luminance masks in the existing bounded GPU experiment, animation sampling, relocation and shader/command tests | Feathered polygon masks, fonts, measured full parity, production GPU preview/export and Metal performance |
+| GPU — `remaining_gpu` | Image alpha/luminance masks in the existing bounded GPU experiment, animation sampling, relocation and shader/command tests | Animated polygon/painted masks on the GPU, fonts, measured full parity, production GPU preview/export and Metal performance (straight-edge feathered polygons: PR #58, corners approximate) |
 | Performance — parent | Opt-in bounded application-update timing window, active/idle background-work summaries and copyable report | Input-to-display latency, process-wide memory budget, dependency-DAG scheduling and release/Apple Silicon benchmarks |
 | Mac — `remaining_release_mac` | Build-bound per-scenario evidence completeness in the existing operator report, with truthful untested/fail states | Physical offline Kokoro, devices/sync, Finder, shortcuts, accessibility, pressure and end-to-end workflow |
 | Release/licences — `remaining_release_mac` | Preserve exact artifact binding and unresolved review gates while improving evidence coverage | Final upstream component/asset rights review, NOTICE corpus, production packaging and Developer ID/notarization decision |
@@ -62,3 +62,20 @@ input/display latency or process-wide memory. Final rights approval is unchanged
 
 M1–M6 remain unaccepted as complete products. See the individual gates in
 [master-progress.md](master-progress.md#whole-product-milestone-gates).
+
+## Increment after PR #55 (2026-10-19)
+
+Merged with green Linux/macOS CI and local fmt, all-features Clippy and
+`cargo test --workspace` on an Apple M1:
+
+- [x] PR #56 animated polygon and painted-mask motion (CPU preview/export; GPU reports unsupported).
+- [x] PR #57 custom-rig clip library: capture, retargeting by joint map and translation scale, retiming.
+- [x] PR #58 experimental GPU feathered polygon masks; one ignored hardware test was run by hand on Metal (M1) against an analytic edge profile.
+
+Not attempted in this increment because they need devices, external models or
+decisions rather than only code: physical Mac/offline/audio/stylus acceptance, real
+forced alignment and an annotated corpus, perceptual quality, final licence and
+distribution review. Software items still open and unassigned to any increment:
+separate audio cues, reusable/conditional animation rules, process-wide memory
+budget, dependency-DAG scheduling, input-to-display latency measurement, GPU fonts,
+measured full CPU/GPU parity and textured/deformed custom rigs.

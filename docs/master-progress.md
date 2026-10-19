@@ -9,6 +9,15 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PRs #56 (`9ccf873`), #57 (`384be89`) and #58 (`868480a`) merged on 2026-10-19, each after
+green Linux/macOS CI (fmt, check, Clippy, tests, GPU contracts, media encoding,
+Apple Silicon preview) and local fmt/all-features Clippy/`cargo test --workspace` on an
+Apple M1: rigid motion for polygon and painted masks, a copy-based custom-rig clip
+library with retargeting, and experimental GPU feathered polygons (Metal checked by
+an ignored test run by hand against an analytic edge profile, straight edges only).
+Open: see `docs/remaining-work.md`. No physical-device, real-speech or licence gate
+was closed, and no GUI was exercised by hand.
+
 PR [#55](https://github.com/aleksipii/kilsatstudio/pull/55) merged as
 `c03bfe21779e9ed357c700f930f6d10086a5da86` on 2026-10-19 after final Linux/macOS CI.
 Six agents and parent integration advanced the first packages across the remaining
