@@ -142,8 +142,8 @@ edit these controls explicitly to change them.
 
 ## Additive local offsets
 
-The next extension adds `blend_mode: additive`; source implementation is pending
-final CI/integration. Omitted `blend_mode` means `override`, preserving existing
+PR #45 adds `blend_mode: additive`, integrated after final Linux/macOS CI.
+Omitted `blend_mode` means `override`, preserving existing
 documents and output. Select **Additive** in the detached instance editor, then
 Apply. Reset timing/weight/envelope controls preserve the chosen blend mode.
 
@@ -223,7 +223,8 @@ authored expectations and sample-clock preview including speech/root stages.
 Loop/mask regressions additionally compare two cycle resets, repeated/backward
 seeks, the excluded instance endpoint, preserved unselected joints, source-order
 blending, project round trips and default compatibility. Looping and joint masks
-passed PR #43 CI; additive integration is pending its own checks in master progress.
+passed PR #43 CI; additive numeric/schema/editor/evaluation and independent rendered
+regressions passed PR #45 CI. Exact evidence is recorded in master progress.
 Physical Mac motion quality, production performance, custom/textured rigs,
-deformation, general additive mixing and cross-project exchange remain open.
+deformation, normalized/arbitrary-rig mixing and cross-project exchange remain open.
 This change does not complete GPU scene parity or recognizer-result memoization.

@@ -5,6 +5,17 @@ the integrated PR #43 source baseline. This document changes no production behav
 marks no acceptance gate complete. The parent owns integration and shared-file
 scheduling.
 
+## Delivery update: PR #45
+
+The first package below is implemented and integrated in PR #45 (2026-10-19),
+including the checked additive helper, compatible schema, shared evaluator,
+native mode control, history/persistence, conservative work limits and independent
+SVG/PNG/sample-clock preview tests. Final Linux/macOS CI passed; exact evidence
+is in [master progress](../master-progress.md). Physical Mac motion quality remains
+open. The original inspection and contract below are retained as the baseline,
+not a claim that additive mode is still unimplemented. Package 2 is the next
+animation implementation boundary; broader rigs and product gates remain open.
+
 ## Inspected implementation
 
 - `motion-rig/src/lib.rs` supplies a render-independent, validated 1–256 joint

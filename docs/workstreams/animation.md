@@ -245,11 +245,11 @@ acceptance is claimed. Export work preflight counts modulo and bounded joint-sel
 
 Historical deferred entries in PR #40/#41 above retain their original package
 boundaries. This extension addresses looping and original-rig joint masks only.
-Custom rig definitions, textured parts, deformation, additive/normalized mixing,
+Custom rig definitions, textured parts, deformation, normalized/arbitrary-rig mixing,
 clip events, cross-project exchange and physical Mac motion acceptance remain
 open. Final checked evidence belongs in [master progress](../master-progress.md).
 
-## Additive original-rig offsets (source implemented, pending integration)
+## Additive original-rig offsets (PR #45, integrated)
 
 Default-compatible `blend_mode` selects existing override or opt-in additive
 signed local translation/rotation and weighted multiplicative scale. Checked
@@ -262,6 +262,8 @@ reset preserves mode. Dormant/zero layers retain conservative export work charge
 Tests cover independent numeric bounds and signed angles, strict/default schema,
 ordered accumulation, loop/mask/envelope sampling, visible parent-joint rotation,
 actual SVG/PNG/sample-clock preview, repeated seeks, project persistence and Undo.
-Final CI and integration evidence is pending. See [live layer controls](../live-clip-blending.md).
+Final Linux/macOS fmt/check/strict Clippy, workspace tests and independent rendered
+regressions passed. Exact runs, counts and Mac package evidence are recorded in
+[master progress](../master-progress.md). See [live layer controls](../live-clip-blending.md).
 Normalized blend groups, arbitrary rigs, textures/deformation, clip exchange and
 physical motion/performance acceptance remain open.

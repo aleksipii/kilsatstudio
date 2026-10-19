@@ -9,12 +9,20 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PR #45 merged as `85ca2dcc2f4b26e8922e0af0d560155ebdfc9719` after final Linux/macOS CI passed.
+Original seven-joint live clips now offer explicit additive local offsets alongside
+default-compatible override, including native controls, saved projects, Undo/Redo,
+shared preview/export and conservative work limits. Independent rendered fixtures
+and numeric checks passed. Normalized groups, arbitrary rigs, physical motion
+acceptance and the other workstreams remain open. The release branch is
+synchronized with this implementation and progress record.
+
 Documentation-only PR #44 merged as `443e3f7b1881c02a7b0fdd55fbd647aeeba583cb`, assigning all eight
 remaining areas to named agents and recording inspected next-package handoffs.
 Local Markdown targets, whitespace checks and independent cross-workstream
 review passed. No production code changed, no Rust/Python execution was newly
 claimed, and no product/device/quality/license gate was closed. PR #43 below
-remains the latest implementation increment. The release branch is synchronized
+records the preceding parallel implementation increment. The release branch is synchronized
 with this assignment and progress record.
 
 PR #43 merged as `ebd7287825c10c8dcfdbf7805ac920c03545eedc` after final Linux/macOS CI passed.
@@ -75,7 +83,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, shared preview/export and per-actor static/animated procedural layer strengths | Custom rig authoring, textures/deformation and arbitrary custom-clip blending |
-| Rule clips, authored offsets, project clip capture/reuse/retiming and ordered live original-rig layers with weight curves/fades, loops and joint selection; soft animated ellipse/polygon masks and multiply/screen CPU composition | Image masks, polygon feathering, groups and physical Mac compositing acceptance |
+| Rule clips, authored offsets, project clip capture/reuse/retiming and ordered override/additive live original-rig layers with weight curves/fades, loops and joint selection; soft animated ellipse/polygon masks and multiply/screen CPU composition | Image masks, polygon feathering, groups and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated Rhubarb cues and selected-result archive | Offline/device acceptance, automatic engine memoization and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded frames, optional evaluated-geometry GPU experiment, engine index foundation and final-ZIP/build observations | Full GPU scene parity, physical Metal/performance and final license clearance |
@@ -175,7 +183,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persistent original-rig live clip instances, half-open windows and constant-weight ordered local-offset override blending (PR #40).
 - [x] Per-instance animated weight curves, linear fades, shared sampling and native authoring (PR #41).
 - [x] Live clip original-speed looping and explicit original-rig joint selection, including native controls and shared evaluation (PR #43).
-- [ ] General normalized/additive mixing and cross-project libraries.
+- [x] Explicit original-rig additive live offsets with checked accumulation and default-compatible override (PR #45).
+- [ ] Normalized groups, arbitrary-rig pose mixing and cross-project libraries.
 - [x] Integrated rig/animation transform, seek and interpolation tests.
 
 ## 4. Graphics and rendering
@@ -234,6 +243,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Detached fade/key/easing editor with invalid draft preservation, Apply, reset and Undo/Redo (PR #41).
 - [x] Native detached soft ellipse mask/key authoring with atomic Apply and shared history (PR #43).
 - [x] Native stable-ID scene reorder actions with validated transitions and source Undo/Redo (PR #43).
+- [x] Native override/additive live-instance mode control with Apply, reset preservation and shared history (PR #45).
 - [ ] Pressure brushes, advanced mask painting and image retouching.
 - [x] Camera controls, timed background-color editor and scene-edge fades.
 - [x] Outgoing Cut/Crossfade editor with atomic settings Undo and invalid-overlap rejection.
@@ -1160,22 +1170,35 @@ units, upstream rights, physical device behavior, real recognizer quality or
 GPU/Metal execution. No model/voice assets were downloaded or inference run.
 This post-merge record changes documentation only.
 
-## Additive original-rig live clips (source implemented, pending integration)
+## Additive original-rig live clips (PR #45, merged 2026-10-19)
 
-- [ ] Integrate strict default-compatible blend mode and checked signed local
+- [x] Integrate strict default-compatible blend mode and checked signed local
   additive translation/rotation and multiplicative scale, with accumulated bounds.
-- [ ] Integrate shared prepared sampling with existing saved order, loops, masks
+- [x] Integrate shared prepared sampling with existing saved order, loops, masks
   and envelopes; preserve exact legacy override/default behavior.
-- [ ] Integrate detached native mode control, reset preservation, source history,
+- [x] Integrate detached native mode control, reset preservation, source history,
   persistence and invalid-context/candidate protection.
-- [ ] Validate independently authored actual SVG/PNG/sample-clock preview frames,
+- [x] Validate independently authored actual SVG/PNG/sample-clock preview frames,
   mixed-mode ordering, visible parent rotation, repeated seeks and round trips.
-- [ ] Charge dormant/zero additive layers and reject excessive work before output.
-- [ ] Final Linux/macOS CI, independent review and authorized merge.
+- [x] Charge dormant/zero additive layers and reject excessive work before output.
+- [x] Final Linux/macOS CI, independent review and authorized merge.
 - [ ] Normalized groups, arbitrary rigs/textures/deformation, cross-project clips,
   physical Mac motion/performance acceptance and the other seven area workstreams.
 
-This source increment is not yet integrated. No real recognizer, model inference,
-GPU/device execution or final license clearance is claimed. See
+Final source `a1aa04933d90ae0077ae8a78e1cdd1d6b55fd285` passed Audio foundation
+39206324716 and Apple Silicon preview 39206324721. Workspace fmt/check/strict
+Clippy passed with 460 Linux and 459 macOS default Rust tests, 23 adapter-free
+optional GPU tests and feature Clippy per platform, 55 runtime and 59 repository
+Python tests per platform, and three actual media encoder tests. Fourteen new
+Rust regressions cover this increment. CI rustfmt differences were corrected
+before the final passing run. No local Rust toolchain was available.
+
+Mac package, audits and retained build inputs:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39206324721/artifacts/12166270889
+Artifact container SHA256: `d0563a6f1ee0ee5138128d548dea7ebacbbdb942e536c935cb626136112d8087`.
+Final signed preview ZIP SHA256: `09539600fc743785c595896b811326bc694690394b1d1f9802e90279d09da1bd`.
+The package audit accepted 21 file records, with `distribution_approved: false`.
+Independent review found no remaining implementation blockers. No real recognizer,
+model inference, GPU/device execution or final license clearance is claimed. See
 [live clip controls](live-clip-blending.md) and the initial
 [animation handoff](workstreams/next-character-animation.md).
