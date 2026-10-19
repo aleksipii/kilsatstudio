@@ -1692,6 +1692,7 @@ dependencies = [
 name = "motion-rig"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "thiserror 2.0.21",
 ]
 
@@ -1701,6 +1702,7 @@ version = "0.1.0"
 dependencies = [
  "motion-animation",
  "motion-lipsync",
+ "motion-rig",
  "motion-script",
  "serde",
  "serde_json",
@@ -1712,6 +1714,7 @@ name = "motion-script"
 version = "0.1.0"
 dependencies = [
  "motion-animation",
+ "motion-rig",
  "serde",
  "serde_yaml",
  "thiserror 2.0.21",
@@ -2887,6 +2890,7 @@ dependencies = [
  "motion-voice",
  "rodio",
  "serde_json",
+ "serde_yaml",
  "sha2",
 ]
 

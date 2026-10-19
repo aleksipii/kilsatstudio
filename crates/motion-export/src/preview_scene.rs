@@ -28,7 +28,7 @@ impl ScenePreview {
         {
             return Err(invalid("preview script work budget exceeded"));
         }
-        if live_clip_frame_work(&script, index) > 1_000_000 {
+        if live_clip_frame_work(&script, index).saturating_add(rigid_frame_work(&script)) > 1_000_000 {
             return Err(invalid("preview live clip sample work budget exceeded"));
         }
         let validated = motion_scene::ValidatedScript::new(script.clone())
@@ -47,6 +47,7 @@ impl ScenePreview {
         art.document
             .validate()
             .map_err(|e| invalid(e.to_string()))?;
+        let group_bytes = group_work(&art, &script, 1, false)?;
         let mut geometry = 0usize;
         for layer in &art.document.layers {
             let owner = script
@@ -97,6 +98,7 @@ impl ScenePreview {
                 .saturating_mul(4)
                 .saturating_add(pixels.saturating_mul(8))
                 .saturating_add(1024 * 1024 * 24)
+                .saturating_add(group_bytes)
                 > MAX_BYTES
         {
             return Err(invalid("preview artwork working-set budget exceeded"));
@@ -388,6 +390,7 @@ mod tests {
         let art = ArtContext {
             document: Document {
                 layers: vec![layer],
+                ..Default::default()
             },
             images: BTreeMap::new(),
         };

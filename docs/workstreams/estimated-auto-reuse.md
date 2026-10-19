@@ -208,3 +208,55 @@ checkbox.
 See [saved estimated timing](../estimated-cue-cache.md),
 [Rhubarb execution](../rhubarb-estimated-cues.md) and
 [alignment workstream](alignment.md).
+
+## Explicit local package enrollment (implementation awaiting CI)
+
+The new opt-in local profile is an explicit trust boundary: the operator asserts
+that a selected Phonetic package is self-contained. This is not an externally
+reviewed Rhubarb distribution, a proof of filesystem isolation, a license audit
+or measured speech-quality approval. No real package was supplied or executed.
+Unknown packages and PocketSphinx retain explicit Estimate and archive Load.
+
+In the local alignment panel, select **Phonetic**, enter the exact expected
+`--version` output and use **Trust, enroll and estimate package**. Enrollment
+creates `kilsat-rhubarb-package-v1.json` alongside the executable; existing
+manifests are never overwritten. Use a dedicated package directory, with the
+archive/cache outside it. Review changed package contents before explicitly
+removing an obsolete enrollment and enrolling again. A version mismatch fails;
+no automatic index is published from that run.
+
+The profile hashes all regular package files, rejects symlinks/special files,
+and caps inspection at 4,096 entries, 512 MiB, 4 KiB paths and cooperative
+30-second inspection intervals with 64 KiB read/copy chunks. Linux accepts static
+little-endian ELF64 executables only. macOS accepts host arm64/x86_64 Mach-O64,
+including supported fat headers, with absolute Apple system dylibs only;
+`@rpath`, local/non-system dylibs, loader environment commands and scripts are
+ineligible. The macOS runtime identity hashes SystemVersion.plist; this is an
+explicit Apple OS runtime policy, not a hash of every transitive system library.
+No actual native package compatibility or physical Mac approval is inferred.
+
+Normal Estimate performs exact input-index lookup after package inspection. A
+hit launches no recognizer or version process. A miss executes an owned bounded
+byte-for-byte package snapshot with fixed cwd, cleared environment and fixed
+locale/PATH/HOME; it checks original package and snapshot identities around
+execution/publication/delivery. The snapshot is not an OS filesystem sandbox:
+a trusted executable can still use absolute files, network or other OS APIs.
+Package completeness is the operator's explicit local trust assertion; it is
+not established by hashing. Malicious same-user filesystem races and stalled
+filesystem calls are not promised to be contained by cooperative checks.
+
+The bounded desktop worker distinguishes fresh, automatically reused and
+explicitly loaded timing. Every candidate still passes exact prepared PCM/text,
+individual and scene-map limits, stale-generation protection and explicit Apply.
+Corrupt/dangling/conflicting entries remain visible errors and are preserved.
+**Run fresh (bypass reuse)** bypasses automatic lookup and publication while
+retaining controlled execution for an enrolled package. Cancellation prevents
+candidate delivery; complete immutable orphan archive/index entries may remain.
+
+New synthetic tests cover explicit enrollment, resource mutation with unchanged
+binary, undeclared files, symlinks, wrappers, cancellation, malformed manifests,
+Mach-O loader policy and a real desktop worker exact-hit path with a deliberately
+non-executable native identity fixture and absent WAV path. These fixtures prove
+control flow only. Real package closure/compatibility, first-miss recognizer
+behavior on a supplied package, real-audio quality and physical Mac testing
+remain separate acceptance work.

@@ -26,6 +26,8 @@ impl PreparedAudio for AudioBuffer {
 #[derive(Clone, Debug)]
 pub enum Action {
     Estimate,
+    EstimateFresh,
+    EnrollAndEstimate { expected_version: String },
     Load { key: String },
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -33,6 +35,7 @@ pub enum ResultOrigin {
     #[default]
     Fresh,
     ExplicitArchiveLoad,
+    AutomaticReuse,
 }
 #[derive(Debug, Default)]
 pub struct CacheInfo {
@@ -82,21 +85,54 @@ fn execute(request: &Request) -> Result<Ready, String> {
             .map_err(|e| format!("Scene alignment JSON: {e}"))?
     };
     let archive = motion_lipsync::estimated_cache::EstimatedCache::new(request.cache_root.clone());
+    let cancel = || request.cancel.is_cancelled();
+    if let Action::EnrollAndEstimate { expected_version } = &request.action {
+        if request.recognizer != Recognizer::Phonetic {
+            return Err("Local package enrollment requires Phonetic.".into());
+        }
+        motion_lipsync::local_package::enroll(&request.executable, expected_version, &cancel)
+            .map_err(|e| e.to_string())?;
+    }
+    let mut package = None;
+    let mut fingerprint = None;
+    let index = motion_lipsync::engine_reuse::EngineIndex::new(request.cache_root.clone());
     let (alignment, mut cache) = match &request.action {
-        Action::Estimate => (
-            rhubarb::align(
-                &request.executable,
-                &request.identity.audio_path,
-                &request.identity.transcript,
-                request.recognizer,
-                || request.cancel.is_cancelled(),
-            )
-            .map_err(|e| e.to_string())?,
-            CacheInfo {
-                message: motion_lipsync::engine_reuse::automatic_reuse_unavailable().into(),
-                ..Default::default()
-            },
-        ),
+        Action::Estimate | Action::EstimateFresh | Action::EnrollAndEstimate { .. } => {
+            let inspection = motion_lipsync::local_package::inspect(
+                &request.executable, request.recognizer, &cancel,
+            ).map_err(|e| e.to_string())?;
+            match inspection {
+                motion_lipsync::local_package::Inspection::Unavailable(reason) => (
+                    rhubarb::align(&request.executable, &request.identity.audio_path,
+                        &request.identity.transcript, request.recognizer, cancel)
+                        .map_err(|e| e.to_string())?,
+                    CacheInfo { message: reason, ..Default::default() },
+                ),
+                motion_lipsync::local_package::Inspection::Eligible(local) => {
+                    let identity = motion_lipsync::engine_reuse::RequestIdentity::new(
+                        request.audio.audio(), &request.identity.transcript,
+                        request.recognizer, &cancel,
+                    ).map_err(|e| e.to_string())?;
+                    let cached = if matches!(request.action, Action::EstimateFresh) { None } else {
+                        index.lookup(&identity, local.environment(),
+                            request.audio.audio(), &request.identity.transcript, &cancel)
+                            .map_err(|e| format!("Automatic saved timing: {e}. The existing entry was preserved; Run fresh bypasses the index."))?
+                    };
+                    local.recheck(&cancel).map_err(|e| e.to_string())?;
+                    let (alignment, origin) = match cached {
+                        Some(value) => (value, ResultOrigin::AutomaticReuse),
+                        None => (local.execute(&request.identity.audio_path,
+                            &request.identity.transcript, &cancel).map_err(|e| e.to_string())?, ResultOrigin::Fresh),
+                    };
+                    package = Some(local);
+                    fingerprint = Some(identity);
+                    (alignment, CacheInfo { origin,
+                        message: "Explicitly enrolled local package identity. Estimated timing; package trust does not establish quality, licensing or OS isolation.".into(),
+                        ..Default::default()
+                    })
+                }
+            }
+        },
         Action::Load { key } => (
             archive
                 .load(key, request.audio.audio(), &request.identity.transcript)
@@ -132,7 +168,7 @@ fn execute(request: &Request) -> Result<Ready, String> {
         return Err("Combined scene alignment exceeds 100 KB; shorten dialogue or remove unused alignment entries and retry".into());
     }
     request.cancel.check().map_err(|e| e.to_string())?;
-    if matches!(request.action, Action::Estimate) {
+    if !matches!(request.action, Action::Load { .. }) {
         match archive.store(
             &alignment,
             request.audio.audio(),
@@ -143,6 +179,15 @@ fn execute(request: &Request) -> Result<Ready, String> {
                 .message
                 .push_str(&format!(" Timing is usable, but saving it failed: {error}")),
         }
+    }
+    if let (Some(package), Some(identity)) = (&package, &fingerprint) {
+        package.recheck(&cancel).map_err(|e| e.to_string())?;
+        if cache.origin == ResultOrigin::Fresh && !matches!(request.action, Action::EstimateFresh) {
+            index.publish(identity, package.environment(), &alignment,
+                request.audio.audio(), &request.identity.transcript, &cancel)
+                .map_err(|e| format!("Automatic timing publication: {e}"))?;
+        }
+        package.recheck(&cancel).map_err(|e| e.to_string())?;
     }
     request.cancel.check().map_err(|e| e.to_string())?;
     Ok(Ready {
@@ -192,7 +237,7 @@ impl Worker {
         if self.active.is_some() {
             return Err("Alignment worker is busy; wait for cancellation to finish".into());
         }
-        if matches!(request.action, Action::Estimate) && !request.executable.is_absolute() {
+        if !matches!(request.action, Action::Load { .. }) && !request.executable.is_absolute() {
             return Err("Choose an explicit absolute Rhubarb executable path".into());
         }
         let cancel = request.cancel.clone();
@@ -392,5 +437,53 @@ mod tests {
         let r = request();
         r.cancel.cancel();
         assert!(execute(&r).unwrap_err().contains("cancelled"));
+    }
+    #[cfg(unix)]
+    #[test]
+    fn enrolled_exact_hit_needs_neither_an_executable_process_nor_the_wav_path() {
+        use sha2::{Digest, Sha256};
+        let path = std::env::temp_dir().join(format!("automatic-estimate-hit-{}-{}", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));
+        std::fs::create_dir(&path).unwrap();
+        struct Cleanup(PathBuf);
+        impl Drop for Cleanup { fn drop(&mut self) { let _ = std::fs::remove_dir_all(&self.0); } }
+        let root = Cleanup(std::fs::canonicalize(path).unwrap());
+        let package_root = root.0.join("package");
+        std::fs::create_dir(&package_root).unwrap();
+        let mut r = request();
+        r.cache_root = root.0.join("archive");
+        r.executable = package_root.join("rhubarb");
+        // Structurally native identity fixture, deliberately not executable.
+        // Any attempted --version/recognition launch makes this test fail.
+        let mut binary = vec![0u8; 64];
+        if std::env::consts::OS == "macos" {
+            binary[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
+            binary[4..8].copy_from_slice(&(if std::env::consts::ARCH == "aarch64" { 0x0100000cu32 } else { 0x01000007u32 }).to_le_bytes());
+            binary[12..16].copy_from_slice(&2u32.to_le_bytes());
+        } else {
+            binary[..6].copy_from_slice(b"\x7fELF\x02\x01");
+            binary[18..20].copy_from_slice(&(if std::env::consts::ARCH == "aarch64" { 183u16 } else { 62u16 }).to_le_bytes());
+            binary[54..56].copy_from_slice(&56u16.to_le_bytes());
+        }
+        std::fs::write(&r.executable, &binary).unwrap();
+        motion_lipsync::local_package::enroll(&r.executable, "synthetic-no-process", &|| false).unwrap();
+        let motion_lipsync::local_package::Inspection::Eligible(package) = motion_lipsync::local_package::inspect(&r.executable, r.recognizer, &|| false).unwrap() else { panic!("fixture enrollment") };
+        let fingerprint = motion_lipsync::engine_reuse::RequestIdentity::new(r.audio.audio(), &r.identity.transcript, r.recognizer, &|| false).unwrap();
+        let alignment = rhubarb::EstimatedVisemeAlignment {
+            schema_version: 1, source: "estimated_rhubarb".into(), tool_version: "synthetic-no-process".into(),
+            executable_sha256: format!("{:x}", Sha256::digest(&binary)),
+            pcm_sha256: rhubarb::pcm_identity(r.audio.audio()).unwrap(),
+            transcript_sha256: format!("{:x}", Sha256::digest(r.identity.transcript.as_bytes())),
+            recognizer: r.recognizer, sample_rate: 24000, frame_count: 24,
+            cues: vec![rhubarb::MouthCue { start_sample: 0, end_sample: 24, shape: 'A' }],
+        };
+        motion_lipsync::engine_reuse::EngineIndex::new(&r.cache_root).publish(&fingerprint, package.environment(), &alignment, r.audio.audio(), &r.identity.transcript, &|| false).unwrap();
+        let ready = execute(&r).unwrap();
+        assert_eq!(ready.cache.origin, ResultOrigin::AutomaticReuse);
+        assert!(ready.cache.provenance.contains("synthetic-no-process"));
+        assert_eq!(serde_json::from_str::<rhubarb::EstimatedVisemeAlignment>(&ready.json).unwrap().cues, alignment.cues);
+        let index_path = std::fs::read_dir(r.cache_root.join("engine-index-v1")).unwrap().next().unwrap().unwrap().path();
+        std::fs::write(&index_path, b"corrupt").unwrap();
+        assert!(execute(&r).unwrap_err().contains("Automatic saved timing"));
+        assert_eq!(std::fs::read(index_path).unwrap(), b"corrupt");
     }
 }

@@ -92,6 +92,11 @@ pub struct VerifiedEnvironment {
     executable: String,
     version: String,
 }
+impl VerifiedEnvironment {
+    pub(crate) fn from_inspected_package(manifest: String, executable: String, version: String) -> Self {
+        Self { manifest, executable, version }
+    }
+}
 /// Unknown packages remain eligible for explicit execution, never automatic reuse.
 pub fn automatic_reuse_unavailable() -> &'static str {
     "Automatic reuse unavailable: no inspected Rhubarb resource and dependency profile is installed. Explicit Estimate executes the recognizer; saved timing can be loaded by key."

@@ -10,6 +10,7 @@ pub struct Panel {
     worker: Worker,
     executable: String,
     cache_key: String,
+    package_version: String,
     pending_action: Option<Action>,
     recognizer: Recognizer,
     active: Option<Identity>,
@@ -23,6 +24,7 @@ impl Panel {
             worker: Worker::new(),
             executable: String::new(),
             cache_key: String::new(),
+            package_version: String::new(),
             pending_action: None,
             recognizer: Recognizer::PocketSphinx,
             active: None,
@@ -51,9 +53,21 @@ impl Panel {
                     settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.cache_key).char_limit(64).hint_text("64-character cache key")).changed();
                 });
             });
+            ui.add_enabled_ui(!self.busy(), |ui| {
+                ui.label("Optional local package enrollment pins every file. Only use a trusted self-contained Phonetic package: enrollment is not a license/quality audit or filesystem sandbox.");
+                settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.package_version).char_limit(1024).hint_text("Exact expected --version output for enrollment")).changed();
+                if ui.add_enabled(can_run && self.recognizer == Recognizer::Phonetic && !self.package_version.trim().is_empty(), egui::Button::new("Trust, enroll and estimate package")).clicked() {
+                    self.pending_action = Some(Action::EnrollAndEstimate { expected_version: self.package_version.clone() });
+                    run = true;
+                }
+            });
             ui.horizontal(|ui| {
-                run=ui.add_enabled(can_run && !self.busy(),egui::Button::new("Estimate prepared line")).clicked();
-                if run { self.pending_action = Some(Action::Estimate); }
+                if ui.add_enabled(can_run && !self.busy(), egui::Button::new("Run fresh (bypass reuse)")).clicked() {
+                    self.pending_action = Some(Action::EstimateFresh); run = true;
+                }
+                if ui.add_enabled(can_run && !self.busy(),egui::Button::new("Estimate prepared line")).clicked() {
+                    self.pending_action = Some(Action::Estimate); run = true;
+                }
                 if ui.add_enabled(can_run && !self.busy() && self.cache_key.len() == 64, egui::Button::new("Load cached timing")).clicked() {
                     self.pending_action = Some(Action::Load { key: self.cache_key.trim().to_owned() });
                     run = true;
@@ -64,7 +78,11 @@ impl Panel {
             if self.busy() { ui.spinner(); ui.ctx().request_repaint_after(std::time::Duration::from_millis(40)); }
             if !self.status.is_empty() { ui.label(&self.status); }
             if let Some(candidate)=&self.candidate {
-                ui.label(if candidate.cache.origin == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad { "Saved estimated result; no recognizer was executed." } else { "Fresh local estimate." });
+                ui.label(match candidate.cache.origin {
+                    crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad => "Saved estimated result; no recognizer was executed.",
+                    crate::alignment_worker::ResultOrigin::AutomaticReuse => "Automatically reused exact estimated result; no recognizer or version process was executed.",
+                    crate::alignment_worker::ResultOrigin::Fresh => "Fresh local estimate.",
+                });
                 if let Some(key) = &candidate.cache.key {
                     ui.horizontal(|ui| {
                         ui.label(format!("Cache key: {key}"));

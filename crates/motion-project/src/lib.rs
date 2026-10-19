@@ -86,6 +86,11 @@ impl ProjectDocument {
             }
             validate_path(&asset.path)?;
         }
+        for group in &self.art.groups {
+            if !script.scenes.iter().any(|scene| scene.id == group.scene_id) {
+                return invalid("artwork group references a scene that does not exist");
+            }
+        }
         for layer in &self.art.layers {
             let Some(scene) = script
                 .scenes
@@ -306,6 +311,31 @@ mod tests {
             .contains("version 3"));
         assert!(decode(&vec![b' '; MAX_DOCUMENT_BYTES + 1]).is_err());
         assert!(ProjectDocument::new("invalid yaml: [").is_err());
+    }
+    #[test]
+    fn custom_rig_source_survives_project_roundtrip_and_rejects_invalid_version() {
+        let source = "characters:\n  PUPPET:\n    asset: custom\n    rig:\n      version: 1\n      id: puppet\n      joints: [{id: root, parent: null, x: 10, y: -20}]\n      parts: [{id: body, joint: root, points: [[0,0],[10,0],[0,10]], color: [20,40,80,255]}]\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        let document = ProjectDocument::new(source).unwrap();
+        let reopened = decode(&encode(&document).unwrap()).unwrap();
+        assert_eq!(reopened.source, source);
+        let script = motion_script::parse(&reopened.source).unwrap();
+        let parts = script.characters["PUPPET"].rig.as_ref().unwrap().evaluate_parts().unwrap();
+        assert_eq!(parts[0].points[1].x, 20.0);
+        assert_eq!(parts[0].points[1].y, -20.0);
+        assert!(ProjectDocument::new(&source.replace("version: 1", "version: 2")).is_err());
+    }
+    #[test]
+    fn artwork_group_missing_scene_is_rejected_before_project_save() {
+        let mut document = ProjectDocument::new(SOURCE).unwrap();
+        document.art.groups.push(motion_art::Group {
+            id: "group".into(), scene_id: "missing".into(), plane: motion_art::Plane::Foreground,
+            name: "Group".into(), visible: true, opacity: 1.0, blend: motion_art::BlendMode::Normal,
+            children: Vec::new(),
+        });
+        document.art.order.push(motion_art::ArtUnit::Group("group".into()));
+        assert!(document.art.validate().is_ok());
+        let error = encode(&document).unwrap_err().to_string();
+        assert!(error.contains("group references a scene"));
     }
     fn rectangle() -> motion_art::Layer {
         motion_art::Layer {

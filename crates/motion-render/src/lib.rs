@@ -90,6 +90,12 @@ pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) ->
                     || p.x.abs() > 1_000_000.0
                     || p.y.abs() > 1_000_000.0
             })
+            || actor.rigid_parts.len() > 256
+            || actor.rigid_parts.iter().any(|part| {
+                !(3..=64).contains(&part.points.len()) || part.points.iter().any(|p| {
+                    !p.x.is_finite() || !p.y.is_finite() || p.x.abs() > 1_000_000.0 || p.y.abs() > 1_000_000.0
+                })
+            })
             || !actor.rotation.is_finite()
             || actor.rotation.abs() > 360_000.0
             || !actor.scale.x.is_finite()
@@ -155,6 +161,15 @@ fn render_scene(
             )
             .unwrap();
         }
+        if !actor.rigid_parts.is_empty() {
+            for part in &actor.rigid_parts {
+                svg.push_str("<polygon points=\"");
+                for point in &part.points {
+                    write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
+                }
+                write!(svg, "\" fill=\"#{:02x}{:02x}{:02x}\" fill-opacity=\"{:.6}\"/>", part.color[0], part.color[1], part.color[2], f64::from(part.color[3]) / 255.0).unwrap();
+            }
+        } else {
         let p = &actor.skeleton;
         svg.push_str("<path d=\"");
         for (a, b) in [
@@ -204,6 +219,7 @@ fn render_scene(
             svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
         }
         svg.push_str("</g>");
+        }
         if actor.rotation != 0.0 || actor.scale.x != 1.0 || actor.scale.y != 1.0 {
             svg.push_str("</g>");
         }
@@ -256,12 +272,23 @@ fn append_art(
     plane: motion_art::Plane,
 ) -> Result<(), Error> {
     use motion_art::Content;
-    for (index, layer) in document
-        .layers
-        .iter()
-        .enumerate()
-        .filter(|(_, l)| l.scene_id == scene_id && l.plane == plane && l.is_active(scene.time))
-    {
+    let steps = document.composition(scene_id, plane, scene.time)
+        .map_err(|e| Error::InvalidArtwork(e.to_string()))?;
+    for step in steps {
+        let layer = match step {
+            motion_art::CompositionStep::EnterGroup(group) => {
+                let blend = match group.blend {
+                    motion_art::BlendMode::Normal => "normal",
+                    motion_art::BlendMode::Multiply => "multiply",
+                    motion_art::BlendMode::Screen => "screen",
+                };
+                write!(svg, "<g opacity=\"{:.6}\" style=\"isolation:isolate;mix-blend-mode:{blend}\">", group.opacity).unwrap();
+                continue;
+            }
+            motion_art::CompositionStep::LeaveGroup => { svg.push_str("</g>"); continue; }
+            motion_art::CompositionStep::Layer(layer) => layer,
+        };
+        let index = document.layers.iter().position(|l| l.id == layer.id).unwrap();
         let (x, y) = match &layer.attachment {
             Some(id) => match scene.actors.iter().find(|a| &a.id == id) {
                 Some(a) => (a.x, a.y),
@@ -421,8 +448,23 @@ mod tests {
                 scale: motion_scene::Vec2::new(1.0, 1.0),
                 wave: 1.0,
                 skeleton: motion_animation::humanoid(None, 1.0),
+                rigid_parts: Vec::new(),
             }],
         }
+    }
+    #[test]
+    fn custom_rigid_parts_share_evaluated_hierarchy_and_actor_transform() {
+        let source = "characters:\n  PUPPET:\n    asset: custom\n    rig:\n      version: 1\n      id: puppet\n      joints: [{id: root, parent: null, x: 10, y: -20}]\n      parts: [{id: body, joint: root, points: [[0,0],[10,0],[0,10]], color: [20,40,80,128]}]\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        let script = motion_script::parse(source).unwrap();
+        let mut evaluated = motion_scene::evaluate(&script, 0, 0.5).unwrap();
+        evaluated.actors[0].rotation = std::f64::consts::FRAC_PI_2;
+        let svg = render_svg(&evaluated, 640, 360).unwrap();
+        assert!(svg.contains("<polygon points=\"10.000000,-20.000000 20.000000,-20.000000 10.000000,-10.000000 "));
+        assert!(svg.contains("fill=\"#142850\" fill-opacity=\"0.501961\""));
+        assert!(svg.contains("rotate(90.000000)"));
+        assert!(!svg.contains("<circle r=\"25\""));
+        evaluated.actors[0].rigid_parts[0].points[0].x = f64::NAN;
+        assert_eq!(render_svg(&evaluated, 640, 360), Err(Error::InvalidActor(0)));
     }
     #[test]
     fn deterministic_geometry_and_letterbox() {
@@ -604,7 +646,7 @@ mod timed_art_tests {
                 attached,
                 layer("bg2", Plane::Background, 2),
             ],
-        };
+         ..Default::default()};
         let svg = render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).unwrap();
         let positions = [
             svg.find("fill=\"#181f2c\"").unwrap(),
@@ -648,7 +690,7 @@ mod timed_art_tests {
                 hidden,
                 other_scene,
             ],
-        };
+         ..Default::default()};
         for (time, first, second) in [
             (2.5, true, true),
             (4.0, false, false),
@@ -684,7 +726,7 @@ mod timed_art_tests {
         };
         let doc = Document {
             layers: vec![image],
-        };
+         ..Default::default()};
         assert!(render_svg_with_art(&s, 640, 360, &[], "s", &doc, &BTreeMap::new()).is_ok());
         s.time = 1.0;
         assert!(matches!(

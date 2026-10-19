@@ -228,3 +228,46 @@ regressions passed PR #45 CI. Exact evidence is recorded in master progress.
 Physical Mac motion quality, production performance, custom/textured rigs,
 deformation, normalized/arbitrary-rig mixing and cross-project exchange remain open.
 This change does not complete GPU scene parity or recognizer-result memoization.
+
+
+## Normalized original-rig override groups
+
+Set `normalized_group: reach` on consecutive override instances for one actor.
+The group ID uses 1–64 ASCII letters, digits, `_` or `-`. The whole group must
+occupy one contiguous block in the saved scene stack, and its ID cannot be reused
+later in that scene or for another actor. An additive row cannot join a group.
+Omitting the field preserves the existing sequential override/additive behavior.
+The native live clip editor exposes a group checkbox and ID; Apply validates the
+whole candidate block atomically. Reset timing preserves the selected group.
+
+Each group replaces its block at that exact stack position. For each joint,
+contributors are only active instances with positive effective envelope weight,
+a selected joint and an authored track for that joint. Absent tracks and excluded
+joints contribute no weight. Let `S` be their total effective weight:
+
+| Weight total | Result |
+| --- | --- |
+| No positive contributors | Preserve the preceding accumulated offset exactly. |
+| `0 < S < 1` | Sum the weighted clip offsets and retain `(1 − S)` of the preceding offset. |
+| `S >= 1` | Sum clip offsets with each weight divided by `S`; no preceding residual remains. |
+
+Translation and scale use the component-wise weighted sum. Rotation unwraps each
+sample by the shortest signed arc around a deterministic reference. When there
+is a base residual the reference is the preceding rotation; otherwise it is the
+rotation of the positive contributor with the lexicographically smallest stable
+instance ID. An exact half turn chooses the positive arc. Contributors are summed
+in that same stable ID order, so reordering rows within a group preserves the
+result, including floating-point accumulation. Renaming an instance can change
+the rotation reference for wide angle distributions. The combined offset still
+must satisfy the existing bounds; invalid composition returns a typed error.
+
+For example, base head `x = 8`, two clips at `x = 40` and `x = 100`, each with
+weight `0.25`, produce `8 × 0.5 + 40 × 0.25 + 100 × 0.25 = 39`. At weight `1`
+each they produce `70`. If the second clip masks out the head, the head uses only
+the first clip's weight. Fades, keyed weights, half-open activity and original-speed
+loops are sampled once using the existing scene clock.
+
+This is mixing for the original seven-joint offset rig. Custom rigid rest shapes
+are a separate opt-in character format; original-rig bone tracks and live clips
+and gesture events are rejected for those actors rather than silently applying invisible animation.
+Root movement and root transform tracks remain supported.

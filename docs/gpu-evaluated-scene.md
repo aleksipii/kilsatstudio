@@ -64,3 +64,59 @@ PR #43 integrated the experiment after Linux/macOS optional-feature compilation,
 strict Clippy, adapter-free shader/command/metric tests and default regression
 checks passed. Exact evidence is in [master progress](master-progress.md).
 No adapter was requested by those tests; real GPU/parity acceptance stays open.
+
+## Artwork, custom parts and complete-frame transitions (next PR)
+
+The optional renderer now has a separate `scene_commands::build_with_art` entry
+point. It validates the entire `motion_art::Document` before constructing commands;
+missing decoded image resources fail before adapter initialization. It consumes
+`Document::composition`, so background/foreground order, active half-open time
+ranges, actor-translation attachments, hidden group subtrees and nested isolated
+group opacity/blends use the same authored structure as SVG. No image loading or
+asset decode occurs in the renderer.
+
+Actual WGSL scene composition now includes:
+
+- Rectangle and ellipse fills and round-cap/round-join polyline coverage. A stroke
+  is evaluated as a union before its alpha is applied, avoiding darker segment
+  intersections for translucent strokes.
+- Original decoded RGBA images, uploaded as bounded source pixels rather than a
+  CPU-rendered frame. Bilinear interpolation uses premultiplied source samples to
+  avoid transparent-edge color fringes. Source colors and the opaque output use
+  byte-space sRGB conventions; no silent conversion to linear-light blending.
+- Hard rectangular, elliptical and nonzero-winding polygon clips; the existing
+  animated soft-ellipse mask sampler supplies scene-local rectangle and feather.
+- Isolated layer and group normal/multiply/screen source-over composition. Mask,
+  layer opacity and group opacity each apply once to the completed subtree.
+- Custom rigid-part polygon geometry in authored order, transformed by the same
+  actor/camera inverse transform as humanoid geometry. Polygon filling uses the
+  SVG default nonzero winding rule, including concave geometry.
+
+`scene_commands::crossfade(first, second, second_weight)` accepts already validated
+complete scene requests and the contribution weight supplied by the existing
+sequence timeline. It relocates resource indices and composites both scenes on
+GPU, including each scene's fade and letterboxing. Each scene is quantized to
+8-bit channels before weighted composition, matching the existing CPU sequence's
+byte-space rounding contract. Equal dimensions and a finite weight in `[0,1]`
+are mandatory; nested complete-frame transitions are rejected. This API does not
+create a second sequence clock or infer transitions.
+
+Resource limits remain deliberately conservative: 4096 commands, 64 Mi fragment
+work units, 65,536 geometry vertices, 4 Mi source image pixels and 16 composition
+stack entries (including the root). Polygon/stroke vertices and four-tap image
+sampling count toward fragment work. Crossfades include both scenes in every
+resource/work bound, even at weights zero or one. A reusable `GpuSceneRenderer`
+keeps at most one source pixel set on host/device, identified by exact content;
+replacement evicts the previous set before upload. Frame targets/readback are
+released per call. These bounds target less than 128 MiB of renderer-owned
+resources at 2048 square, excluding caller-owned decoded assets, retained command
+requests, driver overhead and the independent CPU reference renderer.
+
+These are implementation capabilities, **not full CPU/GPU parity or production
+GPU selection**. Actor labels still require explicit omission acknowledgement:
+there is no selected redistribution-reviewed deterministic font/layout resource.
+Analytical edge coverage and SVG rasterization differ, and no pixel-error tolerance
+or Metal performance acceptance is inferred from adapter-free tests. Production
+preview/export keep their existing CPU backend. Physical GPU images, decoded
+reference comparisons, full Unicode text resources and shared production backend
+acceptance remain open.

@@ -16,6 +16,7 @@ motion-audio = { path = "../../crates/motion-audio" }
 motion-lipsync = { path = "../../crates/motion-lipsync" }
 motion-export = { path = "../../crates/motion-export" }
 serde_json.workspace = true
+serde_yaml = "0.9"
 sha2 = "0.10.9"
 
 [target.'cfg(target_os = "macos")'.dependencies]
