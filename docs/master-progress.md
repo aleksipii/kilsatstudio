@@ -9,12 +9,14 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
-Vector mask painting/erasing is implemented on the next task branch; integration
-and CI are pending. It stores ordered bounded vector strokes, explicit initial
+PR [#53](https://github.com/aleksipii/kilsatstudio/pull/53) merged as
+`5251cc5ddc850f1b2c9493a0076bae5fce0a64b0` on 2026-10-19 after final Linux/macOS CI.
+Vector mask painting/erasing stores ordered bounded strokes, explicit initial
 coverage and round dabs, with native brush/eraser gestures, shared Undo/Redo and
-CPU preview/export. See [painted masks](painted-masks.md). Pressure, soft brushes,
-animated paint, experimental GPU support and physical Mac input acceptance remain
-open. Completion will be marked after the authorized merge and actual CI checks.
+CPU preview/export. See [painted masks](painted-masks.md) and the evidence below.
+Pressure, soft brushes, animated paint, experimental GPU support and physical Mac
+input acceptance remain open. No product milestone or device/license gate is
+closed by this implementation. The release branch is synchronized with this record.
 
 PRs #47–#51 reached main on 2026-10-19. #47 merged first (`511b008`, Mac Metal probe and
 native arm64 Rhubarb record). Stacked PRs #48 (feathered polygon masks), #49 (image
@@ -23,7 +25,7 @@ into their stacked base branches (`7e7c5a8`, `1b75639`, `8e689d0`), so they reac
 main only through the integration PR #51 (`678e41b`). Linux/macOS CI (fmt, check,
 Clippy, tests, GPU contracts, media encoding, Apple Silicon preview) passed on each
 head and on #51, and fmt/Clippy/`cargo test --workspace` passed locally on an Apple M1.
-Still open: mask painting/erasing and pressure input, animated polygon/image masks,
+At that merge, open work included mask painting/erasing and pressure input, animated polygon/image masks,
 GPU parity for the new masks, reusable custom-rig clips and retargeting, textures and
 deformation, perceptual Rhubarb/Kokoro quality, packaged arm64 Rhubarb, licence
 corpus, and physical Mac GUI/audio acceptance. No GUI was exercised by hand.
@@ -111,7 +113,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, procedural strengths and editable versioned custom rigid characters with shared rest-part/root rendering | Custom-rig joint animation, textures/deformation and arbitrary custom-clip blending |
-| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups, image masks and polygon feathering | Painting integration, pressure/retouching and physical Mac compositing acceptance |
+| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups, image masks, polygon feathering and vector mask painting/erasing | Pressure, soft/animated painting, retouching, GPU mask parity and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated cues/archive and automatic reuse for explicitly enrolled self-contained local Phonetic packages | Real package compatibility/audited closure, offline/device acceptance and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded experimental GPU artwork/masks/groups/blends/crossfades, input reuse and bound package/build/review-gap reports | Shared GPU fonts, full measured scene parity/production backend, physical Metal/performance and final license clearance |
@@ -235,7 +237,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Persisted soft animated ellipse masks in shared SVG/PNG/native preview and sequence evaluation (PR #43).
 - [x] Bounded isolated nested artwork groups with explicit sibling order, native history controls and shared CPU composition (PR #46).
 - [x] Image alpha/luminance masks and polygon feathering (PRs #48–#49 via #51).
-- [ ] Vector mask painting/erasing integration, pressure/retouching and physical Mac compositing acceptance.
+- [x] Vector mask painting/erasing with shared history and CPU preview/export (PR #53).
+- [ ] Pressure, soft/animated painting, retouching, GPU mask parity and physical Mac compositing acceptance.
 - [x] Selected-scene shared CPU-composited advanced frames and final integration checks (PR #31).
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
@@ -1375,3 +1378,46 @@ and script tests (posed geometry, determinism across seeks, validation errors).
 Not done: reusable custom-rig clips and retargeting,
 textures/deformation, CI on this branch, physical Mac inspection and a rendered
 pixel test of a posed custom rig.
+
+## Vector mask painting and erasing — PR #53 delivery evidence
+
+- [x] Explicit painted-mask selection and visible/hidden base coverage; ordered
+  fixed-radius vector paint/erase strokes, round dabs/caps/joins and no new assets.
+- [x] Native Inspector brush/eraser/radius, detached gesture drafts and one shared
+  Undo/Redo transaction per release. Selection, time, camera, viewport or layer
+  changes cancel drafts. Busy/playing/stale compositor frames cannot be painted.
+- [x] Shared luminance SVG masks for CPU scene preview, SVG/PNG/video export;
+  actual pixel tests verify paint → erase → repaint, both bases, dabs, repeated
+  nonsequential seeks and preview/PNG/SVG equality. Persistence and gesture/history
+  tests passed. Layer-local bounds preserve camera and actor translation.
+- [x] Finite radius/coordinate checks, 512 strokes/mask, 4096 strokes/document,
+  2048 points/stroke and the shared 262144-point document limit. Export/preview
+  charge mask work, including dormant masks; excessive export work fails before
+  creating output. Experimental GPU returns an explicit unsupported-feature error.
+- [ ] Pressure, soft brushes, animated paint, raster retouch, GPU painted-mask
+  parity and physical Mac pointer/accessibility/GUI acceptance.
+
+Final tested source: `1bdb44fce061ceb567320b33d8b243eabadd9c98`; merged tree
+`d2dd058791b4f4a8dd57c26c129c425e87b1b535` matches the tested source.
+[Linux/macOS CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39242281276)
+passed fmt, workspace check and strict all-target Clippy. Default all-target Rust
+tests passed: **515 Linux / 514 macOS**, with three intentionally ignored real
+encoder tests each. Separate GPU jobs each passed **31 library + 2 probe tests**
+(one hardware-only test ignored), plus strict optional-feature Clippy. The media
+job explicitly ran and passed all **3 actual FFmpeg tests**. Both platforms passed
+**55 runtime + 79 repository Python tests**. Locally, those same Python suites and
+`git diff --check` passed; Rust tooling was unavailable locally. Independent source
+and native gesture review found no remaining integration blocker after the
+stale-frame painting guard was added.
+
+[Apple Silicon preview CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39242281274)
+built and packaged the same final source. Download the
+[arm64 preview artifact](https://github.com/aleksipii/kilsatstudio/actions/runs/39242281274/artifacts/12182640232).
+Inner final preview ZIP SHA-256:
+`d7dbd728855bf392255ab4165220250665c0d4f2581b2665d811e053015e8781`.
+Outer artifact container digest:
+`d5bb0861c3503b0209cc54abbcb42096edf0e933561c4d9e2308d021254c6a7f`.
+Package validation passed; `distribution_approved` remains false. This automated
+build establishes neither physical Mac input/audio acceptance nor final licences,
+notarization, real-model quality or full GPU/native parity. M1–M6 remain subject
+to their existing open acceptance gates.
