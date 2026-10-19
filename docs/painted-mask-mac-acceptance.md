@@ -72,8 +72,12 @@ absolute output directory, run:
 ```sh
 cargo run --locked -p motion-render --features gpu --example gpu_scene_probe -- \
   --metal --omit-labels-acknowledged examples/painted-mask-input.kilsat \
-  0 1.0 640 360 /Users/yourname/Desktop/new-painted-mask-metal
+  0 1.0 256 144 /Users/yourname/Desktop/new-painted-mask-metal
 ```
+
+The small probe dimensions fit the conservative fragment-work budget. Higher
+resolutions can be explicitly rejected for this multi-mask fixture; rejection
+does not establish a driver failure or successful rendering.
 
 Retain the actual command/exit status, `report.json`, `scene.rgba`, exact input,
 `replay.kilsat` if emitted, and CPU reference SVG. Record the named Metal adapter

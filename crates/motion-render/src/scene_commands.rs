@@ -694,6 +694,27 @@ mod tests {
         }
     }
     #[test]
+    fn manual_pressure_fixture_fits_documented_probe_budget_before_adapter_creation() {
+        let document = motion_project::decode(include_bytes!(
+            "../../../examples/painted-mask-input.kilsat"
+        ))
+        .unwrap();
+        let script = motion_script::parse(&document.source).unwrap();
+        let evaluated = motion_scene::evaluate(&script, 0, 1.0).unwrap();
+        let commands = build_with_art(
+            &evaluated,
+            256,
+            144,
+            &[],
+            Labels::OmitAcknowledged,
+            &script.scenes[0].id,
+            &document.art,
+            &std::collections::BTreeMap::new(),
+        )
+        .unwrap();
+        assert!(commands.commands.iter().any(|command| command.0[4][0] == 17.0));
+    }
+    #[test]
     fn painted_masks_compile_with_explicit_base_before_adapter_creation() {
         use motion_art::*;
         let mut layer = artwork_layer(
