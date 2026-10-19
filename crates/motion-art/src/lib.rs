@@ -96,6 +96,11 @@ pub enum ClipShape {
         #[serde(default)]
         channel: MaskChannel,
     },
+    /// Ordered opaque vector paint/erase strokes over explicit initial coverage.
+    Painted {
+        base_visible: bool,
+        strokes: Vec<MaskStroke>,
+    },
     /// Elliptical alpha mask with an inward, normalized radial feather.
     /// Keys use scene-local seconds; their first/last values hold outside the track.
     SoftEllipse {
@@ -104,6 +109,32 @@ pub enum ClipShape {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         keys: Vec<MaskKey>,
     },
+}
+/// One round brush gesture in layer-local scene units. Erasure paints black in
+/// an explicitly luminance-based mask; later white strokes can restore coverage.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct MaskStroke {
+    pub points: Vec<Point>,
+    pub radius: f64,
+    pub erase: bool,
+}
+pub const MAX_MASK_STROKES: usize = 512;
+pub const MAX_TOTAL_MASK_STROKES: usize = 4096;
+pub const MAX_MASK_STROKE_POINTS: usize = 2048;
+pub const MAX_MASK_RADIUS: f64 = 2048.0;
+impl MaskStroke {
+    pub fn validate(&self) -> Result<(), Error> {
+        if self.points.is_empty()
+            || self.points.len() > MAX_MASK_STROKE_POINTS
+            || !self.radius.is_finite()
+            || !(0.05..=MAX_MASK_RADIUS).contains(&self.radius)
+            || self.points.iter().any(|p| !coordinate(p.x) || !coordinate(p.y))
+        {
+            return invalid("mask stroke requires 1–2048 bounded finite points and radius 0.05–2048");
+        }
+        Ok(())
+    }
 }
 /// Which channel of a mask image controls coverage.
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -189,7 +220,7 @@ impl ClipShape {
                     lerp(left.feather, right.feather),
                 ))
             }
-            Self::Polygon { .. } | Self::Image { .. } => None,
+            Self::Polygon { .. } | Self::Image { .. } | Self::Painted { .. } => None,
         }
     }
     /// Project image asset used by an image mask, if any.
@@ -201,6 +232,20 @@ impl ClipShape {
     }
     pub fn validate(&self) -> Result<(), Error> {
         match self {
+            Self::Painted { strokes, .. } => {
+                if strokes.len() > MAX_MASK_STROKES {
+                    return invalid("painted mask exceeds 512 strokes");
+                }
+                let mut points = 0;
+                for stroke in strokes {
+                    stroke.validate()?;
+                    points += stroke.points.len();
+                    if points > MAX_TOTAL_POINTS {
+                        return invalid("painted mask exceeds total artwork point budget");
+                    }
+                }
+                Ok(())
+            }
             Self::Ellipse { rect } => rect.validate(),
             Self::SoftEllipse {
                 rect,
@@ -563,6 +608,7 @@ impl Document {
         let mut ids = BTreeSet::new();
         let mut point_count = 0;
         let mut mask_key_count = 0;
+        let mut mask_stroke_count = 0;
         for layer in &self.layers {
             if !identifier(&layer.id)
                 || !ids.insert(&layer.id)
@@ -596,6 +642,13 @@ impl Document {
                     if mask_key_count > MAX_TOTAL_MASK_KEYS {
                         return invalid("artwork exceeds 8192 animated mask keys");
                     }
+                }
+                if let ClipShape::Painted { strokes, .. } = shape {
+                    mask_stroke_count += strokes.len();
+                    if mask_stroke_count > MAX_TOTAL_MASK_STROKES {
+                        return invalid("artwork exceeds 4096 mask strokes");
+                    }
+                    point_count += strokes.iter().map(|stroke| stroke.points.len()).sum::<usize>();
                 }
                 if let ClipShape::Polygon { points, .. } = shape {
                     point_count += points.len();
@@ -1228,6 +1281,127 @@ mod tests {
                 width: -1.0,
                 height: 1.0
             }
+        }
+        .validate()
+        .is_err());
+    }
+
+    fn mask_stroke() -> MaskStroke {
+        MaskStroke {
+            points: vec![Point { x: 2.0, y: 3.0 }],
+            radius: 4.0,
+            erase: false,
+        }
+    }
+
+    #[test]
+    fn painted_mask_roundtrip_and_atomic_invalid_edit() {
+        let mut item = layer();
+        item.clip = None;
+        item.clip_shape = Some(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![
+                mask_stroke(),
+                MaskStroke {
+                    erase: true,
+                    ..mask_stroke()
+                },
+            ],
+        });
+        let mut doc = Document {
+            layers: vec![item.clone()],
+            ..Default::default()
+        };
+        doc.validate().unwrap();
+        let encoded = serde_json::to_string(&doc).unwrap();
+        assert_eq!(doc, serde_json::from_str::<Document>(&encoded).unwrap());
+        let before = doc.clone();
+        item.clip_shape = Some(ClipShape::Painted {
+            base_visible: true,
+            strokes: vec![MaskStroke {
+                radius: f64::NAN,
+                ..mask_stroke()
+            }],
+        });
+        assert!(doc.apply(Command::Replace(item)).is_err());
+        assert_eq!(doc, before);
+        assert!(serde_json::from_str::<ClipShape>(
+            r#"{"type":"painted","strokes":[],"unexpected":true}"#
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn painted_mask_rejects_invalid_and_excessive_work() {
+        for radius in [f64::NAN, f64::INFINITY, -1.0, 0.0, MAX_MASK_RADIUS + 1.0] {
+            assert!(MaskStroke {
+                radius,
+                ..mask_stroke()
+            }
+            .validate()
+            .is_err());
+        }
+        for points in [
+            vec![],
+            vec![Point {
+                x: f64::INFINITY,
+                y: 0.0,
+            }],
+            vec![Point {
+                x: MAX_COORDINATE + 1.0,
+                y: 0.0,
+            }],
+            vec![Point { x: 0.0, y: 0.0 }; MAX_MASK_STROKE_POINTS + 1],
+        ] {
+            assert!(MaskStroke {
+                points,
+                ..mask_stroke()
+            }
+            .validate()
+            .is_err());
+        }
+        assert!(ClipShape::Painted {
+            base_visible: true,
+            strokes: vec![mask_stroke(); MAX_MASK_STROKES + 1],
+        }
+        .validate()
+        .is_err());
+        let mut item = layer();
+        item.clip = None;
+        item.clip_shape = Some(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![mask_stroke(); MAX_MASK_STROKES],
+        });
+        let mut doc = Document::default();
+        for index in 0..=MAX_TOTAL_MASK_STROKES / MAX_MASK_STROKES {
+            item.id = format!("paint-{index}");
+            doc.layers.push(item.clone());
+        }
+        assert!(doc
+            .validate()
+            .unwrap_err()
+            .to_string()
+            .contains("4096 mask strokes"));
+        let long = MaskStroke {
+            points: vec![Point { x: 0.0, y: 0.0 }; MAX_MASK_STROKE_POINTS],
+            ..mask_stroke()
+        };
+        item.clip_shape = Some(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![long.clone(); MAX_TOTAL_POINTS / MAX_MASK_STROKE_POINTS],
+        });
+        // This mask fits individually; the layer's two content points exceed
+        // the shared document budget and must still be rejected.
+        item.clip_shape.as_ref().unwrap().validate().unwrap();
+        assert!(Document {
+            layers: vec![item],
+            ..Default::default()
+        }
+        .validate()
+        .is_err());
+        assert!(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![long; MAX_TOTAL_POINTS / MAX_MASK_STROKE_POINTS + 1],
         }
         .validate()
         .is_err());

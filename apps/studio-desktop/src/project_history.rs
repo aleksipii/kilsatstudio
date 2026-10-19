@@ -384,6 +384,50 @@ mod tests {
     }
 
     #[test]
+    fn completed_painted_mask_gestures_undo_redo_without_asset_inventory_changes() {
+        let mut doc = document();
+        doc.art.layers.push(layer());
+        let initial = Snapshot::capture(SOURCE, Some(&doc));
+        let mut history = History::new(SOURCE);
+        let mut previous = initial.clone();
+        let mut snapshots = Vec::new();
+        for erase in [false, true, false] {
+            if doc.art.layers[0].clip_shape.is_none() {
+                doc.art.layers[0].clip_shape = Some(motion_art::ClipShape::Painted {
+                    base_visible: false,
+                    strokes: Vec::new(),
+                });
+            }
+            let Some(motion_art::ClipShape::Painted { strokes, .. }) =
+                &mut doc.art.layers[0].clip_shape
+            else {
+                unreachable!()
+            };
+            strokes.push(motion_art::MaskStroke {
+                points: vec![motion_art::Point { x: 5.0, y: 5.0 }],
+                radius: if erase { 2.0 } else { 4.0 },
+                erase,
+            });
+            let next = Snapshot::capture(SOURCE, Some(&doc));
+            history.record(previous, next.clone());
+            previous = next.clone();
+            snapshots.push(next);
+        }
+        assert_eq!(history.undo.len(), 3);
+        let mut current = snapshots[2].clone();
+        for expected in [&snapshots[1], &snapshots[0], &initial] {
+            current = history.navigate(current, false).unwrap().unwrap();
+            assert_eq!(&current, expected);
+            assert!(current.document().unwrap().assets.is_empty());
+        }
+        for expected in &snapshots {
+            current = history.navigate(current, true).unwrap().unwrap();
+            assert_eq!(&current, expected);
+        }
+        assert!(!history.can_redo());
+    }
+
+    #[test]
     fn unfinished_text_is_restored_while_invalid_metadata_is_rejected_atomically() {
         let doc = document();
         let valid = Snapshot::capture(SOURCE, Some(&doc));

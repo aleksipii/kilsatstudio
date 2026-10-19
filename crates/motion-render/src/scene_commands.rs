@@ -466,6 +466,9 @@ fn append_art(
                 }
                 if let Some(mask) = &layer.clip_shape {
                     match mask {
+                        ClipShape::Painted { .. } => {
+                            return Err(Error::UnsupportedFeature("painted vector mask"));
+                        }
                         ClipShape::Image { .. } => {
                             return Err(Error::UnsupportedFeature("image mask"));
                         }
@@ -618,6 +621,23 @@ mod tests {
             blend: motion_art::BlendMode::Normal,
             content,
         }
+    }
+    #[test]
+    fn painted_masks_are_explicitly_rejected_before_adapter_creation() {
+        use motion_art::*;
+        let mut layer = artwork_layer(
+            "painted",
+            Content::Rectangle {
+                rect: Rect { x: 0.0, y: 0.0, width: 20.0, height: 20.0 },
+                color: Color { r: 255, g: 0, b: 0, a: 255 },
+            },
+        );
+        layer.clip_shape = Some(ClipShape::Painted { base_visible: true, strokes: vec![] });
+        let document = Document { layers: vec![layer], ..Document::default() };
+        assert!(matches!(
+            build_with_art(&scene(), 64, 64, &[], Labels::OmitAcknowledged, "s", &document, &std::collections::BTreeMap::new()),
+            Err(Error::UnsupportedFeature("painted vector mask"))
+        ));
     }
     #[test]
     fn artwork_image_deduplication_masks_groups_and_order_are_real_commands() {

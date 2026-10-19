@@ -277,6 +277,16 @@ fn preflight(
                     .checked_add(points.len() as u64)
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
             }
+            if let Some(motion_art::ClipShape::Painted { strokes, .. }) = &layer.clip_shape {
+                let work = strokes
+                    .iter()
+                    .map(|stroke| stroke.points.len() as u64 + 1)
+                    .sum::<u64>()
+                    + 1;
+                geometry = geometry
+                    .checked_add(work)
+                    .ok_or_else(|| invalid("mask geometry overflow"))?;
+            }
             if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {
                 geometry = geometry
                     .checked_add(u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8)

@@ -420,3 +420,124 @@ fn image_mask_validates_references_and_persistence() {
     masked.clip_shape = Some(shape);
     assert_eq!(masked.image_assets().collect::<Vec<_>>(), ["mask"]);
 }
+
+#[test]
+fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_svg() {
+    use motion_art::{MaskStroke, Point};
+    let (script, rendered, mut art) = fixture();
+    for base_visible in [false, true] {
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes: Vec::new(),
+        });
+        let row = render_row(&script, &rendered, &art, 50).unwrap();
+        assert!(row.iter().all(|v| *v == if base_visible { 255 } else { 0 }));
+        let mut strokes = vec![MaskStroke {
+            points: vec![
+                Point { x: 20.0, y: 50.0 },
+                Point { x: 80.0, y: 50.0 },
+            ],
+            radius: 15.0,
+            erase: false,
+        }];
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes: strokes.clone(),
+        });
+        let row = render_row(&script, &rendered, &art, 50).unwrap();
+        assert_eq!(row[0], if base_visible { 255 } else { 0 });
+        assert_eq!(row[50], 255);
+        strokes.push(MaskStroke {
+            points: vec![Point { x: 50.0, y: 50.0 }],
+            radius: 10.0,
+            erase: true,
+        });
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes: strokes.clone(),
+        });
+        let row = render_row(&script, &rendered, &art, 50).unwrap();
+        assert_eq!(row[25], 255);
+        assert_eq!(row[50], 0, "opaque black must erase luminance coverage");
+        assert_eq!(row[75], 255);
+        strokes.push(MaskStroke {
+            points: vec![Point { x: 50.0, y: 50.0 }],
+            radius: 3.0,
+            erase: false,
+        });
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes,
+        });
+        // Project metadata serialisation must preserve stroke order and both dabs.
+        art.document = serde_json::from_slice(&serde_json::to_vec(&art.document).unwrap()).unwrap();
+        art.document.validate().unwrap();
+        for _ in 0..2 {
+            let row = render_row(&script, &rendered, &art, 50).unwrap();
+            assert_eq!(row[0], if base_visible { 255 } else { 0 });
+            assert_eq!(row[43], 0);
+            assert_eq!(row[50], 255, "later paint must restore erased coverage");
+            assert_eq!(row[57], 0);
+        }
+        // A round dab must not become a square brush or a missing SVG move-only path.
+        let row = render_row(&script, &rendered, &art, 58).unwrap();
+        assert!(row[50] < 100);
+        assert_eq!(row[41], 255);
+        let preview = ScenePreview::new(
+            Arc::new(script.clone()),
+            0,
+            Arc::new(art.clone()),
+            Some(Arc::new(rendered.manifest.clone())),
+        )
+        .unwrap();
+        let cancel = CancellationToken::new();
+        for index in [3, 0, 2, 1, 0] {
+            let (sample, _, png) =
+                encode_frame(&script, 0, &rendered, index, true, &cancel, Some(&art)).unwrap();
+            let pixels = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+            assert_eq!(
+                preview.render(sample, 1024, &cancel).unwrap().rgba,
+                pixels.data()
+            );
+        }
+    }
+}
+
+#[test]
+fn dormant_painted_mask_export_work_is_rejected_before_output_creation() {
+    let (mut script, mut rendered, mut art) = fixture();
+    script.project.fps = 240;
+    script.scenes[0].duration = 37.5;
+    rendered.audio.samples.resize(900_000, 0.0);
+    rendered.manifest.total_frames = 900_000;
+    art.document.layers[0].visible = false;
+    art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        base_visible: true,
+        strokes: vec![motion_art::MaskStroke {
+            points: (0..500)
+                .map(|index| motion_art::Point {
+                    x: index as f64 / 10.0,
+                    y: 50.0,
+                })
+                .collect(),
+            radius: 3.0,
+            erase: true,
+        }],
+    });
+    art.document.validate().unwrap();
+    let dest = crate::tests::destination();
+    let error = export_png_sequence(
+        &script,
+        &[rendered],
+        Some(&art),
+        &dest,
+        &CancellationToken::new(),
+        |_| {},
+    )
+    .unwrap_err();
+    assert!(
+        error.to_string().contains("artwork frame-work budget"),
+        "{error}"
+    );
+    assert!(!dest.exists());
+}

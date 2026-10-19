@@ -1764,13 +1764,14 @@ impl Studio {
                 }
             }
         }
-        ui.small("Shared scene preview · masks, blending, camera and timed mouths. Edit these layers in the Inspector.");
-        if let Some(texture) = &canvas.texture {
+        ui.small("Shared scene preview · masks, blending, camera and timed mouths. Select artwork tools in the Inspector.");
+        let canvas_rect = if let Some(texture) = &canvas.texture {
             let scale = (ui.available_width() / texture.size_vec2().x).min(1.0);
-            ui.image((texture.id(), texture.size_vec2() * scale));
+            Some(ui.image((texture.id(), texture.size_vec2() * scale)).rect)
         } else {
             ui.spinner();
-        }
+            None
+        };
         if let Some(error) = &canvas.error {
             ui.colored_label(egui::Color32::LIGHT_RED, error);
             if ui.button("Retry scene preview").clicked() {
@@ -1782,6 +1783,20 @@ impl Studio {
         if canvas.shown != Some(sample) && canvas.failed.is_none() {
             ui.ctx().request_repaint_after(Duration::from_millis(25));
         }
+        if let Some(rect) = canvas_rect {
+            if let (Ok(evaluated), Some(document)) = (
+                motion_scene::evaluate(script, self.scene_index, self.playhead),
+                self.project_document.as_mut(),
+            ) {
+                let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy
+                    && !playing && canvas.shown == Some(sample);
+                let response = ui.add_enabled_ui(enabled, |ui| {
+                    ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
+                }).inner;
+                self.art_editor.gesture(&response, rect, &evaluated, &scene.id, &mut document.art);
+            }
+        }
+        self.record_art_transaction();
     }
 
     fn scene_ui(&mut self, ui: &mut egui::Ui) {
@@ -1840,15 +1855,9 @@ impl Studio {
                     });
                     if let Some(document) = &mut self.project_document {
                         let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy;
-                        let response = ui.interact(
-                            rect,
-                            ui.id().with("art-canvas"),
-                            if enabled {
-                                egui::Sense::drag()
-                            } else {
-                                egui::Sense::hover()
-                            },
-                        );
+                        let response = ui.add_enabled_ui(enabled, |ui| {
+                            ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
+                        }).inner;
                         self.art_editor.gesture(
                             &response,
                             rect,

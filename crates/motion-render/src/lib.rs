@@ -275,6 +275,30 @@ pub fn render_svg_with_art(
     )
 }
 
+/// Content extent including round stroke caps. Input has already been validated.
+fn artwork_content_bounds(content: &motion_art::Content) -> motion_art::Rect {
+    match content {
+        motion_art::Content::Image { rect, .. }
+        | motion_art::Content::Rectangle { rect, .. }
+        | motion_art::Content::Ellipse { rect, .. } => *rect,
+        motion_art::Content::Stroke { points, width, .. } => {
+            let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+            for p in points {
+                x0 = x0.min(p.x);
+                y0 = y0.min(p.y);
+                x1 = x1.max(p.x);
+                y1 = y1.max(p.y);
+            }
+            motion_art::Rect {
+                x: x0 - width / 2.0,
+                y: y0 - width / 2.0,
+                width: x1 - x0 + width,
+                height: y1 - y0 + width,
+            }
+        }
+    }
+}
+
 fn append_art(
     svg: &mut String,
     scene: &EvaluatedScene,
@@ -335,7 +359,32 @@ fn append_art(
         if let Some(r) = layer.clip {
             write!(svg,"<defs><clipPath id=\"art{index}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"/></clipPath></defs><g clip-path=\"url(#art{index})\">",r.x,r.y,r.width,r.height).unwrap();
         }
-        if let Some(motion_art::ClipShape::SoftEllipse { .. }) = &layer.clip_shape {
+        if let Some(motion_art::ClipShape::Painted {
+            base_visible,
+            strokes,
+        }) = &layer.clip_shape
+        {
+            // Bound the mask to content in layer-local coordinates, rather than
+            // the viewport: camera moves and actor attachment must not crop it.
+            let r = artwork_content_bounds(&layer.content);
+            let base = if *base_visible { "white" } else { "black" };
+            write!(svg, "<defs><mask id=\"art{index}\" mask-type=\"luminance\" maskUnits=\"userSpaceOnUse\" maskContentUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"{base}\"/>", r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
+            for stroke in strokes {
+                let color = if stroke.erase { "black" } else { "white" };
+                if stroke.points.len() == 1 {
+                    let p = stroke.points[0];
+                    write!(svg, "<circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"{color}\"/>", p.x, p.y, stroke.radius).unwrap();
+                } else {
+                    svg.push_str("<path d=\"");
+                    for (i, p) in stroke.points.iter().enumerate() {
+                        let command = if i == 0 { 'M' } else { 'L' };
+                        write!(svg, "{command}{} {} ", p.x, p.y).unwrap();
+                    }
+                    write!(svg, "\" fill=\"none\" stroke=\"{color}\" stroke-width=\"{}\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", stroke.radius * 2.0).unwrap();
+                }
+            }
+            write!(svg, "</mask></defs><g mask=\"url(#art{index})\">").unwrap();
+        } else if let Some(motion_art::ClipShape::SoftEllipse { .. }) = &layer.clip_shape {
             let (r, feather) = layer
                 .clip_shape
                 .as_ref()
@@ -401,7 +450,9 @@ fn append_art(
                     )
                     .unwrap();
                 }
-                motion_art::ClipShape::SoftEllipse { .. } | motion_art::ClipShape::Image { .. } => {
+                motion_art::ClipShape::SoftEllipse { .. }
+                | motion_art::ClipShape::Image { .. }
+                | motion_art::ClipShape::Painted { .. } => {
                     return Err(Error::InvalidArtwork("invalid soft-mask dispatch".into()))
                 }
                 motion_art::ClipShape::Polygon { points, .. } => {
@@ -808,5 +859,90 @@ mod timed_art_tests {
         ));
         s.time = f64::NAN;
         assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidComposition));
+    }
+
+    #[test]
+    fn painted_mask_preserves_base_order_dabs_and_shared_transforms() {
+        use motion_art::{ClipShape, MaskStroke, Point};
+        let mut scene = super::tests::scene();
+        scene.time = 1.0;
+        let mut item = layer("painted", Plane::Foreground, 255);
+        item.clip = None;
+        item.attachment = Some("EMMA".into());
+        let dab = MaskStroke {
+            points: vec![Point { x: 10.0, y: 20.0 }],
+            radius: 3.0,
+            erase: false,
+        };
+        item.clip_shape = Some(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![
+                dab.clone(),
+                MaskStroke {
+                    erase: true,
+                    radius: 2.0,
+                    ..dab.clone()
+                },
+                MaskStroke {
+                    points: vec![Point { x: 10.0, y: 20.0 }, Point { x: 15.0, y: 25.0 }],
+                    ..dab
+                },
+            ],
+        });
+        let mut doc = Document {
+            layers: vec![item],
+            ..Default::default()
+        };
+        let render = |doc: &Document| {
+            render_svg_with_art(&scene, 640, 360, &[], "s", doc, &BTreeMap::new()).unwrap()
+        };
+        let svg = render(&doc);
+        assert!(svg.contains("mask-type=\"luminance\""));
+        assert!(svg.contains("maskContentUnits=\"userSpaceOnUse\""));
+        assert!(svg.contains("translate(120.000000 250.000000)\" opacity=\"0.750000\""));
+        let base = svg.find("height=\"40\" fill=\"black\"").unwrap();
+        let paint = svg.find("r=\"3\" fill=\"white\"").unwrap();
+        let erase = svg.find("r=\"2\" fill=\"black\"").unwrap();
+        let restore = svg.find("stroke=\"white\" stroke-width=\"6\"").unwrap();
+        assert!(base < paint && paint < erase && erase < restore);
+        assert!(svg.contains("stroke-linecap=\"round\" stroke-linejoin=\"round\""));
+        assert_eq!(svg, render(&doc));
+        if let Some(ClipShape::Painted {
+            base_visible,
+            strokes,
+        }) = &mut doc.layers[0].clip_shape
+        {
+            *base_visible = true;
+            strokes.clear();
+        }
+        let empty_visible = render(&doc);
+        assert!(empty_visible.contains("height=\"40\" fill=\"white\""));
+        assert!(!empty_visible.contains("<circle cx=\"10\" cy=\"20\""));
+    }
+
+    #[test]
+    fn painted_mask_content_bounds_include_round_caps() {
+        let content = Content::Stroke {
+            points: vec![
+                motion_art::Point { x: -10.0, y: -5.0 },
+                motion_art::Point { x: 20.0, y: 15.0 },
+            ],
+            color: Color {
+                r: 255,
+                g: 0,
+                b: 0,
+                a: 255,
+            },
+            width: 8.0,
+        };
+        assert_eq!(
+            artwork_content_bounds(&content),
+            Rect {
+                x: -14.0,
+                y: -9.0,
+                width: 38.0,
+                height: 28.0,
+            }
+        );
     }
 }

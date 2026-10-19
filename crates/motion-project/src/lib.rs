@@ -380,6 +380,31 @@ mod tests {
         }
     }
     #[test]
+    fn painted_mask_persists_without_assets_and_invalid_edits_are_atomic() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let mut item = rectangle();
+        item.clip_shape = Some(motion_art::ClipShape::Painted {
+            base_visible: true,
+            strokes: vec![motion_art::MaskStroke {
+                points: vec![motion_art::Point { x: 10.0, y: 12.0 }],
+                radius: 4.0,
+                erase: true,
+            }],
+        });
+        doc.apply_art(motion_art::Command::Add(item.clone()))
+            .unwrap();
+        let decoded = decode(&encode(&doc).unwrap()).unwrap();
+        assert_eq!(decoded.art, doc.art);
+        assert!(decoded.assets.is_empty());
+        let before = doc.art.clone();
+        let Some(motion_art::ClipShape::Painted { strokes, .. }) = &mut item.clip_shape else {
+            unreachable!()
+        };
+        strokes[0].radius = -1.0;
+        assert!(doc.apply_art(motion_art::Command::Replace(item)).is_err());
+        assert_eq!(doc.art, before);
+    }
+    #[test]
     fn timed_art_roundtrips_and_legacy_v2_defaults_preserve_foreground() {
         let mut doc = ProjectDocument::new(SOURCE).unwrap();
         let mut item = rectangle();

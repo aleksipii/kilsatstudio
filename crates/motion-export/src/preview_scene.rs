@@ -72,6 +72,13 @@ impl ScenePreview {
             if let Some(motion_art::ClipShape::Polygon { points, .. }) = &layer.clip_shape {
                 geometry += points.len();
             }
+            if let Some(motion_art::ClipShape::Painted { strokes, .. }) = &layer.clip_shape {
+                geometry += strokes
+                    .iter()
+                    .map(|stroke| stroke.points.len() + 1)
+                    .sum::<usize>()
+                    + 1;
+            }
             if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {
                 geometry += (usize::BITS - keys.len().max(1).leading_zeros()) as usize + 8;
             }
