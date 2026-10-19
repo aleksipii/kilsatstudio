@@ -78,7 +78,7 @@ impl Snapshot {
                 }
             }
             for layer in &p.art.layers {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !p
                         .assets
                         .iter()

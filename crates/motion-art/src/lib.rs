@@ -81,8 +81,20 @@ pub enum ClipShape {
     Ellipse {
         rect: Rect,
     },
+    /// Simple polygon. A positive `feather` is a Gaussian standard deviation in
+    /// scene units centred on the boundary (about half coverage on the edge).
     Polygon {
         points: Vec<Point>,
+        #[serde(default, skip_serializing_if = "is_zero")]
+        feather: f64,
+    },
+    /// Raster mask from a project image asset stretched over `rect`. Content is
+    /// visible where the chosen channel of the image is opaque/bright.
+    Image {
+        asset_id: String,
+        rect: Rect,
+        #[serde(default)]
+        channel: MaskChannel,
     },
     /// Elliptical alpha mask with an inward, normalized radial feather.
     /// Keys use scene-local seconds; their first/last values hold outside the track.
@@ -92,6 +104,14 @@ pub enum ClipShape {
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         keys: Vec<MaskKey>,
     },
+}
+/// Which channel of a mask image controls coverage.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MaskChannel {
+    #[default]
+    Alpha,
+    Luminance,
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -115,6 +135,11 @@ impl BlendMode {
     }
 }
 pub const MAX_MASK_POINTS: usize = 256;
+/// Largest polygon feather standard deviation, in scene units.
+pub const MAX_POLYGON_FEATHER: f64 = 1000.0;
+fn is_zero(value: &f64) -> bool {
+    *value == 0.0
+}
 pub const MAX_MASK_KEYS: usize = 128;
 pub const MAX_TOTAL_MASK_KEYS: usize = 8192;
 impl ClipShape {
@@ -164,7 +189,14 @@ impl ClipShape {
                     lerp(left.feather, right.feather),
                 ))
             }
-            Self::Polygon { .. } => None,
+            Self::Polygon { .. } | Self::Image { .. } => None,
+        }
+    }
+    /// Project image asset used by an image mask, if any.
+    pub fn image_asset(&self) -> Option<&str> {
+        match self {
+            Self::Image { asset_id, .. } => Some(asset_id),
+            _ => None,
         }
     }
     pub fn validate(&self) -> Result<(), Error> {
@@ -197,7 +229,16 @@ impl ClipShape {
                 }
                 Ok(())
             }
-            Self::Polygon { points } => {
+            Self::Image { asset_id, rect, .. } => {
+                if !identifier(asset_id) {
+                    return invalid("invalid mask image asset identifier");
+                }
+                rect.validate()
+            }
+            Self::Polygon { points, feather } => {
+                if !feather.is_finite() || !(0.0..=MAX_POLYGON_FEATHER).contains(feather) {
+                    return invalid("polygon feather must be finite and between 0 and 1000");
+                }
                 if !(3..=MAX_MASK_POINTS).contains(&points.len())
                     || points.iter().any(|p| !coordinate(p.x) || !coordinate(p.y))
                 {
@@ -349,6 +390,16 @@ impl Rect {
     }
 }
 impl Layer {
+    /// Every project image asset this layer needs: its content and its image mask.
+    pub fn image_assets(&self) -> impl Iterator<Item = &str> {
+        let content = match &self.content {
+            Content::Image { asset_id, .. } => Some(asset_id.as_str()),
+            _ => None,
+        };
+        content
+            .into_iter()
+            .chain(self.clip_shape.as_ref().and_then(ClipShape::image_asset))
+    }
     /// Visibility at a scene-local time; an interval excludes its end boundary.
     pub fn is_active(&self, time: f64) -> bool {
         self.visible
@@ -546,7 +597,7 @@ impl Document {
                         return invalid("artwork exceeds 8192 animated mask keys");
                     }
                 }
-                if let ClipShape::Polygon { points } = shape {
+                if let ClipShape::Polygon { points, .. } = shape {
                     point_count += points.len();
                 }
                 if point_count > MAX_TOTAL_POINTS {
@@ -1150,9 +1201,15 @@ mod tests {
             ],
             vec![Point { x: 0.0, y: 0.0 }; 257],
         ] {
-            assert!(ClipShape::Polygon { points }.validate().is_err());
+            assert!(ClipShape::Polygon {
+                points,
+                feather: 0.0
+            }
+            .validate()
+            .is_err());
         }
         let concave = ClipShape::Polygon {
+            feather: 0.0,
             points: vec![
                 Point { x: 0.0, y: 0.0 },
                 Point { x: 4.0, y: 0.0 },

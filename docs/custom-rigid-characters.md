@@ -46,10 +46,46 @@ root translation/rotation/scale and camera transform. Custom rigid artwork repla
 the procedural body and face; the character label remains. Existing humanoid
 procedural clips, seven-joint masks and visemes do not deform these custom parts.
 
-This increment supports editable rigid colored polygons. Texture bindings, mesh
-skinning, custom-rig animation clips, retargeting and a visual joint/vertex canvas
+This increment supports editable rigid colored polygons and per-joint animation
+tracks (below). Texture bindings, mesh
+skinning, reusable custom-rig clips, retargeting and a visual joint/vertex canvas
 remain separate work. Physical Mac editing and rendering acceptance require actual
 device evidence; source fixtures and CI do not establish that acceptance.
+
+## Joint animation tracks
+
+A scene's `composition.joint_tracks` animates custom-rig joints by actor and joint
+id. Keys use the same fields and easing as actor and bone tracks (`at`, `x`, `y`,
+`rotation` in radians, `scale_x`, `scale_y`, `easing`) but are offsets from the
+joint's rest pose: translation and rotation add, scale multiplies. Children follow
+their parents, and parts draw in source order.
+
+```yaml
+scenes:
+  - id: intro
+    duration: 2
+    events: []
+    composition:
+      joint_tracks:
+        PUPPET:
+          head: [{at: 0}, {at: 1, rotation: 0.4}, {at: 2}]
+```
+
+Validation requires an actor with a custom rig, existing joint ids, 1–4096
+strictly increasing times within the scene, at most 65,536 keys per scene, offsets
+and rotation within ±1000 and scale between 0.1 and 4. Unknown actors/joints,
+actors without a rig, and keys beyond the scene are rejected with actionable
+errors. Changing a rig so a tracked joint disappears fails the same validation, so
+the edit is rejected atomically; remove the track first. The rig is validated once
+per project; each sample only composes the hierarchy, so preview, SVG/PNG and video
+export share one deterministic evaluation. Rotation interpolates by the shortest
+direction, so a half-turn between two keys is ambiguous; use intermediate keys.
+The inspector's **Custom rig joint keyframes** section (shown when the selected
+actor has a rig) edits one joint's keys per scene with the same detached draft as
+bone keys: Apply is an atomic, undoable source transaction; changing scene, actor or
+joint discards unapplied edits; an empty list removes the track. Original-rig
+bone tracks and clips stay unsupported for custom actors, and nothing here
+establishes physical Mac rendering acceptance.
 
 ## Try the integrated example
 

@@ -126,8 +126,8 @@ fn load_images(
                     {
                         continue;
                     }
-                    if let motion_art::Content::Image { asset_id, .. } = &layer.content {
-                        required.insert(asset_id.clone());
+                    for asset_id in layer.image_assets() {
+                        required.insert(asset_id.to_string());
                     }
                 }
             }

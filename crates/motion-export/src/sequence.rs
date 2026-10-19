@@ -167,7 +167,7 @@ fn compose_svg(
 fn embedded_image_budget(art: &ArtContext, limit: u64) -> Result<u64, Error> {
     let mut scenes = std::collections::BTreeMap::<&str, u64>::new();
     for layer in &art.document.layers {
-        if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+        for asset_id in layer.image_assets() {
             if let Some(image) = art.images.get(asset_id) {
                 let encoded = (image.png().len() as u64)
                     .checked_add(2)
@@ -272,7 +272,7 @@ fn preflight(
                     _ => 1,
                 })
                 .ok_or_else(|| invalid("art geometry overflow"))?;
-            if let Some(motion_art::ClipShape::Polygon { points }) = &layer.clip_shape {
+            if let Some(motion_art::ClipShape::Polygon { points, .. }) = &layer.clip_shape {
                 geometry = geometry
                     .checked_add(points.len() as u64)
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
@@ -283,7 +283,7 @@ fn preflight(
                     .ok_or_else(|| invalid("mask geometry overflow"))?;
             }
             if layer.visible {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !a.images.contains_key(asset_id) {
                         return Err(invalid("missing future artwork image"));
                     }
@@ -1416,6 +1416,7 @@ mod tests {
         for shape in [
             ClipShape::Ellipse { rect },
             ClipShape::Polygon {
+                feather: 0.0,
                 points: vec![
                     Point { x: 4.0, y: 0.0 },
                     Point { x: 8.0, y: 4.0 },
@@ -1467,7 +1468,10 @@ mod tests {
             opacity: 1.0,
             attachment: None,
             clip: None,
-            clip_shape: Some(ClipShape::Polygon { points }),
+            clip_shape: Some(ClipShape::Polygon {
+                points,
+                feather: 0.0,
+            }),
             blend: BlendMode::Normal,
             content: Content::Rectangle {
                 rect: Rect {

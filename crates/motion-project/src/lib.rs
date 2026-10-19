@@ -114,7 +114,7 @@ impl ProjectDocument {
             {
                 return invalid("artwork attachment references a character that does not exist");
             }
-            if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+            for asset_id in layer.image_assets() {
                 if !self
                     .assets
                     .iter()

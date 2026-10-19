@@ -69,14 +69,14 @@ impl ScenePreview {
                 motion_art::Content::Stroke { points, .. } => points.len(),
                 _ => 1,
             };
-            if let Some(motion_art::ClipShape::Polygon { points }) = &layer.clip_shape {
+            if let Some(motion_art::ClipShape::Polygon { points, .. }) = &layer.clip_shape {
                 geometry += points.len();
             }
             if let Some(motion_art::ClipShape::SoftEllipse { keys, .. }) = &layer.clip_shape {
                 geometry += (usize::BITS - keys.len().max(1).leading_zeros()) as usize + 8;
             }
             if layer.visible {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !art.images.contains_key(asset_id) {
                         return Err(invalid("missing artwork image resource"));
                     }

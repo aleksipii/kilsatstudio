@@ -466,7 +466,15 @@ fn append_art(
                 }
                 if let Some(mask) = &layer.clip_shape {
                     match mask {
-                        ClipShape::Polygon { points: vertices } => {
+                        ClipShape::Image { .. } => {
+                            return Err(Error::UnsupportedFeature("image mask"));
+                        }
+                        ClipShape::Polygon { feather, .. } if *feather > 0.0 => {
+                            return Err(Error::UnsupportedFeature("feathered polygon mask"));
+                        }
+                        ClipShape::Polygon {
+                            points: vertices, ..
+                        } => {
                             let geometry = points(result, vertices)?;
                             result.commands.push(Command([
                                 inv,
@@ -698,7 +706,10 @@ mod tests {
                 width: 4.0,
             },
         );
-        layer.clip_shape = Some(ClipShape::Polygon { points: vertices });
+        layer.clip_shape = Some(ClipShape::Polygon {
+            points: vertices,
+            feather: 0.0,
+        });
         let document = Document {
             layers: vec![layer],
             groups: vec![Group {

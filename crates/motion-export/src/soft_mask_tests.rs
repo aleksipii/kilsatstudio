@@ -213,3 +213,210 @@ fn animated_mask_sampling_work_is_bounded_before_writing_frames() {
     );
     assert!(!dest.exists());
 }
+
+fn square(feather: f64) -> ClipShape {
+    let point = |x, y| motion_art::Point { x, y };
+    ClipShape::Polygon {
+        points: vec![
+            point(20.0, 20.0),
+            point(80.0, 20.0),
+            point(80.0, 80.0),
+            point(20.0, 80.0),
+        ],
+        feather,
+    }
+}
+
+#[test]
+fn feathered_polygon_blurs_around_the_edge_and_agrees_across_preview_png_and_svg() {
+    let (script, rendered, mut art) = fixture();
+    let cancel = CancellationToken::new();
+    let mut row = |feather: f64| {
+        art.document.layers[0].clip_shape = Some(square(feather));
+        art.document.validate().unwrap();
+        let preview = ScenePreview::new(
+            Arc::new(script.clone()),
+            0,
+            Arc::new(art.clone()),
+            Some(Arc::new(rendered.manifest.clone())),
+        )
+        .unwrap();
+        let (sample, _, png) =
+            encode_frame(&script, 0, &rendered, 0, true, &cancel, Some(&art)).unwrap();
+        let png = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+        let (_, _, svg) =
+            encode_frame(&script, 0, &rendered, 0, false, &cancel, Some(&art)).unwrap();
+        let svg = String::from_utf8(svg).unwrap();
+        let raster =
+            resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
+                .unwrap();
+        let frame = preview.render(sample, 1024, &cancel).unwrap();
+        assert_eq!(png.data(), raster.data());
+        assert_eq!(frame.rgba, png.data());
+        (0..100).map(|x| red(&frame, x, 50)).collect::<Vec<_>>()
+    };
+    let hard = row(0.0);
+    assert!(hard[..20].iter().all(|v| *v == 0));
+    assert!(hard[20..80].iter().all(|v| *v == 255));
+    assert!(hard[80..].iter().all(|v| *v == 0));
+
+    let soft = row(4.0);
+    assert_eq!(soft[50], 255);
+    assert_eq!(soft[0], 0);
+    assert_eq!(soft[99], 0);
+    // Edge pixel centres sit half a unit either side of x=20: about half coverage.
+    assert!((100..=156).contains(&soft[20]), "{}", soft[20]);
+    assert!(soft[19] > 0, "feather must bleed outside the polygon");
+    assert!(soft[21] < 255, "feather must soften inside the polygon");
+    // Coverage rises monotonically across the left edge and mirrors the right edge.
+    assert!(soft[8..=35].windows(2).all(|w| w[0] <= w[1]));
+    for offset in 0..12 {
+        let (left, right) = (soft[20 + offset], soft[79 - offset]);
+        assert!(left.abs_diff(right) <= 2, "{offset}: {left} {right}");
+    }
+}
+
+#[test]
+fn polygon_feather_validates_persists_and_keeps_legacy_documents_readable() {
+    assert!(square(0.0).validate().is_ok());
+    assert!(square(1000.0).validate().is_ok());
+    for bad in [-0.5, f64::NAN, f64::INFINITY, 1000.5] {
+        assert!(square(bad).validate().is_err(), "{bad}");
+    }
+    let legacy: ClipShape = serde_json::from_str(
+        r#"{"type":"polygon","points":[{"x":0,"y":0},{"x":4,"y":0},{"x":0,"y":4}]}"#,
+    )
+    .unwrap();
+    assert!(matches!(legacy, ClipShape::Polygon { feather, .. } if feather == 0.0));
+    assert!(!serde_json::to_string(&legacy).unwrap().contains("feather"));
+    let soft = square(2.5);
+    assert_eq!(
+        serde_json::from_str::<ClipShape>(&serde_json::to_string(&soft).unwrap()).unwrap(),
+        soft
+    );
+}
+
+fn image_mask(channel: motion_art::MaskChannel) -> ClipShape {
+    ClipShape::Image {
+        asset_id: "mask".into(),
+        rect: Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 100.0,
+            height: 100.0,
+        },
+        channel,
+    }
+}
+
+/// Renders frame zero through preview, PNG and vector rasterisation (which must agree).
+fn render_row(
+    script: &Script,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    y: usize,
+) -> Result<Vec<u8>, Error> {
+    let cancel = CancellationToken::new();
+    let preview = ScenePreview::new(
+        Arc::new(script.clone()),
+        0,
+        Arc::new(art.clone()),
+        Some(Arc::new(rendered.manifest.clone())),
+    )?;
+    let (sample, _, png) = encode_frame(script, 0, rendered, 0, true, &cancel, Some(art))?;
+    let png = resvg::tiny_skia::Pixmap::decode_png(&png).unwrap();
+    let (_, _, svg) = encode_frame(script, 0, rendered, 0, false, &cancel, Some(art))?;
+    let svg = String::from_utf8(svg).unwrap();
+    let raster =
+        resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
+            .unwrap();
+    assert_eq!(png.data(), raster.data());
+    let frame = preview.render(sample, 1024, &cancel)?;
+    assert_eq!(frame.rgba, png.data());
+    Ok((0..100).map(|x| red(&frame, x, y)).collect())
+}
+
+#[test]
+fn image_masks_select_alpha_or_luminance_and_require_their_resource() {
+    let (script, rendered, mut art) = fixture();
+    // Left half opaque white, right half opaque black: alpha is full, luminance splits.
+    let strip = |left: [u8; 4], right: [u8; 4]| {
+        let rgba = (0..100)
+            .flat_map(|x| if x < 50 { left } else { right })
+            .collect();
+        motion_art::ImageResource::from_rgba(100, 1, rgba).unwrap()
+    };
+    let opaque = strip([255, 255, 255, 255], [0, 0, 0, 255]);
+    let clear = strip([255, 255, 255, 255], [255, 255, 255, 0]);
+    art.document.layers[0].clip_shape = Some(image_mask(motion_art::MaskChannel::Luminance));
+    art.document.validate().unwrap();
+    // Missing resource fails closed instead of drawing unmasked content.
+    assert!(render_row(&script, &rendered, &art, 50).is_err());
+
+    art.images.insert("mask".into(), opaque);
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    assert!(row[5..40].iter().all(|v| *v >= 250), "{row:?}");
+    assert!(row[60..95].iter().all(|v| *v <= 5), "{row:?}");
+
+    art.document.layers[0].clip_shape = Some(image_mask(motion_art::MaskChannel::Alpha));
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    assert!(row.iter().all(|v| *v == 255), "opaque image alpha: {row:?}");
+
+    art.images.insert("mask".into(), clear);
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    assert!(row[5..40].iter().all(|v| *v >= 250), "{row:?}");
+    assert!(row[60..95].iter().all(|v| *v <= 5), "{row:?}");
+
+    art.document.layers[0].clip_shape = Some(image_mask(motion_art::MaskChannel::Luminance));
+    let row = render_row(&script, &rendered, &art, 50).unwrap();
+    // SVG luminance masks are weighted by alpha, so transparent white shows nothing.
+    assert!(row[5..40].iter().all(|v| *v >= 250), "{row:?}");
+    assert!(row[60..95].iter().all(|v| *v <= 5), "{row:?}");
+}
+
+#[test]
+fn image_mask_validates_references_and_persistence() {
+    let shape = image_mask(motion_art::MaskChannel::Luminance);
+    shape.validate().unwrap();
+    assert_eq!(shape.image_asset(), Some("mask"));
+    let ClipShape::Image { rect, .. } = &shape else {
+        unreachable!()
+    };
+    for bad in [
+        ClipShape::Image {
+            asset_id: String::new(),
+            rect: *rect,
+            channel: Default::default(),
+        },
+        ClipShape::Image {
+            asset_id: "mask".into(),
+            rect: Rect {
+                width: 0.0,
+                ..*rect
+            },
+            channel: Default::default(),
+        },
+    ] {
+        assert!(bad.validate().is_err());
+    }
+    assert_eq!(
+        serde_json::from_str::<ClipShape>(&serde_json::to_string(&shape).unwrap()).unwrap(),
+        shape
+    );
+    let legacy: ClipShape = serde_json::from_str(
+        r#"{"type":"image","asset_id":"m","rect":{"x":0,"y":0,"width":1,"height":1}}"#,
+    )
+    .unwrap();
+    assert!(matches!(
+        legacy,
+        ClipShape::Image {
+            channel: motion_art::MaskChannel::Alpha,
+            ..
+        }
+    ));
+    let (_, _, art) = fixture();
+    let layer = &art.document.layers[0];
+    let mut masked = layer.clone();
+    masked.clip_shape = Some(shape);
+    assert_eq!(masked.image_assets().collect::<Vec<_>>(), ["mask"]);
+}

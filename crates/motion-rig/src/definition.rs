@@ -172,12 +172,63 @@ impl RigDefinition {
         self.evaluate_parts().map(|_| ())
     }
     pub fn evaluate_parts(&self) -> Result<Vec<EvaluatedPart>, Error> {
+        self.prepare()?.evaluate_parts(&[])
+    }
+    /// Validate once so repeated posed evaluation avoids rebuilding the hierarchy.
+    pub fn prepare(&self) -> Result<PreparedRig, Error> {
         let (rig, ids) = self.build()?;
-        let world = rig.evaluate(&rig.rest_pose())?;
+        let ids: BTreeMap<String, usize> =
+            ids.into_iter().map(|(id, i)| (id.to_owned(), i)).collect();
+        let parts = self
+            .parts
+            .iter()
+            .map(|part| (ids[part.joint.as_str()], part.clone()))
+            .collect();
+        let prepared = PreparedRig { rig, ids, parts };
+        prepared.evaluate_parts(&[])?;
+        Ok(prepared)
+    }
+}
+/// A validated rig hierarchy that can be posed with per-joint offsets.
+#[derive(Debug, Clone)]
+pub struct PreparedRig {
+    rig: Rig,
+    ids: BTreeMap<String, usize>,
+    parts: Vec<(usize, RigidPartDefinition)>,
+}
+impl PreparedRig {
+    pub fn joint_index(&self, id: &str) -> Option<usize> {
+        self.ids.get(id).copied()
+    }
+    /// Evaluate parts with `(joint index, offset)` pairs applied to the rest pose:
+    /// translations and rotations add, scales multiply. Later pairs for the same
+    /// joint replace earlier ones. Non-finite or out-of-range results fail.
+    pub fn evaluate_parts(
+        &self,
+        offsets: &[(usize, Transform2)],
+    ) -> Result<Vec<EvaluatedPart>, Error> {
+        let mut pose = self.rig.rest_pose();
+        for (joint, offset) in offsets {
+            let rest = self
+                .rig
+                .joints()
+                .get(*joint)
+                .ok_or(Error::InvalidDefinition)?
+                .rest;
+            pose[*joint] = Transform2 {
+                translation: Vec2::new(
+                    rest.translation.x + offset.translation.x,
+                    rest.translation.y + offset.translation.y,
+                ),
+                rotation: rest.rotation + offset.rotation,
+                scale: Vec2::new(rest.scale.x * offset.scale.x, rest.scale.y * offset.scale.y),
+            };
+        }
+        let world = self.rig.evaluate(&pose)?;
         self.parts
             .iter()
-            .map(|part| {
-                let transform = world[ids[part.joint.as_str()]];
+            .map(|(joint, part)| {
+                let transform = world[*joint];
                 let points: Vec<_> = part
                     .points
                     .iter()
@@ -250,6 +301,45 @@ mod tests {
             assert!((actual.x - expected[0]).abs() < 1e-10);
             assert!((actual.y - expected[1]).abs() < 1e-10);
         }
+    }
+    #[test]
+    fn posed_evaluation_offsets_rest_pose_and_matches_rest_with_no_offsets() {
+        let d = definition();
+        let prepared = d.prepare().unwrap();
+        assert_eq!(
+            prepared.evaluate_parts(&[]).unwrap(),
+            d.evaluate_parts().unwrap()
+        );
+        let hand = prepared.joint_index("hand").unwrap();
+        assert_eq!(prepared.joint_index("missing"), None);
+        // Identity offsets are exactly the rest pose.
+        let same = prepared
+            .evaluate_parts(&[(hand, Transform2::default())])
+            .unwrap();
+        assert_eq!(same, d.evaluate_parts().unwrap());
+        // +2 x in the (scaled, rotated) parent frame moves the hand by 4 in world y.
+        let moved = prepared
+            .evaluate_parts(&[(
+                hand,
+                Transform2 {
+                    translation: Vec2::new(2.0, 0.0),
+                    ..Transform2::default()
+                },
+            )])
+            .unwrap();
+        let rest = d.evaluate_parts().unwrap();
+        for (a, b) in moved[0].points.iter().zip(&rest[0].points) {
+            assert!((a.x - b.x).abs() < 1e-10 && (a.y - b.y - 4.0).abs() < 1e-10);
+        }
+        // Invalid offsets and joints fail instead of drawing garbage.
+        let bad = Transform2 {
+            translation: Vec2::new(f64::NAN, 0.0),
+            ..Transform2::default()
+        };
+        assert!(prepared.evaluate_parts(&[(hand, bad)]).is_err());
+        assert!(prepared
+            .evaluate_parts(&[(99, Transform2::default())])
+            .is_err());
     }
     #[test]
     fn unsupported_versions_references_degenerate_and_world_overflow_fail() {

@@ -1325,3 +1325,33 @@ Run by hand on one Mac, outside CI, from `main` at `6a09873`.
 Not established: lip-sync perceptual quality (input is `say`, not Kokoro, and has no
 manual annotation comparison), Rhubarb/PocketSphinx redistribution terms, a packaged
 arm64 Rhubarb, Metal scene parity or performance, and any other physical Mac gate.
+
+## Feathered polygon masks (branch feat/polygon-mask-feather, unmerged)
+
+Adds optional polygon `feather` (blur sigma, scene units) through `motion-art`
+validation/persistence, the shared SVG renderer, and the inspector slider; the
+experimental GPU path reports it unsupported. On the Apple M1 Mac, fmt, workspace
+check, Clippy (no warnings) and `cargo test --workspace` passed, including new
+pixel tests. Not done: feather animation, image masks, painting, GPU feather
+parity, blur-area work budgeting, CI on this branch, and physical GUI inspection.
+
+## Image masks (branch feat/image-masks, unmerged, stacked on feathered polygons)
+
+Adds `clip_shape` type `image` (project image asset, rect, alpha or luminance channel)
+through `motion-art` validation, shared SVG rendering, project/history/export asset
+checks (`Layer::image_assets`), and an inspector control; the experimental GPU path
+reports it unsupported. On the Apple M1 Mac fmt, Clippy (no warnings) and
+`cargo test --workspace` passed with new pixel tests. Not done: animation, feathering
+of mask images, painting/erasing, GPU parity, CI on this branch and GUI inspection.
+
+## Custom-rig joint animation tracks (branch feat/custom-rig-joint-tracks, unmerged, stacked)
+
+Adds scene `composition.joint_tracks` for custom rigid characters: validated offset
+keys per actor and joint, a prepared rig (`PreparedRig`) so sampling only composes
+the hierarchy, shared scene evaluation for preview/SVG/PNG/video, an
+`apply_joint_track` source edit and character-removal cleanup. On the Apple M1 Mac
+fmt, Clippy (no warnings) and `cargo test --workspace` passed with new rig, scene
+and script tests (posed geometry, determinism across seeks, validation errors).
+Not done: reusable custom-rig clips and retargeting,
+textures/deformation, CI on this branch, physical Mac inspection and a rendered
+pixel test of a posed custom rig.

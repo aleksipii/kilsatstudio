@@ -64,6 +64,9 @@ pub struct Composition {
     pub clip_weight_tracks: BTreeMap<String, Vec<ClipWeightKeyframe>>,
     pub clip_instances: Vec<ClipInstance>,
     pub bone_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
+    /// Custom-rig joint offsets by actor, then joint id. Added to the rest pose:
+    /// translation and rotation add, scale multiplies.
+    pub joint_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
     pub fade_in: f64,
     pub fade_out: f64,
 }
@@ -80,6 +83,7 @@ impl Default for Composition {
             clip_weight_tracks: BTreeMap::new(),
             clip_instances: Vec::new(),
             bone_tracks: BTreeMap::new(),
+            joint_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
         }
@@ -695,6 +699,38 @@ pub fn apply_bone_track(
     })
 }
 
+/// Atomically replace one custom-rig joint track. Empty keys remove it.
+pub fn apply_joint_track(
+    source: &str,
+    scene_index: usize,
+    actor: &str,
+    joint: &str,
+    keys: &[ActorKey],
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        let scene = candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?;
+        if keys.is_empty() {
+            if let Some(tracks) = scene.composition.joint_tracks.get_mut(actor) {
+                tracks.remove(joint);
+                if tracks.is_empty() {
+                    scene.composition.joint_tracks.remove(actor);
+                }
+            }
+        } else {
+            scene
+                .composition
+                .joint_tracks
+                .entry(actor.into())
+                .or_default()
+                .insert(joint.into(), keys.to_vec());
+        }
+        Ok(())
+    })
+}
+
 /// Capture all authored bone tracks for one actor. Existing names require explicit replacement.
 pub fn capture_animation_clip(
     source: &str,
@@ -993,6 +1029,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
             scene.composition.layers.remove(id);
             scene.composition.actor_tracks.remove(id);
             scene.composition.bone_tracks.remove(id);
+            scene.composition.joint_tracks.remove(id);
             scene.composition.clip_weights.remove(id);
             scene.composition.clip_weight_tracks.remove(id);
             scene
@@ -1367,6 +1404,48 @@ impl Script {
                         .is_err()
                     {
                         return Err(fail(format!("{}: bone tracks require original rig names, 1..4096 increasing scene keys, at most 65536 keys per scene, offsets/rotation within ±1000 and scale 0.1..4", s.id)));
+                    }
+                }
+            }
+            let mut joint_key_count = 0usize;
+            for (actor, tracks) in &composition.joint_tracks {
+                let rig = self
+                    .characters
+                    .get(actor)
+                    .and_then(|character| character.rig.as_ref())
+                    .ok_or_else(|| {
+                        fail(format!(
+                            "{}: joint tracks require a custom-rig actor; {actor} has no rig",
+                            s.id
+                        ))
+                    })?;
+                if tracks.is_empty() {
+                    return Err(fail(format!(
+                        "{}: joint tracks for {actor} need at least one joint",
+                        s.id
+                    )));
+                }
+                for (joint, keys) in tracks {
+                    joint_key_count = joint_key_count.saturating_add(keys.len());
+                    if !rig.joints.iter().any(|candidate| &candidate.id == joint) {
+                        return Err(fail(format!(
+                            "{}: actor {actor} rig has no joint {joint}",
+                            s.id
+                        )));
+                    }
+                    if joint_key_count > 65536
+                        || keys.iter().any(|key| {
+                            key.at > s.duration
+                                || !motion_animation::valid_humanoid_offset(
+                                    key.animation_key().value,
+                                )
+                        })
+                        || motion_animation::Track::new(
+                            keys.iter().map(ActorKey::animation_key).collect(),
+                        )
+                        .is_err()
+                    {
+                        return Err(fail(format!("{}: joint tracks require 1..4096 increasing scene keys, at most 65536 keys per scene, offsets/rotation within ±1000 and scale 0.1..4", s.id)));
                     }
                 }
             }
@@ -2911,6 +2990,48 @@ mod live_clip_instance_tests {
         }
     }
 
+    #[test]
+    fn joint_tracks_roundtrip_apply_remove_and_character_cleanup() {
+        let source = "characters:\n  P:\n    asset: custom\n    rig:\n      version: 1\n      id: p\n      joints: [{id: root, parent: null}, {id: arm, parent: root, x: 5}]\n      parts: [{id: a, joint: arm, points: [[0, 0], [2, 0], [0, 2]], color: [1, 2, 3, 255]}]\nscenes:\n  - {id: s, duration: 2, events: []}\n";
+        let keys = [
+            ActorKey::default(),
+            ActorKey {
+                at: 2.0,
+                rotation: 1.0,
+                ..ActorKey::default()
+            },
+        ];
+        let edited = apply_joint_track(source, 0, "P", "arm", &keys).unwrap();
+        assert_eq!(
+            parse(&edited).unwrap().scenes[0].composition.joint_tracks["P"]["arm"],
+            keys
+        );
+        // Rejected edits leave the source untouched (the caller keeps its text).
+        assert!(apply_joint_track(source, 0, "P", "missing", &keys).is_err());
+        assert!(apply_joint_track(source, 0, "NOPE", "arm", &keys).is_err());
+        assert!(apply_joint_track(
+            source,
+            0,
+            "P",
+            "arm",
+            &[ActorKey {
+                at: 3.0,
+                ..ActorKey::default()
+            }]
+        )
+        .is_err());
+        let cleared = apply_joint_track(&edited, 0, "P", "arm", &[]).unwrap();
+        assert!(parse(&cleared).unwrap().scenes[0]
+            .composition
+            .joint_tracks
+            .is_empty());
+        // Removing the only character removes its tracks; a leftover track would be
+        // an unknown actor and fail validation, so the edit must have succeeded cleanly.
+        let without = remove_character(&edited, "P").unwrap();
+        let script = parse(&without).unwrap();
+        assert!(script.characters.is_empty());
+        assert!(script.scenes[0].composition.joint_tracks.is_empty());
+    }
     #[test]
     fn custom_rig_rejects_original_joint_tracks_but_accepts_root_motion() {
         let definition: motion_rig::RigDefinition = serde_yaml::from_str("version: 1\nid: custom\njoints: [{id: root, parent: null}]\nparts: [{id: shape, joint: root, points: [[0, 0], [2, 0], [0, 2]], color: [255, 0, 0, 255]}]").unwrap();

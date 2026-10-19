@@ -570,7 +570,7 @@ fn export_sequence(
             }
             // Preflight future images too: frame zero may precede their start time.
             if layer.visible {
-                if let motion_art::Content::Image { asset_id, .. } = &layer.content {
+                for asset_id in layer.image_assets() {
                     if !art.images.contains_key(asset_id) {
                         return Err(invalid(format!(
                             "missing artwork image resource: {asset_id}"
@@ -592,7 +592,7 @@ fn export_sequence(
                 };
                 content
                     + match &l.clip_shape {
-                        Some(motion_art::ClipShape::Polygon { points }) => points.len() as u64,
+                        Some(motion_art::ClipShape::Polygon { points, .. }) => points.len() as u64,
                         Some(motion_art::ClipShape::SoftEllipse { keys, .. }) => {
                             u64::from(usize::BITS - keys.len().max(1).leading_zeros()) + 8
                         }

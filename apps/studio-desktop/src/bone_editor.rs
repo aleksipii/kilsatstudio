@@ -1,11 +1,15 @@
-//! Detached parent-local bone editor. Apply returns a complete validated source transaction.
+//! Detached parent-local bone and custom-rig joint key editor. Apply returns a complete
+//! validated source transaction.
 use eframe::egui;
 use motion_script::{ActorEasing, ActorKey, Scene};
 
 pub struct Draft {
     pub scene_index: usize,
     pub actor: String,
+    /// Bone name, or joint id when `joint` is set.
     pub bone: String,
+    /// Edits a custom-rig joint track instead of an original-rig bone track.
+    pub joint: bool,
     pub keys: Vec<ActorKey>,
     original: Vec<ActorKey>,
     duration: f64,
@@ -20,10 +24,35 @@ impl Draft {
             .and_then(|tracks| tracks.get(bone))
             .cloned()
             .unwrap_or_default();
+        Self::from_keys(scene, scene_index, actor, bone, keys)
+    }
+
+    pub fn for_joint(scene: &Scene, scene_index: usize, actor: &str, joint: &str) -> Self {
+        let keys = scene
+            .composition
+            .joint_tracks
+            .get(actor)
+            .and_then(|tracks| tracks.get(joint))
+            .cloned()
+            .unwrap_or_default();
+        Self {
+            joint: true,
+            ..Self::from_keys(scene, scene_index, actor, joint, keys)
+        }
+    }
+
+    fn from_keys(
+        scene: &Scene,
+        scene_index: usize,
+        actor: &str,
+        name: &str,
+        keys: Vec<ActorKey>,
+    ) -> Self {
         Self {
             scene_index,
             actor: actor.into(),
-            bone: bone.into(),
+            bone: name.into(),
+            joint: false,
             original: keys.clone(),
             keys,
             duration: scene.duration,
@@ -31,6 +60,15 @@ impl Draft {
     }
 
     pub fn apply(&self, source: &str) -> Result<String, motion_script::Error> {
+        if self.joint {
+            return motion_script::apply_joint_track(
+                source,
+                self.scene_index,
+                &self.actor,
+                &self.bone,
+                &self.keys,
+            );
+        }
         motion_script::apply_bone_track(
             source,
             self.scene_index,
@@ -58,8 +96,19 @@ impl Draft {
     /// Returns true only when Apply is requested. Drawing controls does not sort,
     /// clamp, retime or otherwise rewrite existing keys.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.heading(format!("{} · {} bone keys", self.actor, self.bone));
-        ui.small("Parent-local offsets layer after rule clips; parent rotation/scale moves descendants. Translation/rotation ±1000; scale 0.1..4.");
+        let (noun, hint) = if self.joint {
+            (
+                "joint",
+                "Offsets from the joint's rest pose: translation and rotation add, scale multiplies; children follow. Translation/rotation ±1000; scale 0.1..4.",
+            )
+        } else {
+            (
+                "bone",
+                "Parent-local offsets layer after rule clips; parent rotation/scale moves descendants. Translation/rotation ±1000; scale 0.1..4.",
+            )
+        };
+        ui.heading(format!("{} · {} {noun} keys", self.actor, self.bone));
+        ui.small(hint);
         ui.small("Keys must be in increasing time order inside the scene. Easing controls the segment after a key.");
         let mut remove = None;
         for (index, key) in self.keys.iter_mut().enumerate() {
@@ -122,12 +171,12 @@ impl Draft {
             ui.small("No room for another key one second after the last; adjust its time or scene duration.");
         }
         if self.keys.is_empty() {
-            ui.small("Applying an empty list removes this bone's transform track.");
+            ui.small("Applying an empty list removes this track.");
         }
         ui.small("Apply validates the screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
         let mut apply = false;
         ui.horizontal(|ui| {
-            apply = ui.button("Apply bone keys").clicked();
+            apply = ui.button(format!("Apply {noun} keys")).clicked();
             if ui.button("Reset key draft").clicked() {
                 self.reset();
             }
@@ -174,6 +223,51 @@ mod tests {
         draft.keys.push(ActorKey {
             at: 0.123456789,
             rotation: 0.987654321,
+            ..Default::default()
+        });
+        let expected = draft.keys.clone();
+        let ctx = egui::Context::default();
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| assert!(!draft.ui(ui)));
+        });
+        assert_eq!(draft.keys, expected);
+    }
+    const RIG: &str = "characters:\n  P:\n    asset: custom\n    rig:\n      version: 1\n      id: p\n      joints: [{id: root, parent: null}, {id: arm, parent: root, x: 5}]\n      parts: [{id: a, joint: arm, points: [[0, 0], [2, 0], [0, 2]], color: [1, 2, 3, 255]}]\nscenes:\n  - {id: shot, duration: 4, events: []}\n";
+    #[test]
+    fn joint_draft_loads_applies_and_removes_tracks_without_touching_bone_tracks() {
+        let scene = motion_script::parse(RIG).unwrap().scenes.remove(0);
+        let mut draft = Draft::for_joint(&scene, 0, "P", "arm");
+        assert!(draft.joint && draft.keys.is_empty());
+        draft.add_key();
+        draft.add_key();
+        draft.keys[1].rotation = 0.5;
+        let updated = draft.apply(RIG).unwrap();
+        let script = motion_script::parse(&updated).unwrap();
+        let saved = &script.scenes[0].composition.joint_tracks["P"]["arm"];
+        assert_eq!(saved, &draft.keys);
+        assert!(script.scenes[0].composition.bone_tracks.is_empty());
+        // Reopening loads the saved keys; applying none removes the track.
+        let mut reopened = Draft::for_joint(&script.scenes[0], 0, "P", "arm");
+        assert_eq!(reopened.keys, draft.keys);
+        reopened.keys.clear();
+        let cleared = motion_script::parse(&reopened.apply(&updated).unwrap()).unwrap();
+        assert!(cleared.scenes[0].composition.joint_tracks.is_empty());
+        // Unknown joints and out-of-range scale are rejected and leave the source alone.
+        let mut bad = Draft::for_joint(&scene, 0, "P", "missing");
+        bad.add_key();
+        assert!(bad.apply(RIG).is_err());
+        let mut bad = Draft::for_joint(&scene, 0, "P", "arm");
+        bad.add_key();
+        bad.keys[0].scale_x = 0.0;
+        assert!(bad.apply(RIG).is_err());
+    }
+    #[test]
+    fn joint_controls_render_headlessly_without_rewriting_keys() {
+        let scene = motion_script::parse(RIG).unwrap().scenes.remove(0);
+        let mut draft = Draft::for_joint(&scene, 0, "P", "arm");
+        draft.keys.push(ActorKey {
+            at: 0.3,
+            rotation: 0.7,
             ..Default::default()
         });
         let expected = draft.keys.clone();

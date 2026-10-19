@@ -1,6 +1,8 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
 pub mod definition;
-pub use definition::{EvaluatedPart, RigDefinition, RigJointDefinition, RigidPartDefinition};
+pub use definition::{
+    EvaluatedPart, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
+};
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {
     pub x: f64,
