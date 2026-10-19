@@ -1,7 +1,8 @@
 //! Artwork edits expose one transaction to the shared project history.
 use eframe::egui;
 use motion_art::{
-    BlendMode, ClipShape, Color, Content, Document, Layer, MaskKey, Plane, Point, Rect, TimeRange,
+    BlendMode, ClipShape, Color, Content, Document, Layer, MaskKey, MaskStroke, Plane, Point, Rect,
+    TimeRange,
 };
 use std::collections::BTreeMap;
 pub struct SceneContext<'a> {
@@ -17,6 +18,18 @@ pub enum Tool {
     Pen,
     Rectangle,
     Ellipse,
+    MaskPaint,
+    MaskErase,
+}
+struct MaskGesture {
+    layer: Layer,
+    scene: String,
+    tool: Tool,
+    camera: (f64, f64, f64, f64),
+    viewport: egui::Rect,
+    scene_size: (u32, u32),
+    points: Vec<Point>,
+    radius: f64,
 }
 #[derive(Default)]
 pub struct Editor {
@@ -32,6 +45,8 @@ pub struct Editor {
     group_draft: Option<motion_art::Group>,
     move_parent: String,
     move_index: usize,
+    mask_radius: f64,
+    mask_gesture: Option<MaskGesture>,
 }
 fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
     if text.len() > 16_384 {
@@ -118,6 +133,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         Some(ClipShape::Polygon { .. }) => 3,
         Some(ClipShape::SoftEllipse { .. }) => 4,
         Some(ClipShape::Image { .. }) => 5,
+        Some(ClipShape::Painted { .. }) => 6,
         None => {
             if layer.clip.is_some() {
                 1
@@ -136,6 +152,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                 "Polygon",
                 "Soft / animated ellipse",
                 "Image (alpha / luminance)",
+                "Painted (vector brush / eraser)",
             ][kind],
         )
         .show_ui(ui, |ui| {
@@ -146,6 +163,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                 "Polygon",
                 "Soft / animated ellipse",
                 "Image (alpha / luminance)",
+                "Painted (vector brush / eraser)",
             ]
             .into_iter()
             .enumerate()
@@ -180,6 +198,12 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         layer.clip = None;
         layer.clip_shape = None;
         match kind {
+            6 => {
+                layer.clip_shape = Some(ClipShape::Painted {
+                    base_visible: true,
+                    strokes: Vec::new(),
+                })
+            }
             1 => layer.clip = Some(rect),
             2 => layer.clip_shape = Some(ClipShape::Ellipse { rect }),
             5 => {
@@ -242,6 +266,18 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                 ui.add(egui::DragValue::new(value).speed(1.0));
             }
         });
+    }
+    if let Some(ClipShape::Painted {
+        base_visible,
+        strokes,
+    }) = &mut layer.clip_shape
+    {
+        ui.checkbox(
+            base_visible,
+            "Initially show all content (unchecked: hide all)",
+        );
+        ui.label(format!("{} ordered brush / eraser strokes", strokes.len()));
+        ui.weak("Choose Mask brush or Mask eraser, then drag or click on the canvas. Brush reveals; eraser hides. Each completed stroke is one Undo step. Changing the mask type replaces its strokes. CPU preview/export only.");
     }
     if let Some(ClipShape::Image {
         asset_id, channel, ..
@@ -354,6 +390,7 @@ impl Editor {
         if self.context != context {
             self.transaction_before = None;
             self.points.clear();
+            self.mask_gesture = None;
             self.selected = None;
             self.group_draft = None;
             self.move_parent.clear();
@@ -407,7 +444,12 @@ impl Editor {
     ) {
         let scene_id = scene.id;
         egui::CollapsingHeader::new("Artwork / layers").show(ui,|ui| {
-   ui.horizontal_wrapped(|ui| { for (tool,name) in [(Tool::Select,"Select"),(Tool::Pen,"Pen"),(Tool::Rectangle,"Rectangle"),(Tool::Ellipse,"Ellipse")] {if ui.selectable_value(&mut self.tool,tool,name).changed(){self.points.clear();}} });
+   ui.horizontal_wrapped(|ui| { for (tool,name) in [(Tool::Select,"Select"),(Tool::Pen,"Pen"),(Tool::Rectangle,"Rectangle"),(Tool::Ellipse,"Ellipse"),(Tool::MaskPaint,"Mask brush"),(Tool::MaskErase,"Mask eraser")] {if ui.selectable_value(&mut self.tool,tool,name).changed(){self.points.clear();self.mask_gesture=None;}} });
+   if matches!(self.tool, Tool::MaskPaint | Tool::MaskErase) {
+    if self.mask_radius <= 0.0 { self.mask_radius = 12.0; }
+    ui.add(egui::Slider::new(&mut self.mask_radius, 0.5..=1000.0).logarithmic(true).text("Mask brush radius (scene units)"));
+    ui.weak("Select a layer and explicitly choose its Painted clip mask first. Escape cancels the current stroke. Fixed radius; pressure is not recorded.");
+   }
    ui.weak("Drag on canvas to draw. Background layers render behind characters; foreground layers render above them. Save as .kilsat to retain artwork.");
    self.group_controls(ui, document, scene_id);
    let mut next=document.clone();
@@ -527,6 +569,177 @@ impl Editor {
             .find(|id| !document.layers.iter().any(|l| &l.id == id))
             .unwrap()
     }
+    fn finish_mask_gesture(&mut self, document: &mut Document) {
+        let Some(draft) = self.mask_gesture.take() else {
+            return;
+        };
+        let Some(index) = document
+            .layers
+            .iter()
+            .position(|layer| layer == &draft.layer)
+        else {
+            return;
+        };
+        if draft.points.is_empty() {
+            return;
+        }
+        let mut next = document.clone();
+        let Some(ClipShape::Painted { strokes, .. }) = &mut next.layers[index].clip_shape else {
+            return;
+        };
+        strokes.push(MaskStroke {
+            points: draft.points,
+            radius: draft.radius,
+            erase: draft.tool == Tool::MaskErase,
+        });
+        self.commit(document, next);
+    }
+    fn mask_gesture(
+        &mut self,
+        response: &egui::Response,
+        rect: egui::Rect,
+        scene: &motion_scene::EvaluatedScene,
+        scene_id: &str,
+        document: &mut Document,
+    ) {
+        let camera = (
+            scene.camera.x,
+            scene.camera.y,
+            scene.camera.zoom,
+            scene.time,
+        );
+        let selected = document
+            .layers
+            .iter()
+            .find(|layer| Some(&layer.id) == self.selected.as_ref() && layer.scene_id == scene_id);
+        let cancelled = response
+            .ctx
+            .input(|input| input.key_pressed(egui::Key::Escape));
+        let incompatible = self.mask_gesture.as_ref().is_some_and(|draft| {
+            selected != Some(&draft.layer)
+                || draft.scene != scene_id
+                || draft.tool != self.tool
+                || draft.camera != camera
+                || draft.viewport != rect
+                || draft.scene_size != (scene.width, scene.height)
+                || draft.radius != self.mask_radius
+        });
+        if cancelled || incompatible || !response.enabled() {
+            self.mask_gesture = None;
+            return;
+        }
+        let Some(layer) = selected else {
+            self.mask_gesture = None;
+            return;
+        };
+        if !matches!(layer.clip_shape, Some(ClipShape::Painted { .. })) {
+            self.mask_gesture = None;
+            return;
+        }
+        let (pressed, down, released, position) = response.ctx.input(|input| {
+            (
+                input.pointer.primary_pressed(),
+                input.pointer.primary_down(),
+                input.pointer.primary_released(),
+                input.pointer.interact_pos(),
+            )
+        });
+        if pressed && response.hovered() {
+            self.mask_gesture = Some(MaskGesture {
+                layer: layer.clone(),
+                scene: scene_id.into(),
+                tool: self.tool,
+                camera,
+                viewport: rect,
+                scene_size: (scene.width, scene.height),
+                points: Vec::new(),
+                radius: self.mask_radius,
+            });
+        }
+        let scale = (rect.width() / scene.width as f32).min(rect.height() / scene.height as f32);
+        if !scale.is_finite()
+            || scale <= 0.0
+            || !scene.camera.zoom.is_finite()
+            || scene.camera.zoom <= 0.0
+        {
+            self.mask_gesture = None;
+            return;
+        }
+        let origin =
+            rect.center() - egui::vec2(scene.width as f32, scene.height as f32) * scale * 0.5;
+        let offset = match &layer.attachment {
+            Some(id) => match scene.actors.iter().find(|actor| &actor.id == id) {
+                Some(actor) => (actor.x, actor.y),
+                None => {
+                    self.mask_gesture = None;
+                    return;
+                }
+            },
+            None => (0.0, 0.0),
+        };
+        if let Some(position) = position {
+            if let Some(draft) = self.mask_gesture.as_mut().filter(|_| down || released) {
+                let x = (position.x - origin.x) as f64 / scale as f64;
+                let y = (position.y - origin.y) as f64 / scale as f64;
+                let point = Point {
+                    x: (x - scene.width as f64 / 2.0) / scene.camera.zoom
+                        + scene.width as f64 / 2.0
+                        + scene.camera.x
+                        - offset.0,
+                    y: (y - scene.height as f64 / 2.0) / scene.camera.zoom
+                        + scene.height as f64 / 2.0
+                        + scene.camera.y
+                        - offset.1,
+                };
+                if draft.points.last() != Some(&point) {
+                    if draft.points.len() >= motion_art::MAX_MASK_STROKE_POINTS {
+                        self.mask_gesture = None;
+                        self.error =
+                            Some("Mask stroke exceeds 2048 points; draw shorter strokes".into());
+                        return;
+                    }
+                    draft.points.push(point);
+                }
+            }
+            if response.hovered() || self.mask_gesture.is_some() {
+                let painter = response
+                    .ctx
+                    .layer_painter(response.layer_id)
+                    .with_clip_rect(rect);
+                let color = if self.tool == Tool::MaskErase {
+                    egui::Color32::LIGHT_RED
+                } else {
+                    egui::Color32::LIGHT_GREEN
+                };
+                painter.circle_stroke(
+                    position,
+                    (self.mask_radius * scene.camera.zoom) as f32 * scale,
+                    egui::Stroke::new(1.5_f32, color),
+                );
+                if let Some(draft) = &self.mask_gesture {
+                    for point in &draft.points {
+                        let (x, y) = scene.camera.project(
+                            point.x + offset.0,
+                            point.y + offset.1,
+                            scene.width,
+                            scene.height,
+                        );
+                        painter.circle_filled(
+                            origin + egui::vec2(x as f32, y as f32) * scale,
+                            2.0,
+                            color,
+                        );
+                    }
+                }
+            }
+        }
+        if released {
+            self.finish_mask_gesture(document);
+        } else if !down {
+            // Focus loss / pointer cancellation must not leave a draft for a later gesture.
+            self.mask_gesture = None;
+        }
+    }
     pub fn gesture(
         &mut self,
         response: &egui::Response,
@@ -535,6 +748,11 @@ impl Editor {
         scene_id: &str,
         document: &mut Document,
     ) {
+        if matches!(self.tool, Tool::MaskPaint | Tool::MaskErase) {
+            self.mask_gesture(response, rect, scene, scene_id, document);
+            return;
+        }
+        self.mask_gesture = None;
         if self.tool == Tool::Select {
             return;
         }
@@ -597,7 +815,7 @@ impl Editor {
                     rect: bounds,
                     color,
                 },
-                Tool::Select => return,
+                Tool::Select | Tool::MaskPaint | Tool::MaskErase => return,
             };
             let mut next = document.clone();
             let id = self.id(&next);
@@ -746,6 +964,293 @@ pub fn paint(
 }
 #[cfg(test)]
 mod tests {
+    fn mask_document() -> Document {
+        Document {
+            layers: vec![Layer {
+                id: "mask".into(),
+                scene_id: "scene".into(),
+                name: "Mask".into(),
+                visible: true,
+                plane: Plane::Foreground,
+                active: None,
+                opacity: 1.0,
+                attachment: None,
+                clip: None,
+                clip_shape: Some(ClipShape::Painted {
+                    base_visible: false,
+                    strokes: Vec::new(),
+                }),
+                blend: BlendMode::Normal,
+                content: Content::Rectangle {
+                    rect: Rect {
+                        x: 0.0,
+                        y: 0.0,
+                        width: 300.0,
+                        height: 200.0,
+                    },
+                    color: Color {
+                        r: 255,
+                        g: 0,
+                        b: 0,
+                        a: 255,
+                    },
+                },
+            }],
+            ..Document::default()
+        }
+    }
+    fn mask_scene() -> motion_scene::EvaluatedScene {
+        motion_scene::EvaluatedScene {
+            time: 0.0,
+            camera: motion_scene::CameraPose {
+                x: 20.0,
+                y: 10.0,
+                zoom: 2.0,
+            },
+            background_color: "#000000".into(),
+            opacity: 1.0,
+            width: 300,
+            height: 200,
+            actors: vec![],
+        }
+    }
+    fn mask_frame(
+        ctx: &egui::Context,
+        editor: &mut Editor,
+        document: &mut Document,
+        scene: &motion_scene::EvaluatedScene,
+        events: Vec<egui::Event>,
+    ) {
+        let _ = ctx.run(
+            egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(400.0, 300.0),
+                )),
+                events,
+                ..Default::default()
+            },
+            |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    let rect =
+                        egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(300.0, 200.0));
+                    let response =
+                        ui.interact(rect, egui::Id::new("mask-gesture"), egui::Sense::drag());
+                    editor.gesture(&response, rect, scene, "scene", document);
+                });
+            },
+        );
+    }
+    fn mask_button(x: f32, y: f32, pressed: bool) -> Vec<egui::Event> {
+        vec![
+            egui::Event::PointerMoved(egui::pos2(x, y)),
+            egui::Event::PointerButton {
+                pos: egui::pos2(x, y),
+                button: egui::PointerButton::Primary,
+                pressed,
+                modifiers: Default::default(),
+            },
+        ]
+    }
+    #[test]
+    fn painted_mask_gestures_are_detached_and_single_dabs_commit_once() {
+        let ctx = egui::Context::default();
+        let mut editor = Editor {
+            tool: Tool::MaskPaint,
+            selected: Some("mask".into()),
+            mask_radius: 7.0,
+            ..Default::default()
+        };
+        let mut document = mask_document();
+        let before = document.clone();
+        let scene = mask_scene();
+        mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            mask_button(60.0, 60.0, true),
+        );
+        assert_eq!(document, before);
+        assert_eq!(editor.revision(), 0);
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            mask_button(60.0, 60.0, false),
+        );
+        let Some(ClipShape::Painted { strokes, .. }) = &document.layers[0].clip_shape else {
+            panic!("painted mask")
+        };
+        assert_eq!(strokes.len(), 1);
+        assert_eq!(strokes[0].points, vec![Point { x: 125.0, y: 90.0 }]);
+        assert_eq!(strokes[0].radius, 7.0);
+        assert!(!strokes[0].erase);
+        assert_eq!(editor.revision(), 1);
+        assert_eq!(editor.take_transaction_before(), Some(before));
+        let painted = document.clone();
+        editor.tool = Tool::MaskErase;
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            mask_button(80.0, 80.0, true),
+        );
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            vec![egui::Event::PointerMoved(egui::pos2(100.0, 100.0))],
+        );
+        assert_eq!(document, painted);
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            mask_button(110.0, 110.0, false),
+        );
+        let Some(ClipShape::Painted { strokes, .. }) = &document.layers[0].clip_shape else {
+            panic!("painted mask")
+        };
+        assert_eq!(strokes.len(), 2);
+        assert!(strokes[1].erase);
+        assert!(strokes[1].points.len() >= 2);
+        assert_eq!(editor.take_transaction_before(), Some(painted));
+        assert_eq!(editor.revision(), 2);
+    }
+    #[test]
+    fn painted_dab_uses_attachment_local_coordinates() {
+        let ctx = egui::Context::default();
+        let mut editor = Editor {
+            tool: Tool::MaskPaint,
+            selected: Some("mask".into()),
+            mask_radius: 7.0,
+            ..Default::default()
+        };
+        let mut document = mask_document();
+        document.layers[0].attachment = Some("actor".into());
+        let mut scene = mask_scene();
+        scene.actors.push(motion_scene::ActorPose {
+            id: "actor".into(),
+            x: 40.0,
+            y: 30.0,
+            emotion: "neutral".into(),
+            rotation: 0.0,
+            scale: motion_scene::Vec2::new(1.0, 1.0),
+            wave: 0.0,
+            skeleton: [motion_scene::Vec2::new(0.0, 0.0); 7],
+            rigid_parts: Vec::new(),
+        });
+        mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            mask_button(60.0, 60.0, true),
+        );
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            mask_button(60.0, 60.0, false),
+        );
+        let Some(ClipShape::Painted { strokes, .. }) = &document.layers[0].clip_shape else {
+            panic!("painted mask")
+        };
+        assert_eq!(strokes[0].points, vec![Point { x: 85.0, y: 60.0 }]);
+    }
+    #[test]
+    fn painted_drafts_cancel_on_selection_scene_camera_and_document_changes() {
+        for changed in 0..4 {
+            let ctx = egui::Context::default();
+            let mut editor = Editor {
+                tool: Tool::MaskPaint,
+                selected: Some("mask".into()),
+                mask_radius: 7.0,
+                ..Default::default()
+            };
+            let mut document = mask_document();
+            let mut scene = mask_scene();
+            mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(60.0, 60.0, true),
+            );
+            assert!(editor.mask_gesture.is_some());
+            match changed {
+                0 => editor.selected = None,
+                1 => scene.time = 0.5,
+                2 => scene.camera.zoom = 1.0,
+                _ => document.layers[0].attachment = Some("actor".into()),
+            }
+            let unchanged = document.clone();
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(80.0, 80.0, false),
+            );
+            assert_eq!(document, unchanged);
+            assert!(editor.mask_gesture.is_none());
+            assert!(editor.take_transaction_before().is_none());
+        }
+    }
+    #[test]
+    fn painted_stroke_rejection_does_not_replace_other_masks_or_commit_invalid_data() {
+        let mut editor = Editor::default();
+        let mut document = mask_document();
+        let before = document.clone();
+        editor.mask_gesture = Some(MaskGesture {
+            layer: document.layers[0].clone(),
+            scene: "scene".into(),
+            tool: Tool::MaskPaint,
+            camera: (0.0, 0.0, 1.0, 0.0),
+            viewport: egui::Rect::NOTHING,
+            scene_size: (300, 200),
+            points: vec![Point {
+                x: f64::NAN,
+                y: 0.0,
+            }],
+            radius: 5.0,
+        });
+        editor.finish_mask_gesture(&mut document);
+        assert_eq!(document, before);
+        assert!(editor.take_transaction_before().is_none());
+        assert!(editor.error.is_some());
+        document.layers[0].clip_shape = Some(ClipShape::Ellipse {
+            rect: Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 20.0,
+                height: 20.0,
+            },
+        });
+        let unchanged = document.clone();
+        editor.mask_gesture = Some(MaskGesture {
+            layer: document.layers[0].clone(),
+            scene: "scene".into(),
+            tool: Tool::MaskErase,
+            camera: (0.0, 0.0, 1.0, 0.0),
+            viewport: egui::Rect::NOTHING,
+            scene_size: (300, 200),
+            points: vec![Point { x: 5.0, y: 5.0 }],
+            radius: 5.0,
+        });
+        editor.finish_mask_gesture(&mut document);
+        assert_eq!(document, unchanged);
+        assert!(editor.take_transaction_before().is_none());
+    }
     #[test]
     fn grouped_transactions_have_one_before_snapshot_and_invalid_apply_is_atomic() {
         let mut editor = Editor::default();

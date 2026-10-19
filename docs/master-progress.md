@@ -9,6 +9,13 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+Vector mask painting/erasing is implemented on the next task branch; integration
+and CI are pending. It stores ordered bounded vector strokes, explicit initial
+coverage and round dabs, with native brush/eraser gestures, shared Undo/Redo and
+CPU preview/export. See [painted masks](painted-masks.md). Pressure, soft brushes,
+animated paint, experimental GPU support and physical Mac input acceptance remain
+open. Completion will be marked after the authorized merge and actual CI checks.
+
 PRs #47–#51 reached main on 2026-10-19. #47 merged first (`511b008`, Mac Metal probe and
 native arm64 Rhubarb record). Stacked PRs #48 (feathered polygon masks), #49 (image
 masks) and #50 (custom-rig joint tracks plus the desktop joint key editor) were merged
@@ -104,7 +111,7 @@ and final redistribution clearance remain open.
 | --- | --- |
 | Timed solid colors/images, native editors, shared preview/export and SVG project sequence compositing | Physical Mac transition and SVG-viewer acceptance |
 | Persisted per-bone tracks/editor, procedural strengths and editable versioned custom rigid characters with shared rest-part/root rendering | Custom-rig joint animation, textures/deformation and arbitrary custom-clip blending |
-| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups and existing CPU masks/blends | Image masks, polygon feathering, painting/pressure/retouching and physical Mac compositing acceptance |
+| Project clips, ordered override/additive and normalized original-rig groups, weight curves/fades, loops/joint selection; isolated artwork groups, image masks and polygon feathering | Painting integration, pressure/retouching and physical Mac compositing acceptance |
 | Chronological source/artwork/asset-inventory Undo/Redo | Physical Mac shortcuts/accessibility and advanced retouching |
 | Managed Kokoro, bound cache, reported M1 speech, estimated cues/archive and automatic reuse for explicitly enrolled self-contained local Phonetic packages | Real package compatibility/audited closure, offline/device acceptance and measured recognizer quality |
 | CPU SVG/PNG/MP4, bounded experimental GPU artwork/masks/groups/blends/crossfades, input reuse and bound package/build/review-gap reports | Shared GPU fonts, full measured scene parity/production backend, physical Metal/performance and final license clearance |
@@ -227,7 +234,8 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Validated ellipse/simple-polygon masks and normal/multiply/screen shared CPU blending.
 - [x] Persisted soft animated ellipse masks in shared SVG/PNG/native preview and sequence evaluation (PR #43).
 - [x] Bounded isolated nested artwork groups with explicit sibling order, native history controls and shared CPU composition (PR #46).
-- [ ] Image masks, polygon feathering, painting/pressure/retouching and physical Mac compositing acceptance.
+- [x] Image alpha/luminance masks and polygon feathering (PRs #48–#49 via #51).
+- [ ] Vector mask painting/erasing integration, pressure/retouching and physical Mac compositing acceptance.
 - [x] Selected-scene shared CPU-composited advanced frames and final integration checks (PR #31).
 - [x] Camera positioning/zoom shared by native preview and SVG/PNG/MP4.
 - [x] Solid background color, timed step-color tracks and scene-edge fades to black.
