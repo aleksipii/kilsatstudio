@@ -118,24 +118,122 @@ pub struct MaskStroke {
     pub points: Vec<Point>,
     pub radius: f64,
     pub erase: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub pressures: Vec<f64>,
+    #[serde(default = "full_hardness", skip_serializing_if = "is_full_hardness")]
+    pub hardness: f64,
+}
+fn full_hardness() -> f64 {
+    1.0
+}
+fn is_full_hardness(value: &f64) -> bool {
+    *value == 1.0
+}
+/// A union primitive of a pressure-scaled brush footprint.
+#[derive(Debug, Clone, PartialEq)]
+pub enum MaskBrushPrimitive {
+    Circle { center: Point, radius: f64 },
+    Polygon { points: [Point; 4] },
 }
 pub const MAX_MASK_STROKES: usize = 512;
 pub const MAX_TOTAL_MASK_STROKES: usize = 4096;
 pub const MAX_MASK_STROKE_POINTS: usize = 2048;
 pub const MAX_MASK_RADIUS: f64 = 2048.0;
+pub const MAX_TOTAL_MASK_RENDER_COST: usize = 1_048_576;
 impl MaskStroke {
+    /// Softness has 32 deterministic coverage levels, shared by CPU and GPU.
+    /// A band is a union, so intersecting segments never accumulate opacity.
+    pub fn coverage_bands(&self) -> impl Iterator<Item = (f64, f64)> + '_ {
+        let count = if self.hardness == 1.0 { 1 } else { 32 };
+        (1..=count).map(move |i| {
+            let coverage = f64::from(i) / f64::from(count);
+            let threshold = if count == 1 {
+                1.0
+            } else {
+                coverage - 0.5 / f64::from(count)
+            };
+            (coverage, 1.0 - threshold * (1.0 - self.hardness))
+        })
+    }
+    pub fn render_cost(&self) -> usize {
+        self.points
+            .len()
+            .saturating_mul(if self.hardness == 1.0 { 2 } else { 64 })
+    }
+    /// Exact swept disks for a linearly changing radius: endpoint disks and
+    /// their common external tangent quad. A contained disk needs no quad.
+    pub fn band_geometry(&self, scale: f64) -> Vec<MaskBrushPrimitive> {
+        let radius =
+            |i: usize| self.radius * self.pressures.get(i).copied().unwrap_or(1.0) * scale;
+        let mut result = Vec::with_capacity(self.points.len().saturating_mul(2));
+        for (i, &center) in self.points.iter().enumerate() {
+            let r = radius(i);
+            if r > 0.0 {
+                result.push(MaskBrushPrimitive::Circle { center, radius: r });
+            }
+            if i == 0 {
+                continue;
+            }
+            let a = self.points[i - 1];
+            let ra = radius(i - 1);
+            let dx = center.x - a.x;
+            let dy = center.y - a.y;
+            let length = dx.hypot(dy);
+            if length <= (r - ra).abs() || length == 0.0 {
+                continue;
+            }
+            let ux = dx / length;
+            let uy = dy / length;
+            let slope = (ra - r) / length;
+            let side = (1.0 - slope * slope).max(0.0).sqrt();
+            let normal = |sign: f64| Point {
+                x: ux * slope - uy * side * sign,
+                y: uy * slope + ux * side * sign,
+            };
+            let n = normal(1.0);
+            let m = normal(-1.0);
+            result.push(MaskBrushPrimitive::Polygon {
+                points: [
+                    Point {
+                        x: a.x + n.x * ra,
+                        y: a.y + n.y * ra,
+                    },
+                    Point {
+                        x: a.x + m.x * ra,
+                        y: a.y + m.y * ra,
+                    },
+                    Point {
+                        x: center.x + m.x * r,
+                        y: center.y + m.y * r,
+                    },
+                    Point {
+                        x: center.x + n.x * r,
+                        y: center.y + n.y * r,
+                    },
+                ],
+            });
+        }
+        result
+    }
     pub fn validate(&self) -> Result<(), Error> {
         if self.points.is_empty()
             || self.points.len() > MAX_MASK_STROKE_POINTS
             || !self.radius.is_finite()
             || !(0.05..=MAX_MASK_RADIUS).contains(&self.radius)
+            || !self.hardness.is_finite()
+            || !(0.0..=1.0).contains(&self.hardness)
+            || (!self.pressures.is_empty() && self.pressures.len() != self.points.len())
+            || self
+                .pressures
+                .iter()
+                .any(|p| !p.is_finite() || !(0.0..=1.0).contains(p))
             || self
                 .points
                 .iter()
                 .any(|p| !coordinate(p.x) || !coordinate(p.y))
         {
             return invalid(
-                "mask stroke requires 1–2048 bounded finite points and radius 0.05–2048",
+                "mask stroke requires 1–2048 bounded finite points, radius 0.05–2048, hardness 0–1 and matching pressures 0–1",
             );
         }
         Ok(())
@@ -614,6 +712,7 @@ impl Document {
         let mut point_count = 0;
         let mut mask_key_count = 0;
         let mut mask_stroke_count = 0;
+        let mut mask_render_cost = 0;
         for layer in &self.layers {
             if !identifier(&layer.id)
                 || !ids.insert(&layer.id)
@@ -649,6 +748,10 @@ impl Document {
                     }
                 }
                 if let ClipShape::Painted { strokes, .. } = shape {
+                    mask_render_cost += strokes.iter().map(MaskStroke::render_cost).sum::<usize>();
+                    if mask_render_cost > MAX_TOTAL_MASK_RENDER_COST {
+                        return invalid("artwork exceeds painted mask render work budget");
+                    }
                     mask_stroke_count += strokes.len();
                     if mask_stroke_count > MAX_TOTAL_MASK_STROKES {
                         return invalid("artwork exceeds 4096 mask strokes");
@@ -1299,7 +1402,67 @@ mod tests {
             points: vec![Point { x: 2.0, y: 3.0 }],
             radius: 4.0,
             erase: false,
+            pressures: Vec::new(),
+            hardness: 1.0,
         }
+    }
+
+    #[test]
+    fn pressure_defaults_validation_and_geometry_are_bounded() {
+        let legacy = r#"{"points":[{"x":2.0,"y":3.0}],"radius":4.0,"erase":false}"#;
+        let stroke: MaskStroke = serde_json::from_str(legacy).unwrap();
+        assert_eq!(stroke, mask_stroke());
+        assert_eq!(serde_json::to_string(&stroke).unwrap(), legacy);
+        for pressure in [f64::NAN, f64::INFINITY, -0.01, 1.01] {
+            assert!(MaskStroke { pressures: vec![pressure], ..stroke.clone() }.validate().is_err());
+        }
+        for hardness in [f64::NAN, f64::INFINITY, -0.01, 1.01] {
+            assert!(MaskStroke { hardness, ..stroke.clone() }.validate().is_err());
+        }
+        assert!(MaskStroke { pressures: vec![0.5, 1.0], ..stroke.clone() }.validate().is_err());
+        let zero = MaskStroke { pressures: vec![0.0], ..stroke.clone() };
+        assert!(zero.band_geometry(1.0).is_empty());
+        let soft = MaskStroke { hardness: 0.0, ..stroke };
+        assert_eq!(soft.coverage_bands().count(), 32);
+        assert_eq!(soft.render_cost(), 64);
+        assert!(soft.coverage_bands().all(|(coverage, scale)| coverage > 0.0 && scale > 0.0));
+    }
+
+    #[test]
+    fn soft_mask_expansion_has_a_document_work_budget() {
+        let stroke = MaskStroke {
+            points: vec![Point { x: 0.0, y: 0.0 }; MAX_MASK_STROKE_POINTS],
+            hardness: 0.5,
+            ..mask_stroke()
+        };
+        let mut item = layer();
+        item.clip = None;
+        item.clip_shape = Some(ClipShape::Painted {
+            base_visible: true,
+            strokes: vec![stroke; 9],
+        });
+        let doc = Document { layers: vec![item], ..Default::default() };
+        assert!(doc.validate().unwrap_err().to_string().contains("render work budget"));
+    }
+
+    #[test]
+    fn pressure_sweep_uses_continuous_tangents_and_contained_disks() {
+        let stroke = MaskStroke {
+            points: vec![Point { x: 0.0, y: 0.0 }, Point { x: 20.0, y: 0.0 }],
+            pressures: vec![0.25, 1.0],
+            ..mask_stroke()
+        };
+        let geometry = stroke.band_geometry(1.0);
+        assert_eq!(geometry.len(), 3);
+        assert!(matches!(geometry[0], MaskBrushPrimitive::Circle { radius: 1.0, .. }));
+        assert!(matches!(geometry[1], MaskBrushPrimitive::Circle { radius: 4.0, .. }));
+        let MaskBrushPrimitive::Polygon { points } = &geometry[2] else { panic!("missing tangent"); };
+        assert!(points.iter().all(|p| p.x.is_finite() && p.y.is_finite()));
+        let contained = MaskStroke {
+            points: vec![Point { x: 0.0, y: 0.0 }, Point { x: 1.0, y: 0.0 }],
+            ..stroke
+        };
+        assert_eq!(contained.band_geometry(1.0).len(), 2);
     }
 
     #[test]

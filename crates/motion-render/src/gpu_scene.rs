@@ -567,6 +567,20 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    let distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
    masks[depth]=masks[depth]*(1.-smoothstep(-s.origin.z,s.origin.z,distance)); continue;
   }
+  if kind>14.5 && kind<15.5 {
+   masks[depth]=s.geometry.x; continue;
+  }
+  if kind>16.5 && kind<17.5 {
+   var coverage=0.;
+   let offset=u32(s.geometry.x); let count=u32(s.geometry.y);
+   for(var j=0u; j<count; j=j+1u) {
+    let start=offset+j*5u; let metadata=points[start];
+    var distance=length(local-points[start+1u])-points[start+2u].x;
+    if metadata.x>.5 { distance=polygon(local,start+1u,4u); }
+    coverage=max(coverage,(1.-smoothstep(-s.origin.z,s.origin.z,distance))*metadata.y);
+   }
+   masks[depth]=mix(masks[depth],s.geometry.z,coverage); continue;
+  }
   if kind>4.5 && kind<5.5 { colors[depth]=over(image_color(local,s),colors[depth],0.); continue; }
   var distance=0.;
   if kind>3.5 && kind<4.5 {
@@ -625,6 +639,56 @@ mod tests {
         assert_eq!(exact.changed_pixel_fraction, 0.0);
         assert_eq!(exact.rms_channel_error, [0.0; 4]);
         assert!(compare_decoded_rgba(64, 64, &reference, &candidate[..100]).is_err());
+    }
+    #[test]
+    #[ignore = "requires explicit KILSAT_GPU_BACKEND and actual GPU; not hardware acceptance"]
+    fn painted_pressure_soft_masks_real_gpu_interior_probes() {
+        use motion_art::*;
+        let backend = match std::env::var("KILSAT_GPU_BACKEND").as_deref() {
+            Ok("metal") => Backend::Metal,
+            Ok("vulkan") => Backend::Vulkan,
+            Ok("gl") => Backend::Gl,
+            _ => panic!("set KILSAT_GPU_BACKEND explicitly"),
+        };
+        let mut scene = crate::tests::scene();
+        scene.width = 64;
+        scene.height = 64;
+        scene.camera.x = 0.0;
+        scene.camera.y = 0.0;
+        scene.camera.zoom = 1.0;
+        scene.actors.clear();
+        scene.background_color = "#000000".into();
+        scene.opacity = 1.0;
+        let stroke = |radius, pressure, hardness, erase| MaskStroke {
+            points: vec![Point { x: 32.5, y: 32.5 }],
+            radius, pressures: vec![pressure], hardness, erase,
+        };
+        let document = Document {
+            layers: vec![Layer {
+                id: "mask".into(), scene_id: "s".into(), name: "mask".into(),
+                visible: true, plane: Plane::Foreground, active: None, opacity: 1.0,
+                attachment: None, clip: None, blend: BlendMode::Normal,
+                content: Content::Rectangle {
+                    rect: Rect { x: 0.0, y: 0.0, width: 64.0, height: 64.0 },
+                    color: Color { r: 255, g: 0, b: 0, a: 255 },
+                },
+                clip_shape: Some(ClipShape::Painted {
+                    base_visible: false,
+                    strokes: vec![stroke(40.0, 0.5, 0.5, false),
+                        stroke(8.0, 1.0, 1.0, true), stroke(2.0, 1.0, 1.0, false)],
+                }),
+            }],
+            ..Default::default()
+        };
+        let cancel = AtomicBool::new(false);
+        let frame = render_scene_with_art(&scene, 64, 64, &[], Labels::Require,
+            "s", &document, &std::collections::BTreeMap::new(), backend, &cancel).unwrap();
+        let pixel = |x: usize| &frame.rgba[(32 * 64 + x) * 4..(32 * 64 + x) * 4 + 4];
+        assert_eq!(pixel(32), &[255, 0, 0, 255]); // repaint restores erased centre
+        assert_eq!(pixel(37), &[0, 0, 0, 255]); // erase remains outside repaint
+        assert!((i32::from(pixel(45)[0]) - 179).abs() <= 12); // soft pressure edge
+        assert_eq!(pixel(56), &[0, 0, 0, 255]); // outside pressure-scaled footprint
+        assert!(frame.validation_errors.is_empty());
     }
     #[test]
     fn cancellation_and_unsupported_labels_precede_device_initialization() {

@@ -1,0 +1,177 @@
+{
+  "format_version": 2,
+  "source": "# Original asset-free manual painted-mask fixture; no speech or downloads.\nproject:\n  title: Painted mask input acceptance\n  fps: 24\n  width: 640\n  height: 360\ncharacters:\n  GUIDE:\n    asset: characters/original-humanoid\nscenes:\n  - id: painted_mask_input\n    duration: 4\n    composition:\n      background_color: '#203040'\n      camera:\n        - {at: 0, x: 0, y: 0, zoom: 1}\n        - {at: 1, x: 0, y: 0, zoom: 1}\n        - {at: 3, x: 25, y: -10, zoom: 1.4}\n    events:\n      - {type: move, actor: GUIDE, at: 0, x: 320, y: 310, duration: 1}\n      - {type: move, actor: GUIDE, at: 2, x: 420, y: 310, duration: 1}\n",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "reveal",
+        "scene_id": "painted_mask_input",
+        "name": "Reveal: pressure ramp and soft dab",
+        "visible": true,
+        "plane": "foreground",
+        "active": null,
+        "opacity": 1,
+        "attachment": null,
+        "clip": null,
+        "clip_shape": {
+          "type": "painted",
+          "base_visible": false,
+          "strokes": [
+            {
+              "points": [
+                {
+                  "x": 65,
+                  "y": 90
+                },
+                {
+                  "x": 150,
+                  "y": 90
+                },
+                {
+                  "x": 250,
+                  "y": 90
+                }
+              ],
+              "radius": 30,
+              "erase": false,
+              "hardness": 1,
+              "pressures": [
+                0.2,
+                1,
+                0.2
+              ]
+            },
+            {
+              "points": [
+                {
+                  "x": 150,
+                  "y": 165
+                }
+              ],
+              "radius": 35,
+              "erase": false,
+              "hardness": 0.25
+            }
+          ]
+        },
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 30,
+            "width": 270,
+            "height": 180
+          },
+          "color": {
+            "r": 245,
+            "g": 145,
+            "b": 55,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "erase",
+        "scene_id": "painted_mask_input",
+        "name": "Erase then restore: soft ordered strokes",
+        "visible": true,
+        "plane": "foreground",
+        "active": null,
+        "opacity": 1,
+        "attachment": null,
+        "clip": null,
+        "clip_shape": {
+          "type": "painted",
+          "base_visible": true,
+          "strokes": [
+            {
+              "points": [
+                {
+                  "x": 475,
+                  "y": 120
+                }
+              ],
+              "radius": 65,
+              "erase": true,
+              "hardness": 0.25
+            },
+            {
+              "points": [
+                {
+                  "x": 475,
+                  "y": 120
+                }
+              ],
+              "radius": 12,
+              "erase": false,
+              "hardness": 1
+            }
+          ]
+        },
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 340,
+            "y": 30,
+            "width": 270,
+            "height": 180
+          },
+          "color": {
+            "r": 50,
+            "g": 195,
+            "b": 175,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "attached",
+        "scene_id": "painted_mask_input",
+        "name": "Actor-local: soft reveal",
+        "visible": true,
+        "plane": "foreground",
+        "active": null,
+        "opacity": 1,
+        "attachment": "GUIDE",
+        "clip": null,
+        "clip_shape": {
+          "type": "painted",
+          "base_visible": false,
+          "strokes": [
+            {
+              "points": [
+                {
+                  "x": -45,
+                  "y": -70
+                },
+                {
+                  "x": 45,
+                  "y": -70
+                }
+              ],
+              "radius": 18,
+              "erase": false,
+              "hardness": 0.5
+            }
+          ]
+        },
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -65,
+            "y": -85,
+            "width": 130,
+            "height": 30
+          },
+          "color": {
+            "r": 130,
+            "g": 145,
+            "b": 245,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

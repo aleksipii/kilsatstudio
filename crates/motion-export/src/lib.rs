@@ -596,7 +596,7 @@ fn export_sequence(
                         Some(motion_art::ClipShape::Painted { strokes, .. }) => {
                             strokes
                                 .iter()
-                                .map(|stroke| stroke.points.len() as u64 + 1)
+                                .map(|stroke| stroke.render_cost() as u64)
                                 .sum::<u64>()
                                 + 1
                         }

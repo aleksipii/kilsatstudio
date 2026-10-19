@@ -75,7 +75,7 @@ impl ScenePreview {
             if let Some(motion_art::ClipShape::Painted { strokes, .. }) = &layer.clip_shape {
                 geometry += strokes
                     .iter()
-                    .map(|stroke| stroke.points.len() + 1)
+                    .map(motion_art::MaskStroke::render_cost)
                     .sum::<usize>()
                     + 1;
             }

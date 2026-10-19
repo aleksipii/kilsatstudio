@@ -436,6 +436,8 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
             points: vec![Point { x: 20.0, y: 50.0 }, Point { x: 80.0, y: 50.0 }],
             radius: 15.0,
             erase: false,
+            pressures: Vec::new(),
+            hardness: 1.0,
         }];
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
             base_visible,
@@ -448,6 +450,8 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
             points: vec![Point { x: 50.0, y: 50.0 }],
             radius: 10.0,
             erase: true,
+            pressures: Vec::new(),
+            hardness: 1.0,
         });
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
             base_visible,
@@ -461,6 +465,8 @@ fn painted_masks_preserve_order_dabs_and_base_coverage_across_preview_png_and_sv
             points: vec![Point { x: 50.0, y: 50.0 }],
             radius: 3.0,
             erase: false,
+            pressures: Vec::new(),
+            hardness: 1.0,
         });
         art.document.layers[0].clip_shape = Some(ClipShape::Painted {
             base_visible,
@@ -519,9 +525,128 @@ fn dormant_painted_mask_export_work_is_rejected_before_output_creation() {
                 .collect(),
             radius: 3.0,
             erase: true,
+            pressures: Vec::new(),
+            hardness: 1.0,
         }],
     });
     art.document.validate().unwrap();
+    let dest = crate::tests::destination();
+    let error = export_png_sequence(
+        &script,
+        &[rendered],
+        Some(&art),
+        &dest,
+        &CancellationToken::new(),
+        |_| {},
+    )
+    .unwrap_err();
+    assert!(
+        error.to_string().contains("artwork frame-work budget"),
+        "{error}"
+    );
+    assert!(!dest.exists());
+}
+
+#[test]
+fn soft_pressure_masks_have_gradual_edges_variable_width_and_ordered_repainting() {
+    use motion_art::{MaskStroke, Point};
+    let (script, rendered, mut art) = fixture();
+    for base_visible in [false, true] {
+        let mut strokes = vec![MaskStroke {
+            points: vec![Point { x: 50.0, y: 50.0 }],
+            radius: 24.0,
+            erase: base_visible,
+            pressures: vec![1.0],
+            hardness: 0.0,
+        }];
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes: strokes.clone(),
+        });
+        let row = render_row(&script, &rendered, &art, 50).unwrap();
+        let coverage = |x: usize| if base_visible { 255 - row[x] } else { row[x] };
+        assert!(coverage(50) > 220);
+        assert!(coverage(60) > 50 && coverage(60) < 210);
+        assert!(coverage(68) > 10 && coverage(68) < coverage(60));
+        assert_eq!(coverage(80), 0);
+        // Repeated tablet samples at one location must not accumulate opacity.
+        let mut overlapping = strokes.clone();
+        overlapping[0].points = vec![Point { x: 50.0, y: 50.0 }; 8];
+        overlapping[0].pressures = vec![1.0; 8];
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes: overlapping,
+        });
+        assert_eq!(render_row(&script, &rendered, &art, 50).unwrap(), row);
+        strokes.push(MaskStroke {
+            points: vec![Point { x: 50.0, y: 50.0 }],
+            radius: 5.0,
+            erase: !base_visible,
+            pressures: vec![1.0],
+            hardness: 1.0,
+        });
+        art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+            base_visible,
+            strokes,
+        });
+        // Persistence, PNG export, vector export and repeated CPU preview share the brush.
+        art.document = serde_json::from_slice(&serde_json::to_vec(&art.document).unwrap()).unwrap();
+        let row = render_row(&script, &rendered, &art, 50).unwrap();
+        assert_eq!(row[50], if base_visible { 255 } else { 0 });
+    }
+    art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        base_visible: false,
+        strokes: vec![MaskStroke {
+            points: vec![Point { x: 25.0, y: 50.0 }, Point { x: 75.0, y: 50.0 }],
+            radius: 20.0,
+            erase: false,
+            pressures: vec![0.25, 1.0],
+            hardness: 1.0,
+        }],
+    });
+    let row = render_row(&script, &rendered, &art, 60).unwrap();
+    assert_eq!(row[25], 0, "quarter pressure must narrow the brush");
+    assert_eq!(row[75], 255);
+}
+
+#[test]
+fn soft_brush_expansion_is_charged_before_sequence_output_creation() {
+    let (mut script, mut rendered, mut art) = fixture();
+    script.project.fps = 240;
+    script.scenes[0].duration = 37.5;
+    rendered.audio.samples.resize(900_000, 0.0);
+    rendered.manifest.total_frames = 900_000;
+    // Raw point work fits comfortably; expanded soft-brush geometry does not.
+    art.document.layers[0].visible = false;
+    art.document.layers[0].clip_shape = Some(ClipShape::Painted {
+        base_visible: true,
+        strokes: vec![motion_art::MaskStroke {
+            points: (0..100)
+                .map(|index| motion_art::Point {
+                    x: index as f64,
+                    y: 50.0,
+                })
+                .collect(),
+            radius: 3.0,
+            erase: true,
+            pressures: vec![1.0; 100],
+            hardness: 0.0,
+        }],
+    });
+    art.document.validate().unwrap();
+    let scene_dest = crate::tests::destination();
+    let error = export_png_scene_with_art(
+        &script,
+        0,
+        &rendered,
+        &art,
+        &scene_dest,
+        &CancellationToken::new(),
+        |_| {},
+    )
+    .unwrap_err();
+    assert!(error.to_string().contains("frame visits"), "{error}");
+    assert!(!scene_dest.exists());
     let dest = crate::tests::destination();
     let error = export_png_sequence(
         &script,

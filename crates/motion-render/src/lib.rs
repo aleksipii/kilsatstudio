@@ -369,9 +369,30 @@ fn append_art(
             let r = artwork_content_bounds(&layer.content);
             let base = if *base_visible { "white" } else { "black" };
             write!(svg, "<defs><mask id=\"art{index}\" mask-type=\"luminance\" maskUnits=\"userSpaceOnUse\" maskContentUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"{base}\"/>", r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
-            for stroke in strokes {
+            for (stroke_index, stroke) in strokes.iter().enumerate() {
                 let color = if stroke.erase { "black" } else { "white" };
-                if stroke.points.len() == 1 {
+                if !stroke.pressures.is_empty() || stroke.hardness != 1.0 {
+                    write!(svg, "<defs><mask id=\"art{index}stroke{stroke_index}\" mask-type=\"luminance\" maskUnits=\"userSpaceOnUse\" x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"black\"/>", r.x, r.y, r.width, r.height, r.x, r.y, r.width, r.height).unwrap();
+                    for (coverage, scale) in stroke.coverage_bands() {
+                        write!(svg, "<path fill=\"rgb({0}%,{0}%,{0}%)\" d=\"", coverage * 100.0).unwrap();
+                        for primitive in stroke.band_geometry(scale) {
+                            match primitive {
+                                motion_art::MaskBrushPrimitive::Circle { center, radius } => {
+                                    write!(svg, "M{} {} a{radius} {radius} 0 1 1 {} 0 a{radius} {radius} 0 1 1 {} 0 Z ", center.x + radius, center.y, -2.0 * radius, 2.0 * radius).unwrap();
+                                }
+                                motion_art::MaskBrushPrimitive::Polygon { points } => {
+                                    for (i, p) in points.iter().enumerate() {
+                                        let command = if i == 0 { 'M' } else { 'L' };
+                                        write!(svg, "{command}{} {} ", p.x, p.y).unwrap();
+                                    }
+                                    svg.push_str("Z ");
+                                }
+                            }
+                        }
+                        svg.push_str("\"/>");
+                    }
+                    write!(svg, "</mask></defs><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" fill=\"{color}\" mask=\"url(#art{index}stroke{stroke_index})\"/>", r.x, r.y, r.width, r.height).unwrap();
+                } else if stroke.points.len() == 1 {
                     let p = stroke.points[0];
                     write!(svg, "<circle cx=\"{}\" cy=\"{}\" r=\"{}\" fill=\"{color}\"/>", p.x, p.y, stroke.radius).unwrap();
                 } else {
@@ -873,6 +894,8 @@ mod timed_art_tests {
             points: vec![Point { x: 10.0, y: 20.0 }],
             radius: 3.0,
             erase: false,
+            pressures: Vec::new(),
+            hardness: 1.0,
         };
         item.clip_shape = Some(ClipShape::Painted {
             base_visible: false,

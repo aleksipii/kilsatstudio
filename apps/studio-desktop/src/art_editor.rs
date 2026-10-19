@@ -30,8 +30,86 @@ struct MaskGesture {
     scene_size: (u32, u32),
     points: Vec<Point>,
     radius: f64,
+    hardness: f64,
+    pressure: PressureCapture,
 }
 #[derive(Default)]
+struct PressureCapture {
+    enabled: bool,
+    contact: Option<(egui::TouchDeviceId, egui::TouchId)>,
+    samples: Vec<f64>,
+    last: Option<f64>,
+    received_force: bool,
+}
+impl PressureCapture {
+    fn begin(enabled: bool, events: &[egui::Event], position: Option<egui::Pos2>) -> Self {
+        let position = events
+            .iter()
+            .find_map(|event| match event {
+                egui::Event::PointerButton {
+                    pos,
+                    button: egui::PointerButton::Primary,
+                    pressed: true,
+                    ..
+                } => Some(*pos),
+                _ => None,
+            })
+            .or(position);
+        let contacts: Vec<_> = events
+            .iter()
+            .filter_map(|event| match event {
+                egui::Event::Touch {
+                    device_id,
+                    id,
+                    phase: egui::TouchPhase::Start,
+                    pos,
+                    ..
+                } if Some(*pos) == position => Some((*device_id, *id)),
+                _ => None,
+            })
+            .collect();
+        Self {
+            enabled,
+            contact: (enabled && contacts.len() == 1).then(|| contacts[0]),
+            ..Self::default()
+        }
+    }
+    /// Only the initiating touch can supply force. Ambiguous multitouch cancels.
+    fn update(&mut self, events: &[egui::Event], position: Option<egui::Pos2>) -> bool {
+        let Some(contact) = self.contact else {
+            return true;
+        };
+        for event in events {
+            if let egui::Event::Touch {
+                device_id,
+                id,
+                phase,
+                pos,
+                force,
+            } = event
+            {
+                if (*device_id, *id) != contact || *phase == egui::TouchPhase::Cancel {
+                    return false;
+                }
+                if Some(*pos) != position {
+                    continue;
+                }
+                if let Some(force) =
+                    force.filter(|force| force.is_finite() && (0.0..=1.0).contains(force))
+                {
+                    self.last = Some(f64::from(force));
+                    self.received_force = true;
+                } else if *phase != egui::TouchPhase::End {
+                    self.last = None;
+                }
+            }
+        }
+        true
+    }
+    fn value(&self) -> f64 {
+        self.last.unwrap_or(1.0)
+    }
+}
 pub struct Editor {
     pub tool: Tool,
     pub selected: Option<String>,
@@ -46,7 +124,31 @@ pub struct Editor {
     move_parent: String,
     move_index: usize,
     mask_radius: f64,
+    mask_hardness: f64,
+    mask_pressure: bool,
     mask_gesture: Option<MaskGesture>,
+}
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            tool: Tool::default(),
+            selected: None,
+            dirty: false,
+            revision: 0,
+            points: Vec::new(),
+            gesture_scene: String::new(),
+            transaction_before: None,
+            error: None,
+            context: String::new(),
+            group_draft: None,
+            move_parent: String::new(),
+            move_index: 0,
+            mask_radius: 12.0,
+            mask_hardness: 1.0,
+            mask_pressure: false,
+            mask_gesture: None,
+        }
+    }
 }
 fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
     if text.len() > 16_384 {
@@ -448,7 +550,10 @@ impl Editor {
    if matches!(self.tool, Tool::MaskPaint | Tool::MaskErase) {
     if self.mask_radius <= 0.0 { self.mask_radius = 12.0; }
     ui.add(egui::Slider::new(&mut self.mask_radius, 0.5..=1000.0).logarithmic(true).text("Mask brush radius (scene units)"));
-    ui.weak("Select a layer and explicitly choose its Painted clip mask first. Escape cancels the current stroke. Fixed radius; pressure is not recorded.");
+    ui.add(egui::Slider::new(&mut self.mask_hardness, 0.0..=1.0).text("Mask hardness (1 = hard edge)"));
+    ui.checkbox(&mut self.mask_pressure, "Use device pressure for mask radius");
+    ui.weak("Pressure requires force events from the device/backend. Mouse or missing force uses full radius; tablet support on this Mac is not verified.");
+    ui.weak("Select a layer and explicitly choose its Painted clip mask first. Escape cancels the current stroke.");
    }
    ui.weak("Drag on canvas to draw. Background layers render behind characters; foreground layers render above them. Save as .kilsat to retain artwork.");
    self.group_controls(ui, document, scene_id);
@@ -590,6 +695,12 @@ impl Editor {
         strokes.push(MaskStroke {
             points: draft.points,
             radius: draft.radius,
+            hardness: draft.hardness,
+            pressures: if draft.pressure.received_force {
+                draft.pressure.samples
+            } else {
+                Vec::new()
+            },
             erase: draft.tool == Tool::MaskErase,
         });
         self.commit(document, next);
@@ -623,6 +734,8 @@ impl Editor {
                 || draft.viewport != rect
                 || draft.scene_size != (scene.width, scene.height)
                 || draft.radius != self.mask_radius
+                || draft.hardness != self.mask_hardness
+                || draft.pressure.enabled != self.mask_pressure
         });
         if cancelled || incompatible || !response.enabled() {
             self.mask_gesture = None;
@@ -636,12 +749,13 @@ impl Editor {
             self.mask_gesture = None;
             return;
         }
-        let (pressed, down, released, position) = response.ctx.input(|input| {
+        let (pressed, down, released, position, events) = response.ctx.input(|input| {
             (
                 input.pointer.primary_pressed(),
                 input.pointer.primary_down(),
                 input.pointer.primary_released(),
                 input.pointer.interact_pos(),
+                input.events.clone(),
             )
         });
         if pressed && response.hovered() {
@@ -654,7 +768,17 @@ impl Editor {
                 scene_size: (scene.width, scene.height),
                 points: Vec::new(),
                 radius: self.mask_radius,
+                hardness: self.mask_hardness,
+                pressure: PressureCapture::begin(self.mask_pressure, &events, position),
             });
+        }
+        if self
+            .mask_gesture
+            .as_mut()
+            .is_some_and(|draft| !draft.pressure.update(&events, position))
+        {
+            self.mask_gesture = None;
+            return;
         }
         let scale = (rect.width() / scene.width as f32).min(rect.height() / scene.height as f32);
         if !scale.is_finite()
@@ -691,7 +815,9 @@ impl Editor {
                         + scene.camera.y
                         - offset.1,
                 };
-                if draft.points.last() != Some(&point) {
+                if draft.points.last() != Some(&point)
+                    || draft.pressure.samples.last() != Some(&draft.pressure.value())
+                {
                     if draft.points.len() >= motion_art::MAX_MASK_STROKE_POINTS {
                         self.mask_gesture = None;
                         self.error =
@@ -699,6 +825,7 @@ impl Editor {
                         return;
                     }
                     draft.points.push(point);
+                    draft.pressure.samples.push(draft.pressure.value());
                 }
             }
             if response.hovered() || self.mask_gesture.is_some() {
@@ -713,7 +840,13 @@ impl Editor {
                 };
                 painter.circle_stroke(
                     position,
-                    (self.mask_radius * scene.camera.zoom) as f32 * scale,
+                    (self.mask_radius
+                        * scene.camera.zoom
+                        * self
+                            .mask_gesture
+                            .as_ref()
+                            .map_or(1.0, |draft| draft.pressure.value())) as f32
+                        * scale,
                     egui::Stroke::new(1.5_f32, color),
                 );
                 if let Some(draft) = &self.mask_gesture {
@@ -1052,6 +1185,146 @@ mod tests {
             },
         ]
     }
+    fn mask_touch(id: u64, phase: egui::TouchPhase, force: Option<f32>) -> egui::Event {
+        egui::Event::Touch {
+            device_id: egui::TouchDeviceId(7),
+            id: egui::TouchId(id),
+            phase,
+            pos: egui::pos2(60.0, 60.0),
+            force,
+        }
+    }
+    #[test]
+    fn device_force_and_softness_persist_once_without_mutating_a_draft() {
+        let ctx = egui::Context::default();
+        let mut editor = Editor {
+            tool: Tool::MaskPaint,
+            selected: Some("mask".into()),
+            mask_hardness: 0.25,
+            mask_pressure: true,
+            ..Default::default()
+        };
+        let mut document = mask_document();
+        let before = document.clone();
+        let scene = mask_scene();
+        mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+        let mut events = mask_button(60.0, 60.0, true);
+        events.push(mask_touch(1, egui::TouchPhase::Start, Some(0.25)));
+        mask_frame(&ctx, &mut editor, &mut document, &scene, events);
+        assert_eq!(document, before);
+        // A pressure-only move at the same position is a distinct sample.
+        mask_frame(
+            &ctx,
+            &mut editor,
+            &mut document,
+            &scene,
+            vec![mask_touch(1, egui::TouchPhase::Move, Some(0.0))],
+        );
+        assert_eq!(document, before);
+        let mut events = mask_button(60.0, 60.0, false);
+        events.push(mask_touch(1, egui::TouchPhase::End, None));
+        mask_frame(&ctx, &mut editor, &mut document, &scene, events);
+        let Some(ClipShape::Painted { strokes, .. }) = &document.layers[0].clip_shape else {
+            panic!("painted mask")
+        };
+        assert_eq!(strokes.len(), 1);
+        assert_eq!(strokes[0].pressures, vec![0.25, 0.0]);
+        assert_eq!(strokes[0].hardness, 0.25);
+        assert_eq!(strokes[0].points.len(), 2);
+        let encoded = serde_json::to_string(&document).unwrap();
+        assert_eq!(serde_json::from_str::<Document>(&encoded).unwrap(), document);
+        assert_eq!(editor.revision(), 1);
+        assert_eq!(editor.take_transaction_before(), Some(before));
+        assert!(editor.take_transaction_before().is_none());
+    }
+    #[test]
+    fn pressure_option_does_not_invent_force_for_mouse_or_missing_device_values() {
+        for enabled in [false, true] {
+            let ctx = egui::Context::default();
+            let mut editor = Editor {
+                tool: Tool::MaskErase,
+                selected: Some("mask".into()),
+                mask_pressure: enabled,
+                ..Default::default()
+            };
+            let mut document = mask_document();
+            let scene = mask_scene();
+            mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(60.0, 60.0, true),
+            );
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(60.0, 60.0, false),
+            );
+            let Some(ClipShape::Painted { strokes, .. }) = &document.layers[0].clip_shape else {
+                panic!("painted mask")
+            };
+            assert!(strokes[0].pressures.is_empty());
+            assert_eq!(strokes[0].hardness, 1.0);
+            assert!(strokes[0].erase);
+        }
+        let pos = Some(egui::pos2(60.0, 60.0));
+        let start = vec![mask_touch(1, egui::TouchPhase::Start, None)];
+        let mut pressure = PressureCapture::begin(true, &start, pos);
+        assert!(pressure.update(&start, pos));
+        assert_eq!(pressure.value(), 1.0);
+        for force in [f32::NAN, f32::INFINITY, -0.1, 1.1] {
+            assert!(pressure.update(
+                &[mask_touch(1, egui::TouchPhase::Move, Some(force))],
+                pos
+            ));
+            assert_eq!(pressure.value(), 1.0);
+        }
+        assert!(!pressure.received_force);
+        let mut disabled = PressureCapture::begin(false, &start, pos);
+        assert!(disabled.update(
+            &[mask_touch(1, egui::TouchPhase::Move, Some(0.25))],
+            pos
+        ));
+        assert_eq!(disabled.value(), 1.0);
+        assert!(!disabled.received_force);
+    }
+    #[test]
+    fn foreign_touch_and_touch_cancel_discard_the_entire_pressure_gesture() {
+        for event in [
+            mask_touch(2, egui::TouchPhase::Move, Some(0.9)),
+            mask_touch(1, egui::TouchPhase::Cancel, None),
+        ] {
+            let ctx = egui::Context::default();
+            let mut editor = Editor {
+                tool: Tool::MaskPaint,
+                selected: Some("mask".into()),
+                mask_pressure: true,
+                ..Default::default()
+            };
+            let mut document = mask_document();
+            let before = document.clone();
+            let scene = mask_scene();
+            mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+            let mut events = mask_button(60.0, 60.0, true);
+            events.push(mask_touch(1, egui::TouchPhase::Start, Some(0.25)));
+            mask_frame(&ctx, &mut editor, &mut document, &scene, events);
+            mask_frame(&ctx, &mut editor, &mut document, &scene, vec![event]);
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(60.0, 60.0, false),
+            );
+            assert_eq!(document, before);
+            assert!(editor.take_transaction_before().is_none());
+            assert_eq!(editor.revision(), 0);
+        }
+    }
     #[test]
     fn painted_mask_gestures_are_detached_and_single_dabs_commit_once() {
         let ctx = egui::Context::default();
@@ -1168,7 +1441,7 @@ mod tests {
     }
     #[test]
     fn painted_drafts_cancel_on_selection_scene_camera_and_document_changes() {
-        for changed in 0..4 {
+        for changed in 0..6 {
             let ctx = egui::Context::default();
             let mut editor = Editor {
                 tool: Tool::MaskPaint,
@@ -1191,7 +1464,9 @@ mod tests {
                 0 => editor.selected = None,
                 1 => scene.time = 0.5,
                 2 => scene.camera.zoom = 1.0,
-                _ => document.layers[0].attachment = Some("actor".into()),
+                3 => document.layers[0].attachment = Some("actor".into()),
+                4 => editor.mask_hardness = 0.25,
+                _ => editor.mask_pressure = true,
             }
             let unchanged = document.clone();
             mask_frame(
@@ -1223,6 +1498,8 @@ mod tests {
                 y: 0.0,
             }],
             radius: 5.0,
+            hardness: 1.0,
+            pressure: PressureCapture::default(),
         });
         editor.finish_mask_gesture(&mut document);
         assert_eq!(document, before);
@@ -1246,6 +1523,8 @@ mod tests {
             scene_size: (300, 200),
             points: vec![Point { x: 5.0, y: 5.0 }],
             radius: 5.0,
+            hardness: 1.0,
+            pressure: PressureCapture::default(),
         });
         editor.finish_mask_gesture(&mut document);
         assert_eq!(document, unchanged);
