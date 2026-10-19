@@ -991,7 +991,7 @@ mod tests {
             "i".into(),
             ImageResource::from_rgba(2049, 2048, vec![0; 2049 * 2048 * 4]).unwrap(),
         )]);
-        assert!(matches!(make(&document, &huge), Err(Error::Budget)));
+        assert!(matches!(make(&document, &huge), Err(super::Error::Budget)));
         if let Some(ClipShape::Image { keys, .. }) = &mut document.layers[0].clip_shape {
             *keys = vec![
                 RectMaskKey {

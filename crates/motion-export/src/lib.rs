@@ -153,7 +153,7 @@ pub(crate) fn live_clip_frame_work(script: &Script, scene_index: usize) -> u64 {
             .get(&instance.clip)
             .map_or(u64::MAX, |clip| {
                 clip.bone_tracks.values().fold(7u64, |cost, keys| {
-                    let search = u64::from(usize::BITS - shape.key_count().max(1).leading_zeros());
+                    let search = u64::from(usize::BITS - keys.len().max(1).leading_zeros());
                     cost.saturating_add(search.saturating_add(4))
                 })
             });
