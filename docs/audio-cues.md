@@ -1,8 +1,8 @@
 # Audio cues
 
 Non-speech sound effects and stings are authored in YAML under a scene's
-`composition.audio_cues`. There is no native editor control yet; YAML is the
-interface. Cues are mixed with dialogue by the same `motion_audio::mix_timeline`
+`composition.audio_cues`. YAML is the source of truth, and the desktop inspector's
+"Audio cues" section edits the selected scene's cues (see Native editor below). Cues are mixed with dialogue by the same `motion_audio::mix_timeline`
 call on the same 24 kHz scene sample clock, so preview, scene export and sequence
 export read one buffer.
 
@@ -51,9 +51,20 @@ scenes:
   absolute sample indices of the prepared buffer, so there is no cue state to drift.
 - Sequence crossfades weight the whole scene buffer, cues included.
 
+## Native editor
+
+The inspector's "Audio cues" section holds a detached draft per scene (id, asset path,
+start, gain, trim, optional duration; ids and paths are length-limited). Apply runs
+`motion_script::apply_audio_cues` as one validated source transaction through the
+shared history, so Undo restores the previous source and a bad value shows the real
+validation error. A changed source or scene discards the draft. The editor only stores
+project-relative paths: it opens and decodes no file, and there is no file picker;
+missing or unsupported WAVs are reported when audio is prepared. Tests are headless
+egui draws plus Studio-level Apply/Undo/stale-context checks; no GUI was exercised by hand.
+
 ## Not covered
 
 No resampling or format conversion, MP3/AAC, per-cue fades or envelopes, looping,
-a native cue editor or cue waveform display, and no perceptual loudness
+a cue waveform display or file picker, and no perceptual loudness
 management. Tests are headless sample-level checks (`crates/motion-voice/tests/cues.rs`);
 no audio device or GUI was exercised.

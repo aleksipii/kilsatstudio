@@ -87,6 +87,23 @@ joint discards unapplied edits; an empty list removes the track. Original-rig
 bone tracks and clips stay unsupported for custom actors, and nothing here
 establishes physical Mac rendering acceptance.
 
+### Texture and weight controls
+
+The custom-rig editor's **Part texture and skin weights** section edits the YAML
+draft without hand-writing it: pick a part; pick an Image asset from the project
+inventory (disabled with an explanation when there is none); edit `u0 v0 u1 v1`;
+add/remove skin weights; per vertex choose one or two influence joints and weights,
+with **Normalize vertex/all** (rejected, leaving the draft untouched, for negative,
+non-finite or all-zero weights). Controls parse the draft, change it and re-serialise
+it, so comments and formatting are normalised, a rig without texture/skin
+re-serialises without those keys, and the controls are disabled while the YAML does
+not parse. Issues (unknown asset, weights not summing to one, and the real rig
+validation error) are listed before Apply. Apply is unchanged: the same atomic,
+validated, undoable source transaction, which also rejects texture assets that are
+not Image assets in the inventory and stale source/actor drafts. This is a numeric
+form, not a visual canvas; tests are headless egui and logic tests only, with no
+hand-run desktop validation.
+
 ## Try the integrated example
 
 Open `examples/studio-production-demo.kilsat` with the desktop Open project action.

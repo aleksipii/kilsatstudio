@@ -9,6 +9,7 @@ motion-art = { path = "../../crates/motion-art" }
 motion-jobs = { path = "../../crates/motion-jobs" }
 eframe = { version = "0.31.1", default-features = false, features = ["default_fonts", "glow", "x11", "wayland"] }
 motion-project = { path = "../../crates/motion-project" }
+motion-rig = { path = "../../crates/motion-rig" }
 motion-scene = { path = "../../crates/motion-scene" }
 motion-script = { path = "../../crates/motion-script" }
 motion-voice = { path = "../../crates/motion-voice" }

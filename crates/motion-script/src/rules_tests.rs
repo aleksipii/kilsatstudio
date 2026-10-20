@@ -247,3 +247,60 @@ fn round_trip_keeps_rules_and_existing_instances() {
         expanded.scenes[1].composition
     );
 }
+
+#[test]
+fn apply_rules_and_audio_cues_are_atomic_and_validated() {
+    let source = to_source(&parse(BASE).unwrap()).unwrap();
+    let mut rules = parse(&with_rules(HAPPY)).unwrap().rules;
+    let updated = crate::apply_rules(&source, rules.clone()).unwrap();
+    assert_eq!(parse(&updated).unwrap().rules, rules);
+    assert!(
+        parse(&crate::apply_rules(&updated, Default::default()).unwrap())
+            .unwrap()
+            .rules
+            .is_empty()
+    );
+    // An unknown clip is rejected and the input source is untouched.
+    if let crate::RuleEffect::Clip { clip, .. } = &mut rules.get_mut("smile").unwrap().effect {
+        *clip = "missing".into();
+    }
+    assert!(crate::apply_rules(&source, rules).is_err());
+
+    let cue = |id: &str, at: f64| crate::AudioCue {
+        id: id.into(),
+        asset: "audio/door.wav".into(),
+        at,
+        gain: 1.0,
+        trim_start: 0.0,
+        duration: None,
+    };
+    let with = crate::apply_audio_cues(&source, 0, &[cue("door", 1.5)]).unwrap();
+    assert_eq!(
+        parse(&with).unwrap().scenes[0].composition.audio_cues,
+        vec![cue("door", 1.5)]
+    );
+    assert!(parse(&with).unwrap().scenes[1]
+        .composition
+        .audio_cues
+        .is_empty());
+    for bad in [
+        vec![cue("door", 10.0)],
+        vec![cue("a", 1.0), cue("a", 2.0)],
+        vec![crate::AudioCue {
+            asset: "../x.wav".into(),
+            ..cue("b", 1.0)
+        }],
+        vec![crate::AudioCue {
+            gain: 9.0,
+            ..cue("b", 1.0)
+        }],
+    ] {
+        assert!(crate::apply_audio_cues(&source, 0, &bad).is_err());
+    }
+    assert!(crate::apply_audio_cues(&source, 9, &[]).is_err());
+    let cleared = crate::apply_audio_cues(&with, 0, &[]).unwrap();
+    assert!(parse(&cleared).unwrap().scenes[0]
+        .composition
+        .audio_cues
+        .is_empty());
+}
