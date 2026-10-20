@@ -1,5 +1,7 @@
 //! Persisted scene artwork and bounded raster resources shared by preview/export.
+mod lighting;
 mod resource;
+pub use lighting::*;
 pub use resource::{
     decode_image, load_image, ImageResource, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGE_SIDE,
 };
@@ -64,6 +66,14 @@ pub enum Content {
     Ellipse {
         rect: Rect,
         color: Color,
+    },
+    /// Time-sequenced project image assets (e.g. a phone screen), stretched over
+    /// `rect`. Time is measured from the layer's `active.start` (or scene start).
+    AnimatedImage {
+        frames: Vec<ImageFrame>,
+        rect: Rect,
+        #[serde(default)]
+        playback: Playback,
     },
 }
 /// Rendering plane; older projects retain their foreground stacking order.
@@ -703,6 +713,9 @@ pub struct Document {
     /// Explicit root sibling order. Empty retains legacy flat ordering only.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub order: Vec<ArtUnit>,
+    /// Scene lights drawn above all artwork; empty for legacy documents.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub lights: Vec<Light>,
 }
 /// An item has exactly one owner: the root order or one group's children.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -764,13 +777,27 @@ impl Rect {
 impl Layer {
     /// Every project image asset this layer needs: its content and its image mask.
     pub fn image_assets(&self) -> impl Iterator<Item = &str> {
-        let content = match &self.content {
-            Content::Image { asset_id, .. } => Some(asset_id.as_str()),
-            _ => None,
+        let content: Vec<&str> = match &self.content {
+            Content::Image { asset_id, .. } => vec![asset_id.as_str()],
+            Content::AnimatedImage { frames, .. } => {
+                frames.iter().map(|f| f.asset_id.as_str()).collect()
+            }
+            _ => Vec::new(),
         };
         content
             .into_iter()
             .chain(self.clip_shape.as_ref().and_then(ClipShape::image_asset))
+    }
+    /// Asset shown at scene-local `time` by an animated image layer.
+    pub fn animated_asset(&self, time: f64) -> Option<&str> {
+        let Content::AnimatedImage {
+            frames, playback, ..
+        } = &self.content
+        else {
+            return None;
+        };
+        let start = self.active.map_or(0.0, |r| r.start);
+        select_frame(frames, *playback, time - start).map(|f| f.asset_id.as_str())
     }
     /// Visibility at a scene-local time; an interval excludes its end boundary.
     pub fn is_active(&self, time: f64) -> bool {
@@ -937,6 +964,7 @@ impl Document {
         let mut mask_key_count = 0;
         let mut mask_stroke_count = 0;
         let mut mask_render_cost = 0;
+        let mut frame_count = 0;
         for layer in &self.layers {
             if !identifier(&layer.id)
                 || !ids.insert(&layer.id)
@@ -1003,6 +1031,14 @@ impl Document {
                 Content::Rectangle { rect, .. } | Content::Ellipse { rect, .. } => {
                     rect.validate()?
                 }
+                Content::AnimatedImage { frames, rect, .. } => {
+                    validate_frames(frames)?;
+                    rect.validate()?;
+                    frame_count += frames.len();
+                    if frame_count > MAX_TOTAL_ANIMATED_FRAMES {
+                        return invalid("artwork exceeds 4096 animated image frames");
+                    }
+                }
                 Content::Stroke { points, width, .. } => {
                     point_count += points.len();
                     if points.len() < 2
@@ -1018,6 +1054,53 @@ impl Document {
             }
         }
         self.validate_groups()?;
+        self.validate_lights()?;
+        Ok(())
+    }
+    fn validate_lights(&self) -> Result<(), Error> {
+        if self.lights.len() > MAX_LIGHTS {
+            return invalid("artwork exceeds 64 lights");
+        }
+        let mut ids = BTreeSet::new();
+        let mut keys = 0;
+        for light in &self.lights {
+            light.validate()?;
+            if !ids.insert(light.id.as_str()) {
+                return invalid("light identifiers must be unique");
+            }
+            keys += light.key_count();
+            if keys > MAX_TOTAL_LIGHT_KEYS {
+                return invalid("artwork exceeds 2048 light track keys");
+            }
+            if self
+                .lights
+                .iter()
+                .filter(|l| l.scene_id == light.scene_id)
+                .count()
+                > MAX_LIGHTS_PER_SCENE
+            {
+                return invalid("a scene exceeds 16 lights");
+            }
+            if let LightSource::Radial {
+                screen_glow: Some(glow),
+                ..
+            } = &light.source
+            {
+                let ok = self.layers.iter().any(|l| {
+                    l.id == glow.layer_id
+                        && l.scene_id == light.scene_id
+                        && matches!(
+                            l.content,
+                            Content::Image { .. } | Content::AnimatedImage { .. }
+                        )
+                });
+                if !ok {
+                    return invalid(
+                        "screen glow must reference an image layer in the light's scene",
+                    );
+                }
+            }
+        }
         Ok(())
     }
     /// Apply a typed edit transactionally. Reference checks belong to the project boundary.
@@ -1031,11 +1114,27 @@ impl Document {
                     | Command::Replace(_)
                     | Command::Remove { .. }
                     | Command::Reorder { .. }
+                    | Command::AddLight(_)
+                    | Command::ReplaceLight(_)
+                    | Command::RemoveLight { .. }
             )
         {
             next.order = next.root_order();
         }
         match command {
+            Command::AddLight(light) => next.lights.push(light),
+            Command::ReplaceLight(light) => {
+                let Some(target) = next.lights.iter_mut().find(|l| l.id == light.id) else {
+                    return invalid("light does not exist");
+                };
+                *target = light;
+            }
+            Command::RemoveLight { id } => {
+                let Some(index) = next.lights.iter().position(|l| l.id == id) else {
+                    return invalid("light does not exist");
+                };
+                next.lights.remove(index);
+            }
             Command::CreateGroup(group) => {
                 next.order.push(ArtUnit::Group(group.id.clone()));
                 next.groups.push(group);
@@ -1118,6 +1217,11 @@ impl Document {
 }
 #[derive(Debug, Clone)]
 pub enum Command {
+    AddLight(Light),
+    ReplaceLight(Light),
+    RemoveLight {
+        id: String,
+    },
     CreateGroup(Group),
     ReplaceGroup(Group),
     Move {

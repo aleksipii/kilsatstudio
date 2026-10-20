@@ -4554,6 +4554,7 @@ fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
 /// The direct egui painter cannot implement SVG arbitrary masks/blending.
 fn requires_composited_preview(art: &motion_art::Document, scene_id: &str, time: f64) -> bool {
     !art.order.is_empty()
+        || art.lights.iter().any(|light| light.scene_id == scene_id)
         || art.groups.iter().any(|group| group.scene_id == scene_id)
         || art.layers.iter().any(|layer| {
             layer.scene_id == scene_id

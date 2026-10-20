@@ -99,6 +99,17 @@ impl ScenePreview {
                 }
             }
         }
+        for light in &art.document.lights {
+            let owner = script
+                .scenes
+                .iter()
+                .find(|s| s.id == light.scene_id)
+                .ok_or_else(|| invalid("unknown artwork scene"))?;
+            light
+                .validate_scene_duration(owner.duration)
+                .map_err(|e| invalid(e.to_string()))?;
+            geometry += motion_art::LIGHT_FRAME_COST as usize;
+        }
         let bytes = art
             .images
             .values()

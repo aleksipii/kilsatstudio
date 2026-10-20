@@ -12,6 +12,8 @@ mod gpu_parity_tests;
 #[cfg(test)]
 mod group_composition_tests;
 #[cfg(test)]
+mod lighting_tests;
+#[cfg(test)]
 mod live_clip_tests;
 mod media;
 mod preview_scene;
@@ -653,6 +655,18 @@ fn export_sequence(
                     }
             })
             .sum::<u64>();
+        let geometry = geometry
+            + motion_art::lighting_frame_cost(&art.document.lights, &script.scenes[scene_index].id);
+        for light in art
+            .document
+            .lights
+            .iter()
+            .filter(|l| l.scene_id == script.scenes[scene_index].id)
+        {
+            light
+                .validate_scene_duration(script.scenes[scene_index].duration)
+                .map_err(|e| invalid(e.to_string()))?;
+        }
         if geometry.saturating_mul(total) > 4_000_000 {
             return Err(invalid(
                 "artwork exceeds four million layer/point frame visits",

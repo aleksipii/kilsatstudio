@@ -1,0 +1,95 @@
+{
+  "layers": [
+    {
+      "id": "wall",
+      "scene_id": "intro",
+      "name": "Room wall",
+      "visible": true,
+      "plane": "background",
+      "opacity": 1.0,
+      "attachment": null,
+      "clip": null,
+      "content": {"type": "rectangle", "rect": {"x": 0, "y": 0, "width": 640, "height": 360}, "color": {"r": 52, "g": 38, "b": 84, "a": 255}}
+    },
+    {
+      "id": "lamp_body",
+      "scene_id": "intro",
+      "name": "Lamp",
+      "visible": true,
+      "opacity": 1.0,
+      "attachment": null,
+      "clip": null,
+      "content": {"type": "ellipse", "rect": {"x": 70, "y": 70, "width": 30, "height": 30}, "color": {"r": 255, "g": 214, "b": 150, "a": 255}}
+    },
+    {
+      "id": "face",
+      "scene_id": "intro",
+      "name": "Face",
+      "visible": true,
+      "opacity": 1.0,
+      "attachment": null,
+      "clip": null,
+      "content": {"type": "ellipse", "rect": {"x": 330, "y": 120, "width": 120, "height": 150}, "color": {"r": 214, "g": 168, "b": 140, "a": 255}}
+    },
+    {
+      "id": "phone",
+      "scene_id": "intro",
+      "name": "Phone screen",
+      "visible": true,
+      "opacity": 1.0,
+      "attachment": null,
+      "clip": null,
+      "content": {
+        "type": "animated_image",
+        "rect": {"x": 360, "y": 280, "width": 60, "height": 40},
+        "playback": "loop",
+        "frames": [
+          {"asset_id": "phone-home", "duration": 1.0},
+          {"asset_id": "phone-chat", "duration": 0.5},
+          {"asset_id": "phone-dark", "duration": 0.25}
+        ]
+      }
+    }
+  ],
+  "lights": [
+    {
+      "id": "room_tint",
+      "scene_id": "intro",
+      "source": {"type": "ambient", "color": {"r": 70, "g": 50, "b": 130, "a": 255}, "strength": 0.85}
+    },
+    {
+      "id": "lamp_glow",
+      "scene_id": "intro",
+      "flicker": {"mode": "noise", "amount": 0.25, "rate_hz": 5.0, "seed": 42},
+      "source": {
+        "type": "radial",
+        "position": {"x": 85, "y": 85},
+        "radius": 170,
+        "softness": 1.0,
+        "color": {"r": 255, "g": 170, "b": 90, "a": 255},
+        "intensity": 0.9,
+        "blend": "screen"
+      }
+    },
+    {
+      "id": "phone_glow",
+      "scene_id": "intro",
+      "source": {
+        "type": "radial",
+        "position": {"x": 0, "y": -60},
+        "radius": 150,
+        "aspect": 1.2,
+        "softness": 1.0,
+        "color": {"r": 140, "g": 190, "b": 255, "a": 255},
+        "intensity": 0.8,
+        "blend": "screen",
+        "screen_glow": {"layer_id": "phone", "gain": 2.0, "tint": 0.6}
+      }
+    },
+    {
+      "id": "edge",
+      "scene_id": "intro",
+      "source": {"type": "vignette", "strength": 0.55, "inner": 0.35}
+    }
+  ]
+}
