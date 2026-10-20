@@ -1193,7 +1193,10 @@ pub fn paint(
 ) {
     let (textures, plane) = resources;
     // Grouped scenes must use the shared compositor, never a flattened painter fallback.
-    if !document.order.is_empty() || document.groups.iter().any(|g| g.scene_id == scene_id) {
+    if !document.order.is_empty()
+        || document.groups.iter().any(|g| g.scene_id == scene_id)
+        || document.lights.iter().any(|l| l.scene_id == scene_id)
+    {
         return;
     }
 
@@ -1240,6 +1243,24 @@ pub fn paint(
                     );
                 } else {
                     painter.rect_filled(bounds(rect), 0.0, egui::Color32::DARK_RED);
+                }
+            }
+            Content::AnimatedImage { rect, .. } => {
+                match layer
+                    .animated_asset(scene.time)
+                    .and_then(|asset| textures.get(asset))
+                {
+                    Some(texture) => {
+                        painter.image(
+                            texture.id(),
+                            bounds(rect),
+                            egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                            egui::Color32::WHITE,
+                        );
+                    }
+                    None => {
+                        painter.rect_filled(bounds(rect), 0.0, egui::Color32::DARK_RED);
+                    }
                 }
             }
             Content::Rectangle { rect, color: c } => {

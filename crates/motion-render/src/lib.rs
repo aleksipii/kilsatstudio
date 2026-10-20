@@ -314,7 +314,15 @@ fn render_scene(
             motion_art::Plane::Foreground,
         )?;
     }
-    svg.push_str("</g></g></svg>\n");
+    svg.push_str("</g>");
+    if let Some((scene_id, document, images)) = artwork {
+        let camera = format!(
+            "translate({camera_x:.6} {camera_y:.6}) scale({:.6})",
+            scene.camera.zoom
+        );
+        append_lights(&mut svg, scene, scene_id, document, images, &camera)?;
+    }
+    svg.push_str("</g></svg>\n");
     Ok(svg)
 }
 
@@ -346,6 +354,7 @@ pub fn render_svg_with_art(
 fn artwork_content_bounds(content: &motion_art::Content) -> motion_art::Rect {
     match content {
         motion_art::Content::Image { rect, .. }
+        | motion_art::Content::AnimatedImage { rect, .. }
         | motion_art::Content::Rectangle { rect, .. }
         | motion_art::Content::Ellipse { rect, .. } => *rect,
         motion_art::Content::Stroke { points, width, .. } => {
@@ -615,6 +624,21 @@ fn append_art(
                 }
                 write!(svg,"<image x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" preserveAspectRatio=\"none\" href=\"{}\"/>",r.x,r.y,r.width,r.height,image.data_uri()).unwrap();
             }
+            Content::AnimatedImage { rect: r, .. } => {
+                // Exactly one frame is embedded: the one selected at scene time.
+                let asset_id = layer.animated_asset(scene.time).ok_or_else(|| {
+                    Error::InvalidArtwork("animated image has no selectable frame".into())
+                })?;
+                let image = images.get(asset_id).ok_or_else(|| {
+                    Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
+                })?;
+                if image.png().len() > motion_art::MAX_IMAGE_BYTES as usize {
+                    return Err(Error::InvalidArtwork(
+                        "image encoded byte budget exceeded".into(),
+                    ));
+                }
+                write!(svg,"<image x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\" preserveAspectRatio=\"none\" href=\"{}\"/>",r.x,r.y,r.width,r.height,image.data_uri()).unwrap();
+            }
             Content::Rectangle { rect: r, color } => {
                 write!(
                     svg,
@@ -660,6 +684,169 @@ fn append_art(
                 "SVG artwork exceeds 48 MiB frame budget".into(),
             ));
         }
+    }
+    Ok(())
+}
+
+fn hex(color: &motion_art::Color) -> String {
+    format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
+}
+
+/// Scene lights above all artwork. Ambient tint and vignette are canvas-space
+/// (outside the camera); radial lights live in scene space under `camera`.
+/// Ambient/vignette come first so glows stay bright over a darkened room.
+fn append_lights(
+    svg: &mut String,
+    scene: &EvaluatedScene,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    camera: &str,
+) -> Result<(), Error> {
+    use motion_art::LightSource;
+    let active: Vec<(usize, &motion_art::Light)> = document
+        .lights
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| l.scene_id == scene_id && l.is_active(scene.time))
+        .collect();
+    if active.is_empty() {
+        return Ok(());
+    }
+    for (index, light) in &active {
+        let flicker = light.flicker_factor(scene.time);
+        match &light.source {
+            LightSource::Ambient { color, strength } => {
+                write!(svg, "<rect width=\"{}\" height=\"{}\" fill=\"{}\" opacity=\"{:.6}\" style=\"mix-blend-mode:multiply\"/>", scene.width, scene.height, hex(color), strength * flicker).unwrap();
+            }
+            LightSource::Vignette { strength, inner } => {
+                write!(svg, "<defs><radialGradient id=\"light{index}\" cx=\"0.5\" cy=\"0.5\" r=\"0.707107\"><stop offset=\"{inner:.6}\" stop-color=\"#000000\" stop-opacity=\"0\"/><stop offset=\"1\" stop-color=\"#000000\" stop-opacity=\"{:.6}\"/></radialGradient></defs><rect width=\"{}\" height=\"{}\" fill=\"url(#light{index})\"/>", strength * flicker, scene.width, scene.height).unwrap();
+            }
+            LightSource::Radial { .. } => {}
+        }
+    }
+    let mut opened = false;
+    for (index, light) in &active {
+        let LightSource::Radial {
+            radius,
+            aspect,
+            softness,
+            color,
+            intensity,
+            blend,
+            attachment,
+            screen_glow,
+            ..
+        } = &light.source
+        else {
+            continue;
+        };
+        let mut position = light.sample_position(scene.time).expect("radial light");
+        let mut rgb = [
+            f64::from(color.r) / 255.0,
+            f64::from(color.g) / 255.0,
+            f64::from(color.b) / 255.0,
+        ];
+        let mut alpha = intensity * light.flicker_factor(scene.time);
+        if let Some(id) = attachment {
+            match scene.actors.iter().find(|a| &a.id == id) {
+                Some(a) => {
+                    position.x += a.x;
+                    position.y += a.y;
+                }
+                None => continue,
+            }
+        }
+        if let Some(glow) = screen_glow {
+            let Some(prop) = document
+                .layers
+                .iter()
+                .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
+            else {
+                continue;
+            };
+            let (asset_id, rect) = match &prop.content {
+                motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
+                motion_art::Content::AnimatedImage { rect, .. } => {
+                    (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
+                }
+                _ => continue,
+            };
+            let image = images.get(asset_id).ok_or_else(|| {
+                Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
+            })?;
+            let avg = image.average_rgb();
+            let peak = avg.iter().cloned().fold(0.0, f64::max);
+            if peak <= 0.0 {
+                continue;
+            }
+            let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
+            for (channel, value) in rgb.iter_mut().enumerate() {
+                *value += (avg[channel] / peak - *value) * glow.tint;
+            }
+            alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
+            position.x += rect.x + rect.width / 2.0;
+            position.y += rect.y + rect.height / 2.0;
+            if let Some(owner) = &prop.attachment {
+                match scene.actors.iter().find(|a| &a.id == owner) {
+                    Some(a) => {
+                        position.x += a.x;
+                        position.y += a.y;
+                    }
+                    None => continue,
+                }
+            }
+        }
+        if !opened {
+            write!(svg, "<g transform=\"{camera}\">").unwrap();
+            opened = true;
+        }
+        let stop_color = format!(
+            "#{:02x}{:02x}{:02x}",
+            (rgb[0] * 255.0).round() as u8,
+            (rgb[1] * 255.0).round() as u8,
+            (rgb[2] * 255.0).round() as u8
+        );
+        write!(
+            svg,
+            "<defs><radialGradient id=\"light{index}\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\">"
+        )
+        .unwrap();
+        // Smoothstep falloff over the softness band; flat before it.
+        let inner = 1.0 - softness;
+        write!(
+            svg,
+            "<stop offset=\"0\" stop-color=\"{stop_color}\" stop-opacity=\"{alpha:.6}\"/>"
+        )
+        .unwrap();
+        if *softness > 0.0 {
+            for step in 0..=6 {
+                let f = f64::from(step) / 6.0;
+                let fade = 1.0 - f * f * (3.0 - 2.0 * f);
+                write!(
+                    svg,
+                    "<stop offset=\"{:.6}\" stop-color=\"{stop_color}\" stop-opacity=\"{:.6}\"/>",
+                    inner + softness * f,
+                    alpha * fade
+                )
+                .unwrap();
+            }
+        } else {
+            write!(
+                svg,
+                "<stop offset=\"1\" stop-color=\"{stop_color}\" stop-opacity=\"{alpha:.6}\"/>"
+            )
+            .unwrap();
+        }
+        let blend_style = match blend {
+            motion_art::BlendMode::Normal => "",
+            motion_art::BlendMode::Multiply => " style=\"mix-blend-mode:multiply\"",
+            motion_art::BlendMode::Screen => " style=\"mix-blend-mode:screen\"",
+        };
+        write!(svg, "</radialGradient></defs><ellipse cx=\"{:.6}\" cy=\"{:.6}\" rx=\"{radius:.6}\" ry=\"{:.6}\" fill=\"url(#light{index})\"{blend_style}/>", position.x, position.y, radius * aspect).unwrap();
+    }
+    if opened {
+        svg.push_str("</g>");
     }
     Ok(())
 }

@@ -131,6 +131,29 @@ impl ProjectDocument {
                 return invalid("artwork group references a scene that does not exist");
             }
         }
+        for light in &self.art.lights {
+            let Some(scene) = script
+                .scenes
+                .iter()
+                .find(|scene| scene.id == light.scene_id)
+            else {
+                return invalid("artwork light references a scene that does not exist");
+            };
+            light
+                .validate_scene_duration(scene.duration)
+                .map_err(|error| Error::Validation(error.to_string()))?;
+            if let motion_art::LightSource::Radial {
+                attachment: Some(actor),
+                ..
+            } = &light.source
+            {
+                if !script.characters.contains_key(actor) {
+                    return invalid(
+                        "artwork light attachment references a character that does not exist",
+                    );
+                }
+            }
+        }
         for layer in &self.art.layers {
             let Some(scene) = script
                 .scenes
@@ -590,6 +613,80 @@ mod tests {
         let mut value: serde_json::Value = serde_json::from_slice(&saved).unwrap();
         value.as_object_mut().unwrap().remove("art");
         assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    #[test]
+    fn animated_prop_frames_and_lights_are_validated_against_the_project() {
+        let rect = motion_art::Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 10.0,
+            height: 10.0,
+        };
+        let mut prop = rectangle();
+        prop.content = motion_art::Content::AnimatedImage {
+            frames: vec![
+                motion_art::ImageFrame {
+                    asset_id: "one".into(),
+                    duration: 0.5,
+                },
+                motion_art::ImageFrame {
+                    asset_id: "two".into(),
+                    duration: 0.5,
+                },
+            ],
+            rect,
+            playback: motion_art::Playback::Hold,
+        };
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let image = |id: &str| AssetReference {
+            id: id.into(),
+            path: format!("resources/{id}.png"),
+            kind: AssetKind::Image,
+        };
+        doc.assets.push(image("one"));
+        // Every frame must resolve, not only the first.
+        assert!(doc
+            .apply_art(motion_art::Command::Add(prop.clone()))
+            .is_err());
+        doc.assets.push(image("two"));
+        doc.apply_art(motion_art::Command::Add(prop)).unwrap();
+        assert!(remove_asset(&mut doc, "two").is_err());
+        let lamp = |scene: &str, attachment: Option<&str>, end: f64| motion_art::Light {
+            id: "lamp".into(),
+            scene_id: scene.into(),
+            visible: true,
+            active: Some(motion_art::TimeRange { start: 0.0, end }),
+            flicker: None,
+            source: motion_art::LightSource::Radial {
+                position: motion_art::Point { x: 1.0, y: 1.0 },
+                radius: 10.0,
+                aspect: 1.0,
+                softness: 1.0,
+                color: motion_art::Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+                intensity: 1.0,
+                blend: motion_art::BlendMode::Screen,
+                attachment: attachment.map(Into::into),
+                track: Vec::new(),
+                screen_glow: None,
+            },
+        };
+        for bad in [
+            lamp("nowhere", None, 1.0),
+            lamp("intro", Some("GHOST"), 1.0),
+            lamp("intro", None, 99.0),
+        ] {
+            assert!(doc.apply_art(motion_art::Command::AddLight(bad)).is_err());
+        }
+        assert!(doc.art.lights.is_empty());
+        doc.apply_art(motion_art::Command::AddLight(lamp("intro", None, 1.0)))
+            .unwrap();
+        let reloaded = decode(&encode(&doc).unwrap()).unwrap();
+        assert_eq!(reloaded.art, doc.art);
     }
     #[test]
     fn rejects_orphan_art_and_removing_referenced_images_transactionally() {

@@ -312,6 +312,19 @@ fn preflight(
                 }
             }
         }
+        for light in &a.document.lights {
+            let scene = script
+                .scenes
+                .iter()
+                .find(|s| s.id == light.scene_id)
+                .ok_or_else(|| invalid("unknown artwork scene"))?;
+            light
+                .validate_scene_duration(scene.duration)
+                .map_err(|e| invalid(e.to_string()))?;
+            geometry = geometry
+                .checked_add(motion_art::LIGHT_FRAME_COST)
+                .ok_or_else(|| invalid("light geometry overflow"))?;
+        }
         if geometry
             .checked_mul(if export { total } else { 1 })
             .is_none_or(|n| n > 4_000_000)
