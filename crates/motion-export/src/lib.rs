@@ -18,6 +18,8 @@ mod live_clip_tests;
 mod media;
 mod preview_scene;
 #[cfg(test)]
+mod rig_acting_tests;
+#[cfg(test)]
 mod rig_texture_tests;
 #[cfg(test)]
 mod soft_mask_tests;

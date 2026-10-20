@@ -856,6 +856,47 @@ pub fn reject_artwork_or_sequence() -> Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn acting_variants_are_ordinary_parts_for_the_gpu_command_builder() {
+        // Variants are resolved to plain polygons before rendering, so the
+        // experimental path draws them like any flat part; textured variants
+        // still report UnsupportedFeature through `build` (no images).
+        let script =
+            motion_script::parse(include_str!("../../../examples/acting-rig.yaml")).unwrap();
+        let mut scene = motion_scene::evaluate(&script, 0, 2.0).unwrap();
+        motion_scene::apply_speech(&mut scene, &[("PUPPET", Viseme::A)]);
+        assert!(build(
+            &scene,
+            256,
+            256,
+            &[("PUPPET", Viseme::A)],
+            Labels::OmitAcknowledged
+        )
+        .is_ok());
+        let mut textured = scene.clone();
+        let actor = textured
+            .actors
+            .iter_mut()
+            .find(|a| a.id == "PUPPET")
+            .unwrap();
+        actor.rigid_parts[7].texture = Some(motion_rig::EvaluatedTexture {
+            asset: "t".into(),
+            uv: [0.0, 0.0, 1.0, 1.0],
+            rest_bounds: [0.0, 0.0, 1.0, 1.0],
+            transform: motion_rig::Affine2 {
+                a: 1.0,
+                b: 0.0,
+                c: 0.0,
+                d: 1.0,
+                tx: 0.0,
+                ty: 0.0,
+            },
+        });
+        assert!(matches!(
+            build(&textured, 256, 256, &[], Labels::OmitAcknowledged),
+            Err(Error::UnsupportedFeature(_))
+        ));
+    }
     fn scene() -> EvaluatedScene {
         crate::tests::scene()
     }

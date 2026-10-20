@@ -422,6 +422,7 @@ fn fixtures() -> Vec<Fixture> {
             color: [200, 60, 60, 200],
             texture,
             skin,
+            ..Default::default()
         };
     let tex = |uv| {
         Some(motion_rig::PartTextureDefinition {
@@ -443,6 +444,7 @@ fn fixtures() -> Vec<Fixture> {
         id: "r".into(),
         joints: vec![joint("root", None, 0.0, 0.5, 1.3)],
         parts: vec![part("root", outline.clone(), texture, Vec::new())],
+        ..Default::default()
     };
     let images_g = || BTreeMap::from([("g".into(), gradient_image())]);
     push(
@@ -495,6 +497,7 @@ fn fixtures() -> Vec<Fixture> {
                 joint("arm", Some("root"), 0.0, 0.0, 1.0),
             ],
             parts: vec![part("root", bar.clone(), texture, skin.clone())],
+            ..Default::default()
         };
         let prepared = definition.prepare().unwrap();
         let arm = prepared.joint_index("arm").unwrap();

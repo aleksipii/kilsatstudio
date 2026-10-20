@@ -81,11 +81,29 @@ pub struct Composition {
     /// Custom-rig joint offsets by actor, then joint id. Added to the rest pose:
     /// translation and rotation add, scale multiplies.
     pub joint_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
+    /// Where a custom-rig actor with `eyes` looks over scene time.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub gaze_tracks: BTreeMap<String, Vec<GazeKey>>,
     pub fade_in: f64,
     pub fade_out: f64,
     /// Non-speech audio placed on the scene's shared 24 kHz sample clock.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub audio_cues: Vec<AudioCue>,
+}
+/// Maximum gaze keys per actor and scene.
+pub const MAX_GAZE_KEYS: usize = 256;
+/// One gaze target: either a screen point (`x` and `y`, scene pixels) or another
+/// actor (`target`). Between keys the look direction blends linearly.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GazeKey {
+    pub at: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub x: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub y: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<String>,
 }
 /// Maximum cues per scene; bounds mixer work and decoded memory.
 pub const MAX_AUDIO_CUES: usize = 64;
@@ -163,6 +181,7 @@ impl Default for Composition {
             clip_instances: Vec::new(),
             bone_tracks: BTreeMap::new(),
             joint_tracks: BTreeMap::new(),
+            gaze_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
             audio_cues: Vec::new(),
@@ -1395,6 +1414,14 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
             scene.composition.actor_tracks.remove(id);
             scene.composition.bone_tracks.remove(id);
             scene.composition.joint_tracks.remove(id);
+            scene.composition.gaze_tracks.remove(id);
+            for keys in scene.composition.gaze_tracks.values_mut() {
+                keys.retain(|key| key.target.as_deref() != Some(id));
+            }
+            scene
+                .composition
+                .gaze_tracks
+                .retain(|_, keys| !keys.is_empty());
             scene.composition.clip_weights.remove(id);
             scene.composition.clip_weight_tracks.remove(id);
             scene
@@ -1852,6 +1879,45 @@ impl Script {
                     {
                         return Err(fail(format!("{}: joint tracks require 1..4096 increasing scene keys, at most 65536 keys per scene, offsets/rotation within ±1000 and scale 0.1..4", s.id)));
                     }
+                }
+            }
+            for (actor, keys) in &composition.gaze_tracks {
+                let has_eyes = self
+                    .characters
+                    .get(actor)
+                    .and_then(|character| character.rig.as_ref())
+                    .is_some_and(|rig| rig.eyes.is_some());
+                if !has_eyes {
+                    return Err(fail(format!(
+                        "{}: gaze tracks require a custom-rig actor with eyes; {actor} has none",
+                        s.id
+                    )));
+                }
+                if keys.is_empty() || keys.len() > MAX_GAZE_KEYS {
+                    return Err(fail(format!(
+                        "{}: gaze track for {actor} needs 1..={MAX_GAZE_KEYS} keys",
+                        s.id
+                    )));
+                }
+                let mut previous = None;
+                for key in keys {
+                    let point_ok = |v: f64| v.is_finite() && v.abs() <= 1_000_000.0;
+                    let target_ok = match (&key.target, key.x, key.y) {
+                        (Some(target), None, None) => {
+                            target != actor && self.characters.contains_key(target)
+                        }
+                        (None, Some(x), Some(y)) => point_ok(x) && point_ok(y),
+                        _ => false,
+                    };
+                    if !key.at.is_finite()
+                        || key.at < 0.0
+                        || key.at > s.duration
+                        || previous.is_some_and(|time| key.at <= time)
+                        || !target_ok
+                    {
+                        return Err(fail(format!("{}: gaze keys for {actor} need strictly increasing scene times and either finite x and y or another known actor as target", s.id)));
+                    }
+                    previous = Some(key.at);
                 }
             }
             if s.composition.audio_cues.len() > MAX_AUDIO_CUES {

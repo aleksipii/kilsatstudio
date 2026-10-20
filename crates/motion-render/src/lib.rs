@@ -888,6 +888,7 @@ mod tests {
                 wave: 1.0,
                 skeleton: motion_animation::humanoid(None, 1.0),
                 rigid_parts: Vec::new(),
+                mouth: None,
             }],
         }
     }

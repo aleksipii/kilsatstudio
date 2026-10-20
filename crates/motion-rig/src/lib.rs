@@ -1,8 +1,10 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
 pub mod definition;
 pub use definition::{
-    EvaluatedPart, EvaluatedTexture, PartTextureDefinition, PreparedRig, RigDefinition,
-    RigJointDefinition, RigidPartDefinition, VertexWeight,
+    ActingInput, BlinkDefinition, EvaluatedPart, EvaluatedTexture, ExpressionVariant,
+    EyesDefinition, MouthShapes, PartTextureDefinition, PartVariantDefinition, PreparedRig,
+    RigDefinition, RigJointDefinition, RigidPartDefinition, VertexWeight, VisemeMapDefinition,
+    EMOTION_NAMES, VISEME_NAMES,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {
@@ -112,7 +114,7 @@ pub struct Rig {
 }
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
-    #[error("custom rig requires version 1, unique stable IDs, valid parent references and bounded rigid polygon attachments")]
+    #[error("custom rig requires version 1, unique stable IDs, valid parent references, bounded rigid polygon attachments and consistent variant, viseme, expression and eye references")]
     InvalidDefinition,
     #[error(
         "rig needs 1..=256 unique named joints in parent-before-child order with finite transforms"

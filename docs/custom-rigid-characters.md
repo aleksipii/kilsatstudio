@@ -207,3 +207,73 @@ parts as `UnsupportedFeature`. Measured CPU/GPU differences are in
 [gpu-parity.md](gpu-parity.md). Tests establish geometry, pixel registration at
 90 degree rotations and preview/PNG agreement on Linux/macOS CI; no hand-run
 desktop or perceptual review was done.
+
+## Acting layer: variants, visemes, expressions, eyes
+
+All of this is optional and skipped on save when absent, so legacy rigs and
+scenes serialize and render as before. The complete original example is
+[examples/acting-rig.yaml](../examples/acting-rig.yaml); the tests load that file.
+
+```yaml
+parts:
+  - id: mouth
+    joint: head
+    points: [[-10, 14], [10, 14], [10, 17], [-10, 17]]
+    color: [120, 40, 50, 255]
+    variants:                       # up to 16 per part
+      open: {points: [[-10, 10], [10, 10], [10, 26], [-10, 26]]}
+      smile: {color: [150, 60, 70, 255]}
+visemes:                            # sprite swap of one mouth part
+  part: mouth
+  map: {a: open, e: wide, o: round}
+expressions:                        # emotion -> variants (neutral keeps base)
+  happy: [{part: mouth, variant: smile}, {part: brow_l, variant: raised}]
+eyes:
+  pupils: [pupil_l, pupil_r]        # follow the gaze track
+  travel: 4                         # max pupil offset, actor units (0..500)
+  blink: {parts: [eye_l, eye_r, pupil_l, pupil_r], variant: blink, interval: 3, duration: 0.15}
+scenes:
+  - composition:
+      gaze_tracks:
+        PUPPET:
+          - {at: 0, x: 0, y: 128}   # screen point, scene pixels
+          - {at: 4, target: FRIEND} # another actor's eyes (origin if it has none)
+```
+
+*Variants* override any of `points`, `color` and `texture` of the base part;
+alpha 0 hides it. A skinned part's variant polygon must keep its point count.
+Texture variants count toward the 16 textured parts and are included in the
+rig's image assets.
+
+*Visemes*: map keys are the `motion_lipsync::Viseme` names (`rest closed teeth_lip
+tongue_teeth tongue_up sibilant sh r a e i o u`); unmapped visemes, and actors with
+no viseme, keep the base mouth. `apply_speech` (already used by preview, SVG/PNG and
+video export with the same sample-clock viseme) swaps the part, so every path agrees.
+The viseme replaces any expression variant on the mouth part.
+
+*Expressions* use the five screenplay emotions; variants are chosen by the actor's
+current emotion at the sample time. Precedence per part: expression, then blink,
+then viseme. Brows may equally be animated by joint tracks.
+
+*Eyes*: `gaze_tracks` keys are strictly increasing scene times with either `x`/`y`
+or `target` (another actor). The look direction (full travel at 100 units distance)
+is measured in the actor's own space from the mean pupil vertex and blends linearly
+between keys; pupils translate by at most `travel`. Blinks swap `variant` onto the
+listed parts for `duration` seconds, at most once per `interval`-second window
+(1..30 s); the start inside the window comes from an FNV-1a hash of the actor id
+and window index, so it depends only on actor id and scene time (no clock or random
+state) and is identical across repeated and out-of-order seeks. Every scene
+restarts the same pattern.
+
+Validation rejects unknown variants, parts, viseme or emotion names, duplicate
+parts per emotion, more than 16 variants or entries, out-of-range travel or blink
+timing, gaze keys that are unordered, beyond the scene, mixed or half-specified,
+unknown or self targets, and gaze tracks for actors without eyes. Removing a
+character drops gaze keys that target it.
+
+The experimental GPU path receives variants already resolved to ordinary parts, so
+flat variants draw like any part; textured parts still need `build_with_art` and
+otherwise report `UnsupportedFeature`, as before. Tests cover exact-sample viseme
+and emotion selection, gaze bounds, blink determinism and rate, and
+SVG/PNG/preview pixel agreement. They do not establish perceived lip-sync or acting
+quality, and no hand-run desktop review was done.
