@@ -49,6 +49,7 @@ impl ScenePreview {
         art.document
             .validate()
             .map_err(|e| invalid(e.to_string()))?;
+        rig_texture_preflight(&script, Some(&art.images))?;
         let group_bytes = group_work(&art, &script, 1, false)?;
         let mut geometry = 0usize;
         for layer in &art.document.layers {

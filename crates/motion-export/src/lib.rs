@@ -13,6 +13,8 @@ mod live_clip_tests;
 mod media;
 mod preview_scene;
 #[cfg(test)]
+mod rig_texture_tests;
+#[cfg(test)]
 mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
 mod sequence;
@@ -43,6 +45,29 @@ pub const MAX_FRAMES: u64 = 10_000;
 const MAX_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_SOURCE: usize = 1024 * 1024;
 const MAX_DIALOGUE: usize = 10_000;
+
+/// Every custom-rig texture must have a decoded project image, and their
+/// embedded PNG bytes per frame stay within the shared artwork image limit.
+fn rig_texture_preflight(
+    script: &Script,
+    images: Option<&BTreeMap<String, motion_art::ImageResource>>,
+) -> Result<(), Error> {
+    for rig in script.characters.values().filter_map(|c| c.rig.as_ref()) {
+        let mut bytes = 0u64;
+        for asset_id in rig.image_assets() {
+            let image = images
+                .and_then(|images| images.get(asset_id))
+                .ok_or_else(|| {
+                    invalid(format!("missing rig texture image resource: {asset_id}"))
+                })?;
+            bytes += image.png().len() as u64;
+            if bytes > motion_art::MAX_IMAGE_BYTES {
+                return Err(invalid("rig texture embedded image budget exceeded"));
+            }
+        }
+    }
+    Ok(())
+}
 
 fn rigid_frame_work(script: &Script) -> u64 {
     script
@@ -547,6 +572,7 @@ fn export_sequence(
     check(cancel)?;
     let total = validate(script, scene_index, rendered)?;
     let prepared = PreparedFrames::new(script)?;
+    rig_texture_preflight(script, art.map(|a| &a.images))?;
     if let Some(art) = art {
         art.document
             .validate()
