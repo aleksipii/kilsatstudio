@@ -52,3 +52,7 @@ cargo run -p motion-scene --example evaluate_scene -- examples/hello-emma.yaml 0
 
 The output is sampled actor poses at project fps, not rendered images or video.
 The command refuses to replace an existing output and caps frame/actor counts.
+
+## Captions
+
+`project.captions` (optional) turns speak events into speaker-coloured captions; see [captions](captions.md).

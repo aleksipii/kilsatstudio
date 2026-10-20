@@ -663,9 +663,11 @@ fn tolerance_gate_rejects_each_exceeded_limit() {
     assert_eq!(tol(255, 1.0, 0.00001).violations(&d).len(), 1);
 }
 
-/// The CPU reference path (resvg without its `text` feature, empty font database)
-/// draws no `<text>`; omitting labels on the GPU therefore matches what the
-/// CPU rasterizer actually produces. Runs without a GPU.
+/// The CPU reference path draws no actor label: the label `<text>` is emitted with
+/// `display="none"` (resvg now has text support for captions, with a font database
+/// holding only the bundled caption font); omitting labels on the GPU therefore
+/// matches what the CPU rasterizer actually produces. Captions are not part of
+/// the GPU path at all (see docs/captions.md). Runs without a GPU.
 #[test]
 fn cpu_rasterizer_draws_no_actor_label_text() {
     let scene = base_scene("#181f2c");

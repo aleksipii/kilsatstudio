@@ -33,6 +33,7 @@ impl ScenePreview {
         {
             return Err(invalid("preview live clip sample work budget exceeded"));
         }
+        captions::preflight(&script, index)?;
         let validated = motion_scene::ValidatedScript::new(script.clone())
             .map_err(|e| invalid(e.to_string()))?;
         let scene = script
@@ -264,7 +265,7 @@ impl ScenePreview {
                 .unwrap_or_default(),
         };
         motion_scene::apply_speech(&mut pose, &mouths);
-        let svg = motion_render::render_svg_with_art(
+        let mut svg = motion_render::render_svg_with_art(
             &pose,
             pose.width,
             pose.height,
@@ -274,6 +275,13 @@ impl ScenePreview {
             &self.art.images,
         )
         .map_err(|e| invalid(e.to_string()))?;
+        captions::apply(
+            &mut svg,
+            &self.script,
+            self.index,
+            self.manifest.as_deref(),
+            &pose,
+        )?;
         check(cancel)?;
         let png = media::rasterize_scaled(&svg, Some(max_side))?;
         check(cancel)?;

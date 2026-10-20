@@ -185,6 +185,7 @@ mod tests {
         let mut script = Script {
             rules: Default::default(),
             rig_clips: Default::default(),
+            pronunciations: Default::default(),
             project: Default::default(),
             characters: Default::default(),
             animation_clips: Default::default(),

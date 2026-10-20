@@ -34,7 +34,7 @@ DESKTOP = CONTENTS + 'MacOS/studio-desktop'
 HELPER = RESOURCES + 'bin/gpu_probe'
 SIGNATURE = CONTENTS + '_CodeSignature/CodeResources'
 SOURCE_FILES = (
-    'LICENSE', 'services/kokoro-runtime/runtime.py',
+    'LICENSE', 'NOTICE', 'services/kokoro-runtime/runtime.py',
     'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
     'services/kokoro-runtime/acceptance.py', 'services/kokoro-runtime/setup_kokoro.py',
     'services/kokoro-runtime/setup-manifest.json',

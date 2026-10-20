@@ -1,5 +1,6 @@
 //! Deterministic, self-contained SVG frames from evaluated scenes.
 //! Uses original procedural characters; no fonts, network assets, or video encoder.
+pub mod captions;
 #[cfg(feature = "gpu")]
 pub mod gpu;
 #[cfg(feature = "gpu")]
@@ -12,6 +13,10 @@ use motion_scene::{
     EvaluatedScene, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND,
 };
 use std::fmt::Write;
+
+pub use captions::{
+    append_captions, caption_font_data, validate_caption, CaptionCue, CAPTION_FONT_FAMILY,
+};
 
 pub const MAX_DIMENSION: u32 = 8192;
 pub const MAX_ACTORS: usize = 256;
@@ -31,6 +36,8 @@ pub enum Error {
     InvalidActor(usize),
     #[error("custom rig texture unavailable: {0}")]
     RigTexture(String),
+    #[error("caption: {0}")]
+    Caption(String),
 }
 
 pub fn render_svg(scene: &EvaluatedScene, width: u32, height: u32) -> Result<String, Error> {
@@ -302,7 +309,7 @@ fn render_scene(
         if actor.rotation != 0.0 || actor.scale.x != 1.0 || actor.scale.y != 1.0 {
             svg.push_str("</g>");
         }
-        write!(svg, "<text y=\"45\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"sans-serif\" font-size=\"12\" fill=\"white\">{} · {}</text></g>", escape(&actor.id), escape(&actor.emotion)).unwrap();
+        write!(svg, "<text display=\"none\" y=\"45\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-family=\"sans-serif\" font-size=\"12\" fill=\"white\">{} · {}</text></g>", escape(&actor.id), escape(&actor.emotion)).unwrap();
     }
     if let Some((scene_id, document, images)) = artwork {
         append_art(

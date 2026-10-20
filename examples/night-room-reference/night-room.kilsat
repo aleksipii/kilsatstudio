@@ -1,0 +1,623 @@
+{
+  "format_version": 2,
+  "source": "animation_clips: {}\nproject:\n  title: Night room reference (original art)\n  fps: 24\n  width: 640\n  height: 360\ncharacters:\n  DAD:\n    default_pose: null\n    asset: characters/dad-cutout\n    rig:\n      version: 1\n      id: dad_cutout\n      joints:\n      - id: root\n        parent: null\n        x: 0.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: torso\n        parent: root\n        x: 0.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: head\n        parent: torso\n        x: 0.0\n        y: -86.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: arm_l\n        parent: torso\n        x: -38.0\n        y: -70.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: arm_r\n        parent: torso\n        x: 38.0\n        y: -70.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      parts:\n      - id: trousers_l\n        joint: root\n        points:\n        - - -32.0\n          - 18.0\n        - - -4.0\n          - 18.0\n        - - -6.0\n          - 110.0\n        - - -30.0\n          - 110.0\n        color:\n        - 50\n        - 50\n        - 60\n        - 255\n      - id: trousers_r\n        joint: root\n        points:\n        - - 4.0\n          - 18.0\n        - - 32.0\n          - 18.0\n        - - 30.0\n          - 110.0\n        - - 6.0\n          - 110.0\n        color:\n        - 50\n        - 50\n        - 60\n        - 255\n      - id: work_shirt\n        joint: torso\n        points:\n        - - -36.0\n          - -84.0\n        - - 36.0\n          - -84.0\n        - - 42.0\n          - 24.0\n        - - -42.0\n          - 24.0\n        color:\n        - 186\n        - 148\n        - 92\n        - 255\n      - id: collar\n        joint: torso\n        points:\n        - - -14.0\n          - -84.0\n        - - 14.0\n          - -84.0\n        - - 0.0\n          - -66.0\n        color:\n        - 120\n        - 92\n        - 56\n        - 255\n      - id: chest_pocket\n        joint: torso\n        points:\n        - - 10.0\n          - -56.0\n        - - 28.0\n          - -56.0\n        - - 28.0\n          - -38.0\n        - - 10.0\n          - -38.0\n        color:\n        - 160\n        - 124\n        - 76\n        - 255\n      - id: sleeve_l\n        joint: arm_l\n        points:\n        - - -9.0\n          - -4.0\n        - - 9.0\n          - -4.0\n        - - 8.0\n          - 60.0\n        - - -8.0\n          - 60.0\n        color:\n        - 186\n        - 148\n        - 92\n        - 255\n      - id: hand_l\n        joint: arm_l\n        points:\n        - - -8.0\n          - 60.0\n        - - 8.0\n          - 60.0\n        - - 7.0\n          - 74.0\n        - - -7.0\n          - 74.0\n        color:\n        - 226\n        - 176\n        - 140\n        - 255\n      - id: sleeve_r\n        joint: arm_r\n        points:\n        - - -9.0\n          - -4.0\n        - - 9.0\n          - -4.0\n        - - 8.0\n          - 60.0\n        - - -8.0\n          - 60.0\n        color:\n        - 186\n        - 148\n        - 92\n        - 255\n      - id: hand_r\n        joint: arm_r\n        points:\n        - - -8.0\n          - 60.0\n        - - 8.0\n          - 60.0\n        - - 7.0\n          - 74.0\n        - - -7.0\n          - 74.0\n        color:\n        - 226\n        - 176\n        - 140\n        - 255\n      - id: head_skin\n        joint: head\n        points:\n        - - -22.0\n          - 0.0\n        - - -30.0\n          - -20.0\n        - - -28.0\n          - -46.0\n        - - -14.0\n          - -62.0\n        - - 14.0\n          - -62.0\n        - - 28.0\n          - -46.0\n        - - 30.0\n          - -20.0\n        - - 22.0\n          - 0.0\n        color:\n        - 226\n        - 176\n        - 140\n        - 255\n      - id: hair\n        joint: head\n        points:\n        - - -29.0\n          - -44.0\n        - - -14.0\n          - -64.0\n        - - 14.0\n          - -64.0\n        - - 29.0\n          - -44.0\n        - - 24.0\n          - -50.0\n        - - 0.0\n          - -54.0\n        - - -24.0\n          - -50.0\n        color:\n        - 50\n        - 36\n        - 30\n        - 255\n      - id: eye_l\n        joint: head\n        points:\n        - - -16.0\n          - -34.0\n        - - -8.0\n          - -34.0\n        - - -8.0\n          - -28.0\n        - - -16.0\n          - -28.0\n        color:\n        - 30\n        - 24\n        - 40\n        - 255\n      - id: eye_r\n        joint: head\n        points:\n        - - 8.0\n          - -34.0\n        - - 16.0\n          - -34.0\n        - - 16.0\n          - -28.0\n        - - 8.0\n          - -28.0\n        color:\n        - 30\n        - 24\n        - 40\n        - 255\n      - id: brow_l\n        joint: head\n        points:\n        - - -19.0\n          - -42.0\n        - - -6.0\n          - -40.0\n        - - -6.0\n          - -37.0\n        - - -19.0\n          - -39.0\n        color:\n        - 50\n        - 36\n        - 30\n        - 255\n      - id: brow_r\n        joint: head\n        points:\n        - - 6.0\n          - -40.0\n        - - 19.0\n          - -42.0\n        - - 19.0\n          - -39.0\n        - - 6.0\n          - -37.0\n        color:\n        - 50\n        - 36\n        - 30\n        - 255\n      - id: moustache\n        joint: head\n        points:\n        - - -14.0\n          - -14.0\n        - - 14.0\n          - -14.0\n        - - 11.0\n          - -8.0\n        - - 0.0\n          - -10.0\n        - - -11.0\n          - -8.0\n        color:\n        - 50\n        - 36\n        - 30\n        - 255\n      - id: mouth_placeholder\n        joint: head\n        points:\n        - - -6.0\n          - -6.0\n        - - 6.0\n          - -6.0\n        - - 5.0\n          - -3.0\n        - - -5.0\n          - -3.0\n        color:\n        - 140\n        - 60\n        - 60\n        - 255\n    voice: null\n  STAN:\n    default_pose: null\n    asset: characters/stan-cutout\n    rig:\n      version: 1\n      id: stan_cutout\n      joints:\n      - id: root\n        parent: null\n        x: 0.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: torso\n        parent: root\n        x: 0.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: head\n        parent: torso\n        x: 0.0\n        y: -60.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: arm\n        parent: torso\n        x: 24.0\n        y: -52.0\n        rotation: 0.35\n        scale_x: 1.0\n        scale_y: 1.0\n      - id: hand\n        parent: arm\n        x: 0.0\n        y: 40.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n      parts:\n      - id: pyjama_top\n        joint: torso\n        points:\n        - - -26.0\n          - -62.0\n        - - 26.0\n          - -62.0\n        - - 32.0\n          - 12.0\n        - - -32.0\n          - 12.0\n        color:\n        - 60\n        - 100\n        - 190\n        - 255\n      - id: football_patch_a\n        joint: torso\n        points:\n        - - -18.0\n          - -30.0\n        - - -10.0\n          - -34.0\n        - - -3.0\n          - -28.0\n        - - -5.0\n          - -18.0\n        - - -15.0\n          - -17.0\n        color:\n        - 235\n        - 235\n        - 235\n        - 255\n      - id: football_patch_b\n        joint: torso\n        points:\n        - - 8.0\n          - -8.0\n        - - 16.0\n          - -12.0\n        - - 23.0\n          - -6.0\n        - - 21.0\n          - 3.0\n        - - 11.0\n          - 4.0\n        color:\n        - 235\n        - 235\n        - 235\n        - 255\n      - id: sleeve\n        joint: arm\n        points:\n        - - -8.0\n          - -4.0\n        - - 8.0\n          - -4.0\n        - - 7.0\n          - 42.0\n        - - -7.0\n          - 42.0\n        color:\n        - 50\n        - 86\n        - 170\n        - 255\n      - id: hand_skin\n        joint: hand\n        points:\n        - - -7.0\n          - -6.0\n        - - 7.0\n          - -6.0\n        - - 8.0\n          - 8.0\n        - - 0.0\n          - 12.0\n        - - -8.0\n          - 8.0\n        color:\n        - 240\n        - 196\n        - 160\n        - 255\n      - id: phone_body\n        joint: hand\n        points:\n        - - -10.0\n          - -12.0\n        - - 10.0\n          - -12.0\n        - - 10.0\n          - 24.0\n        - - -10.0\n          - 24.0\n        color:\n        - 28\n        - 28\n        - 36\n        - 255\n      - id: phone_screen_placeholder\n        joint: hand\n        points:\n        - - -8.0\n          - -10.0\n        - - 8.0\n          - -10.0\n        - - 8.0\n          - 20.0\n        - - -8.0\n          - 20.0\n        color:\n        - 72\n        - 84\n        - 120\n        - 255\n      - id: head_skin\n        joint: head\n        points:\n        - - -17.0\n          - 0.0\n        - - -24.0\n          - -16.0\n        - - -22.0\n          - -36.0\n        - - -10.0\n          - -48.0\n        - - 10.0\n          - -48.0\n        - - 22.0\n          - -36.0\n        - - 24.0\n          - -16.0\n        - - 17.0\n          - 0.0\n        color:\n        - 240\n        - 196\n        - 160\n        - 255\n      - id: eye_l\n        joint: head\n        points:\n        - - -14.0\n          - -26.0\n        - - -6.0\n          - -26.0\n        - - -6.0\n          - -19.0\n        - - -14.0\n          - -19.0\n        color:\n        - 30\n        - 24\n        - 40\n        - 255\n      - id: eye_r\n        joint: head\n        points:\n        - - 6.0\n          - -26.0\n        - - 14.0\n          - -26.0\n        - - 14.0\n          - -19.0\n        - - 6.0\n          - -19.0\n        color:\n        - 30\n        - 24\n        - 40\n        - 255\n      - id: brow_l_worried\n        joint: head\n        points:\n        - - -16.0\n          - -30.0\n        - - -5.0\n          - -35.0\n        - - -5.0\n          - -32.0\n        - - -16.0\n          - -27.0\n        color:\n        - 60\n        - 40\n        - 40\n        - 255\n      - id: brow_r_worried\n        joint: head\n        points:\n        - - 5.0\n          - -35.0\n        - - 16.0\n          - -30.0\n        - - 16.0\n          - -27.0\n        - - 5.0\n          - -32.0\n        color:\n        - 60\n        - 40\n        - 40\n        - 255\n      - id: mouth_placeholder\n        joint: head\n        points:\n        - - -6.0\n          - -10.0\n        - - 6.0\n          - -10.0\n        - - 5.0\n          - -6.0\n        - - -5.0\n          - -6.0\n        color:\n        - 150\n        - 70\n        - 70\n        - 255\n      - id: beanie_crown\n        joint: head\n        points:\n        - - -23.0\n          - -46.0\n        - - -19.0\n          - -60.0\n        - - -8.0\n          - -70.0\n        - - 8.0\n          - -70.0\n        - - 19.0\n          - -60.0\n        - - 23.0\n          - -46.0\n        color:\n        - 210\n        - 60\n        - 70\n        - 255\n      - id: beanie_band\n        joint: head\n        points:\n        - - -24.0\n          - -46.0\n        - - 24.0\n          - -46.0\n        - - 24.0\n          - -38.0\n        - - -24.0\n          - -38.0\n        color:\n        - 235\n        - 225\n        - 200\n        - 255\n      - id: pompom\n        joint: head\n        points:\n        - - -9.0\n          - -77.0\n        - - -6.0\n          - -83.0\n        - - 0.0\n          - -86.0\n        - - 6.0\n          - -83.0\n        - - 9.0\n          - -77.0\n        - - 6.0\n          - -71.0\n        - - 0.0\n          - -68.0\n        - - -6.0\n          - -71.0\n        color:\n        - 245\n        - 245\n        - 245\n        - 255\n    voice: null\nscenes:\n- composition:\n    transition:\n      type: cut\n    background_color: '#241a3a'\n    background_keys: []\n    camera:\n    - at: 0.0\n      x: 0.0\n      y: 40.0\n      zoom: 2.4\n    - at: 2.4\n      x: 0.0\n      y: 40.0\n      zoom: 2.544\n    layers: {}\n    actor_tracks:\n      DAD:\n      - at: 0.0\n        x: -1920.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n      STAN:\n      - at: 0.0\n        x: 0.0\n        y: 48.00000000000003\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n    clip_weights: {}\n    clip_weight_tracks: {}\n    clip_instances: []\n    bone_tracks: {}\n    joint_tracks:\n      STAN:\n        head:\n        - at: 0.0\n          x: 0.0\n          y: 0.0\n          rotation: 0.0\n          scale_x: 1.0\n          scale_y: 1.0\n          easing: linear\n        - at: 1.2\n          x: 0.0\n          y: 0.0\n          rotation: 0.05\n          scale_x: 1.0\n          scale_y: 1.0\n          easing: linear\n        - at: 2.4\n          x: 0.0\n          y: 0.0\n          rotation: 0.0\n          scale_x: 1.0\n          scale_y: 1.0\n          easing: linear\n    fade_in: 0.0\n    fade_out: 0.0\n  background: null\n  id: bed_closeup\n  duration: 2.4\n  events:\n  - type: emotion\n    at: 0.0\n    actor: STAN\n    value: sad\n- composition:\n    transition:\n      type: cut\n    background_color: '#2e2242'\n    background_keys: []\n    camera:\n    - at: 0.0\n      x: 0.0\n      y: 0.0\n      zoom: 1.0\n    layers: {}\n    actor_tracks:\n      DAD:\n      - at: 0.0\n        x: 0.0\n        y: -29.99999999999997\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n      STAN:\n      - at: 0.0\n        x: -1920.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n    clip_weights: {}\n    clip_weight_tracks: {}\n    clip_instances: []\n    bone_tracks: {}\n    joint_tracks: {}\n    fade_in: 0.0\n    fade_out: 0.0\n  background: null\n  id: doorway_wide\n  duration: 3.35\n  events:\n  - type: speak\n    at: 0.15\n    actor: DAD\n    text: Hey, Stan. What are you doing up so late?\n    emotion: null\n    audio: audio/dad_doorway.wav\n- composition:\n    transition:\n      type: cut\n    background_color: '#241a3a'\n    background_keys: []\n    camera:\n    - at: 0.0\n      x: 0.0\n      y: 60.0\n      zoom: 1.5\n    - at: 3.15\n      x: 0.0\n      y: 60.0\n      zoom: 1.56\n    layers: {}\n    actor_tracks:\n      DAD:\n      - at: 0.0\n        x: -1920.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n      STAN:\n      - at: 0.0\n        x: 0.0\n        y: 48.00000000000003\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n    clip_weights: {}\n    clip_weight_tracks: {}\n    clip_instances: []\n    bone_tracks: {}\n    joint_tracks: {}\n    fade_in: 0.0\n    fade_out: 0.0\n  background: null\n  id: boy_phone_medium\n  duration: 3.15\n  events:\n  - type: speak\n    at: 0.15\n    actor: STAN\n    text: Nothing. I'm just testing a new app.\n    emotion: neutral\n    audio: audio/stan_phone.wav\n- composition:\n    transition:\n      type: cut\n    background_color: '#1c4a42'\n    background_keys: []\n    camera:\n    - at: 0.0\n      x: 0.0\n      y: -30.0\n      zoom: 2.4\n    - at: 2.35\n      x: 0.0\n      y: -30.0\n      zoom: 2.544\n    layers: {}\n    actor_tracks:\n      DAD:\n      - at: 0.0\n        x: 0.0\n        y: 8.000000000000028\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n      STAN:\n      - at: 0.0\n        x: -1920.0\n        y: 0.0\n        rotation: 0.0\n        scale_x: 1.0\n        scale_y: 1.0\n        easing: linear\n    clip_weights: {}\n    clip_weight_tracks: {}\n    clip_instances: []\n    bone_tracks: {}\n    joint_tracks: {}\n    fade_in: 0.0\n    fade_out: 0.0\n  background: null\n  id: dad_closeup\n  duration: 2.35\n  events:\n  - type: speak\n    at: 0.15\n    actor: DAD\n    text: Okay. Is it any good?\n    emotion: null\n    audio: audio/dad_closeup.wav\n",
+  "assets": [
+    {
+      "id": "audio/dad_doorway.wav",
+      "path": "audio/dad_doorway.wav",
+      "kind": "audio"
+    },
+    {
+      "id": "audio/stan_phone.wav",
+      "path": "audio/stan_phone.wav",
+      "kind": "audio"
+    },
+    {
+      "id": "audio/dad_closeup.wav",
+      "path": "audio/dad_closeup.wav",
+      "kind": "audio"
+    }
+  ],
+  "art": {
+    "layers": [
+      {
+        "id": "bed_closeup_wall",
+        "scene_id": "bed_closeup",
+        "name": "wall",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 640.0,
+            "height": 360.0
+          },
+          "color": {
+            "r": 38,
+            "g": 26,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bed_closeup_floor",
+        "scene_id": "bed_closeup",
+        "name": "floor",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 300.0,
+            "width": 640.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 28,
+            "g": 20,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bed_closeup_window",
+        "scene_id": "bed_closeup",
+        "name": "window",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 500.0,
+            "y": 60.0,
+            "width": 90.0,
+            "height": 120.0
+          },
+          "color": {
+            "r": 20,
+            "g": 16,
+            "b": 44,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bed_closeup_moon",
+        "scene_id": "bed_closeup",
+        "name": "moon",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 530.0,
+            "y": 80.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 200,
+            "g": 200,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bed_closeup_headboard",
+        "scene_id": "bed_closeup",
+        "name": "headboard",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 170.0,
+            "y": 60.0,
+            "width": 300.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 64,
+            "g": 44,
+            "b": 52,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bed_closeup_pillow",
+        "scene_id": "bed_closeup",
+        "name": "pillow",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 262.0,
+            "y": 190.0,
+            "width": 116.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 85,
+            "g": 75,
+            "b": 115,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bed_closeup_blanket",
+        "scene_id": "bed_closeup",
+        "name": "blanket",
+        "visible": true,
+        "plane": "foreground",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120.0,
+            "y": 308.0,
+            "width": 400.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 84,
+            "g": 60,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "doorway_wide_wall",
+        "scene_id": "doorway_wide",
+        "name": "wall",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 640.0,
+            "height": 360.0
+          },
+          "color": {
+            "r": 46,
+            "g": 34,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "doorway_wide_door_frame",
+        "scene_id": "doorway_wide",
+        "name": "door frame",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 212.0,
+            "y": 28.0,
+            "width": 216.0,
+            "height": 306.0
+          },
+          "color": {
+            "r": 58,
+            "g": 40,
+            "b": 44,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "doorway_wide_hallway_opening",
+        "scene_id": "doorway_wide",
+        "name": "hallway opening",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 222.0,
+            "y": 38.0,
+            "width": 196.0,
+            "height": 296.0
+          },
+          "color": {
+            "r": 72,
+            "g": 176,
+            "b": 124,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "doorway_wide_open_door_panel",
+        "scene_id": "doorway_wide",
+        "name": "open door panel",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 150.0,
+            "y": 40.0,
+            "width": 60.0,
+            "height": 290.0
+          },
+          "color": {
+            "r": 50,
+            "g": 34,
+            "b": 36,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "doorway_wide_floor",
+        "scene_id": "doorway_wide",
+        "name": "floor",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 322.0,
+            "width": 640.0,
+            "height": 38.0
+          },
+          "color": {
+            "r": 30,
+            "g": 22,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_wall",
+        "scene_id": "boy_phone_medium",
+        "name": "wall",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 640.0,
+            "height": 360.0
+          },
+          "color": {
+            "r": 38,
+            "g": 26,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_floor",
+        "scene_id": "boy_phone_medium",
+        "name": "floor",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 300.0,
+            "width": 640.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 28,
+            "g": 20,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_window",
+        "scene_id": "boy_phone_medium",
+        "name": "window",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 500.0,
+            "y": 60.0,
+            "width": 90.0,
+            "height": 120.0
+          },
+          "color": {
+            "r": 20,
+            "g": 16,
+            "b": 44,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_moon",
+        "scene_id": "boy_phone_medium",
+        "name": "moon",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 530.0,
+            "y": 80.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 200,
+            "g": 200,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_headboard",
+        "scene_id": "boy_phone_medium",
+        "name": "headboard",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 170.0,
+            "y": 60.0,
+            "width": 300.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 64,
+            "g": 44,
+            "b": 52,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_pillow",
+        "scene_id": "boy_phone_medium",
+        "name": "pillow",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 262.0,
+            "y": 190.0,
+            "width": 116.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 85,
+            "g": 75,
+            "b": 115,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_bedside_table",
+        "scene_id": "boy_phone_medium",
+        "name": "bedside table",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 470.0,
+            "y": 250.0,
+            "width": 80.0,
+            "height": 110.0
+          },
+          "color": {
+            "r": 70,
+            "g": 50,
+            "b": 40,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_lamp_shade",
+        "scene_id": "boy_phone_medium",
+        "name": "lamp shade",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 490.0,
+            "y": 196.0,
+            "width": 40.0,
+            "height": 54.0
+          },
+          "color": {
+            "r": 240,
+            "g": 190,
+            "b": 110,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "boy_phone_medium_blanket",
+        "scene_id": "boy_phone_medium",
+        "name": "blanket",
+        "visible": true,
+        "plane": "foreground",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120.0,
+            "y": 308.0,
+            "width": 400.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 84,
+            "g": 60,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "dad_closeup_hall_wall",
+        "scene_id": "dad_closeup",
+        "name": "hall wall",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 640.0,
+            "height": 360.0
+          },
+          "color": {
+            "r": 28,
+            "g": 70,
+            "b": 64,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "dad_closeup_picture_frame",
+        "scene_id": "dad_closeup",
+        "name": "picture frame",
+        "visible": true,
+        "plane": "background",
+        "active": null,
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 470.0,
+            "y": 90.0,
+            "width": 70.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 50,
+            "g": 40,
+            "b": 60,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}
