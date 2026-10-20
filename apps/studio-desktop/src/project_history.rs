@@ -459,8 +459,9 @@ mod tests {
         let plain = Snapshot::capture(SOURCE, Some(&document));
         // The second frame's asset is absent from the inventory.
         let mut history = History::new(SOURCE);
-        history.record(plain.clone(), plain.clone());
-        assert!(history.navigate(plain.clone(), false).is_err());
+        let base = Snapshot::capture(SOURCE, Some(&self::document()));
+        history.record(plain.clone(), base.clone());
+        assert!(history.navigate(base.clone(), false).is_err());
         document.assets.push(motion_project::AssetReference {
             id: "screen-b".into(),
             path: "assets/b.png".into(),
@@ -468,8 +469,8 @@ mod tests {
         });
         let complete = Snapshot::capture(SOURCE, Some(&document));
         history.reset(SOURCE);
-        history.record(plain, complete.clone());
-        let restored = history.navigate(complete, false).unwrap().unwrap();
+        history.record(complete.clone(), base.clone());
+        let restored = history.navigate(base, false).unwrap().unwrap();
         assert_eq!(restored.document().unwrap().art.lights.len(), 1);
     }
 
