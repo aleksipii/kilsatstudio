@@ -72,6 +72,22 @@ pub fn build(
     mouths: &[(&str, Viseme)],
     labels: Labels,
 ) -> Result<SceneCommands, Error> {
+    build_inner(scene, width, height, mouths, labels, None)
+}
+
+type RigImages<'a> = (
+    &'a std::collections::BTreeMap<String, motion_art::ImageResource>,
+    &'a mut std::collections::BTreeMap<String, usize>,
+);
+
+fn build_inner(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    labels: Labels,
+    mut art: Option<RigImages<'_>>,
+) -> Result<SceneCommands, Error> {
     crate::validate_scene(scene, width, height)?;
     crate::gpu::row_layout(width, height)?;
     if mouths.len() > crate::MAX_ACTORS {
@@ -82,16 +98,18 @@ pub fn build(
             "actor font labels; select OmitAcknowledged for geometry-only experiments",
         ));
     }
-    // Image textures and skinned parts are CPU-renderer features; refuse them
-    // explicitly instead of drawing flat or mis-registered geometry.
-    if scene
-        .actors
-        .iter()
-        .flat_map(|a| &a.rigid_parts)
-        .any(|p| p.texture.is_some() || p.skinned)
+    // Skinned parts arrive as already deformed polygons, so they need no special
+    // handling. Image textures need decoded resources, which only
+    // `build_with_art` supplies; refuse them explicitly here.
+    if art.is_none()
+        && scene
+            .actors
+            .iter()
+            .flat_map(|a| &a.rigid_parts)
+            .any(|p| p.texture.is_some())
     {
         return Err(Error::UnsupportedFeature(
-            "custom rig part textures and skinned deformation (CPU renderer only)",
+            "textured custom rig parts need decoded images; use build_with_art",
         ));
     }
     // Reserve a conservative upper bound before expanding any actor geometry.
@@ -99,7 +117,7 @@ pub fn build(
         sum.checked_add(if actor.rigid_parts.is_empty() {
             16
         } else {
-            actor.rigid_parts.len()
+            actor.rigid_parts.len() * 2
         })
         .ok_or(Error::Budget)
     })?;
@@ -107,7 +125,7 @@ pub fn build(
         .actors
         .iter()
         .flat_map(|a| &a.rigid_parts)
-        .map(|p| p.points.len() as u64)
+        .map(|p| p.points.len() as u64 * (1 + u64::from(p.texture.is_some())) + 4)
         .sum();
     if upper > MAX_COMMANDS
         || u64::from(width) * u64::from(height) * (upper as u64 + polygon_work + 1)
@@ -172,6 +190,48 @@ pub fn build(
                     geometry,
                     part.color.map(|v| f32::from(v) / 255.0),
                     [7.0, 0.0, 0.0, 0.0],
+                ]));
+                let Some(texture) = &part.texture else {
+                    continue;
+                };
+                let Some((images, resources)) = art.as_mut() else {
+                    unreachable!("checked above");
+                };
+                // Same placement as the CPU: the sub-rectangle `uv` is stretched
+                // over `rest_bounds`, carried to actor space by `transform`.
+                let [bx, by, bw, bh] = texture.rest_bounds;
+                let [u0, v0, u1, v1] = texture.uv;
+                let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
+                let (ix, iy) = (bx - u0 * w, by - v0 * h);
+                let m = texture.transform;
+                let det = m.a * m.d - m.b * m.c;
+                if det.abs() < 1e-12 {
+                    // A singular transform collapses the image to nothing on the
+                    // CPU path as well.
+                    continue;
+                }
+                // rest = M^-1 (local - t); uv = (rest - image origin) / size.
+                let (ra, rb, rc, rd) = (m.d / det, -m.b / det, -m.c / det, m.a / det);
+                let rx = -(ra * m.tx + rc * m.ty);
+                let ry = -(rb * m.tx + rd * m.ty);
+                let (offset, iw, ih) =
+                    image_resource(&mut result, images, resources, &texture.asset)?;
+                result.commands.push(Command([
+                    inv,
+                    origin,
+                    [
+                        geometry[0],
+                        geometry[1],
+                        ((rx - ix) / w) as f32,
+                        ((ry - iy) / h) as f32,
+                    ],
+                    [
+                        (ra / w) as f32,
+                        (rb / h) as f32,
+                        (rc / w) as f32,
+                        (rd / h) as f32,
+                    ],
+                    [20.0, offset as f32, iw as f32, ih as f32],
                 ]));
             }
             continue;
@@ -257,9 +317,16 @@ pub fn build_with_art(
     document
         .validate()
         .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
-    let mut result = build(scene, width, height, mouths, labels)?;
-    let actors = std::mem::take(&mut result.commands);
     let mut resources = std::collections::BTreeMap::new();
+    let mut result = build_inner(
+        scene,
+        width,
+        height,
+        mouths,
+        labels,
+        Some((images, &mut resources)),
+    )?;
+    let actors = std::mem::take(&mut result.commands);
     let mut work = command_work(&actors) + 1;
     append_art(
         &mut result,
@@ -359,6 +426,8 @@ fn command_work(commands: &[Command]) -> u64 {
                 c.0[2][3] as u64
             } else if kind == 6.0 || kind == 7.0 || kind == 11.0 || kind == 19.0 {
                 c.0[2][1] as u64 + 1
+            } else if kind == 20.0 {
+                c.0[2][1] as u64 + 5
             } else if kind == 5.0 || kind == 18.0 {
                 4
             } else {
@@ -431,6 +500,31 @@ fn points(result: &mut SceneCommands, values: &[motion_art::Point]) -> Result<[f
         .points
         .extend(values.iter().map(|p| [p.x as f32, p.y as f32]));
     Ok([offset as f32, values.len() as f32, 0.0, 0.0])
+}
+/// Apply a sampled mask motion (SVG `translate(x y) translate(pivot) rotate(r)
+/// scale(s) translate(-pivot)`) to one point, in f64.
+fn transform_point(motion: Option<&motion_art::MaskMotion>, x: f64, y: f64) -> [f64; 2] {
+    let Some(m) = motion else {
+        return [x, y];
+    };
+    let (dx, dy) = ((x - m.pivot.x) * m.scale, (y - m.pivot.y) * m.scale);
+    let (sin, cos) = m.rotation.sin_cos();
+    [
+        m.x + m.pivot.x + dx * cos - dy * sin,
+        m.y + m.pivot.y + dx * sin + dy * cos,
+    ]
+}
+fn moved_points(
+    values: &[motion_art::Point],
+    motion: Option<&motion_art::MaskMotion>,
+) -> Vec<motion_art::Point> {
+    values
+        .iter()
+        .map(|p| {
+            let [x, y] = transform_point(motion, p.x, p.y);
+            motion_art::Point { x, y }
+        })
+        .collect()
 }
 #[allow(clippy::too_many_arguments)]
 fn append_art(
@@ -514,13 +608,14 @@ fn append_art(
                     *work += 1;
                 }
                 if let Some(mask) = &layer.clip_shape {
-                    if mask.key_count() > 0
-                        && matches!(mask, ClipShape::Polygon { .. } | ClipShape::Painted { .. })
-                    {
-                        return Err(Error::UnsupportedFeature(
-                            "animated polygon or painted mask",
-                        ));
-                    }
+                    // Animated polygon/painted masks: sample the shared motion on
+                    // the CPU at the scene time and transform the geometry, exactly
+                    // as the SVG path applies `svg_transform` (translate, then
+                    // rotate/scale about the pivot).
+                    let motion = mask.sample_motion(scene.time);
+                    let tp =
+                        |x: f64, y: f64| -> [f64; 2] { transform_point(motion.as_ref(), x, y) };
+                    let ts = motion.as_ref().map_or(1.0, |m| m.scale);
                     match mask {
                         ClipShape::Painted {
                             base_visible,
@@ -547,10 +642,11 @@ fn append_art(
                                                 radius,
                                             } => {
                                                 cost += 2;
+                                                let c = tp(center.x, center.y);
                                                 [
                                                     [0.0, coverage as f32],
-                                                    [center.x as f32, center.y as f32],
-                                                    [radius as f32, 0.0],
+                                                    [c[0] as f32, c[1] as f32],
+                                                    [(radius * ts) as f32, 0.0],
                                                     [0.0; 2],
                                                     [0.0; 2],
                                                 ]
@@ -559,12 +655,13 @@ fn append_art(
                                                 points: vertices,
                                             } => {
                                                 cost += 5;
+                                                let v = vertices.map(|p| tp(p.x, p.y));
                                                 [
                                                     [1.0, coverage as f32],
-                                                    [vertices[0].x as f32, vertices[0].y as f32],
-                                                    [vertices[1].x as f32, vertices[1].y as f32],
-                                                    [vertices[2].x as f32, vertices[2].y as f32],
-                                                    [vertices[3].x as f32, vertices[3].y as f32],
+                                                    [v[0][0] as f32, v[0][1] as f32],
+                                                    [v[1][0] as f32, v[1][1] as f32],
+                                                    [v[2][0] as f32, v[2][1] as f32],
+                                                    [v[3][0] as f32, v[3][1] as f32],
                                                 ]
                                             }
                                         };
@@ -621,13 +718,16 @@ fn append_art(
                             feather,
                             ..
                         } if *feather > 0.0 => {
-                            let geometry = points(result, vertices)?;
+                            let moved = moved_points(vertices, motion.as_ref());
+                            let geometry = points(result, &moved)?;
                             result.commands.push(Command([
                                 inv,
                                 origin,
                                 geometry,
                                 [0.0; 4],
-                                [19.0, *feather as f32, 0.0, 0.0],
+                                // The SVG blur sits inside the motion group, so
+                                // the standard deviation scales with it.
+                                [19.0, (*feather * ts) as f32, 0.0, 0.0],
                             ]));
                             // Full-canvas erf evaluation per vertex edge, like the hard polygon.
                             *work += vertices.len() as u64;
@@ -635,7 +735,8 @@ fn append_art(
                         ClipShape::Polygon {
                             points: vertices, ..
                         } => {
-                            let geometry = points(result, vertices)?;
+                            let moved = moved_points(vertices, motion.as_ref());
+                            let geometry = points(result, &moved)?;
                             result.commands.push(Command([
                                 inv,
                                 origin,
@@ -1280,26 +1381,23 @@ mod tests {
         ));
     }
     #[test]
-    fn animated_polygon_and_painted_masks_are_reported_unsupported_not_drawn_static() {
+    fn animated_polygon_and_painted_masks_transform_geometry_by_sampled_motion() {
         use motion_art::*;
         let points = vec![
             Point { x: 0.0, y: 0.0 },
             Point { x: 20.0, y: 0.0 },
-            Point { x: 10.0, y: 20.0 },
+            Point { x: 20.0, y: 20.0 },
+            Point { x: 0.0, y: 20.0 },
         ];
-        let motion = vec![MaskMotionKey::default()];
-        for shape in [
-            ClipShape::Polygon {
-                points: points.clone(),
-                feather: 0.0,
-                motion: motion.clone(),
-            },
-            ClipShape::Painted {
-                base_visible: true,
-                strokes: Vec::new(),
-                motion: motion.clone(),
-            },
-        ] {
+        // Translate by (5, 7) and scale 2 about the centre (10, 10) at t = 1.
+        let motion = vec![MaskMotionKey {
+            time: 0.0,
+            x: 5.0,
+            y: 7.0,
+            scale: 2.0,
+            rotation: 0.0,
+        }];
+        let build_shape = |shape: ClipShape| {
             let mut layer = artwork_layer(
                 "a",
                 Content::Rectangle {
@@ -1322,23 +1420,44 @@ mod tests {
                 layers: vec![layer],
                 ..Default::default()
             };
-            assert!(matches!(
-                build_with_art(
-                    &scene(),
-                    64,
-                    64,
-                    &[],
-                    Labels::OmitAcknowledged,
-                    "s",
-                    &document,
-                    &std::collections::BTreeMap::new()
-                ),
-                Err(super::Error::UnsupportedFeature(_))
-            ));
-        }
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &std::collections::BTreeMap::new(),
+            )
+            .unwrap()
+        };
+        let polygon = build_shape(ClipShape::Polygon {
+            points,
+            feather: 0.0,
+            motion: motion.clone(),
+        });
+        // Corners (0,0) and (20,20) map to (-5,-3) and (35,37).
+        assert_eq!(polygon.points[0], [-5.0, -3.0]);
+        assert_eq!(polygon.points[2], [35.0, 37.0]);
+        let painted = build_shape(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![MaskStroke {
+                points: vec![Point { x: 4.0, y: 10.0 }],
+                radius: 3.0,
+                pressures: Vec::new(),
+                hardness: 1.0,
+                erase: false,
+            }],
+            motion,
+        });
+        // The single-point stroke pivots about itself: centre moves by (5, 7),
+        // radius scales by 2.
+        assert_eq!(painted.points[1], [9.0, 17.0]);
+        assert_eq!(painted.points[2][0], 6.0);
     }
     #[test]
-    fn rig_textures_and_skinning_are_reported_unsupported_not_drawn_wrong() {
+    fn rig_textures_need_decoded_images_and_use_the_cpu_affine_placement() {
         let part = |texture: bool, skinned: bool| {
             let mut s = scene();
             s.actors[0].rigid_parts = vec![motion_rig::EvaluatedPart {
@@ -1354,12 +1473,12 @@ mod tests {
                     uv: [0.0, 0.0, 1.0, 1.0],
                     rest_bounds: [0.0, 0.0, 10.0, 10.0],
                     transform: motion_rig::Affine2 {
-                        a: 1.0,
+                        a: 2.0,
                         b: 0.0,
                         c: 0.0,
-                        d: 1.0,
-                        tx: 0.0,
-                        ty: 0.0,
+                        d: 2.0,
+                        tx: 5.0,
+                        ty: 3.0,
                     },
                 }),
                 skinned,
@@ -1367,12 +1486,45 @@ mod tests {
             s
         };
         assert!(build(&part(false, false), 64, 64, &[], Labels::OmitAcknowledged).is_ok());
-        for (t, k) in [(true, false), (false, true)] {
-            assert!(matches!(
-                build(&part(t, k), 64, 64, &[], Labels::OmitAcknowledged),
-                Err(Error::UnsupportedFeature(_))
-            ));
-        }
+        // Skinned parts arrive deformed, so they need no special treatment.
+        assert!(build(&part(false, true), 64, 64, &[], Labels::OmitAcknowledged).is_ok());
+        // Textures through the geometry-only entry point are explicit errors.
+        assert!(matches!(
+            build(&part(true, false), 64, 64, &[], Labels::OmitAcknowledged),
+            Err(Error::UnsupportedFeature(_))
+        ));
+        let document = motion_art::Document::default();
+        let mut images = std::collections::BTreeMap::new();
+        let go = |images: &std::collections::BTreeMap<_, _>| {
+            build_with_art(
+                &part(true, false),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                images,
+            )
+        };
+        // Missing decoded image fails before any adapter exists.
+        assert!(matches!(go(&images), Err(Error::Scene(_))));
+        images.insert(
+            "t".to_owned(),
+            motion_art::ImageResource::from_rgba(2, 2, vec![255; 16]).unwrap(),
+        );
+        let commands = go(&images).unwrap();
+        let textured = commands
+            .commands
+            .iter()
+            .find(|c| c.0[4][0] == 20.0)
+            .expect("textured command");
+        assert_eq!(commands.pixels.len(), 4);
+        // uv = (local - (5,3)) / (2 * 10): x = 0 maps to -0.25, x = 10 to 0.25.
+        let g = textured.0[2];
+        let m = textured.0[3];
+        assert!((g[2] - (-5.0 / 20.0)).abs() < 1e-6 && (g[3] - (-3.0 / 20.0)).abs() < 1e-6);
+        assert!((m[0] - 0.05).abs() < 1e-6 && (m[3] - 0.05).abs() < 1e-6);
     }
     #[test]
     fn labels_cannot_silently_disappear() {

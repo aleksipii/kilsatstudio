@@ -170,3 +170,11 @@ files are not a claimed label-matched pixel comparison. Rasterize and compose
 references using the documented byte-space contract before measuring differences.
 The helper never synthesizes speech or downloads assets; mouths remain at rest.
 No physical acceptance or performance result is claimed merely by building it.
+
+## Animated masks and custom rig parts
+
+`build_with_art` samples `ClipShape::sample_motion` and moves polygon/painted mask
+geometry on the CPU, and draws textured custom-rig parts (and skinned parts, which
+arrive pre-deformed) with an affine uv map; both are measured against the CPU
+renderer in [gpu-parity.md](gpu-parity.md). `build` without images still rejects
+textured parts. GPU text remains unsupported.

@@ -87,6 +87,23 @@ joint discards unapplied edits; an empty list removes the track. Original-rig
 bone tracks and clips stay unsupported for custom actors, and nothing here
 establishes physical Mac rendering acceptance.
 
+### Texture and weight controls
+
+The custom-rig editor's **Part texture and skin weights** section edits the YAML
+draft without hand-writing it: pick a part; pick an Image asset from the project
+inventory (disabled with an explanation when there is none); edit `u0 v0 u1 v1`;
+add/remove skin weights; per vertex choose one or two influence joints and weights,
+with **Normalize vertex/all** (rejected, leaving the draft untouched, for negative,
+non-finite or all-zero weights). Controls parse the draft, change it and re-serialise
+it, so comments and formatting are normalised, a rig without texture/skin
+re-serialises without those keys, and the controls are disabled while the YAML does
+not parse. Issues (unknown asset, weights not summing to one, and the real rig
+validation error) are listed before Apply. Apply is unchanged: the same atomic,
+validated, undoable source transaction, which also rejects texture assets that are
+not Image assets in the inventory and stale source/actor drafts. This is a numeric
+form, not a visual canvas; tests are headless egui and logic tests only, with no
+hand-run desktop validation.
+
 ## Try the integrated example
 
 Open `examples/studio-production-demo.kilsat` with the desktop Open project action.
@@ -183,8 +200,10 @@ of the rest vertices onto the deformed ones (exact for rigid motion, and for
 deformations that are affine); the clip uses the exact deformed polygon. The
 texture is not warped per triangle.
 
-The experimental GPU scene path reports textured or skinned parts as
-`UnsupportedFeature` instead of drawing them incorrectly; only the CPU/SVG path
-renders them. Tests establish geometry, pixel registration at 90 degree rotations
-and preview/PNG agreement on Linux/macOS CI; no hand-run desktop or perceptual
-review was done.
+The experimental GPU scene path draws flat, skinned (already deformed) and
+textured parts through `build_with_art`, using the same affine placement and the
+decoded images shared with artwork; `build` (no images) still reports textured
+parts as `UnsupportedFeature`. Measured CPU/GPU differences are in
+[gpu-parity.md](gpu-parity.md). Tests establish geometry, pixel registration at
+90 degree rotations and preview/PNG agreement on Linux/macOS CI; no hand-run
+desktop or perceptual review was done.
