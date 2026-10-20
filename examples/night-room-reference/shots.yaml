@@ -1,0 +1,70 @@
+# Shot list for the night-room reference sequence (original dialogue).
+# Expanded by motion_script::expand_shots into one scene per shot, joined by
+# hard cuts. Line durations are the lengths of the placeholder WAV fixtures in
+# audio/ (generated tones, not speech); replace them with imported or
+# synthesized audio and update `duration` to its length.
+#
+# TODO(captions): speaker-coloured captions per line (workstream 1).
+# TODO(lip-sync): phoneme/viseme tracks per line (workstream 2).
+# TODO(acting): gaze, blink and brow variants (workstream 3).
+# TODO(lighting): phone glow, hallway light and lamp glow (workstream 4).
+cut: {lead_in: 0.15, tail: 0.6, reaction_hold: 2.0}
+shots:
+  # 1. Night, bed, close-up of the boy lit by his phone. No dialogue: a
+  #    bounded reaction hold on the worried face.
+  - id: bed_closeup
+    preset: close_up
+    actor: STAN
+    offset: [0, -80]
+    hold: 2.4
+    place: {STAN: [320, 300]}
+    off_stage: [DAD]
+    composition:
+      background_color: '#241a3a'
+      joint_tracks:
+        STAN:
+          head: [{at: 0}, {at: 1.2, rotation: 0.05}, {at: 2.4}]
+    events:
+      - {type: emotion, at: 0, actor: STAN, value: sad}
+  # 2. Doorway wide: the father opens the door, hallway light behind him.
+  - id: doorway_wide
+    preset: establishing
+    point: [320, 180]
+    place: {DAD: [320, 222]}
+    off_stage: [STAN]
+    line:
+      actor: DAD
+      text: Hey, Stan. What are you doing up so late?
+      duration: 2.6
+      audio: audio/dad_doorway.wav
+    composition:
+      background_color: '#2e2242'
+  # 3. Boy medium shot with the phone, warm lamp on the bedside table.
+  - id: boy_phone_medium
+    preset: medium
+    actor: STAN
+    offset: [0, -60]
+    place: {STAN: [320, 300]}
+    off_stage: [DAD]
+    line:
+      actor: STAN
+      text: Nothing. I'm just testing a new app.
+      emotion: neutral
+      duration: 2.4
+      audio: audio/stan_phone.wav
+    composition:
+      background_color: '#241a3a'
+  # 4. Father close-up.
+  - id: dad_closeup
+    preset: close_up
+    actor: DAD
+    offset: [0, -110]
+    place: {DAD: [320, 260]}
+    off_stage: [STAN]
+    line:
+      actor: DAD
+      text: Okay. Is it any good?
+      duration: 1.6
+      audio: audio/dad_closeup.wav
+    composition:
+      background_color: '#1c4a42'
