@@ -1,6 +1,7 @@
 //! Explicit alignment provenance: synthesis tokens are not phoneme timestamps.
 pub mod cache;
 pub mod engine_reuse;
+pub mod english;
 pub mod estimated_cache;
 mod import;
 pub mod local_package;
@@ -58,7 +59,7 @@ pub struct TimedPhoneme {
     pub start_seconds: f64,
     pub end_seconds: f64,
 }
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum AlignmentSource {
     /// Human authored or corrected against the waveform.

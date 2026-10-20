@@ -93,3 +93,12 @@ labels and a licensed font), GPU support for textured/skinned parts and animated
 masks, wiring the job graph into a real pipeline, budgeting audio/render caches,
 weight/UV editors, tighter parity tolerances. Device, speech-quality and rights gates
 are unchanged and need external evidence.
+
+## Professional dialogue animation, workstream 2 (English lip-sync data)
+
+- [x] Text normaliser, CMUdict lexicon plus rule-based fallback, validated
+  `pronunciations:` overrides, pre-render report and an estimated viseme track
+  (`docs/english-lipsync.md`). Unit tests cover structure and determinism only.
+- [ ] Open: perceptual lip-sync quality is unmeasured (no annotated audio), the
+  acting layer must consume `EstimatedVisemeTrack`, and a real forced aligner would
+  replace these estimates.
