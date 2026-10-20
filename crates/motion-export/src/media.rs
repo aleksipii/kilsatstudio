@@ -4,11 +4,34 @@ use std::{
     time::{Duration, Instant},
 };
 
+/// SVG parse options with a font database holding only the bundled caption font.
+/// System fonts are never scanned, so text output is identical on every machine.
+/// All generic families resolve to the bundled font; the actor label text is
+/// `display="none"` and is not drawn.
+pub(crate) fn options() -> &'static resvg::usvg::Options<'static> {
+    static OPTIONS: std::sync::OnceLock<resvg::usvg::Options<'static>> = std::sync::OnceLock::new();
+    OPTIONS.get_or_init(|| {
+        let mut database = resvg::usvg::fontdb::Database::new();
+        database.load_font_data(motion_render::caption_font_data().to_vec());
+        let family = motion_render::CAPTION_FONT_FAMILY;
+        database.set_sans_serif_family(family);
+        database.set_serif_family(family);
+        database.set_cursive_family(family);
+        database.set_fantasy_family(family);
+        database.set_monospace_family(family);
+        resvg::usvg::Options {
+            font_family: family.to_owned(),
+            fontdb: std::sync::Arc::new(database),
+            ..Default::default()
+        }
+    })
+}
+
 pub(super) fn rasterize(svg: &str) -> Result<Vec<u8>, Error> {
     rasterize_scaled(svg, None)
 }
 pub(super) fn rasterize_scaled(svg: &str, max_side: Option<u32>) -> Result<Vec<u8>, Error> {
-    let tree = resvg::usvg::Tree::from_str(svg, &resvg::usvg::Options::default())
+    let tree = resvg::usvg::Tree::from_str(svg, options())
         .map_err(|e| invalid(format!("SVG rasterization: {e}")))?;
     let size = tree.size().to_int_size();
     if u64::from(size.width()) * u64::from(size.height()) > 16_000_000 {
