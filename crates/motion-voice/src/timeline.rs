@@ -2,8 +2,36 @@
 use crate::DialogueJob;
 use motion_audio::{AudioBuffer, MixClip};
 use motion_lipsync::cache::{AlignmentCache, AlignmentInput, AlignmentStatus};
-use motion_lipsync::{Alignment, Viseme};
+use motion_lipsync::english::{
+    estimate_identity, estimate_viseme_track, pronunciation_report, EnglishError,
+    EstimatedVisemeTrack, Pronunciations,
+};
+use motion_lipsync::{Alignment, AlignmentSource, Viseme};
 use motion_tts::{SpeechError, SpeechResult};
+
+/// Mouth track estimated from the dialogue text alone (never forced alignment).
+#[derive(Clone, Debug, PartialEq)]
+pub struct TextEstimate {
+    pub track: EstimatedVisemeTrack,
+    /// `estimate_identity` of text, pronunciation overrides, lexicon version and audio
+    /// length. A stored estimate is stale when this no longer matches.
+    pub identity: String,
+}
+
+/// Where a clip's mouth shapes come from, in precedence order (highest first).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MouthSource {
+    /// Hand authored against the waveform.
+    Manual,
+    /// External aligner output.
+    Forced,
+    /// Rhubarb recognizer cues (estimated, derived from audio).
+    RhubarbEstimated,
+    /// Built-in English estimate from the text only; does not hear the audio.
+    TextEstimated,
+    /// No mouth data: mouth stays at rest.
+    None,
+}
 
 pub struct DialogueClip {
     pub actor: String,
@@ -11,6 +39,8 @@ pub struct DialogueClip {
     pub audio: AudioBuffer,
     pub alignment: Option<Alignment>,
     pub estimated_alignment: Option<motion_lipsync::rhubarb::EstimatedVisemeAlignment>,
+    /// Lowest precedence: used only when `alignment` and `estimated_alignment` are None.
+    pub text_estimated: Option<TextEstimate>,
     pub gain: f32,
     pub trim_start_frame: u64,
 }
@@ -73,9 +103,58 @@ impl DialogueClip {
             audio,
             alignment,
             estimated_alignment: None,
+            text_estimated: None,
             gain: 1.0,
             trim_start_frame: 0,
         })
+    }
+    /// Highest-precedence mouth source present. Precedence: manual > forced-aligned >
+    /// Rhubarb estimated > text estimated.
+    pub fn mouth_source(&self) -> MouthSource {
+        match (
+            &self.alignment,
+            &self.estimated_alignment,
+            &self.text_estimated,
+        ) {
+            (Some(a), _, _) => match a.source {
+                AlignmentSource::Manual => MouthSource::Manual,
+                AlignmentSource::Forced { .. } => MouthSource::Forced,
+                // Legacy bare estimated phoneme alignments rank with recognizer cues.
+                AlignmentSource::Estimated { .. } => MouthSource::RhubarbEstimated,
+            },
+            (None, Some(_), _) => MouthSource::RhubarbEstimated,
+            (None, None, Some(_)) => MouthSource::TextEstimated,
+            (None, None, None) => MouthSource::None,
+        }
+    }
+    /// Derives a text estimate scaled exactly to this clip's audio frames, but only when
+    /// no manual, forced or Rhubarb alignment exists. Replaces a stale estimate. Returns
+    /// the text-estimate outcome so callers can report low confidence words.
+    pub fn derive_text_estimate(
+        &mut self,
+        text: &str,
+        overrides: &Pronunciations,
+    ) -> Result<Option<TextEstimateInfo>, EnglishError> {
+        if self.alignment.is_some() || self.estimated_alignment.is_some() {
+            self.text_estimated = None;
+            return Ok(None);
+        }
+        let frames = self.audio.frames() as u64;
+        let identity = estimate_identity(text, overrides, frames);
+        if let Some(existing) = &self.text_estimated {
+            if existing.identity == identity {
+                return Ok(Some(TextEstimateInfo::from_track(
+                    &existing.track,
+                    text,
+                    overrides,
+                )));
+            }
+        }
+        self.text_estimated = None;
+        let track = estimate_viseme_track(text, overrides, Some(frames))?;
+        let info = TextEstimateInfo::from_track(&track, text, overrides);
+        self.text_estimated = Some(TextEstimate { track, identity });
+        Ok(Some(info))
     }
     /// Both preview and export call this with the audio device/export sample clock.
     pub fn mouth_at(&self, scene_frame: u64) -> Result<Viseme, SpeechError> {
@@ -97,11 +176,12 @@ impl DialogueClip {
                 .viseme_at_sample(local)
                 .map_err(|e| SpeechError(e.to_string()));
         }
-        match &self.alignment {
-            Some(a) => a
+        match (&self.alignment, &self.text_estimated) {
+            (Some(a), _) => a
                 .viseme_at(local as f64 / self.audio.sample_rate as f64)
                 .map_err(|e| SpeechError(e.to_string())),
-            None => Ok(Viseme::Rest),
+            (None, Some(t)) => Ok(t.track.viseme_at_sample(local)),
+            (None, None) => Ok(Viseme::Rest),
         }
     }
     pub fn mix_clip(&self) -> MixClip {
@@ -111,6 +191,27 @@ impl DialogueClip {
             trim_start_frame: self.trim_start_frame,
             duration_frames: None,
             gain: self.gain,
+        }
+    }
+}
+
+/// Facts about a derived estimate that callers may surface as diagnostics.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TextEstimateInfo {
+    /// Sorted, deduplicated words pronounced by the rule-based fallback.
+    pub low_confidence_words: Vec<String>,
+    /// Audio length over unscaled model length (1.0 means the model rate fits).
+    pub time_scale: f64,
+}
+impl TextEstimateInfo {
+    fn from_track(track: &EstimatedVisemeTrack, text: &str, overrides: &Pronunciations) -> Self {
+        Self {
+            low_confidence_words: pronunciation_report(text, overrides)
+                .low_confidence_words()
+                .into_iter()
+                .map(str::to_owned)
+                .collect(),
+            time_scale: track.time_scale,
         }
     }
 }
@@ -130,6 +231,7 @@ mod tests {
                 samples: vec![0.25; 24000],
             },
             estimated_alignment: None,
+            text_estimated: None,
             alignment: Some(Alignment {
                 source: AlignmentSource::Manual,
                 duration_seconds: 1.0,

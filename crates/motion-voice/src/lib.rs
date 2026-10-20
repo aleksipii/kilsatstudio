@@ -185,3 +185,6 @@ pub mod scene_audio;
 
 /// Shared sequence-clock audio composition.
 pub mod sequence;
+
+/// Typed non-fatal preparation diagnostics (low-confidence pronunciations, poor fits).
+pub mod diagnostics;

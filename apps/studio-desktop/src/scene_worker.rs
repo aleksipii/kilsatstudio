@@ -20,6 +20,7 @@ pub struct Ready {
     pub alignment_statuses: BTreeMap<u64, AlignmentStatus>,
     pub peaks: Vec<motion_audio::WaveformPeak>,
 }
+#[allow(clippy::large_enum_variant)] // short-lived channel messages
 pub enum Update {
     Progress(SceneProgress),
     Finished(Result<Ready, String>),

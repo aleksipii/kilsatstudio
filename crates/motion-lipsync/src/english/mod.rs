@@ -6,11 +6,13 @@
 //! deterministic and offline. The track is always labelled `Estimated`; nothing here
 //! aligns to audio, and its perceptual quality has not been measured.
 mod g2p;
+mod identity;
 mod lexicon;
 mod normalize;
 mod visemes;
 
 pub use g2p::letter_to_sound;
+pub use identity::{estimate_identity, lexicon_version};
 pub use lexicon::Lexicon;
 pub use normalize::{cardinal_words, normalize, spoken_words, Pause, Token, MAX_TOKENS};
 pub use visemes::{
@@ -142,6 +144,19 @@ impl Pronunciations {
 
     pub fn get(&self, word: &str) -> Option<&[Phoneme]> {
         self.0.get(word).map(Vec::as_slice)
+    }
+
+    /// Entries in sorted word order (canonical, for identities).
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &[Phoneme])> {
+        self.0.iter().map(|(w, p)| (w.as_str(), p.as_slice()))
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 

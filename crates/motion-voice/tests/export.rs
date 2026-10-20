@@ -21,6 +21,7 @@ fn clip() -> DialogueClip {
                 end_seconds: 0.0005,
             }],
         }),
+        text_estimated: None,
         trim_start_frame: 6,
         gain: 0.5,
     }
