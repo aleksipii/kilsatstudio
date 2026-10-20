@@ -16,7 +16,7 @@ class PackageTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.repo = self.root / 'source with spaces'
-        for relative in ['LICENSE', 'examples/dialogue.yaml', 'examples/model.pt',
+        for relative in ['LICENSE', 'NOTICE', 'examples/dialogue.yaml', 'examples/model.pt',
                          'services/kokoro-runtime/runtime.py',
                          'services/kokoro-runtime/doctor.py',
                          'services/kokoro-runtime/smoke_macos.py',

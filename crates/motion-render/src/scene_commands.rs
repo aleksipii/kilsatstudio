@@ -1,8 +1,10 @@
 //! Adapter-free commands for the experimental GPU scene compositor.
 //! No font rasterizer is provided: actor labels require explicit acknowledgement.
-//! The SVG string carries `<text>` labels, but the CPU raster path (resvg built
-//! without its `text` feature, no font database) currently draws none of them, so
-//! omission matches the CPU pixels; see docs/gpu-parity.md.
+//! The SVG string carries `<text display="none">` labels that the CPU raster path
+//! never draws, so omission matches the CPU pixels; see docs/gpu-parity.md.
+//! Captions (`captions` module, drawn by the CPU path with a bundled font) are
+//! deliberately unsupported here: this builder receives no caption cues, so GPU
+//! frames omit them. Do not use the GPU path for projects that enable captions.
 use motion_lipsync::Viseme;
 use motion_scene::{
     EvaluatedScene, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND,

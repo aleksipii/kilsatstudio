@@ -79,6 +79,8 @@ jobs:
               for entry in ['LICENSE', 'Kilsat Studio Preview.app/Contents/Resources/LICENSE']:
                   if archive.read(entry) != license_text:
                       raise SystemExit(f'Packaged {entry} differs from source')
+              if archive.read('Kilsat Studio Preview.app/Contents/Resources/NOTICE') != Path('NOTICE').read_bytes():
+                  raise SystemExit('Packaged NOTICE differs from source')
               helper = archive.getinfo('Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe')
               if not (helper.external_attr >> 16) & 0o111:
                   raise SystemExit('GPU helper lost executable permissions')

@@ -51,7 +51,7 @@ fn scene_svg(
     .map_err(|e| invalid(e.to_string()))?;
     let mouths = mouths_at(&rendered[index].manifest, sample);
     motion_scene::apply_speech(&mut pose, &mouths);
-    let svg = match art {
+    let mut svg = match art {
         Some(a) => motion_render::render_svg_with_art(
             &pose,
             pose.width,
@@ -64,6 +64,13 @@ fn scene_svg(
         None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
     }
     .map_err(|e| invalid(e.to_string()))?;
+    captions::apply(
+        &mut svg,
+        script,
+        index,
+        Some(&rendered[index].manifest),
+        &pose,
+    )?;
     Ok(svg)
 }
 fn image(
@@ -197,6 +204,9 @@ fn preflight(
         return Err(invalid("one rendered scene required per scene"));
     }
     let timeline = SequenceTimeline::compile(script).map_err(|e| invalid(e.to_string()))?;
+    for scene_index in 0..script.scenes.len() {
+        captions::preflight(script, scene_index)?;
+    }
     let total_samples = timeline.total_samples();
     let total = total_samples
         .checked_mul(u64::from(script.project.fps))

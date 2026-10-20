@@ -3,6 +3,9 @@
 #[cfg(test)]
 mod artist_blending_tests;
 #[cfg(test)]
+mod caption_tests;
+mod captions;
+#[cfg(test)]
 mod clip_library_tests;
 #[cfg(all(test, feature = "gpu"))]
 mod gpu_parity_tests;
@@ -370,6 +373,7 @@ fn validate_mode(
     let first = motion_scene::evaluate(script, index, 0.0).map_err(|e| invalid(e.to_string()))?;
     motion_render::render_svg(&first, first.width, first.height)
         .map_err(|e| invalid(e.to_string()))?;
+    captions::preflight(script, index)?;
     Ok(count)
 }
 
@@ -521,7 +525,7 @@ impl<'a> PreparedFrames<'a> {
             .map_err(|e| invalid(e.to_string()))?;
         let mouths = mouths_at(&rendered.manifest, sample);
         motion_scene::apply_speech(&mut pose, &mouths);
-        let svg = match art {
+        let mut svg = match art {
             Some(art) => motion_render::render_svg_with_art(
                 &pose,
                 pose.width,
@@ -534,6 +538,13 @@ impl<'a> PreparedFrames<'a> {
             None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
         }
         .map_err(|e| invalid(e.to_string()))?;
+        captions::apply(
+            &mut svg,
+            script,
+            scene_index,
+            Some(&rendered.manifest),
+            &pose,
+        )?;
         check(cancel)?;
         let encoded = if png {
             media::rasterize(&svg)?
