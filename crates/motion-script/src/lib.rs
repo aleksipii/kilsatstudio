@@ -517,6 +517,46 @@ impl Default for CaptionStyle {
         }
     }
 }
+/// User-level caption choice layered over the screenplay's `project.captions`.
+/// It is never written into the screenplay; the shared render path resolves it
+/// wherever the caption plan is built, so preview and export cannot diverge.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CaptionMode {
+    /// Use `project.captions` exactly as authored (absent or `enabled: false`: none).
+    #[default]
+    Follow,
+    /// Draw captions using the screenplay's style, even when it says `enabled: false`.
+    /// Requires a `project.captions` style; there is no hidden default style.
+    Show,
+    /// Draw no captions.
+    Hide,
+}
+impl CaptionMode {
+    pub fn is_follow(&self) -> bool {
+        *self == Self::Follow
+    }
+    /// The style to draw with, or `None` for no captions. `Show` without a
+    /// screenplay style is an explicit error rather than a silent omission.
+    pub fn resolve(
+        self,
+        style: Option<&CaptionStyle>,
+    ) -> Result<Option<std::borrow::Cow<'_, CaptionStyle>>, String> {
+        use std::borrow::Cow;
+        match (self, style) {
+            (Self::Hide, _) => Ok(None),
+            (Self::Follow, Some(s)) | (Self::Show, Some(s)) if s.enabled => {
+                Ok(Some(Cow::Borrowed(s)))
+            }
+            (Self::Follow, _) => Ok(None),
+            (Self::Show, Some(s)) => Ok(Some(Cow::Owned(CaptionStyle {
+                enabled: true,
+                ..s.clone()
+            }))),
+            (Self::Show, None) => Err("captions are set to Show but the screenplay has no project.captions style; add `captions: {}` under `project` or choose Follow screenplay".into()),
+        }
+    }
+}
 impl CaptionStyle {
     /// Fill colour for a speaker: explicit map entry, else the default fill.
     pub fn fill_for(&self, speaker: &str) -> &str {
@@ -4206,6 +4246,30 @@ mod caption_style_tests {
 
     fn source(captions: &str) -> String {
         format!("project: {{title: T, fps: 24, width: 640, height: 360{captions}}}\ncharacters:\n  EMMA: {{asset: a}}\n  ALEX: {{asset: b}}\nscenes:\n  - {{id: s, duration: 5, events: [{{type: speak, actor: EMMA, at: 0, text: Hi, audio: a.wav}}]}}\n")
+    }
+
+    #[test]
+    fn caption_mode_resolves_over_the_screenplay_style() {
+        let on = CaptionStyle::default();
+        let off = CaptionStyle {
+            enabled: false,
+            ..CaptionStyle::default()
+        };
+        let drawn = |m: CaptionMode, s: Option<&CaptionStyle>| m.resolve(s).unwrap().is_some();
+        assert!(drawn(CaptionMode::Follow, Some(&on)));
+        assert!(!drawn(CaptionMode::Follow, Some(&off)));
+        assert!(!drawn(CaptionMode::Follow, None));
+        assert!(drawn(CaptionMode::Show, Some(&on)));
+        let shown = CaptionMode::Show.resolve(Some(&off)).unwrap().unwrap();
+        assert!(shown.enabled && shown.font_size == off.font_size);
+        assert!(!drawn(CaptionMode::Hide, Some(&on)));
+        assert!(!drawn(CaptionMode::Hide, None));
+        let err = CaptionMode::Show.resolve(None).unwrap_err();
+        assert!(err.contains("project.captions"));
+        assert_eq!(
+            serde_yaml::from_str::<CaptionMode>("hide").unwrap(),
+            CaptionMode::Hide
+        );
     }
 
     #[test]

@@ -42,6 +42,7 @@ fn scene_svg(
     index: usize,
     sample: u64,
     validated: Option<&motion_scene::ValidatedScript>,
+    captions: CaptionMode,
 ) -> Result<String, Error> {
     let time = sample as f64 / f64::from(SAMPLE_RATE);
     let mut pose = match validated {
@@ -70,9 +71,11 @@ fn scene_svg(
         index,
         Some(&rendered[index].manifest),
         &pose,
+        captions,
     )?;
     Ok(svg)
 }
+#[allow(clippy::too_many_arguments)]
 fn image(
     script: &Script,
     rendered: &[RenderedScene],
@@ -81,8 +84,9 @@ fn image(
     sample: u64,
     max_side: Option<u32>,
     validated: Option<&motion_scene::ValidatedScript>,
+    captions: CaptionMode,
 ) -> Result<resvg::tiny_skia::Pixmap, Error> {
-    let svg = scene_svg(script, rendered, art, index, sample, validated)?;
+    let svg = scene_svg(script, rendered, art, index, sample, validated, captions)?;
     resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, max_side)?)
         .map_err(|e| invalid(e.to_string()))
 }
@@ -111,6 +115,7 @@ fn namespace_svg(svg: &str, prefix: &str) -> String {
 
 const MAX_SVG_FRAME_BYTES: usize = 64 * 1024 * 1024;
 
+#[allow(clippy::too_many_arguments)]
 fn compose_svg(
     script: &Script,
     rendered: &[RenderedScene],
@@ -119,6 +124,7 @@ fn compose_svg(
     sample: u64,
     cancel: &CancellationToken,
     validated: Option<&motion_scene::ValidatedScript>,
+    captions: CaptionMode,
 ) -> Result<(Vec<u8>, Vec<Contribution>), Error> {
     let contributions = timeline
         .sample(sample)
@@ -140,6 +146,7 @@ fn compose_svg(
             c.scene_index,
             c.local_sample,
             validated,
+            captions,
         )?;
         if svg.len() > MAX_SVG_FRAME_BYTES {
             return Err(invalid("sequence SVG scene byte budget exceeded"));
@@ -199,13 +206,14 @@ fn preflight(
     rendered: &[RenderedScene],
     art: Option<&ArtContext>,
     export: bool,
+    captions: CaptionMode,
 ) -> Result<(SequenceTimeline, u64, u64), Error> {
     if rendered.len() != script.scenes.len() {
         return Err(invalid("one rendered scene required per scene"));
     }
     let timeline = SequenceTimeline::compile(script).map_err(|e| invalid(e.to_string()))?;
     for scene_index in 0..script.scenes.len() {
-        captions::preflight(script, scene_index)?;
+        captions::preflight(script, scene_index, captions)?;
     }
     let total_samples = timeline.total_samples();
     let total = total_samples
@@ -380,6 +388,7 @@ fn compose(
     max_side: Option<u32>,
     cancel: &CancellationToken,
     validated: Option<&motion_scene::ValidatedScript>,
+    captions: CaptionMode,
 ) -> Result<(resvg::tiny_skia::Pixmap, Vec<Contribution>), Error> {
     let contributions = timeline
         .sample(sample)
@@ -399,6 +408,7 @@ fn compose(
             c.local_sample,
             max_side,
             validated,
+            captions,
         )?;
         if src.data().as_chunks::<4>().0.iter().any(|p| p[3] != 255) {
             return Err(invalid(
@@ -459,7 +469,13 @@ impl SequencePreview {
         cancel: &CancellationToken,
     ) -> Result<Self, Error> {
         check(cancel)?;
-        let (timeline, _, _) = preflight(&script, &rendered, art.as_deref(), false)?;
+        let (timeline, _, _) = preflight(
+            &script,
+            &rendered,
+            art.as_deref(),
+            false,
+            CaptionMode::Follow,
+        )?;
         check(cancel)?;
         let validated = motion_scene::ValidatedScript::new(script.clone())
             .map_err(|e| invalid(e.to_string()))?;
@@ -477,6 +493,18 @@ impl SequencePreview {
         max_side: u32,
         cancel: &CancellationToken,
     ) -> Result<SequencePreviewFrame, Error> {
+        self.render_frame_captions(sample, max_side, cancel, CaptionMode::Follow)
+    }
+    /// As [`Self::render_frame`] with the user-level caption choice, resolved by the
+    /// same code the exports use. A `Show` without a screenplay style, or text that
+    /// cannot be laid out, is an error for the frame rather than a silent omission.
+    pub fn render_frame_captions(
+        &self,
+        sample: u64,
+        max_side: u32,
+        cancel: &CancellationToken,
+        captions: CaptionMode,
+    ) -> Result<SequencePreviewFrame, Error> {
         preview_frame(
             &self.script,
             &self.rendered,
@@ -486,6 +514,7 @@ impl SequencePreview {
             max_side,
             cancel,
             Some(&self.validated),
+            captions,
         )
     }
 }
@@ -499,6 +528,7 @@ fn preview_frame(
     max_side: u32,
     cancel: &CancellationToken,
     validated: Option<&motion_scene::ValidatedScript>,
+    captions: CaptionMode,
 ) -> Result<SequencePreviewFrame, Error> {
     check(cancel)?;
     if !(1..=1024).contains(&max_side) {
@@ -513,6 +543,7 @@ fn preview_frame(
         Some(max_side),
         cancel,
         validated,
+        captions,
     )?;
     check(cancel)?;
     let budget = Some(reserve_frame(image.width(), image.height())?);
@@ -537,7 +568,7 @@ pub fn render_sequence_frame(
     if !(1..=1024).contains(&max_side) {
         return Err(invalid("preview maximum side must be 1..1024"));
     }
-    let (timeline, _, _) = preflight(script, rendered, art, false)?;
+    let (timeline, _, _) = preflight(script, rendered, art, false, CaptionMode::Follow)?;
     preview_frame(
         script,
         rendered,
@@ -547,6 +578,7 @@ pub fn render_sequence_frame(
         max_side,
         cancel,
         None,
+        CaptionMode::Follow,
     )
 }
 /// Export the same PNG/WAV composition and encode it with an explicit local FFmpeg.
@@ -560,9 +592,40 @@ pub fn export_mp4_sequence(
     cancel: &CancellationToken,
     progress: impl FnMut(Progress),
 ) -> Result<Report, Error> {
+    export_mp4_sequence_captions(
+        script,
+        rendered,
+        art,
+        destination,
+        ffmpeg,
+        cancel,
+        progress,
+        CaptionMode::Follow,
+    )
+}
+/// As [`export_mp4_sequence`] with the user-level caption choice.
+#[allow(clippy::too_many_arguments)]
+pub fn export_mp4_sequence_captions(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    destination: &Path,
+    ffmpeg: &Path,
+    cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+    captions: CaptionMode,
+) -> Result<Report, Error> {
     check(cancel)?;
     media::validate_encoder(script, ffmpeg)?;
-    let report = export_png_sequence(script, rendered, art, destination, cancel, progress)?;
+    let report = export_png_sequence_captions(
+        script,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        captions,
+    )?;
     let result = media::encode_named(
         script,
         destination,
@@ -590,7 +653,36 @@ pub fn export_png_sequence(
     cancel: &CancellationToken,
     progress: impl FnMut(Progress),
 ) -> Result<Report, Error> {
-    export_project_sequence(script, rendered, art, destination, cancel, progress, false)
+    export_png_sequence_captions(
+        script,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        CaptionMode::Follow,
+    )
+}
+/// As [`export_png_sequence`] with the user-level caption choice.
+pub fn export_png_sequence_captions(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    destination: &Path,
+    cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+    captions: CaptionMode,
+) -> Result<Report, Error> {
+    export_project_sequence(
+        script,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        false,
+        captions,
+    )
 }
 
 /// Export editable vector frames plus mixed WAV and sample-accurate sequence manifest.
@@ -603,9 +695,39 @@ pub fn export_svg_sequence(
     cancel: &CancellationToken,
     progress: impl FnMut(Progress),
 ) -> Result<Report, Error> {
-    export_project_sequence(script, rendered, art, destination, cancel, progress, true)
+    export_svg_sequence_captions(
+        script,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        CaptionMode::Follow,
+    )
+}
+/// As [`export_svg_sequence`] with the user-level caption choice.
+pub fn export_svg_sequence_captions(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    destination: &Path,
+    cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+    captions: CaptionMode,
+) -> Result<Report, Error> {
+    export_project_sequence(
+        script,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        true,
+        captions,
+    )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn export_project_sequence(
     script: &Script,
     rendered: &[RenderedScene],
@@ -614,9 +736,10 @@ fn export_project_sequence(
     cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
     svg: bool,
+    captions: CaptionMode,
 ) -> Result<Report, Error> {
     check(cancel)?;
-    let (timeline, total, working) = preflight(script, rendered, art, true)?;
+    let (timeline, total, working) = preflight(script, rendered, art, true, captions)?;
     // Held for the whole export so concurrent jobs share one process-wide estimate.
     let _budget = motion_jobs::process_budget()
         .reserve("sequence export working set", working)
@@ -626,7 +749,16 @@ fn export_project_sequence(
     let total_samples = timeline.total_samples();
     for index in 0..rendered.len() {
         check(cancel)?;
-        image(script, rendered, art, index, 0, None, Some(&validated))?;
+        image(
+            script,
+            rendered,
+            art,
+            index,
+            0,
+            None,
+            Some(&validated),
+            captions,
+        )?;
     }
     let audio = motion_voice::sequence::mix_sequence(&timeline, rendered, cancel).map_err(|e| {
         if cancel.is_cancelled() {
@@ -669,6 +801,7 @@ fn export_project_sequence(
                     sample,
                     cancel,
                     Some(&validated),
+                    captions,
                 )?
             } else {
                 let (out, entries) = compose(
@@ -680,6 +813,7 @@ fn export_project_sequence(
                     None,
                     cancel,
                     Some(&validated),
+                    captions,
                 )?;
                 (
                     out.encode_png().map_err(|e| invalid(e.to_string()))?,
@@ -912,6 +1046,7 @@ mod tests {
                     None,
                     &cancel,
                     None,
+                    CaptionMode::Follow,
                 )
                 .unwrap();
                 // SVG source-over quantizes premultiplied channels; PNG sums round once.
@@ -992,6 +1127,7 @@ mod tests {
                 &CancellationToken::new(),
                 |_| {},
                 svg,
+                CaptionMode::Follow,
             );
             assert!(result
                 .unwrap_err()
@@ -1008,14 +1144,31 @@ mod tests {
         let timeline = SequenceTimeline::compile(&script).unwrap();
         let cancel = CancellationToken::new();
         for sample in [0, 6000, 12000, 18000, 23999] {
-            let (svg, _) =
-                compose_svg(&script, &scenes, None, &timeline, sample, &cancel, None).unwrap();
+            let (svg, _) = compose_svg(
+                &script,
+                &scenes,
+                None,
+                &timeline,
+                sample,
+                &cancel,
+                None,
+                CaptionMode::Follow,
+            )
+            .unwrap();
             let svg = String::from_utf8(svg).unwrap();
             let raster =
                 resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, None).unwrap())
                     .unwrap();
             let (png, _) = compose(
-                &script, &scenes, None, &timeline, sample, None, &cancel, None,
+                &script,
+                &scenes,
+                None,
+                &timeline,
+                sample,
+                None,
+                &cancel,
+                None,
+                CaptionMode::Follow,
             )
             .unwrap();
             assert_eq!(raster.data(), png.data());

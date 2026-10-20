@@ -11,6 +11,7 @@ pub struct ScenePreview {
     manifest: Option<Arc<SceneManifest>>,
     validated: motion_scene::ValidatedScript,
     total_samples: u64,
+    captions: CaptionMode,
 }
 impl ScenePreview {
     pub fn new(
@@ -18,6 +19,17 @@ impl ScenePreview {
         index: usize,
         art: Arc<ArtContext>,
         manifest: Option<Arc<SceneManifest>>,
+    ) -> Result<Self, Error> {
+        Self::new_with_captions(script, index, art, manifest, CaptionMode::Follow)
+    }
+    /// As [`Self::new`] with the user-level caption choice, resolved by the same
+    /// code as the exports. Unrenderable captions fail here, not silently later.
+    pub fn new_with_captions(
+        script: Arc<Script>,
+        index: usize,
+        art: Arc<ArtContext>,
+        manifest: Option<Arc<SceneManifest>>,
+        captions: CaptionMode,
     ) -> Result<Self, Error> {
         bounded_json(script.as_ref(), MAX_SOURCE)?;
         let events = script.scenes.iter().map(|s| s.events.len()).sum::<usize>();
@@ -33,7 +45,7 @@ impl ScenePreview {
         {
             return Err(invalid("preview live clip sample work budget exceeded"));
         }
-        captions::preflight(&script, index)?;
+        captions::preflight(&script, index, captions)?;
         let validated = motion_scene::ValidatedScript::new(script.clone())
             .map_err(|e| invalid(e.to_string()))?;
         let scene = script
@@ -209,6 +221,7 @@ impl ScenePreview {
             manifest,
             validated,
             total_samples,
+            captions,
         })
     }
 
@@ -281,6 +294,7 @@ impl ScenePreview {
             self.index,
             self.manifest.as_deref(),
             &pose,
+            self.captions,
         )?;
         check(cancel)?;
         let png = media::rasterize_scaled(&svg, Some(max_side))?;

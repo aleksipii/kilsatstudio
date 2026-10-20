@@ -3,7 +3,7 @@ use motion_audio::{AudioBuffer, WaveformPeak};
 use motion_export::{ArtContext, Report, SequencePreview, SequencePreviewFrame};
 use motion_lipsync::cache::{AlignmentCache, AlignmentInput, AlignmentStatus};
 use motion_scene::SequenceTimeline;
-use motion_script::Script;
+use motion_script::{CaptionMode, Script};
 use motion_tts::{CancellationToken, KokoroConfig};
 use motion_voice::export::RenderedScene;
 use std::{
@@ -45,6 +45,8 @@ pub enum Task {
         generation: u64,
         sample_frame: u64,
         prepared: Arc<Prepared>,
+        /// User-level caption choice; resolved by the shared render path.
+        captions: CaptionMode,
         cancel: CancellationToken,
     },
     Export {
@@ -52,6 +54,8 @@ pub enum Task {
         prepared: Arc<Prepared>,
         destination: PathBuf,
         format: ExportFormat,
+        /// The same choice the preview used, so export matches what was seen.
+        captions: CaptionMode,
         cancel: CancellationToken,
     },
 }
@@ -204,13 +208,14 @@ fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
             generation,
             sample_frame,
             prepared,
+            captions,
             cancel,
         } => Update::Frame {
             generation,
             sample_frame,
             result: prepared
                 .preview
-                .render_frame(sample_frame, 512, &cancel)
+                .render_frame_captions(sample_frame, 512, &cancel, captions)
                 .map_err(|e| e.to_string()),
         },
         Task::Export {
@@ -218,6 +223,7 @@ fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
             prepared,
             destination,
             format,
+            captions,
             cancel,
         } => {
             let report = |p| {
@@ -227,7 +233,7 @@ fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
                 })
             };
             let result = match format {
-                ExportFormat::Mp4 { ffmpeg } => motion_export::export_mp4_sequence(
+                ExportFormat::Mp4 { ffmpeg } => motion_export::export_mp4_sequence_captions(
                     &prepared.script,
                     &prepared.rendered,
                     Some(&prepared.art),
@@ -235,22 +241,25 @@ fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
                     &ffmpeg,
                     &cancel,
                     report,
+                    captions,
                 ),
-                ExportFormat::Svg => motion_export::export_svg_sequence(
+                ExportFormat::Svg => motion_export::export_svg_sequence_captions(
                     &prepared.script,
                     &prepared.rendered,
                     Some(&prepared.art),
                     &destination,
                     &cancel,
                     report,
+                    captions,
                 ),
-                ExportFormat::Png => motion_export::export_png_sequence(
+                ExportFormat::Png => motion_export::export_png_sequence_captions(
                     &prepared.script,
                     &prepared.rendered,
                     Some(&prepared.art),
                     &destination,
                     &cancel,
                     report,
+                    captions,
                 ),
             };
             Update::Exported {
@@ -594,6 +603,7 @@ mod tests {
                     prepared: prepared.clone(),
                     destination: destination.clone(),
                     format,
+                    captions: CaptionMode::default(),
                     cancel: CancellationToken::new(),
                 })
                 .unwrap();
@@ -790,6 +800,90 @@ mod tests {
         r
     }
 
+    #[test]
+    fn sequence_preview_and_export_tasks_apply_the_same_caption_mode() {
+        let project = Project::new("captions");
+        let script = motion_script::parse(
+            "project: {fps: 10, width: 320, height: 180, captions: {enabled: false, font_size: 24}}\ncharacters: {EMMA: {asset: characters/emma}}\nscenes:\n  - {id: a, duration: 0.5, events: [{type: speak, at: 0.0, actor: EMMA, text: Hi, audio: voice.wav}]}\n",
+        )
+        .unwrap();
+        let before = serde_json::to_string(&script).unwrap();
+        let worker = Worker::new();
+        worker
+            .submit(Task::Prepare(Box::new(with_script(
+                &project,
+                script.clone(),
+            ))))
+            .unwrap();
+        let Update::Prepared { result, .. } = finish(&worker) else {
+            panic!("wrong update")
+        };
+        let prepared = result.unwrap();
+        let mut previews = Vec::new();
+        let mut exports = Vec::new();
+        for mode in [CaptionMode::Follow, CaptionMode::Show, CaptionMode::Hide] {
+            worker
+                .submit(Task::Frame {
+                    generation: 1,
+                    sample_frame: 0,
+                    prepared: prepared.clone(),
+                    captions: mode,
+                    cancel: CancellationToken::new(),
+                })
+                .unwrap();
+            let Update::Frame { result, .. } = finish(&worker) else {
+                panic!("wrong update")
+            };
+            previews.push(result.unwrap().rgba);
+            let destination = project.0.join(format!("export-{mode:?}"));
+            worker
+                .submit(Task::Export {
+                    generation: 2,
+                    prepared: prepared.clone(),
+                    destination: destination.clone(),
+                    format: ExportFormat::Png,
+                    captions: mode,
+                    cancel: CancellationToken::new(),
+                })
+                .unwrap();
+            let Update::Exported { result, .. } = finish(&worker) else {
+                panic!("wrong update")
+            };
+            result.unwrap();
+            exports.push(std::fs::read(destination.join("frame-000000.png")).unwrap());
+        }
+        // Preview and export tasks distinguish the modes identically. (Pixel
+        // equality of preview and export per mode is asserted in motion-export.)
+        assert_ne!(exports[0], exports[1], "Show must change exported pixels");
+        assert_eq!(exports[0], exports[2]);
+        assert_ne!(previews[0], previews[1], "Show must change pixels");
+        assert_eq!(previews[0], previews[2]);
+        assert_eq!(serde_json::to_string(&script).unwrap(), before);
+        // Show without any screenplay style is a real error from the frame task.
+        let plain = motion_script::parse(
+            "project: {fps: 10, width: 320, height: 180}\ncharacters: {EMMA: {asset: characters/emma}}\nscenes:\n  - {id: a, duration: 0.5, events: [{type: speak, at: 0.0, actor: EMMA, text: Hi, audio: voice.wav}]}\n",
+        )
+        .unwrap();
+        worker
+            .submit(Task::Prepare(Box::new(with_script(&project, plain))))
+            .unwrap();
+        let Update::Prepared { result, .. } = finish(&worker) else {
+            panic!("wrong update")
+        };
+        worker
+            .submit(Task::Frame {
+                generation: 3,
+                sample_frame: 0,
+                prepared: result.unwrap(),
+                captions: CaptionMode::Show,
+                cancel: CancellationToken::new(),
+            })
+            .unwrap();
+        let Update::Frame { result, .. } = finish(&worker) else {
+            panic!("wrong update")
+        };
+        assert!(result.unwrap_err().contains("project.captions"));
+    }
     #[test]
     fn graph_preparation_equals_the_linear_path_for_one_and_three_workers() {
         let project = Project::new("equal");

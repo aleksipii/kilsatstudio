@@ -62,6 +62,7 @@ pub struct Panel {
     destination: String,
     ffmpeg: String,
     export_choice: ExportChoice,
+    captions: motion_script::CaptionMode,
 }
 impl Default for Panel {
     fn default() -> Self {
@@ -90,6 +91,7 @@ impl Default for Panel {
             destination: String::new(),
             ffmpeg: String::new(),
             export_choice: ExportChoice::Png,
+            captions: motion_script::CaptionMode::default(),
         }
     }
 }
@@ -123,6 +125,22 @@ impl Panel {
                 self.cancel = None;
                 false
             }
+        }
+    }
+    /// Apply the user-level caption choice to the sequence preview and to later
+    /// exports. A changed choice discards the shown frame and any outstanding
+    /// frame so a stale-mode raster is never displayed.
+    pub fn set_caption_mode(&mut self, mode: motion_script::CaptionMode) {
+        if self.captions == mode {
+            return;
+        }
+        self.captions = mode;
+        if self.prepared.is_some() && !self.busy {
+            self.seek(self.desired);
+        } else {
+            self.texture = None;
+            self.shown = None;
+            self.failed_frame = None;
         }
     }
     pub fn take_play_started(&mut self) -> bool {
@@ -322,6 +340,7 @@ impl Panel {
                         generation: self.generation,
                         sample_frame,
                         prepared: Arc::clone(prepared),
+                        captions: self.captions,
                         cancel: cancel.clone(),
                     })
                     .is_ok()
@@ -457,6 +476,7 @@ impl Panel {
                                     prepared: Arc::clone(&prepared),
                                     destination,
                                     format,
+                                    captions: self.captions,
                                     cancel: cancel.clone(),
                                 }) {
                                     Ok(()) => {

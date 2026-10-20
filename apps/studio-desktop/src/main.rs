@@ -174,6 +174,10 @@ struct Studio {
     export_busy: bool,
     export_path: String,
     export_format: export_worker::Format,
+    /// User-level caption choice layered over `project.captions` for scene preview,
+    /// sequence preview and every export. Not screenplay text and not in undo history;
+    /// persisted only in `.kilsat` project documents.
+    caption_mode: motion_script::CaptionMode,
     ffmpeg_path: String,
     export_progress: Option<motion_export::Progress>,
     selected_actor: Option<String>,
@@ -384,6 +388,7 @@ impl Default for Studio {
             export_busy: false,
             export_path: String::new(),
             export_format: Default::default(),
+            caption_mode: Default::default(),
             ffmpeg_path: String::new(),
             export_progress: None,
         }
@@ -1306,6 +1311,7 @@ impl Studio {
                 Ok((doc, root)) => {
                     self.source = doc.source.clone();
                     let timing = doc.timing.clone();
+                    self.caption_mode = doc.caption_mode;
                     self.document_changed();
                     self.project_document = Some(doc);
                     self.art_editor.reset();
@@ -1387,6 +1393,7 @@ impl Studio {
                     line: self.alignment.clone(),
                     scene: self.scene_alignment.clone(),
                 };
+                doc.caption_mode = self.caption_mode;
                 motion_project::save_atomic(Path::new(&self.script_path), &doc)
                     .map_err(|e| e.to_string())?;
                 Ok(doc)
@@ -1760,6 +1767,7 @@ impl Studio {
         let changed = self.native_canvas.as_ref().is_none_or(|canvas| {
             canvas.revision != self.sequence_revision
                 || canvas.request.scene_index != self.scene_index
+                || canvas.request.captions != self.caption_mode
                 || !same_optional_arc(&canvas.request.manifest, &manifest)
                 || !same_optional_arc(&canvas.line_audio, &line_audio)
         });
@@ -1772,6 +1780,7 @@ impl Studio {
                     scene_index: self.scene_index,
                     sample_frame: sample,
                     script: Arc::new(script.clone()),
+                    captions: self.caption_mode,
                     art: Arc::new(motion_export::ArtContext {
                         document: self
                             .project_document
@@ -1820,6 +1829,10 @@ impl Studio {
                 }
                 Err(e) => {
                     canvas.failed = Some(update.sample_frame);
+                    // Unrenderable captions are reported, never silently dropped.
+                    if e.contains("caption") {
+                        self.status = format!("Preview: {e}");
+                    }
                     canvas.error = Some(e);
                 }
             }
@@ -2467,6 +2480,33 @@ impl Studio {
     }
 }
 
+fn caption_mode_label(mode: motion_script::CaptionMode) -> &'static str {
+    match mode {
+        motion_script::CaptionMode::Follow => "Follow screenplay",
+        motion_script::CaptionMode::Show => "Show",
+        motion_script::CaptionMode::Hide => "Hide",
+    }
+}
+/// The user-level caption choice. Returns true when the user changed it.
+fn caption_mode_ui(ui: &mut egui::Ui, mode: &mut motion_script::CaptionMode) -> bool {
+    use motion_script::CaptionMode::{Follow, Hide, Show};
+    let before = *mode;
+    ui.horizontal(|ui| {
+        ui.label("Captions");
+        egui::ComboBox::from_id_salt("caption-mode")
+            .selected_text(caption_mode_label(*mode))
+            .show_ui(ui, |ui| {
+                for choice in [Follow, Show, Hide] {
+                    ui.selectable_value(mode, choice, caption_mode_label(choice));
+                }
+            })
+            .response
+            .on_hover_text(
+                "Follow screenplay uses project.captions. Show and Hide override it for scene and sequence previews and for every export, without editing the screenplay. Show needs a project.captions style.",
+            );
+    });
+    *mode != before
+}
 fn field(ui: &mut egui::Ui, label: &str, value: &mut String) -> bool {
     ui.label(label);
     ui.text_edit_singleline(value).changed()
@@ -3707,6 +3747,13 @@ impl Studio {
         }
     }
     fn inspector_ui(&mut self, ui: &mut egui::Ui) {
+        if caption_mode_ui(ui, &mut self.caption_mode) {
+            self.status = format!(
+                "Captions: {}. Applies to previews and exports; the screenplay is unchanged.",
+                caption_mode_label(self.caption_mode)
+            );
+        }
+        self.sequence_panel.set_caption_mode(self.caption_mode);
         self.sequence_ui(ui);
         ui.heading("Inspector");
         ui.weak("Select a character or timeline event");
@@ -4031,6 +4078,7 @@ impl Studio {
             audio: Arc::clone(&preview.audio),
             manifest: Arc::clone(&preview.manifest),
             destination,
+            captions: self.caption_mode,
             cancel: cancel.clone(),
         };
         self.stop_playback();
@@ -7344,5 +7392,52 @@ mod timing_persistence_tests {
             .commit_reviewed_timing("invalid".into(), "{}".into())
             .is_err());
         assert_eq!(studio.snapshot(), before);
+    }
+
+    fn drawn_text(output: &egui::FullOutput) -> String {
+        let mut text = String::new();
+        for clipped in &output.shapes {
+            if let egui::epaint::Shape::Text(shape) = &clipped.shape {
+                text.push_str(shape.galley.text());
+                text.push('\n');
+            }
+        }
+        text
+    }
+
+    #[test]
+    fn caption_control_draws_headless_and_the_override_never_touches_screenplay_or_history() {
+        let ctx = egui::Context::default();
+        studio_theme(&ctx);
+        let mut studio = Studio::default();
+        studio.validate();
+        let source = studio.source.clone();
+        assert_eq!(studio.caption_mode, motion_script::CaptionMode::Follow);
+        let mut changed = true;
+        for (mode, label) in [
+            (motion_script::CaptionMode::Follow, "Follow screenplay"),
+            (motion_script::CaptionMode::Show, "Show"),
+            (motion_script::CaptionMode::Hide, "Hide"),
+        ] {
+            let mut shown = mode;
+            let output = ctx.run(Default::default(), |ctx| {
+                egui::CentralPanel::default().show(ctx, |ui| {
+                    changed = caption_mode_ui(ui, &mut shown);
+                });
+            });
+            let text = drawn_text(&output);
+            assert!(text.contains("Captions") && text.contains(label), "{text}");
+            assert!(!changed && shown == mode, "drawing alone never changes it");
+        }
+        // The full inspector hosts the control and keeps the sequence panel in step.
+        studio.caption_mode = motion_script::CaptionMode::Hide;
+        let output = ctx.run(Default::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| studio.inspector_ui(ui));
+        });
+        assert!(drawn_text(&output).contains("Captions"));
+        // A view/export option: no screenplay edit, no undo entry.
+        assert_eq!(studio.source, source);
+        assert!(!studio.history.can_undo() && !studio.history.can_redo());
+        assert_eq!(studio.caption_mode, motion_script::CaptionMode::Hide);
     }
 }

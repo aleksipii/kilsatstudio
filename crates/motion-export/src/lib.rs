@@ -25,14 +25,16 @@ mod rig_texture_tests;
 mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
 mod sequence;
-pub use media::{export_mp4_scene, export_mp4_scene_with_art};
+pub use media::{export_mp4_scene, export_mp4_scene_with_art, export_mp4_scene_with_art_captions};
 use motion_lipsync::{AlignmentSource, Viseme};
+pub use motion_script::CaptionMode;
 use motion_script::Script;
 use motion_tts::CancellationToken;
 use motion_voice::export::{RenderedScene, SceneManifest, SAMPLE_RATE};
 pub use sequence::{
-    export_mp4_sequence, export_png_sequence, export_svg_sequence, render_sequence_frame,
-    SequencePreview, SequencePreviewFrame,
+    export_mp4_sequence, export_mp4_sequence_captions, export_png_sequence,
+    export_png_sequence_captions, export_svg_sequence, export_svg_sequence_captions,
+    render_sequence_frame, SequencePreview, SequencePreviewFrame,
 };
 use serde::Serialize;
 use std::{
@@ -377,7 +379,6 @@ fn validate_mode(
     let first = motion_scene::evaluate(script, index, 0.0).map_err(|e| invalid(e.to_string()))?;
     motion_render::render_svg(&first, first.width, first.height)
         .map_err(|e| invalid(e.to_string()))?;
-    captions::preflight(script, index)?;
     Ok(count)
 }
 
@@ -408,6 +409,7 @@ pub fn export_scene(
         &mut progress,
         false,
         None,
+        CaptionMode::Follow,
     )
 }
 
@@ -429,6 +431,7 @@ pub fn export_png_scene(
         &mut progress,
         true,
         None,
+        CaptionMode::Follow,
     )
 }
 
@@ -440,7 +443,50 @@ pub fn export_scene_with_art(
     art: &ArtContext,
     destination: &Path,
     cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_scene_with_art_captions(
+        script,
+        scene_index,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        CaptionMode::Follow,
+    )
+}
+pub fn export_png_scene_with_art(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    destination: &Path,
+    cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_png_scene_with_art_captions(
+        script,
+        scene_index,
+        rendered,
+        art,
+        destination,
+        cancel,
+        progress,
+        CaptionMode::Follow,
+    )
+}
+/// As [`export_scene_with_art`] with a user-level caption choice layered over the screenplay.
+#[allow(clippy::too_many_arguments)]
+pub fn export_scene_with_art_captions(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    destination: &Path,
+    cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
+    captions: CaptionMode,
 ) -> Result<Report, Error> {
     export_sequence(
         script,
@@ -451,9 +497,12 @@ pub fn export_scene_with_art(
         &mut progress,
         false,
         Some(art),
+        captions,
     )
 }
-pub fn export_png_scene_with_art(
+/// As [`export_png_scene_with_art`] with a user-level caption choice.
+#[allow(clippy::too_many_arguments)]
+pub fn export_png_scene_with_art_captions(
     script: &Script,
     scene_index: usize,
     rendered: &RenderedScene,
@@ -461,6 +510,7 @@ pub fn export_png_scene_with_art(
     destination: &Path,
     cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
+    captions: CaptionMode,
 ) -> Result<Report, Error> {
     export_sequence(
         script,
@@ -471,6 +521,7 @@ pub fn export_png_scene_with_art(
         &mut progress,
         true,
         Some(art),
+        captions,
     )
 }
 
@@ -500,12 +551,17 @@ fn frame_jobs(script: &Script, png: bool) -> motion_jobs::Config {
 struct PreparedFrames<'a> {
     script: &'a Script,
     validated: motion_scene::ValidatedScript,
+    captions: CaptionMode,
 }
 impl<'a> PreparedFrames<'a> {
-    fn new(script: &'a Script) -> Result<Self, Error> {
+    fn new(script: &'a Script, captions: CaptionMode) -> Result<Self, Error> {
         let validated = motion_scene::ValidatedScript::new(std::sync::Arc::new(script.clone()))
             .map_err(|e| invalid(e.to_string()))?;
-        Ok(Self { script, validated })
+        Ok(Self {
+            script,
+            validated,
+            captions,
+        })
     }
     fn encode_frame(
         &self,
@@ -548,6 +604,7 @@ impl<'a> PreparedFrames<'a> {
             scene_index,
             Some(&rendered.manifest),
             &pose,
+            self.captions,
         )?;
         check(cancel)?;
         let encoded = if png {
@@ -571,9 +628,32 @@ fn encode_frame(
     cancel: &CancellationToken,
     art: Option<&ArtContext>,
 ) -> Result<(u64, f64, Vec<u8>), Error> {
+    encode_frame_captions(
+        script,
+        scene_index,
+        rendered,
+        i,
+        png,
+        cancel,
+        art,
+        CaptionMode::Follow,
+    )
+}
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)]
+fn encode_frame_captions(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    i: u64,
+    png: bool,
+    cancel: &CancellationToken,
+    art: Option<&ArtContext>,
+    captions: CaptionMode,
+) -> Result<(u64, f64, Vec<u8>), Error> {
     check(cancel)?;
     bounded_json(script, MAX_SOURCE)?;
-    PreparedFrames::new(script)?.encode_frame(scene_index, rendered, i, png, cancel, art)
+    PreparedFrames::new(script, captions)?.encode_frame(scene_index, rendered, i, png, cancel, art)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -586,10 +666,12 @@ fn export_sequence(
     progress: &mut impl FnMut(Progress),
     png: bool,
     art: Option<&ArtContext>,
+    captions: CaptionMode,
 ) -> Result<Report, Error> {
     check(cancel)?;
     let total = validate(script, scene_index, rendered)?;
-    let prepared = PreparedFrames::new(script)?;
+    captions::preflight(script, scene_index, captions)?;
+    let prepared = PreparedFrames::new(script, captions)?;
     rig_texture_preflight(script, art.map(|a| &a.images))?;
     if let Some(art) = art {
         art.document
@@ -944,6 +1026,7 @@ mod tests {
                 &mut |p| completed.push(p.completed_frames),
                 png,
                 None,
+                CaptionMode::Follow,
             )
             .unwrap();
             assert_eq!(completed, (0..=13).collect::<Vec<_>>());

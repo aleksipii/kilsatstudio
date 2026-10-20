@@ -25,6 +25,8 @@ pub struct Request {
     pub audio: Arc<motion_audio::AudioBuffer>,
     pub manifest: Arc<motion_voice::export::SceneManifest>,
     pub destination: PathBuf,
+    /// User-level caption choice, layered over the screenplay in the shared render path.
+    pub captions: motion_script::CaptionMode,
     pub cancel: CancellationToken,
 }
 
@@ -57,7 +59,7 @@ impl Worker {
             };
             request.cancel.check().map_err(|error| error.to_string())?;
             match request.format {
-                Format::Svg => motion_export::export_scene_with_art(
+                Format::Svg => motion_export::export_scene_with_art_captions(
                     &request.script,
                     request.scene_index,
                     &rendered,
@@ -65,8 +67,9 @@ impl Worker {
                     &request.destination,
                     &request.cancel,
                     progress,
+                    request.captions,
                 ),
-                Format::Png => motion_export::export_png_scene_with_art(
+                Format::Png => motion_export::export_png_scene_with_art_captions(
                     &request.script,
                     request.scene_index,
                     &rendered,
@@ -74,8 +77,9 @@ impl Worker {
                     &request.destination,
                     &request.cancel,
                     progress,
+                    request.captions,
                 ),
-                Format::Mp4 => motion_export::export_mp4_scene_with_art(
+                Format::Mp4 => motion_export::export_mp4_scene_with_art_captions(
                     &request.script,
                     request.scene_index,
                     &rendered,
@@ -84,6 +88,7 @@ impl Worker {
                     &request.ffmpeg,
                     &request.cancel,
                     progress,
+                    request.captions,
                 ),
             }
             .map_err(|error| error.to_string())
@@ -207,6 +212,7 @@ mod tests {
             audio: Arc::new(rendered.audio),
             manifest: Arc::new(rendered.manifest),
             destination: PathBuf::from("unused-worker-test-output"),
+            captions: Default::default(),
             cancel: CancellationToken::new(),
         }
     }
@@ -220,6 +226,58 @@ mod tests {
             assert!(Instant::now() < deadline, "worker did not finish");
             std::thread::sleep(Duration::from_millis(1));
         }
+    }
+
+    #[test]
+    fn worker_receives_and_applies_the_same_caption_mode_as_preview() {
+        // The executor sees exactly the mode the request carried.
+        let (seen_tx, seen) = mpsc::channel();
+        let worker = Worker::with_executor(move |request, _| {
+            seen_tx.send(request.captions).unwrap();
+            Err("stop".into())
+        });
+        let mut hidden = request();
+        hidden.captions = motion_script::CaptionMode::Hide;
+        worker.submit(hidden).unwrap();
+        assert_eq!(
+            seen.recv_timeout(Duration::from_secs(5)).unwrap(),
+            motion_script::CaptionMode::Hide
+        );
+        let _ = finished(&worker);
+
+        // The real worker: Show changes exported pixels over a screenplay that
+        // disables captions; Hide and Follow equal each other; source untouched.
+        let source = "project: {fps: 10, width: 320, height: 180, captions: {enabled: false, font_size: 24}}\ncharacters: {EMMA: {asset: characters/emma}}\nscenes: [{id: test, duration: 0.1, events: [{type: speak, at: 0, actor: EMMA, text: Hello, audio: a.wav}]}]\n".replace("\\n", "\n");
+        let script = motion_script::parse(&source).unwrap();
+        let before = serde_json::to_string(&script).unwrap();
+        let mut frames = Vec::new();
+        for mode in [
+            motion_script::CaptionMode::Follow,
+            motion_script::CaptionMode::Show,
+            motion_script::CaptionMode::Hide,
+        ] {
+            let worker = Worker::new();
+            let mut request = request();
+            request.format = Format::Png;
+            request.script = script.clone();
+            request.captions = mode;
+            request.destination = std::env::temp_dir().join(format!(
+                "kilsat-worker-captions-{mode:?}-{}",
+                std::process::id()
+            ));
+            let _ = std::fs::remove_dir_all(&request.destination);
+            let destination = request.destination.clone();
+            worker.submit(request).unwrap();
+            finished(&worker).unwrap();
+            frames.push(std::fs::read(destination.join("frame_000000.png")).unwrap());
+            std::fs::remove_dir_all(destination).unwrap();
+        }
+        assert_ne!(frames[0], frames[1], "Show must change pixels");
+        assert_eq!(
+            frames[0], frames[2],
+            "Follow of a disabled style equals Hide"
+        );
+        assert_eq!(serde_json::to_string(&script).unwrap(), before);
     }
 
     #[test]

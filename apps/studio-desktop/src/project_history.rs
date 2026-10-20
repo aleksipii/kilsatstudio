@@ -48,6 +48,8 @@ impl Snapshot {
                 assets: p.assets.clone(),
                 art: p.art.clone(),
                 timing: p.timing.clone(),
+                // A view/export option kept outside undo history (see docs/captions.md).
+                caption_mode: motion_script::CaptionMode::default(),
             })
     }
     fn validate(&self) -> Result<(), String> {
