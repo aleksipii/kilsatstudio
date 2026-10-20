@@ -77,6 +77,7 @@ pub fn export_mp4_scene(
         ffmpeg,
         cancel,
         &mut progress,
+        CaptionMode::Follow,
     )
 }
 
@@ -89,7 +90,33 @@ pub fn export_mp4_scene_with_art(
     destination: &Path,
     ffmpeg: &Path,
     cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+) -> Result<Report, Error> {
+    export_mp4_scene_with_art_captions(
+        script,
+        scene_index,
+        rendered,
+        art,
+        destination,
+        ffmpeg,
+        cancel,
+        progress,
+        CaptionMode::Follow,
+    )
+}
+
+/// As [`export_mp4_scene_with_art`] with a user-level caption choice.
+#[allow(clippy::too_many_arguments)]
+pub fn export_mp4_scene_with_art_captions(
+    script: &Script,
+    scene_index: usize,
+    rendered: &RenderedScene,
+    art: &ArtContext,
+    destination: &Path,
+    ffmpeg: &Path,
+    cancel: &CancellationToken,
     mut progress: impl FnMut(Progress),
+    captions: CaptionMode,
 ) -> Result<Report, Error> {
     export_mp4_inner(
         script,
@@ -100,6 +127,7 @@ pub fn export_mp4_scene_with_art(
         ffmpeg,
         cancel,
         &mut progress,
+        captions,
     )
 }
 
@@ -113,6 +141,7 @@ fn export_mp4_inner(
     ffmpeg: &Path,
     cancel: &CancellationToken,
     progress: &mut impl FnMut(Progress),
+    captions: CaptionMode,
 ) -> Result<Report, Error> {
     check(cancel)?;
     validate_encoder(script, ffmpeg)?;
@@ -125,6 +154,7 @@ fn export_mp4_inner(
         progress,
         true,
         art,
+        captions,
     )?;
     let result = encode(script, destination, ffmpeg, cancel).map(|()| report);
     if result.is_err() {

@@ -80,6 +80,49 @@ Actor name labels are still not drawn: their `<text>` is now `display="none"`
 that honour `display` also hide them. The experimental GPU path has no caption
 input and draws no text; use the CPU path for projects with captions.
 
+## Desktop caption choice (user-level override)
+
+The desktop inspector has a labelled **Captions** control: *Follow screenplay*
+(default), *Show*, *Hide*. It is an override layered on top of
+`project.captions`, never a rewrite of the screenplay.
+
+- `motion_script::CaptionMode` (`Follow` / `Show` / `Hide`) is resolved in one place,
+  `motion-export` `captions::style_for`, which builds the caption plan for every
+  consumer: `ScenePreview::new_with_captions`, `SequencePreview::render_frame_captions`,
+  `export_scene_with_art_captions` / `export_png_scene_with_art_captions` /
+  `export_mp4_scene_with_art_captions`, and `export_{png,svg,mp4}_sequence_captions`.
+  The older entry points delegate with `Follow`, so existing callers are unchanged.
+- `Follow`: exactly the screenplay (no style or `enabled: false` draws nothing).
+  `Hide`: nothing is drawn. `Show`: draws with the screenplay's style, even when it
+  says `enabled: false`.
+- `Show` needs a `project.captions` style; there is no hidden default. Without one,
+  or when text cannot be laid out (missing glyph, word wider than the line), the
+  preview or export fails with the real error (`captions: ... project.captions ...`
+  or the glyph list). The scene preview mirrors caption errors to the status line,
+  the sequence preview shows them in its status, and export reports them as the
+  export error. Nothing is silently dropped. `Hide` never fails on undrawable text.
+- The scene preview, sequence preview and the export workers all receive the same
+  mode from the same app field; changing it starts a new preview snapshot.
+- Not screenplay text and not in undo history: changing the choice adds no undo
+  entry and leaves the source untouched.
+- Persistence: `.kilsat` project documents carry an optional `caption_mode` field
+  (`"show"` / `"hide"`), written only when it is not `Follow`, so existing projects
+  keep their bytes and load unchanged. A document that stores the field is not
+  readable by a build without this field (strict `deny_unknown_fields`). Plain
+  `.yaml` screenplays have nowhere to store it, so the choice is session-only
+  there. The saved value is read on open and written on save to `.kilsat`.
+- Actor labels stay undrawn and the GPU path is untouched (it still draws no text).
+
+Tests: `motion-script` (resolution table), `motion-project` (optional, byte-compatible
+field, round-trip, bad value rejected), `motion-export` `caption_tests.rs` (Show,
+Hide, Follow over absent/disabled/enabled styles change pixels as expected; scene
+preview, sequence preview, scene PNG/SVG and sequence PNG/SVG exports agree per
+mode; Show without a style and missing glyphs are errors), `studio-desktop`
+(export worker and sequence worker tasks receive and apply the mode; headless egui
+draw of the control; override leaves source and history alone). Not exercised: the
+control by hand in a running window, and save/reopen of the field through the
+desktop's file dialogs (the field is tested at the `motion-project` layer).
+
 ## What the tests establish and what they do not
 
 Headless tests (`crates/motion-export/src/caption_tests.rs`, `motion-render`

@@ -7,6 +7,18 @@
 //! length and the cue is marked `estimated`.
 use super::*;
 use motion_render::CaptionCue;
+use motion_script::{CaptionMode, CaptionStyle};
+use std::borrow::Cow;
+
+/// The one place the user-level caption choice meets the screenplay style.
+/// Preview, PNG, SVG and video export all build their caption plan through here.
+pub(crate) fn style_for(
+    script: &Script,
+    mode: CaptionMode,
+) -> Result<Option<Cow<'_, CaptionStyle>>, Error> {
+    mode.resolve(script.project.captions.as_ref())
+        .map_err(|e| invalid(format!("captions: {e}")))
+}
 
 /// Estimated speaking time used when no prepared audio exists: 0.4 s plus 0.06 s
 /// per character, at least one second. This is a display estimate, not alignment.
@@ -14,15 +26,13 @@ pub(crate) fn estimated_seconds(text: &str) -> f64 {
     (0.4 + 0.06 * text.chars().count() as f64).max(1.0)
 }
 
-/// Cues for one scene in event order. Empty when captions are absent or disabled.
+/// Cues for one scene in event order, independent of whether they are drawn (the
+/// caller resolves `CaptionMode` first via [`style_for`]).
 pub(crate) fn cues_for_scene(
     script: &Script,
     scene_index: usize,
     manifest: Option<&SceneManifest>,
 ) -> Vec<CaptionCue> {
-    if !script.project.captions.as_ref().is_some_and(|s| s.enabled) {
-        return Vec::new();
-    }
     let Some(scene) = script.scenes.get(scene_index) else {
         return Vec::new();
     };
@@ -75,24 +85,29 @@ pub(crate) fn apply(
     scene_index: usize,
     manifest: Option<&SceneManifest>,
     pose: &motion_scene::EvaluatedScene,
+    mode: CaptionMode,
 ) -> Result<(), Error> {
-    let Some(style) = script.project.captions.as_ref().filter(|s| s.enabled) else {
+    let Some(style) = style_for(script, mode)? else {
         return Ok(());
     };
     let cues = cues_for_scene(script, scene_index, manifest);
-    motion_render::append_captions(svg, pose, pose.width, pose.height, style, &cues)
+    motion_render::append_captions(svg, pose, pose.width, pose.height, &style, &cues)
         .map_err(|e| invalid(e.to_string()))
 }
 
 /// Reject, before any frame is produced, captions that cannot be laid out
 /// (glyphs missing from the bundled font, words wider than a line, overflow).
-pub(crate) fn preflight(script: &Script, scene_index: usize) -> Result<(), Error> {
-    let Some(style) = script.project.captions.as_ref().filter(|s| s.enabled) else {
+pub(crate) fn preflight(
+    script: &Script,
+    scene_index: usize,
+    mode: CaptionMode,
+) -> Result<(), Error> {
+    let Some(style) = style_for(script, mode)? else {
         return Ok(());
     };
     for cue in cues_for_scene(script, scene_index, None) {
         motion_render::validate_caption(
-            style,
+            &style,
             &cue.text,
             script.project.width,
             script.project.height,

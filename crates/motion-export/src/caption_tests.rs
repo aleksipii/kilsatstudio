@@ -231,7 +231,7 @@ fn missing_glyphs_are_reported_never_silently_dropped() {
         None,
     );
     assert!(preview.is_err());
-    assert!(captions::preflight(&script, 0)
+    assert!(captions::preflight(&script, 0, CaptionMode::Follow)
         .unwrap_err()
         .to_string()
         .contains("U+4F60"));
@@ -244,8 +244,172 @@ fn missing_glyphs_are_reported_never_silently_dropped() {
 fn a_word_wider_than_the_line_is_an_error() {
     let captions = ", captions: {max_width: 0.1}";
     let (script, _) = script_with(captions, "Supercalifragilistic", "Hi");
-    assert!(captions::preflight(&script, 0)
+    assert!(captions::preflight(&script, 0, CaptionMode::Follow)
         .unwrap_err()
         .to_string()
         .contains("wider than"));
+}
+
+// ---- user-level CaptionMode override --------------------------------------
+
+fn mode_frame(script: &Script, rendered: &RenderedScene, mode: CaptionMode) -> Vec<u8> {
+    let (_, _, png) = encode_frame_captions(
+        script,
+        0,
+        rendered,
+        0,
+        true,
+        &CancellationToken::new(),
+        None,
+        mode,
+    )
+    .unwrap();
+    Pixmap::decode_png(&png).unwrap().take()
+}
+
+fn png_bytes(rgba: &[u8]) -> Vec<u8> {
+    Pixmap::from_vec(
+        rgba.to_vec(),
+        resvg::tiny_skia::IntSize::from_wh(W, H).unwrap(),
+    )
+    .unwrap()
+    .encode_png()
+    .unwrap()
+}
+
+#[test]
+fn caption_mode_show_hide_follow_change_pixels_over_every_screenplay_state() {
+    let (on, rendered) = script_with(PLAIN, "Hello there", "Hi");
+    let (off, _) = script_with(
+        ", captions: {outline_width: 0, enabled: false}",
+        "Hello there",
+        "Hi",
+    );
+    let (none, _) = script_with("", "Hello there", "Hi");
+    let blank = mode_frame(&none, &rendered, CaptionMode::Follow);
+    let drawn = mode_frame(&on, &rendered, CaptionMode::Follow);
+    assert_ne!(blank, drawn, "captions must change pixels");
+    // Follow is exactly the screenplay.
+    assert_eq!(mode_frame(&off, &rendered, CaptionMode::Follow), blank);
+    // Hide removes captions even when the screenplay enables them.
+    assert_eq!(mode_frame(&on, &rendered, CaptionMode::Hide), blank);
+    assert_eq!(mode_frame(&off, &rendered, CaptionMode::Hide), blank);
+    assert_eq!(mode_frame(&none, &rendered, CaptionMode::Hide), blank);
+    // Show draws with the screenplay's style even when `enabled: false`.
+    assert_eq!(mode_frame(&on, &rendered, CaptionMode::Show), drawn);
+    assert_eq!(mode_frame(&off, &rendered, CaptionMode::Show), drawn);
+}
+
+#[test]
+fn caption_mode_show_without_a_screenplay_style_is_an_error_not_a_silent_drop() {
+    let (none, rendered) = script_with("", "Hello", "Hi");
+    let cancel = CancellationToken::new();
+    let frame = |script: &Script, mode| {
+        encode_frame_captions(script, 0, &rendered, 0, true, &cancel, None, mode)
+    };
+    let error = frame(&none, CaptionMode::Show).unwrap_err().to_string();
+    assert!(
+        error.contains("project.captions") && error.contains("Show"),
+        "{error}"
+    );
+    assert!(ScenePreview::new_with_captions(
+        Arc::new(none.clone()),
+        0,
+        Arc::new(ArtContext::default()),
+        None,
+        CaptionMode::Show,
+    )
+    .is_err());
+    // Missing glyphs also surface under Show even if the screenplay disabled captions.
+    let (off, _) = script_with(", captions: {enabled: false}", "Hello \u{4f60}", "Hi");
+    let error = frame(&off, CaptionMode::Show).unwrap_err().to_string();
+    assert!(error.contains("U+4F60"), "{error}");
+    // Hide never fails on text that cannot be drawn.
+    assert!(frame(&off, CaptionMode::Hide).is_ok());
+}
+
+#[test]
+fn caption_mode_is_identical_across_scene_preview_sequence_preview_and_all_exports() {
+    let (script, rendered) = script_with(", captions: {enabled: false}", "Hello there", "Hi");
+    let cancel = CancellationToken::new();
+    let art = ArtContext::default();
+    let scenes = vec![rendered.clone()];
+    let source_before = serde_json::to_string(&script).unwrap();
+    for mode in [CaptionMode::Follow, CaptionMode::Show, CaptionMode::Hide] {
+        let expected = mode_frame(&script, &rendered, mode);
+        // Scene preview.
+        let preview = ScenePreview::new_with_captions(
+            Arc::new(script.clone()),
+            0,
+            Arc::new(art.clone()),
+            Some(Arc::new(rendered.manifest.clone())),
+            mode,
+        )
+        .unwrap();
+        assert_eq!(
+            preview.render(0, 1024, &cancel).unwrap().rgba,
+            expected,
+            "{mode:?}"
+        );
+        // Sequence preview.
+        let sequence = SequencePreview::new(
+            Arc::new(script.clone()),
+            Arc::new(scenes.clone()),
+            None,
+            &cancel,
+        )
+        .unwrap();
+        assert_eq!(
+            sequence
+                .render_frame_captions(0, 1024, &cancel, mode)
+                .unwrap()
+                .rgba,
+            expected,
+            "{mode:?}"
+        );
+        // Scene PNG and SVG export.
+        let dir = crate::tests::destination();
+        export_png_scene_with_art_captions(
+            &script,
+            0,
+            &rendered,
+            &art,
+            &dir,
+            &cancel,
+            |_| {},
+            mode,
+        )
+        .unwrap();
+        let png = Pixmap::load_png(dir.join("frame_000000.png")).unwrap();
+        assert_eq!(png.data(), expected, "{mode:?}");
+        fs::remove_dir_all(&dir).unwrap();
+        let dir = crate::tests::destination();
+        export_scene_with_art_captions(&script, 0, &rendered, &art, &dir, &cancel, |_| {}, mode)
+            .unwrap();
+        let svg = fs::read_to_string(dir.join("frame_000000.svg")).unwrap();
+        assert_eq!(
+            svg.contains("id=\"captions\""),
+            mode == CaptionMode::Show,
+            "{mode:?}"
+        );
+        assert_eq!(media::rasterize(&svg).unwrap(), png_bytes(&expected));
+        fs::remove_dir_all(&dir).unwrap();
+        // Sequence PNG and SVG export.
+        let dir = crate::tests::destination();
+        export_png_sequence_captions(&script, &scenes, None, &dir, &cancel, |_| {}, mode).unwrap();
+        let png = Pixmap::load_png(dir.join("frame-000000.png")).unwrap();
+        assert_eq!(png.data(), expected, "{mode:?}");
+        fs::remove_dir_all(&dir).unwrap();
+        let dir = crate::tests::destination();
+        export_svg_sequence_captions(&script, &scenes, None, &dir, &cancel, |_| {}, mode).unwrap();
+        let svg = fs::read_to_string(dir.join("frame-000000.svg")).unwrap();
+        assert_eq!(
+            svg.contains("id=\"scene0_captions\""),
+            mode == CaptionMode::Show,
+            "{mode:?}"
+        );
+        fs::remove_dir_all(&dir).unwrap();
+    }
+    // The override never touches the screenplay data it was applied to.
+    assert_eq!(serde_json::to_string(&script).unwrap(), source_before);
 }
