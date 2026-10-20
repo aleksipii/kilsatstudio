@@ -601,7 +601,10 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
     let start=offset+j*5u; let metadata=points[start];
     var distance=length(local-points[start+1u])-points[start+2u].x;
     if metadata.x>.5 { distance=polygon(local,start+1u,4u); }
-    coverage=max(coverage,(1.-smoothstep(-s.origin.z,s.origin.z,distance))*metadata.y);
+    // Bands arrive from outer (low coverage) to inner (high coverage) like the CPU's
+    // painter-ordered paths, so each edge pixel blends toward its band's level instead of
+    // being scaled down by its own antialiasing (which left soft edges ~7% too dark).
+    coverage=mix(coverage,metadata.y,1.-smoothstep(-s.origin.z,s.origin.z,distance));
    }
    masks[depth]=mix(masks[depth],s.geometry.z,coverage); continue;
   }
@@ -752,7 +755,11 @@ mod tests {
         let pixel = |x: usize| &frame.rgba[(32 * 64 + x) * 4..(32 * 64 + x) * 4 + 4];
         assert_eq!(pixel(32), &[255, 0, 0, 255]); // repaint restores erased centre
         assert_eq!(pixel(37), &[0, 0, 0, 255]); // erase remains outside repaint
-        assert!((i32::from(pixel(45)[0]) - 179).abs() <= 12); // soft pressure edge
+        let soft_edge: Vec<u8> = (36..=54).map(|x| pixel(x)[0]).collect();
+        assert!(
+            (i32::from(pixel(45)[0]) - 179).abs() <= 12,
+            "soft pressure edge at x=45; red for x=36..=54: {soft_edge:?}"
+        );
         assert_eq!(pixel(56), &[0, 0, 0, 255]); // outside pressure-scaled footprint
         assert!(frame.validation_errors.is_empty());
     }

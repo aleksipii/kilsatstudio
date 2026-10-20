@@ -734,3 +734,70 @@ fn gpu_parity_fixtures_within_documented_tolerance() {
         failures.join("\n")
     );
 }
+
+/// The pressure/soft-brush probe from `motion-render`'s ignored hardware test, rendered
+/// through the CPU path at 64x64: this is the reference value the GPU probe is checked against.
+fn pressure_probe_document() -> Document {
+    let stroke = |radius, pressure, hardness, erase| motion_art::MaskStroke {
+        points: vec![motion_art::Point { x: 32.5, y: 32.5 }],
+        radius,
+        pressures: vec![pressure],
+        hardness,
+        erase,
+    };
+    Document {
+        layers: vec![motion_art::Layer {
+            id: "mask".into(),
+            scene_id: "s".into(),
+            name: "mask".into(),
+            visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            blend: motion_art::BlendMode::Normal,
+            content: Content::Rectangle {
+                rect: rect(0.0, 0.0, 64.0, 64.0),
+                color: rgba(255, 0, 0, 255),
+            },
+            clip_shape: Some(ClipShape::Painted {
+                base_visible: false,
+                strokes: vec![
+                    stroke(40.0, 0.5, 0.5, false),
+                    stroke(8.0, 1.0, 1.0, true),
+                    stroke(2.0, 1.0, 1.0, false),
+                ],
+                motion: Vec::new(),
+            }),
+        }],
+        ..Default::default()
+    }
+}
+
+#[test]
+fn cpu_soft_pressure_brush_profile_is_the_reference_for_the_gpu_probe() {
+    let mut scene = no_actors("#000000");
+    scene.width = 64;
+    scene.height = 64;
+    let svg = motion_render::render_svg_with_art(
+        &scene,
+        64,
+        64,
+        &[],
+        "s",
+        &pressure_probe_document(),
+        &BTreeMap::new(),
+    )
+    .unwrap();
+    let pixmap = resvg::tiny_skia::Pixmap::decode_png(&media::rasterize(&svg).unwrap()).unwrap();
+    let red = |x: usize| pixmap.data()[(32 * 64 + x) * 4];
+    let profile: Vec<u8> = (36..=54).map(red).collect();
+    println!("CPU red for x=36..=54: {profile:?}");
+    assert_eq!(red(32), 255); // repaint restores the erased centre
+    assert_eq!(red(56), 0); // outside the pressure-scaled footprint
+    assert!(
+        profile[5..].windows(2).all(|w| w[0] >= w[1]),
+        "soft edge must fall monotonically: {profile:?}"
+    );
+}

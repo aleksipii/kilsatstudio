@@ -9,6 +9,21 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PRs #66–#69 merged on 2026-10-20 after green Linux/macOS CI on each final head; branches that
+conflicted on `docs/remaining-work.md` were merged with `origin/main` and re-checked locally
+(fmt, all-features Clippy, `cargo test --workspace`) on an Apple M1 first: #66 native audio
+cue and animation rule editors (headless-tested only), #67 numeric texture/UV/skin-weight
+controls in the custom-rig editor, #68 GPU support for animated polygon/painted masks and
+textured/skinned rig parts with 8 new parity fixtures, #69 sequence preparation on the job
+graph (one worker), audio/frame memory budgets and hand-run release benchmarks (one M1).
+A follow-up fix after #68 found that the ignored soft-brush Metal probe had never passed on
+hardware (GPU soft edges ~15 levels too dark vs CPU); the shader now blends bands in CPU order
+and the probe passes, with parity rows re-measured (RMS down, isolated max error up).
+The work was done by parallel agents; claims were checked via CI, local runs and the one
+probe re-run above. Not established: GUI behaviour of any editor, perceptual quality, GPU
+text (needs a label/font decision), concurrent speech inference, input-to-display latency,
+other machines, physical Mac/audio/stylus acceptance and licensing.
+
 PRs #60–#64 merged on 2026-10-20 after green Linux/macOS CI on each final head (fmt, check,
 Clippy, tests, GPU contracts, media encoding, Apple Silicon preview). Branches that
 conflicted on `docs/remaining-work.md` or added `Script` fields were merged with
