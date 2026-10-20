@@ -3577,12 +3577,19 @@ impl Studio {
             ));
         }
         let mut action = 0;
+        let images: Vec<String> = self
+            .project_document
+            .iter()
+            .flat_map(|d| d.assets.iter())
+            .filter(|a| a.kind == motion_project::AssetKind::Image)
+            .map(|a| a.id.clone())
+            .collect();
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
             |ui| {
                 egui::CollapsingHeader::new("Custom character rig").show(ui, |ui| {
                     if let Some((_, draft)) = &mut self.custom_rig_draft {
-                        action = draft.ui(ui);
+                        action = draft.ui(ui, &images);
                     }
                 });
             },
@@ -7182,6 +7189,93 @@ mod custom_rig_history_integration_tests {
         assert_eq!(studio.source, original);
         studio.undo_edit(true);
         assert_eq!(studio.source, edited);
+    }
+}
+
+#[cfg(test)]
+mod custom_rig_texture_skin_apply_tests {
+    use super::*;
+
+    fn studio_with_rig_draft(
+        asset_kind: Option<motion_project::AssetKind>,
+    ) -> (Studio, String, custom_rig_editor::Draft) {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.selected_actor = Some("ALEX".into());
+        let mut document = motion_project::ProjectDocument::new(studio.source.clone()).unwrap();
+        if let Some(kind) = asset_kind {
+            document.assets.push(motion_project::AssetReference {
+                id: "skin".into(),
+                path: "skin.png".into(),
+                kind,
+            });
+        }
+        studio.project_document = Some(document);
+        let original = studio.source.clone();
+        let script = motion_script::parse(&original).unwrap();
+        let mut draft = custom_rig_editor::Draft::for_actor(&script, "ALEX");
+        draft.yaml = draft.yaml.replace(
+            "    color: [70, 160, 220, 255]\n",
+            "    color: [70, 160, 220, 255]\n    texture: {asset: skin, uv: [0, 0, 0.5, 1]}\n    skin:\n      - [{joint: root, weight: 0.5}, {joint: head, weight: 0.5}]\n      - [{joint: root, weight: 1}]\n      - [{joint: root, weight: 1}]\n      - [{joint: root, weight: 1}]\n",
+        );
+        (studio, original, draft)
+    }
+
+    #[test]
+    fn texture_and_skin_apply_requires_image_asset_and_valid_weights_and_is_undoable() {
+        // Missing inventory entry, or a non-image asset: project is untouched.
+        for kind in [None, Some(motion_project::AssetKind::Audio)] {
+            let (mut studio, original, draft) = studio_with_rig_draft(kind);
+            studio.custom_rig_draft = Some((original.clone(), draft));
+            studio.apply_custom_rig_draft(1);
+            assert_eq!(studio.source, original);
+            assert!(!studio.history.can_undo());
+        }
+        // Invalid weights are rejected even with a valid image asset.
+        let (mut studio, original, mut draft) =
+            studio_with_rig_draft(Some(motion_project::AssetKind::Image));
+        let valid_yaml = draft.yaml.clone();
+        draft.yaml = valid_yaml.replace(
+            "weight: 0.5}, {joint: head, weight: 0.5",
+            "weight: 0.9}, {joint: head, weight: 0.5",
+        );
+        studio.custom_rig_draft = Some((original.clone(), draft));
+        studio.apply_custom_rig_draft(1);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        // The valid draft applies atomically, persists and undoes.
+        let (mut studio, original, draft) =
+            studio_with_rig_draft(Some(motion_project::AssetKind::Image));
+        studio.custom_rig_draft = Some((original.clone(), draft));
+        studio.apply_custom_rig_draft(1);
+        assert_ne!(studio.source, original);
+        let rig = motion_script::parse(&studio.source).unwrap().characters["ALEX"]
+            .rig
+            .clone()
+            .unwrap();
+        assert_eq!(rig.parts[0].texture.as_ref().unwrap().asset, "skin");
+        assert_eq!(rig.parts[0].skin.len(), 4);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+    }
+
+    #[test]
+    fn stale_texture_skin_draft_is_rejected() {
+        let (mut studio, original, draft) =
+            studio_with_rig_draft(Some(motion_project::AssetKind::Image));
+        let mut stale = original.clone();
+        stale.push('\n');
+        studio.custom_rig_draft = Some((stale, draft));
+        studio.apply_custom_rig_draft(1);
+        assert_eq!(studio.source, original);
+        assert!(studio.status.contains("changed"));
+        let (mut studio, original, mut draft) =
+            studio_with_rig_draft(Some(motion_project::AssetKind::Image));
+        draft.actor = "EMMA".into();
+        studio.custom_rig_draft = Some((original.clone(), draft));
+        studio.apply_custom_rig_draft(1);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
     }
 }
 

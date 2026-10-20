@@ -2889,6 +2889,7 @@ dependencies = [
  "motion-jobs",
  "motion-lipsync",
  "motion-project",
+ "motion-rig",
  "motion-scene",
  "motion-script",
  "motion-tts",
