@@ -79,3 +79,16 @@ distribution review. Software items still open and unassigned to any increment:
 reusable/conditional animation rules, process-wide memory
 budget, dependency-DAG scheduling, input-to-display latency measurement, GPU fonts,
 measured full CPU/GPU parity and textured/deformed custom rigs.
+
+## Increment after PR #59 (2026-10-20)
+
+- [x] PR #60 CPU/GPU parity harness with recorded numbers (`docs/gpu-parity.md`).
+- [x] PR #61 custom-rig textures and two-joint skinning.
+- [x] PR #62 process memory budget, dependency job graph, input-latency recorder.
+- [x] PR #63 audio cues. [x] PR #64 animation rules.
+
+Still open in software: native cue and rule editors, GPU text (needs a decision on
+labels and a licensed font), GPU support for textured/skinned parts and animated
+masks, wiring the job graph into a real pipeline, budgeting audio/render caches,
+weight/UV editors, tighter parity tolerances. Device, speech-quality and rights gates
+are unchanged and need external evidence.
