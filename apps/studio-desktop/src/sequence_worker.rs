@@ -350,6 +350,7 @@ fn prepare(
 /// compare 1 and 3), but only the dependency ordering is enabled in the product.
 const PREPARE_WORKERS: usize = 1;
 
+#[allow(clippy::large_enum_variant)] // short-lived channel messages
 enum Stage {
     Scene(motion_voice::scene_audio::PreparedAlignedScene),
     Mix(AudioBuffer),

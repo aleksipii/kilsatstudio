@@ -129,7 +129,12 @@ fn synthesizes_only_selected_scene_and_mixes_on_shared_clock() {
     assert_eq!(prepared.clips[0].mouth_at(24).unwrap(), Viseme::Closed);
     assert_eq!(prepared.clips[0].mouth_at(36).unwrap(), Viseme::Rest);
     assert!(prepared.clips[1].alignment.is_none());
-    assert!(prepared.rendered.manifest.dialogue[1].visemes.is_empty());
+    // No explicit alignment: the lowest-precedence text estimate fills in (never forced).
+    assert!(prepared.clips[1].text_estimated.is_some());
+    assert!(matches!(
+        prepared.rendered.manifest.dialogue[1].alignment_source,
+        Some(AlignmentSource::Estimated { .. })
+    ));
 }
 #[test]
 fn imports_explicit_audio_without_calling_provider() {

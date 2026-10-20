@@ -86,6 +86,8 @@ struct Preview {
 struct ScenePreview {
     scene: String,
     alignment_statuses: std::collections::BTreeMap<u64, AlignmentStatus>,
+    /// Non-fatal preparation findings, e.g. low-confidence pronunciations.
+    diagnostics: Vec<String>,
     clips: Vec<DialogueClip>,
     audio: Arc<motion_audio::AudioBuffer>,
     manifest: Arc<motion_voice::export::SceneManifest>,
@@ -96,6 +98,8 @@ struct Prepare {
     result: SpeechResult,
     alignment: String,
     alignment_cache_root: std::path::PathBuf,
+    /// Project `pronunciations:` for the text-estimated mouth fallback.
+    pronunciations: std::collections::BTreeMap<String, String>,
     cancel: CancellationToken,
 }
 type PreviewResult = Result<Preview, String>;
@@ -248,6 +252,14 @@ impl Default for Studio {
                         &AlignmentCache::new(&task.alignment_cache_root),
                     )
                     .map_err(|e| e.to_string())?;
+                    let mut clip = clip;
+                    let overrides =
+                        motion_lipsync::english::Pronunciations::from_map(&task.pronunciations)
+                            .map_err(|e| e.to_string())?;
+                    // Same derivation as scene preparation; precedence keeps real alignments.
+                    let _ = motion_voice::scene_audio::derive_text_mouths(
+                        &mut clip, &task.job, &overrides,
+                    );
                     let bin = (clip.audio.frames() / 700).max(1);
                     let peaks = motion_audio::waveform_peaks(&clip.audio, bin)
                         .map_err(|e| e.to_string())?;
@@ -1545,8 +1557,11 @@ impl Studio {
             for (id, status) in &preview.alignment_statuses {
                 ui.label(format!("Dialogue {id}: {}", alignment_status_text(*status)));
             }
+            for message in &preview.diagnostics {
+                ui.colored_label(egui::Color32::YELLOW, message);
+            }
         }
-        ui.label("One mixed source clock drives all actor mouths. Missing alignment keeps mouths at rest. Device latency and perceptual timing require Mac validation.");
+        ui.label("One mixed source clock drives all actor mouths. Without alignment, mouths follow an English text estimate (not aligned to audio). Device latency and perceptual timing require Mac validation.");
         if let Some(error) = &self.playback_error {
             ui.colored_label(egui::Color32::LIGHT_RED, error);
         }
@@ -1698,6 +1713,7 @@ impl Studio {
             result,
             alignment: self.alignment.clone(),
             alignment_cache_root: self.kokoro_config().cache_directory.join("alignments"),
+            pronunciations: self.script_pronunciations(),
             cancel: cancel.clone(),
         }) {
             Ok(()) => {
@@ -2184,6 +2200,8 @@ impl Studio {
                                     "Discarded preparation for an invalidated scene.".into();
                                 continue;
                             }
+                            let diagnostics: Vec<String> =
+                                prepared.diagnostics.iter().map(|d| d.message()).collect();
                             let audio = prepared.rendered.audio;
                             self.status = format!(
                                 "Scene ready: {} dialogue clips · {:.3}s",
@@ -2193,6 +2211,7 @@ impl Studio {
                             self.scene_preview = Some(ScenePreview {
                                 scene: prepared.scene_id,
                                 alignment_statuses: ready.alignment_statuses,
+                                diagnostics,
                                 clips: prepared.clips,
                                 audio: Arc::new(audio),
                                 manifest: Arc::new(prepared.rendered.manifest),
@@ -2264,6 +2283,7 @@ impl Studio {
                                     .kokoro_config()
                                     .cache_directory
                                     .join("alignments"),
+                                pronunciations: self.script_pronunciations(),
                                 cancel: self.active_cancel.clone().unwrap_or_default(),
                             }) {
                                 Ok(()) => self.status = "Preparing waveform and alignment…".into(),
@@ -2353,6 +2373,12 @@ fn default_kokoro_root() -> String {
     kokoro_setup::default_root().to_string_lossy().into_owned()
 }
 impl Studio {
+    fn script_pronunciations(&self) -> std::collections::BTreeMap<String, String> {
+        self.script
+            .as_ref()
+            .map(|s| s.pronunciations.clone())
+            .unwrap_or_default()
+    }
     fn submit_kokoro(&mut self, task: kokoro_setup::Task) {
         if self.busy || self.diagnostics_busy || self.export_busy {
             return;
@@ -5194,6 +5220,7 @@ mod scene_preview_tests {
                 }],
             }),
             gain: 1.0,
+            text_estimated: None,
             trim_start_frame: 0,
         }
     }
@@ -6098,6 +6125,7 @@ mod alignment_status_tests {
                     estimated_alignment: None,
                     alignment: None,
                     gain: 1.0,
+                    text_estimated: None,
                     trim_start_frame: 0,
                 },
                 peaks: vec![],
@@ -6974,6 +7002,7 @@ mod native_integration_tests {
                 alignment: None,
                 estimated_alignment: None,
                 gain: 1.0,
+                text_estimated: None,
                 trim_start_frame: 0,
             },
             peaks: vec![],

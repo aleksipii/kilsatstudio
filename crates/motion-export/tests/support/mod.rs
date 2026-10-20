@@ -323,6 +323,7 @@ pub fn rendered_scenes(script: &motion_script::Script, dir: &Path) -> Vec<Render
                             alignment: None,
                             estimated_alignment: None,
                             gain: 1.0,
+                            text_estimated: None,
                             trim_start_frame: 0,
                         })
                     }

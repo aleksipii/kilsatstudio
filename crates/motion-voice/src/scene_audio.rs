@@ -11,6 +11,8 @@ pub struct PreparedScene {
     pub rendered: export::RenderedScene,
     pub clips: Vec<DialogueClip>,
     pub cues: Vec<crate::cues::CueClip>,
+    /// Non-fatal findings (e.g. low-confidence pronunciations) from preparation.
+    pub diagnostics: Vec<crate::diagnostics::PreparationDiagnostic>,
 }
 
 pub struct PreparedAlignedScene {
@@ -28,7 +30,9 @@ pub struct SceneProgress {
 
 /// Synthesizes or imports each selected dialogue and mixes on the export sample clock.
 /// Alignment IDs are the stable global IDs returned by `dialogue_jobs`, not scene-local
-/// indices. Missing alignments leave mouths at rest; timestamps are never invented.
+/// indices. Precedence: manual > forced > Rhubarb estimated > text estimated. Without any
+/// alignment a mouth track is estimated from the line's text (labelled `Estimated`, never
+/// forced alignment); only an unestimatable line leaves the mouth at rest.
 /// Failure returns no partially prepared scene, and progress counts prepared clips only.
 pub fn prepare_scene(
     script: &Script,
@@ -142,6 +146,9 @@ fn prepare_scene_common(
         )));
     }
     let total = jobs.len();
+    let overrides = motion_lipsync::english::Pronunciations::from_map(&script.pronunciations)
+        .map_err(|e| SpeechError(e.to_string()))?;
+    let mut diagnostics = Vec::new();
     let mut clips = Vec::with_capacity(total);
     for job in jobs {
         cancel.check()?;
@@ -160,7 +167,9 @@ fn prepare_scene_common(
         }
         .map_err(context)?;
         cancel.check()?;
-        let clip = prepare(&job, &result).map_err(context)?;
+        let mut clip = prepare(&job, &result).map_err(context)?;
+        // Lowest precedence: only when no manual/forced/Rhubarb alignment exists.
+        diagnostics.extend(derive_text_mouths(&mut clip, &job, &overrides));
         if clips.iter().any(|existing: &DialogueClip| {
             existing.actor == clip.actor
                 && existing.start_frame < clip.start_frame + clip.audio.frames() as u64
@@ -189,7 +198,28 @@ fn prepare_scene_common(
         rendered,
         clips,
         cues,
+        diagnostics,
     })
+}
+
+/// Derives the text-estimated mouth track for `clip` (a no-op when a higher-precedence
+/// alignment exists). Failures are non-fatal diagnostics: the mouth stays at rest.
+pub fn derive_text_mouths(
+    clip: &mut DialogueClip,
+    job: &DialogueJob,
+    overrides: &motion_lipsync::english::Pronunciations,
+) -> Vec<crate::diagnostics::PreparationDiagnostic> {
+    match clip.derive_text_estimate(&job.request.text, overrides) {
+        Ok(Some(info)) => crate::diagnostics::from_estimate(job.id, &job.actor, &info),
+        Ok(None) => Vec::new(),
+        Err(error) => vec![
+            crate::diagnostics::PreparationDiagnostic::TextEstimateUnavailable {
+                dialogue_id: job.id,
+                actor: job.actor.clone(),
+                reason: error.to_string(),
+            },
+        ],
+    }
 }
 
 #[cfg(test)]

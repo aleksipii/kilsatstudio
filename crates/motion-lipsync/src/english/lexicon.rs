@@ -43,6 +43,11 @@ pub struct Lexicon {
 }
 
 impl Lexicon {
+    /// Raw embedded (gzip) lexicon bytes, for version identities.
+    pub(super) fn data_bytes() -> &'static [u8] {
+        DATA
+    }
+
     /// The embedded CMUdict, decompressed on first use and shared afterwards.
     pub fn builtin() -> &'static Lexicon {
         static CELL: OnceLock<Lexicon> = OnceLock::new();

@@ -152,6 +152,25 @@ pub fn render_scene_with_cues(
                 }
             }
             Some(alignment.source.clone())
+        } else if let Some(text) = &clip.text_estimated {
+            if text.track.frame_count != clip.audio.frames() as u64 {
+                return Err(SpeechError(
+                    "text-estimated mouth track does not match export audio length".into(),
+                ));
+            }
+            for cue in &text.track.cues {
+                let start = cue.start_sample.max(clip.trim_start_frame);
+                let end = cue.end_sample.min(clip.audio.frames() as u64);
+                if start < end {
+                    visemes.push(SampleViseme {
+                        start_frame: clip.start_frame + start - clip.trim_start_frame,
+                        end_frame: clip.start_frame + end - clip.trim_start_frame,
+                        viseme: cue.viseme,
+                    });
+                }
+            }
+            // Estimated from text alone; distinct from Rhubarb's tool name.
+            Some(text.track.source.clone())
         } else {
             None
         };

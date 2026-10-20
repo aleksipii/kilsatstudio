@@ -101,6 +101,9 @@ are unchanged and need external evidence.
 - [x] Text normaliser, CMUdict lexicon plus rule-based fallback, validated
   `pronunciations:` overrides, pre-render report and an estimated viseme track
   (`docs/english-lipsync.md`). Unit tests cover structure and determinism only.
-- [ ] Open: perceptual lip-sync quality is unmeasured (no annotated audio), the
-  acting layer must consume `EstimatedVisemeTrack`, and a real forced aligner would
-  replace these estimates.
+- [x] Text-estimated visemes reach scene preparation, preview and export with
+  precedence manual > forced > Rhubarb > text, pronunciation-aware identity and typed
+  diagnostics (`docs/estimated-visemes-pipeline.md`). Structural and pixel tests only.
+- [ ] Open: perceptual lip-sync quality is unmeasured (no annotated audio), a real
+  forced aligner would replace these estimates, and the sequence panel does not list
+  the new diagnostics.
