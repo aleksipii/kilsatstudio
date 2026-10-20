@@ -80,7 +80,7 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
     license_path = repo / 'LICENSE'
     if license_path.is_symlink() or not license_path.is_file() or not license_path.stat().st_size:
         raise ValueError('missing or unsafe LICENSE: provide the non-empty repository source license')
-    required = ['LICENSE', 'examples', 'services/kokoro-runtime/runtime.py',
+    required = ['LICENSE', 'NOTICE', 'examples', 'services/kokoro-runtime/runtime.py',
                 'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
                 'services/kokoro-runtime/acceptance.py',
                 'services/kokoro-runtime/setup_kokoro.py',

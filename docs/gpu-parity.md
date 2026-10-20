@@ -131,6 +131,12 @@ for the probe is asserted by `cpu_soft_pressure_brush_profile_is_the_reference_f
 
 ## Fonts / GPU text
 
+Update (captions workstream): the CPU rasterizer now has resvg text support with a
+font database holding only the bundled caption font, and draws captions (see
+[captions](captions.md)). Actor labels are still not drawn (their `<text>` is
+`display="none"`), so the label statements below remain true; the GPU path draws
+no captions and no labels. The paragraph below describes the earlier state.
+
 Finding: the CPU path draws **no label text at all**. `render_svg*` emits
 `<text font-family="sans-serif">` for each actor, but export/preview rasterize with
 `resvg 0.45.1` built with `default-features = false, features = ["raster-images"]`.

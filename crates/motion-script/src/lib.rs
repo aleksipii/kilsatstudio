@@ -435,6 +435,9 @@ pub struct Project {
     pub fps: u32,
     pub width: u32,
     pub height: u32,
+    /// Opt-in captions derived from `speak` events. Absent: no captions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub captions: Option<CaptionStyle>,
 }
 impl Default for Project {
     fn default() -> Self {
@@ -443,7 +446,85 @@ impl Default for Project {
             fps: 24,
             width: 1920,
             height: 1080,
+            captions: None,
         }
+    }
+}
+/// Project-level caption style. Captions are derived from `speak` events (text and
+/// speaker) and drawn with the bundled caption font on the shared SVG path.
+/// Present means opted in; `enabled: false` keeps the style but draws nothing.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct CaptionStyle {
+    pub enabled: bool,
+    /// Font size in project pixels (at the project height).
+    pub font_size: f64,
+    /// Default fill colour, `#rrggbb`.
+    pub fill: String,
+    /// Explicit fill per speaker (character id). Unlisted speakers use `fill`.
+    pub speaker_fill: BTreeMap<String, String>,
+    pub outline: String,
+    /// Visible outline thickness in project pixels; 0 draws no outline.
+    pub outline_width: f64,
+    /// Distance from the bottom of the frame to the last line's box, as a
+    /// fraction of the project height.
+    pub bottom_margin: f64,
+    /// Maximum line width as a fraction of the project width.
+    pub max_width: f64,
+    /// Line pitch as a multiple of `font_size`.
+    pub line_height: f64,
+    pub uppercase: bool,
+}
+impl Default for CaptionStyle {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            font_size: 64.0,
+            fill: "#ffffff".into(),
+            speaker_fill: BTreeMap::new(),
+            outline: "#000000".into(),
+            outline_width: 6.0,
+            bottom_margin: 0.08,
+            max_width: 0.8,
+            line_height: 1.15,
+            uppercase: true,
+        }
+    }
+}
+impl CaptionStyle {
+    /// Fill colour for a speaker: explicit map entry, else the default fill.
+    pub fn fill_for(&self, speaker: &str) -> &str {
+        self.speaker_fill.get(speaker).unwrap_or(&self.fill)
+    }
+    fn validate(&self, characters: &BTreeMap<String, Character>) -> Result<(), Error> {
+        let fail = |m: String| Error::Validation(format!("project.captions: {m}"));
+        let in_range = |v: f64, lo: f64, hi: f64| v.is_finite() && (lo..=hi).contains(&v);
+        if !in_range(self.font_size, 4.0, 1024.0)
+            || !in_range(self.outline_width, 0.0, 64.0)
+            || !in_range(self.bottom_margin, 0.0, 0.5)
+            || !in_range(self.max_width, 0.1, 1.0)
+            || !in_range(self.line_height, 0.5, 4.0)
+        {
+            return Err(fail("font_size 4..1024, outline_width 0..64, bottom_margin 0..0.5, max_width 0.1..1 and line_height 0.5..4 must be finite and in range".into()));
+        }
+        for color in [&self.fill, &self.outline]
+            .into_iter()
+            .chain(self.speaker_fill.values())
+        {
+            if !safe_background_color(color) {
+                return Err(fail(format!("colour {color:?} must be #rrggbb")));
+            }
+        }
+        if let Some(unknown) = self
+            .speaker_fill
+            .keys()
+            .find(|speaker| !characters.contains_key(*speaker))
+        {
+            return Err(fail(format!(
+                "speaker_fill names unknown character {unknown}"
+            )));
+        }
+        Ok(())
     }
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1363,6 +1444,9 @@ impl Script {
                     .map_err(|error| fail(format!("character {id}: {error}")))?;
             }
         }
+        if let Some(captions) = &self.project.captions {
+            captions.validate(&self.characters)?;
+        }
         if self.animation_clips.len() > 64 {
             return Err(fail("animation library exceeds 64 clips".into()));
         }
@@ -2203,6 +2287,7 @@ mod scene_settings_tests {
             fps: 60,
             width: 1280,
             height: 720,
+            captions: None,
         };
         let after =
             parse(&apply_scene_settings(SOURCE, 0, project.clone(), "opening", 6.0).unwrap())
@@ -4016,5 +4101,56 @@ scenes:
             parse(&deleted).unwrap().scenes[1].composition.bone_tracks,
             copied
         );
+    }
+}
+
+#[cfg(test)]
+mod caption_style_tests {
+    use super::*;
+
+    fn source(captions: &str) -> String {
+        format!("project: {{title: T, fps: 24, width: 640, height: 360{captions}}}\ncharacters:\n  EMMA: {{asset: a}}\n  ALEX: {{asset: b}}\nscenes:\n  - {{id: s, duration: 5, events: [{{type: speak, actor: EMMA, at: 0, text: Hi, audio: a.wav}}]}}\n")
+    }
+
+    #[test]
+    fn absent_means_no_captions_and_defaults_apply_when_present() {
+        assert!(parse(&source("")).unwrap().project.captions.is_none());
+        let style = parse(&source(", captions: {}"))
+            .unwrap()
+            .project
+            .captions
+            .unwrap();
+        assert_eq!(style, CaptionStyle::default());
+        assert!(style.enabled && style.uppercase);
+    }
+
+    #[test]
+    fn per_speaker_colours_and_disable() {
+        let script = parse(&source(
+            ", captions: {enabled: false, fill: '#ffffff', speaker_fill: {ALEX: '#ffd400'}}",
+        ))
+        .unwrap();
+        let style = script.project.captions.unwrap();
+        assert!(!style.enabled);
+        assert_eq!(style.fill_for("ALEX"), "#ffd400");
+        assert_eq!(style.fill_for("EMMA"), "#ffffff");
+    }
+
+    #[test]
+    fn invalid_styles_are_rejected_with_actionable_errors() {
+        for bad in [
+            ", captions: {font_size: 0}",
+            ", captions: {font_size: .nan}",
+            ", captions: {max_width: 1.5}",
+            ", captions: {bottom_margin: 0.9}",
+            ", captions: {outline_width: -1}",
+            ", captions: {fill: red}",
+            ", captions: {speaker_fill: {NOBODY: '#ffffff'}}",
+            ", captions: {speaker_fill: {EMMA: '#ggg000'}}",
+        ] {
+            let error = parse(&source(bad)).unwrap_err().to_string();
+            assert!(error.contains("project.captions"), "{bad}: {error}");
+        }
+        assert!(parse(&source(", captions: {unknown: 1}")).is_err());
     }
 }
