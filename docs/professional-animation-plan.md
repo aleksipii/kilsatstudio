@@ -1,6 +1,6 @@
 # Plan: professional dialogue animation from a screenplay alone
 
-Status: plan, 2026-10-20. Nothing here is implemented unless a later section of
+Status: plan, 2026-10-20; workstreams 1-5 merged as PRs #72-#76 (see master-progress.md); integration (increment 3) and human review (increment 4) are open. Nothing here is implemented unless a later section of
 [master-progress.md](master-progress.md) says so. The authoritative requirement
 list stays in the [master build prompt](master-build-prompt.md); open work is in
 [remaining-work.md](remaining-work.md).

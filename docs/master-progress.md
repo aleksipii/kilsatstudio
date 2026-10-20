@@ -9,6 +9,23 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PRs #71–#76 merged on 2026-10-20 (plan, then five workstreams of
+[professional-animation-plan.md](professional-animation-plan.md)), each after green Linux/macOS CI on its final head
+(branches were updated with main first; #74 needed a fix because gitignored `*.wav` fixtures
+were missing in CI, so the tests now regenerate the placeholder tones): #72 `323716e` captions
+with a bundled SIL OFL font (Anton, recorded in NOTICE; licence sign-off still a human task);
+#73 `49a140e` open-vocabulary English normaliser, CMUdict lexicon with rule-based fallback,
+pronunciation overrides, unknown-word report and an estimated phoneme-to-viseme track (BSD-2
+CMUdict licence read from upstream, not legally reviewed); #74 `007ddfd` shot library, cut
+rules and an original night-room reference sequence (placeholder tones, TODO hooks); #75
+`7fcdc4a` deterministic scene lights and animated image props (CPU only); #76 `cfc056e` custom-rig
+acting layer (part variants, viseme mouths, expressions, gaze, blink). The work was done by
+parallel agents and checked via CI and their local runs, not by reading every line.
+Not established: any integrated end-to-end scene using all five (the reference scene still has
+TODO hooks for captions, visemes, acting, lighting and the phone screen), lip-sync quality (no
+annotated audio), Kokoro speech in the reference scene, style and comic timing, GUI behaviour,
+GPU support for lights/animated props/captions, and font/lexicon legal sign-off.
+
 PRs #66–#69 merged on 2026-10-20 after green Linux/macOS CI on each final head; branches that
 conflicted on `docs/remaining-work.md` were merged with `origin/main` and re-checked locally
 (fmt, all-features Clippy, `cargo test --workspace`) on an Apple M1 first: #66 native audio
