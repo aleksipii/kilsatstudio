@@ -436,6 +436,12 @@ fn selected_joint(instance: &motion_script::ClipInstance, joint: usize) -> bool 
 impl ValidatedScript {
     pub fn new(script: std::sync::Arc<Script>) -> Result<Self, Error> {
         script.validate()?;
+        // Animation rules expand once, so preview, seek and export share one script.
+        let script = if script.rules.is_empty() {
+            script
+        } else {
+            std::sync::Arc::new(script.expand_rules().map_err(motion_script::Error::from)?)
+        };
         let prepared = std::sync::Arc::new(PreparedAnimation::new(&script)?);
         Ok(Self { script, prepared })
     }
@@ -449,6 +455,13 @@ pub fn evaluate(
     time_seconds: f64,
 ) -> Result<EvaluatedScene, Error> {
     script.validate()?;
+    let expanded;
+    let script = if script.rules.is_empty() {
+        script
+    } else {
+        expanded = script.expand_rules().map_err(motion_script::Error::from)?;
+        &expanded
+    };
     let prepared = PreparedAnimation::new(script)?;
     evaluate_validated(script, &prepared, scene_index, time_seconds)
 }
@@ -1739,5 +1752,22 @@ scenes:
             };
             assert_eq!(part("A"), part("B"), "t={time}");
         }
+    }
+
+    #[test]
+    fn rules_expand_identically_for_seek_and_validated_script() {
+        let source = "animation_clips: {w: {duration: 2, bone_tracks: {head: [{at: 0, x: 40}, {at: 2, x: 40}]}}}\ncharacters: {A: {asset: a}}\nscenes: [{id: s, duration: 6, events: [{type: emotion, at: 1, actor: A, value: happy}]}]\nrules:\n  r: {on: emotion, value: happy, then: {type: clip, clip: w, duration: 2}}\n";
+        let script = motion_script::parse(source).unwrap();
+        let validated = ValidatedScript::new(std::sync::Arc::new(script.clone())).unwrap();
+        let before = format!("{:?}", evaluate(&script, 0, 0.5).unwrap());
+        let during = format!("{:?}", evaluate(&script, 0, 1.5).unwrap());
+        assert_ne!(before, during, "rule clip changes the pose");
+        for time in [1.5, 0.5, 1.5, 4.0, 1.5] {
+            assert_eq!(
+                format!("{:?}", validated.evaluate(0, time).unwrap()),
+                format!("{:?}", evaluate(&script, 0, time).unwrap())
+            );
+        }
+        assert_eq!(format!("{:?}", validated.evaluate(0, 1.5).unwrap()), during);
     }
 }

@@ -1,7 +1,12 @@
 //! Strict MotionScript scene and dialogue schema.
 mod camera_presets;
+mod rules;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
+pub use rules::{
+    Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleTrigger, Rules, MAX_RULES,
+    MAX_RULE_NAME, MAX_RULE_OUTPUTS, MAX_RULE_OUTPUTS_PER_SCENE,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -450,6 +455,9 @@ pub struct Script {
     /// explicit joint retargeting. Independent of the original-rig library above.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rig_clips: BTreeMap<String, RigClip>,
+    /// Named reusable animation rules; see `Script::expand_rules`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub rules: Rules,
     #[serde(default)]
     pub project: Project,
     pub characters: BTreeMap<String, Character>,
@@ -504,6 +512,7 @@ pub fn parse(source: &str) -> Result<Script, Error> {
             }
         }
     }
+    rules::precheck(&document)?;
     let script: Script = serde_yaml::from_value(document)?;
     script.validate()?;
     Ok(script)
@@ -1305,6 +1314,10 @@ pub fn to_source(script: &Script) -> Result<String, Error> {
 
 impl Script {
     pub fn validate(&self) -> Result<(), Error> {
+        if !self.rules.is_empty() {
+            // Expansion validates the rule-free result, which covers all base content.
+            return self.expand_rules().map(|_| ()).map_err(Error::from);
+        }
         let fail = |s: String| Error::Validation(s);
         if self.project.title.trim().is_empty()
             || !(1..=240).contains(&self.project.fps)
