@@ -468,12 +468,15 @@ pub fn export_png_scene_with_art(
 
 // Conservative raster working-set estimate: pixmap, encoder buffers and retained
 // result. Large frames automatically reduce concurrency; no frame-sized thread fanout.
-fn frame_jobs(script: &Script, png: bool) -> motion_jobs::Config {
-    let bytes = if png {
+fn frame_bytes(script: &Script, png: bool) -> u64 {
+    if png {
         u64::from(script.project.width) * u64::from(script.project.height) * 16 + 1024 * 1024
     } else {
         4 * 1024 * 1024
-    };
+    }
+}
+fn frame_jobs(script: &Script, png: bool) -> motion_jobs::Config {
+    let bytes = frame_bytes(script, png);
     let workers = std::thread::available_parallelism()
         .map_or(1, usize::from)
         .min(4)
@@ -723,6 +726,13 @@ fn export_sequence(
             config.workers = 1;
             config.batch_size = 1;
         }
+        // Process-wide accounting of the same per-worker estimate, held during the run.
+        let _frame_budget = motion_jobs::process_budget()
+            .reserve(
+                "frame export workers",
+                frame_bytes(script, png).saturating_mul(config.workers as u64),
+            )
+            .map_err(|e| invalid(e.to_string()))?;
         motion_jobs::ordered_map(
             total as usize,
             config,

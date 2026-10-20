@@ -192,7 +192,7 @@ fn preflight(
     rendered: &[RenderedScene],
     art: Option<&ArtContext>,
     export: bool,
-) -> Result<(SequenceTimeline, u64), Error> {
+) -> Result<(SequenceTimeline, u64, u64), Error> {
     if rendered.len() != script.scenes.len() {
         return Err(invalid("one rendered scene required per scene"));
     }
@@ -345,7 +345,7 @@ fn preflight(
             return Err(invalid("aggregate artwork image budget exceeded"));
         }
     }
-    Ok((timeline, total))
+    Ok((timeline, total, working))
 }
 #[allow(clippy::too_many_arguments)]
 fn compose(
@@ -424,7 +424,7 @@ impl SequencePreview {
         cancel: &CancellationToken,
     ) -> Result<Self, Error> {
         check(cancel)?;
-        let (timeline, _) = preflight(&script, &rendered, art.as_deref(), false)?;
+        let (timeline, _, _) = preflight(&script, &rendered, art.as_deref(), false)?;
         check(cancel)?;
         let validated = motion_scene::ValidatedScript::new(script.clone())
             .map_err(|e| invalid(e.to_string()))?;
@@ -500,7 +500,7 @@ pub fn render_sequence_frame(
     if !(1..=1024).contains(&max_side) {
         return Err(invalid("preview maximum side must be 1..1024"));
     }
-    let (timeline, _) = preflight(script, rendered, art, false)?;
+    let (timeline, _, _) = preflight(script, rendered, art, false)?;
     preview_frame(
         script,
         rendered,
@@ -579,7 +579,11 @@ fn export_project_sequence(
     svg: bool,
 ) -> Result<Report, Error> {
     check(cancel)?;
-    let (timeline, total) = preflight(script, rendered, art, true)?;
+    let (timeline, total, working) = preflight(script, rendered, art, true)?;
+    // Held for the whole export so concurrent jobs share one process-wide estimate.
+    let _budget = motion_jobs::process_budget()
+        .reserve("sequence export working set", working)
+        .map_err(|e| invalid(e.to_string()))?;
     let validated = motion_scene::ValidatedScript::new(Arc::new(script.clone()))
         .map_err(|e| invalid(e.to_string()))?;
     let total_samples = timeline.total_samples();
