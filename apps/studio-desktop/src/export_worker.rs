@@ -196,6 +196,7 @@ mod tests {
             ffmpeg: PathBuf::new(),
             script: Script {
                 rig_clips: Default::default(),
+                pronunciations: Default::default(),
                 rules: Default::default(),
                 project: Default::default(),
                 characters: Default::default(),

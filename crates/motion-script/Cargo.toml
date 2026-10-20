@@ -9,3 +9,4 @@ serde_yaml = "0.9"
 thiserror.workspace = true
 motion-animation = { path = "../motion-animation" }
 motion-rig = { path = "../motion-rig" }
+motion-lipsync = { path = "../motion-lipsync" }
