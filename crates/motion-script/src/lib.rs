@@ -1,6 +1,7 @@
 //! Strict MotionScript scene and dialogue schema.
 mod camera_presets;
 mod rules;
+mod shots;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 pub use rules::{
@@ -8,6 +9,12 @@ pub use rules::{
     MAX_RULE_NAME, MAX_RULE_OUTPUTS, MAX_RULE_OUTPUTS_PER_SCENE,
 };
 use serde::{Deserialize, Serialize};
+pub use shots::{
+    expand_shots, CutRules, PlannedKind, PlannedShot, ReactionShot, ShotError, ShotExpansion,
+    ShotLine, ShotList, ShotPreset, ShotSpec, ShoulderSide, MAX_HOLD, MAX_LEAD_IN,
+    MAX_LINE_SECONDS, MAX_SHOTS, MAX_SHOT_EVENTS, MAX_SHOT_SECONDS, MAX_TAIL,
+    OVER_THE_SHOULDER_SHIFT,
+};
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -27,7 +34,7 @@ pub struct Character {
     pub rig: Option<motion_rig::RigDefinition>,
     pub voice: Option<VoiceConfig>,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Event {
     Move {
