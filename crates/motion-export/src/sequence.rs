@@ -243,6 +243,7 @@ fn preflight(
     for (index, scene) in rendered.iter().enumerate() {
         validate_mode(script, index, scene, export)?;
     }
+    rig_texture_preflight(script, art.map(|a| &a.images))?;
     if let Some(a) = art {
         a.document.validate().map_err(|e| invalid(e.to_string()))?;
         working =

@@ -123,6 +123,9 @@ impl ProjectDocument {
             }
             validate_path(&asset.path)?;
         }
+        if missing_rig_texture_asset(&script, &self.assets).is_some() {
+            return invalid("custom rig texture must reference an image asset in this project");
+        }
         for group in &self.art.groups {
             if !script.scenes.iter().any(|scene| scene.id == group.scene_id) {
                 return invalid("artwork group references a scene that does not exist");
@@ -177,6 +180,22 @@ impl ProjectDocument {
 }
 fn invalid<T>(message: &str) -> Result<T, Error> {
     Err(Error::Validation(message.into()))
+}
+/// First custom-rig texture asset that is not an image asset in `assets`.
+pub fn missing_rig_texture_asset<'a>(
+    script: &'a motion_script::Script,
+    assets: &[AssetReference],
+) -> Option<&'a str> {
+    script
+        .characters
+        .values()
+        .filter_map(|character| character.rig.as_ref())
+        .flat_map(|rig| rig.image_assets())
+        .find(|id| {
+            !assets
+                .iter()
+                .any(|asset| asset.id == *id && asset.kind == AssetKind::Image)
+        })
 }
 fn validate_path(path: &str) -> Result<(), Error> {
     if path.is_empty()
@@ -384,6 +403,25 @@ mod tests {
         assert_eq!(parts[0].points[1].x, 20.0);
         assert_eq!(parts[0].points[1].y, -20.0);
         assert!(ProjectDocument::new(source.replace("version: 1", "version: 2")).is_err());
+    }
+    #[test]
+    fn rig_texture_must_reference_a_project_image_asset() {
+        let source = "characters:\n  PUPPET:\n    asset: custom\n    rig:\n      version: 1\n      id: puppet\n      joints: [{id: root, parent: null}]\n      parts: [{id: body, joint: root, points: [[0,0],[10,0],[0,10]], color: [1,2,3,255], texture: {asset: skin}}]\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        assert!(ProjectDocument::new(source).is_err());
+        let mut document = ProjectDocument::new(SOURCE).unwrap();
+        document.source = source.into();
+        for kind in [AssetKind::Audio, AssetKind::Other] {
+            document.assets = vec![AssetReference {
+                id: "skin".into(),
+                path: "assets/skin.png".into(),
+                kind,
+            }];
+            assert!(document.validate().is_err());
+        }
+        document.assets[0].kind = AssetKind::Image;
+        document.validate().unwrap();
+        let reopened = decode(&encode(&document).unwrap()).unwrap();
+        assert_eq!(reopened.source, source);
     }
     #[test]
     fn artwork_group_missing_scene_is_rejected_before_project_save() {

@@ -11,6 +11,7 @@ gpu = ["dep:wgpu"]
 [dependencies]
 wgpu = { version = "=24.0.5", optional = true, default-features = false, features = ["wgsl", "metal"] }
 motion-art = { path = "../motion-art" }
+motion-rig = { path = "../motion-rig" }
 motion-scene = { path = "../motion-scene" }
 motion-lipsync = { path = "../motion-lipsync" }
 thiserror.workspace = true

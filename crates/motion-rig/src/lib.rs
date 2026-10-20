@@ -1,7 +1,8 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
 pub mod definition;
 pub use definition::{
-    EvaluatedPart, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
+    EvaluatedPart, EvaluatedTexture, PartTextureDefinition, PreparedRig, RigDefinition,
+    RigJointDefinition, RigidPartDefinition, VertexWeight,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {
@@ -78,6 +79,19 @@ impl Affine2 {
             d: self.b * r.c + self.d * r.d,
             tx: self.a * r.tx + self.c * r.ty + self.tx,
             ty: self.b * r.tx + self.d * r.ty + self.ty,
+        }
+    }
+    /// Inverse of an invertible transform (always the case for positive scales).
+    pub fn inverse(self) -> Self {
+        let det = self.a * self.d - self.b * self.c;
+        let (a, b, c, d) = (self.d / det, -self.b / det, -self.c / det, self.a / det);
+        Self {
+            a,
+            b,
+            c,
+            d,
+            tx: -(a * self.tx + c * self.ty),
+            ty: -(b * self.tx + d * self.ty),
         }
     }
     fn bounded(self) -> bool {

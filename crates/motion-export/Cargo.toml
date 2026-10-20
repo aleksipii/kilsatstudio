@@ -3,6 +3,11 @@ name = "motion-export"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+[features]
+default = []
+# Enables the hand-run CPU/GPU parity harness (hardware tests stay #[ignore]).
+gpu = ["motion-render/gpu"]
+
 [dependencies]
 motion-project = { path = "../motion-project" }
 motion-art = { path = "../motion-art" }
