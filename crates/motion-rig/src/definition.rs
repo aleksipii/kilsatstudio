@@ -740,7 +740,7 @@ impl PreparedRig {
                 scale: Vec2::new(rest.scale.x * offset.scale.x, rest.scale.y * offset.scale.y),
             };
         }
-        Ok(self.rig.evaluate(&pose)?)
+        self.rig.evaluate(&pose)
     }
     /// Evaluate one part, optionally with the variant at `variant` (an index into
     /// the part's sorted variant ids) overriding polygon, colour and texture.
