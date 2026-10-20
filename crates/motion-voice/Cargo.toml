@@ -7,6 +7,7 @@ license.workspace = true
 motion-script = { path = "../motion-script" }
 motion-tts = { path = "../motion-tts" }
 motion-audio = { path = "../motion-audio" }
+motion-jobs = { path = "../motion-jobs" }
 motion-lipsync = { path = "../motion-lipsync" }
 hound = "3.5"
 serde.workspace = true

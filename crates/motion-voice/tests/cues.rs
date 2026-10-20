@@ -242,3 +242,45 @@ fn symlink_escaping_project_root_is_rejected() {
         .0;
     assert!(e.contains("invalid asset reference"), "{e}");
 }
+
+#[test]
+fn decoded_cue_pcm_is_reserved_released_on_drop_and_not_leaked_by_errors() {
+    use motion_jobs::MemoryBudget;
+    use motion_tts::CancellationToken;
+    let p = Project::new();
+    let script = p
+        .script("[{id: a, asset: audio/hit.wav, at: 0.1}, {id: b, asset: audio/hit.wav, at: 0.2}]");
+    let scene = &script.scenes[0];
+    let cancel = CancellationToken::default();
+    // Each cue decodes 100 frames = 400 bytes of f32 PCM.
+    let roomy = MemoryBudget::new(1000);
+    let clips = motion_voice::cues::prepare_cues_in(scene, &p.0, &cancel, &roomy).unwrap();
+    assert_eq!(roomy.used(), 800);
+    let kept = clips[0].clone();
+    drop(clips);
+    assert_eq!(
+        roomy.used(),
+        400,
+        "the first clip's clone still holds its PCM"
+    );
+    drop(kept);
+    assert_eq!(roomy.used(), 0);
+
+    let tight = MemoryBudget::new(600);
+    let error = motion_voice::cues::prepare_cues_in(scene, &p.0, &cancel, &tight)
+        .err()
+        .unwrap()
+        .0;
+    assert!(
+        error.contains("audio cue b decoded PCM needs 400 bytes but only 200 of 600"),
+        "{error}"
+    );
+    assert!(error.contains("close or clear"), "{error}");
+    assert_eq!(tight.used(), 0, "the first cue's reservation was released");
+    // The refusal is deterministic.
+    let again = motion_voice::cues::prepare_cues_in(scene, &p.0, &cancel, &tight)
+        .err()
+        .unwrap()
+        .0;
+    assert_eq!(error, again);
+}

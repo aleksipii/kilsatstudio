@@ -406,6 +406,18 @@ pub struct SequencePreviewFrame {
     pub width: u32,
     pub height: u32,
     pub rgba: Vec<u8>,
+    /// Process-budget bytes for `rgba` (RGBA8 estimate); released when the last clone
+    /// of the frame drops.
+    pub budget: Option<Arc<motion_jobs::Reservation>>,
+}
+pub(crate) fn reserve_frame(
+    width: u32,
+    height: u32,
+) -> Result<Arc<motion_jobs::Reservation>, Error> {
+    motion_jobs::process_budget()
+        .reserve_rgba("preview frame RGBA", width, height)
+        .map(Arc::new)
+        .map_err(|e| invalid(e.to_string()))
 }
 /// Immutable, resource-validated project data shared by all preview requests.
 /// Construct on a worker once after preparing audio; retained PCM is shared by Arc.
@@ -480,11 +492,13 @@ fn preview_frame(
         validated,
     )?;
     check(cancel)?;
+    let budget = Some(reserve_frame(image.width(), image.height())?);
     Ok(SequencePreviewFrame {
         sample_frame: global_sample,
         width: image.width(),
         height: image.height(),
         rgba: image.data().to_vec(),
+        budget,
     })
 }
 /// Render a bounded preview without changing scene coordinates or starting synthesis.

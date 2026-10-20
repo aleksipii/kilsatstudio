@@ -92,6 +92,39 @@ impl MemoryBudget {
             }
         }
     }
+    /// Reserve the estimated bytes of `frames` x `channels` interleaved `f32` PCM.
+    pub fn reserve_pcm(
+        &self,
+        label: &str,
+        frames: u64,
+        channels: u16,
+    ) -> Result<Reservation, BudgetExhausted> {
+        self.reserve(label, pcm_bytes(frames, channels))
+    }
+    /// Reserve the estimated bytes of one RGBA8 frame.
+    pub fn reserve_rgba(
+        &self,
+        label: &str,
+        width: u32,
+        height: u32,
+    ) -> Result<Reservation, BudgetExhausted> {
+        self.reserve(label, rgba_bytes(width, height))
+    }
+}
+
+/// Estimated in-memory size of interleaved `f32` PCM: `frames * channels * 4`.
+/// Saturates at `u64::MAX` (which no budget can grant) instead of wrapping.
+pub fn pcm_bytes(frames: u64, channels: u16) -> u64 {
+    frames
+        .saturating_mul(u64::from(channels))
+        .saturating_mul(std::mem::size_of::<f32>() as u64)
+}
+
+/// Estimated size of a straight RGBA8 frame: `width * height * 4`. Saturating.
+pub fn rgba_bytes(width: u32, height: u32) -> u64 {
+    u64::from(width)
+        .saturating_mul(u64::from(height))
+        .saturating_mul(4)
 }
 
 /// Bytes held against a budget; released exactly once on drop. Share with `Arc`.
@@ -177,6 +210,47 @@ mod tests {
         });
         assert_eq!(held.lock().unwrap().len(), 100);
         assert_eq!(budget.used(), 1000);
+    }
+    #[test]
+    fn pcm_and_rgba_estimates_are_exact_and_saturate() {
+        assert_eq!(pcm_bytes(24_000, 2), 192_000);
+        assert_eq!(rgba_bytes(1280, 720), 3_686_400);
+        assert_eq!(pcm_bytes(u64::MAX, 2), u64::MAX);
+        let budget = MemoryBudget::new(1 << 20);
+        assert!(budget.reserve_pcm("huge", u64::MAX, 2).is_err());
+        assert_eq!(budget.used(), 0);
+    }
+    #[test]
+    fn typed_reservations_release_on_drop_and_report_actionable_errors() {
+        let budget = MemoryBudget::new(1000);
+        let pcm = budget.reserve_pcm("cue door.wav", 100, 1).unwrap(); // 400
+        let frame = budget.reserve_rgba("preview frame", 10, 10).unwrap(); // 400
+        assert_eq!(budget.used(), 800);
+        let err = budget.reserve_pcm("cue sting.wav", 100, 1).unwrap_err();
+        assert_eq!((err.requested, err.available), (400, 200));
+        let text = err.to_string();
+        assert!(text.contains("cue sting.wav") && text.contains("close or clear"));
+        assert_eq!(budget.used(), 800, "a refused request changes nothing");
+        drop(pcm);
+        drop(frame);
+        assert_eq!(budget.used(), 0);
+    }
+    #[test]
+    fn reservations_are_released_when_a_failing_scope_unwinds_with_error() {
+        let budget = MemoryBudget::new(1000);
+        let run = || -> Result<(), BudgetExhausted> {
+            let _a = budget.reserve("a", 600)?;
+            let _b = budget.reserve("b", 600)?; // fails; `_a` must still be released
+            Ok(())
+        };
+        assert!(run().is_err());
+        assert_eq!(budget.used(), 0);
+        let panicked = std::panic::catch_unwind(|| {
+            let _a = budget.reserve("a", 100).unwrap();
+            panic!("boom");
+        });
+        assert!(panicked.is_err());
+        assert_eq!(budget.used(), 0);
     }
     #[test]
     fn process_budget_is_shared() {

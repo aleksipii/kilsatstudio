@@ -6,7 +6,7 @@ use motion_audio::{AudioBuffer, MixClip};
 use motion_script::{AudioCue, Scene};
 use motion_tts::{CancellationToken, SpeechError};
 use serde::{Deserialize, Serialize};
-use std::path::Path;
+use std::{path::Path, sync::Arc};
 
 /// Total source samples decoded for one scene's cues (5 minutes at 24 kHz, about 29 MB as f32).
 pub const MAX_CUE_SOURCE_FRAMES: u64 = SAMPLE_RATE as u64 * 300;
@@ -21,6 +21,8 @@ pub struct CueClip {
     pub duration_frames: u64,
     pub gain: f32,
     pub audio: AudioBuffer,
+    /// Process-budget bytes for `audio`, held while any clone of this clip lives.
+    pub reservation: Option<Arc<motion_jobs::Reservation>>,
 }
 impl CueClip {
     pub fn mix_clip(&self) -> MixClip {
@@ -88,6 +90,7 @@ pub fn build_clip(
         duration_frames: length,
         gain: cue.gain as f32,
         audio,
+        reservation: None,
     })
 }
 
@@ -97,6 +100,18 @@ pub fn prepare_cues(
     scene: &Scene,
     root: &Path,
     cancel: &CancellationToken,
+) -> Result<Vec<CueClip>, SpeechError> {
+    prepare_cues_in(scene, root, cancel, motion_jobs::process_budget())
+}
+
+/// As [`prepare_cues`], reserving each decoded cue's PCM (`frames * 4` bytes) from
+/// `pool` before decoding it. Reservations travel with the returned clips and are
+/// released when the last clone drops; on any error the earlier ones drop immediately.
+pub fn prepare_cues_in(
+    scene: &Scene,
+    root: &Path,
+    cancel: &CancellationToken,
+    pool: &motion_jobs::MemoryBudget,
 ) -> Result<Vec<CueClip>, SpeechError> {
     let cues = &scene.composition.audio_cues;
     if cues.is_empty() {
@@ -141,9 +156,18 @@ pub fn prepare_cues(
         if budget > MAX_CUE_SOURCE_FRAMES {
             return Err(context("scene cue decoded-audio budget exceeded".into()));
         }
+        let reservation = pool
+            .reserve_pcm(
+                &format!("scene {} audio cue {} decoded PCM", scene.id, cue.id),
+                u64::from(reader.duration()),
+                1,
+            )
+            .map_err(|e| SpeechError(e.to_string()))?;
         drop(reader);
         let audio = motion_audio::read_wav(&path).map_err(|e| context(e.to_string()))?;
-        clips.push(build_clip(cue, audio, scene_frames).map_err(|e| context(e.0))?);
+        let mut clip = build_clip(cue, audio, scene_frames).map_err(|e| context(e.0))?;
+        clip.reservation = Some(Arc::new(reservation));
+        clips.push(clip);
     }
     Ok(clips)
 }

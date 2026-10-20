@@ -21,6 +21,8 @@ pub struct Prepared {
     pub timeline: SequenceTimeline,
     pub peaks: Vec<WaveformPeak>,
     pub alignment_statuses: BTreeMap<u64, AlignmentStatus>,
+    /// Process-budget bytes for the retained scene and mixed PCM; released on drop.
+    _reservations: Vec<motion_jobs::Reservation>,
 }
 pub struct PrepareRequest {
     pub generation: u64,
@@ -192,7 +194,7 @@ impl Drop for Worker {
         }
     }
 }
-fn execute(task: Task, progress: &impl Fn(Update)) -> Update {
+fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
     match task {
         Task::Prepare(request) => Update::Prepared {
             generation: request.generation,
@@ -258,7 +260,10 @@ fn execute(task: Task, progress: &impl Fn(Update)) -> Update {
         }
     }
 }
-fn prepare(request: PrepareRequest, progress: &impl Fn(Update)) -> Result<Prepared, String> {
+fn prepare(
+    request: PrepareRequest,
+    progress: &(impl Fn(Update) + Sync),
+) -> Result<Prepared, String> {
     request.cancel.check().map_err(|e| e.to_string())?;
     if request.alignments.len() > 100_000 {
         return Err("Project alignment JSON exceeds 100 KB".into());
@@ -290,41 +295,22 @@ fn prepare(request: PrepareRequest, progress: &impl Fn(Update)) -> Result<Prepar
         config: request.config.clone(),
     };
     let cache = AlignmentCache::new(request.config.cache_directory.join("alignments"));
-    let mut rendered = Vec::with_capacity(request.script.scenes.len());
-    let mut alignment_statuses = BTreeMap::new();
-    let mut completed = 0;
-    for (index, scene) in request.script.scenes.iter().enumerate() {
-        request.cancel.check().map_err(|e| e.to_string())?;
-        let local = inputs
-            .iter()
-            .filter(|(id, _)| jobs.iter().any(|j| j.scene == scene.id && j.id == **id))
-            .map(|(id, input)| (*id, input.clone()))
-            .collect();
-        let prepared = motion_voice::scene_audio::prepare_scene_with_alignment_inputs(
-            &request.script,
-            index,
-            &request.root,
-            &provider,
-            &local,
-            &cache,
-            &request.cancel,
-            |p| {
-                progress(Update::PrepareProgress {
-                    generation: request.generation,
-                    completed: completed + p.completed,
-                    total: jobs.len(),
-                })
-            },
-        )
-        .map_err(|e| e.to_string())?;
-        completed += prepared.prepared.clips.len();
-        alignment_statuses.extend(prepared.alignment_statuses);
-        rendered.push(prepared.prepared.rendered);
-    }
-    let audio = motion_voice::sequence::mix_sequence(&timeline, &rendered, &request.cancel)
-        .map_err(|e| e.to_string())?;
-    let peaks = motion_audio::waveform_peaks(&audio, audio.frames().div_ceil(700).max(1))
-        .map_err(|e| e.to_string())?;
+    let Stages {
+        rendered,
+        alignment_statuses,
+        audio,
+        peaks,
+        reservations,
+    } = run_stages(
+        &request,
+        &timeline,
+        &inputs,
+        &jobs,
+        &provider,
+        &cache,
+        PREPARE_WORKERS,
+        progress,
+    )?;
     request.cancel.check().map_err(|e| e.to_string())?;
     let script = Arc::new(request.script);
     let art = Arc::new(request.art);
@@ -345,6 +331,189 @@ fn prepare(request: PrepareRequest, progress: &impl Fn(Update)) -> Result<Prepar
         timeline,
         peaks,
         alignment_statuses,
+        _reservations: reservations,
+    })
+}
+
+/// Scene speech/alignment preparation is serialized by default: each scene may start
+/// the local speech sidecar, and concurrent inference has not been shown safe or
+/// faster on this runtime. The dependency graph is correct for more workers (tests
+/// compare 1 and 3), but only the dependency ordering is enabled in the product.
+const PREPARE_WORKERS: usize = 1;
+
+enum Stage {
+    Scene(motion_voice::scene_audio::PreparedAlignedScene),
+    Mix(AudioBuffer),
+    Peaks(Vec<WaveformPeak>),
+}
+struct Stages {
+    rendered: Vec<RenderedScene>,
+    alignment_statuses: BTreeMap<u64, AlignmentStatus>,
+    audio: AudioBuffer,
+    peaks: Vec<WaveformPeak>,
+    reservations: Vec<motion_jobs::Reservation>,
+}
+
+/// Per-scene preparation -> sequence mix -> waveform peaks as a dependency graph:
+/// `scene:N` jobs (no dependencies), `mix` after every scene, `peaks` after `mix`.
+/// Results are assembled in screenplay order whatever the worker count; the first
+/// failing job in registration order supplies the error.
+#[allow(clippy::too_many_arguments)]
+fn run_stages(
+    request: &PrepareRequest,
+    timeline: &SequenceTimeline,
+    inputs: &BTreeMap<u64, AlignmentInput>,
+    jobs: &[motion_voice::DialogueJob],
+    provider: &dyn motion_tts::SpeechProvider,
+    cache: &AlignmentCache,
+    workers: usize,
+    progress: &(impl Fn(Update) + Sync),
+) -> Result<Stages, String> {
+    use motion_jobs::{Graph, Outcome};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    let completed = AtomicUsize::new(0);
+    let mut graph: Graph<'_, Stage, String> = Graph::new();
+    let mut scene_names = Vec::with_capacity(request.script.scenes.len());
+    for (index, scene) in request.script.scenes.iter().enumerate() {
+        let name = format!("scene:{index}");
+        let (completed, scene_id) = (&completed, scene.id.as_str());
+        graph
+            .add(&name, &[], move |_| {
+                request.cancel.check().map_err(|e| e.to_string())?;
+                let local = inputs
+                    .iter()
+                    .filter(|(id, _)| jobs.iter().any(|j| j.scene == scene_id && j.id == **id))
+                    .map(|(id, input)| (*id, input.clone()))
+                    .collect();
+                let mut last = 0;
+                let mut report = |done: usize| {
+                    let delta = done.saturating_sub(last);
+                    last = last.max(done);
+                    let total_done = completed.fetch_add(delta, Ordering::AcqRel) + delta;
+                    progress(Update::PrepareProgress {
+                        generation: request.generation,
+                        completed: total_done,
+                        total: jobs.len(),
+                    });
+                };
+                let prepared = motion_voice::scene_audio::prepare_scene_with_alignment_inputs(
+                    &request.script,
+                    index,
+                    &request.root,
+                    provider,
+                    &local,
+                    cache,
+                    &request.cancel,
+                    |p| report(p.completed),
+                )
+                .map_err(|e| e.to_string())?;
+                report(prepared.prepared.clips.len());
+                Ok(Stage::Scene(prepared))
+            })
+            .map_err(|e| e.to_string())?;
+        scene_names.push(name);
+    }
+    let deps: Vec<&str> = scene_names.iter().map(String::as_str).collect();
+    graph
+        .add("mix", &deps, |scenes| {
+            let rendered: Vec<RenderedScene> = scenes
+                .iter()
+                .map(|stage| match stage.as_ref() {
+                    Stage::Scene(s) => s.prepared.rendered.clone(),
+                    _ => unreachable!("mix depends only on scene jobs"),
+                })
+                .collect();
+            motion_voice::sequence::mix_sequence(timeline, &rendered, &request.cancel)
+                .map(Stage::Mix)
+                .map_err(|e| e.to_string())
+        })
+        .map_err(|e| e.to_string())?;
+    graph
+        .add("peaks", &["mix"], |mix| {
+            let Stage::Mix(audio) = mix[0].as_ref() else {
+                unreachable!("peaks depends only on mix")
+            };
+            motion_audio::waveform_peaks(audio, audio.frames().div_ceil(700).max(1))
+                .map(Stage::Peaks)
+                .map_err(|e| e.to_string())
+        })
+        .map_err(|e| e.to_string())?;
+    let results = graph
+        .run(workers, || request.cancel.is_cancelled())
+        .map_err(|e| e.to_string())?;
+
+    let mut stages = Vec::with_capacity(results.len());
+    for (_, outcome) in results {
+        match outcome {
+            Outcome::Done(stage) => stages.push(stage),
+            Outcome::Failed(error) => return Err(error),
+            Outcome::Panicked => {
+                return Err("Project worker panicked; check inputs before retrying".into())
+            }
+            Outcome::Cancelled => {
+                return Err(request
+                    .cancel
+                    .check()
+                    .err()
+                    .map(|e| e.to_string())
+                    .unwrap_or_else(|| "Speech generation cancelled".into()))
+            }
+            // The failed dependency itself precedes its dependants in registration order.
+            Outcome::DependencyFailed(name) => {
+                return Err(format!("Project preparation stopped after {name} failed"))
+            }
+        }
+    }
+    let mut stages = stages.into_iter();
+    let mut rendered = Vec::new();
+    let mut alignment_statuses = BTreeMap::new();
+    for _ in 0..request.script.scenes.len() {
+        let Some(stage) = stages.next() else {
+            return Err("Project preparation lost a scene result".into());
+        };
+        let Ok(Stage::Scene(scene)) = Arc::try_unwrap(stage) else {
+            return Err("Project preparation scene result is still shared".into());
+        };
+        alignment_statuses.extend(scene.alignment_statuses);
+        rendered.push(scene.prepared.rendered);
+    }
+    let (Some(mix), Some(peaks)) = (stages.next(), stages.next()) else {
+        return Err("Project preparation lost its mix result".into());
+    };
+    let (Ok(Stage::Mix(audio)), Ok(Stage::Peaks(peaks))) =
+        (Arc::try_unwrap(mix), Arc::try_unwrap(peaks))
+    else {
+        return Err("Project preparation mix result is still shared".into());
+    };
+    // Account the retained PCM against the process budget (deterministic refusal).
+    let budget = motion_jobs::process_budget();
+    let mut reservations = Vec::with_capacity(rendered.len() + 1);
+    for scene in &rendered {
+        reservations.push(
+            budget
+                .reserve_pcm(
+                    &format!("scene {} prepared audio", scene.manifest.scene_id),
+                    scene.audio.frames() as u64,
+                    scene.audio.channels,
+                )
+                .map_err(|e| e.to_string())?,
+        );
+    }
+    reservations.push(
+        budget
+            .reserve_pcm(
+                "sequence mixed audio",
+                audio.frames() as u64,
+                audio.channels,
+            )
+            .map_err(|e| e.to_string())?,
+    );
+    Ok(Stages {
+        rendered,
+        alignment_statuses,
+        audio,
+        peaks,
+        reservations,
     })
 }
 
@@ -498,5 +667,182 @@ mod tests {
         worker.submit(Task::Prepare(Box::new(request))).unwrap();
         drop(worker);
         assert!(token.is_cancelled());
+    }
+
+    struct NoSynthesis;
+    impl motion_tts::SpeechProvider for NoSynthesis {
+        fn synthesize(
+            &self,
+            _: motion_tts::SpeechRequest,
+        ) -> Result<motion_tts::SpeechResult, motion_tts::SpeechError> {
+            Err(motion_tts::SpeechError(
+                "dialogue uses imported audio".into(),
+            ))
+        }
+    }
+    struct Project(PathBuf);
+    impl Project {
+        /// Three scenes with imported dialogue audio and decoded cues, no synthesis.
+        fn new(tag: &str) -> Self {
+            let root =
+                std::env::temp_dir().join(format!("kilsat-graph-{tag}-{}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&root);
+            std::fs::create_dir_all(root.join("audio")).unwrap();
+            let wav = |name: &str, value: f32, frames: usize| {
+                motion_audio::write_wav(
+                    root.join(name),
+                    &AudioBuffer {
+                        sample_rate: 24000,
+                        channels: 1,
+                        samples: (0..frames)
+                            .map(|i| value * ((i % 7) as f32 / 7.0))
+                            .collect(),
+                    },
+                )
+                .unwrap()
+            };
+            wav("voice.wav", 0.5, 12000);
+            wav("audio/hit.wav", 0.25, 500);
+            Self(root)
+        }
+        fn script(cue_asset: &str) -> Script {
+            motion_script::parse(&format!(
+                "characters: {{EMMA: {{asset: characters/emma}}}}\nscenes:\n\
+                 - {{id: a, duration: 1.0, composition: {{audio_cues: [{{id: h, asset: audio/hit.wav, at: 0.25, gain: 1.5}}]}}, events: [{{type: speak, at: 0.0, actor: EMMA, text: Hi, audio: voice.wav}}]}}\n\
+                 - {{id: b, duration: 0.5, composition: {{audio_cues: [{{id: h, asset: {cue_asset}, at: 0.1}}]}}, events: []}}\n\
+                 - {{id: c, duration: 0.75, events: [{{type: speak, at: 0.1, actor: EMMA, text: Again, audio: voice.wav}}]}}\n"
+            ))
+            .unwrap()
+        }
+    }
+    impl Drop for Project {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    /// The linear loop that `prepare` used before the dependency graph (reference).
+    fn linear_reference(
+        request: &PrepareRequest,
+        timeline: &SequenceTimeline,
+    ) -> Result<Stages, String> {
+        let cache = AlignmentCache::new(request.config.cache_directory.join("alignments"));
+        let mut rendered = Vec::new();
+        let mut statuses = BTreeMap::new();
+        for index in 0..request.script.scenes.len() {
+            request.cancel.check().map_err(|e| e.to_string())?;
+            let prepared = motion_voice::scene_audio::prepare_scene_with_alignment_inputs(
+                &request.script,
+                index,
+                &request.root,
+                &NoSynthesis,
+                &BTreeMap::new(),
+                &cache,
+                &request.cancel,
+                |_| {},
+            )
+            .map_err(|e| e.to_string())?;
+            statuses.extend(prepared.alignment_statuses);
+            rendered.push(prepared.prepared.rendered);
+        }
+        let audio = motion_voice::sequence::mix_sequence(timeline, &rendered, &request.cancel)
+            .map_err(|e| e.to_string())?;
+        let peaks = motion_audio::waveform_peaks(&audio, audio.frames().div_ceil(700).max(1))
+            .map_err(|e| e.to_string())?;
+        Ok(Stages {
+            rendered,
+            alignment_statuses: statuses,
+            audio,
+            peaks,
+            reservations: Vec::new(),
+        })
+    }
+    fn graph_stages(
+        request: &PrepareRequest,
+        workers: usize,
+        updates: &Mutex<Vec<(usize, usize)>>,
+    ) -> Result<Stages, String> {
+        let timeline = SequenceTimeline::compile(&request.script).unwrap();
+        let jobs = motion_voice::dialogue_jobs(&request.script, &request.root).unwrap();
+        let cache = AlignmentCache::new(request.config.cache_directory.join("alignments"));
+        run_stages(
+            request,
+            &timeline,
+            &BTreeMap::new(),
+            &jobs,
+            &NoSynthesis,
+            &cache,
+            workers,
+            &|update| {
+                if let Update::PrepareProgress {
+                    completed, total, ..
+                } = update
+                {
+                    updates.lock().unwrap().push((completed, total));
+                }
+            },
+        )
+    }
+    fn with_script(project: &Project, script: Script) -> PrepareRequest {
+        let mut r = request(1);
+        r.script = script;
+        r.root = project.0.clone();
+        r
+    }
+
+    #[test]
+    fn graph_preparation_equals_the_linear_path_for_one_and_three_workers() {
+        let project = Project::new("equal");
+        let request = with_script(&project, Project::script("audio/hit.wav"));
+        let timeline = SequenceTimeline::compile(&request.script).unwrap();
+        let reference = linear_reference(&request, &timeline).unwrap();
+        assert!(reference.audio.samples.iter().any(|s| *s != 0.0));
+        for workers in [1, 3] {
+            let updates = Mutex::new(Vec::new());
+            let graph = graph_stages(&request, workers, &updates).unwrap();
+            assert_eq!(graph.audio.samples, reference.audio.samples, "{workers}");
+            assert_eq!(graph.peaks, reference.peaks, "{workers}");
+            assert_eq!(graph.alignment_statuses, reference.alignment_statuses);
+            assert_eq!(graph.rendered.len(), reference.rendered.len());
+            for (g, r) in graph.rendered.iter().zip(&reference.rendered) {
+                assert_eq!(g.audio.samples, r.audio.samples, "{workers}");
+                assert_eq!(
+                    serde_json::to_string(&g.manifest).unwrap(),
+                    serde_json::to_string(&r.manifest).unwrap()
+                );
+            }
+            // Two imported-audio lines: progress totals are the job count, the
+            // cumulative count never decreases and reaches it.
+            let updates = updates.into_inner().unwrap();
+            assert!(updates.iter().all(|(_, total)| *total == 2));
+            assert!(updates.iter().map(|(c, _)| *c).is_sorted());
+            assert_eq!(updates.last().unwrap().0, 2);
+        }
+    }
+
+    #[test]
+    fn graph_preparation_reports_the_same_typed_failure_as_the_linear_path() {
+        let project = Project::new("failure");
+        let request = with_script(&project, Project::script("audio/missing.wav"));
+        let timeline = SequenceTimeline::compile(&request.script).unwrap();
+        let reference = linear_reference(&request, &timeline).err().unwrap();
+        assert!(reference.contains("scene b audio cue h"), "{reference}");
+        for workers in [1, 3] {
+            let graph = graph_stages(&request, workers, &Mutex::new(Vec::new()))
+                .err()
+                .unwrap();
+            assert_eq!(graph, reference, "{workers}");
+        }
+    }
+
+    #[test]
+    fn graph_preparation_honours_cancellation_before_any_scene_starts() {
+        let project = Project::new("cancel");
+        let request = with_script(&project, Project::script("audio/hit.wav"));
+        request.cancel.cancel();
+        let error = graph_stages(&request, 3, &Mutex::new(Vec::new()))
+            .err()
+            .unwrap();
+        assert!(error.contains("cancelled"), "{error}");
     }
 }
