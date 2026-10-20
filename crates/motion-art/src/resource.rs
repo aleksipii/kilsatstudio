@@ -17,8 +17,24 @@ pub struct ImageResource {
     height: u32,
     rgba: Arc<[u8]>,
     png: Arc<[u8]>,
+    /// Shared by clones; the bytes return to the budget when the last clone drops.
+    reservation: Option<Arc<motion_jobs::Reservation>>,
 }
 impl ImageResource {
+    /// Account this image's decoded RGBA and canonical PNG bytes against `budget`.
+    /// Fails without side effects when the budget cannot hold it. Idempotent for
+    /// images that already hold a reservation.
+    pub fn reserve_in(mut self, budget: &motion_jobs::MemoryBudget) -> Result<Self, Error> {
+        if self.reservation.is_none() {
+            let bytes = (self.rgba.len() + self.png.len()) as u64;
+            let reservation = budget
+                .reserve("decoded image", bytes)
+                .map_err(|e| Error::Validation(e.to_string()))?;
+            self.reservation = Some(Arc::new(reservation));
+        }
+        Ok(self)
+    }
+
     pub fn width(&self) -> u32 {
         self.width
     }
@@ -50,6 +66,7 @@ impl ImageResource {
             height,
             rgba: image.into_raw().into(),
             png: png.into(),
+            reservation: None,
         })
     }
 
@@ -123,6 +140,33 @@ mod tests {
         assert_eq!(decode_image(&decoded.png).unwrap().rgba, decoded.rgba);
         assert!(decode_image(b"GIF89a").is_err());
         assert!(decode_image(b"not an image").is_err());
+    }
+    #[test]
+    fn budget_reservation_is_shared_by_clones_and_released_on_last_drop() {
+        let budget = motion_jobs::MemoryBudget::new(1 << 20);
+        let image = ImageResource::from_rgba(1, 1, vec![1, 2, 3, 4])
+            .unwrap()
+            .reserve_in(&budget)
+            .unwrap();
+        let held = budget.used();
+        assert_eq!(held, (4 + image.png().len()) as u64);
+        let copy = image.clone();
+        assert_eq!(budget.used(), held);
+        let again = image.clone().reserve_in(&budget).unwrap();
+        assert_eq!(budget.used(), held);
+        drop((image, again));
+        assert_eq!(budget.used(), held);
+        drop(copy);
+        assert_eq!(budget.used(), 0);
+        let tiny = motion_jobs::MemoryBudget::new(8);
+        let refused = ImageResource::from_rgba(1, 1, vec![0; 4])
+            .unwrap()
+            .reserve_in(&tiny);
+        assert!(refused
+            .unwrap_err()
+            .to_string()
+            .contains("budget exhausted"));
+        assert_eq!(tiny.used(), 0);
     }
     #[test]
     fn clones_share_immutable_pixel_and_png_storage() {

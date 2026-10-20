@@ -15,6 +15,7 @@ mod event_factory;
 mod export_worker;
 mod gpu_check_panel;
 mod gpu_check_worker;
+mod input_latency;
 mod keyframe_editor;
 mod kokoro_setup;
 mod live_clip_editor;
@@ -4347,6 +4348,15 @@ fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         let measurement_start = self.ui_metrics.enabled.then(Instant::now);
+        let has_input = self.ui_metrics.latency.enabled
+            && ctx.input(|i| input_latency::has_discrete_input(&i.events));
+        if self
+            .ui_metrics
+            .latency
+            .begin_frame(Instant::now(), has_input)
+        {
+            ctx.request_repaint();
+        }
         let background_work =
             self.busy || self.export_busy || self.diagnostics_busy || self.sequence_panel.busy();
         let was_sequence_busy = self.sequence_panel.busy();
@@ -4373,6 +4383,7 @@ impl eframe::App for Studio {
         }
         self.workspace_ui(ctx);
         self.sync_sequence_resources();
+        self.ui_metrics.latency.end_frame(Instant::now());
         if let Some(start) = measurement_start {
             self.ui_metrics.record(start.elapsed(), background_work);
         }
