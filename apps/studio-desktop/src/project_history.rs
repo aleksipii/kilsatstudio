@@ -419,6 +419,62 @@ mod tests {
     }
 
     #[test]
+    fn animated_prop_and_light_restore_and_reject_missing_frame_assets() {
+        let scene_id = motion_script::parse(SOURCE).unwrap().scenes[0].id.clone();
+        let mut document = document();
+        document.assets.push(motion_project::AssetReference {
+            id: "screen-a".into(),
+            path: "assets/a.png".into(),
+            kind: motion_project::AssetKind::Image,
+        });
+        let mut prop = layer();
+        prop.content = motion_art::Content::AnimatedImage {
+            frames: ["screen-a", "screen-b"]
+                .iter()
+                .map(|asset| motion_art::ImageFrame {
+                    asset_id: (*asset).into(),
+                    duration: 0.5,
+                })
+                .collect(),
+            rect: motion_art::Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 20.0,
+                height: 10.0,
+            },
+            playback: motion_art::Playback::Loop,
+        };
+        document.art.layers.push(prop);
+        document.art.lights.push(motion_art::Light {
+            id: "lamp".into(),
+            scene_id,
+            visible: true,
+            active: None,
+            flicker: None,
+            source: motion_art::LightSource::Vignette {
+                strength: 0.5,
+                inner: 0.25,
+            },
+        });
+        let plain = Snapshot::capture(SOURCE, Some(&document));
+        // The second frame's asset is absent from the inventory.
+        let mut history = History::new(SOURCE);
+        let base = Snapshot::capture(SOURCE, Some(&self::document()));
+        history.record(plain.clone(), base.clone());
+        assert!(history.navigate(base.clone(), false).is_err());
+        document.assets.push(motion_project::AssetReference {
+            id: "screen-b".into(),
+            path: "assets/b.png".into(),
+            kind: motion_project::AssetKind::Image,
+        });
+        let complete = Snapshot::capture(SOURCE, Some(&document));
+        history.reset(SOURCE);
+        history.record(complete.clone(), base.clone());
+        let restored = history.navigate(base, false).unwrap().unwrap();
+        assert_eq!(restored.document().unwrap().art.lights.len(), 1);
+    }
+
+    #[test]
     fn completed_painted_mask_gestures_undo_redo_without_asset_inventory_changes() {
         let mut doc = document();
         doc.art.layers.push(layer());

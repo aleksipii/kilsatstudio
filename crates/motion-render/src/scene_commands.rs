@@ -319,6 +319,20 @@ pub fn build_with_art(
     document
         .validate()
         .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
+    // The GPU path has no light compositor or frame-sequenced images yet. Refuse
+    // explicitly rather than draw a scene that differs from the SVG reference.
+    if document.lights.iter().any(|l| l.scene_id == scene_id) {
+        return Err(Error::UnsupportedFeature(
+            "scene lights are rendered only by the SVG path",
+        ));
+    }
+    if document.layers.iter().any(|l| {
+        l.scene_id == scene_id && matches!(l.content, motion_art::Content::AnimatedImage { .. })
+    }) {
+        return Err(Error::UnsupportedFeature(
+            "animated image props are rendered only by the SVG path",
+        ));
+    }
     let mut resources = std::collections::BTreeMap::new();
     let mut result = build_inner(
         scene,
@@ -792,6 +806,11 @@ fn append_art(
                             [6.0, 0.0, 0.0, 0.0],
                             vertices.len() as u64,
                         )
+                    }
+                    Content::AnimatedImage { .. } => {
+                        return Err(Error::UnsupportedFeature(
+                            "animated image props are rendered only by the SVG path",
+                        ))
                     }
                     Content::Image { asset_id, rect: r } => {
                         let (offset, width, height) =
@@ -1319,6 +1338,7 @@ mod tests {
                 children: vec![ArtUnit::Layer("a".into())],
             }],
             order: vec![ArtUnit::Group("g".into())],
+            ..Default::default()
         };
         let c = build_with_art(
             &scene(),
@@ -1498,6 +1518,68 @@ mod tests {
         // radius scales by 2.
         assert_eq!(painted.points[1], [9.0, 17.0]);
         assert_eq!(painted.points[2][0], 6.0);
+    }
+    #[test]
+    fn lights_and_animated_props_are_explicitly_unsupported_on_the_gpu_path() {
+        let go = |document: &motion_art::Document, scene_id: &str| {
+            build_with_art(
+                &scene(),
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                scene_id,
+                document,
+                &std::collections::BTreeMap::new(),
+            )
+        };
+        let light = motion_art::Light {
+            id: "room".into(),
+            scene_id: "s".into(),
+            visible: true,
+            active: None,
+            flicker: None,
+            source: motion_art::LightSource::Vignette {
+                strength: 0.5,
+                inner: 0.2,
+            },
+        };
+        let lit = motion_art::Document {
+            lights: vec![light],
+            ..Default::default()
+        };
+        assert!(matches!(go(&lit, "s"), Err(Error::UnsupportedFeature(_))));
+        // Other scenes are unaffected.
+        assert!(go(&lit, "other").is_ok());
+        // An inactive prop is still refused: the scene needs the SVG path.
+        let mut prop = artwork_layer(
+            "phone",
+            motion_art::Content::AnimatedImage {
+                frames: vec![motion_art::ImageFrame {
+                    asset_id: "a".into(),
+                    duration: 1.0,
+                }],
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 8.0,
+                    height: 8.0,
+                },
+                playback: motion_art::Playback::Hold,
+            },
+        );
+        prop.active = Some(motion_art::TimeRange {
+            start: 5.0,
+            end: 6.0,
+        });
+        let animated = motion_art::Document {
+            layers: vec![prop],
+            ..Default::default()
+        };
+        assert!(matches!(
+            go(&animated, "s"),
+            Err(Error::UnsupportedFeature(_))
+        ));
     }
     #[test]
     fn rig_textures_need_decoded_images_and_use_the_cpu_affine_placement() {

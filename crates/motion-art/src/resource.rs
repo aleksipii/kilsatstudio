@@ -35,6 +35,25 @@ impl ImageResource {
         Ok(self)
     }
 
+    /// Deterministic average colour (alpha-weighted over black) from a fixed
+    /// 16x16 sample grid, as `[r, g, b]` in 0..=1. Bounded work for any size.
+    pub fn average_rgb(&self) -> [f64; 3] {
+        const N: u32 = 16;
+        let mut sum = [0.0f64; 3];
+        for gy in 0..N {
+            for gx in 0..N {
+                let x = ((2 * gx + 1) * self.width / (2 * N)).min(self.width - 1);
+                let y = ((2 * gy + 1) * self.height / (2 * N)).min(self.height - 1);
+                let i = (y as usize * self.width as usize + x as usize) * 4;
+                let a = f64::from(self.rgba[i + 3]) / 255.0;
+                for (c, s) in sum.iter_mut().enumerate() {
+                    *s += f64::from(self.rgba[i + c]) / 255.0 * a;
+                }
+            }
+        }
+        sum.map(|v| v / f64::from(N * N))
+    }
+
     pub fn width(&self) -> u32 {
         self.width
     }
