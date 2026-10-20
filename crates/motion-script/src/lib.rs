@@ -458,6 +458,10 @@ pub struct Script {
     /// Named reusable animation rules; see `Script::expand_rules`.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub rules: Rules,
+    /// Spoken-word overrides: lowercase word to space-separated ARPAbet phonemes
+    /// (for example `looksmaxxing: "L UH K S M AE K S IH NG"`). Used by lip-sync.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub pronunciations: BTreeMap<String, String>,
     #[serde(default)]
     pub project: Project,
     pub characters: BTreeMap<String, Character>,
@@ -1341,6 +1345,8 @@ pub fn to_source(script: &Script) -> Result<String, Error> {
 
 impl Script {
     pub fn validate(&self) -> Result<(), Error> {
+        motion_lipsync::english::Pronunciations::from_map(&self.pronunciations)
+            .map_err(|e| Error::Validation(e.to_string()))?;
         if !self.rules.is_empty() {
             // Expansion validates the rule-free result, which covers all base content.
             return self.expand_rules().map(|_| ()).map_err(Error::from);
@@ -1929,6 +1935,23 @@ mod tests {
         assert!(parse(&s.replace("actor: EMMA", "actor: MISSING")).is_err());
         assert!(parse(&s.replace("speed: 1.0", "speed: .nan")).is_err());
         assert!(parse(&s.replace("type: speak", "type: dance")).is_err());
+    }
+    #[test]
+    fn pronunciations_are_validated_and_round_trip() {
+        let s = include_str!("../../../examples/dialogue.yaml");
+        let with = format!("pronunciations:\n  looksmaxxing: \"L UH K S M AE K S IH NG\"\n{s}");
+        let script = parse(&with).unwrap();
+        assert_eq!(script.pronunciations.len(), 1);
+        let again = serde_yaml::to_string(&script).unwrap();
+        assert!(parse(&again)
+            .unwrap()
+            .pronunciations
+            .contains_key("looksmaxxing"));
+        let bad = format!("pronunciations:\n  rizz: \"R IH ZZ\"\n{s}");
+        assert!(matches!(parse(&bad), Err(Error::Validation(m)) if m.contains("rizz")));
+        let bad_key = format!("pronunciations:\n  Rizz: \"R IH Z\"\n{s}");
+        assert!(parse(&bad_key).is_err());
+        assert!(parse(s).unwrap().pronunciations.is_empty());
     }
 }
 

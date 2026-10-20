@@ -1659,6 +1659,7 @@ version = "0.1.0"
 name = "motion-lipsync"
 version = "0.1.0"
 dependencies = [
+ "flate2",
  "motion-audio",
  "serde",
  "serde_json",
@@ -1719,6 +1720,7 @@ name = "motion-script"
 version = "0.1.0"
 dependencies = [
  "motion-animation",
+ "motion-lipsync",
  "motion-rig",
  "serde",
  "serde_yaml",
