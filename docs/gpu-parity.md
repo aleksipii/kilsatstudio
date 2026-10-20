@@ -54,11 +54,11 @@ reports. Single machine, single driver; 128x128 synthetic fixtures only.
 | mask_hard_ellipse | 42,10,10,0 | 2.75,0.65,0.65,0 | 2.48% | 60 / 4.0 / 6% |
 | mask_hard_polygon | 29,7,7,0 | 1.95,0.47,0.47,0 | 2.32% | 60 / 4.0 / 6% |
 | mask_soft_ellipse | 0,1,1,0 | 0,0.37,0.37,0 | 13.53% | 4 / 1.0 / 25% |
-| mask_painted | 35,8,8,0 | 6.73,1.66,1.66,0 | 9.37% | 100 / 8.0 / 35% |
+| mask_painted | 62,14,14,0 | 2.71,0.63,0.63,0 | 8.03% | 100 / 8.0 / 35% |
 | mask_feathered_polygon | 64,15,15,0 | 3.91,0.95,0.95,0 | 25.20% | 100 / 8.0 / 35% |
 | mask_hard_polygon_motion | 39,9,9,0 | 1.87,0.46,0.46,0 | 2.64% | 60 / 4.0 / 6% |
 | mask_feathered_polygon_motion | 62,14,14,0 | 4.18,0.98,0.98,0 | 30.84% | 100 / 8.0 / 35% |
-| mask_painted_motion | 38,8,8,0 | 6.71,1.67,1.67,0 | 11.54% | 100 / 8.0 / 35% |
+| mask_painted_motion | 69,16,16,0 | 2.73,0.64,0.64,0 | 10.44% | 100 / 8.0 / 35% |
 | rig_part_flat | 40,8,6,0 | 1.11,0.48,0.19,0 | 19.23% | 60 / 4.0 / 30% |
 | rig_part_skinned_flat | 21,5,4,0 | 1.05,0.33,0.19,0 | 6.19% | 60 / 4.0 / 30% |
 | rig_part_textured_rotated | 33,68,29,0 | 1.15,1.20,0.83,0 | 16.41% | 110 / 4.0 / 30% |
@@ -113,10 +113,21 @@ produced byte-identical reports.
   poses; they are regression guards, not proof for arbitrary artwork or rigs.
 
 Not established: other GPUs/drivers/OS versions, larger frames, perceptual
-equivalence, performance. The ignored hardware test
-`gpu_scene::tests::painted_pressure_soft_masks_real_gpu_interior_probes` in
-`motion-render` fails on this Mac on the base commit too (probe at x=45 outside
-+-12 of 179), independent of this change; it was not touched.
+equivalence, performance.
+
+### Soft-brush edge fix (2026-10-20)
+
+The ignored hardware test `gpu_scene::tests::painted_pressure_soft_masks_real_gpu_interior_probes`
+failed on this Mac (red 162 at x=45 where the CPU gives 179; the whole soft edge was
+about 15 levels too dark). Cause: the GPU combined the 32 nested coverage bands with
+`max(coverage, antialiasing * band level)`, which scales each band's own edge down,
+while the CPU paints the bands in order. The shader now blends toward each band's level
+in the same outer-to-inner order. The probe passes, and `mask_painted` / `mask_painted_motion`
+were re-measured: RMS fell from 6.7 to 2.7 and the changed-pixel fraction from 9.4% /
+11.5% to 8.0% / 10.4%, but the maximum single-channel error **rose** from 35/38 to
+62/69 (still inside the 100 tolerance). The rows above are the new measurements; the
+cause of the larger isolated maximum was not investigated. The CPU reference profile
+for the probe is asserted by `cpu_soft_pressure_brush_profile_is_the_reference_for_the_gpu_probe`.
 
 ## Fonts / GPU text
 
