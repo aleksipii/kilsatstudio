@@ -506,7 +506,9 @@ fn image_pixel(offset: u32, size: vec2<u32>, position: vec2<i32>) -> vec4<f32> {
  return vec4(color.rgb*color.a,color.a);
 }
 fn image_color(p: vec2<f32>, s: Shape) -> vec4<f32> {
- let uv=(p-s.geometry.xy)/s.geometry.zw;
+ return image_sample((p-s.geometry.xy)/s.geometry.zw,s);
+}
+fn image_sample(uv: vec2<f32>, s: Shape) -> vec4<f32> {
  if any(uv<vec2(0.)) || any(uv>=vec2(1.)) { return vec4(0.); }
  let size=vec2<u32>(s.parameters.zw);
  let q=uv*vec2<f32>(size)-vec2(.5);
@@ -573,6 +575,14 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
   if kind>10.5 && kind<11.5 {
    let distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
    masks[depth]=masks[depth]*(1.-smoothstep(-s.origin.z,s.origin.z,distance)); continue;
+  }
+  if kind>19.5 && kind<20.5 {
+   // Textured custom-rig part: image placed by an affine uv map, clipped to the polygon.
+   let distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
+   let coverage=1.-smoothstep(-s.origin.z,s.origin.z,distance);
+   let uv=vec2(s.color.x*local.x+s.color.z*local.y,s.color.y*local.x+s.color.w*local.y)+s.geometry.zw;
+   let value=image_sample(uv,s);
+   colors[depth]=over(vec4(value.rgb,value.a*coverage),colors[depth],0.); continue;
   }
   if kind>14.5 && kind<15.5 {
    masks[depth]=s.geometry.x; continue;

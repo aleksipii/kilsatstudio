@@ -30,7 +30,9 @@ exceeded limit, and the CPU rasterizer draws nothing for actor `<text>` labels.
 Fixtures: actor (default, camera zoom/pan, rotated/scaled/faded), shapes
 (rect/ellipse/stroke, camera zoom), upscaled image, hard ellipse/polygon masks, soft
 ellipse mask, image alpha/luminance masks, painted mask, feathered polygon mask,
-group Multiply/Screen, layer Multiply, actor with masked background art.
+group Multiply/Screen, layer Multiply, actor with masked background art, and (added
+with the animated-mask and rig-part support below) animated hard/feathered polygon
+and painted masks plus flat, textured and skinned custom rig parts.
 
 ## Recorded measurements
 
@@ -54,6 +56,14 @@ reports. Single machine, single driver; 128x128 synthetic fixtures only.
 | mask_soft_ellipse | 0,1,1,0 | 0,0.37,0.37,0 | 13.53% | 4 / 1.0 / 25% |
 | mask_painted | 35,8,8,0 | 6.73,1.66,1.66,0 | 9.37% | 100 / 8.0 / 35% |
 | mask_feathered_polygon | 64,15,15,0 | 3.91,0.95,0.95,0 | 25.20% | 100 / 8.0 / 35% |
+| mask_hard_polygon_motion | 39,9,9,0 | 1.87,0.46,0.46,0 | 2.64% | 60 / 4.0 / 6% |
+| mask_feathered_polygon_motion | 62,14,14,0 | 4.18,0.98,0.98,0 | 30.84% | 100 / 8.0 / 35% |
+| mask_painted_motion | 38,8,8,0 | 6.71,1.67,1.67,0 | 11.54% | 100 / 8.0 / 35% |
+| rig_part_flat | 40,8,6,0 | 1.11,0.48,0.19,0 | 19.23% | 60 / 4.0 / 30% |
+| rig_part_skinned_flat | 21,5,4,0 | 1.05,0.33,0.19,0 | 6.19% | 60 / 4.0 / 30% |
+| rig_part_textured_rotated | 33,68,29,0 | 1.15,1.20,0.83,0 | 16.41% | 110 / 4.0 / 30% |
+| rig_part_textured_subrect | 29,68,28,0 | 1.02,1.24,0.79,0 | 16.22% | 110 / 4.0 / 30% |
+| rig_part_skinned_textured | 60,88,35,0 | 2.06,2.20,1.41,0 | 5.54% | 110 / 4.0 / 30% |
 | group_multiply | 15,9,3,0 | 2.88,1.68,0.54,0 | 8.18% | 30 / 4.0 / 40% |
 | group_screen | 15,9,13,0 | 2.66,1.78,2.17,0 | 28.64% | 30 / 4.0 / 40% |
 | layer_blend_multiply | 15,9,3,0 | 2.91,1.65,0.53,0 | 5.47% | 30 / 4.0 / 40% |
@@ -68,8 +78,45 @@ consistent with bilinear sampling and blend rounding differences. The tolerances
 are the measured values plus headroom, so they catch regressions; they do not
 define acceptable quality and are not tight.
 
-Not established: other GPUs/drivers/OS versions, larger frames, animated mask
-motion on the GPU (unsupported), perceptual equivalence, performance.
+### Animated polygon and painted masks, textured and skinned rig parts
+
+The 17 rows above are unchanged (re-run on Metal: identical numbers). The new rows
+were measured on the same machine; two consecutive runs of the whole harness
+produced byte-identical reports.
+
+- Animated polygon/painted masks: the command builder calls
+  `ClipShape::sample_motion(scene.time)` (the same sampler the SVG path uses) and
+  transforms the polygon vertices, or the brush circle centres/radius and quad
+  vertices, with the same `translate/rotate/scale about pivot` the SVG
+  `svg_transform` expresses. Painted base coverage is not moved (as on the CPU).
+  The feathered polygon's sigma is multiplied by the motion scale, because the
+  CPU blur sits inside the transformed group. Errors match the static fixtures
+  (the motion fixtures use scale 1.3, rotation 0.6 rad, translation (14,-8)
+  at t = 0.5 s of a 0..1 s track), so the `UnsupportedFeature` for animated
+  polygon/painted masks is removed. The transform is in f64 on the CPU; only the
+  result is cast to f32.
+- Textured rig parts: a flat polygon command (as before) plus one textured
+  command (kind 20). The CPU placement (`uv` sub-rectangle over `rest_bounds`,
+  carried by `EvaluatedTexture::transform`) is folded into an affine map from
+  actor-local coordinates to image uv computed on the CPU in f64; the shader
+  samples the decoded image (same bilinear sampler and storage as artwork
+  images, deduplicated per asset, same pixel budget) and multiplies by the
+  analytic polygon coverage. Fragment work is charged as polygon vertices + 5.
+  A singular transform draws nothing, as on the CPU. Maximum single-pixel
+  errors reach 68-88 of 255 where the polygon edge crosses the high-contrast
+  gradient texture; RMS stays about 1-2 and the interior RMS is 0.04-0.40.
+- Skinned parts: `motion-rig` already delivers the deformed polygon and the
+  least-squares affine fit, so the GPU path draws exactly those; flat skinned
+  fill matches within the same edge error as flat rigid parts. The texture is
+  not warped per triangle on either path.
+- Fixtures use a 8x8 gradient with partial alpha at 128x128 and a handful of
+  poses; they are regression guards, not proof for arbitrary artwork or rigs.
+
+Not established: other GPUs/drivers/OS versions, larger frames, perceptual
+equivalence, performance. The ignored hardware test
+`gpu_scene::tests::painted_pressure_soft_masks_real_gpu_interior_probes` in
+`motion-render` fails on this Mac on the base commit too (probe at x=45 outside
++-12 of 179), independent of this change; it was not touched.
 
 ## Fonts / GPU text
 
