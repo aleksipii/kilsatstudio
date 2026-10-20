@@ -268,11 +268,16 @@ impl ScenePreview {
         check(cancel)?;
         let pixmap =
             resvg::tiny_skia::Pixmap::decode_png(&png).map_err(|e| invalid(e.to_string()))?;
+        let budget = Some(crate::sequence::reserve_frame(
+            pixmap.width(),
+            pixmap.height(),
+        )?);
         Ok(SequencePreviewFrame {
             sample_frame,
             width: pixmap.width(),
             height: pixmap.height(),
             rgba: pixmap.take(),
+            budget,
         })
     }
 }
@@ -280,6 +285,26 @@ impl ScenePreview {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn preview_frame_carries_a_budget_reservation_of_its_rgba_size() {
+        let (script, rendered) = crate::tests::fixture();
+        let preview = ScenePreview::new(
+            Arc::new(script),
+            0,
+            Arc::new(ArtContext::default()),
+            Some(Arc::new(rendered.manifest.clone())),
+        )
+        .unwrap();
+        let frame = preview.render(0, 64, &CancellationToken::new()).unwrap();
+        let held = frame.budget.as_ref().expect("frame is accounted");
+        assert_eq!(held.bytes(), frame.rgba.len() as u64);
+        let copy = frame.clone();
+        drop(frame);
+        assert_eq!(
+            copy.budget.as_ref().unwrap().bytes(),
+            copy.rgba.len() as u64
+        );
+    }
     #[test]
     fn selected_preview_matches_export_pixels_and_speech_clock() {
         let (script, rendered) = crate::tests::fixture();

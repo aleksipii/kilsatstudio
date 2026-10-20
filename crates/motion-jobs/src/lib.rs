@@ -4,7 +4,8 @@ use std::sync::{mpsc, Mutex};
 mod budget;
 mod graph;
 pub use budget::{
-    process_budget, BudgetExhausted, MemoryBudget, Reservation, DEFAULT_PROCESS_BYTES,
+    pcm_bytes, process_budget, rgba_bytes, BudgetExhausted, MemoryBudget, Reservation,
+    DEFAULT_PROCESS_BYTES,
 };
 pub use graph::{Graph, GraphError, Outcome, Results, MAX_GRAPH_JOBS};
 

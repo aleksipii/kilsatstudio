@@ -1740,6 +1740,7 @@ version = "0.1.0"
 dependencies = [
  "hound",
  "motion-audio",
+ "motion-jobs",
  "motion-lipsync",
  "motion-scene",
  "motion-script",

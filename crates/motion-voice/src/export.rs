@@ -39,6 +39,7 @@ pub struct SampleViseme {
     pub end_frame: u64,
     pub viseme: Viseme,
 }
+#[derive(Clone)]
 pub struct RenderedScene {
     pub audio: AudioBuffer,
     pub manifest: SceneManifest,
