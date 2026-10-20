@@ -8,6 +8,7 @@ mod bone_editor;
 mod clip_editor;
 mod clip_library;
 mod composition_editor;
+mod cue_rule_editor;
 mod custom_rig_editor;
 mod demo;
 mod event_editor;
@@ -133,6 +134,8 @@ struct Studio {
     art_resources: art_resources::Resources,
     keyframe_draft: Option<(String, keyframe_editor::Draft)>,
     bone_draft: Option<(String, bone_editor::Draft)>,
+    cue_draft: Option<(String, cue_rule_editor::CueDraft)>,
+    rule_draft: Option<(String, cue_rule_editor::RuleDraft)>,
     joint_draft: Option<(String, bone_editor::Draft)>,
     rig_clips: rig_clip_editor::State,
     selected_joint: String,
@@ -281,6 +284,8 @@ impl Default for Studio {
             sequence_art_revision: 0,
             keyframe_draft: None,
             bone_draft: None,
+            cue_draft: None,
+            rule_draft: None,
             joint_draft: None,
             rig_clips: rig_clip_editor::State::default(),
             selected_joint: String::new(),
@@ -1193,6 +1198,8 @@ impl Studio {
     fn invalidate_scene(&mut self) {
         self.custom_rig_draft = None;
         self.bone_draft = None;
+        self.cue_draft = None;
+        self.rule_draft = None;
         self.joint_draft = None;
         self.clip_draft = None;
         self.clip_track_draft = None;
@@ -1221,6 +1228,8 @@ impl Studio {
     fn reset_scene(&mut self) {
         self.custom_rig_draft = None;
         self.bone_draft = None;
+        self.cue_draft = None;
+        self.rule_draft = None;
         self.joint_draft = None;
         self.clip_draft = None;
         self.clip_track_draft = None;
@@ -3020,6 +3029,94 @@ impl Studio {
             }
         }
     }
+    fn apply_cue_draft(&mut self) {
+        let Some((source, draft)) = &self.cue_draft else {
+            return;
+        };
+        let current_scene = self
+            .script
+            .as_ref()
+            .and_then(|script| script.scenes.get(self.scene_index))
+            .map(|scene| scene.id.as_str());
+        if source != &self.source
+            || draft.scene_index != self.scene_index
+            || current_scene != Some(draft.scene_id.as_str())
+        {
+            self.status = "Audio cue draft belongs to an earlier source or scene; reload the draft before applying.".into();
+            self.cue_draft = None;
+            return;
+        }
+        let result = draft.apply(&self.source);
+        self.apply_structure(result);
+    }
+
+    fn apply_rule_draft(&mut self) {
+        let Some((source, draft)) = &self.rule_draft else {
+            return;
+        };
+        if source != &self.source {
+            self.status =
+                "Rule draft belongs to an earlier source; reload the draft before applying.".into();
+            self.rule_draft = None;
+            return;
+        }
+        let result = draft.apply(&self.source);
+        self.apply_structure(result);
+    }
+
+    fn cue_rule_inspector_ui(&mut self, ui: &mut egui::Ui) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let editable = !self.busy && !self.diagnostics_busy && !self.export_busy;
+        let mut apply_cues = false;
+        let mut apply_rules = false;
+        if let Some(scene) = script.scenes.get(self.scene_index) {
+            if !self.cue_draft.as_ref().is_some_and(|(source, draft)| {
+                source == &self.source
+                    && draft.scene_index == self.scene_index
+                    && draft.scene_id == scene.id
+            }) {
+                self.cue_draft = Some((
+                    self.source.clone(),
+                    cue_rule_editor::CueDraft::new(scene, self.scene_index),
+                ));
+            }
+            ui.add_enabled_ui(editable, |ui| {
+                egui::CollapsingHeader::new("Audio cues").show(ui, |ui| {
+                    ui.small("Changing scene or source reloads saved cues and discards unapplied changes.");
+                    if let Some((_, draft)) = &mut self.cue_draft {
+                        apply_cues = draft.ui(ui);
+                    }
+                });
+            });
+        }
+        if !self
+            .rule_draft
+            .as_ref()
+            .is_some_and(|(source, _)| source == &self.source)
+        {
+            self.rule_draft = Some((
+                self.source.clone(),
+                cue_rule_editor::RuleDraft::new(&script.rules),
+            ));
+        }
+        ui.add_enabled_ui(editable, |ui| {
+            egui::CollapsingHeader::new("Animation rules").show(ui, |ui| {
+                ui.small("A source change reloads saved rules and discards unapplied changes.");
+                if let Some((_, draft)) = &mut self.rule_draft {
+                    apply_rules = draft.ui(ui);
+                }
+            });
+        });
+        if apply_cues {
+            self.apply_cue_draft();
+        }
+        if apply_rules {
+            self.apply_rule_draft();
+        }
+    }
+
     fn apply_bone_draft(&mut self) {
         let Some((source, draft)) = &self.bone_draft else {
             return;
@@ -3632,6 +3729,7 @@ impl Studio {
         self.keyframe_inspector_ui(ui);
         self.custom_rig_ui(ui);
         self.bone_inspector_ui(ui);
+        self.cue_rule_inspector_ui(ui);
         self.joint_inspector_ui(ui);
         self.clip_inspector_ui(ui);
         self.clip_library_ui(ui);
@@ -6101,6 +6199,84 @@ mod bone_and_compositor_tests {
             studio.apply_joint_draft();
             assert_eq!(studio.source, original);
         }
+    }
+    #[test]
+    fn cue_and_rule_drafts_apply_undo_and_reject_stale_context() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        let script = studio.script.as_ref().unwrap();
+        let scene = &script.scenes[0];
+        let mut cues = cue_rule_editor::CueDraft::new(scene, 0);
+        cues.cues.push(motion_script::AudioCue {
+            id: "door".into(),
+            asset: "audio/door.wav".into(),
+            at: 0.5,
+            gain: 1.0,
+            trim_start: 0.0,
+            duration: None,
+        });
+        studio.cue_draft = Some((studio.source.clone(), cues));
+        studio.apply_cue_draft();
+        let with_cue = studio.source.clone();
+        assert_ne!(with_cue, original);
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0]
+                .composition
+                .audio_cues[0]
+                .id,
+            "door"
+        );
+        let mut rules = cue_rule_editor::RuleDraft::new(&studio.script.as_ref().unwrap().rules);
+        rules.add_rule();
+        studio.rule_draft = Some((studio.source.clone(), rules));
+        studio.apply_rule_draft();
+        assert!(!studio.script.as_ref().unwrap().rules.is_empty());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, with_cue);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+
+        for context in 0..4 {
+            let mut studio = Studio::default();
+            studio.validate();
+            let original = studio.source.clone();
+            let scene = &studio.script.as_ref().unwrap().scenes[0];
+            let mut cues = cue_rule_editor::CueDraft::new(scene, 0);
+            cues.cues.push(motion_script::AudioCue {
+                id: "door".into(),
+                asset: "audio/door.wav".into(),
+                at: 0.5,
+                gain: 1.0,
+                trim_start: 0.0,
+                duration: None,
+            });
+            studio.cue_draft = Some((studio.source.clone(), cues));
+            match context {
+                0 => studio.cue_draft.as_mut().unwrap().0.push(' '),
+                1 => studio.scene_index += 1,
+                2 => studio.cue_draft.as_mut().unwrap().1.scene_id = "other".into(),
+                _ => studio.cue_draft.as_mut().unwrap().1.cues[0].gain = 9.0,
+            }
+            studio.apply_cue_draft();
+            assert_eq!(studio.source, original);
+            assert_eq!(studio.cue_draft.is_none(), context != 3);
+        }
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        let mut rules = cue_rule_editor::RuleDraft::new(&Default::default());
+        rules.rows.clear();
+        studio.rule_draft = Some((format!("{original} "), rules));
+        studio.apply_rule_draft();
+        assert_eq!(studio.source, original);
+        assert!(studio.rule_draft.is_none());
+        studio.cue_draft = Some((
+            original.clone(),
+            cue_rule_editor::CueDraft::new(&studio.script.as_ref().unwrap().scenes[0], 0),
+        ));
+        studio.invalidate_scene();
+        assert!(studio.cue_draft.is_none() && studio.rule_draft.is_none());
     }
     #[test]
     fn stale_bone_context_and_invalid_offsets_preserve_source() {
