@@ -73,6 +73,11 @@ pub struct ProjectDocument {
     pub art: motion_art::Document,
     #[serde(default, skip_serializing_if = "TimingDocument::is_empty")]
     pub timing: TimingDocument,
+    /// Optional user-level caption choice layered over `project.captions`. It is a
+    /// view/export option, not screenplay content: absent means "follow the
+    /// screenplay" and is never written, so older projects stay byte-compatible.
+    #[serde(default, skip_serializing_if = "motion_script::CaptionMode::is_follow")]
+    pub caption_mode: motion_script::CaptionMode,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -97,6 +102,7 @@ impl ProjectDocument {
             assets: vec![],
             art: motion_art::Document::default(),
             timing: TimingDocument::default(),
+            caption_mode: motion_script::CaptionMode::default(),
         };
         document.validate()?;
         Ok(document)
@@ -272,6 +278,7 @@ pub fn decode(bytes: &[u8]) -> Result<ProjectDocument, Error> {
             assets: old.assets,
             art: motion_art::Document::default(),
             timing: TimingDocument::default(),
+            caption_mode: motion_script::CaptionMode::default(),
         }
     } else if version == u64::from(FORMAT_VERSION) {
         serde_json::from_slice(bytes)?
@@ -391,6 +398,32 @@ mod tests {
             doc.timing.line = invalid;
             assert!(encode(&doc).is_err());
         }
+    }
+    #[test]
+    fn caption_mode_is_optional_byte_compatible_and_roundtrips() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let old = encode(&doc).unwrap();
+        // Follow (the default) is never written: old projects keep their bytes.
+        assert!(!String::from_utf8(old.clone())
+            .unwrap()
+            .contains("caption_mode"));
+        let loaded = decode(&old).unwrap();
+        assert_eq!(loaded.caption_mode, motion_script::CaptionMode::Follow);
+        assert_eq!(encode(&loaded).unwrap(), old);
+        doc.caption_mode = motion_script::CaptionMode::Hide;
+        let bytes = encode(&doc).unwrap();
+        assert!(String::from_utf8(bytes.clone())
+            .unwrap()
+            .contains("\"caption_mode\": \"hide\""));
+        assert_eq!(
+            decode(&bytes).unwrap().caption_mode,
+            motion_script::CaptionMode::Hide
+        );
+        // The screenplay source is untouched by the option.
+        assert_eq!(decode(&bytes).unwrap().source, SOURCE);
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        value["caption_mode"] = serde_json::json!("sometimes");
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
     }
     #[test]
     fn roundtrip_preserves_exact_source_and_assets() {

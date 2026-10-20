@@ -12,6 +12,8 @@ pub struct Request {
     pub scene_index: usize,
     pub sample_frame: u64,
     pub script: Arc<Script>,
+    /// User-level caption choice; a change is a new snapshot (new generation).
+    pub captions: motion_script::CaptionMode,
     pub art: Arc<ArtContext>,
     pub manifest: Option<Arc<SceneManifest>>,
     /// Optional already evaluated mouths for this sample (including selected-line playback).
@@ -85,6 +87,7 @@ impl Drop for Worker {
 fn same_snapshot(a: &Request, b: &Request) -> bool {
     a.generation == b.generation
         && a.scene_index == b.scene_index
+        && a.captions == b.captions
         && Arc::ptr_eq(&a.script, &b.script)
         && Arc::ptr_eq(&a.art, &b.art)
         && match (&a.manifest, &b.manifest) {
@@ -122,11 +125,12 @@ fn run(shared: Arc<(Mutex<State>, Condvar)>) {
                 .as_ref()
                 .is_none_or(|(old, _)| !same_snapshot(old, &request))
             {
-                let snapshot = ScenePreview::new(
+                let snapshot = ScenePreview::new_with_captions(
                     request.script.clone(),
                     request.scene_index,
                     request.art.clone(),
                     request.manifest.clone(),
+                    request.captions,
                 )
                 .map_err(|e| e.to_string());
                 cached = Some((request.clone(), snapshot));
@@ -174,6 +178,7 @@ mod tests {
     fn request(generation: u64) -> Request {
         Request { generation, scene_index:0, sample_frame:0,
             script:Arc::new(motion_script::parse("project: {fps: 4, width: 64, height: 36}\ncharacters: {}\nscenes:\n  - id: intro\n    duration: 1.0\n    events: []\n").unwrap()),
+            captions: motion_script::CaptionMode::default(),
             art: Arc::new(ArtContext::default()), manifest:None, mouths:None }
     }
     #[test]
