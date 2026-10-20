@@ -9,6 +9,22 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## Latest merge status
 
+PRs #60–#64 merged on 2026-10-20 after green Linux/macOS CI on each final head (fmt, check,
+Clippy, tests, GPU contracts, media encoding, Apple Silicon preview). Branches that
+conflicted on `docs/remaining-work.md` or added `Script` fields were merged with
+`origin/main` first, and fmt, all-features Clippy and `cargo test --workspace` were
+re-run locally on an Apple M1 before pushing: #60 (`85042e6`) measured CPU/GPU parity
+harness (17 fixtures, documented tolerances, one run on M1 macOS 27.0.1; GPU text not
+implemented because the CPU raster path draws no text and no licensed font is bundled);
+#61 (`d051790`) custom-rig part textures and two-joint skinning (CPU only; GPU reports
+unsupported); #62 (`e905b10`) process memory budget for images/export, dependency job
+graph (tested, not yet used by a pipeline) and an opt-in application-side input-latency
+recorder; #63 (`9293e1a`) YAML audio cues on the shared dialogue sample clock;
+#64 (`443190d`) reusable/conditional animation rules (YAML only). The work was done by
+parallel agents; their claims were checked only through CI and the local runs above.
+Not established: any physical Mac/audio/stylus/GUI behaviour, perceptual quality,
+Apple Silicon benchmarks, input-to-display latency, rule/cue editors, and licensing.
+
 PRs #56 (`9ccf873`), #57 (`384be89`) and #58 (`868480a`) merged on 2026-10-19, each after
 green Linux/macOS CI (fmt, check, Clippy, tests, GPU contracts, media encoding,
 Apple Silicon preview) and local fmt/all-features Clippy/`cargo test --workspace` on an
