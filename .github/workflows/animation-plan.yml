@@ -1,0 +1,37 @@
+name: Animation design contracts
+on:
+  push:
+    paths:
+      - 'docs/automation/**'
+      - 'examples/automation/**'
+      - 'tools/check_animation_plan.py'
+      - 'tools/tests/test_animation_plan.py'
+      - '.github/workflows/animation-plan.yml'
+  pull_request:
+    paths:
+      - 'docs/automation/**'
+      - 'examples/automation/**'
+      - 'tools/check_animation_plan.py'
+      - 'tools/tests/test_animation_plan.py'
+      - '.github/workflows/animation-plan.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  design-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate authored fixture and ten design reports
+        run: python3 tools/check_animation_plan.py --report out/animation-plan-report.json
+      - name: Reject invalid timing and provenance fixtures
+        run: python3 -m unittest discover -s tools/tests -p 'test_animation_plan.py' -v
+      - uses: actions/upload-artifact@v4
+        with:
+          name: animation-design-report
+          path: out/animation-plan-report.json
+          if-no-files-found: error

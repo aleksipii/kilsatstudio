@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "status": "design",
+  "baseline_commit": "7bb5e21331a672b15be5b2227c93ccc8171e8fa7",
+  "sla_measured": false,
+  "stage_caps_s": {
+    "ingest": 5,
+    "planning": 10,
+    "assets": 10,
+    "voice": 60,
+    "alignment": 20,
+    "acting": 20,
+    "render": 145,
+    "encode": 20,
+    "reserve": 10
+  },
+  "agents": [
+    {
+      "id": 1,
+      "report": "docs/automation/agents/01-script.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 2,
+      "report": "docs/automation/agents/02-direction.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 3,
+      "report": "docs/automation/agents/03-acting.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 4,
+      "report": "docs/automation/agents/04-assets.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 5,
+      "report": "docs/automation/agents/05-camera.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 6,
+      "report": "docs/automation/agents/06-voice.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 7,
+      "report": "docs/automation/agents/07-performance.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 8,
+      "report": "docs/automation/agents/08-ux.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 9,
+      "report": "docs/automation/agents/09-quality.md",
+      "status": "design_complete"
+    },
+    {
+      "id": 10,
+      "report": "docs/automation/agents/10-integration.md",
+      "status": "design_complete"
+    }
+  ],
+  "ingestion_rule_ids": [
+    "ING-001",
+    "ING-002",
+    "ING-003",
+    "ING-004",
+    "ING-005",
+    "ING-006"
+  ],
+  "supported_languages": [
+    "fi-FI",
+    "en-US",
+    "en-GB"
+  ]
+}

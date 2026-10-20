@@ -7,6 +7,39 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Script-to-animation automation design (2026-10-20)
+
+The requested ten agents produced a linked
+[rule-based automation design](automation/README.md), grounded in source
+`7bb5e21331a672b15be5b2227c93ccc8171e8fa7`. This is design work, not an
+implemented script-to-professional-animation product or a milestone acceptance.
+
+- [x] Ten bounded workstream reports: ingestion, directing, acting, assets,
+  camera, speech, performance, UX, quality and integration.
+- [x] Shared proposed contracts, deterministic rule precedence, existing
+  MotionScript/shot/rule integration, 30–60 s / two-actor / three-story-scene /
+  sixteen-final-shot profile and a 300 s proposed serial stage budget.
+- [x] Finnish and English screenplay/speech/caption design contracts (fi-FI,
+  en-US, en-GB); language switches invalidate dependent audio/timing caches.
+- [x] New Finnish and English Aino/Rane pilots, source-bound authored intent
+  fixtures and design-only checker with 20 locally passing contract tests.
+  CI configuration checks these fixtures; it does not synthesize or render.
+- [ ] Implement the intent adapters, directing/acting solution and native UX.
+- [ ] Author and review the actual character/scene/prop packages and Kilsat capture.
+- [ ] Add/verify Finnish speech or import actual approved Finnish recordings;
+  current SpeechRequest language validation accepts only en-us/en-gb.
+- [ ] Preserve memory/work limits while enabling streamed Full HD export:
+  current one-billion cumulative raster-pixel bound rejects 1080p24 at 30–60 s.
+- [ ] Measure the complete <=300 s run on named physical Mac hardware, including
+  audio, queueing, cache verification and final media. No timing SLA is measured.
+- [ ] Pass perceptual acting/readability/lip-sync review and all remaining
+  licensing/device/release gates. Pixar/Disney-level quality is not established.
+
+The new pilot is newly authored design material; it is not a recovered copy of
+the unavailable 31-episode season. All other open product acceptance gates remain
+open. No new Rust implementation, real speech, physical Mac or rendered video is
+claimed by this design delivery.
+
 ## Latest merge status
 
 PRs #71–#76 merged on 2026-10-20 (plan, then five workstreams of
