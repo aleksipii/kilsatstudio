@@ -1,6 +1,13 @@
 //! Fixed scoped workers with bounded batches and ordered coordinator delivery.
 use std::sync::{mpsc, Mutex};
 
+mod budget;
+mod graph;
+pub use budget::{
+    process_budget, BudgetExhausted, MemoryBudget, Reservation, DEFAULT_PROCESS_BYTES,
+};
+pub use graph::{Graph, GraphError, Outcome, Results, MAX_GRAPH_JOBS};
+
 #[derive(Clone, Copy, Debug)]
 pub struct Config {
     pub workers: usize,

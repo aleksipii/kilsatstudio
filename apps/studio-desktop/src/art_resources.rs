@@ -38,7 +38,9 @@ impl Default for Resources {
                         if !path.starts_with(&root) {
                             return Err("Image escapes project root".into());
                         }
-                        let image = motion_art::load_image(&path).map_err(|e| e.to_string())?;
+                        let image = motion_art::load_image(&path)
+                            .and_then(|i| i.reserve_in(motion_jobs::process_budget()))
+                            .map_err(|e| e.to_string())?;
                         bytes += image.rgba().len() + image.png().len();
                         if bytes > 128 * 1024 * 1024 {
                             return Err("Image resources exceed 128 MiB budget".into());

@@ -1,4 +1,5 @@
 //! Opt-in bounded measurements of application update work, not input or GPU latency.
+use crate::input_latency::InputLatency;
 use eframe::egui;
 use std::{collections::VecDeque, time::Duration};
 
@@ -7,6 +8,7 @@ const CAPACITY: usize = 256;
 pub struct Metrics {
     pub enabled: bool,
     samples: VecDeque<(f64, bool)>,
+    pub latency: InputLatency,
 }
 impl Metrics {
     pub fn record(&mut self, elapsed: Duration, busy: bool) {
@@ -35,7 +37,7 @@ impl Metrics {
             "p95_ms":values[(n * 95).div_ceil(100) - 1],"max_ms":values[n - 1]})
     }
     fn report(&self) -> serde_json::Value {
-        serde_json::json!({"schema_version":1,"metric":"application_update_work",
+        serde_json::json!({"schema_version":2,"input_latency":self.latency.report(),"metric":"application_update_work",
             "tracked_job_flags":"speech, export, diagnostics, sequence preparation","capacity":CAPACITY,"os":std::env::consts::OS,"arch":std::env::consts::ARCH,
             "build_profile":if cfg!(debug_assertions) {"debug"} else {"release"},
             "all":self.summary(None),"tracked_jobs_active":self.summary(Some(true)),
@@ -55,12 +57,28 @@ impl Metrics {
                 summary["max_ms"].as_f64().unwrap_or(0.0)
             ));
         }
+        ui.checkbox(&mut self.latency.enabled, "Measure input to next frame");
+        ui.weak("Last 128 key/text/click/wheel inputs, application-side only: time until the frame reflecting the input is built and until the next frame begins. Excludes OS event delay and display scan-out; not photon latency. Costs one extra repaint per measured input.");
+        if self.latency.enabled && !self.latency.is_empty() {
+            let r = self.latency.report();
+            ui.label(format!(
+                "{} inputs · next-frame p95 {:.2} ms · max {:.2} ms",
+                self.latency.len(),
+                r["input_to_next_frame_start"]["p95_ms"]
+                    .as_f64()
+                    .unwrap_or(0.0),
+                r["input_to_next_frame_start"]["max_ms"]
+                    .as_f64()
+                    .unwrap_or(0.0)
+            ));
+        }
         ui.horizontal(|ui| {
             if ui.button("Copy timing report").clicked() {
                 ui.ctx().copy_text(self.report().to_string());
             }
             if ui.button("Clear measurements").clicked() {
                 self.samples.clear();
+                self.latency.clear();
             }
         });
     }
