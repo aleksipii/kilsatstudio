@@ -20,7 +20,7 @@ with neutral dialogue.
   artwork layers (rectangles and ellipses defined in
   `crates/motion-export/tests/support/mod.rs`) and audio references. Open it with the
   desktop app's Open project action.
-- `audio/*.wav` - generated 24 kHz mono placeholder tones with a crude syllable
+- `audio/*.wav` (gitignored: not in the repository; created by `-- write`, and regenerated in a temporary directory by the tests when absent) - generated 24 kHz mono placeholder tones with a crude syllable
   rhythm. They are **not speech**; they only give the sample clock real audio.
 
 ## Commands

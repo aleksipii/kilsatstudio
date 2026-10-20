@@ -61,7 +61,7 @@ See [examples/night-room-reference/](../examples/night-room-reference/README.md)
 and placeholder `audio/*.wav`. The helper
 `cargo run -p motion-export --example night_room_reference` prints the shot
 start/end times and cut points from the 24 kHz sample-clock timeline;
-`-- write` regenerates the committed files.
+`-- write` regenerates the project file and the audio fixtures. `*.wav` is gitignored, so the tones are not committed: the tests regenerate them in a temporary directory when `audio/` is absent.
 
 `crates/motion-export/tests/night_room_reference.rs` (6 tests) loads the example
 and renders frames through the shared CPU sequence renderer (SVG then resvg). It

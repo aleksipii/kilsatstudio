@@ -103,17 +103,21 @@ fn committed_example_matches_the_generator() {
     );
     assert_eq!(committed.art, expected.art);
     assert_eq!(committed.assets, expected.assets);
-    // The committed WAV fixtures are exactly the generated placeholder tones.
+    // Locally generated WAV fixtures (gitignored) must equal the generated placeholder tones.
     let scratch = std::env::temp_dir().join(format!("kilsat-night-room-{}", std::process::id()));
     std::fs::create_dir_all(&scratch).unwrap();
     for (_, _, actor, audio, duration) in support::lines(&expansion) {
         let generated = scratch.join(std::path::Path::new(&audio).file_name().unwrap());
         motion_audio::write_wav(&generated, &support::placeholder_audio(&actor, duration)).unwrap();
-        assert_eq!(
-            std::fs::read(dir.join(&audio)).unwrap(),
-            std::fs::read(&generated).unwrap(),
-            "{audio} is stale"
-        );
+        // `*.wav` is gitignored, so fixtures exist only after a local `write`; when they
+        // do, they must match the generator exactly.
+        if dir.join(&audio).is_file() {
+            assert_eq!(
+                std::fs::read(dir.join(&audio)).unwrap(),
+                std::fs::read(&generated).unwrap(),
+                "{audio} is stale"
+            );
+        }
     }
     let _ = std::fs::remove_dir_all(scratch);
 }

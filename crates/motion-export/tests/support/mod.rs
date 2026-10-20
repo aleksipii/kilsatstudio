@@ -269,8 +269,36 @@ pub fn art_context(document: &ProjectDocument) -> ArtContext {
     }
 }
 
-/// Rendered per-scene audio read from the committed WAV fixtures in `dir`.
+/// `*.wav` is gitignored, so the committed example has no audio; the tones are a pure
+/// function of the shot list. Use `dir` when it already holds every fixture, otherwise
+/// generate them once per test process into a temporary directory.
+fn audio_dir(dir: &Path) -> PathBuf {
+    static GENERATED: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    let expansion = expansion();
+    let wanted: Vec<_> = lines(&expansion);
+    if wanted
+        .iter()
+        .all(|(_, _, _, audio, _)| dir.join(audio).is_file())
+    {
+        return dir.to_path_buf();
+    }
+    GENERATED
+        .get_or_init(|| {
+            let scratch = std::env::temp_dir()
+                .join(format!("kilsat-night-room-audio-{}", std::process::id()));
+            for (_, _, actor, audio, duration) in &wanted {
+                let path = scratch.join(audio);
+                std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+                motion_audio::write_wav(path, &placeholder_audio(actor, *duration)).unwrap();
+            }
+            scratch
+        })
+        .clone()
+}
+
+/// Rendered per-scene audio: the WAV fixtures in `dir` when present, else regenerated.
 pub fn rendered_scenes(script: &motion_script::Script, dir: &Path) -> Vec<RenderedScene> {
+    let dir = &audio_dir(dir);
     script
         .scenes
         .iter()
