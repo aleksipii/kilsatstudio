@@ -819,6 +819,33 @@ pub fn apply_joint_track(
     })
 }
 
+/// Atomically replace one scene's audio cues. Empty removes them. All cue
+/// fields (ids, asset paths, times, gain) are validated against the scene.
+pub fn apply_audio_cues(
+    source: &str,
+    scene_index: usize,
+    cues: &[AudioCue],
+) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        candidate
+            .scenes
+            .get_mut(scene_index)
+            .ok_or_else(missing_event)?
+            .composition
+            .audio_cues = cues.to_vec();
+        Ok(())
+    })
+}
+
+/// Atomically replace the screenplay's named animation rules. Empty removes
+/// them. The full expansion (references, bounds, conflicts) is validated.
+pub fn apply_rules(source: &str, rules: Rules) -> Result<String, Error> {
+    edit_source(source, |candidate| {
+        candidate.rules = rules;
+        Ok(())
+    })
+}
+
 /// Capture all authored bone tracks for one actor. Existing names require explicit replacement.
 pub fn capture_animation_clip(
     source: &str,

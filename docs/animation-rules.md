@@ -86,3 +86,14 @@ The desktop editor does not yet show or edit rules or their expanded output; rul
 are edited in the YAML source. No GUI, perceptual or hardware validation was done.
 Clip rules do not target custom-rig actors; joint-track copy effects and rules that
 react to other rules' output are intentionally absent.
+
+## Native editor
+
+The inspector's "Animation rules" section edits all rules as one detached draft
+(name, trigger, match value, scene/actor/emotion/time conditions, clip or camera
+effect; text fields are length-limited). Apply calls `motion_script::apply_rules`,
+which validates the full expansion (references, overlaps, bounds) and records one
+source-history transaction, so Undo restores the previous source and errors are the
+real `RuleError` messages. A changed source discards the draft; duplicate names are
+rejected rather than merged. Tests are headless egui draws and Studio-level
+Apply/Undo/stale-source checks; no GUI was exercised by hand.
