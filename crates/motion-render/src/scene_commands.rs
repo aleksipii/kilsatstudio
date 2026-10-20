@@ -1,5 +1,8 @@
 //! Adapter-free commands for the experimental GPU scene compositor.
 //! No font rasterizer is provided: actor labels require explicit acknowledgement.
+//! The SVG string carries `<text>` labels, but the CPU raster path (resvg built
+//! without its `text` feature, no font database) currently draws none of them, so
+//! omission matches the CPU pixels; see docs/gpu-parity.md.
 use motion_lipsync::Viseme;
 use motion_scene::{
     EvaluatedScene, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND,
@@ -13,7 +16,8 @@ pub const MAX_FRAGMENT_WORK: u64 = 64 * 1024 * 1024;
 pub enum Labels {
     #[default]
     Require,
-    /// Explicit geometry-only experiment; this is not SVG/native parity.
+    /// Explicit geometry-only experiment. The in-repo CPU rasterizer also draws no
+    /// label text (docs/gpu-parity.md), but SVG consumers that do have fonts would.
     OmitAcknowledged,
 }
 
