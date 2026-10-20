@@ -4,6 +4,8 @@
 mod artist_blending_tests;
 #[cfg(test)]
 mod clip_library_tests;
+#[cfg(all(test, feature = "gpu"))]
+mod gpu_parity_tests;
 #[cfg(test)]
 mod group_composition_tests;
 #[cfg(test)]
