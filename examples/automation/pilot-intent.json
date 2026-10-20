@@ -240,6 +240,8 @@
     "end_s": 29,
     "asset_status": "missing_real_capture"
   },
-  "audio_status": "missing_finnish_recording",
-  "render_status": "not_rendered"
+  "audio_status": "missing_recording",
+  "render_status": "not_rendered",
+  "speech_language": "fi-FI",
+  "caption_language": "fi-FI"
 }

@@ -31,7 +31,8 @@ ei uusi renderöitävä dokumenttimalli. Tarkka JSON Schema on toteutustehtävä
 | `version` | Täsmälleen `1`; tuntematon versio hylätään. |
 | `seed` | Eksplisiittinen kokonaisluku 0…4294967295; sama syöte ja säännöstö tuottavat samat valinnat. |
 | `duration_s` | Äärellinen kokonaiskesto 30…60 sekuntia. |
-| `language` | `fi-FI`; ei lupaa puhepalvelun kielituesta. |
+| `language` | Käsikirjoituksen kieli: `fi-FI`, `en-US` tai `en-GB`; ei lupaa puhepalvelun kielituesta. |
+| `speech_language`, `caption_language` | Sama valittu kieli kuin käsikirjoituksessa. Ei automaattista käännöstä tai kielenvaihtoa. |
 | `characters` | 1–2 vakaata tunnistetta, näyttönimet, käyttäjän valitsemat olemassa olevat asset-tunnisteet. |
 | `scenes` | 1–3 kohtausta; yksikäsitteinen tunniste, olemassa oleva miljööviite ja positiivinen kesto. Kohtausten kestojen summa on kokonaiskesto. |
 | `beats` | Enintään 64: kohtausviite, kohtauspaikalliset `start_s`, `end_s`, järjestysnumero ja `dialogue`/`action`/`hold`. |
@@ -50,7 +51,7 @@ mahtumisen takuu. Äänen todellinen kesto ratkaisee lopullisen ajoituksen.
 | ID | Syöte → tulos | Epäselvä tai virheellinen syöte |
 | --- | --- | --- |
 | `ING-001` | Käyttäjän valitsema YAML → nykyinen `parse` ja `validate`. | Nykyinen jäsennys-/validointivirhe lähdekohtaan; ei proosaksi uudelleentulkintaa. |
-| `ING-002` | Rajatun tekstimuodon `KOHTAUS`, `[alku–loppu]`, `AINO:` ja `RANE:` → intentin kohtaukset ja repliikit. | Tuntematon puhujan nimi tuottaa `UnknownSpeaker`, eikä kolmatta hahmoa lisätä. |
+| `ING-002` | Rajatun tekstimuodon `KOHTAUS` / `SCENE`, `[alku–loppu]`, `AINO:` ja `RANE:` → intentin kohtaukset ja repliikit valitulla suomen tai englannin kielellä. | Tuntematon puhujan nimi tuottaa `UnknownSpeaker`, eikä kolmatta hahmoa lisätä. |
 | `ING-003` | Suomenkielinen vapaa käsikirjoitus → irrotetut repliikkiehdotukset ja `needs_review`. | Moniselitteinen puhuja, pronomini, paikka tai toiminto tuottaa täsmäkysymyksen editorissa; ei hiljaista arvausta. |
 | `ING-004` | `katsoo Ranea`, `näyttää puhelimen`, `tauko` → sallittu toimintotunniste ja lähdeviite. | Muut toiminnat säilytetään käsikirjoituksessa, mutta `UnsupportedAction` estää niiden esittämisen toteutettuina. |
 | `ING-005` | Eksplisiittinen ajoitus → beatin lukittu aikaväli. | Ristiriitainen tai päällekkäinen dialogi samalla hahmolla hylätään; puhetta ei nopeuteta salaa. |

@@ -33,7 +33,7 @@ versioitua ja testattavaa dataa; nykyinen offline-putki säilyy.
 
 ## Yhteinen sopimus
 
-1. Rajattu suomenkielinen käsikirjoitus tai nykyinen MotionScript otetaan sisään.
+1. Rajattu suomen- tai englanninkielinen käsikirjoitus tai nykyinen MotionScript otetaan sisään.
    Vapaa proosa tuottaa tarkistettavan ehdotuksen. Epäselvä puhuja tai toiminto
    näytetään lähdekohdassa; sitä ei arvata onnistumisen nimissä.
 2. `ScriptIntent v1` säilyttää alkuperäisen dialogin, UTF-8-tavuvälit ja lähteen
@@ -67,6 +67,19 @@ antaa virheen. Kyvykkyys-, oikeus- ja resurssirajat tarkistetaan aina.
 Seed valitsee vain samanarvoisia visuaalisia variantteja. Lopulliset vaikutukset
 järjestetään nykyisten sääntöjen nimijärjestyksellä; uudet prioriteetit eivät muuta
 olemassa olevan `expand_rules`-funktion semantiikkaa.
+
+## Käsikirjoituksen ja puheen kieli
+
+Käyttäjä valitsee suomen (`fi-FI`) tai englannin (`en-US` / `en-GB`). Sama valinta
+kulkee käsikirjoituksen, puheen, tekstityksen ja suunliikkeiden mukana.
+Tekstiä ei tarvitse kääntää englanniksi animaation suunnittelua varten.
+Kielentunnistus voi ehdottaa valintaa; epävarma tulos tarkistetaan käyttäjältä.
+Kielenvaihto mitätöi siitä riippuvan puhe-, kohdistus-, tekstitys- ja renderivälimuistin.
+
+BCP-47-tunnisteet muunnetaan providerin rajalla nykyisiksi `en-us` / `en-gb`
+arvoiksi; `fi-FI` ei muutu englannin profiiliksi. Englannin nykyinen provider-polku
+ei yksin osoita äänilaadun hyväksyntää. Suomen synteesi ja molempien kielten
+tuotantolaatu tarvitsevat erilliset oikealla puheella suoritetut tarkistukset.
 
 ## Viiden minuutin tavoite
 
@@ -112,6 +125,10 @@ säästää. Kilsat näkyy viiden sekunnin insertissä.
 
 [Esimerkki-intentti](../../examples/automation/pilot-intent.json) on käsin tehty,
 lähteeseen sidottu suunnittelufixtuuri. Studio ei vielä lue tätä formaattia.
+Mukana on myös [englanninkielinen pilotti](../../examples/automation/pilot-en.txt)
+ja sen [intent-fixtuuri](../../examples/automation/pilot-en-intent.json).
+Ne ovat erikseen kirjoitettua esimerkkiaineistoa, eivät automaattisen käännöksen
+tai kielentunnistuksen testituloksia. CI tarkistaa molemmat lähdetekstit.
 Hahmoaineistot, oikea Kilsat-kaappaus ja suomalaiset äänitteet puuttuvat.
 Nykyinen `SpeechRequest` tukee `en-us`/`en-gb`; suomea ei ohjata niihin
 korvikkeena. Tarvitaan hyväksytyt tuodut äänet tai erikseen toteutettu ja
@@ -123,7 +140,7 @@ python3 -m unittest discover -s tools/tests -p 'test_animation_plan.py' -v
 ```
 
 CI tarkistaa kymmenen raportin olemassaolon, 300 sekunnin budjettisumman,
-lähteen hashin ja tavuvälit, puhujat, rajat, puheen ajoitusristiriidat, otospeiton
+lähteiden hashit ja tavuvälit, suomen/englannin kielisopimuksen, puhujat, rajat, puheen ajoitusristiriidat, otospeiton
 ja rehelliset tilat. Negatiiviset testit tarkistavat virheiden hylkäykset.
 `design_fixture_valid` ei tarkoita, että proosa tulkittiin, ääni syntetisoitiin,
 video renderöitiin tai nopeus/laatu hyväksyttiin.

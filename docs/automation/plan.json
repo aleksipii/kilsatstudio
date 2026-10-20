@@ -73,5 +73,10 @@
     "ING-004",
     "ING-005",
     "ING-006"
+  ],
+  "supported_languages": [
+    "fi-FI",
+    "en-US",
+    "en-GB"
   ]
 }

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "docs/automation/plan.json"
 PILOT = ROOT / "examples/automation/pilot-intent.json"
 SOURCE = ROOT / "examples/automation/pilot-fi.txt"
+SUPPORTED_LANGUAGES = ("fi-FI", "en-US", "en-GB")
 
 
 class PlanError(ValueError):
@@ -37,6 +38,7 @@ def validate(manifest, intent, source):
     """Validate bounded, reviewed example data; perform no animation work."""
     require(type(manifest.get("version")) is int and manifest["version"] == 1, "unsupported plan version")
     require(manifest.get("status") == "design", "plan must remain labelled design")
+    require(manifest.get("supported_languages") == list(SUPPORTED_LANGUAGES), "language registry differs")
     agents = manifest.get("agents", [])
     require(len(agents) == 10, "exactly ten agent reports required")
     require([a["id"] for a in agents] == list(range(1, 11)), "agent IDs must be 1..10")
@@ -51,7 +53,10 @@ def validate(manifest, intent, source):
     require(manifest.get("sla_measured") is False, "no measured SLA in this design")
     require(type(intent.get("version")) is int and intent["version"] == 1, "unsupported intent version")
     require(integer(intent.get("seed")) and 0 <= intent["seed"] <= 4294967295, "invalid seed")
-    require(intent.get("language") == "fi-FI", "pilot language must be fi-FI")
+    language = intent.get("language")
+    require(language in SUPPORTED_LANGUAGES, "unsupported script language")
+    require(intent.get("speech_language") == language, "speech language differs from script")
+    require(intent.get("caption_language") == language, "caption language differs from script")
     duration = intent.get("duration_s")
     require(number(duration) and 30 <= duration <= 60, "duration must be 30..60 seconds")
     require(isinstance(source, bytes) and len(source) <= 65536, "source exceeds 64 KiB")
@@ -136,10 +141,11 @@ def validate(manifest, intent, source):
     require(len(app_shots) == 1 and app_shots[0]["start_s"] == start
             and app_shots[0]["end_s"] == end, "app insert and shot interval differ")
     require(insert.get("asset_status") == "missing_real_capture", "real app capture is still missing")
-    require(intent.get("audio_status") == "missing_finnish_recording", "Finnish audio is still missing")
+    require(intent.get("audio_status") == "missing_recording", "fixture audio is still missing")
     require(intent.get("render_status") == "not_rendered", "fixture is not rendered animation")
     return {"status": "design_fixture_valid", "agents": len(agents), "duration_s": duration,
-            "shots": len(shots), "animation_rendered": False, "sla_measured": False}
+            "shots": len(shots), "language": language,
+            "animation_rendered": False, "sla_measured": False}
 
 
 def check_reports(manifest):
@@ -156,7 +162,11 @@ def main():
     args = parser.parse_args()
     try:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-        result = validate(manifest, json.loads(PILOT.read_text(encoding="utf-8")), SOURCE.read_bytes())
+        examples = [(PILOT, SOURCE), (ROOT / "examples/automation/pilot-en-intent.json",
+                                     ROOT / "examples/automation/pilot-en.txt")]
+        result = {"status": "design_fixtures_valid", "examples": [
+            validate(manifest, json.loads(pilot.read_text(encoding="utf-8")), source.read_bytes())
+            for pilot, source in examples]}
         check_reports(manifest)
     except (PlanError, ValueError, KeyError, TypeError, OSError) as exc:
         parser.exit(1, f"Design check failed: {exc}\n")

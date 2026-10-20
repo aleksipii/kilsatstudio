@@ -63,6 +63,17 @@ pelkästä `Alignment::validate`-kutsusta. Valmis äänellinen vienti edellyttä
 kaikkien repliikkien todellista PCM:ää. Hiljainen esikatselu on erillinen,
 käyttäjän nimeämä luonnostuote.
 
+## Suomen ja englannin yhteinen kielisopimus
+
+Käsikirjoitus, puhe ja tekstitys käyttävät samaa käyttäjän valitsemaa
+`fi-FI`-, `en-US`- tai `en-GB`-tunnistetta. Providerin rajalla englannin
+tunnisteet muunnetaan nykyisiksi `en-us` / `en-gb` -arvoiksi; suomea ei ohjata
+englannin ääneen. Puheen ja suunliikkeiden välimuistiavaimet sisältävät kielen
+ja tarkan kielikohtaisen provider-/kohdistinidentiteetin. Kielenvaihto tarvitsee
+uuden todellisen puhekeston ja siitä riippuvan otos-/näyttelyajoituksen.
+Englannin nykyinen tekninen tuki ei korvaa taiteellista tai fyysisen Macin
+laatuhyväksyntää. Suomen provider on edelleen avoin toteutus.
+
 ## Säännöt ja deterministinen ratkaisujärjestys
 
 Etusija on pienempi numero ensin. Samalla tasolla ratkaistaan `line_id`:n

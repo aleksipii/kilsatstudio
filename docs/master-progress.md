@@ -19,8 +19,10 @@ implemented script-to-professional-animation product or a milestone acceptance.
 - [x] Shared proposed contracts, deterministic rule precedence, existing
   MotionScript/shot/rule integration, 30–60 s / two-actor / three-story-scene /
   sixteen-final-shot profile and a 300 s proposed serial stage budget.
-- [x] New Finnish Aino/Rane pilot, source-bound authored intent fixture and
-  design-only checker with 16 locally passing negative/positive contract tests.
+- [x] Finnish and English screenplay/speech/caption design contracts (fi-FI,
+  en-US, en-GB); language switches invalidate dependent audio/timing caches.
+- [x] New Finnish and English Aino/Rane pilots, source-bound authored intent
+  fixtures and design-only checker with 20 locally passing contract tests.
   CI configuration checks these fixtures; it does not synthesize or render.
 - [ ] Implement the intent adapters, directing/acting solution and native UX.
 - [ ] Author and review the actual character/scene/prop packages and Kilsat capture.

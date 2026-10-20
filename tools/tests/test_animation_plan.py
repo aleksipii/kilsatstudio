@@ -26,8 +26,29 @@ class DesignContractTests(unittest.TestCase):
 
     def test_valid_pilot_is_not_reported_as_rendered_or_measured(self):
         self.assertEqual(self.check(), {"status": "design_fixture_valid", "agents": 10,
-            "duration_s": 50, "shots": 8, "animation_rendered": False, "sla_measured": False})
+            "duration_s": 50, "shots": 8, "language": "fi-FI",
+            "animation_rendered": False, "sla_measured": False})
         checker.check_reports(self.plan)
+
+    def test_english_script_and_voice_contract(self):
+        self.intent = json.loads((ROOT / "examples/automation/pilot-en-intent.json").read_text(encoding="utf-8"))
+        self.source = (ROOT / "examples/automation/pilot-en.txt").read_bytes()
+        for language in ("en-US", "en-GB"):
+            with self.subTest(language=language):
+                self.intent.update(language=language, speech_language=language, caption_language=language)
+                self.assertEqual(self.check()["language"], language)
+
+    def test_unsupported_script_language(self):
+        self.intent["language"] = "sv-SE"
+        self.reject("unsupported script language")
+
+    def test_voice_cannot_silently_switch_language(self):
+        self.intent["speech_language"] = "en-US"
+        self.reject("speech language differs")
+
+    def test_caption_language_must_follow_script(self):
+        self.intent["caption_language"] = "en-US"
+        self.reject("caption language differs")
 
     def test_source_change_invalidates_spans(self):
         self.source += "ä".encode()

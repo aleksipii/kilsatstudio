@@ -82,7 +82,7 @@ tai sen CI-tarkistuksen onnistuminen ei merkitse vastaavaa tuoteominaisuutta val
 
 | Järjestys | Konkreettinen muutos ja paikka | Riippuvuus ja hyväksyntä |
 | --- | --- | --- |
-| `INT-01` | Versioidut intentti-/suunnitelmasopimukset ja adapterin diagnoosit `motion-script`-vastuuseen; rajattu suomenkielinen tuonti editoriin | Lähdeviitteet ja dialogi säilyvät; epäselvä puhuja pysäyttää tulkinnan. Ei kilpailevaa YAML-jäsentäjää. |
+| `INT-01` | Versioidut intentti-/suunnitelmasopimukset ja adapterin diagnoosit `motion-script`-vastuuseen; rajattu suomen- ja englanninkielinen tuonti editoriin | Lähdeviitteet ja dialogi säilyvät; puhe ja tekstitys seuraavat valittua kieltä. Epäselvä puhuja pysäyttää tulkinnan. Ei kilpailevaa YAML-jäsentäjää. |
 | `INT-02` | Aino–Rane-tyylipaketti, rigikyvykkyydet ja versioitu aineistomanifesti nykyisen projektin aineistorajalle | INT-01; jokaisella tiedostolla oikea sisältö ja tarkistusnäyttö, ei tekaistuja hash- tai hyväksyntätietoja. |
 | `INT-03` | `AudioPlan` nykyisten `motion-tts`/`motion-voice`/`motion-audio`-rajojen päälle; hyväksytty suomenkielinen tuontipuhe ensimmäiseksi | INT-01/02; nykyinen `SpeechRequest::validate` sallii vain `en-us`/`en-gb`. Suomen TTS vaatii erillisen toteutuksen, oikeudet ja todellisen kielilaadun varmennuksen. |
 | `INT-04` | Ohjaus- ja kamera-adapteri nykyiseen `shots.rs`-kirjastoon | INT-03:n mitatut kestot; 16 lopullisen otoksen raja, akseli, luettava 5 s oikea Kilsat-insertti ja yksi kameraomistaja. |
