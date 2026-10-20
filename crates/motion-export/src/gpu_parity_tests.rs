@@ -333,6 +333,195 @@ fn fixtures() -> Vec<Fixture> {
         none(),
         TOL_MASK_SOFT,
     );
+    // Animated polygon/painted masks: motion sampled at scene time 0.5 between
+    // two keys (translate, uniform scale, rotation about the shape centre).
+    let motion = vec![
+        MaskMotionKey::default(),
+        MaskMotionKey {
+            time: 1.0,
+            x: 14.0,
+            y: -8.0,
+            scale: 1.3,
+            rotation: 0.6,
+        },
+    ];
+    let at_half = |mut scene: motion_scene::EvaluatedScene| {
+        scene.time = 0.5;
+        scene
+    };
+    push(
+        "mask_hard_polygon_motion",
+        at_half(no_actors("#000000")),
+        mask_target(ClipShape::Polygon {
+            points: vec![
+                pt(20.0, 20.0),
+                pt(100.0, 30.0),
+                pt(80.0, 100.0),
+                pt(25.0, 80.0),
+            ],
+            feather: 0.0,
+            motion: motion.clone(),
+        }),
+        none(),
+        TOL_MASK_EDGE,
+    );
+    push(
+        "mask_feathered_polygon_motion",
+        at_half(no_actors("#000000")),
+        mask_target(ClipShape::Polygon {
+            points: vec![
+                pt(30.0, 30.0),
+                pt(98.0, 30.0),
+                pt(98.0, 98.0),
+                pt(30.0, 98.0),
+            ],
+            feather: 3.0,
+            motion: motion.clone(),
+        }),
+        none(),
+        TOL_MASK_SOFT,
+    );
+    push(
+        "mask_painted_motion",
+        at_half(no_actors("#000000")),
+        mask_target(ClipShape::Painted {
+            base_visible: false,
+            strokes: vec![
+                stroke(vec![pt(30.0, 40.0), pt(100.0, 60.0)], 18.0, 1.0, false),
+                stroke(vec![pt(64.0, 50.0)], 7.0, 1.0, true),
+                stroke(vec![pt(40.0, 100.0), pt(90.0, 100.0)], 12.0, 0.5, false),
+            ],
+            motion,
+        }),
+        none(),
+        TOL_MASK_SOFT,
+    );
+    // Custom rig parts, evaluated by the real motion-rig code the CPU path uses.
+    let rig_scene = |parts: Vec<motion_rig::EvaluatedPart>| {
+        let mut scene = no_actors("#101820");
+        scene.actors = base_scene("#101820").actors;
+        scene.actors[0].rigid_parts = parts;
+        scene
+    };
+    let joint = |id: &str, parent: Option<&str>, x: f64, rotation: f64, sx: f64| {
+        motion_rig::RigJointDefinition {
+            id: id.into(),
+            parent: parent.map(Into::into),
+            x,
+            y: 0.0,
+            rotation,
+            scale_x: sx,
+            scale_y: 1.0,
+        }
+    };
+    let part =
+        |joint: &str, points: Vec<[f64; 2]>, texture, skin| motion_rig::RigidPartDefinition {
+            id: "p".into(),
+            joint: joint.into(),
+            points,
+            color: [200, 60, 60, 200],
+            texture,
+            skin,
+        };
+    let tex = |uv| {
+        Some(motion_rig::PartTextureDefinition {
+            asset: "g".into(),
+            uv,
+        })
+    };
+    let outline = vec![
+        [-30.0, -20.0],
+        [10.0, -28.0],
+        [34.0, -4.0],
+        [20.0, 26.0],
+        [-6.0, 8.0],
+        [-28.0, 24.0],
+    ];
+    let eval = |definition: motion_rig::RigDefinition| definition.evaluate_parts().unwrap();
+    let rigid = |texture| motion_rig::RigDefinition {
+        version: 1,
+        id: "r".into(),
+        joints: vec![joint("root", None, 0.0, 0.5, 1.3)],
+        parts: vec![part("root", outline.clone(), texture, Vec::new())],
+    };
+    let images_g = || BTreeMap::from([("g".into(), gradient_image())]);
+    push(
+        "rig_part_flat",
+        rig_scene(eval(rigid(None))),
+        Document::default(),
+        none(),
+        TOL_RIG,
+    );
+    push(
+        "rig_part_textured_rotated",
+        rig_scene(eval(rigid(tex([0.0, 0.0, 1.0, 1.0])))),
+        Document::default(),
+        images_g(),
+        TOL_RIG_TEXTURE,
+    );
+    push(
+        "rig_part_textured_subrect",
+        rig_scene(eval(rigid(tex([0.25, 0.125, 0.75, 1.0])))),
+        Document::default(),
+        images_g(),
+        TOL_RIG_TEXTURE,
+    );
+    let weight = |joint: &str, weight| motion_rig::VertexWeight {
+        joint: joint.into(),
+        weight,
+    };
+    let bar = vec![
+        [-30.0, -8.0],
+        [0.0, -8.0],
+        [30.0, -8.0],
+        [30.0, 8.0],
+        [0.0, 8.0],
+        [-30.0, 8.0],
+    ];
+    let skin = vec![
+        vec![weight("root", 1.0)],
+        vec![weight("root", 0.5), weight("arm", 0.5)],
+        vec![weight("arm", 1.0)],
+        vec![weight("arm", 1.0)],
+        vec![weight("root", 0.5), weight("arm", 0.5)],
+        vec![weight("root", 1.0)],
+    ];
+    let skinned = |texture| {
+        let definition = motion_rig::RigDefinition {
+            version: 1,
+            id: "k".into(),
+            joints: vec![
+                joint("root", None, 0.0, 0.0, 1.0),
+                joint("arm", Some("root"), 0.0, 0.0, 1.0),
+            ],
+            parts: vec![part("root", bar.clone(), texture, skin.clone())],
+        };
+        let prepared = definition.prepare().unwrap();
+        let arm = prepared.joint_index("arm").unwrap();
+        prepared
+            .evaluate_parts(&[(
+                arm,
+                motion_rig::Transform2 {
+                    rotation: 0.7,
+                    ..Default::default()
+                },
+            )])
+            .unwrap()
+    };
+    push(
+        "rig_part_skinned_flat",
+        rig_scene(skinned(None)),
+        Document::default(),
+        none(),
+        TOL_RIG,
+    );
+    push(
+        "rig_part_skinned_textured",
+        rig_scene(skinned(tex([0.0, 0.0, 1.0, 1.0]))),
+        Document::default(),
+        images_g(),
+        TOL_RIG_TEXTURE,
+    );
     let mut grouped = doc(vec![
         layer(
             "back",
@@ -439,6 +628,8 @@ const TOL_IMAGE: Tolerance = limits(24, 2.5, 0.60);
 const TOL_MASK_EDGE: Tolerance = limits(60, 4.0, 0.06);
 const TOL_MASK_SOFT: Tolerance = limits(100, 8.0, 0.35);
 const TOL_SOFT_ELLIPSE: Tolerance = limits(4, 1.0, 0.25);
+const TOL_RIG: Tolerance = limits(60, 4.0, 0.30);
+const TOL_RIG_TEXTURE: Tolerance = limits(110, 4.0, 0.30);
 const TOL_GROUP: Tolerance = limits(30, 4.0, 0.40);
 
 fn cpu_reference(f: &Fixture) -> Vec<u8> {

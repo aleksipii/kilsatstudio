@@ -183,8 +183,10 @@ of the rest vertices onto the deformed ones (exact for rigid motion, and for
 deformations that are affine); the clip uses the exact deformed polygon. The
 texture is not warped per triangle.
 
-The experimental GPU scene path reports textured or skinned parts as
-`UnsupportedFeature` instead of drawing them incorrectly; only the CPU/SVG path
-renders them. Tests establish geometry, pixel registration at 90 degree rotations
-and preview/PNG agreement on Linux/macOS CI; no hand-run desktop or perceptual
-review was done.
+The experimental GPU scene path draws flat, skinned (already deformed) and
+textured parts through `build_with_art`, using the same affine placement and the
+decoded images shared with artwork; `build` (no images) still reports textured
+parts as `UnsupportedFeature`. Measured CPU/GPU differences are in
+[gpu-parity.md](gpu-parity.md). Tests establish geometry, pixel registration at
+90 degree rotations and preview/PNG agreement on Linux/macOS CI; no hand-run
+desktop or perceptual review was done.
