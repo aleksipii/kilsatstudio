@@ -857,6 +857,7 @@ mod tests {
                 channels: 1,
                 total_frames: 24000,
                 dialogue: vec![clip],
+                cues: vec![],
             },
         };
         (script, rendered)

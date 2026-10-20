@@ -177,6 +177,8 @@ mod tests {
 
 pub mod timeline;
 
+pub mod cues;
+
 pub mod export;
 
 pub mod scene_audio;

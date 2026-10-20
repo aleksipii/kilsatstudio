@@ -17,6 +17,9 @@ pub struct SceneManifest {
     pub channels: u16,
     pub total_frames: u64,
     pub dialogue: Vec<DialogueManifest>,
+    /// Non-speech audio cues mixed on the same clock; absent in older manifests.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cues: Vec<crate::cues::CueManifest>,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DialogueManifest {
@@ -47,6 +50,16 @@ pub fn render_scene(
     scene_id: &str,
     duration_seconds: f64,
     clips: &[DialogueClip],
+) -> Result<RenderedScene, SpeechError> {
+    render_scene_with_cues(scene_id, duration_seconds, clips, &[])
+}
+
+/// Dialogue first, then cues, in one `mix_timeline` call: a single clock and mixer.
+pub fn render_scene_with_cues(
+    scene_id: &str,
+    duration_seconds: f64,
+    clips: &[DialogueClip],
+    cues: &[crate::cues::CueClip],
 ) -> Result<RenderedScene, SpeechError> {
     if scene_id.trim().is_empty()
         || !duration_seconds.is_finite()
@@ -151,13 +164,23 @@ pub fn render_scene(
             visemes,
         });
     }
-    let mixed = motion_audio::mix_timeline(
-        &clips.iter().map(DialogueClip::mix_clip).collect::<Vec<_>>(),
-        SAMPLE_RATE,
-        1,
-        total_frames as usize,
-    )
-    .map_err(|e| SpeechError(e.to_string()))?;
+    for cue in cues {
+        if cue.audio.sample_rate != SAMPLE_RATE
+            || cue.audio.channels != 1
+            || !cue.gain.is_finite()
+            || cue.trim_start_frame.saturating_add(cue.duration_frames) > cue.audio.frames() as u64
+            || cue.start_frame.saturating_add(cue.duration_frames) > total_frames
+        {
+            return Err(SpeechError(format!(
+                "audio cue {} is not 24kHz mono, finite, and within source and scene",
+                cue.id
+            )));
+        }
+    }
+    let mut mix_clips: Vec<_> = clips.iter().map(DialogueClip::mix_clip).collect();
+    mix_clips.extend(cues.iter().map(crate::cues::CueClip::mix_clip));
+    let mixed = motion_audio::mix_timeline(&mix_clips, SAMPLE_RATE, 1, total_frames as usize)
+        .map_err(|e| SpeechError(e.to_string()))?;
     Ok(RenderedScene {
         audio: mixed,
         manifest: SceneManifest {
@@ -167,6 +190,7 @@ pub fn render_scene(
             channels: 1,
             total_frames,
             dialogue,
+            cues: crate::cues::manifest(cues),
         },
     })
 }
