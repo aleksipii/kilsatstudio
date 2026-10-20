@@ -46,10 +46,10 @@ root translation/rotation/scale and camera transform. Custom rigid artwork repla
 the procedural body and face; the character label remains. Existing humanoid
 procedural clips, seven-joint masks and visemes do not deform these custom parts.
 
-This increment supports editable rigid colored polygons and per-joint animation
-tracks (below). Texture bindings, mesh
-skinning, reusable custom-rig clips, retargeting and a visual joint/vertex canvas
-remain separate work. Physical Mac editing and rendering acceptance require actual
+This increment supports editable rigid colored polygons, per-joint animation
+tracks (below), image textures and two-joint skinning (see
+[Textures and skinning](#textures-and-skinning)). Mesh editing and a visual
+joint/vertex/weight canvas remain separate work. Physical Mac editing and rendering acceptance require actual
 device evidence; source fixtures and CI do not establish that acceptance.
 
 ## Joint animation tracks
@@ -137,3 +137,54 @@ Everything is one validated, undoable source edit. This copies and retargets by
 joint id and scale only: it is not live instancing, mirroring, blending of several
 clips, IK or automatic bone matching, and it carries no rotation/scale correction
 between rigs with different rest orientations. No physical Mac review was done.
+
+## Textures and skinning
+
+Both fields are optional per part and skipped on save when absent, so legacy
+rigs serialize and render byte-for-byte as before.
+
+```yaml
+parts:
+  - id: arm
+    joint: shoulder
+    points: [[0, -4], [10, -4], [20, -4], [20, 4], [10, 4], [0, 4]]
+    color: [200, 120, 80, 255]          # drawn first, under any texture
+    texture: {asset: arm_skin, uv: [0, 0, 1, 1]}
+    skin:                               # one entry per point
+      - [{joint: shoulder, weight: 1}]
+      - [{joint: shoulder, weight: 0.5}, {joint: elbow, weight: 0.5}]
+      - [{joint: elbow, weight: 1}]
+      # ... one list per remaining point
+```
+
+*Texture*: `asset` is the id of an **image** asset in the project inventory.
+`uv` is `[u0, v0, u1, v1]` (image fractions, v downwards, default whole image;
+each in 0..1 with at least 0.001 extent) stretched over the part's rest-pose
+bounding box and clipped by the part polygon. The decoded PNG is embedded as a
+data URI by the shared CPU/SVG renderer, so preview, SVG, PNG and video export
+agree. At most 16 textured parts per rig; embedded PNG bytes per frame share the
+artwork `MAX_IMAGE_BYTES` limit. A missing resource fails with an error naming
+the asset (render, preview and export preflight); a project, and every history
+snapshot, must reference an image asset present in the inventory. The command
+line examples that load only layer-referenced images do not yet load rig
+textures.
+
+*Skinning*: `skin` is empty (rigid) or has exactly one entry per point, each with
+one or two `{joint, weight}` influences: finite weights in 0..1 summing to one
+(1e-6 tolerance), distinct existing joints. Points remain in the attachment
+joint's rest-local frame, which is the bind pose: each vertex is the weighted sum
+of `world(joint) * inverse(rest_world(joint)) * rest_world(part joint) * point`.
+At rest this equals the unskinned polygon for any weights; the rest outline must
+also stay a simple polygon. Posed outlines may self-intersect, as in any linear
+blend skin. Evaluation happens once per sample and is deterministic.
+
+A textured, skinned part moves its texture with the best least-squares affine fit
+of the rest vertices onto the deformed ones (exact for rigid motion, and for
+deformations that are affine); the clip uses the exact deformed polygon. The
+texture is not warped per triangle.
+
+The experimental GPU scene path reports textured or skinned parts as
+`UnsupportedFeature` instead of drawing them incorrectly; only the CPU/SVG path
+renders them. Tests establish geometry, pixel registration at 90 degree rotations
+and preview/PNG agreement on Linux/macOS CI; no hand-run desktop or perceptual
+review was done.

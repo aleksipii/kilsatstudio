@@ -92,6 +92,13 @@ impl Snapshot {
                     }
                 }
             }
+            if let Ok(script) = motion_script::parse(&self.source) {
+                if motion_project::missing_rig_texture_asset(&script, &p.assets).is_some() {
+                    return Err(
+                        "History custom rig texture references a missing image asset".into(),
+                    );
+                }
+            }
         }
         if self.source_was_valid {
             if let Some(document) = self.document() {
@@ -456,6 +463,36 @@ mod tests {
             assert_eq!(&current, expected);
         }
         assert!(!history.can_redo());
+    }
+
+    #[test]
+    fn rig_texture_asset_references_are_validated_when_navigating_history() {
+        let source = "characters:\n  PUPPET:\n    asset: custom\n    rig:\n      version: 1\n      id: puppet\n      joints: [{id: root, parent: null}]\n      parts: [{id: body, joint: root, points: [[0,0],[10,0],[0,10]], color: [1,2,3,255], texture: {asset: skin}}]\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        let mut doc = motion_project::ProjectDocument::new(SOURCE).unwrap();
+        doc.assets.push(motion_project::AssetReference {
+            id: "skin".into(),
+            path: "assets/skin.png".into(),
+            kind: motion_project::AssetKind::Image,
+        });
+        doc.source = source.into();
+        doc.validate().unwrap();
+        let good = Snapshot::capture(source, Some(&doc));
+        let plain = Snapshot::capture(SOURCE, Some(&document()));
+        let mut history = History::new(source);
+        history.record(plain.clone(), good.clone());
+        assert_eq!(history.navigate(good.clone(), false).unwrap(), Some(plain));
+        // The same source with the image asset removed (or retyped) must be refused.
+        for kind in [None, Some(motion_project::AssetKind::Audio)] {
+            let mut broken = good.clone();
+            let project = broken.project.as_mut().unwrap();
+            match kind {
+                None => project.assets.clear(),
+                Some(kind) => project.assets[0].kind = kind,
+            }
+            let mut history = History::new(source);
+            history.record(broken, good.clone());
+            assert!(history.navigate(good.clone(), false).is_err());
+        }
     }
 
     #[test]

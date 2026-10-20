@@ -78,6 +78,18 @@ pub fn build(
             "actor font labels; select OmitAcknowledged for geometry-only experiments",
         ));
     }
+    // Image textures and skinned parts are CPU-renderer features; refuse them
+    // explicitly instead of drawing flat or mis-registered geometry.
+    if scene
+        .actors
+        .iter()
+        .flat_map(|a| &a.rigid_parts)
+        .any(|p| p.texture.is_some() || p.skinned)
+    {
+        return Err(Error::UnsupportedFeature(
+            "custom rig part textures and skinned deformation (CPU renderer only)",
+        ));
+    }
     // Reserve a conservative upper bound before expanding any actor geometry.
     let upper = scene.actors.iter().try_fold(0usize, |sum, actor| {
         sum.checked_add(if actor.rigid_parts.is_empty() {
@@ -1318,6 +1330,43 @@ mod tests {
                     &std::collections::BTreeMap::new()
                 ),
                 Err(super::Error::UnsupportedFeature(_))
+            ));
+        }
+    }
+    #[test]
+    fn rig_textures_and_skinning_are_reported_unsupported_not_drawn_wrong() {
+        let part = |texture: bool, skinned: bool| {
+            let mut s = scene();
+            s.actors[0].rigid_parts = vec![motion_rig::EvaluatedPart {
+                id: "p".into(),
+                points: vec![
+                    motion_rig::Vec2::new(0.0, 0.0),
+                    motion_rig::Vec2::new(10.0, 0.0),
+                    motion_rig::Vec2::new(0.0, 10.0),
+                ],
+                color: [1, 2, 3, 255],
+                texture: texture.then(|| motion_rig::EvaluatedTexture {
+                    asset: "t".into(),
+                    uv: [0.0, 0.0, 1.0, 1.0],
+                    rest_bounds: [0.0, 0.0, 10.0, 10.0],
+                    transform: motion_rig::Affine2 {
+                        a: 1.0,
+                        b: 0.0,
+                        c: 0.0,
+                        d: 1.0,
+                        tx: 0.0,
+                        ty: 0.0,
+                    },
+                }),
+                skinned,
+            }];
+            s
+        };
+        assert!(build(&part(false, false), 64, 64, &[], Labels::OmitAcknowledged).is_ok());
+        for (t, k) in [(true, false), (false, true)] {
+            assert!(matches!(
+                build(&part(t, k), 64, 64, &[], Labels::OmitAcknowledged),
+                Err(Error::UnsupportedFeature(_))
             ));
         }
     }
