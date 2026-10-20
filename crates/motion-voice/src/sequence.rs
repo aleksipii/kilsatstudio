@@ -67,6 +67,17 @@ pub fn mix_sequence(
         if dialogue_count > 10_000 {
             return Err(invalid("dialogue work budget exceeded"));
         }
+        if m.cues.len() > motion_script::MAX_AUDIO_CUES
+            || m.cues.iter().any(|c| {
+                c.id.trim().is_empty()
+                    || !c.gain.is_finite()
+                    || c.start_frame
+                        .checked_add(c.duration_frames)
+                        .is_none_or(|end| end > span.duration_samples)
+            })
+        {
+            return Err(invalid("invalid audio cue bounds, gain or count"));
+        }
         let mut tracks: BTreeMap<&str, Vec<(u64, u64)>> = BTreeMap::new();
         for clip in &m.dialogue {
             cancel.check()?;

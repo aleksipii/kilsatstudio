@@ -13,7 +13,8 @@ what this implementation actually accepts.
 - `scenes` contain unique IDs, positive finite durations, optional background names,
   and events. Background names are metadata; `composition.background_color` and
   timed `composition.background_keys` control the rendered solid backdrop. See
-  [scene composition](composition.md).
+  [scene composition](composition.md). Non-speech sounds use
+  `composition.audio_cues` ([audio cues](audio-cues.md)).
 - Each event starts at a finite nonnegative `at` less than scene duration and names
   an existing `actor`. Unknown fields and commands fail explicitly.
 

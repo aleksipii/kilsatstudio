@@ -10,6 +10,7 @@ pub struct PreparedScene {
     pub scene_id: String,
     pub rendered: export::RenderedScene,
     pub clips: Vec<DialogueClip>,
+    pub cues: Vec<crate::cues::CueClip>,
 }
 
 pub struct PreparedAlignedScene {
@@ -179,12 +180,15 @@ fn prepare_scene_common(
         });
     }
     cancel.check()?;
-    let rendered = export::render_scene(&scene.id, scene.duration, &clips)?;
+    let cues = crate::cues::prepare_cues(scene, project_root, cancel)?;
+    cancel.check()?;
+    let rendered = export::render_scene_with_cues(&scene.id, scene.duration, &clips, &cues)?;
     cancel.check()?;
     Ok(PreparedScene {
         scene_id: scene.id.clone(),
         rendered,
         clips,
+        cues,
     })
 }
 
