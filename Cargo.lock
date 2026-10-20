@@ -1616,6 +1616,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "image",
+ "motion-jobs",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -1682,6 +1683,7 @@ dependencies = [
  "motion-art",
  "motion-lipsync",
  "motion-project",
+ "motion-rig",
  "motion-scene",
  "motion-script",
  "serde_json",
@@ -2884,6 +2886,7 @@ dependencies = [
  "motion-art",
  "motion-audio",
  "motion-export",
+ "motion-jobs",
  "motion-lipsync",
  "motion-project",
  "motion-scene",

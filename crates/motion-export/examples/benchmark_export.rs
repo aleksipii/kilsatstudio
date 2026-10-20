@@ -19,6 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             channels: 1,
             total_frames: 48000,
             dialogue: vec![],
+            cues: vec![],
         },
     };
     let start = Instant::now();

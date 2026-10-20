@@ -1,5 +1,5 @@
 //! Versioned project-owned rigid character definitions. No external assets or inference.
-use crate::{Error, Joint, Rig, Transform2, Vec2};
+use crate::{Affine2, Error, Joint, Rig, Transform2, Vec2};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -38,12 +38,55 @@ pub struct RigidPartDefinition {
     /// Joint-local polygon vertices; source order is draw order.
     pub points: Vec<[f64; 2]>,
     pub color: [u8; 4],
+    /// Optional project image drawn inside the (possibly deformed) polygon.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub texture: Option<PartTextureDefinition>,
+    /// Optional per-vertex skin weights: empty (rigid), or one entry per point,
+    /// each with one or two `{joint, weight}` influences summing to one. Points
+    /// stay in the attachment joint's rest-local frame (the bind pose).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub skin: Vec<Vec<VertexWeight>>,
 }
+/// Image binding for a part. `uv` is `[u0, v0, u1, v1]`, the image sub-rectangle
+/// (fractions of the image, v downwards) stretched over the part's rest-pose
+/// bounding box; the polygon clips the result.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PartTextureDefinition {
+    pub asset: String,
+    #[serde(default = "full_uv")]
+    pub uv: [f64; 4],
+}
+fn full_uv() -> [f64; 4] {
+    [0.0, 0.0, 1.0, 1.0]
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VertexWeight {
+    pub joint: String,
+    pub weight: f64,
+}
+pub const MAX_TEXTURED_PARTS: usize = 16;
+pub const SKIN_WEIGHT_TOLERANCE: f64 = 1e-6;
 #[derive(Debug, Clone, PartialEq)]
 pub struct EvaluatedPart {
     pub id: String,
     pub points: Vec<Vec2>,
     pub color: [u8; 4],
+    pub texture: Option<EvaluatedTexture>,
+    /// True when vertices were deformed by skin weights.
+    pub skinned: bool,
+}
+/// Texture placement: `uv` maps onto `rest_bounds` (`[x, y, w, h]`, joint-local
+/// rest coordinates); `transform` carries those coordinates into actor space.
+/// It is exact for rigid parts and the least-squares affine fit of the rest
+/// vertices onto the deformed ones for skinned parts.
+#[derive(Debug, Clone, PartialEq)]
+pub struct EvaluatedTexture {
+    pub asset: String,
+    pub uv: [f64; 4],
+    pub rest_bounds: [f64; 4],
+    pub transform: Affine2,
 }
 fn valid_id(id: &str) -> bool {
     !id.is_empty()
@@ -102,6 +145,85 @@ fn simple_polygon(points: &[[f64; 2]]) -> bool {
     }
     true
 }
+fn validate_skin_and_texture(
+    part: &RigidPartDefinition,
+    ids: &BTreeMap<&str, usize>,
+) -> Result<(), Error> {
+    if let Some(t) = &part.texture {
+        let [u0, v0, u1, v1] = t.uv;
+        if t.asset.trim().is_empty()
+            || t.asset.len() > 256
+            || t.asset.chars().any(char::is_control)
+            || t.uv
+                .iter()
+                .any(|v| !v.is_finite() || !(0.0..=1.0).contains(v))
+            || u1 - u0 < 1e-3
+            || v1 - v0 < 1e-3
+        {
+            return Err(Error::InvalidDefinition);
+        }
+    }
+    if part.skin.is_empty() {
+        return Ok(());
+    }
+    if part.skin.len() != part.points.len() {
+        return Err(Error::InvalidDefinition);
+    }
+    for influences in &part.skin {
+        let sum: f64 = influences.iter().map(|w| w.weight).sum();
+        if !(1..=2).contains(&influences.len())
+            || influences.iter().any(|w| {
+                !w.weight.is_finite()
+                    || !(0.0..=1.0).contains(&w.weight)
+                    || !ids.contains_key(w.joint.as_str())
+            })
+            || (influences.len() == 2 && influences[0].joint == influences[1].joint)
+            || (sum - 1.0).abs() > SKIN_WEIGHT_TOLERANCE
+        {
+            return Err(Error::InvalidDefinition);
+        }
+    }
+    Ok(())
+}
+/// Least-squares affine mapping `src` onto `dst` (centered for conditioning).
+fn fit_affine(src: &[[f64; 2]], dst: &[Vec2]) -> Option<Affine2> {
+    let n = src.len() as f64;
+    let (mx, my) = (
+        src.iter().map(|p| p[0]).sum::<f64>() / n,
+        src.iter().map(|p| p[1]).sum::<f64>() / n,
+    );
+    let (dx, dy) = (
+        dst.iter().map(|p| p.x).sum::<f64>() / n,
+        dst.iter().map(|p| p.y).sum::<f64>() / n,
+    );
+    let (mut sxx, mut sxy, mut syy) = (0.0, 0.0, 0.0);
+    let (mut bx0, mut bx1, mut by0, mut by1) = (0.0, 0.0, 0.0, 0.0);
+    for (s, d) in src.iter().zip(dst) {
+        let (x, y) = (s[0] - mx, s[1] - my);
+        sxx += x * x;
+        sxy += x * y;
+        syy += y * y;
+        bx0 += x * (d.x - dx);
+        bx1 += y * (d.x - dx);
+        by0 += x * (d.y - dy);
+        by1 += y * (d.y - dy);
+    }
+    let det = sxx * syy - sxy * sxy;
+    if !det.is_finite() || det.abs() < 1e-12 * (sxx * syy).max(1e-300) {
+        return None;
+    }
+    let solve = |b0: f64, b1: f64| ((b0 * syy - b1 * sxy) / det, (sxx * b1 - sxy * b0) / det);
+    let (a, c) = solve(bx0, bx1);
+    let (b, d) = solve(by0, by1);
+    Some(Affine2 {
+        a,
+        b,
+        c,
+        d,
+        tx: dx - a * mx - c * my,
+        ty: dy - b * mx - d * my,
+    })
+}
 impl RigDefinition {
     fn build(&self) -> Result<(Rig, BTreeMap<&str, usize>), Error> {
         if self.version != 1
@@ -155,6 +277,7 @@ impl RigDefinition {
             if !simple_polygon(&part.points) {
                 return Err(Error::InvalidDefinition);
             }
+            validate_skin_and_texture(part, &ids)?;
             let area: f64 = part
                 .points
                 .iter()
@@ -166,7 +289,16 @@ impl RigDefinition {
                 return Err(Error::InvalidDefinition);
             }
         }
+        if self.parts.iter().filter(|p| p.texture.is_some()).count() > MAX_TEXTURED_PARTS {
+            return Err(Error::InvalidDefinition);
+        }
         Ok((rig, ids))
+    }
+    /// Project image assets this rig's textures need.
+    pub fn image_assets(&self) -> impl Iterator<Item = &str> {
+        self.parts
+            .iter()
+            .filter_map(|p| p.texture.as_ref().map(|t| t.asset.as_str()))
     }
     pub fn validate(&self) -> Result<(), Error> {
         self.evaluate_parts().map(|_| ())
@@ -179,13 +311,56 @@ impl RigDefinition {
         let (rig, ids) = self.build()?;
         let ids: BTreeMap<String, usize> =
             ids.into_iter().map(|(id, i)| (id.to_owned(), i)).collect();
-        let parts = self
+        let rest_world = rig
+            .evaluate(&rig.rest_pose())
+            .map_err(|_| Error::InvalidDefinition)?;
+        let parts: Vec<PreparedPart> = self
             .parts
             .iter()
-            .map(|part| (ids[part.joint.as_str()], part.clone()))
+            .map(|part| {
+                let joint = ids[part.joint.as_str()];
+                let skin: Vec<Vec<(usize, f64, Affine2)>> = part
+                    .skin
+                    .iter()
+                    .map(|influences| {
+                        influences
+                            .iter()
+                            .map(|w| {
+                                let j = ids[w.joint.as_str()];
+                                // Bind matrix: attachment-local -> influence-local at rest.
+                                let bind = rest_world[j].inverse().compose(rest_world[joint]);
+                                (j, w.weight, bind)
+                            })
+                            .collect()
+                    })
+                    .collect();
+                PreparedPart {
+                    joint,
+                    definition: part.clone(),
+                    skin,
+                }
+            })
             .collect();
         let prepared = PreparedRig { rig, ids, parts };
-        prepared.evaluate_parts(&[])?;
+        // Skinning is the identity at rest; still verify the outline stays simple.
+        let rest = prepared.evaluate_parts(&[])?;
+        for (part, evaluated) in prepared.parts.iter().zip(&rest) {
+            if part.skin.is_empty() {
+                continue;
+            }
+            let inverse = rest_world[part.joint].inverse();
+            let local: Vec<[f64; 2]> = evaluated
+                .points
+                .iter()
+                .map(|p| {
+                    let q = inverse.point(*p);
+                    [q.x, q.y]
+                })
+                .collect();
+            if !simple_polygon(&local) {
+                return Err(Error::InvalidDefinition);
+            }
+        }
         Ok(prepared)
     }
 }
@@ -194,7 +369,14 @@ impl RigDefinition {
 pub struct PreparedRig {
     rig: Rig,
     ids: BTreeMap<String, usize>,
-    parts: Vec<(usize, RigidPartDefinition)>,
+    parts: Vec<PreparedPart>,
+}
+#[derive(Debug, Clone)]
+struct PreparedPart {
+    joint: usize,
+    definition: RigidPartDefinition,
+    /// Per vertex: (joint, weight, bind matrix). Empty means rigid.
+    skin: Vec<Vec<(usize, f64, Affine2)>>,
 }
 impl PreparedRig {
     pub fn joint_index(&self, id: &str) -> Option<usize> {
@@ -227,13 +409,31 @@ impl PreparedRig {
         let world = self.rig.evaluate(&pose)?;
         self.parts
             .iter()
-            .map(|(joint, part)| {
-                let transform = world[*joint];
-                let points: Vec<_> = part
-                    .points
-                    .iter()
-                    .map(|p| transform.point(Vec2::new(p[0], p[1])))
-                    .collect();
+            .map(|prepared| {
+                let part = &prepared.definition;
+                let transform = world[prepared.joint];
+                let skinned = !prepared.skin.is_empty();
+                let points: Vec<_> = if skinned {
+                    // Deterministic linear blend of posed influence transforms.
+                    part.points
+                        .iter()
+                        .zip(&prepared.skin)
+                        .map(|(p, influences)| {
+                            let p = Vec2::new(p[0], p[1]);
+                            influences
+                                .iter()
+                                .fold(Vec2::default(), |acc, (j, w, bind)| {
+                                    let q = world[*j].point(bind.point(p));
+                                    Vec2::new(acc.x + w * q.x, acc.y + w * q.y)
+                                })
+                        })
+                        .collect()
+                } else {
+                    part.points
+                        .iter()
+                        .map(|p| transform.point(Vec2::new(p[0], p[1])))
+                        .collect()
+                };
                 if points.iter().any(|p| {
                     !p.x.is_finite()
                         || !p.y.is_finite()
@@ -242,10 +442,39 @@ impl PreparedRig {
                 }) {
                     return Err(Error::InvalidDefinition);
                 }
+                let texture = match &part.texture {
+                    None => None,
+                    Some(t) => {
+                        let (mut x0, mut y0, mut x1, mut y1) =
+                            (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+                        for p in &part.points {
+                            x0 = x0.min(p[0]);
+                            y0 = y0.min(p[1]);
+                            x1 = x1.max(p[0]);
+                            y1 = y1.max(p[1]);
+                        }
+                        if x1 - x0 < 1e-9 || y1 - y0 < 1e-9 {
+                            return Err(Error::InvalidDefinition);
+                        }
+                        let matrix = if skinned {
+                            fit_affine(&part.points, &points).ok_or(Error::InvalidDefinition)?
+                        } else {
+                            transform
+                        };
+                        Some(EvaluatedTexture {
+                            asset: t.asset.clone(),
+                            uv: t.uv,
+                            rest_bounds: [x0, y0, x1 - x0, y1 - y0],
+                            transform: matrix,
+                        })
+                    }
+                };
                 Ok(EvaluatedPart {
                     id: part.id.clone(),
                     points,
                     color: part.color,
+                    texture,
+                    skinned,
                 })
             })
             .collect()
@@ -283,6 +512,8 @@ mod tests {
                 joint: "hand".into(),
                 points: vec![[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]],
                 color: [255, 0, 20, 128],
+                texture: None,
+                skin: Vec::new(),
             }],
         }
     }
@@ -380,5 +611,162 @@ mod tests {
         assert!(rig.validate().is_ok());
         rig.parts[0].points.reverse();
         assert!(rig.validate().is_ok());
+    }
+    fn w(joint: &str, weight: f64) -> VertexWeight {
+        VertexWeight {
+            joint: joint.into(),
+            weight,
+        }
+    }
+    /// Root at the origin, arm joint at (10, 0); a bar spans both joints and is
+    /// skinned so the far end follows the arm and the middle blends both.
+    fn skinned() -> RigDefinition {
+        let mut d = definition();
+        let joint = |id: &str, parent: Option<&str>, x: f64| RigJointDefinition {
+            id: id.into(),
+            parent: parent.map(Into::into),
+            x,
+            y: 0.0,
+            rotation: 0.0,
+            scale_x: 1.0,
+            scale_y: 1.0,
+        };
+        d.joints = vec![joint("root", None, 0.0), joint("arm", Some("root"), 10.0)];
+        d.parts[0].joint = "root".into();
+        d.parts[0].points = vec![
+            [0.0, -2.0],
+            [10.0, -2.0],
+            [20.0, -2.0],
+            [20.0, 2.0],
+            [10.0, 2.0],
+            [0.0, 2.0],
+        ];
+        d.parts[0].skin = vec![
+            vec![w("root", 1.0)],
+            vec![w("root", 0.5), w("arm", 0.5)],
+            vec![w("arm", 1.0)],
+            vec![w("arm", 1.0)],
+            vec![w("root", 0.5), w("arm", 0.5)],
+            vec![w("root", 1.0)],
+        ];
+        d
+    }
+    fn bend(prepared: &PreparedRig, angle: f64) -> Vec<EvaluatedPart> {
+        let arm = prepared.joint_index("arm").unwrap();
+        prepared
+            .evaluate_parts(&[(
+                arm,
+                Transform2 {
+                    rotation: angle,
+                    ..Transform2::default()
+                },
+            )])
+            .unwrap()
+    }
+    #[test]
+    fn skinned_rest_pose_equals_unskinned_for_any_weights() {
+        let d = skinned();
+        let mut rigid = d.clone();
+        rigid.parts[0].skin.clear();
+        let a = d.evaluate_parts().unwrap();
+        let b = rigid.evaluate_parts().unwrap();
+        assert!(a[0].skinned && !b[0].skinned);
+        for (p, q) in a[0].points.iter().zip(&b[0].points) {
+            assert!((p.x - q.x).abs() < 1e-9 && (p.y - q.y).abs() < 1e-9);
+        }
+    }
+    #[test]
+    fn bent_joint_blend_matches_hand_computed_vertices() {
+        let half_turn = std::f64::consts::FRAC_PI_2;
+        let prepared = skinned().prepare().unwrap();
+        let posed = bend(&prepared, half_turn);
+        let expected = [
+            [0.0, -2.0],
+            [11.0, -1.0],
+            [12.0, 10.0],
+            [8.0, 10.0],
+            [9.0, 1.0],
+            [0.0, 2.0],
+        ];
+        for (p, e) in posed[0].points.iter().zip(expected) {
+            assert!(
+                (p.x - e[0]).abs() < 1e-9 && (p.y - e[1]).abs() < 1e-9,
+                "{p:?} vs {e:?}"
+            );
+        }
+        // Repeated and independently prepared evaluation is bit-for-bit identical.
+        assert_eq!(posed, bend(&prepared, half_turn));
+        assert_eq!(posed, bend(&skinned().prepare().unwrap(), half_turn));
+    }
+    #[test]
+    #[allow(clippy::type_complexity)]
+    fn invalid_skin_weights_joints_and_rest_outlines_are_rejected() {
+        let ok = skinned();
+        assert!(ok.validate().is_ok());
+        let cases: Vec<Box<dyn Fn(&mut RigDefinition)>> = vec![
+            Box::new(|d| d.parts[0].skin[0] = vec![w("root", 0.9)]),
+            Box::new(|d| d.parts[0].skin[0] = vec![w("root", f64::NAN)]),
+            Box::new(|d| d.parts[0].skin[0] = vec![w("root", 1.5), w("arm", -0.5)]),
+            Box::new(|d| d.parts[0].skin[0] = vec![w("missing", 1.0)]),
+            Box::new(|d| d.parts[0].skin[0] = vec![w("root", 0.3), w("root", 0.7)]),
+            Box::new(|d| d.parts[0].skin[0] = vec![]),
+            Box::new(|d| d.parts[0].skin[0] = vec![w("root", 0.3), w("arm", 0.3), w("root", 0.4)]),
+            Box::new(|d| {
+                d.parts[0].skin.pop();
+            }),
+            // A duplicated vertex makes a degenerate outline at rest.
+            Box::new(|d| d.parts[0].points[1] = [0.0, -2.0]),
+        ];
+        for (i, mutate) in cases.iter().enumerate() {
+            let mut d = ok.clone();
+            mutate(&mut d);
+            assert_eq!(d.validate(), Err(Error::InvalidDefinition), "case {i}");
+        }
+    }
+    #[test]
+    fn textures_validate_follow_rigid_motion_and_fit_skinned_deformation() {
+        let mut d = definition();
+        d.parts[0].texture = Some(PartTextureDefinition {
+            asset: "tex".into(),
+            uv: [0.0, 0.0, 1.0, 1.0],
+        });
+        assert_eq!(d.image_assets().collect::<Vec<_>>(), ["tex"]);
+        let parts = d.evaluate_parts().unwrap();
+        let t = parts[0].texture.as_ref().unwrap();
+        assert_eq!(t.rest_bounds, [0.0, 0.0, 1.0, 1.0]);
+        // The rigid placement is exactly the joint's world transform: origin at (10, 26).
+        assert!((t.transform.tx - 10.0).abs() < 1e-10 && (t.transform.ty - 26.0).abs() < 1e-10);
+        for bad in [
+            [0.0, 0.0, 1.5, 1.0],
+            [0.5, 0.0, 0.5, 1.0],
+            [0.0, 0.0, f64::NAN, 1.0],
+            [0.0, 0.9, 1.0, 0.1],
+        ] {
+            let mut e = d.clone();
+            e.parts[0].texture.as_mut().unwrap().uv = bad;
+            assert!(e.validate().is_err());
+        }
+        let mut e = d.clone();
+        e.parts[0].texture.as_mut().unwrap().asset = "".into();
+        assert!(e.validate().is_err());
+        let mut e = d.clone();
+        let part = e.parts[0].clone();
+        e.parts = (0..=MAX_TEXTURED_PARTS)
+            .map(|i| RigidPartDefinition {
+                id: format!("p{i}"),
+                ..part.clone()
+            })
+            .collect();
+        assert!(e.validate().is_err());
+        // All weight on one joint: the least-squares fit is exactly that joint.
+        let mut s = skinned();
+        s.parts[0].skin = vec![vec![w("arm", 1.0)]; 6];
+        s.parts[0].texture = d.parts[0].texture.clone();
+        let prepared = s.prepare().unwrap();
+        let moved = bend(&prepared, 0.5);
+        let fit = moved[0].texture.as_ref().unwrap().transform;
+        let (sin, cos) = 0.5f64.sin_cos();
+        assert!((fit.a - cos).abs() < 1e-9 && (fit.b - sin).abs() < 1e-9);
+        assert!((fit.tx - (10.0 - 10.0 * cos)).abs() < 1e-9);
     }
 }

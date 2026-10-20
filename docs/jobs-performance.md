@@ -9,12 +9,57 @@ summaries cover the explicitly tracked speech/export/diagnostics/sequence job
 flags; they do not describe every worker. Measurement does not request additional
 frames or perform filesystem IO. Clear or disable it between workloads.
 
-These are observations of the update callback, including blocking/descheduling
+The same panel has a second opt-in, **Measure input to next frame** (128 samples,
+report key `input_latency`, report `schema_version` 2). For each key, text, mouse
+button or wheel event it records the time from the start of the update pass that
+first sees the event to (a) the end of that pass and (b) the start of the next pass,
+which eframe begins only after painting and swapping the previous frame. It requests
+one extra repaint per measured input so the second timestamp exists; pointer motion
+is not sampled and inputs with no following pass within 2 s are counted as abandoned.
+This is application-side time only: OS/windowing delay before egui receives the event
+and display scan-out are excluded, so it is not photon or end-to-end display latency.
+Unit tests cover bounds, disabled state, pairing and abandonment with synthetic
+timestamps; no real-input measurement on hardware has been taken.
+
+The update-time observations are observations of the update callback, including blocking/descheduling
 inside that callback. They are not CPU usage, input-to-display latency, frame
 presentation time, audio latency or process memory measurements. Retain build,
 hardware and exact workload alongside reports; release-profile Apple Silicon
 benchmarks and actual responsiveness acceptance remain open in
 [remaining work](remaining-work.md) and [master progress](master-progress.md).
+
+## Process memory budget
+
+`motion_jobs::MemoryBudget` is a lock-free byte accountant; `process_budget()` is the
+single 1 GiB budget for the application process. `reserve(label, bytes)` either
+returns an RAII `Reservation` (released on drop, shareable through `Arc`) or a
+deterministic `BudgetExhausted` error naming the request, the bytes available and
+the capacity. It accounts *estimates* of bulk allocations; it is not an allocator, does
+not measure RSS and does not cover GPU textures, egui state or unreviewed allocators.
+Wired in: decoded `motion_art::ImageResource` (via `reserve_in`; clones share one
+reservation) as loaded by the desktop art resource worker, the sequence-export working
+set estimate (held for the export), and the per-worker raster frame estimate of PNG/SVG
+frame export. The older per-feature limits (128 MiB image set, 256 MiB export working
+set, 320 MiB worker estimate) still apply in addition. Not yet wired: audio PCM buffers,
+render caches and previews. Unit tests cover exhaustion, release, overflow and
+concurrent reservation; the export wiring is not covered by a dedicated exhaustion test
+because the budget is process-global.
+
+## Dependency scheduling
+
+`motion_jobs::Graph` runs named jobs with declared dependencies on one to four
+scoped workers (never a thread per job). `run` first rejects duplicate names, unknown
+dependencies and cycles (Kahn; the error lists the jobs on or behind a cycle) before
+any job executes. The calling thread dispatches ready jobs in registration order with
+at most `workers` in flight (bounded queue; at most 4096 jobs). A job receives its
+dependencies' outputs in declaration order. Outcomes are typed: `Done`, `Failed(E)`,
+`Panicked`, `Cancelled` (cancellation seen before start, propagated to all
+dependants) and `DependencyFailed(name)` (failure/panic upstream). Running jobs cannot
+be interrupted. Integration point: sequence export could register per-scene audio
+preparation, mixing and frame composition as graph jobs; this was not wired because
+the current pipeline is a linear preflight/mix/render sequence with ordered frame
+delivery, which `ordered_map` already serves. The scheduler is tested but not yet used
+by a shipped pipeline.
 
 ## Export workers
 

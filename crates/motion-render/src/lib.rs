@@ -29,6 +29,8 @@ pub enum Error {
     TooManyActors,
     #[error("actor {0} has invalid coordinates, wave envelope, or label")]
     InvalidActor(usize),
+    #[error("custom rig texture unavailable: {0}")]
+    RigTexture(String),
 }
 
 pub fn render_svg(scene: &EvaluatedScene, width: u32, height: u32) -> Result<String, Error> {
@@ -51,6 +53,61 @@ type Artwork<'a> = (
     &'a motion_art::Document,
     &'a std::collections::BTreeMap<String, motion_art::ImageResource>,
 );
+
+fn bad_texture(part: &motion_rig::EvaluatedPart) -> bool {
+    part.texture.as_ref().is_some_and(|t| {
+        let m = t.transform;
+        ![m.a, m.b, m.c, m.d, m.tx, m.ty]
+            .iter()
+            .chain(&t.uv)
+            .chain(&t.rest_bounds)
+            .all(|v| v.is_finite() && v.abs() <= 1_000_000.0)
+            || t.rest_bounds[2] <= 0.0
+            || t.rest_bounds[3] <= 0.0
+            || t.uv[2] <= t.uv[0]
+            || t.uv[3] <= t.uv[1]
+    })
+}
+
+/// Append one textured part: the image sub-rectangle `uv` stretched over the
+/// part's rest bounding box, carried by the evaluated transform and clipped to
+/// the (possibly deformed) polygon. Embeds the decoded PNG as a data URI like
+/// artwork images and charges it to the shared per-frame image byte budget.
+fn append_rig_texture(
+    svg: &mut String,
+    part: &motion_rig::EvaluatedPart,
+    clip_id: &str,
+    images: Option<&std::collections::BTreeMap<String, motion_art::ImageResource>>,
+    embedded: &mut u64,
+) -> Result<(), Error> {
+    let Some(texture) = &part.texture else {
+        return Ok(());
+    };
+    let image = images
+        .and_then(|images| images.get(&texture.asset))
+        .ok_or_else(|| Error::RigTexture(format!("missing image resource {}", texture.asset)))?;
+    *embedded += image.png().len() as u64;
+    if *embedded > motion_art::MAX_IMAGE_BYTES {
+        return Err(Error::RigTexture(
+            "embedded rig texture bytes exceed the image budget".into(),
+        ));
+    }
+    let [bx, by, bw, bh] = texture.rest_bounds;
+    let [u0, v0, u1, v1] = texture.uv;
+    let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
+    let m = texture.transform;
+    write!(svg, "<defs><clipPath id=\"{clip_id}\"><polygon points=\"").unwrap();
+    for point in &part.points {
+        write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
+    }
+    write!(
+        svg,
+        "\"/></clipPath></defs><g clip-path=\"url(#{clip_id})\"><image transform=\"matrix({:.6} {:.6} {:.6} {:.6} {:.6} {:.6})\" x=\"{:.6}\" y=\"{:.6}\" width=\"{w:.6}\" height=\"{h:.6}\" preserveAspectRatio=\"none\" href=\"{}\"/></g>",
+        m.a, m.b, m.c, m.d, m.tx, m.ty, bx - u0 * w, by - v0 * h, image.data_uri()
+    )
+    .unwrap();
+    Ok(())
+}
 
 pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) -> Result<(), Error> {
     if [scene.width, scene.height, width, height]
@@ -93,6 +150,7 @@ pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) ->
             || actor.rigid_parts.len() > 256
             || actor.rigid_parts.iter().any(|part| {
                 !(3..=64).contains(&part.points.len())
+                    || bad_texture(part)
                     || part.points.iter().any(|p| {
                         !p.x.is_finite()
                             || !p.y.is_finite()
@@ -148,7 +206,9 @@ fn render_scene(
             motion_art::Plane::Background,
         )?;
     }
-    for actor in &scene.actors {
+    let mut embedded_rig_bytes = 0u64;
+    let rig_images = artwork.map(|(_, _, images)| images);
+    for (actor_index, actor) in scene.actors.iter().enumerate() {
         write!(
             svg,
             "<g transform=\"translate({:.6} {:.6})\">",
@@ -166,7 +226,7 @@ fn render_scene(
             .unwrap();
         }
         if !actor.rigid_parts.is_empty() {
-            for part in &actor.rigid_parts {
+            for (part_index, part) in actor.rigid_parts.iter().enumerate() {
                 svg.push_str("<polygon points=\"");
                 for point in &part.points {
                     write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
@@ -180,6 +240,13 @@ fn render_scene(
                     f64::from(part.color[3]) / 255.0
                 )
                 .unwrap();
+                append_rig_texture(
+                    &mut svg,
+                    part,
+                    &format!("rigtex{actor_index}x{part_index}"),
+                    rig_images,
+                    &mut embedded_rig_bytes,
+                )?;
             }
         } else {
             let p = &actor.skeleton;

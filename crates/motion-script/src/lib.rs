@@ -76,6 +76,71 @@ pub struct Composition {
     pub joint_tracks: BTreeMap<String, BTreeMap<String, Vec<ActorKey>>>,
     pub fade_in: f64,
     pub fade_out: f64,
+    /// Non-speech audio placed on the scene's shared 24 kHz sample clock.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub audio_cues: Vec<AudioCue>,
+}
+/// Maximum cues per scene; bounds mixer work and decoded memory.
+pub const MAX_AUDIO_CUES: usize = 64;
+/// Linear gain ceiling for a cue (about +12 dB).
+pub const MAX_AUDIO_CUE_GAIN: f64 = 4.0;
+/// A sound effect or sting from a project-relative 24 kHz mono PCM16 WAV asset.
+/// Times are scene seconds, rounded to the nearest sample like dialogue.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AudioCue {
+    pub id: String,
+    pub asset: String,
+    pub at: f64,
+    #[serde(default = "full_clip_instance_weight")]
+    pub gain: f64,
+    /// Source seconds skipped before playback.
+    #[serde(default)]
+    pub trim_start: f64,
+    /// Playback length; omitted plays the remaining source, truncated at scene end.
+    #[serde(default)]
+    pub duration: Option<f64>,
+}
+impl AudioCue {
+    fn validate(&self, scene: &str, scene_duration: f64) -> Result<(), Error> {
+        let fail = |m: &str| Error::Validation(format!("{scene}: audio cue {}: {m}", self.id));
+        if !valid_clip_name(&self.id) {
+            return Err(fail("id must be 1..64 letters, digits, '_' or '-'"));
+        }
+        let path = std::path::Path::new(&self.asset);
+        if self.asset.trim().is_empty()
+            || self.asset.len() > 512
+            || self.asset.contains(['\\', '\0'])
+            || !path
+                .components()
+                .all(|c| matches!(c, std::path::Component::Normal(_)))
+        {
+            return Err(fail(
+                "invalid asset reference: use a project-relative path without '..'",
+            ));
+        }
+        if !self.asset.to_ascii_lowercase().ends_with(".wav") {
+            return Err(Error::Unsupported(format!(
+                "{scene}: audio cue {}: only 24 kHz mono PCM16 .wav assets are supported",
+                self.id
+            )));
+        }
+        if !self.at.is_finite() || self.at < 0.0 || self.at >= scene_duration {
+            return Err(fail("at must be finite and within the scene"));
+        }
+        if !self.gain.is_finite() || !(0.0..=MAX_AUDIO_CUE_GAIN).contains(&self.gain) {
+            return Err(fail("gain must be finite within 0..4"));
+        }
+        if !self.trim_start.is_finite() || self.trim_start < 0.0 {
+            return Err(fail("trim_start must be finite and non-negative"));
+        }
+        if let Some(d) = self.duration {
+            if !d.is_finite() || d <= 0.0 || self.at + d > scene_duration {
+                return Err(fail("duration must be positive and end within the scene"));
+            }
+        }
+        Ok(())
+    }
 }
 impl Default for Composition {
     fn default() -> Self {
@@ -93,6 +158,7 @@ impl Default for Composition {
             joint_tracks: BTreeMap::new(),
             fade_in: 0.0,
             fade_out: 0.0,
+            audio_cues: Vec::new(),
         }
     }
 }
@@ -1662,6 +1728,19 @@ impl Script {
                     {
                         return Err(fail(format!("{}: joint tracks require 1..4096 increasing scene keys, at most 65536 keys per scene, offsets/rotation within ±1000 and scale 0.1..4", s.id)));
                     }
+                }
+            }
+            if s.composition.audio_cues.len() > MAX_AUDIO_CUES {
+                return Err(fail(format!(
+                    "{}: at most {MAX_AUDIO_CUES} audio cues per scene",
+                    s.id
+                )));
+            }
+            let mut cue_ids = std::collections::BTreeSet::new();
+            for cue in &s.composition.audio_cues {
+                cue.validate(&s.id, s.duration)?;
+                if !cue_ids.insert(cue.id.as_str()) {
+                    return Err(fail(format!("{}: duplicate audio cue id {}", s.id, cue.id)));
                 }
             }
             let mut moves: BTreeMap<&str, Vec<(f64, f64)>> = BTreeMap::new();
