@@ -3,13 +3,99 @@ use crate::{Affine2, Error, Joint, Rig, Transform2, Vec2};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RigDefinition {
     pub version: u32,
     pub id: String,
     pub joints: Vec<RigJointDefinition>,
     pub parts: Vec<RigidPartDefinition>,
+    /// Optional mouth sprite swap driven by the actor's viseme.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub visemes: Option<VisemeMapDefinition>,
+    /// Optional emotion name to part variants (brows, eyes, mouth corners).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub expressions: BTreeMap<String, Vec<ExpressionVariant>>,
+    /// Optional pupil gaze and deterministic blink configuration.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub eyes: Option<EyesDefinition>,
+}
+/// Viseme names accepted in `visemes.map`; they match `motion_lipsync::Viseme`'s
+/// snake_case serialization (a motion-scene test keeps the two in step).
+pub const VISEME_NAMES: [&str; 13] = [
+    "rest",
+    "closed",
+    "teeth_lip",
+    "tongue_teeth",
+    "tongue_up",
+    "sibilant",
+    "sh",
+    "r",
+    "a",
+    "e",
+    "i",
+    "o",
+    "u",
+];
+/// Emotion names the screenplay accepts.
+pub const EMOTION_NAMES: [&str; 5] = ["neutral", "happy", "sad", "surprised", "angry"];
+pub const MAX_VARIANTS_PER_PART: usize = 16;
+pub const MAX_EXPRESSION_ENTRIES: usize = 16;
+pub const MAX_EYE_PARTS: usize = 8;
+pub const MAX_GAZE_TRAVEL: f64 = 500.0;
+/// `part` is the mouth part; `map` sends viseme names to variant ids of it.
+/// Visemes without an entry (and actors with no viseme) keep the base shape.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VisemeMapDefinition {
+    pub part: String,
+    pub map: BTreeMap<String, String>,
+}
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExpressionVariant {
+    pub part: String,
+    pub variant: String,
+}
+/// `pupils` translate toward the gaze target by at most `travel` units in actor
+/// space. `blink` swaps `variant` onto `parts` for a short, seeded interval.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EyesDefinition {
+    pub pupils: Vec<String>,
+    pub travel: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub blink: Option<BlinkDefinition>,
+}
+/// At most one blink per `interval`-second window, starting at a position inside
+/// the window derived only from the actor id and window index.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BlinkDefinition {
+    pub parts: Vec<String>,
+    pub variant: String,
+    #[serde(default = "default_blink_interval")]
+    pub interval: f64,
+    #[serde(default = "default_blink_duration")]
+    pub duration: f64,
+}
+fn default_blink_interval() -> f64 {
+    4.0
+}
+fn default_blink_duration() -> f64 {
+    0.12
+}
+/// Alternate appearance of a part; omitted fields keep the base part's values.
+/// Alpha 0 hides the part. A skinned part's variant polygon must keep its point count.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PartVariantDefinition {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub points: Option<Vec<[f64; 2]>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color: Option<[u8; 4]>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub texture: Option<PartTextureDefinition>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -30,7 +116,7 @@ pub struct RigJointDefinition {
 fn one() -> f64 {
     1.0
 }
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RigidPartDefinition {
     pub id: String,
@@ -46,6 +132,10 @@ pub struct RigidPartDefinition {
     /// stay in the attachment joint's rest-local frame (the bind pose).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub skin: Vec<Vec<VertexWeight>>,
+    /// Named alternate appearances (sprite swap), selected by visemes,
+    /// expressions and blinks.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub variants: BTreeMap<String, PartVariantDefinition>,
 }
 /// Image binding for a part. `uv` is `[u0, v0, u1, v1]`, the image sub-rectangle
 /// (fractions of the image, v downwards) stretched over the part's rest-pose
@@ -145,23 +235,68 @@ fn simple_polygon(points: &[[f64; 2]]) -> bool {
     }
     true
 }
+fn validate_texture(t: &PartTextureDefinition) -> Result<(), Error> {
+    let [u0, v0, u1, v1] = t.uv;
+    if t.asset.trim().is_empty()
+        || t.asset.len() > 256
+        || t.asset.chars().any(char::is_control)
+        || t.uv
+            .iter()
+            .any(|v| !v.is_finite() || !(0.0..=1.0).contains(v))
+        || u1 - u0 < 1e-3
+        || v1 - v0 < 1e-3
+    {
+        return Err(Error::InvalidDefinition);
+    }
+    Ok(())
+}
+fn validate_polygon(points: &[[f64; 2]]) -> Result<(), Error> {
+    if !(3..=64).contains(&points.len())
+        || points
+            .iter()
+            .flatten()
+            .any(|v| !v.is_finite() || v.abs() > 1_000_000.0)
+        || !simple_polygon(points)
+    {
+        return Err(Error::InvalidDefinition);
+    }
+    let area: f64 = points
+        .iter()
+        .zip(points.iter().cycle().skip(1))
+        .take(points.len())
+        .map(|(a, b)| a[0] * b[1] - b[0] * a[1])
+        .sum();
+    if !area.is_finite() || area.abs() < 1e-9 {
+        return Err(Error::InvalidDefinition);
+    }
+    Ok(())
+}
+fn validate_variants(part: &RigidPartDefinition) -> Result<(), Error> {
+    if part.variants.len() > MAX_VARIANTS_PER_PART {
+        return Err(Error::InvalidDefinition);
+    }
+    for (id, variant) in &part.variants {
+        if !valid_id(id) {
+            return Err(Error::InvalidDefinition);
+        }
+        if let Some(points) = &variant.points {
+            validate_polygon(points)?;
+            if !part.skin.is_empty() && points.len() != part.points.len() {
+                return Err(Error::InvalidDefinition);
+            }
+        }
+        if let Some(t) = &variant.texture {
+            validate_texture(t)?;
+        }
+    }
+    Ok(())
+}
 fn validate_skin_and_texture(
     part: &RigidPartDefinition,
     ids: &BTreeMap<&str, usize>,
 ) -> Result<(), Error> {
     if let Some(t) = &part.texture {
-        let [u0, v0, u1, v1] = t.uv;
-        if t.asset.trim().is_empty()
-            || t.asset.len() > 256
-            || t.asset.chars().any(char::is_control)
-            || t.uv
-                .iter()
-                .any(|v| !v.is_finite() || !(0.0..=1.0).contains(v))
-            || u1 - u0 < 1e-3
-            || v1 - v0 < 1e-3
-        {
-            return Err(Error::InvalidDefinition);
-        }
+        validate_texture(t)?;
     }
     if part.skin.is_empty() {
         return Ok(());
@@ -278,6 +413,7 @@ impl RigDefinition {
                 return Err(Error::InvalidDefinition);
             }
             validate_skin_and_texture(part, &ids)?;
+            validate_variants(part)?;
             let area: f64 = part
                 .points
                 .iter()
@@ -289,16 +425,102 @@ impl RigDefinition {
                 return Err(Error::InvalidDefinition);
             }
         }
-        if self.parts.iter().filter(|p| p.texture.is_some()).count() > MAX_TEXTURED_PARTS {
+        if self
+            .parts
+            .iter()
+            .filter(|p| p.texture.is_some() || p.variants.values().any(|v| v.texture.is_some()))
+            .count()
+            > MAX_TEXTURED_PARTS
+        {
             return Err(Error::InvalidDefinition);
         }
+        self.validate_acting()?;
         Ok((rig, ids))
+    }
+    fn part(&self, id: &str) -> Result<&RigidPartDefinition, Error> {
+        self.parts
+            .iter()
+            .find(|p| p.id == id)
+            .ok_or(Error::InvalidDefinition)
+    }
+    fn variant_ref(&self, part: &str, variant: &str) -> Result<(), Error> {
+        self.part(part)?
+            .variants
+            .contains_key(variant)
+            .then_some(())
+            .ok_or(Error::InvalidDefinition)
+    }
+    /// Variant ids exist, viseme/emotion names are known, counts are bounded and
+    /// numbers are finite. Part and variant shapes were validated already.
+    fn validate_acting(&self) -> Result<(), Error> {
+        if let Some(v) = &self.visemes {
+            if v.map.is_empty() || v.map.len() > VISEME_NAMES.len() {
+                return Err(Error::InvalidDefinition);
+            }
+            for (name, variant) in &v.map {
+                if !VISEME_NAMES.contains(&name.as_str()) {
+                    return Err(Error::InvalidDefinition);
+                }
+                self.variant_ref(&v.part, variant)?;
+            }
+        }
+        if self.expressions.len() > EMOTION_NAMES.len() {
+            return Err(Error::InvalidDefinition);
+        }
+        for (emotion, entries) in &self.expressions {
+            if !EMOTION_NAMES.contains(&emotion.as_str())
+                || entries.is_empty()
+                || entries.len() > MAX_EXPRESSION_ENTRIES
+            {
+                return Err(Error::InvalidDefinition);
+            }
+            let mut seen = BTreeSet::new();
+            for entry in entries {
+                if !seen.insert(entry.part.as_str()) {
+                    return Err(Error::InvalidDefinition);
+                }
+                self.variant_ref(&entry.part, &entry.variant)?;
+            }
+        }
+        if let Some(eyes) = &self.eyes {
+            let unique = |ids: &[String]| {
+                !ids.is_empty()
+                    && ids.len() <= MAX_EYE_PARTS
+                    && ids.iter().collect::<BTreeSet<_>>().len() == ids.len()
+            };
+            if !unique(&eyes.pupils)
+                || !eyes.travel.is_finite()
+                || !(0.0..=MAX_GAZE_TRAVEL).contains(&eyes.travel)
+            {
+                return Err(Error::InvalidDefinition);
+            }
+            for pupil in &eyes.pupils {
+                self.part(pupil)?;
+            }
+            if let Some(blink) = &eyes.blink {
+                if !unique(&blink.parts)
+                    || !blink.interval.is_finite()
+                    || !(1.0..=30.0).contains(&blink.interval)
+                    || !blink.duration.is_finite()
+                    || !(0.04..=0.5).contains(&blink.duration)
+                {
+                    return Err(Error::InvalidDefinition);
+                }
+                for part in &blink.parts {
+                    self.variant_ref(part, &blink.variant)?;
+                }
+            }
+        }
+        Ok(())
     }
     /// Project image assets this rig's textures need.
     pub fn image_assets(&self) -> impl Iterator<Item = &str> {
-        self.parts
-            .iter()
-            .filter_map(|p| p.texture.as_ref().map(|t| t.asset.as_str()))
+        self.parts.iter().flat_map(|p| {
+            p.texture
+                .iter()
+                .chain(p.variants.values().filter_map(|v| v.texture.as_ref()))
+                .map(|t| t.asset.as_str())
+        })
     }
     pub fn validate(&self) -> Result<(), Error> {
         self.evaluate_parts().map(|_| ())
@@ -341,7 +563,13 @@ impl RigDefinition {
                 }
             })
             .collect();
-        let prepared = PreparedRig { rig, ids, parts };
+        let acting = self.prepare_acting();
+        let prepared = PreparedRig {
+            rig,
+            ids,
+            parts,
+            acting,
+        };
         // Skinning is the identity at rest; still verify the outline stays simple.
         let rest = prepared.evaluate_parts(&[])?;
         for (part, evaluated) in prepared.parts.iter().zip(&rest) {
@@ -363,6 +591,105 @@ impl RigDefinition {
         }
         Ok(prepared)
     }
+    fn part_index(&self, id: &str) -> usize {
+        self.parts.iter().position(|p| p.id == id).unwrap_or(0)
+    }
+    fn variant_index(&self, part: &str, variant: &str) -> usize {
+        self.parts[self.part_index(part)]
+            .variants
+            .keys()
+            .position(|k| k == variant)
+            .unwrap_or(0)
+    }
+    /// Resolve acting ids to indices. Only called after `build` validated them.
+    fn prepare_acting(&self) -> PreparedActing {
+        let mouth = self.visemes.as_ref().map(|v| {
+            let mut table = [None; VISEME_NAMES.len()];
+            for (name, variant) in &v.map {
+                if let Some(slot) = VISEME_NAMES.iter().position(|n| n == name) {
+                    table[slot] = Some(self.variant_index(&v.part, variant));
+                }
+            }
+            (self.part_index(&v.part), table)
+        });
+        let expressions = self
+            .expressions
+            .iter()
+            .map(|(emotion, entries)| {
+                let picks = entries
+                    .iter()
+                    .map(|e| {
+                        (
+                            self.part_index(&e.part),
+                            self.variant_index(&e.part, &e.variant),
+                        )
+                    })
+                    .collect();
+                (emotion.clone(), picks)
+            })
+            .collect();
+        let (pupils, travel, blink) = match &self.eyes {
+            None => (Vec::new(), 0.0, None),
+            Some(eyes) => (
+                eyes.pupils.iter().map(|p| self.part_index(p)).collect(),
+                eyes.travel,
+                eyes.blink.as_ref().map(|b| PreparedBlink {
+                    picks: b
+                        .parts
+                        .iter()
+                        .map(|p| (self.part_index(p), self.variant_index(p, &b.variant)))
+                        .collect(),
+                    interval: b.interval,
+                    duration: b.duration,
+                }),
+            ),
+        };
+        PreparedActing {
+            mouth,
+            expressions,
+            pupils,
+            travel,
+            blink,
+        }
+    }
+}
+#[derive(Debug, Clone, Default)]
+struct PreparedActing {
+    /// Mouth part index and, per `VISEME_NAMES` slot, the variant index.
+    mouth: Option<(usize, [Option<usize>; VISEME_NAMES.len()])>,
+    expressions: BTreeMap<String, Vec<(usize, usize)>>,
+    pupils: Vec<usize>,
+    travel: f64,
+    blink: Option<PreparedBlink>,
+}
+#[derive(Debug, Clone)]
+struct PreparedBlink {
+    picks: Vec<(usize, usize)>,
+    interval: f64,
+    duration: f64,
+}
+/// Inputs that select variants for one sample (emotion and blink are known at
+/// scene evaluation time; the viseme arrives later through the mouth shapes).
+#[derive(Debug, Clone, Copy)]
+pub struct ActingInput<'a> {
+    pub emotion: &'a str,
+    pub blink: bool,
+}
+/// Evaluated mouth alternatives for this pose: `(viseme name, part)` for each
+/// mapped viseme, replacing `parts[part]` when that viseme is spoken.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MouthShapes {
+    pub part: usize,
+    pub shapes: Vec<(&'static str, EvaluatedPart)>,
+}
+/// FNV-1a over the seed and window index: stable across platforms and runs.
+fn blink_hash(seed: &str, window: u64) -> u64 {
+    let mut h = 0xcbf2_9ce4_8422_2325u64;
+    for b in seed.bytes().chain(window.to_le_bytes()) {
+        h ^= u64::from(b);
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    h
 }
 /// A validated rig hierarchy that can be posed with per-joint offsets.
 #[derive(Debug, Clone)]
@@ -370,6 +697,7 @@ pub struct PreparedRig {
     rig: Rig,
     ids: BTreeMap<String, usize>,
     parts: Vec<PreparedPart>,
+    acting: PreparedActing,
 }
 #[derive(Debug, Clone)]
 struct PreparedPart {
@@ -389,6 +717,12 @@ impl PreparedRig {
         &self,
         offsets: &[(usize, Transform2)],
     ) -> Result<Vec<EvaluatedPart>, Error> {
+        let world = self.world(offsets)?;
+        (0..self.parts.len())
+            .map(|index| self.evaluate_part(index, &world, None))
+            .collect()
+    }
+    fn world(&self, offsets: &[(usize, Transform2)]) -> Result<Vec<Affine2>, Error> {
         let mut pose = self.rig.rest_pose();
         for (joint, offset) in offsets {
             let rest = self
@@ -406,78 +740,201 @@ impl PreparedRig {
                 scale: Vec2::new(rest.scale.x * offset.scale.x, rest.scale.y * offset.scale.y),
             };
         }
-        let world = self.rig.evaluate(&pose)?;
-        self.parts
-            .iter()
-            .map(|prepared| {
-                let part = &prepared.definition;
-                let transform = world[prepared.joint];
-                let skinned = !prepared.skin.is_empty();
-                let points: Vec<_> = if skinned {
-                    // Deterministic linear blend of posed influence transforms.
-                    part.points
+        Ok(self.rig.evaluate(&pose)?)
+    }
+    /// Evaluate one part, optionally with the variant at `variant` (an index into
+    /// the part's sorted variant ids) overriding polygon, colour and texture.
+    fn evaluate_part(
+        &self,
+        index: usize,
+        world: &[Affine2],
+        variant: Option<usize>,
+    ) -> Result<EvaluatedPart, Error> {
+        let prepared = &self.parts[index];
+        let part = &prepared.definition;
+        let variant = match variant {
+            Some(i) => Some(
+                part.variants
+                    .values()
+                    .nth(i)
+                    .ok_or(Error::InvalidDefinition)?,
+            ),
+            None => None,
+        };
+        let rest_points = variant
+            .and_then(|v| v.points.as_ref())
+            .unwrap_or(&part.points);
+        let color = variant.and_then(|v| v.color).unwrap_or(part.color);
+        let texture_definition = variant
+            .and_then(|v| v.texture.as_ref())
+            .or(part.texture.as_ref());
+        let transform = world[prepared.joint];
+        let skinned = !prepared.skin.is_empty();
+        let points: Vec<_> = if skinned {
+            // Deterministic linear blend of posed influence transforms.
+            rest_points
+                .iter()
+                .zip(&prepared.skin)
+                .map(|(p, influences)| {
+                    let p = Vec2::new(p[0], p[1]);
+                    influences
                         .iter()
-                        .zip(&prepared.skin)
-                        .map(|(p, influences)| {
-                            let p = Vec2::new(p[0], p[1]);
-                            influences
-                                .iter()
-                                .fold(Vec2::default(), |acc, (j, w, bind)| {
-                                    let q = world[*j].point(bind.point(p));
-                                    Vec2::new(acc.x + w * q.x, acc.y + w * q.y)
-                                })
+                        .fold(Vec2::default(), |acc, (j, w, bind)| {
+                            let q = world[*j].point(bind.point(p));
+                            Vec2::new(acc.x + w * q.x, acc.y + w * q.y)
                         })
-                        .collect()
-                } else {
-                    part.points
-                        .iter()
-                        .map(|p| transform.point(Vec2::new(p[0], p[1])))
-                        .collect()
-                };
-                if points.iter().any(|p| {
-                    !p.x.is_finite()
-                        || !p.y.is_finite()
-                        || p.x.abs() > 1_000_000.0
-                        || p.y.abs() > 1_000_000.0
-                }) {
+                })
+                .collect()
+        } else {
+            rest_points
+                .iter()
+                .map(|p| transform.point(Vec2::new(p[0], p[1])))
+                .collect()
+        };
+        if points.iter().any(|p| {
+            !p.x.is_finite()
+                || !p.y.is_finite()
+                || p.x.abs() > 1_000_000.0
+                || p.y.abs() > 1_000_000.0
+        }) {
+            return Err(Error::InvalidDefinition);
+        }
+        let texture = match texture_definition {
+            None => None,
+            Some(t) => {
+                let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+                for p in rest_points {
+                    x0 = x0.min(p[0]);
+                    y0 = y0.min(p[1]);
+                    x1 = x1.max(p[0]);
+                    y1 = y1.max(p[1]);
+                }
+                if x1 - x0 < 1e-9 || y1 - y0 < 1e-9 {
                     return Err(Error::InvalidDefinition);
                 }
-                let texture = match &part.texture {
-                    None => None,
-                    Some(t) => {
-                        let (mut x0, mut y0, mut x1, mut y1) =
-                            (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
-                        for p in &part.points {
-                            x0 = x0.min(p[0]);
-                            y0 = y0.min(p[1]);
-                            x1 = x1.max(p[0]);
-                            y1 = y1.max(p[1]);
-                        }
-                        if x1 - x0 < 1e-9 || y1 - y0 < 1e-9 {
-                            return Err(Error::InvalidDefinition);
-                        }
-                        let matrix = if skinned {
-                            fit_affine(&part.points, &points).ok_or(Error::InvalidDefinition)?
-                        } else {
-                            transform
-                        };
-                        Some(EvaluatedTexture {
-                            asset: t.asset.clone(),
-                            uv: t.uv,
-                            rest_bounds: [x0, y0, x1 - x0, y1 - y0],
-                            transform: matrix,
-                        })
-                    }
+                let matrix = if skinned {
+                    fit_affine(rest_points, &points).ok_or(Error::InvalidDefinition)?
+                } else {
+                    transform
                 };
-                Ok(EvaluatedPart {
-                    id: part.id.clone(),
-                    points,
-                    color: part.color,
-                    texture,
-                    skinned,
+                Some(EvaluatedTexture {
+                    asset: t.asset.clone(),
+                    uv: t.uv,
+                    rest_bounds: [x0, y0, x1 - x0, y1 - y0],
+                    transform: matrix,
                 })
-            })
-            .collect()
+            }
+        };
+        Ok(EvaluatedPart {
+            id: part.id.clone(),
+            points,
+            color,
+            texture,
+            skinned,
+        })
+    }
+    /// True when the rig declares visemes, expressions or eyes.
+    pub fn has_acting(&self) -> bool {
+        let a = &self.acting;
+        a.mouth.is_some() || !a.expressions.is_empty() || !a.pupils.is_empty()
+    }
+    /// Indices into the evaluated parts of the pupils that follow the gaze.
+    pub fn pupil_parts(&self) -> &[usize] {
+        &self.acting.pupils
+    }
+    /// Whether a blink is in progress at scene time `time` for the actor `seed`.
+    /// A pure function of the rig's blink settings, the seed and the time: one
+    /// blink at most per `interval`-second window, so the rate is bounded, and any
+    /// seek order gives the same answer.
+    pub fn blink_active(&self, seed: &str, time: f64) -> bool {
+        let Some(blink) = &self.acting.blink else {
+            return false;
+        };
+        if !time.is_finite() || time < 0.0 {
+            return false;
+        }
+        let window = (time / blink.interval).floor();
+        let fraction = (blink_hash(seed, window as u64) >> 11) as f64 / (1u64 << 53) as f64;
+        let start = window * blink.interval + fraction * (blink.interval - blink.duration);
+        time >= start && time < start + blink.duration
+    }
+    /// Evaluate parts like `evaluate_parts`, then select variants: the actor's
+    /// emotion entries first, then the blink, so a blink closes the eyes whatever
+    /// the expression. Also returns every mapped mouth shape for the same pose.
+    pub fn evaluate_acting(
+        &self,
+        offsets: &[(usize, Transform2)],
+        input: ActingInput<'_>,
+    ) -> Result<(Vec<EvaluatedPart>, Option<MouthShapes>), Error> {
+        let world = self.world(offsets)?;
+        let mut picks: Vec<Option<usize>> = vec![None; self.parts.len()];
+        if let Some(entries) = self.acting.expressions.get(input.emotion) {
+            for (part, variant) in entries {
+                picks[*part] = Some(*variant);
+            }
+        }
+        if let (true, Some(blink)) = (input.blink, &self.acting.blink) {
+            for (part, variant) in &blink.picks {
+                picks[*part] = Some(*variant);
+            }
+        }
+        let parts = (0..self.parts.len())
+            .map(|index| self.evaluate_part(index, &world, picks[index]))
+            .collect::<Result<Vec<_>, _>>()?;
+        let mouth = match &self.acting.mouth {
+            None => None,
+            Some((part, table)) => {
+                let mut shapes = Vec::new();
+                for (slot, variant) in table.iter().enumerate() {
+                    if let Some(variant) = variant {
+                        shapes.push((
+                            VISEME_NAMES[slot],
+                            self.evaluate_part(*part, &world, Some(*variant))?,
+                        ));
+                    }
+                }
+                Some(MouthShapes {
+                    part: *part,
+                    shapes,
+                })
+            }
+        };
+        Ok((parts, mouth))
+    }
+    /// Offset the pupil parts toward a gaze direction. `gaze` is clamped to the
+    /// unit disc and scaled by the rig's travel radius, in actor space.
+    pub fn apply_gaze(&self, parts: &mut [EvaluatedPart], gaze: [f64; 2]) {
+        let length = gaze[0].hypot(gaze[1]);
+        if !length.is_finite() || length == 0.0 || self.acting.travel == 0.0 {
+            return;
+        }
+        let scale = self.acting.travel * length.min(1.0) / length;
+        let (dx, dy) = (gaze[0] * scale, gaze[1] * scale);
+        for index in &self.acting.pupils {
+            let Some(part) = parts.get_mut(*index) else {
+                continue;
+            };
+            for point in &mut part.points {
+                point.x += dx;
+                point.y += dy;
+            }
+            if let Some(texture) = &mut part.texture {
+                texture.transform.tx += dx;
+                texture.transform.ty += dy;
+            }
+        }
+    }
+    /// Mean vertex of the pupil parts: the actor-space point gaze is measured from.
+    pub fn eye_anchor(&self, parts: &[EvaluatedPart]) -> Option<Vec2> {
+        let (mut x, mut y, mut n) = (0.0, 0.0, 0.0);
+        for index in &self.acting.pupils {
+            for point in &parts.get(*index)?.points {
+                x += point.x;
+                y += point.y;
+                n += 1.0;
+            }
+        }
+        (n > 0.0).then(|| Vec2::new(x / n, y / n))
     }
 }
 #[cfg(test)]
@@ -514,7 +971,9 @@ mod tests {
                 color: [255, 0, 20, 128],
                 texture: None,
                 skin: Vec::new(),
+                variants: BTreeMap::new(),
             }],
+            ..Default::default()
         }
     }
     #[test]

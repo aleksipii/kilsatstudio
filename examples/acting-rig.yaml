@@ -1,0 +1,90 @@
+# Original acting-layer demo: a flat-colour puppet with sprite-swap mouth, brows,
+# pupils that follow a gaze track, and seeded blinks. See docs/custom-rigid-characters.md.
+project: {title: Acting rig demo, fps: 24, width: 256, height: 256}
+characters:
+  PUPPET:
+    asset: custom
+    rig:
+      version: 1
+      id: acting_demo
+      joints:
+        - {id: root, parent: null}
+        - {id: head, parent: root, y: -40}
+      parts:
+        - {id: face, joint: head, points: [[-30, -30], [30, -30], [30, 30], [-30, 30]], color: [240, 200, 160, 255]}
+        - id: eye_l
+          joint: head
+          points: [[-22, -14], [-8, -14], [-8, 0], [-22, 0]]
+          color: [255, 255, 255, 255]
+          variants:
+            blink: {points: [[-22, -8], [-8, -8], [-8, -6], [-22, -6]], color: [60, 40, 40, 255]}
+        - id: eye_r
+          joint: head
+          points: [[8, -14], [22, -14], [22, 0], [8, 0]]
+          color: [255, 255, 255, 255]
+          variants:
+            blink: {points: [[8, -8], [22, -8], [22, -6], [8, -6]], color: [60, 40, 40, 255]}
+        - id: pupil_l
+          joint: head
+          points: [[-17, -9], [-13, -9], [-13, -5], [-17, -5]]
+          color: [20, 20, 40, 255]
+          variants:
+            blink: {color: [20, 20, 40, 0]}
+        - id: pupil_r
+          joint: head
+          points: [[13, -9], [17, -9], [17, -5], [13, -5]]
+          color: [20, 20, 40, 255]
+          variants:
+            blink: {color: [20, 20, 40, 0]}
+        - id: brow_l
+          joint: head
+          points: [[-22, -22], [-8, -22], [-8, -19], [-22, -19]]
+          color: [90, 50, 30, 255]
+          variants:
+            raised: {points: [[-22, -28], [-8, -28], [-8, -25], [-22, -25]]}
+            angry: {points: [[-22, -24], [-8, -19], [-8, -16], [-22, -21]]}
+        - id: brow_r
+          joint: head
+          points: [[8, -22], [22, -22], [22, -19], [8, -19]]
+          color: [90, 50, 30, 255]
+          variants:
+            raised: {points: [[8, -28], [22, -28], [22, -25], [8, -25]]}
+            angry: {points: [[8, -19], [22, -24], [22, -21], [8, -16]]}
+        - id: mouth
+          joint: head
+          points: [[-10, 14], [10, 14], [10, 17], [-10, 17]]
+          color: [120, 40, 50, 255]
+          variants:
+            open: {points: [[-10, 10], [10, 10], [10, 26], [-10, 26]]}
+            wide: {points: [[-14, 12], [14, 12], [14, 19], [-14, 19]]}
+            round: {points: [[-6, 10], [6, 10], [6, 22], [-6, 22]]}
+            smile: {points: [[-12, 13], [12, 13], [12, 19], [-12, 19]], color: [150, 60, 70, 255]}
+      visemes:
+        part: mouth
+        map: {a: open, e: wide, i: wide, o: round, u: round}
+      expressions:
+        happy:
+          - {part: mouth, variant: smile}
+          - {part: brow_l, variant: raised}
+          - {part: brow_r, variant: raised}
+        angry:
+          - {part: brow_l, variant: angry}
+          - {part: brow_r, variant: angry}
+      eyes:
+        pupils: [pupil_l, pupil_r]
+        travel: 4
+        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r], variant: blink, interval: 3, duration: 0.15}
+  FRIEND: {asset: friend}
+scenes:
+  - id: acting
+    duration: 6
+    events:
+      - {type: move, at: 0, actor: FRIEND, x: 40, y: 179, duration: 0.5}
+      - {type: emotion, at: 2, actor: PUPPET, value: happy}
+      - {type: emotion, at: 4, actor: PUPPET, value: angry}
+    composition:
+      gaze_tracks:
+        PUPPET:
+          - {at: 0, x: 0, y: 128}
+          - {at: 2, x: 256, y: 128}
+          - {at: 4, target: FRIEND}

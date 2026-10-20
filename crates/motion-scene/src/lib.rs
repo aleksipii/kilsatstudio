@@ -25,12 +25,70 @@ pub fn viseme_openness(viseme: Viseme) -> f64 {
 /// Applies speech head motion from the same per-actor visemes the mouth renders,
 /// so preview and export share one audio sample clock. Missing actors are ignored;
 /// actors without a viseme are unchanged.
+///
+/// Custom rigs with a `visemes` map also swap the mouth part to the variant for
+/// the actor's viseme (`Rest` when none is supplied). Visemes the rig does not map
+/// keep the base shape. The swap is a pure function of the evaluated pose and the
+/// viseme, so repeated or out-of-order calls give identical parts.
 pub fn apply_speech(scene: &mut EvaluatedScene, mouths: &[(&str, Viseme)]) {
     for actor in &mut scene.actors {
-        if let Some((_, viseme)) = mouths.iter().find(|(id, _)| *id == actor.id) {
-            actor.skeleton[HEAD].y += viseme_openness(*viseme) * SPEECH_HEAD_DIP;
+        let viseme = mouths.iter().find(|(id, _)| *id == actor.id).map(|m| m.1);
+        if let Some(viseme) = viseme {
+            actor.skeleton[HEAD].y += viseme_openness(viseme) * SPEECH_HEAD_DIP;
+        }
+        if let Some(mouth) = &actor.mouth {
+            let wanted = viseme.unwrap_or(Viseme::Rest);
+            if let Some((_, shape)) = mouth.shapes.iter().find(|(v, _)| *v == wanted) {
+                actor.rigid_parts[mouth.part] = shape.clone();
+            }
         }
     }
+}
+
+/// The snake_case name a custom rig's `visemes.map` uses for `viseme`.
+pub fn viseme_name(viseme: Viseme) -> &'static str {
+    match viseme {
+        Viseme::Rest => "rest",
+        Viseme::Closed => "closed",
+        Viseme::TeethLip => "teeth_lip",
+        Viseme::TongueTeeth => "tongue_teeth",
+        Viseme::TongueUp => "tongue_up",
+        Viseme::Sibilant => "sibilant",
+        Viseme::Sh => "sh",
+        Viseme::R => "r",
+        Viseme::A => "a",
+        Viseme::E => "e",
+        Viseme::I => "i",
+        Viseme::O => "o",
+        Viseme::U => "u",
+    }
+}
+fn viseme_from_name(name: &str) -> Option<Viseme> {
+    [
+        Viseme::Rest,
+        Viseme::Closed,
+        Viseme::TeethLip,
+        Viseme::TongueTeeth,
+        Viseme::TongueUp,
+        Viseme::Sibilant,
+        Viseme::Sh,
+        Viseme::R,
+        Viseme::A,
+        Viseme::E,
+        Viseme::I,
+        Viseme::O,
+        Viseme::U,
+    ]
+    .into_iter()
+    .find(|v| viseme_name(*v) == name)
+}
+
+/// Mouth-part alternatives evaluated for one pose, one per viseme the rig maps.
+/// `apply_speech` copies the match over `rigid_parts[part]`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MouthVariants {
+    pub part: usize,
+    pub shapes: Vec<(Viseme, motion_rig::EvaluatedPart)>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -47,6 +105,8 @@ pub struct ActorPose {
     pub skeleton: [Vec2; 7],
     /// Validated custom rigid parts in actor-local coordinates.
     pub rigid_parts: Vec<motion_rig::EvaluatedPart>,
+    /// Viseme-selectable mouth shapes for a custom rig with `visemes`.
+    pub mouth: Option<MouthVariants>,
 }
 impl ActorPose {
     /// Transform any local skeleton, facial, or artwork point through the root pose.
@@ -465,6 +525,79 @@ pub fn evaluate(
     let prepared = PreparedAnimation::new(script)?;
     evaluate_validated(script, &prepared, scene_index, time_seconds)
 }
+/// Distance, in actor units, at which a gaze target pulls the pupils to full travel.
+const GAZE_FULL_DISTANCE: f64 = 100.0;
+/// Point each gaze-tracked actor's pupils toward its target at `time`. Targets are
+/// screen points or other actors' eyes (their origin when they have none), measured
+/// in the looking actor's own space so rotation and mirroring are honoured.
+fn apply_gaze(
+    actors: &mut [ActorPose],
+    scene: &motion_script::Scene,
+    prepared: &PreparedAnimation,
+    time: f64,
+) {
+    if scene.composition.gaze_tracks.is_empty() {
+        return;
+    }
+    let eyes: Vec<(String, Vec2)> = actors
+        .iter()
+        .map(|actor| {
+            let anchor = prepared
+                .rigs
+                .get(&actor.id)
+                .and_then(|rig| rig.eye_anchor(&actor.rigid_parts))
+                .unwrap_or_default();
+            (actor.id.clone(), actor.local_to_world(anchor))
+        })
+        .collect();
+    for actor in actors.iter_mut() {
+        let (Some(keys), Some(rig)) = (
+            scene.composition.gaze_tracks.get(&actor.id),
+            prepared.rigs.get(&actor.id),
+        ) else {
+            continue;
+        };
+        let Some(anchor) = rig.eye_anchor(&actor.rigid_parts) else {
+            continue;
+        };
+        let to_local = motion_animation::Transform2 {
+            translation: Vec2::new(actor.x, actor.y),
+            rotation: actor.rotation,
+            scale: actor.scale,
+        }
+        .affine()
+        .inverse();
+        let direction = |key: &motion_script::GazeKey| -> [f64; 2] {
+            let world = match (&key.target, key.x, key.y) {
+                (Some(target), _, _) => eyes.iter().find(|(id, _)| id == target).map(|e| e.1),
+                (None, Some(x), Some(y)) => Some(Vec2::new(x, y)),
+                _ => None,
+            };
+            let Some(world) = world else {
+                return [0.0, 0.0];
+            };
+            let local = to_local.point(world);
+            let (dx, dy) = (local.x - anchor.x, local.y - anchor.y);
+            let length = dx.hypot(dy);
+            if !length.is_finite() || length < 1e-9 {
+                return [0.0, 0.0];
+            }
+            let strength = (length / GAZE_FULL_DISTANCE).min(1.0) / length;
+            [dx * strength, dy * strength]
+        };
+        let next = keys.partition_point(|key| key.at <= time);
+        let gaze = match (next.checked_sub(1).map(|i| &keys[i]), keys.get(next)) {
+            (Some(a), Some(b)) => {
+                let w = ((time - a.at) / (b.at - a.at)).clamp(0.0, 1.0);
+                let (da, db) = (direction(a), direction(b));
+                [da[0] + (db[0] - da[0]) * w, da[1] + (db[1] - da[1]) * w]
+            }
+            (Some(only), None) | (None, Some(only)) => direction(only),
+            (None, None) => [0.0, 0.0],
+        };
+        rig.apply_gaze(&mut actor.rigid_parts, gaze);
+    }
+}
 fn evaluate_validated(
     script: &Script,
     prepared: &PreparedAnimation,
@@ -502,6 +635,7 @@ fn evaluate_validated(
                 wave: 0.0,
                 skeleton: motion_animation::humanoid(None, 0.0),
                 rigid_parts: prepared.rigid_parts.get(id).cloned().unwrap_or_default(),
+                mouth: None,
             };
             let mut walk_seconds = None;
             let mut emotion_changes = Vec::new();
@@ -567,17 +701,36 @@ fn evaluate_validated(
                 &offsets,
                 weights,
             )?;
-            if let (Some(rig), Some(tracks)) = (
-                prepared.rigs.get(id),
-                prepared.joint_tracks[scene_index].get(id),
-            ) {
+            if let Some(rig) = prepared.rigs.get(id) {
+                let tracks = prepared.joint_tracks[scene_index].get(id);
                 let offsets = tracks
-                    .iter()
-                    .map(|(joint, track)| Ok((*joint, track.sample(time_seconds)?)))
-                    .collect::<Result<Vec<_>, Error>>()?;
-                pose.rigid_parts = rig
-                    .evaluate_parts(&offsets)
-                    .map_err(|error| Error::InvalidAnimation(error.to_string()))?;
+                    .map(|tracks| {
+                        tracks
+                            .iter()
+                            .map(|(joint, track)| Ok((*joint, track.sample(time_seconds)?)))
+                            .collect::<Result<Vec<_>, Error>>()
+                    })
+                    .transpose()?
+                    .unwrap_or_default();
+                let invalid = |error: motion_rig::Error| Error::InvalidAnimation(error.to_string());
+                if rig.has_acting() {
+                    let input = motion_rig::ActingInput {
+                        emotion: &pose.emotion,
+                        blink: rig.blink_active(id, time_seconds),
+                    };
+                    let (parts, mouth) = rig.evaluate_acting(&offsets, input).map_err(invalid)?;
+                    pose.rigid_parts = parts;
+                    pose.mouth = mouth.map(|m| MouthVariants {
+                        part: m.part,
+                        shapes: m
+                            .shapes
+                            .into_iter()
+                            .filter_map(|(name, part)| Some((viseme_from_name(name)?, part)))
+                            .collect(),
+                    });
+                } else if tracks.is_some() {
+                    pose.rigid_parts = rig.evaluate_parts(&offsets).map_err(invalid)?;
+                }
             }
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
@@ -597,6 +750,7 @@ fn evaluate_validated(
             Ok(pose)
         })
         .collect::<Result<Vec<_>, Error>>()?;
+    apply_gaze(&mut actors, scene, prepared, time_seconds);
     actors.sort_by_key(|actor| {
         scene
             .composition
@@ -632,6 +786,8 @@ fn evaluate_validated(
     })
 }
 
+#[cfg(test)]
+mod acting_tests;
 #[cfg(test)]
 mod tests {
     use super::*;

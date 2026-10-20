@@ -1603,6 +1603,7 @@ mod tests {
             wave: 0.0,
             skeleton: [motion_scene::Vec2::new(0.0, 0.0); 7],
             rigid_parts: Vec::new(),
+            mouth: None,
         });
         mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
         mask_frame(
