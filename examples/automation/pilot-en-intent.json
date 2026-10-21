@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "seed": 31,
+  "language": "en-GB",
+  "duration_s": 50,
+  "source_sha256": "e58614ad6ed65fbeb535358b8cd43688b7a7cbc91d3acfed2d9e4bf2a6e04e14",
+  "characters": [
+    {
+      "id": "AINO",
+      "name": "Aino",
+      "asset_status": "to_be_authored"
+    },
+    {
+      "id": "RANE",
+      "name": "Rane",
+      "asset_status": "to_be_authored"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "varikko",
+      "duration_s": 50,
+      "environment_status": "to_be_authored"
+    }
+  ],
+  "beats": [
+    {
+      "id": "b01",
+      "scene": "varikko",
+      "start_s": 3,
+      "end_s": 8,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "It's just a tiny job. Take your own car. We need to keep costs down.",
+      "source_text": "It's just a tiny job. Take your own car. We need to keep costs down.",
+      "source_span": {
+        "start_byte": 243,
+        "end_byte": 311
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b02",
+      "scene": "varikko",
+      "start_s": 8,
+      "end_s": 13,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Whose costs? My car hasn't joined the company savings programme.",
+      "source_text": "Whose costs? My car hasn't joined the company savings programme.",
+      "source_span": {
+        "start_byte": 327,
+        "end_byte": 391
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b03",
+      "scene": "varikko",
+      "start_s": 13,
+      "end_s": 18,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "Stop counting every mile. We need flexibility and a sense of shared responsibility.",
+      "source_text": "Stop counting every mile. We need flexibility and a sense of shared responsibility.",
+      "source_span": {
+        "start_byte": 408,
+        "end_byte": 491
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b04",
+      "scene": "varikko",
+      "start_s": 18,
+      "end_s": 24,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "I've got both. And Kilsat. I'll log the trip so we can remember it the same way.",
+      "source_text": "I've got both. And Kilsat. I'll log the trip so we can remember it the same way.",
+      "source_span": {
+        "start_byte": 508,
+        "end_byte": 588
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b05",
+      "scene": "varikko",
+      "start_s": 29,
+      "end_s": 34,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "I'd remember it as free. That would make the paperwork much lighter for us.",
+      "source_text": "I'd remember it as free. That would make the paperwork much lighter for us.",
+      "source_span": {
+        "start_byte": 710,
+        "end_byte": 785
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b06",
+      "scene": "varikko",
+      "start_s": 34,
+      "end_s": 39,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Then we're taking different routes. I'm driving this one. You're driving your point home.",
+      "source_text": "Then we're taking different routes. I'm driving this one. You're driving your point home.",
+      "source_span": {
+        "start_byte": 802,
+        "end_byte": 891
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b07",
+      "scene": "varikko",
+      "start_s": 39,
+      "end_s": 44,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "What if I write that we agreed in a spirit of goodwill?",
+      "source_text": "What if I write that we agreed in a spirit of goodwill?",
+      "source_span": {
+        "start_byte": 908,
+        "end_byte": 963
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b08",
+      "scene": "varikko",
+      "start_s": 44,
+      "end_s": 49,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Go ahead. Include the distance. Goodwill doesn't go in the fuel tank.",
+      "source_text": "Go ahead. Include the distance. Goodwill doesn't go in the fuel tank.",
+      "source_span": {
+        "start_byte": 980,
+        "end_byte": 1049
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    }
+  ],
+  "shot_proposal": [
+    {
+      "id": "s01",
+      "scene": "varikko",
+      "start_s": 0,
+      "end_s": 3,
+      "intent": "two_shot"
+    },
+    {
+      "id": "s02",
+      "scene": "varikko",
+      "start_s": 3,
+      "end_s": 13,
+      "intent": "dialogue_pair"
+    },
+    {
+      "id": "s03",
+      "scene": "varikko",
+      "start_s": 13,
+      "end_s": 18,
+      "intent": "rane_close"
+    },
+    {
+      "id": "s04",
+      "scene": "varikko",
+      "start_s": 18,
+      "end_s": 24,
+      "intent": "aino_close"
+    },
+    {
+      "id": "s05",
+      "scene": "varikko",
+      "start_s": 24,
+      "end_s": 29,
+      "intent": "app_insert"
+    },
+    {
+      "id": "s06",
+      "scene": "varikko",
+      "start_s": 29,
+      "end_s": 39,
+      "intent": "dialogue_pair"
+    },
+    {
+      "id": "s07",
+      "scene": "varikko",
+      "start_s": 39,
+      "end_s": 44,
+      "intent": "rane_close"
+    },
+    {
+      "id": "s08",
+      "scene": "varikko",
+      "start_s": 44,
+      "end_s": 50,
+      "intent": "aino_reaction"
+    }
+  ],
+  "app_insert": {
+    "start_s": 24,
+    "end_s": 29,
+    "asset_status": "missing_real_capture"
+  },
+  "audio_status": "missing_recording",
+  "render_status": "not_rendered",
+  "speech_language": "en-GB",
+  "caption_language": "en-GB"
+}

@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "seed": 31,
+  "language": "fi-FI",
+  "duration_s": 50,
+  "source_sha256": "eece158f9ba72559f5b350992a832dee111da1fe3924a80501ca648a172fd380",
+  "characters": [
+    {
+      "id": "AINO",
+      "name": "Aino",
+      "asset_status": "to_be_authored"
+    },
+    {
+      "id": "RANE",
+      "name": "Rane",
+      "asset_status": "to_be_authored"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "varikko",
+      "duration_s": 50,
+      "environment_status": "to_be_authored"
+    }
+  ],
+  "beats": [
+    {
+      "id": "b01",
+      "scene": "varikko",
+      "start_s": 3,
+      "end_s": 8,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "Tämä on ihan pieni keikka. Käy omalla autolla, niin saadaan kulut kuriin.",
+      "source_text": "Tämä on ihan pieni keikka. Käy omalla autolla, niin saadaan kulut kuriin.",
+      "source_span": {
+        "start_byte": 241,
+        "end_byte": 317
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b02",
+      "scene": "varikko",
+      "start_s": 8,
+      "end_s": 13,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Saadaan kenen kulut kuriin? Minun autoni ei kuulu firman säästöohjelmaan.",
+      "source_text": "Saadaan kenen kulut kuriin? Minun autoni ei kuulu firman säästöohjelmaan.",
+      "source_span": {
+        "start_byte": 333,
+        "end_byte": 409
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b03",
+      "scene": "varikko",
+      "start_s": 13,
+      "end_s": 18,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "Älä laske jokaista kilometriä. Täällä tarvitaan joustavaa asennetta ja yhteistä vastuuta.",
+      "source_text": "Älä laske jokaista kilometriä. Täällä tarvitaan joustavaa asennetta ja yhteistä vastuuta.",
+      "source_span": {
+        "start_byte": 426,
+        "end_byte": 522
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b04",
+      "scene": "varikko",
+      "start_s": 18,
+      "end_s": 24,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Minulla on molemmat. Ja Kilsat. Kirjaan matkan nyt, niin muistetaan se samalla tavalla.",
+      "source_text": "Minulla on molemmat. Ja Kilsat. Kirjaan matkan nyt, niin muistetaan se samalla tavalla.",
+      "source_span": {
+        "start_byte": 539,
+        "end_byte": 626
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b05",
+      "scene": "varikko",
+      "start_s": 29,
+      "end_s": 34,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "Minä kyllä muistaisin sen ilmaisena. Se olisi meille hallinnollisesti paljon kevyempää.",
+      "source_text": "Minä kyllä muistaisin sen ilmaisena. Se olisi meille hallinnollisesti paljon kevyempää.",
+      "source_span": {
+        "start_byte": 779,
+        "end_byte": 870
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b06",
+      "scene": "varikko",
+      "start_s": 34,
+      "end_s": 39,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Silloin meillä olisi kaksi eri reittiä. Minä ajan tätä, sinä ajat asiaasi.",
+      "source_text": "Silloin meillä olisi kaksi eri reittiä. Minä ajan tätä, sinä ajat asiaasi.",
+      "source_span": {
+        "start_byte": 887,
+        "end_byte": 967
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b07",
+      "scene": "varikko",
+      "start_s": 39,
+      "end_s": 44,
+      "kind": "dialogue",
+      "actor": "RANE",
+      "text": "Entä jos minä kirjoitan raporttiin, että sovittiin hyvässä hengessä?",
+      "source_text": "Entä jos minä kirjoitan raporttiin, että sovittiin hyvässä hengessä?",
+      "source_span": {
+        "start_byte": 984,
+        "end_byte": 1058
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    },
+    {
+      "id": "b08",
+      "scene": "varikko",
+      "start_s": 44,
+      "end_s": 49,
+      "kind": "dialogue",
+      "actor": "AINO",
+      "text": "Kirjoita vain. Laita myös kilometrit. Hyvä henki ei kulje tankkiin.",
+      "source_text": "Kirjoita vain. Laita myös kilometrit. Hyvä henki ei kulje tankkiin.",
+      "source_span": {
+        "start_byte": 1075,
+        "end_byte": 1144
+      },
+      "provenance": {
+        "kind": "authored",
+        "rule_id": "ING-002",
+        "rule_pack": "proposal-v1"
+      }
+    }
+  ],
+  "shot_proposal": [
+    {
+      "id": "s01",
+      "scene": "varikko",
+      "start_s": 0,
+      "end_s": 3,
+      "intent": "two_shot"
+    },
+    {
+      "id": "s02",
+      "scene": "varikko",
+      "start_s": 3,
+      "end_s": 13,
+      "intent": "dialogue_pair"
+    },
+    {
+      "id": "s03",
+      "scene": "varikko",
+      "start_s": 13,
+      "end_s": 18,
+      "intent": "rane_close"
+    },
+    {
+      "id": "s04",
+      "scene": "varikko",
+      "start_s": 18,
+      "end_s": 24,
+      "intent": "aino_close"
+    },
+    {
+      "id": "s05",
+      "scene": "varikko",
+      "start_s": 24,
+      "end_s": 29,
+      "intent": "app_insert"
+    },
+    {
+      "id": "s06",
+      "scene": "varikko",
+      "start_s": 29,
+      "end_s": 39,
+      "intent": "dialogue_pair"
+    },
+    {
+      "id": "s07",
+      "scene": "varikko",
+      "start_s": 39,
+      "end_s": 44,
+      "intent": "rane_close"
+    },
+    {
+      "id": "s08",
+      "scene": "varikko",
+      "start_s": 44,
+      "end_s": 50,
+      "intent": "aino_reaction"
+    }
+  ],
+  "app_insert": {
+    "start_s": 24,
+    "end_s": 29,
+    "asset_status": "missing_real_capture"
+  },
+  "audio_status": "missing_recording",
+  "render_status": "not_rendered",
+  "speech_language": "fi-FI",
+  "caption_language": "fi-FI"
+}
