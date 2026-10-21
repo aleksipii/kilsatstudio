@@ -1,11 +1,28 @@
 # Original, self-contained characters for the night-room reference sequence.
 # Flat cut-out rigs built only from colored polygons: no third-party art.
 # Scenes are generated from shots.yaml; see README.md.
+#
+# Integrated features (docs/shot-library.md): speaker-coloured captions
+# (project.captions), acting rigs (mouth variants mapped to viseme names, eyes
+# with gaze and seeded blinks, brow expressions). Lights and the animated phone
+# screen live in the project artwork built by crates/motion-export/tests/support.
+# Everything is original placeholder art awaiting human review.
 project:
   title: Night room reference (original art)
   fps: 24
   width: 640
   height: 360
+  captions:
+    enabled: true
+    font_size: 30
+    fill: '#ffffff'
+    speaker_fill: {DAD: '#ffffff', STAN: '#ffd400'}
+    outline: '#000000'
+    outline_width: 3
+    bottom_margin: 0.07
+    max_width: 0.8
+    line_height: 1.1
+    uppercase: true
 characters:
   # A boy in a pompom beanie and football pyjamas, holding a phone.
   # The origin is his waist; he sits up in bed (the blanket is foreground art).
@@ -19,29 +36,97 @@ characters:
         - {id: torso, parent: root}
         - {id: head, parent: torso, x: 0, y: -60}
         - {id: arm, parent: torso, x: 24, y: -52, rotation: 0.35}
-        - {id: hand, parent: arm, x: 0, y: 40}
+        # The hand cancels the arm rotation so the phone stays upright and the
+        # animated screen layer (axis-aligned artwork) sits on it exactly.
+        # World position of the hand with STAN placed at (320, 300): (333.03, 278.06).
+        - {id: hand, parent: arm, x: 0, y: 32, rotation: -0.35}
       parts:
         - {id: pyjama_top, joint: torso, points: [[-26, -62], [26, -62], [32, 12], [-32, 12]], color: [60, 100, 190, 255]}
         - {id: football_patch_a, joint: torso, points: [[-18, -30], [-10, -34], [-3, -28], [-5, -18], [-15, -17]], color: [235, 235, 235, 255]}
         - {id: football_patch_b, joint: torso, points: [[8, -8], [16, -12], [23, -6], [21, 3], [11, 4]], color: [235, 235, 235, 255]}
-        - {id: sleeve, joint: arm, points: [[-8, -4], [8, -4], [7, 42], [-7, 42]], color: [50, 86, 170, 255]}
-        - {id: hand_skin, joint: hand, points: [[-7, -6], [7, -6], [8, 8], [0, 12], [-8, 8]], color: [240, 196, 160, 255]}
-        # The phone is a plain rectangle prop.
-        - {id: phone_body, joint: hand, points: [[-10, -12], [10, -12], [10, 24], [-10, 24]], color: [28, 28, 36, 255]}
-        # TODO(props/phone-screen): replace with an animated image surface and
-        # a light source once the lighting and props workstream lands.
-        - {id: phone_screen_placeholder, joint: hand, points: [[-8, -10], [8, -10], [8, 20], [-8, 20]], color: [72, 84, 120, 255]}
+        - {id: sleeve, joint: arm, points: [[-8, -4], [8, -4], [7, 34], [-7, 34]], color: [50, 86, 170, 255]}
+        - {id: hand_skin, joint: hand, points: [[-14, -4], [14, -4], [15, 8], [0, 12], [-15, 8]], color: [240, 196, 160, 255]}
+        # The phone body; its screen is an animated image layer plus a light in the
+        # project artwork (screen_glow), not a rig part.
+        - {id: phone_body, joint: hand, points: [[-12, -14], [12, -14], [12, 26], [-12, 26]], color: [28, 28, 36, 255]}
         - {id: head_skin, joint: head, points: [[-17, 0], [-24, -16], [-22, -36], [-10, -48], [10, -48], [22, -36], [24, -16], [17, 0]], color: [240, 196, 160, 255]}
-        # TODO(acting): eye gaze, blinks and brow variants (sprite swaps).
-        - {id: eye_l, joint: head, points: [[-14, -26], [-6, -26], [-6, -19], [-14, -19]], color: [30, 24, 40, 255]}
-        - {id: eye_r, joint: head, points: [[6, -26], [14, -26], [14, -19], [6, -19]], color: [30, 24, 40, 255]}
-        - {id: brow_l_worried, joint: head, points: [[-16, -30], [-5, -35], [-5, -32], [-16, -27]], color: [60, 40, 40, 255]}
-        - {id: brow_r_worried, joint: head, points: [[5, -35], [16, -30], [16, -27], [5, -32]], color: [60, 40, 40, 255]}
-        # TODO(visemes): swap this closed-mouth placeholder per viseme.
-        - {id: mouth_placeholder, joint: head, points: [[-6, -10], [6, -10], [5, -6], [-5, -6]], color: [150, 70, 70, 255]}
+        - id: eye_l
+          joint: head
+          points: [[-15, -27], [-5, -27], [-5, -18], [-15, -18]]
+          color: [236, 236, 242, 255]
+          variants:
+            blink: {points: [[-15, -23.3], [-5, -23.3], [-5, -21.7], [-15, -21.7]], color: [90, 60, 60, 255]}
+        - id: pupil_l
+          joint: head
+          points: [[-12, -25], [-8, -25], [-8, -20], [-12, -20]]
+          color: [30, 24, 40, 255]
+          variants:
+            blink: {color: [30, 24, 40, 0]}
+        - id: eye_r
+          joint: head
+          points: [[5, -27], [15, -27], [15, -18], [5, -18]]
+          color: [236, 236, 242, 255]
+          variants:
+            blink: {points: [[5, -23.3], [15, -23.3], [15, -21.7], [5, -21.7]], color: [90, 60, 60, 255]}
+        - id: pupil_r
+          joint: head
+          points: [[8, -25], [12, -25], [12, -20], [8, -20]]
+          color: [30, 24, 40, 255]
+          variants:
+            blink: {color: [30, 24, 40, 0]}
+        - id: brow_l
+          joint: head
+          points: [[-16, -31], [-5, -31], [-5, -28.5], [-16, -28.5]]
+          color: [60, 40, 40, 255]
+          variants:
+            worried: {points: [[-16, -30], [-5, -35], [-5, -32.5], [-16, -27.5]]}
+            raised: {points: [[-16, -35], [-5, -35], [-5, -32.5], [-16, -32.5]]}
+            angry: {points: [[-16, -32], [-5, -28], [-5, -25.5], [-16, -29.5]]}
+        - id: brow_r
+          joint: head
+          points: [[5, -31], [16, -31], [16, -28.5], [5, -28.5]]
+          color: [60, 40, 40, 255]
+          variants:
+            worried: {points: [[5, -35], [16, -30], [16, -27.5], [5, -32.5]]}
+            raised: {points: [[5, -35], [16, -35], [16, -32.5], [5, -32.5]]}
+            angry: {points: [[5, -28], [16, -32], [16, -29.5], [5, -25.5]]}
+        - id: mouth
+          joint: head
+          points: [[-6, -10], [6, -10], [5, -6], [-5, -6]]
+          color: [150, 70, 70, 255]
+          variants:
+            closed: {points: [[-6, -8.5], [6, -8.5], [6, -7], [-6, -7]], color: [110, 45, 50, 255]}
+            teeth_lip: {points: [[-6, -10], [6, -10], [5, -5], [-5, -5]], color: [235, 225, 215, 255]}
+            tongue_teeth: {points: [[-5, -10], [5, -10], [5, -5], [-5, -5]], color: [210, 110, 120, 255]}
+            tongue_up: {points: [[-5, -11], [5, -11], [6, -5], [-6, -5]], color: [190, 90, 100, 255]}
+            sibilant: {points: [[-7, -9.5], [7, -9.5], [6, -6], [-6, -6]], color: [225, 210, 205, 255]}
+            sh: {points: [[-4, -12], [4, -12], [5, -5], [-5, -5]], color: [120, 50, 60, 255]}
+            r: {points: [[-5, -11], [5, -11], [4, -5], [-4, -5]], color: [125, 50, 62, 255]}
+            a: {points: [[-7, -13], [7, -13], [6, -2], [-6, -2]], color: [90, 30, 40, 255]}
+            e: {points: [[-7, -11], [7, -11], [6, -4], [-6, -4]], color: [105, 40, 50, 255]}
+            i: {points: [[-8, -10], [8, -10], [7, -6], [-7, -6]], color: [130, 60, 66, 255]}
+            o: {points: [[-4, -13], [4, -13], [6, -8], [4, -3], [-4, -3], [-6, -8]], color: [90, 30, 40, 255]}
+            u: {points: [[-3, -12], [3, -12], [4, -8], [3, -4], [-3, -4], [-4, -8]], color: [100, 38, 48, 255]}
         - {id: beanie_crown, joint: head, points: [[-23, -46], [-19, -60], [-8, -70], [8, -70], [19, -60], [23, -46]], color: [210, 60, 70, 255]}
         - {id: beanie_band, joint: head, points: [[-24, -46], [24, -46], [24, -38], [-24, -38]], color: [235, 225, 200, 255]}
         - {id: pompom, joint: head, points: [[-9, -77], [-6, -83], [0, -86], [6, -83], [9, -77], [6, -71], [0, -68], [-6, -71]], color: [245, 245, 245, 255]}
+      visemes:
+        part: mouth
+        map: {closed: closed, teeth_lip: teeth_lip, tongue_teeth: tongue_teeth, tongue_up: tongue_up, sibilant: sibilant, sh: sh, r: r, a: a, e: e, i: i, o: o, u: u}
+      expressions:
+        sad:
+          - {part: brow_l, variant: worried}
+          - {part: brow_r, variant: worried}
+        surprised:
+          - {part: brow_l, variant: raised}
+          - {part: brow_r, variant: raised}
+        angry:
+          - {part: brow_l, variant: angry}
+          - {part: brow_r, variant: angry}
+      eyes:
+        pupils: [pupil_l, pupil_r]
+        travel: 3
+        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r], variant: blink, interval: 2.2, duration: 0.14}
   # A father in a work shirt. The origin is his waist; feet are 110 px below.
   DAD:
     asset: characters/dad-cutout
@@ -66,12 +151,79 @@ characters:
         - {id: hand_r, joint: arm_r, points: [[-8, 60], [8, 60], [7, 74], [-7, 74]], color: [226, 176, 140, 255]}
         - {id: head_skin, joint: head, points: [[-22, 0], [-30, -20], [-28, -46], [-14, -62], [14, -62], [28, -46], [30, -20], [22, 0]], color: [226, 176, 140, 255]}
         - {id: hair, joint: head, points: [[-29, -44], [-14, -64], [14, -64], [29, -44], [24, -50], [0, -54], [-24, -50]], color: [50, 36, 30, 255]}
-        # TODO(acting): eye gaze, blinks and brow variants (sprite swaps).
-        - {id: eye_l, joint: head, points: [[-16, -34], [-8, -34], [-8, -28], [-16, -28]], color: [30, 24, 40, 255]}
-        - {id: eye_r, joint: head, points: [[8, -34], [16, -34], [16, -28], [8, -28]], color: [30, 24, 40, 255]}
-        - {id: brow_l, joint: head, points: [[-19, -42], [-6, -40], [-6, -37], [-19, -39]], color: [50, 36, 30, 255]}
-        - {id: brow_r, joint: head, points: [[6, -40], [19, -42], [19, -39], [6, -37]], color: [50, 36, 30, 255]}
+        - id: eye_l
+          joint: head
+          points: [[-17, -35], [-7, -35], [-7, -27], [-17, -27]]
+          color: [236, 236, 242, 255]
+          variants:
+            blink: {points: [[-17, -31.8], [-7, -31.8], [-7, -30.2], [-17, -30.2]], color: [90, 55, 50, 255]}
+        - id: pupil_l
+          joint: head
+          points: [[-14, -33.5], [-10, -33.5], [-10, -28.5], [-14, -28.5]]
+          color: [30, 24, 40, 255]
+          variants:
+            blink: {color: [30, 24, 40, 0]}
+        - id: eye_r
+          joint: head
+          points: [[7, -35], [17, -35], [17, -27], [7, -27]]
+          color: [236, 236, 242, 255]
+          variants:
+            blink: {points: [[7, -31.8], [17, -31.8], [17, -30.2], [7, -30.2]], color: [90, 55, 50, 255]}
+        - id: pupil_r
+          joint: head
+          points: [[10, -33.5], [14, -33.5], [14, -28.5], [10, -28.5]]
+          color: [30, 24, 40, 255]
+          variants:
+            blink: {color: [30, 24, 40, 0]}
+        - id: brow_l
+          joint: head
+          points: [[-19, -42], [-6, -42], [-6, -39], [-19, -39]]
+          color: [50, 36, 30, 255]
+          variants:
+            worried: {points: [[-19, -41], [-6, -46], [-6, -43], [-19, -38]]}
+            raised: {points: [[-19, -46], [-6, -46], [-6, -43], [-19, -43]]}
+            angry: {points: [[-19, -43], [-6, -39], [-6, -36], [-19, -40]]}
+        - id: brow_r
+          joint: head
+          points: [[6, -42], [19, -42], [19, -39], [6, -39]]
+          color: [50, 36, 30, 255]
+          variants:
+            worried: {points: [[6, -46], [19, -41], [19, -38], [6, -43]]}
+            raised: {points: [[6, -46], [19, -46], [19, -43], [6, -43]]}
+            angry: {points: [[6, -39], [19, -43], [19, -40], [6, -36]]}
+        - id: mouth
+          joint: head
+          points: [[-6, -6.6], [6, -6.6], [5, -3.4], [-5, -3.4]]
+          color: [150, 70, 70, 255]
+          variants:
+            closed: {points: [[-6, -5.4], [6, -5.4], [6, -4.2], [-6, -4.2]], color: [110, 45, 50, 255]}
+            teeth_lip: {points: [[-6, -6.6], [6, -6.6], [5, -2.6], [-5, -2.6]], color: [235, 225, 215, 255]}
+            tongue_teeth: {points: [[-5, -6.6], [5, -6.6], [5, -2.6], [-5, -2.6]], color: [210, 110, 120, 255]}
+            tongue_up: {points: [[-5, -7.4], [5, -7.4], [6, -2.6], [-6, -2.6]], color: [190, 90, 100, 255]}
+            sibilant: {points: [[-7, -6.2], [7, -6.2], [6, -3.4], [-6, -3.4]], color: [225, 210, 205, 255]}
+            sh: {points: [[-4, -8.2], [4, -8.2], [5, -2.6], [-5, -2.6]], color: [120, 50, 60, 255]}
+            r: {points: [[-5, -7.4], [5, -7.4], [4, -2.6], [-4, -2.6]], color: [125, 50, 62, 255]}
+            a: {points: [[-7, -9], [7, -9], [6, -0.2], [-6, -0.2]], color: [90, 30, 40, 255]}
+            e: {points: [[-7, -7.4], [7, -7.4], [6, -1.8], [-6, -1.8]], color: [105, 40, 50, 255]}
+            i: {points: [[-8, -6.6], [8, -6.6], [7, -3.4], [-7, -3.4]], color: [130, 60, 66, 255]}
+            o: {points: [[-4, -9], [4, -9], [6, -5], [4, -1], [-4, -1], [-6, -5]], color: [90, 30, 40, 255]}
+            u: {points: [[-3, -8.2], [3, -8.2], [4, -5], [3, -1.8], [-3, -1.8], [-4, -5]], color: [100, 38, 48, 255]}
         - {id: moustache, joint: head, points: [[-14, -14], [14, -14], [11, -8], [0, -10], [-11, -8]], color: [50, 36, 30, 255]}
-        # TODO(visemes): swap this closed-mouth placeholder per viseme.
-        - {id: mouth_placeholder, joint: head, points: [[-6, -6], [6, -6], [5, -3], [-5, -3]], color: [140, 60, 60, 255]}
+      visemes:
+        part: mouth
+        map: {closed: closed, teeth_lip: teeth_lip, tongue_teeth: tongue_teeth, tongue_up: tongue_up, sibilant: sibilant, sh: sh, r: r, a: a, e: e, i: i, o: o, u: u}
+      expressions:
+        sad:
+          - {part: brow_l, variant: worried}
+          - {part: brow_r, variant: worried}
+        surprised:
+          - {part: brow_l, variant: raised}
+          - {part: brow_r, variant: raised}
+        angry:
+          - {part: brow_l, variant: angry}
+          - {part: brow_r, variant: angry}
+      eyes:
+        pupils: [pupil_l, pupil_r]
+        travel: 3
+        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r], variant: blink, interval: 2.3, duration: 0.14}
 scenes: []

@@ -1,6 +1,6 @@
 # Plan: professional dialogue animation from a screenplay alone
 
-Status: plan, 2026-10-20; workstreams 1-5 merged as PRs #72-#76 (see master-progress.md); integration (increment 3) and human review (increment 4) are open. Nothing here is implemented unless a later section of
+Status: plan, 2026-10-20; workstreams 1-5 merged as PRs #72-#76 (see master-progress.md); increment 3 (integration of workstreams 1-5 in one night-room reference project, with a real offline Kokoro run) is implemented as a CPU-path, placeholder-art sequence; human review (increment 4) is open. Nothing here is implemented unless a later section of
 [master-progress.md](master-progress.md) says so. The authoritative requirement
 list stays in the [master build prompt](master-build-prompt.md); open work is in
 [remaining-work.md](remaining-work.md).
@@ -77,6 +77,9 @@ described as validated.
 
 1. This plan and the reference screenplay skeleton.
 2. Workstreams 1-4 in parallel, each as its own reviewed PR with real checks.
-3. Workstream 5 integration: full reference scene, golden frames, timing report.
+3. Workstream 5 integration: full reference scene, golden-property tests, timing report
+   (done on the CPU path: see [shot-library.md](shot-library.md) and
+   `examples/night-room-reference/`; art, timing, voice and mouths are unreviewed
+   placeholders).
 4. Human review pass (style, timing, voice, licences); only then any claim of
    "professional-grade" for the sample.
