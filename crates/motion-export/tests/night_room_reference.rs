@@ -783,7 +783,10 @@ fn phone_screen_animates_and_its_glow_follows_the_shown_frame() {
     let screen_pixel = |f: &Fixture, t: f64| {
         let frame = frame_mode(f, at_time(f, BOY, t), CaptionMode::Hide);
         let screen = support::PHONE_SCREEN;
-        let world = (screen.x + screen.width / 2.0, screen.y + screen.height * 0.04);
+        let world = (
+            screen.x + screen.width / 2.0,
+            screen.y + screen.height * 0.04,
+        );
         let (x, y) = probe(f, BOY, t, world);
         pixel(&frame, x, y)
     };
@@ -806,7 +809,9 @@ fn phone_screen_animates_and_its_glow_follows_the_shown_frame() {
     // Subtract the same frame with only the phone light removed to isolate its
     // contribution from camera movement, room tint and the lamp.
     let no_phone = fixture_with_art(|mut art| {
-        art.document.lights.retain(|l| !l.id.ends_with("phone_glow"));
+        art.document
+            .lights
+            .retain(|l| !l.id.ends_with("phone_glow"));
         art
     });
     let glow = |t: f64| {
