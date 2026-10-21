@@ -42,6 +42,21 @@ claimed by this design delivery.
 
 ## Latest merge status
 
+PRs #78 (`2186f81`), #79 (`7bb5e21`) and #81 (`af705a6`) merged on 2026-10-21 after green Linux/macOS CI on each final
+head (#79 and #81 were updated with main first; PR #80, a separate automation plan, merged in between and is not covered
+here): #78 desktop caption choice (Follow screenplay / Show / Hide) applied in one shared path for previews and exports, kept out
+of the screenplay and undo history and stored as an optional `.kilsat` field; #79 text-estimated mouth visemes in dialogue
+preparation (precedence manual > forced > Rhubarb estimated > text-estimated, always labelled estimated, cache identity
+includes overrides and lexicon version, non-fatal diagnostics); #81 the night-room reference sequence with captions,
+acting rigs, lights and an animated phone screen driven by the same project. One local hand run of real offline Kokoro
+(af_heart and am_michael, CPU, Apple M1, macOS 27.0.1; WAVs kept outside git) produced a 13.5 s sequence; wall time per
+line was 1.9-2.4x the audio, including a fresh process and model load. The work was done by parallel agents and checked via
+CI, their local runs and one reading of the contact sheet by the parent; the frames were not compared with the audio.
+Visible problems noted by the agent and confirmed on the contact sheet: lights are drawn over the characters (the green
+hallway light tints the father), eyes/brows and the phone screen are tiny at 640 px, captions overlap the blanket in the boy
+shot. Not established: style, comic timing, voice choice (the boy uses a female preset only because it is installed), mouth
+quality, MP4 export (no ffmpeg on this Mac), GUI behaviour, GPU support for captions/lights, and font/lexicon licence sign-off.
+
 PRs #71–#76 merged on 2026-10-20 (plan, then five workstreams of
 [professional-animation-plan.md](professional-animation-plan.md)), each after green Linux/macOS CI on its final head
 (branches were updated with main first; #74 needed a fix because gitignored `*.wav` fixtures
