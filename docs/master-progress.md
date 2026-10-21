@@ -1,7 +1,7 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-19. A checked item identifies integrated, inspected implementation, not a
+2026-10-21. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
@@ -41,6 +41,63 @@ open. No new Rust implementation, real speech, physical Mac or rendered video is
 claimed by this design delivery.
 
 ## Latest merge status
+
+### Reference correction and integration audit (2026-10-21)
+
+The initial live GitHub audit examined all 82 existing PRs: each was already
+merged. `main` and `kilsatstudio1.0` were identical at `9e06318`, with successful
+Linux/macOS, GPU-contract, media-encoding and Apple Silicon packaging workflows.
+There was no backlog of unmerged historical PRs to reapply.
+
+PR #83 (`2a347c7`) adds CI review artifacts: four PNG shots, a contact sheet,
+timing report and an FFmpeg MP4, retained for 14 days. Final head `c71daffa`
+passed [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39561420340)
+and [Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/39561420400).
+The workflow runs on pushes to both target branches. Its first export attempt
+exposed a missing output parent; the final workflow creates it before exporting.
+The actual downloaded baseline MP4 is H.264 640×360 with AAC, 11.666667 s.
+It uses generated placeholder tones, unlike the separate prior 13.5 s Kokoro run.
+
+PR #84 (`8dc0a3d`) adds an inventory of locally installed English voice files,
+explicit boy/father voice audition options and language/speed/model preflight.
+Its final head `e5ecb210` passed [Linux/macOS CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39561301750),
+[Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/39561301698)
+and [voice-selection tests](https://github.com/aleksipii/kilsatstudio/actions/runs/39561301744).
+Six model-free selection tests passed locally. Existing voice defaults remain;
+no new model download, Kokoro inference or listening approval occurred here.
+
+PR #85 (`afbe853`) integrates the visual corrections and canonical fixture
+regeneration diagnostics. Its final head `f26141d` includes current main and
+passed [full Linux/macOS Rust, GPU-contract and real-media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/39564466120)
+and [Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/39564466112).
+All 17 reference tests passed (one real-speech test remains explicitly ignored
+without external WAVs), including legacy SVG compatibility, backlight actor
+occlusion, enlarged-screen animation, caption separation and oval removal.
+Earlier CI failures exposed stale probes and formatting; the final probe-only
+fixes measure actual background lighting rather than light over a character.
+The generated project was taken from the real CI serializer and matches its
+source/art/assets generator. The original stale-fixture check remains active.
+
+The reference correction review used the actual CI-produced MP4 from PR #85
+head `2fa7e4f`, artifact `12328976009` in
+[run 39562652466](https://github.com/aleksipii/kilsatstudio/actions/runs/39562652466).
+The parent extracted and viewed all four shots at 1, 4, 7.5 and 10.5 seconds.
+It confirmed the blue oval is absent in both boy shots (the actual source was a
+pillow ellipse), the father is darker with no green overlay, eyes/brows and the
+phone are larger, captions have a backing clear of the blanket, and mouth
+contours are stronger. The H.264/AAC video is 640×360 and 11.666667 seconds,
+using placeholder tones. Later test/provenance integration changes preserve
+those reviewed renderer/art bytes. This accepts the scoped visual corrections;
+it does not establish professional animation, comic timing, acoustic mouth
+alignment, voice choice, a hand-run GUI or GPU support for these effects.
+
+The combined head `634aadd` passed 163 model-free Python tests locally
+(6 voice-selection, 20 plan contracts, 55 runtime helpers, 82 packaging/audit),
+the Finnish/English plan checker and `git diff --check`. Rust was unavailable
+in this workspace; Rust checks and real render/export evidence came from CI.
+No new Kokoro inference or original external WAV review occurred here. Anton
+and CMUdict legal approval, physical Mac/device acceptance, Finnish synthesis,
+production art and the measured 300-second full pipeline remain open.
 
 PRs #78 (`2186f81`), #79 (`7bb5e21`) and #81 (`af705a6`) merged on 2026-10-21 after green Linux/macOS CI on each final
 head (#79 and #81 were updated with main first; PR #80, a separate automation plan, merged in between and is not covered
