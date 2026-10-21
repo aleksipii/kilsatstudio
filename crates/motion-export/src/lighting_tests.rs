@@ -18,6 +18,7 @@ fn light(id: &str, source: LightSource) -> Light {
         visible: true,
         active: None,
         flicker: None,
+        behind_actors: false,
         source,
     }
 }
@@ -147,6 +148,33 @@ fn radial_screen_light_brightens_and_tints_only_its_area() {
     for (x, y) in [(500, 100), (300, 250), (0, 0), (639, 359)] {
         assert_eq!(px(&lit, x, y), px(&base, x, y));
     }
+}
+
+#[test]
+fn backlight_brightens_background_without_painting_over_actor() {
+    let script = script();
+    let scene = scene_at(&script, 0.0, "#101010", true);
+    let actor = &scene.actors[0];
+    let head = actor.skeleton[motion_scene::HEAD];
+    // Use the solid cheek, away from the eyes and mouth.
+    let (x, y) = (actor.x + head.x + 12.0, actor.y + head.y);
+    let render = |doc: &Document| {
+        Pixmap::decode_png(&media::rasterize(&svg_of(&scene, doc)).unwrap()).unwrap()
+    };
+    let base = render(&Document::default());
+    let mut lamp = light(
+        "hallway",
+        radial(x, y, 100.0, rgb(0, 255, 0), BlendMode::Screen),
+    );
+    lamp.behind_actors = true;
+    let back = render(&doc_with(vec![lamp.clone()], vec![]));
+    let (px_x, px_y) = (x as u32, y as u32);
+    assert_eq!(px(&back, px_x, px_y), px(&base, px_x, px_y));
+    assert_ne!(px(&back, px_x + 65, px_y), px(&base, px_x + 65, px_y));
+    // Existing overlay lights intentionally still tint the same actor pixel.
+    lamp.behind_actors = false;
+    let front = render(&doc_with(vec![lamp], vec![]));
+    assert_ne!(px(&front, px_x, px_y), px(&base, px_x, px_y));
 }
 
 #[test]
@@ -428,6 +456,7 @@ fn lit_context() -> ArtContext {
         "lamp",
         radial(560.0, 40.0, 70.0, rgb(255, 170, 80), BlendMode::Screen),
     );
+    lamp.behind_actors = true;
     lamp.flicker = Some(Flicker {
         mode: FlickerMode::Noise,
         amount: 0.5,

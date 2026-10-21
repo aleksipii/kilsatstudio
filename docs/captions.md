@@ -133,3 +133,11 @@ versus audio-derived timing, identical bytes across SVG-to-PNG, scene preview an
 sequence preview, a font database holding one font, and missing-glyph errors.
 They do not establish typographic quality, readability, kerning-accurate widths,
 or behaviour on a physical Mac; no desktop UI was exercised.
+
+### Optional caption backing
+
+`project.captions.background: '#15121f'` adds an opaque full-width strip behind
+active captions on the shared SVG path. It is fixed in screen space, so camera
+moves cannot put the text back on a blanket or prop. The strip includes padding
+for glyph outlines and extends to the bottom edge. It is absent during silence;
+omitting `background` preserves transparent captions. Colours must be `#rrggbb`.

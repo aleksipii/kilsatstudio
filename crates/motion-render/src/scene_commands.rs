@@ -1539,6 +1539,7 @@ mod tests {
             visible: true,
             active: None,
             flicker: None,
+            behind_actors: false,
             source: motion_art::LightSource::Vignette {
                 strength: 0.5,
                 inner: 0.2,

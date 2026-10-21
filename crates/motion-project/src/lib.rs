@@ -690,6 +690,7 @@ mod tests {
             visible: true,
             active: Some(motion_art::TimeRange { start: 0.0, end }),
             flicker: None,
+            behind_actors: false,
             source: motion_art::LightSource::Radial {
                 position: motion_art::Point { x: 1.0, y: 1.0 },
                 radius: 10.0,

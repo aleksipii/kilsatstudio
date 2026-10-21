@@ -15,6 +15,22 @@ jobs:
       - run: cargo check --workspace
       - run: cargo clippy --keep-going --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets
+      - name: Regenerate canonical reference fixture for diagnostics
+        if: always() && matrix.os == 'ubuntu-latest'
+        run: |
+          cargo run --locked -p motion-export --example night_room_reference -- write
+          mkdir -p out/night-room-generated
+          cp examples/night-room-reference/night-room.kilsat out/night-room-generated/
+          cargo run --locked -p motion-export --example night_room_reference -- frames out/night-room-generated
+          cargo run --locked -p motion-export --example night_room_reference -- report > out/night-room-generated/timing.txt
+          git diff --exit-code -- examples/night-room-reference/night-room.kilsat
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.os == 'ubuntu-latest'
+        with:
+          name: night-room-canonical-fixture-${{ github.sha }}
+          path: out/night-room-generated/
+          if-no-files-found: error
+          retention-days: 14
       - name: Render night-room visual review frames (placeholder audio)
         if: matrix.os == 'ubuntu-latest'
         run: |

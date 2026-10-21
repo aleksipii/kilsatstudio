@@ -500,6 +500,10 @@ pub struct CaptionStyle {
     /// Line pitch as a multiple of `font_size`.
     pub line_height: f64,
     pub uppercase: bool,
+    /// Optional opaque full-width backing below active captions, in screen space.
+    /// Absent preserves the original transparent caption rendering.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub background: Option<String>,
 }
 impl Default for CaptionStyle {
     fn default() -> Self {
@@ -514,6 +518,7 @@ impl Default for CaptionStyle {
             max_width: 0.8,
             line_height: 1.15,
             uppercase: true,
+            background: None,
         }
     }
 }
@@ -576,6 +581,7 @@ impl CaptionStyle {
         for color in [&self.fill, &self.outline]
             .into_iter()
             .chain(self.speaker_fill.values())
+            .chain(self.background.iter())
         {
             if !safe_background_color(color) {
                 return Err(fail(format!("colour {color:?} must be #rrggbb")));
@@ -4305,6 +4311,7 @@ mod caption_style_tests {
             ", captions: {bottom_margin: 0.9}",
             ", captions: {outline_width: -1}",
             ", captions: {fill: red}",
+            ", captions: {background: red}",
             ", captions: {speaker_fill: {NOBODY: '#ffffff'}}",
             ", captions: {speaker_fill: {EMMA: '#ggg000'}}",
         ] {

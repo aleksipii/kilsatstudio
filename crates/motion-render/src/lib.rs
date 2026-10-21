@@ -213,6 +213,21 @@ fn render_scene(
             motion_art::Plane::Background,
         )?;
     }
+    if let Some((scene_id, document, images)) = artwork {
+        if document.lights.iter().any(|light| {
+            light.scene_id == scene_id && light.behind_actors && light.is_active(scene.time)
+        }) {
+            // Close the camera while drawing canvas-space tints, then reopen it
+            // for actors. Preserve legacy SVG bytes when no backlight is active.
+            svg.push_str("</g>");
+            let camera = format!(
+                "translate({camera_x:.6} {camera_y:.6}) scale({:.6})",
+                scene.camera.zoom
+            );
+            append_lights(&mut svg, scene, scene_id, document, images, &camera, true)?;
+            write!(svg, "<g transform=\"{camera}\">").unwrap();
+        }
+    }
     let mut embedded_rig_bytes = 0u64;
     let rig_images = artwork.map(|(_, _, images)| images);
     for (actor_index, actor) in scene.actors.iter().enumerate() {
@@ -327,7 +342,7 @@ fn render_scene(
             "translate({camera_x:.6} {camera_y:.6}) scale({:.6})",
             scene.camera.zoom
         );
-        append_lights(&mut svg, scene, scene_id, document, images, &camera)?;
+        append_lights(&mut svg, scene, scene_id, document, images, &camera, false)?;
     }
     svg.push_str("</g></svg>\n");
     Ok(svg)
@@ -699,9 +714,10 @@ fn hex(color: &motion_art::Color) -> String {
     format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
 }
 
-/// Scene lights above all artwork. Ambient tint and vignette are canvas-space
+/// Lights on the selected side of the actors. Ambient tint and vignette are canvas-space
 /// (outside the camera); radial lights live in scene space under `camera`.
 /// Ambient/vignette come first so glows stay bright over a darkened room.
+#[allow(clippy::too_many_arguments)]
 fn append_lights(
     svg: &mut String,
     scene: &EvaluatedScene,
@@ -709,13 +725,16 @@ fn append_lights(
     document: &motion_art::Document,
     images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
     camera: &str,
+    behind_actors: bool,
 ) -> Result<(), Error> {
     use motion_art::LightSource;
     let active: Vec<(usize, &motion_art::Light)> = document
         .lights
         .iter()
         .enumerate()
-        .filter(|(_, l)| l.scene_id == scene_id && l.is_active(scene.time))
+        .filter(|(_, l)| {
+            l.scene_id == scene_id && l.behind_actors == behind_actors && l.is_active(scene.time)
+        })
         .collect();
     if active.is_empty() {
         return Ok(());
