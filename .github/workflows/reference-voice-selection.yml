@@ -1,0 +1,26 @@
+name: Reference voice selection
+on:
+  push:
+    paths:
+      - 'scripts/night_room_real_speech.py'
+      - 'scripts/tests/test_night_room_real_speech.py'
+      - '.github/workflows/reference-voice-selection.yml'
+  pull_request:
+    paths:
+      - 'scripts/night_room_real_speech.py'
+      - 'scripts/tests/test_night_room_real_speech.py'
+      - '.github/workflows/reference-voice-selection.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-voice-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m unittest discover -s scripts/tests -p 'test_night_room_real_speech.py' -v
+      - run: python3 scripts/night_room_real_speech.py --kokoro /nonexistent --list-voices
