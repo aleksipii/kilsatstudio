@@ -65,7 +65,9 @@ jobs:
           cargo test --locked -p motion-export embedded_art_is_retained_in_real_mp4_pipeline -- --ignored
           cargo test --locked -p motion-export real_ffmpeg_sequence_has_duration_and_crossfade_color -- --ignored
       - name: Export night-room review MP4 (placeholder tones, not speech)
-        run: cargo run --locked -p motion-export --example night_room_reference -- export out/night-room-video --ffmpeg /usr/bin/ffmpeg
+        run: |
+          mkdir -p out
+          cargo run --locked -p motion-export --example night_room_reference -- export out/night-room-video --ffmpeg /usr/bin/ffmpeg
       - uses: actions/upload-artifact@v4
         with:
           name: night-room-placeholder-video-${{ github.sha }}
