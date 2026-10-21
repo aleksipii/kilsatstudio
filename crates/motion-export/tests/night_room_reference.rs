@@ -259,6 +259,9 @@ fn every_shot_renders_non_blank_frames_with_expected_flat_colours() {
     // 0 bed close-up: headboard, beanie crown (head joint at 300 - 60).
     assert_color(at(0, (200.0, 200.0)), [64, 44, 52], "headboard");
     assert_color(at(0, (320.0, 185.0)), [210, 60, 70], "beanie crown");
+    // This exposed headboard area used to be covered by the ambiguous blue oval.
+    assert_color(at(0, (275.0, 210.0)), [64, 44, 52], "clear headboard");
+    assert_color(at(2, (275.0, 210.0)), [64, 44, 52], "clear headboard");
     // 1 doorway: hallway light, father's work shirt, floor.
     assert_color(at(1, (240.0, 100.0)), [72, 176, 124], "hallway opening");
     assert_color(at(1, (320.0, 202.0)), [76, 66, 65], "work shirt");

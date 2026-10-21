@@ -166,32 +166,6 @@
         }
       },
       {
-        "id": "bed_closeup_pillow",
-        "scene_id": "bed_closeup",
-        "name": "pillow",
-        "visible": true,
-        "plane": "background",
-        "active": null,
-        "opacity": 1.0,
-        "attachment": null,
-        "clip": null,
-        "content": {
-          "type": "ellipse",
-          "rect": {
-            "x": 262.0,
-            "y": 190.0,
-            "width": 116.0,
-            "height": 56.0
-          },
-          "color": {
-            "r": 85,
-            "g": 75,
-            "b": 115,
-            "a": 255
-          }
-        }
-      },
-      {
         "id": "bed_closeup_blanket",
         "scene_id": "bed_closeup",
         "name": "blanket",
@@ -508,32 +482,6 @@
             "r": 64,
             "g": 44,
             "b": 52,
-            "a": 255
-          }
-        }
-      },
-      {
-        "id": "boy_phone_medium_pillow",
-        "scene_id": "boy_phone_medium",
-        "name": "pillow",
-        "visible": true,
-        "plane": "background",
-        "active": null,
-        "opacity": 1.0,
-        "attachment": null,
-        "clip": null,
-        "content": {
-          "type": "ellipse",
-          "rect": {
-            "x": 262.0,
-            "y": 190.0,
-            "width": 116.0,
-            "height": 56.0
-          },
-          "color": {
-            "r": 85,
-            "g": 75,
-            "b": 115,
             "a": 255
           }
         }

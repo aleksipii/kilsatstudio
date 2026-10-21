@@ -157,15 +157,6 @@ fn bedroom(scene: &str, lamp: bool) -> Vec<Layer> {
             },
         ),
         r("headboard", 170.0, 60.0, 300.0, 260.0, rgb(64, 44, 52)),
-        layer(
-            scene,
-            "pillow",
-            bg,
-            Content::Ellipse {
-                rect: rect(262.0, 190.0, 116.0, 56.0),
-                color: rgb(85, 75, 115),
-            },
-        ),
     ];
     if lamp {
         // The warm glow is a flickering light in `scene_lights`.
