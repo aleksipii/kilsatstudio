@@ -782,7 +782,9 @@ fn phone_screen_animates_and_its_glow_follows_the_shown_frame() {
     // Frames last 0.6 s and loop: t=0.3 -> frame 0, 0.9 -> frame 1, 1.5 -> frame 2, 2.1 -> frame 0.
     let screen_pixel = |f: &Fixture, t: f64| {
         let frame = frame_mode(f, at_time(f, BOY, t), CaptionMode::Hide);
-        let (x, y) = probe(f, BOY, t, (333.0, 272.0));
+        let screen = support::PHONE_SCREEN;
+        let world = (screen.x + screen.width / 2.0, screen.y + screen.height * 0.04);
+        let (x, y) = probe(f, BOY, t, world);
         pixel(&frame, x, y)
     };
     let (a, b, c) = (
@@ -800,23 +802,24 @@ fn phone_screen_animates_and_its_glow_follows_the_shown_frame() {
         "{:?} vs {a:?}",
         screen_pixel(&unlit, 2.1)
     );
-    // Glow: the chest above the phone is lit more by the bright frame (2) than by frame 0.
-    let chest = |t: f64| {
+    // Backlight: measure exposed headboard beside the phone, not an opaque actor.
+    // Subtract the same frame with only the phone light removed to isolate its
+    // contribution from camera movement, room tint and the lamp.
+    let no_phone = fixture_with_art(|mut art| {
+        art.document.lights.retain(|l| !l.id.ends_with("phone_glow"));
+        art
+    });
+    let glow = |t: f64| {
         let frame = frame_mode(&f, at_time(&f, BOY, t), CaptionMode::Hide);
-        let rect = screen_rect(&f, BOY, t, (330.0, 245.0), (6.0, 6.0));
-        let (mut sum, mut n) = (0u32, 0u32);
-        for (_, _, p) in pixels_in(&frame, rect) {
-            sum += u32::from(p[2]);
-            n += 1;
-        }
-        f64::from(sum) / f64::from(n)
+        let without = frame_mode(&no_phone, at_time(&f, BOY, t), CaptionMode::Hide);
+        let rect = screen_rect(&f, BOY, t, (355.0, 250.0), (4.0, 4.0));
+        pixels_in(&frame, rect)
+            .zip(pixels_in(&without, rect))
+            .map(|((_, _, a), (_, _, b))| i64::from(a[2]) - i64::from(b[2]))
+            .sum::<i64>()
     };
-    assert!(
-        chest(1.5) > chest(0.3) + 4.0,
-        "{} vs {}",
-        chest(1.5),
-        chest(0.3)
-    );
+    let (dark, bright) = (glow(0.3), glow(1.5));
+    assert!(bright > dark && bright > 0, "{bright} vs {dark}");
 }
 
 #[test]
@@ -841,9 +844,6 @@ fn lights_tint_darken_and_glow_the_expected_areas() {
     // Warm lamp (boy shot): red outweighs blue next to the lamp shade.
     let (a, b) = both(BOY, 1.0, (505.0, 225.0));
     assert!(a[0] > a[2], "lamp area {a:?} vs flat {b:?}");
-    // Cool phone glow: blue outweighs red on the pyjamas above the phone.
-    let (a, _) = both(BOY, 1.5, (330.0, 240.0));
-    assert!(a[2] > a[0], "phone glow should be cool: {a:?}");
     // Green hallway light: removing just that light lowers green against blue/red.
     let no_hall = fixture_with_art(|mut art| {
         art.document
@@ -851,7 +851,7 @@ fn lights_tint_darken_and_glow_the_expected_areas() {
             .retain(|l| !l.id.ends_with("hallway_light"));
         art
     });
-    for (scene, world) in [(DOORWAY, (240.0, 100.0)), (DAD_CLOSE, (200.0, 100.0))] {
+    for (scene, world) in [(DOORWAY, (270.0, 180.0)), (DAD_CLOSE, (270.0, 140.0))] {
         let sample = at_time(&lit, scene, 0.5);
         let (x, y) = probe(&lit, scene, 0.5, world);
         let with = pixel(&frame_mode(&lit, sample, CaptionMode::Hide), x, y);
