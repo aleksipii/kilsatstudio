@@ -261,20 +261,20 @@ fn every_shot_renders_non_blank_frames_with_expected_flat_colours() {
     assert_color(at(0, (320.0, 185.0)), [210, 60, 70], "beanie crown");
     // 1 doorway: hallway light, father's work shirt, floor.
     assert_color(at(1, (240.0, 100.0)), [72, 176, 124], "hallway opening");
-    assert_color(at(1, (320.0, 202.0)), [186, 148, 92], "work shirt");
+    assert_color(at(1, (320.0, 202.0)), [76, 66, 65], "work shirt");
     assert_color(at(1, (20.0, 345.0)), [30, 22, 46], "floor");
     // 2 boy medium: lamp shade, pyjama top.
     assert_color(at(2, (510.0, 220.0)), [240, 190, 110], "lamp shade");
     assert_color(at(2, (300.0, 245.0)), [60, 100, 190], "pyjama top");
     // 3 father close-up: hall wall and skin.
     assert_color(at(3, (200.0, 100.0)), [28, 70, 64], "hall wall");
-    assert_color(at(3, (320.0, 149.0)), [226, 176, 140], "father skin");
+    assert_color(at(3, (320.0, 149.0)), [154, 119, 109], "father skin");
     // The father must be absent from the bed shots and the boy from the others.
     assert!(!seen_first_frames[0]
         .as_chunks::<4>()
         .0
         .iter()
-        .any(|p| [p[0], p[1], p[2]] == [186, 148, 92]));
+        .any(|p| [p[0], p[1], p[2]] == [76, 66, 65]));
 }
 
 #[test]
@@ -425,7 +425,7 @@ fn dark(frame: &[u8], rect: Rect) -> (usize, f64, f64) {
 /// Non-skin, non-moustache pixels in the mouth box (the drawn mouth area).
 fn mouth_area(frame: &[u8], rect: Rect) -> usize {
     pixels_in(frame, rect)
-        .filter(|(_, _, p)| !near(*p, [226, 176, 140], 14) && !near(*p, [50, 36, 30], 14))
+        .filter(|(_, _, p)| !near(*p, [154, 119, 109], 14) && !near(*p, [50, 36, 30], 14))
         .count()
 }
 
@@ -561,11 +561,10 @@ fn captions_differ_from_hidden_captions_only_in_the_caption_area() {
             min_y >= 250,
             "scene {scene}: caption reaches up to y={min_y}"
         );
-        // Bottom-centred within the 80% width plus the outline.
-        assert!(
-            min_x >= 56 && max_x <= 584,
-            "scene {scene}: x {min_x}..{max_x}"
-        );
+        // The opaque backing spans the viewport below the glyphs, separating
+        // dialogue from the blanket even while the camera pushes in.
+        assert_eq!((min_x, max_x), (0, 639));
+        assert_color(pixel(&shown, 10.0, 355.0), [21, 18, 31], "caption band");
         assert!((min_x + max_x) / 2 > 280 && (min_x + max_x) / 2 < 360);
         // Speaker colours: yellow for the boy, white for the father.
         let region = (0, 250, 640, 360);

@@ -255,10 +255,10 @@ pub const PHONE_FRAME_SECONDS: f64 = 0.6;
 /// hand joint position of STAN placed at (320, 300) (see `base.yaml`), so the layer
 /// matches the rig only for that placement (both phone shots use it).
 pub const PHONE_SCREEN: Rect = Rect {
-    x: 323.03,
-    y: 266.06,
-    width: 20.0,
-    height: 34.0,
+    x: 319.03,
+    y: 264.06,
+    width: 28.0,
+    height: 42.0,
 };
 
 /// One 40x68 RGBA frame of an original, made-up "face editor" app screen: a header,
@@ -352,6 +352,7 @@ fn light(scene: &str, id: &str, flicker: Option<Flicker>, source: LightSource) -
         visible: true,
         active: None,
         flicker,
+        behind_actors: matches!(id, "hallway_light" | "lamp_glow" | "phone_glow"),
         source,
     }
 }
@@ -413,10 +414,10 @@ fn scene_lights(scene: &str) -> Vec<Light> {
             None,
             radial(
                 (0.0, -20.0),
-                105.0,
-                1.1,
+                38.0,
+                1.0,
                 rgb(130, 180, 255),
-                0.5,
+                0.2,
                 Some(ScreenGlow {
                     layer_id: format!("{scene}_phone_screen"),
                     gain: 1.0,

@@ -152,3 +152,12 @@ run is a structural run on one Mac, with no listening review. The GPU path (no
 captions, lights, animated props) and the desktop UI were not exercised, and the
 editor does not display shot lists. Human review is still required before any
 claim of a professional result.
+
+### Backlights
+
+Scene lights accept `behind_actors: true` to composite after background artwork
+but before characters and foreground props. Use this for a hallway glow behind
+a silhouette. The omitted/default value is `false`, preserving the historical
+overlay behavior for lights intended to tint characters. Camera transforms,
+active intervals, flicker and animated screen sampling use the same evaluation
+in preview and export. This is compositing order, not physical shadow casting.

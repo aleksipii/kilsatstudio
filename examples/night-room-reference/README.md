@@ -66,3 +66,12 @@ from the line text, not from the audio. The Anton font and CMUdict licences are 
 approved. The real-speech path needs locally installed Kokoro and does not claim
 voice or lip-sync quality. This is not a professional-grade result; human review
 is required.
+
+## Readability revision
+
+Eyes and brows are larger, eyes have dark borders, the father's shirt and skin
+use a darker night palette, and the phone screen is larger. Hallway, lamp and
+small phone glows are backlights behind the actors. The previous broad blue
+phone halo is reduced to a restrained local glow. Active captions have an opaque
+screen-space bottom strip instead of sitting directly on the blanket. These are
+visual corrections, not an approval of voice choice, performance or lip sync.

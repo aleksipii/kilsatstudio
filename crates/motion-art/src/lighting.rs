@@ -219,7 +219,14 @@ pub struct Light {
     pub active: Option<TimeRange>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub flicker: Option<Flicker>,
+    /// Draw after background artwork but before actors and foreground props.
+    /// Defaults to the historical overlay behavior for existing projects.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub behind_actors: bool,
     pub source: LightSource,
+}
+fn is_false(value: &bool) -> bool {
+    !value
 }
 fn yes() -> bool {
     true
@@ -400,6 +407,19 @@ mod tests {
             a: 255,
         }
     }
+    #[test]
+    fn backlight_flag_roundtrips_and_legacy_lights_stay_overlays() {
+        let mut light = lamp();
+        let legacy = serde_json::to_value(&light).unwrap();
+        assert!(legacy.get("behind_actors").is_none());
+        let restored: Light = serde_json::from_value(legacy).unwrap();
+        assert!(!restored.behind_actors);
+        light.behind_actors = true;
+        let restored: Light =
+            serde_json::from_value(serde_json::to_value(&light).unwrap()).unwrap();
+        assert_eq!(restored, light);
+    }
+
     fn lamp() -> Light {
         Light {
             id: "lamp".into(),
@@ -407,6 +427,7 @@ mod tests {
             visible: true,
             active: None,
             flicker: None,
+            behind_actors: false,
             source: LightSource::Radial {
                 position: Point { x: 1.0, y: 2.0 },
                 radius: 50.0,

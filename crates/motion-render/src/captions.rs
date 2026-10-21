@@ -213,6 +213,21 @@ pub fn append_captions(
         }
         bottom = top;
     }
+    if let Some(background) = &style.background {
+        // A screen-space band keeps text off detailed props and blankets during
+        // camera pushes. Stack it once behind all simultaneous cues, and leave
+        // silent shots unchanged. Padding includes the outer glyph outline.
+        let padding = style.font_size * 0.25 + style.outline_width;
+        let top = (bottom - padding).max(0.0);
+        body.insert_str(
+            0,
+            &format!(
+                "<rect data-caption-background=\"true\" x=\"0\" y=\"{top:.3}\" width=\"{sw:.3}\" height=\"{:.3}\" fill=\"{}\"/>",
+                sh - top,
+                escape(background)
+            ),
+        );
+    }
     let close = svg
         .rfind("</svg>")
         .ok_or_else(|| caption_error("SVG has no closing tag"))?;
@@ -230,6 +245,56 @@ mod tests {
 
     fn style() -> CaptionStyle {
         CaptionStyle::default()
+    }
+
+    #[test]
+    fn caption_backing_is_opt_in_and_only_drawn_behind_active_text() {
+        let script = motion_script::parse(
+            "project: {width: 640, height: 360}\ncharacters: {C: {asset: c}}\nscenes: [{id: s, duration: 2, events: []}]\n",
+        )
+        .unwrap();
+        let scene = motion_scene::evaluate(&script, 0, 0.5).unwrap();
+        let empty = "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>";
+        let cue = CaptionCue {
+            speaker: "C".into(),
+            text: "Hello".into(),
+            start: 0.0,
+            end: 1.0,
+            estimated: false,
+        };
+        let mut style = style();
+        style.font_size = 28.0;
+        let mut legacy = empty.to_string();
+        append_captions(
+            &mut legacy,
+            &scene,
+            640,
+            360,
+            &style,
+            std::slice::from_ref(&cue),
+        )
+        .unwrap();
+        assert!(!legacy.contains("data-caption-background"));
+        style.background = Some("#15121f".into());
+        let mut active = empty.to_string();
+        append_captions(
+            &mut active,
+            &scene,
+            640,
+            360,
+            &style,
+            std::slice::from_ref(&cue),
+        )
+        .unwrap();
+        assert!(
+            active.find("data-caption-background").unwrap() < active.find("<text").unwrap()
+        );
+        assert!(active.contains("width=\"640.000\""));
+        for cues in [Vec::new(), vec![CaptionCue { start: 1.0, ..cue }]] {
+            let mut silent = empty.to_string();
+            append_captions(&mut silent, &scene, 640, 360, &style, &cues).unwrap();
+            assert_eq!(silent, empty);
+        }
     }
 
     #[test]
