@@ -213,6 +213,9 @@ pub fn append_captions(
         }
         bottom = top;
     }
+    if body.is_empty() {
+        return Ok(());
+    }
     if let Some(background) = &style.background {
         // A screen-space band keeps text off detailed props and blankets during
         // camera pushes. Stack it once behind all simultaneous cues, and leave
@@ -290,7 +293,17 @@ mod tests {
             active.find("data-caption-background").unwrap() < active.find("<text").unwrap()
         );
         assert!(active.contains("width=\"640.000\""));
-        for cues in [Vec::new(), vec![CaptionCue { start: 1.0, ..cue }]] {
+        for cues in [
+            Vec::new(),
+            vec![CaptionCue {
+                start: 1.0,
+                ..cue.clone()
+            }],
+            vec![CaptionCue {
+                text: "   ".into(),
+                ..cue
+            }],
+        ] {
             let mut silent = empty.to_string();
             append_captions(&mut silent, &scene, 640, 360, &style, &cues).unwrap();
             assert_eq!(silent, empty);
