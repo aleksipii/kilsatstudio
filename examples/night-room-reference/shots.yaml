@@ -1,13 +1,19 @@
 # Shot list for the night-room reference sequence (original dialogue).
 # Expanded by motion_script::expand_shots into one scene per shot, joined by
 # hard cuts. Line durations are the lengths of the placeholder WAV fixtures in
-# audio/ (generated tones, not speech); replace them with imported or
-# synthesized audio and update `duration` to its length.
+# audio/ (generated tones, not speech); the ignored real-speech test and
+# scripts/night_room_real_speech.py replace them with Kokoro audio lengths.
 #
-# TODO(captions): speaker-coloured captions per line (workstream 1).
-# TODO(lip-sync): phoneme/viseme tracks per line (workstream 2).
-# TODO(acting): gaze, blink and brow variants (workstream 3).
-# TODO(lighting): phone glow, hallway light and lamp glow (workstream 4).
+# Integrated hooks (see base.yaml and docs/shot-library.md):
+# - captions: project.captions in base.yaml, one cue per line below;
+# - mouths: text-estimated visemes derived from each line's `text`;
+# - acting: emotion events and gaze_tracks below (blinks are automatic);
+# - lighting and the animated phone screen: project artwork built in
+#   crates/motion-export/tests/support/mod.rs.
+#
+# Gaze points are scene-pixel (world) coordinates. The boy looks at the phone
+# (about 333, 285 with him placed at 320, 300); the father looks towards the bed,
+# which is off screen to the lower left in the doorway and father shots.
 cut: {lead_in: 0.15, tail: 0.6, reaction_hold: 2.0}
 shots:
   # 1. Night, bed, close-up of the boy lit by his phone. No dialogue: a
@@ -24,6 +30,9 @@ shots:
       joint_tracks:
         STAN:
           head: [{at: 0}, {at: 1.2, rotation: 0.05}, {at: 2.4}]
+      gaze_tracks:
+        STAN:
+          - {at: 0, x: 333, y: 285}
     events:
       - {type: emotion, at: 0, actor: STAN, value: sad}
   # 2. Doorway wide: the father opens the door, hallway light behind him.
@@ -34,11 +43,16 @@ shots:
     off_stage: [STAN]
     line:
       actor: DAD
-      text: Hey, Stan. What are you doing up so late?
-      duration: 2.6
+      text: Hey, kid. What are you doing? Are you playing a game?
+      duration: 3.3
       audio: audio/dad_doorway.wav
     composition:
       background_color: '#2e2242'
+      gaze_tracks:
+        DAD:
+          - {at: 0, x: 180, y: 290}
+    events:
+      - {type: emotion, at: 0, actor: DAD, value: surprised}
   # 3. Boy medium shot with the phone, warm lamp on the bedside table.
   - id: boy_phone_medium
     preset: medium
@@ -48,12 +62,18 @@ shots:
     off_stage: [DAD]
     line:
       actor: STAN
-      text: Nothing. I'm just testing a new app.
+      text: No. I'm trying a face-editing app.
       emotion: neutral
-      duration: 2.4
+      duration: 2.2
       audio: audio/stan_phone.wav
     composition:
       background_color: '#241a3a'
+      gaze_tracks:
+        STAN:
+          - {at: 0, x: 333, y: 285}
+          - {at: 1.0, x: 333, y: 285}
+          - {at: 1.3, x: 500, y: 200}
+          - {at: 1.8, x: 333, y: 285}
   # 4. Father close-up.
   - id: dad_closeup
     preset: close_up
@@ -63,8 +83,11 @@ shots:
     off_stage: [STAN]
     line:
       actor: DAD
-      text: Okay. Is it any good?
-      duration: 1.6
+      text: Oh OK. Is that a game?
+      duration: 1.5
       audio: audio/dad_closeup.wav
     composition:
       background_color: '#1c4a42'
+      gaze_tracks:
+        DAD:
+          - {at: 0, x: 150, y: 300}

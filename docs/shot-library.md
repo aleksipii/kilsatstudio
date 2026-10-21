@@ -1,10 +1,10 @@
 # Shot library and the night-room reference sequence
 
 Workstream 5 of the [professional animation plan](professional-animation-plan.md),
-built only on what exists on main: scene-local camera keys, actor tracks, speak
-events, custom rigid rigs, artwork layers and hard scene cuts. Nothing here
-depends on captions, lip-sync data, acting variants or lighting; those are
-hooks (below).
+built on scene-local camera keys, actor tracks, speak events, custom rigid rigs,
+artwork layers and hard scene cuts. The reference sequence (below) now also
+integrates captions, text-estimated mouth variants, the acting layer, lights and
+an animated phone prop; the shot library itself does not depend on them.
 
 ## Shot library (`motion_script::expand_shots`)
 
@@ -57,41 +57,98 @@ stage tracks, determinism and every error class.
 ## Reference sequence
 
 See [examples/night-room-reference/](../examples/night-room-reference/README.md):
-`base.yaml` (original polygon rigs), `shots.yaml`, generated `night-room.kilsat`
-and placeholder `audio/*.wav`. The helper
-`cargo run -p motion-export --example night_room_reference` prints the shot
-start/end times and cut points from the 24 kHz sample-clock timeline;
-`-- write` regenerates the project file and the audio fixtures. `*.wav` is gitignored, so the tones are not committed: the tests regenerate them in a temporary directory when `audio/` is absent.
+`base.yaml` (original polygon acting rigs, `project.captions`), `shots.yaml`,
+generated `night-room.kilsat`, three tiny generated phone-app PNGs in `assets/`
+and placeholder `audio/*.wav` (gitignored). ONE project renders everything:
 
-`crates/motion-export/tests/night_room_reference.rs` (6 tests) loads the example
-and renders frames through the shared CPU sequence renderer (SVG then resvg). It
-checks: committed files equal the generator output; 640x360 dimensions; cut
-times on the sample clock; line audio starts 0.15 s after each cut with silence
-before it; frames are non-blank and opaque; flat colours at world points located
-through the evaluated camera (headboard, beanie, hallway light, work shirt,
-floor, lamp, pyjamas, hall wall, skin); each cut visibly changes the frame while
-frames just before it stay continuous; repeated, reversed and shuffled seeks and
-the retained `SequencePreview` produce byte-identical frames.
+- **Captions**: white (`DAD`) and yellow (`STAN`) via `speaker_fill`, uppercase,
+  bottom-centred, Anton (licence not approved, see captions.md).
+- **Mouths**: each rig maps the 12 non-rest visemes to its own mouth variant;
+  the viseme track is the text estimate of the real line text (no alignment is
+  attached; source `Estimated kilsat-english-estimator`).
+- **Acting**: sclera + pupil parts with gaze (boy at the phone, then a glance
+  towards the door; father towards the bed, an off-screen point), seeded blinks
+  (2.2 s / 2.3 s windows), brows via `sad` / `surprised` expressions.
+- **Lighting** (`tests/support`): violet ambient multiply plus vignette in every
+  shot, cool phone glow tied to the phone layer by `screen_glow`, warm noise-flicker
+  lamp in the boy medium shot, green hallway light in the doorway and father shots.
+  Lights are drawn after artwork and actors, so they glow over the characters
+  rather than behind them (a known limitation).
+- **Phone prop**: an `animated_image` layer of three generated 40x68 PNG frames
+  (looping, 0.6 s each) over an upright rig phone; the layer is positioned for the
+  boy placed at (320, 300), the placement both phone shots use.
 
-No hashes or binary goldens are stored: resvg antialiasing can change between
-versions and platforms, so exact-byte goldens would be brittle. Exact-pixel
-checks are limited to flat-colour interiors with a tolerance of 2. To refresh
-after an intentional change, run the example with `write` and commit the
-regenerated files; set `KILSAT_NIGHT_ROOM_DUMP=<dir>` to dump one PNG per shot
-and review it by eye.
+The dialogue is original and neutral: "Hey, kid. What are you doing? Are you
+playing a game?" / "No. I'm trying a face-editing app." / "Oh OK. Is that a game?"
+
+`cargo run -p motion-export --example night_room_reference` prints the timing
+report: shot start/end, cut points, dialogue starts, caption windows (speak `at`
+to clip end on the sample clock) and per-line mouth interval and variant-switch
+counts. `-- write` regenerates the project, PNGs and tones; `-- frames <dir>
+[wav-dir]` writes one frame per shot plus `contact-sheet.png` (set
+`KILSAT_NIGHT_ROOM_SIDE` to change the preview size); `-- export <dir> [wav-dir]
+[--ffmpeg path]` writes the PNG sequence and, with an explicit FFmpeg, the MP4.
+`*.wav` is gitignored, so tests regenerate the tones in a temporary directory.
+
+`crates/motion-export/tests/night_room_reference.rs` loads the example and renders
+through the shared CPU sequence renderer (SVG then resvg). Default tests (no real
+audio needed): committed files and PNGs equal the generator; cut times on the
+sample clock; every feature configured; flat-colour probes through the camera on
+an unlit copy; each cut visibly changes the frame; repeated, reversed, shuffled and
+fresh-preview seeks are byte-identical (lamp flicker, blinks, mouths and captions
+included); captions differ from hidden captions only in a bottom-centred area, in
+the speaker colour, exactly within the clip window; no missing glyphs; the mouth
+area follows the estimated visemes; blinks occur in each shot and pupils follow
+the gaze; raised brows; phone frames animate and their glow follows the shown
+frame; tint, vignette, lamp, phone and hallway lights act on the expected areas;
+preview frames equal the PNG-sequence export frames. No binary goldens or hashes
+are stored (resvg antialiasing can change); exact-pixel checks use flat interiors.
+The rendered frames were not committed (about 1 MB per contact sheet).
+
+`real_speech_rebuilds_the_sequence_and_renders_everything` is `#[ignore]`d: it
+re-times the shot list to real WAV lengths and checks structure. Produce the WAVs
+offline with `scripts/night_room_real_speech.py` (Kokoro venv python, outside the repository).
+
+## Real-speech run (one hand run, 2026-10-20, Apple M1, macOS 27.0.1 arm64)
+
+Command: `"$HOME/Library/Application Support/Kilsat Studio/Kokoro/venv/bin/python" -I
+scripts/night_room_real_speech.py` (offline, no downloads; it drives
+`services/kokoro-runtime/runtime.py` through the same request file protocol as the
+app, one process per line). Stack: Python 3.12.15, kokoro 0.9.4, torch 2.6.0,
+numpy 1.26.4, misaki 0.9.4, spacy 3.7.5 with en-core-web-sm 3.7.1, Python/PyTorch
+CPU, model `kokoro-v1_0.pth` (SHA-256 `496dba11...f18ad1e4`), voices `am_michael`
+(father) and `af_heart` (boy; a female preset, chosen only because it is installed).
+Output WAVs: `~/Library/Application Support/Kilsat Studio/night-room-audio/audio/`
+(outside the repository, gitignored).
+
+| line | voice | audio | wall time | wall/audio |
+| --- | --- | --- | --- | --- |
+| `dad_doorway` | am_michael | 3.650 s | 8.69 s | 2.38 |
+| `stan_phone` | af_heart | 2.625 s | 6.17 s | 2.35 |
+| `dad_closeup` | am_michael | 2.575 s | 4.81 s | 1.87 |
+
+Wall time includes a fresh Python process and model load per line, so it is not a
+steady-state real-time factor. Rebuilt with these WAVs (`-- report <dir>`) the cuts
+move to 2.400, 6.800 and 10.175 s, total 13.500 s; dialogue starts 2.550, 6.950 and
+10.325 s; caption windows 2.550-6.200, 6.950-9.575 and 10.325-12.900 s; mouth
+intervals / variant switches per line 27/28, 20/21 and 11/12 (placeholder tones:
+cuts 2.400, 6.450, 9.400, total 11.650 s). A PNG-sequence export of the real-audio
+version (324 frames plus mixed WAV, debug build) took 180 s. Not done: MP4 (no
+FFmpeg on this machine), listening review, any lip-sync measurement against the
+audio. "Oh OK. Is that a game?" came out 2.575 s long, longer than the words
+suggest (possible trailing silence; not checked).
 
 ## Real today versus placeholder
 
-Real (checked by tests on Linux/macOS CPU paths): shot expansion, cut timing on
-the sample clock, camera framing, stage placement, original rigs and artwork,
-deterministic seeks, placement of audio on the shared clock.
+Real (checked by tests on Linux/macOS CPU paths): shot expansion, cut timing,
+framing, deterministic seeks, captions, text-estimated mouth variants, gaze,
+blinks, brows, lights, animated prop, preview/export agreement.
 
-Placeholder or absent: captions (no text is drawn); mouth shapes (static
-`mouth_placeholder` parts, no viseme data); eyes, blinks and expressions;
-lighting (no glow from the phone, hallway or lamp); the phone screen (flat
-rectangle); dialogue audio (generated tones, not speech; no Kokoro run); art
-quality, framing taste and comic timing, which need human review. The GPU path
-and the desktop UI were not exercised, and the editor does not display shot
-lists. Hooks for later workstreams are the `TODO(...)` comments in `base.yaml`
-and `shots.yaml`, the named `*_placeholder` rig parts, and the `line` records,
-whose text and audio reference are what captions and alignment will consume.
+Placeholder or unreviewed: all art, style, framing taste and comic timing; the
+mouth shapes (flat polygons, estimated from text only, no forced alignment, never
+compared with the audio); eye and brow look; the font and lexicon licences (not
+approved); default dialogue audio (generated tones, not speech); the real-speech
+run is a structural run on one Mac, with no listening review. The GPU path (no
+captions, lights, animated props) and the desktop UI were not exercised, and the
+editor does not display shot lists. Human review is still required before any
+claim of a professional result.
