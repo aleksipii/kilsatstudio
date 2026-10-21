@@ -289,9 +289,7 @@ mod tests {
             std::slice::from_ref(&cue),
         )
         .unwrap();
-        assert!(
-            active.find("data-caption-background").unwrap() < active.find("<text").unwrap()
-        );
+        assert!(active.find("data-caption-background").unwrap() < active.find("<text").unwrap());
         assert!(active.contains("width=\"640.000\""));
         for cues in [
             Vec::new(),

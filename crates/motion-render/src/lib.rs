@@ -214,15 +214,19 @@ fn render_scene(
         )?;
     }
     if let Some((scene_id, document, images)) = artwork {
-        // Close the camera while drawing canvas-space tints, then reopen it for
-        // actors. Radial backlights receive the same camera transform as art.
-        svg.push_str("</g>");
-        let camera = format!(
-            "translate({camera_x:.6} {camera_y:.6}) scale({:.6})",
-            scene.camera.zoom
-        );
-        append_lights(&mut svg, scene, scene_id, document, images, &camera, true)?;
-        write!(svg, "<g transform=\"{camera}\">").unwrap();
+        if document.lights.iter().any(|light| {
+            light.scene_id == scene_id && light.behind_actors && light.is_active(scene.time)
+        }) {
+            // Close the camera while drawing canvas-space tints, then reopen it
+            // for actors. Preserve legacy SVG bytes when no backlight is active.
+            svg.push_str("</g>");
+            let camera = format!(
+                "translate({camera_x:.6} {camera_y:.6}) scale({:.6})",
+                scene.camera.zoom
+            );
+            append_lights(&mut svg, scene, scene_id, document, images, &camera, true)?;
+            write!(svg, "<g transform=\"{camera}\">").unwrap();
+        }
     }
     let mut embedded_rig_bytes = 0u64;
     let rig_images = artwork.map(|(_, _, images)| images);

@@ -734,6 +734,7 @@
         "id": "bed_closeup_phone_glow",
         "scene_id": "bed_closeup",
         "visible": true,
+        "behind_actors": true,
         "source": {
           "type": "radial",
           "position": {
@@ -756,8 +757,7 @@
             "gain": 1.0,
             "tint": 0.6
           }
-        },
-        "behind_actors": true
+        }
       },
       {
         "id": "doorway_wide_room_tint",
@@ -788,6 +788,7 @@
         "id": "doorway_wide_hallway_light",
         "scene_id": "doorway_wide",
         "visible": true,
+        "behind_actors": true,
         "source": {
           "type": "radial",
           "position": {
@@ -805,8 +806,7 @@
           },
           "intensity": 0.3,
           "blend": "screen"
-        },
-        "behind_actors": true
+        }
       },
       {
         "id": "boy_phone_medium_room_tint",
@@ -837,6 +837,7 @@
         "id": "boy_phone_medium_phone_glow",
         "scene_id": "boy_phone_medium",
         "visible": true,
+        "behind_actors": true,
         "source": {
           "type": "radial",
           "position": {
@@ -859,8 +860,7 @@
             "gain": 1.0,
             "tint": 0.6
           }
-        },
-        "behind_actors": true
+        }
       },
       {
         "id": "boy_phone_medium_lamp_glow",
@@ -872,6 +872,7 @@
           "rate_hz": 6.0,
           "seed": 7
         },
+        "behind_actors": true,
         "source": {
           "type": "radial",
           "position": {
@@ -889,8 +890,7 @@
           },
           "intensity": 0.85,
           "blend": "screen"
-        },
-        "behind_actors": true
+        }
       },
       {
         "id": "dad_closeup_room_tint",
@@ -921,6 +921,7 @@
         "id": "dad_closeup_hallway_light",
         "scene_id": "dad_closeup",
         "visible": true,
+        "behind_actors": true,
         "source": {
           "type": "radial",
           "position": {
@@ -938,8 +939,7 @@
           },
           "intensity": 0.2,
           "blend": "screen"
-        },
-        "behind_actors": true
+        }
       }
     ]
   }
