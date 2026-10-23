@@ -1,3 +1,5 @@
+Suomenkielinen [käyttöohje](KAYTTOOHJE.md) neuvoo työtilan, animoinnin, puheen ja viennin. Sama ohje on sovelluksen Ohjeet-painikkeessa.
+
 # Native studio workspace
 
 Run from the repository root:
@@ -347,3 +349,27 @@ it does not independently verify against WAV files. Automatic speech-based
 retiming, free-form screenplay semantics, gestures, professional artistic
 acceptance and a measured five-minute production SLA remain open. Details and
 agent ownership: [execution-v1](../../docs/automation/execution-v1.md).
+
+## Creating scenes and posing characters
+
+Use **+ New scene** to append a blank ten-second scene using the project's
+characters. **+ New episode** asks for a title and confirmation, opens a fresh
+starter project, and clears the save path. Undo restores the previous project,
+including imported artwork; save the new episode to a new file.
+
+Choose **Characters** in the stage toolbar, select a visible character, and drag
+inside the stage. Release writes one actor key at the snapped playhead; Undo
+reverts the whole move. Move the playhead and drag again to animate. Camera zoom
+and letterboxing are accounted for. Escape, dropping outside the stage, or a
+changed scene/time/camera cancels the move. The CPU preview moves the character
+while dragging; the native compositor moves the selection outline and refreshes
+the rendered character on release. **Artwork** retains the existing art tools.
+
+Selected characters expose head X/Y keys. Articulated custom rigs with a joint
+named `head` also support tilt in degrees. In the packaged Mac app, **Capture
+tilt** explicitly requests one camera measurement, then **Copy tilt to head
+draft** stages it; **Apply head key** commits it. Default procedural characters
+do not render head rotation, so camera tilt is offered only for articulated
+heads. Capture is local, stores no images/audio, and stops after one measurement
+or a timeout. This is not continuous motion capture. Camera permissions, physical
+Mac interaction and perceived pose quality still require hardware acceptance.

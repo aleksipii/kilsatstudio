@@ -287,3 +287,5 @@ fixture check and retained managed-install license evidence. See the guides abov
 and [master progress](docs/master-progress.md) for actual validation. These tools
 do not establish real recognizer quality, physical Mac device/GPU acceptance,
 full-scene GPU parity or distribution clearance.
+
+Suomenkielinen työpöytäsovelluksen käyttöohje: [Mistä tehdään mitäkin](apps/studio-desktop/KAYTTOOHJE.md). Sama opas löytyy sovelluksen yläpalkin Ohjeet-painikkeesta.

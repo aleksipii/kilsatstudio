@@ -1823,3 +1823,38 @@ libcodec2 and correctly failed on the installation time limit before encoding.
 The follow-up selects the official Ubuntu archive/security mirror lists on the
 ephemeral runner and omits recommended packages; the same real media tests and
 strict time limits remain in place. No failed setup is counted as a media pass.
+
+## Direct desktop editing follow-up (PR #93)
+
+Adds visible scene/episode creation, character picking and root dragging with a
+single key/Undo transaction, frame-snapped head drafts, and explicit local
+one-shot head tilt capture for articulated custom head joints. New episode Undo
+retains the preceding project and artwork. CPU drag preview moves the actor;
+native compositor preview moves its bounds until release. Default procedural
+heads support X/Y, not camera-driven rotation.
+
+Camera helper uses AVFoundation/Vision, explicit macOS permission and bounded
+capture. Package inventory and build evidence include its executable/hash/native
+links. Python packaging checks: 36 passed; build evidence checks: 11 passed.
+Desktop Rust check passed locally. Further Rust/CI results belong in PR #93;
+physical Mac/camera interaction, continuous mocap and artistic acceptance remain
+open. This follow-up has not been merged to main.
+
+## Finnish desktop workspace and user guide
+
+The desktop inspector now separates Edit, Speech, Video export and Advanced
+settings instead of showing every tool in one long list. Scene/character lists
+precede optional creation forms; primary actions, gesture guidance and camera
+controls have Finnish labels. The toolbar wraps and body/button text is larger.
+The offline Ohjeet window embeds the same ten-topic Finnish guide maintained at
+apps/studio-desktop/KAYTTOOHJE.md. It covers project paths and overwrite behavior,
+scene/episode creation, mouse keyframes/Undo, head/camera limits, dialogue,
+English Kokoro versus imported Finnish WAV, artwork and selected/whole-project
+export. Some advanced tools/errors remain in English.
+
+Headless workspace/tab and all-ten-topic help rendering tests pass. Switching
+away from head controls cancels pending camera capture. Earlier PR #93 CI for
+1f424fd0a5a4b7a51035d2461edb67bd513e7c4b passed the full Audio foundation and
+Apple Silicon package workflows. Updated source will be verified by those same
+workflows and fresh main CI after the user-authorized merge. Physical Mac GUI,
+camera permission/calibration and continuous mocap acceptance remain open.

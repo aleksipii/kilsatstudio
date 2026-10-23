@@ -51,6 +51,7 @@ def bundle_info():
                       'CFBundleShortVersionString': '0.1.0',
                       'CFBundleVersion': '1', 'LSMinimumSystemVersion': '13.0',
                       'NSHighResolutionCapable': True,
+                      'NSCameraUsageDescription': 'Capture one head tilt locally for a character pose. No images are saved or transmitted.',
                       'CFBundleIconFile': 'KilsatStudio.icns',
                       'CFBundleDocumentTypes': [
                           {'CFBundleTypeName': 'Kilsat Studio Project',
@@ -67,7 +68,7 @@ def bundle_info():
                                {'public.filename-extension': ['kilsat']}}]}
 
 
-def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None):
+def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None, head_pose=None):
     repo, binary, destination = Path(repo).resolve(), Path(binary).resolve(), Path(destination)
     if not binary.is_file() or not os.access(binary, os.X_OK):
         raise ValueError('binary must be an existing executable file')
@@ -77,6 +78,10 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
         gpu_probe = Path(gpu_probe)
         if gpu_probe.is_symlink() or not gpu_probe.is_file() or not os.access(gpu_probe, os.X_OK):
             raise ValueError('gpu probe must be a non-symlink executable file')
+    if head_pose is not None:
+        head_pose = Path(head_pose)
+        if head_pose.is_symlink() or not head_pose.is_file() or not os.access(head_pose, os.X_OK):
+            raise ValueError('head pose helper must be a non-symlink executable file')
     license_path = repo / 'LICENSE'
     if license_path.is_symlink() or not license_path.is_file() or not license_path.stat().st_size:
         raise ValueError('missing or unsafe LICENSE: provide the non-empty repository source license')
@@ -97,8 +102,11 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
     resources.mkdir(parents=True)
     shutil.copy2(binary, executable)
     if gpu_probe is not None:
-        (resources / 'bin').mkdir()
+        (resources / 'bin').mkdir(exist_ok=True)
         shutil.copy2(gpu_probe, resources / 'bin/gpu_probe')
+    if head_pose is not None:
+        (resources / 'bin').mkdir(exist_ok=True)
+        shutil.copy2(head_pose, resources / 'bin/head_pose')
     for relative in required:
         source, target = repo / relative, resources / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -122,10 +130,10 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
     return destination
 
 
-def stage_distribution(repo, binary, directory, commit, arch, profile, gpu_probe=None):
+def stage_distribution(repo, binary, directory, commit, arch, profile, gpu_probe=None, head_pose=None):
     """Stage the app and a source license readable without opening its bundle."""
     directory = Path(directory)
-    bundle = stage_bundle(repo, binary, directory / APP_NAME, commit, arch, profile, gpu_probe)
+    bundle = stage_bundle(repo, binary, directory / APP_NAME, commit, arch, profile, gpu_probe, head_pose)
     shutil.copy2(bundle / 'Contents/Resources/LICENSE', directory / 'LICENSE')
     return bundle
 
@@ -135,6 +143,7 @@ def main():
     parser.add_argument('--repo', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--gpu-probe', type=Path, help='Optional native GPU fixture helper')
+    parser.add_argument('--head-pose', type=Path, help='Optional native local camera pose helper')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--commit', required=True)
     parser.add_argument('--arch', choices=['arm64', 'x86_64'], required=True)
@@ -148,9 +157,13 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='kilsat-package-') as temporary:
         bundle = stage_distribution(args.repo, args.binary, temporary,
-                                    args.commit, args.arch, args.profile, args.gpu_probe)
+                                    args.commit, args.arch, args.profile, args.gpu_probe, args.head_pose)
         if args.gpu_probe is not None:
             helper = bundle / 'Contents/Resources/bin/gpu_probe'
+            subprocess.run(['codesign', '--force', '--sign', '-', str(helper)], check=True)
+            subprocess.run(['codesign', '--verify', '--strict', str(helper)], check=True)
+        if args.head_pose is not None:
+            helper = bundle / 'Contents/Resources/bin/head_pose'
             subprocess.run(['codesign', '--force', '--sign', '-', str(helper)], check=True)
             subprocess.run(['codesign', '--verify', '--strict', str(helper)], check=True)
         subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)

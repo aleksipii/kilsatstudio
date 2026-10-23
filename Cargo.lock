@@ -2933,6 +2933,7 @@ name = "studio-desktop"
 version = "0.1.0"
 dependencies = [
  "eframe",
+ "motion-animation",
  "motion-art",
  "motion-audio",
  "motion-export",
@@ -2945,6 +2946,7 @@ dependencies = [
  "motion-tts",
  "motion-voice",
  "rodio",
+ "serde",
  "serde_json",
  "serde_yaml",
  "sha2",

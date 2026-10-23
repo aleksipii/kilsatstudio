@@ -149,6 +149,9 @@ def collect(archive, audit_path, lock_path, desktop_path, helper_path,
     files = {f['path']: f for f in rows}
     if len(files) != len(rows):
         raise ValueError('duplicate audit file path')
+    head_pose = 'Kilsat Studio Preview.app/Contents/Resources/bin/head_pose'
+    if head_pose in files:
+        required.append(head_pose)
     if set(observations) != set(required) or not all(p in files for p in required):
         raise ValueError('expected separate desktop/helper native observations')
     with zipfile.ZipFile(io.BytesIO(archive_bytes)) as zipped:
