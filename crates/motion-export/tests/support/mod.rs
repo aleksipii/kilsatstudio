@@ -760,3 +760,192 @@ pub fn representative_samples(expansion: &ShotExpansion) -> Vec<u64> {
         )
         .collect()
 }
+
+/// Directory the dialogue WAVs are read from: `real` when given, else the committed or
+/// regenerated placeholder fixtures.
+pub fn audio_source_dir(real: Option<&Path>) -> PathBuf {
+    real.map(Path::to_path_buf)
+        .unwrap_or_else(|| audio_dir(&example_dir()))
+}
+
+/// Subtitle guidance used for comparison only (Netflix Timed Text Style Guide, English
+/// (USA) and General Requirements, retrieved 2026-10-21). Guidance, not a verdict.
+pub const GUIDANCE_MAX_CPS_ADULT: f64 = 20.0;
+pub const GUIDANCE_MAX_CPS_CHILDREN: f64 = 17.0;
+pub const GUIDANCE_MIN_EVENT_S: f64 = 5.0 / 6.0;
+pub const GUIDANCE_MAX_EVENT_S: f64 = 7.0;
+
+/// One shot of the comic-timing report. Times are seconds on the sequence clock;
+/// "word" boundaries are the RMS-envelope speech span of the line's WAV
+/// (`motion_voice::timeline::speech_span`), not word recognition.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ShotTiming {
+    pub shot: String,
+    pub cut_in: f64,
+    pub cut_out: f64,
+    pub line: Option<LineTiming>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct LineTiming {
+    pub actor: String,
+    pub text: String,
+    /// Cut to the first above-threshold sample of the line.
+    pub cut_to_first_word: f64,
+    pub audio: f64,
+    pub leading_silence: f64,
+    pub speech: f64,
+    pub trailing_silence: f64,
+    pub first_word: f64,
+    pub last_word: f64,
+    /// Last above-threshold sample to this shot's cut out.
+    pub pause_after_line: f64,
+    /// Picture held after the clip's audio ends (the shot list `tail`).
+    pub hold_after_audio: f64,
+    pub caption_start: f64,
+    pub caption_end: f64,
+    /// Characters in the caption text (Unicode scalar values incl. spaces/punctuation).
+    pub caption_chars: usize,
+}
+
+impl LineTiming {
+    pub fn caption_seconds(&self) -> f64 {
+        self.caption_end - self.caption_start
+    }
+    pub fn cps(&self) -> f64 {
+        self.caption_chars as f64 / self.caption_seconds()
+    }
+    /// Characters per second of detected speech (what the voice actually takes).
+    pub fn speech_cps(&self) -> f64 {
+        self.caption_chars as f64 / self.speech
+    }
+}
+
+pub fn comic_timing(
+    expansion: &ShotExpansion,
+    rendered: &[RenderedScene],
+    dir: &Path,
+) -> Vec<ShotTiming> {
+    let rate = f64::from(SAMPLE_RATE);
+    expansion
+        .plan
+        .iter()
+        .map(|planned| {
+            let scene = &expansion.script.scenes[planned.scene_index];
+            let manifest = &rendered[planned.scene_index].manifest;
+            let line = scene.events.iter().find_map(|event| {
+                let Event::Speak {
+                    at,
+                    actor,
+                    text,
+                    audio: Some(audio),
+                    ..
+                } = event
+                else {
+                    return None;
+                };
+                let start = (*at * rate).round() as u64;
+                let clip = manifest
+                    .dialogue
+                    .iter()
+                    .find(|c| c.actor == *actor && c.start_frame == start)?;
+                let buffer = motion_audio::read_wav(dir.join(audio)).ok()?;
+                let frames = buffer.frames() as u64;
+                let (s0, s1) = motion_voice::timeline::speech_span(&buffer);
+                let clip_start = planned.start + start as f64 / rate;
+                let audio_end = clip_start + frames as f64 / rate;
+                let first_word = clip_start + s0 as f64 / rate;
+                let last_word = clip_start + s1 as f64 / rate;
+                Some(LineTiming {
+                    actor: actor.clone(),
+                    text: text.clone(),
+                    cut_to_first_word: first_word - planned.start,
+                    audio: frames as f64 / rate,
+                    leading_silence: s0 as f64 / rate,
+                    speech: (s1 - s0) as f64 / rate,
+                    trailing_silence: (frames - s1) as f64 / rate,
+                    first_word,
+                    last_word,
+                    pause_after_line: planned.end - last_word,
+                    hold_after_audio: planned.end - audio_end,
+                    caption_start: clip_start,
+                    caption_end: planned.start
+                        + (clip.start_frame + clip.duration_frames) as f64 / rate,
+                    caption_chars: text.chars().count(),
+                })
+            });
+            ShotTiming {
+                shot: planned.scene_id.clone(),
+                cut_in: planned.start,
+                cut_out: planned.end,
+                line,
+            }
+        })
+        .collect()
+}
+
+/// Text table of [`comic_timing`] with subtitle guidance comparisons. Measures only;
+/// says nothing about whether the timing is funny.
+pub fn comic_timing_report(timings: &[ShotTiming]) -> String {
+    let mut out = String::from(
+        "shot                 cut_in  cut_out  shot_s  cut->word  audio  lead  speech  trail  pause_after  hold_after_audio  caption_s  chars  cps   speech_cps  word->next_word\n",
+    );
+    for (i, t) in timings.iter().enumerate() {
+        let next_word = timings[i + 1..]
+            .iter()
+            .find_map(|n| n.line.as_ref().map(|l| l.first_word));
+        match &t.line {
+            None => out.push_str(&format!(
+                "{:<20} {:>6.3} {:>8.3} {:>7.3}  (no dialogue: reaction hold {:.3} s; first word of next line at {})\n",
+                t.shot,
+                t.cut_in + 0.0,
+                t.cut_out,
+                t.cut_out - t.cut_in,
+                t.cut_out - t.cut_in,
+                next_word.map_or("-".into(), |w| format!("{w:.3} s")),
+            )),
+            Some(l) => out.push_str(&format!(
+                "{:<20} {:>6.3} {:>8.3} {:>7.3} {:>10.3} {:>6.3} {:>5.3} {:>7.3} {:>6.3} {:>12.3} {:>17.3} {:>10.3} {:>6} {:>5.1} {:>11.1} {:>16}\n",
+                t.shot,
+                t.cut_in + 0.0,
+                t.cut_out,
+                t.cut_out - t.cut_in,
+                l.cut_to_first_word,
+                l.audio,
+                l.leading_silence,
+                l.speech,
+                l.trailing_silence,
+                l.pause_after_line,
+                l.hold_after_audio,
+                l.caption_seconds(),
+                l.caption_chars,
+                l.cps(),
+                l.speech_cps(),
+                next_word.map_or("-".into(), |w| format!("{:.3}", w - l.last_word)),
+            )),
+        }
+    }
+    out.push_str(&format!(
+        "guidance (Netflix Timed Text Style Guide; guidance, not a quality verdict): reading speed <= {GUIDANCE_MAX_CPS_ADULT} cps adult, <= {GUIDANCE_MAX_CPS_CHILDREN} cps children; event {:.3}..={GUIDANCE_MAX_EVENT_S} s\n",
+        GUIDANCE_MIN_EVENT_S
+    ));
+    for t in timings {
+        if let Some(l) = &t.line {
+            let s = l.caption_seconds();
+            out.push_str(&format!(
+                "  {:<20} caption {:.3} s, {:.1} cps: adult limit {}, children limit {}, duration {}\n",
+                t.shot,
+                s,
+                l.cps(),
+                if l.cps() <= GUIDANCE_MAX_CPS_ADULT { "within" } else { "exceeded" },
+                if l.cps() <= GUIDANCE_MAX_CPS_CHILDREN { "within" } else { "exceeded" },
+                if (GUIDANCE_MIN_EVENT_S..=GUIDANCE_MAX_EVENT_S).contains(&s) {
+                    "within"
+                } else {
+                    "outside"
+                },
+            ));
+        }
+    }
+    out
+}

@@ -12,12 +12,12 @@ mod normalize;
 mod visemes;
 
 pub use g2p::letter_to_sound;
-pub use identity::{estimate_identity, lexicon_version};
+pub use identity::{estimate_identity, estimate_identity_in_span, lexicon_version};
 pub use lexicon::Lexicon;
 pub use normalize::{cardinal_words, normalize, spoken_words, Pause, Token, MAX_TOKENS};
 pub use visemes::{
-    estimate_viseme_track, phoneme_viseme, EstimatedVisemeTrack, VisemeCue, DIALOGUE_SAMPLE_RATE,
-    MAX_TRACK_FRAMES, TOOL_NAME, TOOL_VERSION,
+    estimate_viseme_track, estimate_viseme_track_in_span, phoneme_viseme, EstimatedVisemeTrack,
+    VisemeCue, DIALOGUE_SAMPLE_RATE, MAX_TRACK_FRAMES, TOOL_NAME, TOOL_VERSION,
 };
 
 use serde::Serialize;

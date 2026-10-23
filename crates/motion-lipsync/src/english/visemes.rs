@@ -221,3 +221,58 @@ pub fn estimate_viseme_track(
         time_scale: frames as f64 / (model_ms * 24) as f64,
     })
 }
+
+/// As [`estimate_viseme_track`] with `Some(audio_frames)`, but the scaled estimate fills
+/// only `[speech_start, speech_end)` and the mouth rests before and after it. Callers
+/// pass the detected leading/trailing silence of the clip (see
+/// `timing_eval::Envelope::speech_span`) so the mouth does not move over silence.
+/// `time_scale` is relative to the speech span. Still `Estimated`; deterministic.
+pub fn estimate_viseme_track_in_span(
+    text: &str,
+    overrides: &Pronunciations,
+    audio_frames: u64,
+    speech_start: u64,
+    speech_end: u64,
+) -> Result<EstimatedVisemeTrack, EnglishError> {
+    if audio_frames == 0 || audio_frames > MAX_TRACK_FRAMES {
+        return Err(EnglishError::InvalidFrameCount(audio_frames));
+    }
+    if speech_start >= speech_end || speech_end > audio_frames {
+        return Err(EnglishError::InvalidFrameCount(
+            speech_end.saturating_sub(speech_start),
+        ));
+    }
+    let mut inner = estimate_viseme_track(text, overrides, Some(speech_end - speech_start))?;
+    let mut cues = Vec::with_capacity(inner.cues.len() + 2);
+    if speech_start > 0 {
+        cues.push(VisemeCue {
+            start_sample: 0,
+            end_sample: speech_start,
+            viseme: Viseme::Rest,
+        });
+    }
+    for c in &inner.cues {
+        let shifted = VisemeCue {
+            start_sample: c.start_sample + speech_start,
+            end_sample: c.end_sample + speech_start,
+            viseme: c.viseme,
+        };
+        match cues.last_mut() {
+            Some(last) if last.viseme == shifted.viseme => last.end_sample = shifted.end_sample,
+            _ => cues.push(shifted),
+        }
+    }
+    if speech_end < audio_frames {
+        match cues.last_mut() {
+            Some(last) if last.viseme == Viseme::Rest => last.end_sample = audio_frames,
+            _ => cues.push(VisemeCue {
+                start_sample: speech_end,
+                end_sample: audio_frames,
+                viseme: Viseme::Rest,
+            }),
+        }
+    }
+    inner.cues = cues;
+    inner.frame_count = audio_frames;
+    Ok(inner)
+}

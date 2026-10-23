@@ -22,6 +22,34 @@ pub fn lexicon_version() -> &'static str {
 /// text, every pronunciation override, the lexicon/estimator version, sample rate and
 /// audio length. Equal identities imply equal tracks; any change invalidates.
 pub fn estimate_identity(text: &str, overrides: &Pronunciations, audio_frames: u64) -> String {
+    identity(text, overrides, audio_frames, None)
+}
+
+/// Identity of `estimate_viseme_track_in_span`. Equals [`estimate_identity`] when the
+/// span covers the whole clip (the tracks are then identical); otherwise it also
+/// covers the span, so a re-synthesized clip with different silence invalidates.
+pub fn estimate_identity_in_span(
+    text: &str,
+    overrides: &Pronunciations,
+    audio_frames: u64,
+    speech_start: u64,
+    speech_end: u64,
+) -> String {
+    let full = speech_start == 0 && speech_end == audio_frames;
+    identity(
+        text,
+        overrides,
+        audio_frames,
+        (!full).then_some((speech_start, speech_end)),
+    )
+}
+
+fn identity(
+    text: &str,
+    overrides: &Pronunciations,
+    audio_frames: u64,
+    span: Option<(u64, u64)>,
+) -> String {
     let mut h = Sha256::new();
     let mut field = |tag: &[u8], bytes: &[u8]| {
         h.update(tag);
@@ -36,6 +64,10 @@ pub fn estimate_identity(text: &str, overrides: &Pronunciations, audio_frames: u
         field(b"word", word.as_bytes());
         let joined: Vec<&str> = phones.iter().map(|p| p.symbol()).collect();
         field(b"phones", joined.join(" ").as_bytes());
+    }
+    if let Some((start, end)) = span {
+        field(b"speech_start", &start.to_le_bytes());
+        field(b"speech_end", &end.to_le_bytes());
     }
     format!("{:x}", h.finalize())
 }

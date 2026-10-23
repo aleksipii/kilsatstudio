@@ -37,6 +37,12 @@ still comes from text-estimated visemes: Kokoro phonemes are reported without
 validated word/phoneme timestamps, and this command does not perform forced
 alignment. Listening and audio-versus-mouth review remain required.
 
+To render the same reference with real speech on a GitHub-hosted Apple Silicon
+runner instead of locally, use the manual, consent-gated workflow described in
+[real-speech reference CI](real-speech-reference-ci.md). It downloads the pinned
+model and selected voices only when the owner dispatches it with
+`consent_download=true`, and its `boy_voice` input selects STAN's preset.
+
 Validation without model assets:
 
 ```sh

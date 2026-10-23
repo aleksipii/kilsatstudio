@@ -387,3 +387,57 @@ fn unspeakable_text_is_a_non_fatal_diagnostic_and_the_mouth_rests() {
     assert_eq!(prepared.clips[0].mouth_source(), MouthSource::None);
     assert_eq!(prepared.clips[0].mouth_at(12000).unwrap(), Viseme::Rest);
 }
+
+/// Tone with digital-silence padding (generated, not speech).
+fn padded(lead: usize, speech: usize, trail: usize) -> AudioBuffer {
+    let mut samples = vec![0.0f32; lead];
+    samples.extend((0..speech).map(|i| 0.3 * (i as f32 * 0.05).sin()));
+    samples.extend(vec![0.0f32; trail]);
+    AudioBuffer {
+        sample_rate: 24000,
+        channels: 1,
+        samples,
+    }
+}
+
+#[test]
+fn text_estimate_rests_over_leading_and_trailing_silence() {
+    // 0.4 s silence, 1 s tone, 0.6 s silence: the shape seen in the real Kokoro clips.
+    let mut c = clip(1, 0, 0);
+    c.audio = padded(9600, 24000, 14400);
+    let (start, end) = motion_voice::timeline::speech_span(&c.audio);
+    // The 20 ms centred window spreads at most one 10 ms hop into silence.
+    assert!(start.abs_diff(9600) <= 240 && end.abs_diff(33600) <= 240);
+    let info = c.derive_text_estimate("mom", &none()).unwrap().unwrap();
+    let track = &c.text_estimated.as_ref().unwrap().track;
+    assert_eq!(track.frame_count, 48000);
+    assert!((info.time_scale - (end - start) as f64 / 6000.0).abs() < 1e-9);
+    for s in [0, start - 1, end, 47999] {
+        assert_eq!(c.mouth_at(s).unwrap(), Viseme::Rest, "sample {s}");
+    }
+    // Inside the span the mapping of "mom" is shifted: closed, open, closed.
+    assert_eq!(c.mouth_at(start).unwrap(), Viseme::Closed);
+    assert_eq!(c.mouth_at((start + end) / 2).unwrap(), Viseme::A);
+    assert_eq!(c.mouth_at(end - 1).unwrap(), Viseme::Closed);
+    // Same length, different silence: identity changes and the estimate is rebuilt.
+    let old = c.text_estimated.as_ref().unwrap().identity.clone();
+    c.audio = padded(4800, 24000, 19200);
+    c.derive_text_estimate("mom", &none()).unwrap();
+    assert_ne!(old, c.text_estimated.as_ref().unwrap().identity);
+    assert_eq!(c.mouth_at(9000).unwrap(), Viseme::Closed);
+    assert_eq!(c.mouth_at(4000).unwrap(), Viseme::Rest);
+}
+
+#[test]
+fn silent_clip_keeps_whole_clip_estimate() {
+    let mut c = clip(1, 0, 0);
+    c.audio = padded(6000, 0, 0);
+    assert_eq!(motion_voice::timeline::speech_span(&c.audio), (0, 6000));
+    c.derive_text_estimate("mom", &none()).unwrap();
+    let estimate = c.text_estimated.as_ref().unwrap();
+    assert_eq!(estimate.identity, estimate_identity("mom", &none(), 6000));
+    assert_eq!(
+        estimate.track,
+        estimate_viseme_track("mom", &none(), Some(6000)).unwrap()
+    );
+}

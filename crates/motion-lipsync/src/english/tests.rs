@@ -359,3 +359,69 @@ fn arbitrary_bytes_do_not_panic() {
         let _ = estimate_viseme_track(j, &none(), None);
     }
 }
+
+#[test]
+fn span_estimate_rests_outside_speech_and_matches_shifted_estimate() {
+    // "mom" = M AA M; speech in [6000, 12000) of an 18000-sample clip.
+    let t = estimate_viseme_track_in_span("mom", &none(), 18000, 6000, 12000).unwrap();
+    let inner = estimate_viseme_track("mom", &none(), Some(6000)).unwrap();
+    assert_eq!(t.frame_count, 18000);
+    assert_eq!(t.source, inner.source);
+    assert_eq!(t.time_scale, inner.time_scale);
+    assert_eq!(t.cues.first().unwrap().viseme, Viseme::Rest);
+    assert_eq!(t.cues.first().unwrap().end_sample, 6000);
+    assert_eq!(t.cues.last().unwrap().viseme, Viseme::Rest);
+    assert_eq!(t.cues.last().unwrap().start_sample, 12000);
+    assert_eq!(t.cues.last().unwrap().end_sample, 18000);
+    for s in (0..18000).step_by(97) {
+        let want = if (6000..12000).contains(&s) {
+            inner.viseme_at_sample(s - 6000)
+        } else {
+            Viseme::Rest
+        };
+        assert_eq!(t.viseme_at_sample(s), want, "sample {s}");
+    }
+    // Contiguous cover and determinism.
+    assert!(t
+        .cues
+        .windows(2)
+        .all(|w| w[0].end_sample == w[1].start_sample && w[0].viseme != w[1].viseme));
+    assert_eq!(
+        t,
+        estimate_viseme_track_in_span("mom", &none(), 18000, 6000, 12000).unwrap()
+    );
+}
+
+#[test]
+fn full_span_equals_whole_clip_estimate_and_identity() {
+    let text = "Oh OK. Is that a game?";
+    assert_eq!(
+        estimate_viseme_track_in_span(text, &none(), 24000, 0, 24000).unwrap(),
+        estimate_viseme_track(text, &none(), Some(24000)).unwrap()
+    );
+    assert_eq!(
+        estimate_identity_in_span(text, &none(), 24000, 0, 24000),
+        estimate_identity(text, &none(), 24000)
+    );
+    let a = estimate_identity_in_span(text, &none(), 24000, 2400, 20000);
+    assert_ne!(a, estimate_identity(text, &none(), 24000));
+    assert_ne!(
+        a,
+        estimate_identity_in_span(text, &none(), 24000, 2400, 20001)
+    );
+    assert_eq!(
+        a,
+        estimate_identity_in_span(text, &none(), 24000, 2400, 20000)
+    );
+}
+
+#[test]
+fn span_estimate_rejects_invalid_spans() {
+    for (frames, s, e) in [(0, 0, 0), (100, 50, 50), (100, 60, 50), (100, 0, 101)] {
+        assert!(estimate_viseme_track_in_span("hi", &none(), frames, s, e).is_err());
+    }
+    assert_eq!(
+        estimate_viseme_track_in_span("...", &none(), 100, 0, 100),
+        Err(EnglishError::NoSpeakableText)
+    );
+}
