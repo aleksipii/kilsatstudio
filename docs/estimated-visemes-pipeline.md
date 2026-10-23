@@ -24,8 +24,11 @@ never derived when a higher one exists; `derive_text_estimate` clears a stale on
 
 `prepare_scene_common` (used by every scene/sequence preparation path) builds the
 project's `Pronunciations` from `pronunciations:` and, per clip after alignment
-resolution, calls `scene_audio::derive_text_mouths`. The track is scaled to exactly
-`audio.frames()` samples of the 24 kHz dialogue clock.
+resolution, calls `scene_audio::derive_text_mouths`. The track covers exactly
+`audio.frames()` samples of the 24 kHz dialogue clock; the estimate is scaled into the
+detected speech span (`timeline::speech_span`, RMS threshold max(-50 dBFS, peak - 35 dB))
+with Rest over leading/trailing silence, or the whole clip when nothing passes the
+threshold. See [lipsync-timing-evaluation.md](lipsync-timing-evaluation.md).
 
 One lookup per consumer, one source of cues:
 
@@ -41,8 +44,9 @@ identically to existing alignments.
 ## Cache identity
 
 Text estimates are cheap and deterministic, so they are recomputed rather than stored
-on disk; `TextEstimate::identity` is `english::estimate_identity(text, overrides,
-audio_frames)`, a SHA-256 over the text, every pronunciation override (sorted), the
+on disk; `TextEstimate::identity` is `english::estimate_identity_in_span(text, overrides,
+audio_frames, speech_start, speech_end)` (equal to `estimate_identity` for a whole-clip
+span), a SHA-256 over the text, every pronunciation override (sorted), the
 sample rate, the audio length, and `lexicon_version()` (hash of the embedded CMUdict
 plus the estimator name/version). `derive_text_estimate` keeps an existing estimate
 only if the identity still matches. Rhubarb cues keep their own cache
