@@ -35,6 +35,12 @@ jobs:
         run: cargo build --locked -p studio-desktop --target aarch64-apple-darwin
       - name: Build explicit Metal fixture helper
         run: cargo build --locked -p motion-render --features gpu --example gpu_probe --target aarch64-apple-darwin
+      - name: Build local camera pose helper (does not access a camera)
+        run: |
+          mkdir -p dist/build-inputs
+          swiftc -swift-version 5 -target arm64-apple-macos13.0 services/head-pose/main.swift -o dist/head_pose -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker services/head-pose/Info.plist
+          swiftc --version > dist/build-inputs/swift.txt
+          shasum -a 256 services/head-pose/main.swift services/head-pose/Info.plist > dist/build-inputs/head-pose-source.sha256
       - name: Save resolved workspace build observations
         run: |
           mkdir -p dist/build-inputs
@@ -67,7 +73,7 @@ jobs:
           PY
           strip -x "$helper"
           strip -x "$binary"
-          python3 scripts/package_macos.py --binary "$binary" --gpu-probe "$helper" --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
+          python3 scripts/package_macos.py --binary "$binary" --gpu-probe "$helper" --head-pose dist/head_pose --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
       - name: Verify packaged diagnostic helpers
         run: |
           python3 - <<'PY'
@@ -100,7 +106,8 @@ jobs:
           audit = json.loads(Path('dist/Kilsat-Studio-Preview-arm64.audit.json').read_text())
           records = {row['path']: row for row in audit['files']}
           members = ['Kilsat Studio Preview.app/Contents/MacOS/studio-desktop',
-                     'Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe']
+                     'Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe',
+                     'Kilsat Studio Preview.app/Contents/Resources/bin/head_pose']
           observations = {}
           with tempfile.TemporaryDirectory(prefix='kilsat-native-observation-') as temporary:
               with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:

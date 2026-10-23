@@ -197,6 +197,23 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unsafe'):
             self.stage()
 
+    def test_head_helper_is_explicit_executable_and_camera_usage_declared(self):
+        package.stage_bundle(self.repo, self.binary, self.bundle, 'abc', 'arm64',
+                             'debug', self.binary, self.binary)
+        helper = self.bundle / 'Contents/Resources/bin/head_pose'
+        self.assertEqual(helper.read_bytes(), self.binary.read_bytes())
+        self.assertTrue(helper.stat().st_mode & 0o111)
+        with (self.bundle / 'Contents/Info.plist').open('rb') as handle:
+            self.assertIn('head tilt', plistlib.load(handle)['NSCameraUsageDescription'])
+
+    def test_rejects_symlinked_head_helper_before_staging(self):
+        link = self.root / 'head-helper-link'
+        link.symlink_to(self.binary)
+        with self.assertRaisesRegex(ValueError, 'head pose helper'):
+            package.stage_bundle(self.repo, self.binary, self.bundle, 'abc', 'arm64',
+                                 'debug', head_pose=link)
+        self.assertFalse(self.bundle.exists())
+
 
 if __name__ == '__main__':
     unittest.main()

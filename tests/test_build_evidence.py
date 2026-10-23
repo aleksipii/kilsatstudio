@@ -96,6 +96,26 @@ checksum = "abc"
         with self.assertRaisesRegex(ValueError, 'hash mismatch'):
             self.collect()
 
+    def test_head_helper_requires_separate_hash_bound_observations(self):
+        path = 'Kilsat Studio Preview.app/Contents/Resources/bin/head_pose'
+        data = b'fixture head executable'
+        with zipfile.ZipFile(self.paths['archive'], 'a') as archive:
+            archive.writestr(path, data)
+        digest = hashlib.sha256(data).hexdigest()
+        self.audit['artifact'].update(build.identity(self.paths['archive'].read_bytes()))
+        self.audit['files'].append(dict(path=path, sha256=digest))
+        self.put_json('audit', self.audit)
+        with self.assertRaisesRegex(ValueError, 'separate desktop/helper'):
+            self.collect()
+        self.observations[path] = dict(sha256=digest, lipo_archs='arm64',
+            otool_libraries='fixture:\n /System/Library/Frameworks/Vision.framework/Vision')
+        self.put_json('observations', self.observations)
+        self.assertEqual(len(self.collect()['native_observations']), 3)
+        self.observations[path]['sha256'] = 'c' * 64
+        self.put_json('observations', self.observations)
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+            self.collect()
+
     def test_missing_or_extra_native_component_rejected(self):
         self.observations['other'] = self.observations[self.members[0]]
         self.put_json('observations', self.observations)
