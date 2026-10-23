@@ -1823,3 +1823,19 @@ libcodec2 and correctly failed on the installation time limit before encoding.
 The follow-up selects the official Ubuntu archive/security mirror lists on the
 ephemeral runner and omits recommended packages; the same real media tests and
 strict time limits remain in place. No failed setup is counted as a media pass.
+
+## Direct desktop editing follow-up (PR #93)
+
+Adds visible scene/episode creation, character picking and root dragging with a
+single key/Undo transaction, frame-snapped head drafts, and explicit local
+one-shot head tilt capture for articulated custom head joints. New episode Undo
+retains the preceding project and artwork. CPU drag preview moves the actor;
+native compositor preview moves its bounds until release. Default procedural
+heads support X/Y, not camera-driven rotation.
+
+Camera helper uses AVFoundation/Vision, explicit macOS permission and bounded
+capture. Package inventory and build evidence include its executable/hash/native
+links. Python packaging checks: 36 passed; build evidence checks: 11 passed.
+Desktop Rust check passed locally. Further Rust/CI results belong in PR #93;
+physical Mac/camera interaction, continuous mocap and artistic acceptance remain
+open. This follow-up has not been merged to main.

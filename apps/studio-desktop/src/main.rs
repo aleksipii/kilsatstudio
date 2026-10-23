@@ -11,6 +11,7 @@ mod composition_editor;
 mod cue_rule_editor;
 mod custom_rig_editor;
 mod demo;
+mod direct_manipulation;
 mod event_editor;
 mod event_factory;
 mod export_worker;
@@ -34,6 +35,7 @@ mod sequence_worker;
 mod timeline_edit;
 mod ui_metrics;
 mod voice_editor;
+mod webcam_pose;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
@@ -122,6 +124,12 @@ fn same_optional_arc<T>(a: &Option<Arc<T>>, b: &Option<Arc<T>>) -> bool {
     }
 }
 struct Studio {
+    character_mode: bool,
+    character_drag: Option<direct_manipulation::Drag>,
+    head_draft: Option<(String, direct_manipulation::HeadDraft)>,
+    webcam_pose: webcam_pose::Panel,
+    confirm_new_episode: bool,
+    episode_title: String,
     quick_start: quick_start::Draft,
     ui_metrics: ui_metrics::Metrics,
     native_alignment: alignment_panel::Panel,
@@ -333,6 +341,12 @@ impl Default for Studio {
             timeline_drag: None,
             timeline_drag_source: None,
             timeline_seek_drag: false,
+            character_mode: true,
+            character_drag: None,
+            head_draft: None,
+            webcam_pose: webcam_pose::Panel::default(),
+            confirm_new_episode: false,
+            episode_title: "New episode".into(),
             quick_start: quick_start::Draft::default(),
             history: project_history::History::new(include_str!(
                 "../../../examples/hello-emma.yaml"
@@ -1212,6 +1226,9 @@ impl Studio {
         }
     }
     fn document_changed(&mut self) {
+        self.character_drag = None;
+        self.head_draft = None;
+        self.webcam_pose.set_context("document_changed");
         self.document_revision = self.document_revision.wrapping_add(1);
         self.sequence_changed();
     }
@@ -1246,6 +1263,9 @@ impl Studio {
         self.playhead = 0.0;
     }
     fn reset_scene(&mut self) {
+        self.character_drag = None;
+        self.head_draft = None;
+        self.webcam_pose.set_context("reset_scene");
         self.custom_rig_draft = None;
         self.bone_draft = None;
         self.cue_draft = None;
@@ -1755,6 +1775,262 @@ impl Studio {
                 )
             })
     }
+    fn editing_idle(&self) -> bool {
+        !self.busy && !self.diagnostics_busy && !self.export_busy
+    }
+    fn scene_playing(&self) -> bool {
+        self.scene_transport
+            .as_ref()
+            .is_some_and(|p| p.is_playing())
+            || self.playback.as_ref().is_some_and(|p| p.snapshot().playing)
+    }
+    fn create_empty_scene(&mut self) {
+        if !self.editing_idle() {
+            return;
+        }
+        match direct_manipulation::blank_scene(&self.source) {
+            Ok((source, index)) => {
+                self.apply_structure(Ok(source.clone()));
+                if self.source == source {
+                    self.scene_index = index;
+                    self.reset_scene();
+                    self.status =
+                        "New 10-second scene created. Drag characters to start animating.".into();
+                }
+            }
+            Err(error) => self.status = error,
+        }
+    }
+    fn create_new_episode(&mut self) {
+        if !self.editing_idle() {
+            return;
+        }
+        match direct_manipulation::new_episode(&self.episode_title) {
+            Ok(source) => {
+                self.flush_text_edit();
+                let before = self.snapshot();
+                self.stop_playback();
+                self.source = source;
+                self.project_document = None;
+                self.script_path.clear();
+                self.asset_dirty = false;
+                self.art_editor.reset();
+                self.alignment.clear();
+                self.scene_alignment.clear();
+                self.preview = None;
+                self.scene_index = 0;
+                self.selected_actor = None;
+                self.reset_scene();
+                self.document_changed();
+                self.validate();
+                self.history.record(before, self.snapshot());
+                self.confirm_new_episode = false;
+                self.status = "New episode ready. Save to a new file. Undo restores the previous project contents.".into();
+            }
+            Err(error) => self.status = error,
+        }
+    }
+    fn creation_ui(&mut self, ui: &mut egui::Ui) {
+        ui.add_enabled_ui(self.editing_idle(), |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("+ New scene").clicked() { self.create_empty_scene(); }
+                if ui.button("+ New episode").clicked() { self.confirm_new_episode = true; }
+            });
+            if self.confirm_new_episode {
+                ui.label("Start a fresh episode? Save your current project first if you want a separate copy.");
+                ui.text_edit_singleline(&mut self.episode_title);
+                ui.horizontal(|ui| {
+                    if ui.button("Create episode").clicked() { self.create_new_episode(); }
+                    if ui.button("Keep current project").clicked() { self.confirm_new_episode = false; }
+                });
+            }
+        });
+        ui.separator();
+    }
+    fn drag_current(
+        &self,
+        drag: &direct_manipulation::Drag,
+        scene: &motion_scene::EvaluatedScene,
+        rect: egui::Rect,
+    ) -> bool {
+        drag.source == self.source
+            && drag.scene_index == self.scene_index
+            && drag.time == self.playhead
+            && drag.camera == scene.camera
+            && drag.rect == rect
+    }
+    fn preview_character_drag(
+        &self,
+        scene: &mut motion_scene::EvaluatedScene,
+        ctx: &egui::Context,
+    ) {
+        if let Some(drag) = &self.character_drag {
+            if self.drag_current(drag, scene, drag.rect) {
+                if let Some(delta) = ctx
+                    .input(|i| i.pointer.interact_pos())
+                    .and_then(|p| drag.delta(scene, p))
+                {
+                    if let Some(actor) = scene.actors.iter_mut().find(|a| a.id == drag.actor) {
+                        actor.x += delta[0];
+                        actor.y += delta[1];
+                    }
+                }
+            }
+        }
+    }
+    fn finish_character_drag(
+        &mut self,
+        drag: direct_manipulation::Drag,
+        scene: &motion_scene::EvaluatedScene,
+        rect: egui::Rect,
+        pointer: egui::Pos2,
+    ) {
+        if !self.editing_idle() || self.scene_playing() || !self.drag_current(&drag, scene, rect) {
+            return;
+        }
+        match drag.apply(scene, pointer) {
+            Ok(source) if source != self.source => {
+                self.apply_structure(Ok(source));
+                self.selected_actor = Some(drag.actor);
+                self.playhead = drag.time;
+            }
+            Ok(_) => (),
+            Err(error) => self.status = error,
+        }
+    }
+    fn character_canvas_ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        rect: egui::Rect,
+        scene: &motion_scene::EvaluatedScene,
+        enabled: bool,
+    ) {
+        if !enabled
+            || ui.input(|i| i.key_pressed(egui::Key::Escape))
+            || self
+                .character_drag
+                .as_ref()
+                .is_some_and(|drag| !self.drag_current(drag, scene, rect))
+        {
+            self.character_drag = None;
+        }
+        let response = ui
+            .add_enabled_ui(enabled, |ui| {
+                ui.interact(
+                    rect,
+                    ui.id().with("character-canvas"),
+                    egui::Sense::click_and_drag(),
+                )
+            })
+            .inner;
+        if response.clicked() {
+            self.selected_actor = response
+                .interact_pointer_pos()
+                .and_then(|p| direct_manipulation::pick(rect, scene, p));
+        }
+        if response.drag_started() {
+            if let Some(pointer) = ui.input(|i| i.pointer.press_origin()) {
+                self.selected_actor = direct_manipulation::pick(rect, scene, pointer);
+                if let Some(actor) = self.selected_actor.clone() {
+                    self.flush_text_edit();
+                    self.character_drag = direct_manipulation::Drag::new(
+                        &self.source,
+                        self.scene_index,
+                        &actor,
+                        self.playhead,
+                        rect,
+                        scene,
+                        pointer,
+                    )
+                    .ok();
+                }
+            }
+        }
+        if let Some(actor) = scene
+            .actors
+            .iter()
+            .find(|actor| Some(&actor.id) == self.selected_actor.as_ref())
+        {
+            ui.painter().with_clip_rect(rect).rect_stroke(
+                direct_manipulation::actor_bounds(rect, scene, actor),
+                3.0,
+                egui::Stroke::new(2.0_f32, ACCENT),
+                egui::StrokeKind::Inside,
+            );
+        }
+        if response.drag_stopped() {
+            if let Some(drag) = self.character_drag.take() {
+                if let Some(pointer) = ui.input(|i| i.pointer.interact_pos()) {
+                    self.finish_character_drag(drag, scene, rect, pointer);
+                }
+            }
+        } else if self.character_drag.is_some() && !ui.input(|i| i.pointer.primary_down()) {
+            self.character_drag = None;
+        }
+        if self.character_drag.is_some() {
+            ui.ctx().request_repaint();
+        }
+    }
+    fn head_controls_ui(&mut self, ui: &mut egui::Ui) {
+        let Some((script, actor)) = self.script.as_ref().zip(self.selected_actor.as_deref()) else {
+            self.head_draft = None;
+            self.webcam_pose.set_context("no selection");
+            return;
+        };
+        let Ok(at) = direct_manipulation::snapped_time(script, self.scene_index, self.playhead)
+        else {
+            self.head_draft = None;
+            self.webcam_pose.set_context("invalid playhead");
+            return;
+        };
+        if !self.head_draft.as_ref().is_some_and(|(source, draft)| {
+            source == &self.source
+                && draft.scene_index == self.scene_index
+                && draft.actor == actor
+                && draft.at == at
+        }) {
+            self.head_draft =
+                direct_manipulation::HeadDraft::new(script, self.scene_index, actor, self.playhead)
+                    .ok()
+                    .map(|draft| (self.source.clone(), draft));
+        }
+        let enabled = self.editing_idle() && !self.scene_playing();
+        let context = format!(
+            "{}:{}:{}:{}:{}",
+            self.document_revision, self.scene_index, actor, at, enabled
+        );
+        self.webcam_pose.set_context(&context);
+        let Some((source, draft)) = &mut self.head_draft else {
+            self.webcam_pose.set_context("no head joint");
+            ui.weak("Head controls need a custom joint named head.");
+            return;
+        };
+        ui.separator();
+        ui.label("Head · key at playhead");
+        let mut apply = false;
+        ui.add_enabled_ui(enabled, |ui| {
+            ui.horizontal(|ui| { ui.label("X"); ui.add(egui::DragValue::new(&mut draft.x)); ui.label("Y"); ui.add(egui::DragValue::new(&mut draft.y)); });
+            if draft.supports_tilt {
+                ui.horizontal(|ui| { ui.label("Tilt °"); ui.add(egui::DragValue::new(&mut draft.tilt_degrees)); });
+                self.webcam_pose.ui(ui);
+                if let Some(degrees) = self.webcam_pose.take_roll_degrees() { draft.tilt_degrees = degrees; }
+            } else { ui.weak("Default characters support head X/Y. Camera tilt needs an articulated rig with a head joint."); }
+            apply = ui.button("Apply head key").clicked();
+        });
+        if apply && enabled && source == &self.source {
+            let actor = draft.actor.clone();
+            let time = self.playhead;
+            match draft.apply(&self.source) {
+                Ok(source) => {
+                    self.apply_structure(Ok(source));
+                    self.selected_actor = Some(actor);
+                    self.playhead = time;
+                }
+                Err(error) => self.status = error,
+            }
+        }
+    }
+
     fn native_canvas_ui(&mut self, ui: &mut egui::Ui) {
         if let Some(document) = &self.project_document {
             self.art_resources
@@ -1906,23 +2182,34 @@ impl Studio {
         if canvas.shown != Some(sample) && canvas.failed.is_none() {
             ui.ctx().request_repaint_after(Duration::from_millis(25));
         }
-        if let Some(rect) = canvas_rect {
-            if let (Ok(evaluated), Some(document)) = (
-                motion_scene::evaluate(script, self.scene_index, self.playhead),
-                self.project_document.as_mut(),
-            ) {
-                let enabled = !self.busy
-                    && !self.diagnostics_busy
-                    && !self.export_busy
-                    && !playing
-                    && canvas.shown == Some(sample);
+        let interaction = canvas_rect.and_then(|rect| {
+            motion_scene::evaluate(script, self.scene_index, self.playhead)
+                .ok()
+                .map(|evaluated| {
+                    (
+                        rect,
+                        evaluated,
+                        scene.id.clone(),
+                        !self.busy
+                            && !self.diagnostics_busy
+                            && !self.export_busy
+                            && !playing
+                            && canvas.shown == Some(sample),
+                    )
+                })
+        });
+        if let Some((rect, mut evaluated, scene_id, enabled)) = interaction {
+            if self.character_mode {
+                self.preview_character_drag(&mut evaluated, ui.ctx());
+                self.character_canvas_ui(ui, rect, &evaluated, enabled);
+            } else if let Some(document) = &mut self.project_document {
                 let response = ui
                     .add_enabled_ui(enabled, |ui| {
                         ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
                     })
                     .inner;
                 self.art_editor
-                    .gesture(&response, rect, &evaluated, &scene.id, &mut document.art);
+                    .gesture(&response, rect, &evaluated, &scene_id, &mut document.art);
             }
         }
         self.record_art_transaction();
@@ -1940,13 +2227,23 @@ impl Studio {
                 }
             }
         });
+        ui.horizontal(|ui| {
+            let before = self.character_mode;
+            ui.selectable_value(&mut self.character_mode, true, "Characters");
+            ui.selectable_value(&mut self.character_mode, false, "Artwork");
+            if before != self.character_mode {
+                self.character_drag = None;
+                self.art_editor.reset();
+            }
+        });
+        ui.weak("Drag a character to add a position key at the playhead. Escape cancels.");
         ui.add_space(12.0);
         if self.advanced_canvas_needed() {
             self.native_canvas_ui(ui);
             return;
         }
-        if let Some(script) = &self.script {
-            match motion_scene::evaluate(script, self.scene_index, self.playhead) {
+        if let Some(script) = self.script.clone() {
+            match motion_scene::evaluate(&script, self.scene_index, self.playhead) {
                 Ok(mut scene) => {
                     let frame = (self.playhead * 24000.0).round() as u64;
                     let mouths: Vec<_> = if let Some(preview) = &self.scene_preview {
@@ -1964,8 +2261,17 @@ impl Studio {
                             .into_iter()
                             .collect()
                     };
+                    let owned_mouths: Vec<_> = mouths
+                        .into_iter()
+                        .map(|(id, mouth)| (id.to_owned(), mouth))
+                        .collect();
+                    let mouths: Vec<_> = owned_mouths
+                        .iter()
+                        .map(|(id, mouth)| (id.as_str(), *mouth))
+                        .collect();
                     motion_scene::apply_speech(&mut scene, &mouths);
                     let scene_id = &script.scenes[self.scene_index].id;
+                    self.preview_character_drag(&mut scene, ui.ctx());
                     if let Some(document) = &self.project_document {
                         self.art_resources
                             .sync(ui.ctx(), &self.project_root, &document.assets);
@@ -1982,7 +2288,10 @@ impl Studio {
                             );
                         }
                     });
-                    if let Some(document) = &mut self.project_document {
+                    if self.character_mode {
+                        let enabled = self.editing_idle() && !self.scene_playing();
+                        self.character_canvas_ui(ui, rect, &scene, enabled);
+                    } else if let Some(document) = &mut self.project_document {
                         let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy;
                         let response = ui
                             .add_enabled_ui(enabled, |ui| {
@@ -3058,6 +3367,7 @@ impl Studio {
                 return;
             }
             ui.add_space(6.0);
+            self.creation_ui(ui);
             if let Some(script) = &self.script { ui.label(egui::RichText::new(&script.project.title).strong().size(16.0)); }
             ui.add_space(12.0);
             self.quick_start_ui(ui);
@@ -3896,6 +4206,7 @@ impl Studio {
                 }
             }
         }
+        self.head_controls_ui(ui);
         self.art_inspector_ui(ui);
         self.keyframe_inspector_ui(ui);
         self.custom_rig_ui(ui);
@@ -7601,5 +7912,84 @@ mod timing_persistence_tests {
         assert_eq!(studio.source, source);
         assert!(!studio.history.can_undo() && !studio.history.can_redo());
         assert_eq!(studio.caption_mode, motion_script::CaptionMode::Hide);
+    }
+}
+
+#[cfg(test)]
+mod direct_manipulation_history_tests {
+    use super::*;
+    #[test]
+    fn drag_is_one_undo_and_rejects_stale_source() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let original = studio.source.clone();
+        let scene = motion_scene::evaluate(studio.script.as_ref().unwrap(), 0, 0.0).unwrap();
+        let rect = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(960.0, 540.0));
+        let drag =
+            direct_manipulation::Drag::new(&original, 0, "EMMA", 0.0, rect, &scene, rect.center())
+                .unwrap();
+        studio.finish_character_drag(drag, &scene, rect, rect.center() + egui::vec2(30.0, 0.0));
+        assert_ne!(studio.source, original);
+        assert!(studio.history.can_undo());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        let drag =
+            direct_manipulation::Drag::new(&original, 0, "EMMA", 0.0, rect, &scene, rect.center())
+                .unwrap();
+        studio.source.push('\n');
+        let stale = studio.source.clone();
+        studio.finish_character_drag(drag, &scene, rect, rect.center() + egui::vec2(30.0, 0.0));
+        assert_eq!(studio.source, stale);
+    }
+    #[test]
+    fn creation_and_episode_undo_restore_document() {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.create_empty_scene();
+        assert_eq!(studio.scene_index, 1);
+        assert_eq!(studio.script.as_ref().unwrap().scenes.len(), 2);
+        let original = studio.source.clone();
+        let mut document = motion_project::ProjectDocument::new(original.clone()).unwrap();
+        document.art.layers.push(motion_art::Layer {
+            id: "kept".into(),
+            name: "Kept artwork".into(),
+            scene_id: "intro".into(),
+            visible: true,
+            plane: motion_art::Plane::Foreground,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 10.0,
+                },
+                color: motion_art::Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        });
+        studio.project_document = Some(document);
+        studio.script_path = "existing.kilsat".into();
+        studio.episode_title = "Fresh".into();
+        studio.create_new_episode();
+        assert_eq!(studio.script.as_ref().unwrap().project.title, "Fresh");
+        assert!(studio.script_path.is_empty());
+        assert!(studio.project_document.is_none());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert_eq!(
+            studio.project_document.as_ref().unwrap().art.layers[0].id,
+            "kept"
+        );
     }
 }
