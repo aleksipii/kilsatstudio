@@ -2949,6 +2949,27 @@ impl Studio {
         }
     }
 
+    fn auto_direct_dialogue(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        self.flush_text_edit();
+        match motion_script::auto_direction::direct(&self.source, &self.quick_start.dialogue, None)
+        {
+            Ok(plan) => {
+                self.apply_structure(Ok(plan.source.clone()));
+                if self.source == plan.source {
+                    self.scene_index = plan.first_scene;
+                    self.reset_scene();
+                    self.status = format!("Direction draft: {} shots, {:.2}s. {} Use sequence preview/export for all shots; existing scenes are retained. Undo restores the project.",
+                        plan.shot_count, plan.duration_samples as f64 / 24_000.0,
+                        plan.diagnostics.join(" "));
+                }
+            }
+            Err(error) => self.status = format!("Automatic direction: {error}"),
+        }
+    }
+
     fn quick_start_ui(&mut self, ui: &mut egui::Ui) {
         egui::CollapsingHeader::new("Luo animaatio / Create animation")
             .default_open(true)
@@ -2970,6 +2991,10 @@ impl Studio {
                     ui.weak("Timing is a draft. Long speech may need more time. Existing scenes are retained; Undo removes the new scene.");
                     if ui.button("Luo uusi kohtaus / Create new scene").clicked() {
                         self.create_dialogue_scene();
+                    }
+                    ui.weak("Automatic direction: up to 2 speakers / 16 lines / 60 seconds. Optional explicit emotion: EMMA[happy]: Hello! Timing remains estimated until checked against speech.");
+                    if ui.button("Automaattiohjaa / Auto-direct").clicked() {
+                        self.auto_direct_dialogue();
                     }
                 });
                 ui.separator();
@@ -5859,6 +5884,24 @@ mod scene_preview_tests {
         studio.settings_draft_source = Some(studio.source.clone());
         studio
     }
+    #[test]
+    fn automatic_direction_appends_shots_with_project_undo() {
+        let mut studio = settings_studio();
+        let original = studio.source.clone();
+        studio.auto_direct_dialogue();
+        assert_eq!(studio.scene_index, 1);
+        assert_eq!(studio.script.as_ref().unwrap().scenes.len(), 3);
+        assert!(studio.status.contains("Direction draft"));
+        let directed = studio.source.clone();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, directed);
+        studio.busy = true;
+        studio.auto_direct_dialogue();
+        assert_eq!(studio.source, directed);
+    }
+
     #[test]
     fn dialogue_scene_creation_is_selected_and_undoable() {
         let mut studio = settings_studio();

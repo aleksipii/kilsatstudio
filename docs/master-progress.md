@@ -1756,3 +1756,23 @@ was newly executed/granted. Main and `kilsatstudio1.0` include this delivery rec
   final-head package via PR #90 rather than assuming the initial artifact is current.
 - This increment does not complete the broader product backlog or establish real
   Mac interaction, speech quality, physical device acceptance or release approval.
+
+## Automatic direction — orchestrator and parallel implementation
+
+Six task agents (one orchestrator, five workstreams) implemented a bounded
+`motion_script::auto_direction` pipeline: dialogue parsing, shared 24 kHz timing,
+existing ShotList generation, conservative acting and independent acceptance.
+The desktop exposes Auto-direct beside the existing simple scene importer.
+
+This first increment preserves authored scenes, exposes source/timing diagnostics,
+uses normal editable MotionScript/Undo and rejects excess speakers, text, shot
+counts, durations and source size. Estimated speech remains explicitly a draft.
+Existing ten-agent design documents remain broader plans, not completed gates.
+
+Local validation: 92 motion-script unit tests and 4 independent acceptance tests
+passed; crate documentation checks passed. Workspace/all-target strict Clippy
+passed through the direct driver with explicit sysroot/GNU linker. The desktop
+Auto-direct append/selection/Undo/Redo/busy-state test passed. Final CI evidence
+is recorded in the delivery PR. Physical Mac,
+rendered artistic review, real-speech retiming, general intent/action recognition,
+rig-bound framing and five-minute production acceptance remain unverified/open.

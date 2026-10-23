@@ -1,0 +1,136 @@
+//! Structural acceptance only: these tests do not establish visual direction,
+//! speech synthesis, lip-sync quality or physical Mac acceptance.
+use motion_script::auto_direction::{
+    direct, TimingSource, GAP_SAMPLES, LEAD_SAMPLES, MAX_DURATION_SAMPLES, MAX_LINES, SAMPLE_RATE,
+};
+use motion_script::{Event, Script};
+
+const SOURCE: &str = include_str!("../../../examples/hello-emma.yaml");
+
+fn added_speech(script: &Script, first_scene: usize) -> Vec<(String, String)> {
+    script.scenes[first_scene..]
+        .iter()
+        .flat_map(|scene| scene.events.iter())
+        .filter_map(|event| match event {
+            Event::Speak { actor, text, .. } => Some((actor.clone(), text.clone())),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn preserves_authored_scene_and_exact_finnish_english_dialogue() {
+    let input = "EMMA: Hyvää huomenta: ääkköset säilyvät!\nALEX: Good morning — yes, exactly.";
+    let result = direct(SOURCE, input, Some(&[12 * SAMPLE_RATE, 18 * SAMPLE_RATE])).unwrap();
+    let original = motion_script::parse(SOURCE).unwrap();
+    let generated = motion_script::parse(&result.source).unwrap();
+    assert_eq!(result.first_scene, original.scenes.len());
+    assert_eq!(
+        result.shot_count,
+        generated.scenes.len() - result.first_scene
+    );
+    for (before, after) in original.scenes.iter().zip(&generated.scenes) {
+        assert_eq!(
+            serde_yaml::to_string(before).unwrap(),
+            serde_yaml::to_string(after).unwrap()
+        );
+    }
+    assert_eq!(
+        serde_yaml::to_string(&original.characters).unwrap(),
+        serde_yaml::to_string(&generated.characters).unwrap()
+    );
+    assert_eq!(
+        added_speech(&generated, result.first_scene),
+        vec![
+            ("EMMA".into(), "Hyvää huomenta: ääkköset säilyvät!".into()),
+            ("ALEX".into(), "Good morning — yes, exactly.".into()),
+        ]
+    );
+    assert_eq!(
+        result.duration_samples,
+        LEAD_SAMPLES + 30 * SAMPLE_RATE + 2 * GAP_SAMPLES
+    );
+    assert_eq!(result.timing_source, TimingSource::SuppliedSamples);
+    for scene in &generated.scenes[result.first_scene..] {
+        assert!(scene.duration.is_finite() && scene.duration > 0.0);
+        assert!((scene.duration * f64::from(generated.project.fps)).ceil() >= 1.0);
+        assert!(!scene.composition.camera.is_empty());
+        assert!(scene
+            .composition
+            .camera
+            .iter()
+            .all(|key| key.at >= 0.0 && key.at <= scene.duration));
+        for event in &scene.events {
+            if let Event::Speak { audio, .. } = event {
+                assert!(
+                    audio.is_none(),
+                    "the director must not invent an audio file"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn identical_inputs_are_deterministic_and_timing_provenance_is_distinct() {
+    let dialogue = "EMMA: Shall we begin?\nALEX: Yes, let us begin.";
+    let estimated = direct(SOURCE, dialogue, None).unwrap();
+    let repeated = direct(SOURCE, dialogue, None).unwrap();
+    assert_eq!(estimated.source, repeated.source);
+    assert_eq!(estimated.duration_samples, repeated.duration_samples);
+    assert_eq!(estimated.diagnostics, repeated.diagnostics);
+    assert_eq!(estimated.timing_source, TimingSource::Estimated);
+    assert!(
+        !estimated.diagnostics.is_empty(),
+        "draft timing needs a visible diagnostic"
+    );
+    let supplied = direct(SOURCE, dialogue, Some(&[8 * SAMPLE_RATE, 9 * SAMPLE_RATE])).unwrap();
+    assert_eq!(supplied.timing_source, TimingSource::SuppliedSamples);
+    assert_ne!(estimated.duration_samples, supplied.duration_samples);
+    assert_eq!(
+        added_speech(
+            &motion_script::parse(&estimated.source).unwrap(),
+            estimated.first_scene
+        ),
+        added_speech(
+            &motion_script::parse(&supplied.source).unwrap(),
+            supplied.first_scene
+        )
+    );
+}
+
+#[test]
+fn sixty_second_budget_includes_lead_and_final_gap_without_cutting_speech() {
+    let speech = MAX_DURATION_SAMPLES - LEAD_SAMPLES - GAP_SAMPLES;
+    let at_limit = direct(SOURCE, "EMMA: A complete supplied line.", Some(&[speech])).unwrap();
+    assert_eq!(at_limit.duration_samples, MAX_DURATION_SAMPLES);
+    let generated = motion_script::parse(&at_limit.source).unwrap();
+    let added_seconds: f64 = generated.scenes[at_limit.first_scene..]
+        .iter()
+        .map(|s| s.duration)
+        .sum();
+    assert!((added_seconds * SAMPLE_RATE as f64 - MAX_DURATION_SAMPLES as f64).abs() <= 1.0);
+    assert!(direct(
+        SOURCE,
+        "EMMA: A complete supplied line.",
+        Some(&[speech + 1])
+    )
+    .is_err());
+    assert!(direct(SOURCE, "EMMA: No integer overflow.", Some(&[u64::MAX])).is_err());
+    assert!(direct(SOURCE, "EMMA: No zero-length speech.", Some(&[0])).is_err());
+}
+
+#[test]
+fn rejects_a_third_known_speaker_and_malformed_timing_without_partial_output() {
+    let mut base = motion_script::parse(SOURCE).unwrap();
+    base.characters
+        .insert("THIRD".into(), base.characters["ALEX"].clone());
+    let source = motion_script::to_source(&base).unwrap();
+    assert!(direct(&source, "EMMA: One.\nALEX: Two.\nTHIRD: Three.", None).is_err());
+    assert!(direct(SOURCE, "EMMA: One.\nALEX: Two.", Some(&[SAMPLE_RATE])).is_err());
+    assert!(direct(SOURCE, "MISSING: One.", None).is_err());
+    assert!(direct(SOURCE, "", None).is_err());
+    assert!(direct(SOURCE, &"EMMA: One.\n".repeat(MAX_LINES + 1), None).is_err());
+    // Failed pure-function calls cannot mutate the supplied screenplay.
+    assert_eq!(source, motion_script::to_source(&base).unwrap());
+}
