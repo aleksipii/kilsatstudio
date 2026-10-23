@@ -1776,3 +1776,28 @@ Auto-direct append/selection/Undo/Redo/busy-state test passed. Final CI evidence
 is recorded in the delivery PR. Physical Mac,
 rendered artistic review, real-speech retiming, general intent/action recognition,
 rig-bound framing and five-minute production acceptance remain unverified/open.
+
+
+## PR #90 and #91 merged into main — 2026-10-23
+
+Both merges were explicitly authorized by the user:
+
+- PR #90 (guided desktop creation), merge `8aef5a448383565ea407aba9029d5ca3e0414c13`.
+- PR #91 (automatic direction orchestrator), merge `fdd5ae060f96726a37e3f7036ec4a312631eecc5`.
+
+The resulting main tree is `eeed7af21a3f7dcc924d04f1979c88f37cc1de0d`, identical
+to tested/built source `e6fb2cc082adaf619278a40242c7df441f941211`.
+Full Rust formatting, workspace compilation, strict Clippy/all-target tests and
+Python suites passed on Linux/macOS for that source: 766/765 Rust tests passed,
+7 intentionally ignored per platform, plus 55 runtime and 82 repository Python
+tests each. GPU-contract jobs passed on both platforms. The separate real-MP4
+job was still in progress at merge and is not recorded as passed.
+
+Apple Silicon app/package build passed:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39936876796
+Download: https://github.com/aleksipii/kilsatstudio/actions/runs/39936876796/artifacts/12493459931
+The main push triggers fresh CI/package jobs; their status must be read from
+Actions rather than inferred from prior evidence. Physical Mac interaction,
+real-speech automatic retiming, professional artistic acceptance and the measured
+five-minute production target remain open. No kilsatstudio1.0 synchronization was
+requested in this merge action.
