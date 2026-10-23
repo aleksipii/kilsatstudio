@@ -1801,3 +1801,25 @@ Actions rather than inferred from prior evidence. Physical Mac interaction,
 real-speech automatic retiming, professional artistic acceptance and the measured
 five-minute production target remain open. No kilsatstudio1.0 synchronization was
 requested in this merge action.
+
+
+## Main CI and real-MP4 recovery
+
+The encoder CI job was observed waiting over 25 minutes in its unbounded apt
+installation step before reaching tests. The workflow now reuses the runner's
+existing absolute FFmpeg/FFprobe paths, bounds fallback installation to five
+minutes with noninteractive package operations/network timeouts, and bounds the
+media job to 20 minutes. New runs cancel obsolete runs for the same workflow/ref.
+
+All three actual FFmpeg tests passed locally: H.264/AAC scene encoding, embedded
+art retained in MP4, and sequence duration/crossfade decoded-color assertions.
+The exact workflow setup shell passed syntax/execution checks against installed
+FFmpeg/FFprobe. No application/media-export implementation was changed. Final CI
+results and main integration are recorded in the delivery PR; old queued/running
+jobs are not treated as passed.
+
+The first bounded CI attempt exposed a slow Azure Ubuntu mirror download of
+libcodec2 and correctly failed on the installation time limit before encoding.
+The follow-up selects the official Ubuntu archive/security mirror lists on the
+ephemeral runner and omits recommended packages; the same real media tests and
+strict time limits remain in place. No failed setup is counted as a media pass.
