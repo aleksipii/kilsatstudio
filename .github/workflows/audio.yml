@@ -79,8 +79,15 @@ jobs:
         run: |
           set -euo pipefail
           if [[ ! -x /usr/bin/ffmpeg || ! -x /usr/bin/ffprobe ]]; then
+            # Avoid the Azure mirror where codec downloads stalled in CI.
+            if [[ -f /etc/apt/apt-mirrors.txt ]]; then
+              printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo -n tee /etc/apt/apt-mirrors.txt >/dev/null
+            fi
+            if [[ -f /etc/apt/apt-mirrors-security.txt ]]; then
+              printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo -n tee /etc/apt/apt-mirrors-security.txt >/dev/null
+            fi
             timeout 120s sudo -n apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update
-            timeout 150s sudo -n env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y ffmpeg
+            timeout 150s sudo -n env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y --no-install-recommends ffmpeg
           fi
           /usr/bin/ffmpeg -version
           /usr/bin/ffprobe -version

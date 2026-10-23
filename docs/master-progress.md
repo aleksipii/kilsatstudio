@@ -1817,3 +1817,9 @@ The exact workflow setup shell passed syntax/execution checks against installed
 FFmpeg/FFprobe. No application/media-export implementation was changed. Final CI
 results and main integration are recorded in the delivery PR; old queued/running
 jobs are not treated as passed.
+
+The first bounded CI attempt exposed a slow Azure Ubuntu mirror download of
+libcodec2 and correctly failed on the installation time limit before encoding.
+The follow-up selects the official Ubuntu archive/security mirror lists on the
+ephemeral runner and omits recommended packages; the same real media tests and
+strict time limits remain in place. No failed setup is counted as a media pass.
