@@ -1734,3 +1734,25 @@ outer artifact digest
 Package validation passed with `distribution_approved=false`. No physical Mac,
 GPU device, recognizer quality, rights clearance or complete milestone acceptance
 was newly executed/granted. Main and `kilsatstudio1.0` include this delivery record.
+
+## Guided desktop animation start
+
+- Implemented a Project-tab dialogue entry workflow (`CHARACTER: dialogue`) that
+  appends/selects an editable scene through existing validation and Undo/Redo.
+  It preserves existing scenes, lays speakers across the stage and exposes scene
+  audio preparation, project folder/save and existing video export controls.
+- Explicit input budgets, actionable line errors, no partial mutation, no invented
+  speech/timestamps, no new dependencies. English Kokoro and imported Finnish WAV
+  paths are explained in the UI and desktop guide. Fixed speech slots need artist
+  adjustment against real audio; this is not automatic professional direction.
+- Local formatting, workspace compilation and strict all-target Clippy passed
+  using a direct stable toolchain, explicit sysroot and GNU linker to accommodate
+  the sandbox without `/proc/self/exe`. Packaging tests: 13 passed. Desktop tests:
+  222 passed, one existing package-enrollment test blocked by absent
+  `/proc/sys/kernel/osrelease`; all four new tests passed. Full workspace testing
+  and exact Linux/macOS CI results are tracked in PR #90.
+- Initial Apple Silicon package build succeeded for `e1c1df7`; final follow-up
+  explicitly hides non-speaking actors in newly created scenes. Download the
+  final-head package via PR #90 rather than assuming the initial artifact is current.
+- This increment does not complete the broader product backlog or establish real
+  Mac interaction, speech quality, physical device acceptance or release approval.
