@@ -1,0 +1,220 @@
+# Night-room reference with REAL Kokoro speech (opt-in, manual only).
+#
+# CONSENT: this workflow downloads third-party model assets. It never runs on
+# push, pull_request or a schedule. Running it from the Actions tab (or
+# `gh workflow run real-speech-reference.yml -f consent_download=true`) with
+# consent_download=true is the repository owner's explicit consent to download,
+# on a GitHub-hosted runner only:
+#   - hexgrad/Kokoro-82M at the pinned revision in
+#     services/kokoro-runtime/setup-manifest.json: config.json, kokoro-v1_0.pth
+#     (about 327 MB) and the selected voice tensors (about 0.5 MB each), every
+#     file verified by size and SHA-256 (voices pinned in
+#     services/kokoro-runtime/english-voices.json);
+#   - the hash-pinned spaCy en_core_web_sm wheel and the exact-pinned PyPI
+#     packages from the same manifest (wheels only), via setup_kokoro.py;
+#   - FFmpeg from Homebrew, used only to encode the MP4.
+# Nothing is committed back to the repository. Model files stay in the runner's
+# temporary directory and the actions/cache entry (keyed by Python version and
+# the manifest's content hash); they are never uploaded as artifacts. No cloud
+# speech API is used: synthesis is local CPU inference through
+# services/kokoro-runtime/runtime.py (protocol 1). There is no fallback: if a
+# download, hash check, install or synthesis fails, the job fails and no
+# placeholder-tone video is produced. Licence: the model card at the pinned
+# revision declares apache-2.0; see docs/real-speech-reference-ci.md.
+name: Real speech reference (opt-in)
+on:
+  workflow_dispatch:
+    inputs:
+      consent_download:
+        description: 'I consent to downloading Kokoro-82M (pinned, ~330 MB), selected voices, pinned Python packages and FFmpeg on the runner'
+        type: boolean
+        required: true
+        default: false
+      dad_voice:
+        description: 'DAD voice (pinned English preset)'
+        type: choice
+        default: am_michael
+        options:
+          - af_alloy
+          - af_aoede
+          - af_bella
+          - af_heart
+          - af_jessica
+          - af_kore
+          - af_nicole
+          - af_nova
+          - af_river
+          - af_sarah
+          - af_sky
+          - am_adam
+          - am_echo
+          - am_eric
+          - am_fenrir
+          - am_liam
+          - am_michael
+          - am_onyx
+          - am_puck
+          - am_santa
+          - bf_alice
+          - bf_emma
+          - bf_isabella
+          - bf_lily
+          - bm_daniel
+          - bm_fable
+          - bm_george
+          - bm_lewis
+      boy_voice:
+        description: 'STAN (boy) voice; af_heart is the current reference default and is a female preset, not a reviewed boy voice'
+        type: choice
+        default: af_heart
+        options:
+          - af_alloy
+          - af_aoede
+          - af_bella
+          - af_heart
+          - af_jessica
+          - af_kore
+          - af_nicole
+          - af_nova
+          - af_river
+          - af_sarah
+          - af_sky
+          - am_adam
+          - am_echo
+          - am_eric
+          - am_fenrir
+          - am_liam
+          - am_michael
+          - am_onyx
+          - am_puck
+          - am_santa
+          - bf_alice
+          - bf_emma
+          - bf_isabella
+          - bf_lily
+          - bm_daniel
+          - bm_fable
+          - bm_george
+          - bm_lewis
+      language:
+        description: 'Pronunciation (en-us needs a* voices, en-gb needs b* voices for both characters)'
+        type: choice
+        default: en-us
+        options:
+          - en-us
+          - en-gb
+      speed:
+        description: 'Speech speed, finite, 0.5 to 2'
+        type: string
+        default: '1.0'
+permissions:
+  contents: read
+concurrency:
+  group: real-speech-reference
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
+jobs:
+  real-speech:
+    # Apple Silicon: setup_kokoro.py refuses non-macOS hosts, and macOS arm64 is
+    # the product's first target.
+    runs-on: macos-latest
+    timeout-minutes: 120
+    env:
+      OUT: ${{ github.workspace }}/out/real-speech
+      DAD_VOICE: ${{ inputs.dad_voice }}
+      BOY_VOICE: ${{ inputs.boy_voice }}
+      SPEECH_LANGUAGE: ${{ inputs.language }}
+      SPEECH_SPEED: ${{ inputs.speed }}
+    steps:
+      - name: Require explicit download consent
+        if: ${{ inputs.consent_download != true }}
+        run: |
+          echo "::error::consent_download was not set to true; nothing was downloaded."
+          exit 1
+      - name: Require Apple Silicon runner
+        run: |
+          echo "KOKORO_ROOT=$RUNNER_TEMP/kokoro" >> "$GITHUB_ENV"
+          echo "RUNNER_ARCH=$RUNNER_ARCH machine=$(uname -m)"
+          test "$(uname -m)" = arm64 || { echo "::error::expected an arm64 macOS runner"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        id: python
+        with:
+          python-version: '3.12'
+      - name: Derive pinned setup manifest for the selected voices
+        id: manifest
+        run: |
+          mkdir -p "$OUT"
+          python3 -I scripts/real_speech_ci.py manifest \
+            --base services/kokoro-runtime/setup-manifest.json \
+            --catalog services/kokoro-runtime/english-voices.json \
+            --voice "$DAD_VOICE" --voice "$BOY_VOICE" --language "$SPEECH_LANGUAGE" \
+            --out "$OUT/setup-manifest.json" | tee -a "$GITHUB_OUTPUT"
+      - name: Restore Kokoro environment and verified assets
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/kokoro
+          key: kokoro-real-speech-v1-${{ runner.os }}-${{ runner.arch }}-py${{ steps.python.outputs.python-version }}-${{ steps.manifest.outputs.key }}
+      - name: Install Kokoro and download pinned assets (consented)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          start=$(date +%s)
+          python3 -I services/kokoro-runtime/setup_kokoro.py \
+            --root "$KOKORO_ROOT" --manifest "$OUT/setup-manifest.json" --allow-downloads \
+            | tee "$OUT/setup-log.jsonl"
+          echo "SETUP_SECONDS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+      - name: Re-verify every asset hash (fresh install or cache)
+        run: |
+          python3 -I scripts/real_speech_ci.py verify \
+            --manifest "$OUT/setup-manifest.json" --assets "$KOKORO_ROOT/assets"
+          test -x "$KOKORO_ROOT/venv/bin/python"
+      - name: Synthesize reference dialogue with local Kokoro (no fallback)
+        run: |
+          start=$(date +%s)
+          "$KOKORO_ROOT/venv/bin/python" -I scripts/night_room_real_speech.py \
+            --kokoro "$KOKORO_ROOT" --out "$OUT/wav" \
+            --dad-voice "$DAD_VOICE" --boy-voice "$BOY_VOICE" \
+            --language "$SPEECH_LANGUAGE" --speed "$SPEECH_SPEED" > "$OUT/speech-report.json"
+          echo "SYNTHESIS_SECONDS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+          cat "$OUT/speech-report.json"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install FFmpeg (consented)
+        run: brew install ffmpeg
+      - name: Build night-room sequence from the real WAVs
+        run: |
+          start=$(date +%s)
+          cargo run --locked -p motion-export --example night_room_reference -- report "$OUT/wav" > "$OUT/timing.txt"
+          cargo run --locked -p motion-export --example night_room_reference -- frames "$OUT/frames" "$OUT/wav"
+          echo "FRAMES_SECONDS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+          start=$(date +%s)
+          cargo run --locked -p motion-export --example night_room_reference -- \
+            export "$RUNNER_TEMP/night-room-export" "$OUT/wav" --ffmpeg "$(command -v ffmpeg)"
+          echo "EXPORT_SECONDS=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
+          cp "$RUNNER_TEMP/night-room-export/sequence.mp4" "$OUT/sequence.mp4"
+          cat "$OUT/timing.txt"
+      - name: Write provenance
+        run: |
+          if [ -f "$KOKORO_ROOT/evidence/freeze.txt" ]; then cp "$KOKORO_ROOT/evidence/freeze.txt" "$OUT/freeze.txt"; fi
+          python3 -I scripts/real_speech_ci.py provenance \
+            --manifest "$OUT/setup-manifest.json" \
+            --catalog services/kokoro-runtime/english-voices.json \
+            --speech-report "$OUT/speech-report.json" --wav-dir "$OUT/wav" \
+            --artifact-dir "$OUT" --assets "$KOKORO_ROOT/assets" --freeze "$OUT/freeze.txt" \
+            --voice "DAD=$DAD_VOICE" --voice "STAN=$BOY_VOICE" \
+            --speed "$SPEECH_SPEED" --language "$SPEECH_LANGUAGE" \
+            --cache-hit "${{ steps.cache.outputs.cache-hit == 'true' }}" \
+            --tool "python=$("$KOKORO_ROOT/venv/bin/python" -V 2>&1)" \
+            --tool "rustc=$(rustc -V)" \
+            --tool "ffmpeg=$(ffmpeg -version | head -n 1)" \
+            --tool "macos=$(sw_vers -productVersion) $(sw_vers -buildVersion)" \
+            --timing "setup=${SETUP_SECONDS:-0}" --timing "synthesis=$SYNTHESIS_SECONDS" \
+            --timing "frames=$FRAMES_SECONDS" --timing "export=$EXPORT_SECONDS"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: night-room-real-speech-${{ github.run_id }}
+          path: out/real-speech/
+          if-no-files-found: error
+          retention-days: 30
