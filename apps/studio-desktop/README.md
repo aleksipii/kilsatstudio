@@ -294,3 +294,30 @@ The [GPU fixture](../../docs/gpu-offscreen.md) is default-disabled and separate
 from the CPU production renderer. Compilation is not evidence of a Metal device
 run or full-scene parity. See [dependency audit](../../docs/dependency-audit.md)
 for license inventory and the still-open distribution clearance.
+
+## Create your own animation without writing YAML
+
+In the **Project** tab, open **Luo animaatio / Create animation**. Enter one
+`CHARACTER: dialogue` line per turn, using the character IDs shown above the
+editor (initially `EMMA` and `ALEX`). Blank lines are ignored. Choose the seconds
+reserved for each line and press **Create new scene**. This appends and selects
+an editable scene, positions the speaking characters across the stage and adds
+an initial happy expression. Existing scenes and artwork remain in the project;
+Undo restores the previous screenplay. This is a deterministic starting layout,
+not automatic cinematic direction. The timeline/Inspector can refine every event.
+
+Each line starts after a one-second lead-in with a fixed slot. If actual speech
+exceeds its slot, adjust event times and scene duration before preparing again.
+No speech, alignment or audio is fabricated by the text importer. It accepts up
+to 60 turns and 16 KB of text; invalid lines reject the whole addition.
+
+Use **Kokoro · local speech setup** for English synthesis, then **Prepare scene
+audio**. Finnish text is preserved, but Finnish Kokoro synthesis is unsupported:
+import your own 24 kHz mono PCM16 WAV in each Speak event's audio field. Prepared
+audio is required for the existing export pipeline. Mouth timing still requires
+reviewed manual or estimated alignment through the existing Inspector tools.
+
+Set an existing absolute project folder and a `.kilsat` path inside that folder,
+then **Save project**. Open **Export video**, select **MP4**, provide your local
+FFmpeg executable and a new absolute output directory, then **Export scene
+bundle**. Playback is in the Inspector. Neither Kokoro nor FFmpeg is bundled.

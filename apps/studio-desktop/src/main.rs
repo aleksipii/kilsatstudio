@@ -24,6 +24,7 @@ mod managed_license_evidence;
 mod native_compositor;
 mod playback;
 mod project_history;
+mod quick_start;
 mod rig_clip_editor;
 mod runtime_check;
 mod scene_settings;
@@ -121,6 +122,7 @@ fn same_optional_arc<T>(a: &Option<Arc<T>>, b: &Option<Arc<T>>) -> bool {
     }
 }
 struct Studio {
+    quick_start: quick_start::Draft,
     ui_metrics: ui_metrics::Metrics,
     native_alignment: alignment_panel::Panel,
     alignment_identity: Option<alignment_panel::Identity>,
@@ -331,6 +333,7 @@ impl Default for Studio {
             timeline_drag: None,
             timeline_drag_source: None,
             timeline_seek_drag: false,
+            quick_start: quick_start::Draft::default(),
             history: project_history::History::new(include_str!(
                 "../../../examples/hello-emma.yaml"
             )),
@@ -2928,6 +2931,75 @@ impl Studio {
             });
         });
     }
+    fn create_dialogue_scene(&mut self) {
+        if self.busy || self.diagnostics_busy || self.export_busy || self.setup_busy {
+            return;
+        }
+        self.flush_text_edit();
+        match quick_start::append_scene(&self.source, &self.quick_start) {
+            Ok((source, index)) => {
+                self.apply_structure(Ok(source.clone()));
+                if self.source == source {
+                    self.scene_index = index;
+                    self.reset_scene();
+                    self.status = "Scene created. Preview movement, set up speech, then prepare audio and export. Save as .kilsat to keep your work.".into();
+                }
+            }
+            Err(error) => self.status = error,
+        }
+    }
+
+    fn quick_start_ui(&mut self, ui: &mut egui::Ui) {
+        egui::CollapsingHeader::new("Luo animaatio / Create animation")
+            .default_open(true)
+            .show(ui, |ui| {
+                ui.label("1. Kirjoita vuorosanat / Write dialogue");
+                let actors = self.script.as_ref().map(|script| {
+                    script.characters.keys().cloned().collect::<Vec<_>>().join(", ")
+                }).unwrap_or_default();
+                ui.weak(format!("CHARACTER: dialogue · {actors}"));
+                let idle = !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy;
+                ui.add_enabled_ui(idle, |ui| {
+                    ui.add(egui::TextEdit::multiline(&mut self.quick_start.dialogue)
+                        .desired_rows(6).desired_width(f32::INFINITY).char_limit(16_000));
+                    ui.horizontal(|ui| {
+                        ui.label("Seconds per line");
+                        ui.add(egui::DragValue::new(&mut self.quick_start.seconds_per_line)
+                            .range(1.0..=30.0).speed(0.5));
+                    });
+                    ui.weak("Timing is a draft. Long speech may need more time. Existing scenes are retained; Undo removes the new scene.");
+                    if ui.button("Luo uusi kohtaus / Create new scene").clicked() {
+                        self.create_dialogue_scene();
+                    }
+                });
+                ui.separator();
+                ui.label("2. Puhe / Speech");
+                ui.weak("Use Kokoro setup below for English speech. For Finnish, import recorded WAV in each Speak event; Finnish Kokoro synthesis is not supported.");
+                ui.add_enabled_ui(idle && self.script.is_some(), |ui| {
+                    if ui.button("Valmistele kohtauksen ääni / Prepare scene audio").clicked() {
+                        self.prepare_scene_audio();
+                    }
+                });
+                if self.scene_preview.is_some() {
+                    ui.label("Audio ready. Use Play scene audio in the Inspector to listen.");
+                }
+                ui.label("3. Tallenna ja vie / Save and export");
+                field(ui, "Project folder (absolute path)", &mut self.project_root);
+                field(ui, "Project path (.kilsat, inside project folder) · Save replaces this file", &mut self.script_path);
+                ui.add_enabled_ui(idle, |ui| {
+                    if ui.button("Tallenna projekti / Save project").clicked() {
+                        self.save_script();
+                    }
+                });
+                egui::CollapsingHeader::new("Vie video / Export video").show(ui, |ui| {
+                    if ui.button("Valitse MP4 / Select MP4").clicked() {
+                        self.export_format = export_worker::Format::Mp4;
+                    }
+                    self.export_ui(ui);
+                });
+            });
+    }
+
     fn project_ui(&mut self, ui: &mut egui::Ui) {
         let previous_tab = self.editor_tab;
         ui.horizontal(|ui| {
@@ -2963,6 +3035,7 @@ impl Studio {
             ui.add_space(6.0);
             if let Some(script) = &self.script { ui.label(egui::RichText::new(&script.project.title).strong().size(16.0)); }
             ui.add_space(12.0);
+            self.quick_start_ui(ui);
             self.settings_ui(ui);
             self.structure_ui(ui);
             section_label(ui, "SCENES");
@@ -5786,6 +5859,23 @@ mod scene_preview_tests {
         studio.settings_draft_source = Some(studio.source.clone());
         studio
     }
+    #[test]
+    fn dialogue_scene_creation_is_selected_and_undoable() {
+        let mut studio = settings_studio();
+        let original = studio.source.clone();
+        studio.create_dialogue_scene();
+        assert_eq!(studio.scene_index, 1);
+        assert_eq!(studio.script.as_ref().unwrap().scenes.len(), 2);
+        let created = studio.source.clone();
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        studio.undo_edit(true);
+        assert_eq!(studio.source, created);
+        studio.busy = true;
+        studio.create_dialogue_scene();
+        assert_eq!(studio.source, created);
+    }
+
     #[test]
     fn pending_text_then_canvas_artwork_undo_in_one_project_order() {
         let mut studio = settings_studio();

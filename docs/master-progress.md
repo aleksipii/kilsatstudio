@@ -1734,3 +1734,18 @@ outer artifact digest
 Package validation passed with `distribution_approved=false`. No physical Mac,
 GPU device, recognizer quality, rights clearance or complete milestone acceptance
 was newly executed/granted. Main and `kilsatstudio1.0` include this delivery record.
+
+## Guided desktop animation start
+
+- Implemented a Project-tab dialogue entry workflow (`CHARACTER: dialogue`) that
+  appends/selects an editable scene through existing validation and Undo/Redo.
+  It preserves existing scenes, lays speakers across the stage and exposes scene
+  audio preparation, project folder/save and existing video export controls.
+- Explicit input budgets, actionable line errors, no partial mutation, no invented
+  speech/timestamps, no new dependencies. English Kokoro and imported Finnish WAV
+  paths are explained in the UI and desktop guide. Fixed speech slots need artist
+  adjustment against real audio; this is not automatic professional direction.
+- Local packaging tests: 13 passed; whitespace check passed. Local Rust validation
+  is pending toolchain availability; exact CI results will be recorded separately.
+- This increment does not complete the broader product backlog or establish real
+  Mac interaction, speech quality, physical device acceptance or release approval.
