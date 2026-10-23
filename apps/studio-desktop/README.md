@@ -1,3 +1,5 @@
+Suomenkielinen [käyttöohje](KAYTTOOHJE.md) neuvoo työtilan, animoinnin, puheen ja viennin. Sama ohje on sovelluksen Ohjeet-painikkeessa.
+
 # Native studio workspace
 
 Run from the repository root:

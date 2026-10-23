@@ -357,7 +357,7 @@ impl Panel {
     }
     pub fn ui(&mut self, ui: &mut egui::Ui, locked: bool, can_prepare: bool) -> bool {
         let mut started = false;
-        ui.collapsing("Whole project · sequence", |ui| {
+        ui.collapsing("Koko projekti / kohtauskooste", |ui| {
             ui.label("Prepare uses your configured local Kokoro runtime. No automatic download.");
             if ui
                 .add_enabled(

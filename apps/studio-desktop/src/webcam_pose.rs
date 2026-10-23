@@ -139,7 +139,7 @@ impl Panel {
                         Ok(angle) => {
                             self.angle = Some(angle);
                             self.status =
-                                "Tilt captured. Review before copying to the head draft.".into();
+                                "Kallistus mitattu. Tarkista tulos ennen kopiointia pään luonnokseen.".into();
                         }
                         Err(e) => {
                             self.angle = None;
@@ -155,10 +155,10 @@ impl Panel {
                 Err(mpsc::TryRecvError::Empty) => {}
             }
         }
-        egui::CollapsingHeader::new("Webkamera / Capture head tilt").show(ui, |ui| {
-            ui.weak("Explicit one-shot Mac camera capture. Local analysis only; no images/audio are saved or sent. Not continuous motion capture.");
+        egui::CollapsingHeader::new("Webkamera · yksittäinen pään kallistus").show(ui, |ui| {
+            ui.weak("Mittaus tehdään paikallisesti Macin kameralla. Kuvia tai ääntä ei tallenneta eikä lähetetä. Ei jatkuvaa liikkeenseurantaa.");
             if self.receiver.is_none() {
-                if ui.button("Kaappaa pään kallistus / Capture tilt").clicked() {
+                if ui.button("Kaappaa pään kallistus").clicked() {
                     self.angle=None; self.requested=None;
                     match bundled_helper() {
                         Ok(path) => {
@@ -174,14 +174,14 @@ impl Panel {
                 }
             } else {
                 ui.spinner(); ui.ctx().request_repaint_after(Duration::from_millis(50));
-                if ui.button("Cancel camera capture").clicked() {
+                if ui.button("Peru kaappaus").clicked() {
                     if let Some(cancel)=&self.cancel { cancel.store(true,Ordering::Relaxed); }
                 }
             }
             if let Some(angle)=self.angle {
                 ui.label(format!("Captured tilt: {angle:.1}°"));
-                ui.checkbox(&mut self.invert,"Invert tilt direction");
-                if ui.button("Copy tilt to head draft").clicked() {
+                ui.checkbox(&mut self.invert,"Käännä kallistuksen suunta");
+                if ui.button("Kopioi kallistus luonnokseen").clicked() {
                     self.requested=Some(if self.invert {-angle} else {angle});
                 }
                 ui.weak("Only 2D roll is copied. Use Apply to save a head keyframe; inspect orientation on your Mac.");
