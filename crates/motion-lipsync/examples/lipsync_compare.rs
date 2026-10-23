@@ -94,7 +94,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut config = EnvelopeConfig::DEFAULT_24K;
     config.absolute_floor_dbfs = number(take("--floor-dbfs"), config.absolute_floor_dbfs);
     config.relative_db = number(take("--relative-db"), config.relative_db);
-    if args.is_empty() || args.len() % 2 != 0 {
+    if args.is_empty() || !args.len().is_multiple_of(2) {
         usage();
     }
     if let Some(out) = &out {
