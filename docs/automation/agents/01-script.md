@@ -1,6 +1,9 @@
 # Agentti 01 — käsikirjoituksen ymmärrettävä syöte
 
-Tila: suunnitelma, ei toteutettu tuoteominaisuus. Tarkoitus on alkuperäinen,
+Tila: suunnitelma. Toteutettu 2026-10-21: rajatun tekstimuodon tuonti
+(ING-002, ING-004:n rajattu sanasto, ING-005) kirjastossa `motion_script::intent`
+ja CLI-esimerkissä, katso [script-intent](../../script-intent.md). ING-001-ohjaus,
+ING-003, ING-006 ja editorin tarkistusnäkymä ovat toteuttamatta. Tarkoitus on alkuperäinen,
 tyylitelty animaatio. Pixar-/Disney-laatu ja alle viiden minuutin valmistuminen
 eivät ole tämän dokumentin osoittamia ominaisuuksia.
 

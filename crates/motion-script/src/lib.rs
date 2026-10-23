@@ -1,5 +1,6 @@
 //! Strict MotionScript scene and dialogue schema.
 mod camera_presets;
+pub mod intent;
 mod rules;
 mod shots;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};

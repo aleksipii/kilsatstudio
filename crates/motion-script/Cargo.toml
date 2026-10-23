@@ -6,6 +6,8 @@ license.workspace = true
 [dependencies]
 serde.workspace = true
 serde_yaml = "0.9"
+serde_json.workspace = true
+sha2 = "0.10"
 thiserror.workspace = true
 motion-animation = { path = "../motion-animation" }
 motion-rig = { path = "../motion-rig" }
