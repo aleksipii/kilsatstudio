@@ -7,6 +7,7 @@ mod import;
 pub mod local_package;
 pub mod manual;
 pub mod rhubarb;
+pub mod timing_eval;
 pub use import::{arpabet_to_ipa, import_alignment_json, AlignmentAudio};
 
 use serde::{Deserialize, Serialize};

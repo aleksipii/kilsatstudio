@@ -104,6 +104,11 @@ are unchanged and need external evidence.
 - [x] Text-estimated visemes reach scene preparation, preview and export with
   precedence manual > forced > Rhubarb > text, pronunciation-aware identity and typed
   diagnostics (`docs/estimated-visemes-pipeline.md`). Structural and pixel tests only.
+- [x] Offline consistency measurements on the three real night-room Kokoro WAVs
+  (energy envelope, Rhubarb PocketSphinx/Phonetic, agreement, onset/offset, mouth in
+  silence) and a comic-timing report; the text estimate now rests over detected
+  leading/trailing silence (mouth had moved over 0.6-1.0 s of silence per line)
+  (`docs/lipsync-timing-evaluation.md`). Consistency between estimates only.
 - [ ] Open: perceptual lip-sync quality is unmeasured (no annotated audio), a real
   forced aligner would replace these estimates, and the sequence panel does not list
   the new diagnostics.
