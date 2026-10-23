@@ -4,11 +4,21 @@ on:
     paths:
       - 'scripts/night_room_real_speech.py'
       - 'scripts/tests/test_night_room_real_speech.py'
+      - 'scripts/real_speech_ci.py'
+      - 'scripts/tests/test_real_speech_ci.py'
+      - 'services/kokoro-runtime/english-voices.json'
+      - 'services/kokoro-runtime/setup-manifest.json'
+      - '.github/workflows/real-speech-reference.yml'
       - '.github/workflows/reference-voice-selection.yml'
   pull_request:
     paths:
       - 'scripts/night_room_real_speech.py'
       - 'scripts/tests/test_night_room_real_speech.py'
+      - 'scripts/real_speech_ci.py'
+      - 'scripts/tests/test_real_speech_ci.py'
+      - 'services/kokoro-runtime/english-voices.json'
+      - 'services/kokoro-runtime/setup-manifest.json'
+      - '.github/workflows/real-speech-reference.yml'
       - '.github/workflows/reference-voice-selection.yml'
   workflow_dispatch:
 permissions:
@@ -23,4 +33,5 @@ jobs:
         with:
           python-version: '3.12'
       - run: python3 -m unittest discover -s scripts/tests -p 'test_night_room_real_speech.py' -v
+      - run: python3 -m unittest discover -s scripts/tests -p 'test_real_speech_ci.py' -v
       - run: python3 scripts/night_room_real_speech.py --kokoro /nonexistent --list-voices
