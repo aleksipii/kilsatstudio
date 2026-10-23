@@ -114,6 +114,19 @@ fn build_inner(
             "textured custom rig parts need decoded images; use build_with_art",
         ));
     }
+    // Ellipse and rounded parts arrive as ordinary (denser) polygons and are drawn
+    // like any other part, within the work budget. Outline strokes have no GPU
+    // command yet: refuse them rather than silently drop the bold lines.
+    if scene
+        .actors
+        .iter()
+        .flat_map(|a| &a.rigid_parts)
+        .any(|p| p.outline.is_some())
+    {
+        return Err(Error::UnsupportedFeature(
+            "custom rig part outlines are rendered only by the SVG path",
+        ));
+    }
     // Reserve a conservative upper bound before expanding any actor geometry.
     let upper = scene.actors.iter().try_fold(0usize, |sum, actor| {
         sum.checked_add(if actor.rigid_parts.is_empty() {
@@ -1608,10 +1621,22 @@ mod tests {
                     },
                 }),
                 skinned,
+                outline: None,
             }];
             s
         };
         assert!(build(&part(false, false), 64, 64, &[], Labels::OmitAcknowledged).is_ok());
+        // Outlines have no GPU command: an explicit unsupported-feature error.
+        let mut outlined = part(false, false);
+        outlined.actors[0].rigid_parts[0].outline = Some(motion_rig::EvaluatedOutline {
+            color: [0, 0, 0, 255],
+            width: 2.0,
+            mode: motion_rig::OutlineMode::Behind,
+        });
+        assert!(matches!(
+            build(&outlined, 64, 64, &[], Labels::OmitAcknowledged),
+            Err(Error::UnsupportedFeature(m)) if m.contains("outline")
+        ));
         // Skinned parts arrive deformed, so they need no special treatment.
         assert!(build(&part(false, true), 64, 64, &[], Labels::OmitAcknowledged).is_ok());
         // Textures through the geometry-only entry point are explicit errors.
