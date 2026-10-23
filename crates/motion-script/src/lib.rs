@@ -1,4 +1,5 @@
 //! Strict MotionScript scene and dialogue schema.
+pub mod auto_direction;
 mod camera_presets;
 mod rules;
 mod shots;

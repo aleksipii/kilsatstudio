@@ -321,3 +321,29 @@ Set an existing absolute project folder and a `.kilsat` path inside that folder,
 then **Save project**. Open **Export video**, select **MP4**, provide your local
 FFmpeg executable and a new absolute output directory, then **Export scene
 bundle**. Playback is in the Inspector. Neither Kokoro nor FFmpeg is bundled.
+
+### Automatic direction draft
+
+**Automaattiohjaa / Auto-direct** in the same Project panel invokes the bounded
+local director: up to two speakers, 16 turns and 60 seconds including lead-in
+and pauses. Use `EMMA[happy]: Hello!` for an explicit supported emotion. Plain
+lines remain neutral; this parser does not infer irony, actions or gestures.
+
+The orchestrator appends an establishing shot, speaker shots and a final close-up
+for a multi-line scene. Speakers keep their left/right stage positions; other
+project actors are hidden in generated shots. Explicit expressions and
+capability-gated custom-rig gaze use existing scene structures. Proportional
+framing still needs visual review for each rig.
+
+All shots remain normal editable MotionScript scenes and share project
+Undo/Redo. Existing scenes remain in the project, so full sequence preview/export
+includes them too; remove unwanted earlier scenes explicitly. **Prepare scene
+audio** is for the selected shot; use the existing **Sequence** controls to
+prepare/play/export the complete project.
+
+Desktop timing is always an estimate until checked against actual generated or
+imported speech. The library also accepts caller-supplied sample lengths, which
+it does not independently verify against WAV files. Automatic speech-based
+retiming, free-form screenplay semantics, gestures, professional artistic
+acceptance and a measured five-minute production SLA remain open. Details and
+agent ownership: [execution-v1](../../docs/automation/execution-v1.md).

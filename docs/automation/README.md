@@ -164,3 +164,10 @@ Toteutusten riippuvuudet ja hyväksyntäehdot ovat
 erikseen [laatuarvion](agents/09-quality.md). Suunnitelman tai CI-fixtuurin
 valmistuminen ei sulje master-progressin muita avoimia töitä.
 
+
+## First implemented direction increment
+
+The [execution-v1 report](execution-v1.md) records the actual orchestrator,
+five implementation workstreams and bounded desktop Auto-direct path. This is
+an implementation subset; the ten-agent plan and unmeasured SLA above are not
+thereby marked complete.
