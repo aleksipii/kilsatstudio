@@ -80,8 +80,18 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
     {
         number += 1;
     }
+    let mut composition = motion_script::Composition::default();
+    for actor in script.characters.keys() {
+        composition.layers.insert(
+            actor.clone(),
+            motion_script::Layer {
+                z: 0,
+                visible: speakers.contains(actor),
+            },
+        );
+    }
     let scene = Scene {
-        composition: Default::default(),
+        composition,
         background: Some("studio".into()),
         id: format!("dialogue_{number}"),
         duration,
@@ -168,6 +178,8 @@ mod tests {
         };
         let (source, _) = append_scene(SOURCE, &draft).unwrap();
         let script = motion_script::parse(&source).unwrap();
+        assert!(!script.scenes[1].composition.layers["ALEX"].visible);
+        assert!(script.scenes[1].composition.layers["EMMA"].visible);
         assert!(
             matches!(&script.scenes[1].events[0], Event::Speak { text, .. } if text == "Hei: maailma! 🎬")
         );
