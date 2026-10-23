@@ -1838,7 +1838,7 @@ capture. Package inventory and build evidence include its executable/hash/native
 links. Python packaging checks: 36 passed; build evidence checks: 11 passed.
 Desktop Rust check passed locally. Further Rust/CI results belong in PR #93;
 physical Mac/camera interaction, continuous mocap and artistic acceptance remain
-open. This follow-up has not been merged to main.
+open. This follow-up was merged in PR #93; see the integration record below.
 
 ## Finnish desktop workspace and user guide
 
@@ -1855,6 +1855,45 @@ export. Some advanced tools/errors remain in English.
 Headless workspace/tab and all-ten-topic help rendering tests pass. Switching
 away from head controls cancels pending camera capture. Earlier PR #93 CI for
 1f424fd0a5a4b7a51035d2461edb67bd513e7c4b passed the full Audio foundation and
-Apple Silicon package workflows. Updated source will be verified by those same
-workflows and fresh main CI after the user-authorized merge. Physical Mac GUI,
+Apple Silicon package workflows. Final application source was verified by those same
+workflows on main after the user-authorized merge; results are recorded below. Physical Mac GUI,
 camera permission/calibration and continuous mocap acceptance remain open.
+
+
+## PR #93 main integration (2026-10-23)
+
+User-authorized PR #93 was squash-merged to main as
+622d68afa9daea6c802e11c850c3e5b9631ec9bc. This includes direct character editing,
+scene/episode creation, one-shot local camera head tilt, the focused Finnish UI
+and the offline ten-topic Finnish guide.
+
+Local final-source validation: cargo fmt, workspace/all-target Clippy with warnings
+denied, and 233 desktop tests passed. One existing recognizer-enrollment test
+requires /proc/sys/kernel/osrelease unavailable in the container; normal CI runs
+that test without exclusions. Headless UI navigation does not change project
+contents and all ten help topics render.
+
+Fresh main Audio foundation CI:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39972447151
+Fresh main Apple Silicon package build:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39972447150
+Both fresh main workflows passed. Linux: 776 Rust tests passed, 7 intentionally
+ignored. macOS: 775 Rust tests passed, 7 intentionally ignored. Each platform
+also passed 55 Kokoro-runtime tests and 86 repository Python tests. The
+container-blocked recognizer-enrollment test passed unfiltered on both CI hosts.
+Both GPU-contract jobs passed. All three actual FFmpeg tests passed, and the
+280-frame night-room reference MP4 exported in 238.2 seconds (placeholder tones,
+not measured speech or artistic acceptance).
+
+The Apple Silicon app passed compilation, Swift helper compilation, ad-hoc
+signing, diagnostic checks, strict package inventory and executable linkage/build
+evidence. Main application artifact:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39972447150/artifacts/12509887781
+Artifact SHA-256: a32a449565f1913069610abc027c4128f087c9dd2efe0d0e56206744de07261f
+
+The documentation follow-up corrects the guide's dialogue example to use ALEX,
+the actual starter character, and records these post-merge observations. Its
+embedded-guide rendering test passed. It changes no editor behavior. Further
+workflow runs are recorded in the documentation PR rather than inferred from
+these earlier results. Physical Mac GUI/camera, calibration, continuous mocap
+and artistic acceptance remain open.

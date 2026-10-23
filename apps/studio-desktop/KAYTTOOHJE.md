@@ -91,7 +91,7 @@ Jos kamera ei avaudu, tarkista macOS:n Järjestelmäasetukset → Tietosuoja ja 
 
 Avaa vasemmalta Luo animaatio vuorosanoista. Kirjoita yksi vuorosana riville
 muodossa HAHMON_TUNNUS: teksti. Käytä osiossa näkyviä projektin hahmotunnuksia.
-Esimerkiksi EMMA: Hei! ja seuraavalle riville LIAM: Terve!
+Esimerkiksi EMMA: Hei! ja seuraavalle riville ALEX: Terve!
 
 Luo kohtaus vuorosanoista tekee yhden kohtauksen. Sekuntia per vuorosana on
 alustava kesto. Automaattiohjaa tekee sääntöihin perustuvan otosluonnoksen;
