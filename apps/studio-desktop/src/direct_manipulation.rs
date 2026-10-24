@@ -308,6 +308,75 @@ impl HeadDraft {
         .map_err(|e| e.to_string())
     }
 }
+
+/// A measured roll sample relative to the first recorded camera sample.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct HeadSample {
+    pub seconds: f64,
+    pub tilt_degrees: f64,
+}
+
+fn custom_head(script: &Script, scene_index: usize, actor: &str, time: f64) -> Result<HeadDraft, String> {
+    let draft = HeadDraft::new(script, scene_index, actor, time)?;
+    if !draft.supports_tilt { return Err("Kameran kallistus tarvitsee mukautetun hahmon head-nivelen".into()); }
+    Ok(draft)
+}
+
+/// Stage measured head rotation in a caller-owned preview clone, never actor root.
+/// All validation is completed before the clone is mutated.
+pub fn stage_head_preview(script: &mut Script, scene_index: usize, actor: &str, time: f64, tilt_degrees: f64) -> Result<(), String> {
+    if !tilt_degrees.is_finite() || tilt_degrees.abs() > 90.0 { return Err("Pään kallistuksen on oltava -90..90 astetta".into()); }
+    let draft = custom_head(script, scene_index, actor, time)?;
+    let mut key = draft.key;
+    key.rotation = tilt_degrees.to_radians();
+    let mut keys = draft.keys;
+    upsert(&mut keys, key);
+    motion_animation::Track::new(keys.iter().map(ActorKey::animation_key).collect()).map_err(|e| e.to_string())?;
+    script.scenes[scene_index].composition.joint_tracks.entry(actor.into()).or_default().insert(draft.target, keys);
+    Ok(())
+}
+
+/// Return one validated source edit for a reviewed recording. The caller commits
+/// only if document/selection/time context still matches and records one Undo.
+pub fn apply_head_recording(source: &str, scene_index: usize, actor: &str, start_time: f64, samples: &[HeadSample]) -> Result<String, String> {
+    if !(2..=600).contains(&samples.len()) || samples[0].seconds != 0.0 {
+        return Err("Nauhoitus tarvitsee 2..600 näytettä alkaen ajasta nolla".into());
+    }
+    if samples.iter().any(|s| !s.seconds.is_finite() || s.seconds < 0.0 || s.seconds > 30.0 || !s.tilt_degrees.is_finite() || s.tilt_degrees.abs() > 90.0)
+        || samples.windows(2).any(|w| w[1].seconds <= w[0].seconds || w[1].seconds - w[0].seconds > 1.0) {
+        return Err("Kameranauhoituksen ajat/kulmat eivät kelpaa tai seurannassa on yli sekunnin katkos".into());
+    }
+    let script = motion_script::parse(source).map_err(|e| e.to_string())?;
+    let draft = custom_head(&script, scene_index, actor, start_time)?;
+    let end = draft.at + samples[samples.len()-1].seconds;
+    if end > script.scenes[scene_index].duration { return Err("Nauhoitus ylittää kohtauksen lopun. Siirrä toistopäätä aiemmaksi tai nauhoita lyhyemmin.".into()); }
+    let fps = f64::from(script.project.fps);
+    let mut captured: Vec<(f64, f64)> = Vec::with_capacity(samples.len());
+    for sample in samples {
+        let at = ((draft.at + sample.seconds) * fps).round() / fps;
+        let at = at.min(script.scenes[scene_index].duration);
+        if let Some(last) = captured.last_mut().filter(|last| last.0 == at) { last.1 = sample.tilt_degrees.to_radians(); }
+        else { captured.push((at, sample.tilt_degrees.to_radians())); }
+    }
+    if captured.len() < 2 { return Err("Nauhoita vähintään kaksi erillistä animaatioruutua".into()); }
+    let rotation_at = |at: f64| {
+        let i = captured.partition_point(|sample| sample.0 <= at);
+        if i == 0 { captured[0].1 } else if i >= captured.len() { captured[captured.len()-1].1 }
+        else { let (a, x) = captured[i-1]; let (b, y) = captured[i]; x + (y-x) * ((at-a)/(b-a)) }
+    };
+    let mut keys = draft.keys.clone();
+    // Retain original XY/scale/easing, including keys between camera samples.
+    for key in &mut keys {
+        if key.at >= captured[0].0 && key.at <= captured[captured.len()-1].0 { key.rotation = rotation_at(key.at); }
+    }
+    for (at, rotation) in captured {
+        let mut key = sampled_key(&draft.keys, at)?;
+        key.rotation = rotation;
+        upsert(&mut keys, key);
+    }
+    motion_script::apply_joint_track(source, scene_index, actor, &draft.target, &keys).map_err(|e| e.to_string())
+}
+
 pub fn blank_scene(source: &str) -> Result<(String, usize), String> {
     let script = motion_script::parse(source).map_err(|e| e.to_string())?;
     let index = script.scenes.len();
