@@ -1,11 +1,13 @@
 //! Bounded, deterministic automatic direction for editable two-character scenes.
 //! Estimated timing is a draft, never measured speech or a quality certificate.
 mod acting;
+mod conversational;
 mod director;
 mod orchestrator;
 mod parser;
 mod timing;
 
+pub use conversational::{direct_conversational, direct_with_audio};
 pub use orchestrator::direct;
 pub use parser::parse_dialogue;
 pub use timing::time_lines;
