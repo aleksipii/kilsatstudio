@@ -3,5 +3,5 @@
 <plist version="1.0"><dict>
 <key>CFBundleIdentifier</key><string>studio.kilsat.preview.head-pose</string>
 <key>CFBundleName</key><string>Kilsat Studio Head Pose</string>
-<key>NSCameraUsageDescription</key><string>Track and record head tilt locally for a character pose. No images or audio are saved or transmitted.</string>
+<key>NSCameraUsageDescription</key><string>Kameraa käytetään pään kallistuksen paikalliseen seurantaan ja liikkeen tallentamiseen animaatioksi. Kuvia tai ääntä ei tallenneta eikä lähetetä.</string>
 </dict></plist>

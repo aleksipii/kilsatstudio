@@ -538,7 +538,7 @@ impl Panel {
                 if ui.button("Käynnistä jatkuva seuranta").clicked() { self.start(Mode::Stream); }
             } else if self.session.as_ref().is_some_and(|s|s.mode==Mode::Stream) {
                 if self.recording() {
-                    if ui.button("Pysäytä nauhoitus → tarkista luonnos").clicked() {
+                    if ui.button("Pysäytä nauhoitus ja tarkista").clicked() {
                         if let Some(session)=&self.session { session.control.record.store(false,Ordering::Release); }
                     }
                 } else if ui.add_enabled(self.live_roll_degrees().is_some(),egui::Button::new("Nauhoita kallistus (enintään 30 s)")).clicked() { self.begin_recording(); }

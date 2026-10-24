@@ -51,7 +51,7 @@ def bundle_info():
                       'CFBundleShortVersionString': '0.1.0',
                       'CFBundleVersion': '1', 'LSMinimumSystemVersion': '13.0',
                       'NSHighResolutionCapable': True,
-                      'NSCameraUsageDescription': 'Track and record head tilt locally for character animation. No images or audio are saved or transmitted.',
+                      'NSCameraUsageDescription': 'Kameraa käytetään pään kallistuksen paikalliseen seurantaan ja liikkeen tallentamiseen animaatioksi. Kuvia tai ääntä ei tallenneta eikä lähetetä.',
                       'CFBundleIconFile': 'KilsatStudio.icns',
                       'CFBundleDocumentTypes': [
                           {'CFBundleTypeName': 'Kilsat Studio Project',

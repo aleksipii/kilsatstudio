@@ -17,10 +17,10 @@ impl Default for Draft {
 
 pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), String> {
     if draft.dialogue.len() > 16_000 {
-        return Err("Dialogue is limited to 16 KB.".into());
+        return Err("Vuorosanojen enimmäiskoko on 16 KB.".into());
     }
     if !draft.seconds_per_line.is_finite() || !(1.0..=30.0).contains(&draft.seconds_per_line) {
-        return Err("Choose 1–30 seconds per line.".into());
+        return Err("Valitse repliikin kestoksi 1–30 sekuntia.".into());
     }
     let script = motion_script::parse(source).map_err(|e| e.to_string())?;
     let mut events = Vec::new();
@@ -31,20 +31,20 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
         }
         let (actor, text) = line
             .split_once(':')
-            .ok_or_else(|| format!("Line {}: use CHARACTER: dialogue", index + 1))?;
+            .ok_or_else(|| format!("Rivi {}: käytä muotoa HAHMO: vuorosana", index + 1))?;
         let actor = actor.trim();
         let text = text.trim();
         if !script.characters.contains_key(actor) {
-            return Err(format!("Line {}: unknown character {actor}", index + 1));
+            return Err(format!("Rivi {}: tuntematon hahmo {actor}", index + 1));
         }
         if text.is_empty() {
-            return Err(format!("Line {}: dialogue is empty", index + 1));
+            return Err(format!("Rivi {}: vuorosana puuttuu", index + 1));
         }
         if !speakers.iter().any(|speaker| speaker == actor) {
             speakers.push(actor.to_string());
         }
         if events.len() >= 60 {
-            return Err("Use at most 60 dialogue lines per scene.".into());
+            return Err("Kohtauksessa voi olla enintään 60 repliikkiä.".into());
         }
         events.push(Event::Speak {
             at: 1.0 + events.len() as f64 * draft.seconds_per_line,
@@ -55,7 +55,7 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
         });
     }
     if events.is_empty() {
-        return Err("Write at least one dialogue line.".into());
+        return Err("Kirjoita vähintään yksi repliikki.".into());
     }
     let duration = 2.0 + events.len() as f64 * draft.seconds_per_line;
     for (index, actor) in speakers.iter().enumerate() {
@@ -99,7 +99,7 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
     };
     let updated = motion_script::add_scene(source, scene).map_err(|e| e.to_string())?;
     if updated.len() > 100_000 {
-        return Err("Result exceeds the desktop's 100 KB screenplay limit.".into());
+        return Err("Tulos ylittää työpöytäsovelluksen käsikirjoituksen 100 KB:n rajan.".into());
     }
     Ok((updated, script.scenes.len()))
 }

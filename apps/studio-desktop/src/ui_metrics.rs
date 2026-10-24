@@ -42,27 +42,33 @@ impl Metrics {
             "build_profile":if cfg!(debug_assertions) {"debug"} else {"release"},
             "all":self.summary(None),"tracked_jobs_active":self.summary(Some(true)),
             "tracked_jobs_idle":self.summary(Some(false)),
-            "limitations":"Elapsed application update wall time only; excludes event queue delay, GPU presentation, audio latency and process RSS"})
+            "limitations":"Vain sovelluksen päivityskierrokseen kulunut aika. Tapahtumajonon odotus, GPU:n kuvan esitys, ääniviive ja prosessin RSS-muistinkäyttö eivät sisälly mittaukseen."})
     }
     pub fn ui(&mut self, ui: &mut egui::Ui) {
-        ui.checkbox(&mut self.enabled, "Measure application update work");
-        ui.weak("Last 256 updates. This measures elapsed update wall time, not input-to-display or audio latency. No automatic performance approval.");
+        ui.checkbox(
+            &mut self.enabled,
+            "Mittaa sovelluksen päivityskierroksen kestoa",
+        );
+        ui.weak("Viimeiset 256 päivityskierrosta. Mittaus kertoo kierroksiin kuluneen ajan. Syötteen ja kuvan välistä viivettä tai ääniviivettä ei mitata. Tulos ei anna automaattista suorituskykyhyväksyntää.");
         let summary = self.summary(None);
-        ui.label(format!("{} retained samples", self.samples.len()));
+        ui.label(format!("{} mittausnäytettä", self.samples.len()));
         if !self.samples.is_empty() {
             ui.label(format!(
-                "Mean {:.2} ms · p95 {:.2} ms · max {:.2} ms",
+                "Keskiarvo {:.2} ms · p95 {:.2} ms · suurin {:.2} ms",
                 summary["mean_ms"].as_f64().unwrap_or(0.0),
                 summary["p95_ms"].as_f64().unwrap_or(0.0),
                 summary["max_ms"].as_f64().unwrap_or(0.0)
             ));
         }
-        ui.checkbox(&mut self.latency.enabled, "Measure input to next frame");
-        ui.weak("Last 128 key/text/click/wheel inputs, application-side only: time until the frame reflecting the input is built and until the next frame begins. Excludes OS event delay and display scan-out; not photon latency. Costs one extra repaint per measured input.");
+        ui.checkbox(
+            &mut self.latency.enabled,
+            "Mittaa syötteestä seuraavan päivityskierroksen alkuun",
+        );
+        ui.weak("Viimeiset 128 näppäin-, teksti-, napsautus- ja vierityssyötettä. Mittaus tehdään sovelluksessa: aika syötteen huomioivan kuvaruudun rakentumiseen ja seuraavan päivityskierroksen alkuun. Käyttöjärjestelmän tapahtumaviive ja kuvan piirtyminen fyysiselle näytölle eivät sisälly mittaukseen; valoviivettä ei mitata. Mittaus pyytää yhden ylimääräisen päivityskierroksen kutakin mitattua syötettä kohden.");
         if self.latency.enabled && !self.latency.is_empty() {
             let r = self.latency.report();
             ui.label(format!(
-                "{} inputs · next-frame p95 {:.2} ms · max {:.2} ms",
+                "{} syötettä · seuraavan kierroksen alkuun p95 {:.2} ms · suurin {:.2} ms",
                 self.latency.len(),
                 r["input_to_next_frame_start"]["p95_ms"]
                     .as_f64()
@@ -73,10 +79,10 @@ impl Metrics {
             ));
         }
         ui.horizontal(|ui| {
-            if ui.button("Copy timing report").clicked() {
+            if ui.button("Kopioi ajoitusraportti").clicked() {
                 ui.ctx().copy_text(self.report().to_string());
             }
-            if ui.button("Clear measurements").clicked() {
+            if ui.button("Tyhjennä mittaukset").clicked() {
                 self.samples.clear();
                 self.latency.clear();
             }

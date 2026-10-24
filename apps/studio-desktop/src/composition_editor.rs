@@ -13,23 +13,23 @@ pub fn ui(
 ) {
     outgoing_transition_ui(ui, &mut value.transition, is_last_scene);
     ui.separator();
-    ui.label("Background color (#RRGGBB)");
+    ui.label("Taustaväri (#RRGGBB)");
     ui.add(egui::TextEdit::singleline(&mut value.background_color).char_limit(7));
     ui.separator();
-    ui.label("Timed background colors");
-    ui.small("The base color is used before the first key. Each key switches color at its exact time and holds until the next key.");
+    ui.label("Ajoitetut taustavärit");
+    ui.small("Perusväri näkyy ennen ensimmäistä avainruutua. Väri vaihtuu avainruudun hetkellä ja säilyy seuraavaan.");
     let mut remove_background = None;
     for (index, key) in value.background_keys.iter_mut().enumerate() {
         ui.push_id(("background", index), |ui| {
             ui.horizontal(|ui| {
-                ui.label(format!("Key {} · seconds", index + 1));
+                ui.label(format!("Avainruutu {} · sekuntia", index + 1));
                 ui.add(egui::DragValue::new(&mut key.at).speed(0.1));
-                if ui.small_button("Remove key").clicked() {
+                if ui.small_button("Poista avainruutu").clicked() {
                     remove_background = Some(index);
                 }
             });
             ui.horizontal(|ui| {
-                ui.label("Color");
+                ui.label("Väri");
                 ui.add(
                     egui::TextEdit::singleline(&mut key.color)
                         .char_limit(7)
@@ -58,7 +58,7 @@ pub fn ui(
     if ui
         .add_enabled(
             value.background_keys.len() < 4096 && next_at.is_some(),
-            egui::Button::new("Add background key"),
+            egui::Button::new("Lisää taustavärin avainruutu"),
         )
         .clicked()
     {
@@ -72,22 +72,22 @@ pub fn ui(
             color,
         });
     }
-    ui.small("Use #RRGGBB and unique ascending times from 0 to scene duration. Apply settings commits all background edits together; Undo restores the previous screenplay.");
+    ui.small("Käytä #RRGGBB-värejä ja erillisiä, kasvavia aikoja välillä 0–kohtauksen kesto. Käytä asetuksia tallentaa taustamuutokset yhdessä; Kumoa palauttaa edellisen käsikirjoituksen.");
     ui.separator();
     ui.horizontal(|ui| {
-        ui.label("Fade in / out (seconds)");
+        ui.label("Häivytys sisään / ulos (sekuntia)");
         ui.add(egui::DragValue::new(&mut value.fade_in).speed(0.1));
         ui.add(egui::DragValue::new(&mut value.fade_out).speed(0.1));
     });
     camera_presets_ui(ui, value, duration);
-    ui.small("Camera offsets are pixels from center. Key times remain in seconds.");
+    ui.small("Kamerasiirrot ovat pikseleitä keskipisteestä. Avainruutujen ajat ovat sekunteja.");
     let mut remove = None;
     for (index, key) in value.camera.iter_mut().enumerate() {
         ui.push_id(index, |ui| {
             ui.horizontal(|ui| {
-                ui.label("Time");
+                ui.label("Aika");
                 ui.add(egui::DragValue::new(&mut key.at).speed(0.1));
-                if ui.small_button("Remove key").clicked() {
+                if ui.small_button("Poista avainruutu").clicked() {
                     remove = Some(index);
                 }
             });
@@ -96,7 +96,7 @@ pub fn ui(
                 ui.add(egui::DragValue::new(&mut key.x));
                 ui.label("Y");
                 ui.add(egui::DragValue::new(&mut key.y));
-                ui.label("Zoom");
+                ui.label("Lähennys");
                 ui.add(egui::DragValue::new(&mut key.zoom).speed(0.05));
             });
         });
@@ -104,7 +104,7 @@ pub fn ui(
     if let Some(index) = remove {
         value.camera.remove(index);
     }
-    if value.camera.len() < 1024 && ui.button("Add camera key").clicked() {
+    if value.camera.len() < 1024 && ui.button("Lisää kameran avainruutu").clicked() {
         let at = value
             .camera
             .last()
@@ -117,7 +117,7 @@ pub fn ui(
             zoom: 1.0,
         });
     }
-    ui.small("Keys must have unique ascending times; reorder by editing time before Apply.");
+    ui.small("Avainruutujen aikojen pitää olla erillisiä ja kasvavia. Muuta järjestystä muokkaamalla aikoja ennen käyttämistä.");
     for actor in actors {
         let mut layer = value.layers.get(actor).cloned().unwrap_or(Layer {
             z: 0,
@@ -126,7 +126,7 @@ pub fn ui(
         let mut changed = false;
         ui.horizontal(|ui| {
             changed |= ui.checkbox(&mut layer.visible, actor).changed();
-            ui.label("Layer");
+            ui.label("Taso");
             changed |= ui.add(egui::DragValue::new(&mut layer.z)).changed();
         });
         if changed {
@@ -136,16 +136,16 @@ pub fn ui(
 }
 
 fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_last_scene: bool) {
-    ui.label("Outgoing transition to next scene");
+    ui.label("Siirtymä seuraavaan kohtaukseen");
     let crossfade = matches!(transition, Transition::Crossfade { .. });
     ui.horizontal(|ui| {
-        if ui.selectable_label(!crossfade, "Cut").clicked() {
+        if ui.selectable_label(!crossfade, "Leikkaus").clicked() {
             *transition = Transition::Cut;
         }
         if ui
             .add_enabled(
                 !is_last_scene,
-                egui::Button::new("Crossfade").selected(crossfade),
+                egui::Button::new("Ristihäivytys").selected(crossfade),
             )
             .clicked()
             && !crossfade
@@ -155,38 +155,38 @@ fn outgoing_transition_ui(ui: &mut egui::Ui, transition: &mut Transition, is_las
     });
     if let Transition::Crossfade { duration } = transition {
         ui.horizontal(|ui| {
-            ui.label("Overlap (seconds)");
+            ui.label("Limitys (sekuntia)");
             ui.add(egui::DragValue::new(duration).speed(0.05));
         });
     }
     if is_last_scene {
-        ui.small("The final scene has no next scene and must use Cut. Apply rejects a final-scene crossfade.");
+        ui.small("Viimeisessä kohtauksessa käytetään Leikkaus-siirtymää. Viimeisen kohtauksen ristihäivytystä ei voi ottaa käyttöön.");
     } else {
-        ui.small("Crossfade overlaps this scene's end with the next scene's start. Use a positive duration shorter than both scenes; incoming and outgoing overlaps may not overlap each other.");
+        ui.small("Ristihäivytys limittää kohtauksen lopun seuraavan alkuun. Keston pitää olla positiivinen ja kumpaakin kohtausta lyhyempi. Saapuva ja lähtevä limitys eivät saa osua päällekkäin.");
     }
-    ui.small("Outgoing transitions appear in Whole project preview and PNG/MP4 sequence export. Selected-scene preview and exports remain scene-local.");
+    ui.small("Siirtymät näkyvät koko projektin esikatselussa ja PNG-/MP4-koosteviennissä. Valitun kohtauksen esikatselu ja vienti käsittävät vain kyseisen kohtauksen.");
 }
 
 /// Edits only the detached composition. The existing Apply settings action owns
 /// validation and the single source/history transaction.
 fn camera_presets_ui(ui: &mut egui::Ui, value: &mut Composition, duration: f64) {
     let replacing = !value.camera.is_empty();
-    ui.collapsing("Cinematic camera presets", |ui| {
-        ui.small("Full-scene linear moves: zoom 1–1.25 or camera-center pan 100 pixels. Generated keys remain editable below.");
+    ui.collapsing("Kameraliikkeiden esiasetukset", |ui| {
+        ui.small("Koko kohtauksen tasainen liike: lähennys 1–1,25 tai kameran keskipisteen siirto 100 pikseliä. Avainruutuja voi muokata alla.");
         if replacing {
-            ui.small("These buttons replace ALL camera keys in this draft. Other scene settings stay unchanged. Apply settings commits; Undo restores the previous screenplay.");
+            ui.small("Painikkeet korvaavat luonnoksen KAIKKI kameran avainruudut. Muut kohtausasetukset säilyvät. Käytä asetuksia tallentaa muutoksen; Kumoa palauttaa edellisen käsikirjoituksen.");
         } else {
-            ui.small("Choose a preset, then Apply settings to commit it with the other scene settings.");
+            ui.small("Valitse esiasetus ja tallenna se muiden kohtausasetusten kanssa painamalla Käytä asetuksia.");
         }
         ui.horizontal_wrapped(|ui| {
             for (label, preset) in [
-                ("Push in", CameraPreset::PushIn),
-                ("Pull out", CameraPreset::PullOut),
-                ("Pan left", CameraPreset::PanLeft),
-                ("Pan right", CameraPreset::PanRight),
+                ("Lähennä", CameraPreset::PushIn),
+                ("Loitonna", CameraPreset::PullOut),
+                ("Siirrä vasemmalle", CameraPreset::PanLeft),
+                ("Siirrä oikealle", CameraPreset::PanRight),
             ] {
                 let label = if replacing {
-                    format!("Replace keys: {label}")
+                    format!("Korvaa avainruudut: {label}")
                 } else {
                     label.into()
                 };

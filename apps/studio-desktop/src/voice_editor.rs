@@ -27,8 +27,13 @@ impl Draft {
         }
         if let Some(voice) = &mut self.voice {
             let before = voice.provider.clone();
-            egui::ComboBox::from_label("Puhepalvelu")
-                .selected_text(&voice.provider)
+            egui::ComboBox::from_label("Puhemoottori")
+                .selected_text(match voice.provider.as_str() {
+                    "kokoro" => "Kokoro · englanti",
+                    "piper" => "Piper · suomi",
+                    "system" => "macOS · yksityinen esikatselu",
+                    other => other,
+                })
                 .show_ui(ui, |ui| {
                     ui.selectable_value(&mut voice.provider, "kokoro".into(), "Kokoro · englanti");
                     ui.selectable_value(&mut voice.provider, "piper".into(), "Piper · suomi");
@@ -65,10 +70,17 @@ impl Draft {
                     }
                 });
                 egui::ComboBox::from_label("Kieli")
-                    .selected_text(&voice.language)
+                    .selected_text(match voice.language.as_str() {
+                        "en-us" => "Englanti (USA)",
+                        "en-gb" => "Englanti (Britannia)",
+                        other => other,
+                    })
                     .show_ui(ui, |ui| {
-                        for language in ["en-us", "en-gb"] {
-                            ui.selectable_value(&mut voice.language, language.into(), language);
+                        for (language, label) in [
+                            ("en-us", "Englanti (USA)"),
+                            ("en-gb", "Englanti (Britannia)"),
+                        ] {
+                            ui.selectable_value(&mut voice.language, language.into(), label);
                         }
                     });
             } else {
@@ -87,12 +99,12 @@ impl Draft {
                         .speed(0.05),
                 );
             });
-            ui.small("The preset asset must already be installed locally. This editor does not download models or voices.");
-            ui.small("Expression metadata does not condition Kokoro speech.");
+            ui.small("Valitun äänen tiedostojen pitää olla asennettuina paikallisesti. Tämä muokkain ei lataa malleja tai ääniä.");
+            ui.small("Hahmon ilmeet eivät muuta Kokoron puheääntä.");
         } else {
-            ui.small("Disabling voice is valid only when all this character's dialogue lines use imported audio.");
+            ui.small("Voit poistaa puheäänen käytöstä, kun kaikilla hahmon repliikeillä on tuotu äänite.");
         }
-        ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
+        ui.small("Käytä tarkistaa koko käsikirjoituksen. YAML-muotoilu yhtenäistetään ja kommentit poistuvat. Kumoa palauttaa aiemman käsikirjoituksen.");
         ui.button("Käytä ääniasetuksia").clicked()
     }
 }

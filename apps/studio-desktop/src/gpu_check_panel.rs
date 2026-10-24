@@ -18,18 +18,18 @@ impl Panel {
                         egui::ColorImage::from_rgba_unmultiplied([256, 256], &e.rgba),
                         egui::TextureOptions::LINEAR,
                     ));
-                    self.status=format!("Metal fixture passed. This is device evidence only; full scene parity remains open.\n{}",e.report);
+                    self.status=format!("Metal-testikuva läpäisi tarkistuksen. Tulos koskee tätä laitetestiä; koko kohtauksen CPU/GPU-vastaavuus on vielä varmistamatta.\n{}",e.report);
                 }
-                Err(e) => self.status = e,
+                Err(e) => self.status = format!("Metal-tarkistus: {e}"),
             }
         }
-        ui.label("Explicit Metal hardware fixture; no model downloads. Full scene rendering still uses CPU.");
+        ui.label("Metal-laitetarkistus käyttää paikallista testikuvaa. Mallia ei ladata. Koko kohtaus renderöidään edelleen suorittimella (CPU).");
         let helper = gpu_check_worker::bundled_helper();
         if let Err(e) = &helper {
-            ui.label(e);
+            ui.label(format!("Metal-apuohjelma ei ole käytettävissä: {e}"));
         }
         ui.horizontal(|ui| {
-            ui.label("New absolute output directory");
+            ui.label("Uuden tuloskansion koko polku");
             ui.add_enabled(
                 !self.worker.busy(),
                 egui::TextEdit::singleline(&mut self.output),
@@ -38,19 +38,19 @@ impl Panel {
         if ui
             .add_enabled(
                 helper.is_ok() && !self.worker.busy(),
-                egui::Button::new("Run Metal device check"),
+                egui::Button::new("Tarkista Metal-laite"),
             )
             .clicked()
         {
             if let Ok(helper) = helper {
                 self.status = match self.worker.start(helper, self.output.trim().into()) {
-                    Ok(()) => "Running isolated Metal fixture…".into(),
-                    Err(e) => e,
+                    Ok(()) => "Suoritetaan Metal-laitetarkistusta…".into(),
+                    Err(e) => format!("Metal-tarkistus: {e}"),
                 };
             }
         }
         if self.worker.busy() {
-            if ui.button("Cancel Metal check").clicked() {
+            if ui.button("Peruuta Metal-tarkistus").clicked() {
                 self.worker.cancel();
             }
             ui.ctx()

@@ -92,10 +92,7 @@ impl Worker {
                     })
                 }))
                 .unwrap_or_else(|_| {
-                    Err(
-                        "Automatic direction worker failed; project contents were not changed"
-                            .into(),
-                    )
+                    Err("Puheohjauksen valmistelija keskeytyi; käsikirjoitusta ei muutettu".into())
                 });
                 if let Ok(mut pending) = worker_pending.lock() {
                     if !pending.is_empty() {
@@ -120,13 +117,13 @@ impl Worker {
         let mut pending = self
             .pending
             .lock()
-            .map_err(|_| "Automatic direction state unavailable")?;
+            .map_err(|_| "Puheohjauksen tila ei ole saatavilla")?;
         pending.push(request.cancel.clone());
         match self.sender.try_send(request) {
             Ok(()) => Ok(()),
             Err(error) => {
                 pending.pop();
-                Err(format!("Automatic direction queue: {error}"))
+                Err(format!("Puheohjauksen työjono: {error}"))
             }
         }
     }
@@ -165,7 +162,7 @@ impl Drop for Deadline {
 }
 fn check(cancel: &CancellationToken, started: Instant, limit: Duration) -> Result<(), String> {
     if started.elapsed() >= limit {
-        return Err("Automatic direction preparation deadline exceeded".into());
+        return Err("Puheohjauksen valmistelun aikaraja ylittyi".into());
     }
     cancel.check().map_err(|e| e.to_string())
 }
@@ -180,10 +177,13 @@ fn decoded_snapshot(
     limit: Duration,
 ) -> Result<(Vec<u8>, u64), String> {
     check(cancel, started, limit)?;
-    let metadata =
-        fs::symlink_metadata(path).map_err(|e| format!("Speech WAV {}: {e}", path.display()))?;
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|e| format!("Puheen WAV-tiedosto {}: {e}", path.display()))?;
     if !metadata.is_file() || metadata.file_type().is_symlink() || metadata.len() > MAX_WAV_BYTES {
-        return Err("Speech WAV must be a bounded regular file, not a symlink".into());
+        return Err(
+            "Puheen WAVin on oltava tavallinen, enintään 8 MiB:n tiedosto. Symbolinen linkki ei kelpaa"
+                .into(),
+        );
     }
     let file = fs::File::open(path).map_err(|e| e.to_string())?;
     let mut bytes = Vec::new();
@@ -191,10 +191,10 @@ fn decoded_snapshot(
         .read_to_end(&mut bytes)
         .map_err(|e| e.to_string())?;
     if bytes.len() as u64 > MAX_WAV_BYTES {
-        return Err("Speech WAV exceeds8MiB".into());
+        return Err("Puheen WAV ylittää 8 MiB:n rajan".into());
     }
     let mut reader = hound::WavReader::new(Cursor::new(bytes.as_slice()))
-        .map_err(|e| format!("Invalid speech WAV: {e}"))?;
+        .map_err(|e| format!("Virheellinen puheen WAV-tiedosto: {e}"))?;
     let spec = reader.spec();
     let frames = u64::from(reader.duration());
     if spec.channels != 1
@@ -204,21 +204,21 @@ fn decoded_snapshot(
         || frames == 0
         || frames > auto_direction::MAX_DURATION_SAMPLES
     {
-        return Err("Speech must be nonempty24kHz mono PCM16 WAV, at most60seconds; convert before importing".into());
+        return Err("Puheen WAVin on sisällettävä 24 kHz:n mono PCM16 -ääntä, enintään 60 sekuntia. Muunna äänite ennen tuontia".into());
     }
     let mut decoded = 0u64;
     for sample in reader.samples::<i16>() {
-        sample.map_err(|e| format!("Truncated/corrupt speech PCM: {e}"))?;
+        sample.map_err(|e| format!("Puheen PCM-data on katkennut tai vioittunut: {e}"))?;
         decoded += 1;
         if decoded > frames {
-            return Err("WAV contains excess PCM".into());
+            return Err("WAV sisältää ylimääräistä PCM-dataa".into());
         }
         if decoded.is_multiple_of(8192) {
             check(cancel, started, limit)?;
         }
     }
     if decoded != frames {
-        return Err("WAV header length differs from decoded PCM".into());
+        return Err("WAV-otsakkeen pituus poikkeaa puretun PCM-datan pituudesta".into());
     }
     check(cancel, started, limit)?;
     Ok((bytes, frames))
@@ -227,7 +227,7 @@ fn safe_directory(path: &Path) -> Result<(), String> {
     match fs::symlink_metadata(path) {
         Ok(metadata) if metadata.is_dir() && !metadata.file_type().is_symlink() => Ok(()),
         Ok(_) => Err(format!(
-            "{} must be a regular project directory, not a symlink",
+            "{}: projektikansion on oltava tavallinen kansio, ei symbolinen linkki",
             path.display()
         )),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -259,7 +259,7 @@ fn publish(
     let verify_existing = || -> Result<(), String> {
         let (existing, _) = decoded_snapshot(&destination, cancel, started, limit)?;
         if hash(&existing) != digest {
-            return Err("Existing speech snapshot is corrupt; no file was overwritten".into());
+            return Err("Aiempi puheen äänikopio on vioittunut; tiedostoja ei korvattu".into());
         }
         Ok(())
     };
@@ -283,11 +283,7 @@ fn publish(
         match fs::hard_link(&temporary.0, &destination) {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => verify_existing()?,
-            Err(error) => {
-                return Err(format!(
-                    "Atomic speech snapshot publication failed: {error}"
-                ))
-            }
+            Err(error) => return Err(format!("Äänikopion viimeistely epäonnistui: {error}")),
         }
     }
     Ok(format!("assets/auto-direction/{name}"))
@@ -299,17 +295,17 @@ fn prepare(
 ) -> Result<Ready, String> {
     let started = Instant::now();
     if limit.is_zero() || limit > MAX_JOB_TIME {
-        return Err("Automatic direction deadline must be within1..300seconds".into());
+        return Err("Puheohjauksen aikarajan on oltava 1–300 sekuntia".into());
     }
     check(&request.cancel, started, limit)?;
     if request.source.len() > 100_000 {
-        return Err("Screenplay exceeds100KB".into());
+        return Err("Käsikirjoitus ylittää 100 KB:n rajan".into());
     }
     let script = motion_script::parse(&request.source).map_err(|e| e.to_string())?;
     let lines = auto_direction::parse_dialogue(&request.dialogue, &script)?;
     if !request.root.is_absolute() || !request.root.is_dir() {
         return Err(
-            "Save/select an existing absolute project folder before preparing speech".into(),
+            "Tallenna tai valitse olemassa olevan projektikansion koko polku ennen puheen valmistelua".into(),
         );
     }
     let root = fs::canonicalize(&request.root).map_err(|e| e.to_string())?;
@@ -319,7 +315,9 @@ fn prepare(
         .keys()
         .any(|line| !line_ids.contains(line))
     {
-        return Err("Imported WAV map contains an unknown physical dialogue line".into());
+        return Err(
+            "WAV-tuontien luettelossa on tuntematon alkuperäisen vuorosanarivin numero".into(),
+        );
     }
     let _deadline = Deadline::start(limit, request.cancel.clone());
     let mut audio = Vec::with_capacity(lines.len());
@@ -339,7 +337,7 @@ fn prepare(
                 .as_ref()
                 .ok_or_else(|| {
                     format!(
-                        "Line{}({}): select a voice or import a WAV",
+                        "Rivi {} ({}): valitse puheääni tai tuo WAV-äänite",
                         line.source_line, line.actor
                     )
                 })?;
@@ -357,7 +355,7 @@ fn prepare(
                     },
                     &request.cancel,
                 )
-                .map_err(|e| format!("Line{}({}): {e}", line.source_line, line.actor))?;
+                .map_err(|e| format!("Rivi {} ({}): {e}", line.source_line, line.actor))?;
             result.audio_path
         };
         let (bytes, frames) = decoded_snapshot(&path, &request.cancel, started, limit)?;
@@ -377,7 +375,7 @@ fn prepare(
         progress(
             index + 1,
             lines.len(),
-            format!("Measured dialogue{} of{}", index + 1, lines.len()),
+            format!("Mitattu repliikki {}/{}", index + 1, lines.len()),
         );
     }
     check(&request.cancel, started, limit)?;
@@ -387,7 +385,7 @@ fn prepare(
     result
         .diagnostics
         .retain(|message| !message.starts_with("Timing uses caller-supplied"));
-    result.diagnostics.insert(0,"Desktop worker verified complete decoded PCM16/mono24kHz WAV lengths and immutable SHA256-bound snapshots. This verifies timing inputs, not phoneme/lip-sync, voice rights or artistic quality. Undo does not remove the retained audio files.".into());
+    result.diagnostics.insert(0,"Puheohjaus tarkisti kokonaan purettujen 24 kHz:n mono PCM16 WAVien pituudet ja muuttumattomat SHA-256-tiivisteisiin sidotut äänikopiot. Tarkistus koskee ajoituksen syötteitä. Foneemien ja huulisynkan laatua, äänten käyttöoikeuksia tai taiteellista laatua ei arvioitu. Kumoa ei poista säilytettyjä äänitiedostoja.".into());
     Ok(Ready {
         original_source: request.source,
         result,

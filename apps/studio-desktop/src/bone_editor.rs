@@ -98,38 +98,41 @@ impl Draft {
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
         let (noun, hint) = if self.joint {
             (
-                "joint",
-                "Offsets from the joint's rest pose: translation and rotation add, scale multiplies; children follow. Translation/rotation ±1000; scale 0.1..4.",
+                "nivelen",
+                "Siirtymä ja kierto lisätään nivelen lepoasentoon, mittakaava kerrotaan. Alanivelet seuraavat mukana. Siirtymä ja kierto ±1000, mittakaava 0,1–4.",
             )
         } else {
             (
-                "bone",
-                "Parent-local offsets layer after rule clips; parent rotation/scale moves descendants. Translation/rotation ±1000; scale 0.1..4.",
+                "luun",
+                "Siirtymät ovat suhteessa yläniveleen ja vaikuttavat sääntöliikkeiden jälkeen. Ylänivelen kierto ja mittakaava liikuttavat alaniveliä. Siirtymä ja kierto ±1000, mittakaava 0,1–4.",
             )
         };
-        ui.heading(format!("{} · {} {noun} keys", self.actor, self.bone));
+        ui.heading(format!(
+            "{} · {} · {noun} avainruudut",
+            self.actor, self.bone
+        ));
         ui.small(hint);
-        ui.small("Keys must be in increasing time order inside the scene. Easing controls the segment after a key.");
+        ui.small("Avainruutujen aikojen tulee kasvaa kohtauksen sisällä. Siirtymätapa vaikuttaa avainruudun jälkeiseen väliin.");
         let mut remove = None;
         for (index, key) in self.keys.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
-                egui::CollapsingHeader::new(format!("Key {} · {:.3}s", index + 1, key.at))
+                egui::CollapsingHeader::new(format!("Avainruutu {} · {:.3} s", index + 1, key.at))
                     .default_open(true)
                     .show(ui, |ui| {
                         egui::Grid::new("key_fields").num_columns(2).show(ui, |ui| {
                             for (label, value, speed) in [
-                                ("Time (seconds)", &mut key.at, 0.05),
-                                ("X offset", &mut key.x, 1.0),
-                                ("Y offset", &mut key.y, 1.0),
-                                ("Rotation (radians)", &mut key.rotation, 0.01),
-                                ("Scale X", &mut key.scale_x, 0.01),
-                                ("Scale Y", &mut key.scale_y, 0.01),
+                                ("Aika (sekuntia)", &mut key.at, 0.05),
+                                ("X-siirtymä", &mut key.x, 1.0),
+                                ("Y-siirtymä", &mut key.y, 1.0),
+                                ("Kierto (radiaania)", &mut key.rotation, 0.01),
+                                ("X-mittakaava", &mut key.scale_x, 0.01),
+                                ("Y-mittakaava", &mut key.scale_y, 0.01),
                             ] {
                                 ui.label(label);
                                 ui.add(egui::DragValue::new(value).speed(speed));
                                 ui.end_row();
                             }
-                            ui.label("Easing");
+                            ui.label("Siirtymätapa");
                             egui::ComboBox::from_id_salt("easing")
                                 .selected_text(easing_label(key.easing))
                                 .show_ui(ui, |ui| {
@@ -147,7 +150,7 @@ impl Draft {
                                 });
                             ui.end_row();
                         });
-                        if ui.button("Remove key").clicked() {
+                        if ui.button("Poista avainruutu").clicked() {
                             remove = Some(index);
                         }
                     });
@@ -162,22 +165,22 @@ impl Draft {
                 .last()
                 .is_none_or(|key| key.at + 1.0 <= self.duration);
         if ui
-            .add_enabled(can_add, egui::Button::new("Add key"))
+            .add_enabled(can_add, egui::Button::new("Lisää avainruutu"))
             .clicked()
         {
             self.add_key();
         }
         if !can_add {
-            ui.small("No room for another key one second after the last; adjust its time or scene duration.");
+            ui.small("Seuraava avainruutu ei mahdu sekunnin päähän edellisestä. Muuta edellisen aikaa tai kohtauksen kestoa.");
         }
         if self.keys.is_empty() {
-            ui.small("Applying an empty list removes this track.");
+            ui.small("Tyhjän luettelon käyttäminen poistaa tämän liikeradan.");
         }
-        ui.small("Apply validates the screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Käytä tarkistaa käsikirjoituksen. Muutoksen voi kumota. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let mut apply = false;
         ui.horizontal(|ui| {
-            apply = ui.button(format!("Apply {noun} keys")).clicked();
-            if ui.button("Reset key draft").clicked() {
+            apply = ui.button(format!("Käytä {noun} avainruudut")).clicked();
+            if ui.button("Palauta avainruutuluonnos").clicked() {
                 self.reset();
             }
         });
@@ -187,9 +190,9 @@ impl Draft {
 
 fn easing_label(easing: ActorEasing) -> &'static str {
     match easing {
-        ActorEasing::Linear => "Linear",
-        ActorEasing::Smoothstep => "Smoothstep",
-        ActorEasing::Hold => "Hold",
+        ActorEasing::Linear => "Lineaarinen",
+        ActorEasing::Smoothstep => "Pehmeä",
+        ActorEasing::Hold => "Pidä arvo",
     }
 }
 

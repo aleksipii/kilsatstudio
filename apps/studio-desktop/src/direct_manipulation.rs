@@ -90,9 +90,9 @@ pub fn snapped_time(script: &Script, scene_index: usize, time: f64) -> Result<f6
     let scene = script
         .scenes
         .get(scene_index)
-        .ok_or("Select an existing scene")?;
+        .ok_or("Valitse olemassa oleva kohtaus")?;
     if !time.is_finite() || time < 0.0 || time > scene.duration || script.project.fps == 0 {
-        return Err("Invalid playhead/frame rate".into());
+        return Err("Toistopään sijainti tai kuvaruutunopeus ei kelpaa".into());
     }
     Ok(
         ((time * f64::from(script.project.fps)).round() / f64::from(script.project.fps))
@@ -158,9 +158,9 @@ impl Drag {
         let script = motion_script::parse(source).map_err(|e| e.to_string())?;
         let at = snapped_time(&script, scene_index, time)?;
         if !scene.actors.iter().any(|pose| pose.id == actor) {
-            return Err("Select a visible character".into());
+            return Err("Valitse näkyvä hahmo".into());
         }
-        let start = canvas_to_world(rect, scene, pointer).ok_or("Start inside the stage")?;
+        let start = canvas_to_world(rect, scene, pointer).ok_or("Aloita näyttämön sisältä")?;
         let keys = script.scenes[scene_index]
             .composition
             .actor_tracks
@@ -193,11 +193,11 @@ impl Drag {
         pointer: egui::Pos2,
     ) -> Result<String, String> {
         if scene.camera != self.camera {
-            return Err("Camera changed; move cancelled".into());
+            return Err("Kamera vaihtui; siirto peruttiin".into());
         }
         let delta = self
             .delta(scene, pointer)
-            .ok_or("Drop inside the stage; move cancelled")?;
+            .ok_or("Vapauta hahmo näyttämölle; siirto peruttiin")?;
         if delta[0].abs() < 0.001 && delta[1].abs() < 0.001 {
             return Ok(self.source.clone());
         }
@@ -230,14 +230,14 @@ impl HeadDraft {
         time: f64,
     ) -> Result<Self, String> {
         let at = snapped_time(script, scene_index, time)?;
-        let character = script.characters.get(actor).ok_or("Select a character")?;
+        let character = script.characters.get(actor).ok_or("Valitse hahmo")?;
         let scene = &script.scenes[scene_index];
         let (target, supports_tilt, keys) = if let Some(rig) = &character.rig {
             let head = rig
                 .joints
                 .iter()
                 .find(|joint| joint.id.eq_ignore_ascii_case("head"))
-                .ok_or("This custom rig needs a joint named head for these controls")?;
+                .ok_or("Tämä hahmorakenne tarvitsee näihin säätimiin nivelen nimeltä head")?;
             (
                 head.id.clone(),
                 true,
@@ -278,7 +278,7 @@ impl HeadDraft {
     }
     pub fn apply(&self, source: &str) -> Result<String, String> {
         if !self.x.is_finite() || !self.y.is_finite() || !self.tilt_degrees.is_finite() {
-            return Err("Head controls must be finite".into());
+            return Err("Pään asetusten on oltava äärellisiä lukuja".into());
         }
         let mut key = self.key.clone();
         key.x = self.x;
@@ -469,7 +469,7 @@ pub fn blank_scene(source: &str) -> Result<(String, usize), String> {
 }
 pub fn new_episode(title: &str) -> Result<String, String> {
     if title.trim().is_empty() || title.len() > 200 {
-        return Err("Episode title must be 1–200 bytes".into());
+        return Err("Jakson nimen on oltava 1–200 tavua".into());
     }
     let mut script = motion_script::parse(include_str!("../../../examples/hello-emma.yaml"))
         .map_err(|e| e.to_string())?;
