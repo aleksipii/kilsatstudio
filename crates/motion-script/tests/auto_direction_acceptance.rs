@@ -134,3 +134,147 @@ fn rejects_a_third_known_speaker_and_malformed_timing_without_partial_output() {
     // Failed pure-function calls cannot mutate the supplied screenplay.
     assert_eq!(source, motion_script::to_source(&base).unwrap());
 }
+
+#[test]
+fn conversational_reactions_keep_all_speech_and_leave_original_scenes_unchanged() {
+    let result = motion_script::auto_direction::direct_conversational(
+        SOURCE,
+        "EMMA[happy]: Hei!\nALEX: Terve!\nEMMA: Aloitetaan.",
+        Some(&[24000, 36000, 48000]),
+    )
+    .unwrap();
+    let script = motion_script::parse(&result.source).unwrap();
+    assert!(result.shot_count > 3 && result.shot_count <= 7);
+    assert_eq!(added_speech(&script, result.first_scene).len(), 3);
+    let original = motion_script::parse(SOURCE).unwrap();
+    assert_eq!(
+        serde_yaml::to_string(&script.scenes[..result.first_scene]).unwrap(),
+        serde_yaml::to_string(&original.scenes).unwrap()
+    );
+    assert!(script.scenes[result.first_scene..].iter().any(|scene| scene
+        .id
+        .ends_with("_reaction")
+        && scene
+            .events
+            .iter()
+            .all(|event| !matches!(event, Event::Speak { .. }))));
+    let repeated = motion_script::auto_direction::direct_conversational(
+        SOURCE,
+        "EMMA[happy]: Hei!\nALEX: Terve!\nEMMA: Aloitetaan.",
+        Some(&[24000, 36000, 48000]),
+    )
+    .unwrap();
+    assert_eq!(result.source, repeated.source);
+}
+
+#[test]
+fn actual_audio_references_allow_voiceless_imports_and_do_not_claim_pcm_verification() {
+    let mut base = motion_script::parse(SOURCE).unwrap();
+    for character in base.characters.values_mut() {
+        character.voice = None;
+    }
+    for scene in &mut base.scenes {
+        scene
+            .events
+            .retain(|event| !matches!(event, Event::Speak { .. }));
+    }
+    let source = motion_script::to_source(&base).unwrap();
+    let result = motion_script::auto_direction::direct_with_audio(
+        &source,
+        "EMMA: Hei.\nALEX: Terve.",
+        &[24000, 24000],
+        &["audio/one.wav".into(), "audio/two.wav".into()],
+    )
+    .unwrap();
+    let script = motion_script::parse(&result.source).unwrap();
+    let refs: Vec<_> = script.scenes[result.first_scene..]
+        .iter()
+        .flat_map(|s| &s.events)
+        .filter_map(|event| {
+            if let Event::Speak { audio, .. } = event {
+                audio.as_deref()
+            } else {
+                None
+            }
+        })
+        .collect();
+    assert_eq!(refs, vec!["audio/one.wav", "audio/two.wav"]);
+    assert!(result
+        .diagnostics
+        .iter()
+        .any(|text| text.contains("not verified")));
+    assert!(motion_script::auto_direction::direct_with_audio(
+        &source,
+        "EMMA: Hei.",
+        &[24000],
+        &[String::new()]
+    )
+    .is_err());
+}
+
+#[test]
+fn optional_reactions_never_truncate_full_speech_or_exceed_final_shot_budget() {
+    let result = motion_script::auto_direction::direct_conversational(
+        SOURCE,
+        "EMMA: First.\nALEX: Second.",
+        Some(&[29 * SAMPLE_RATE, 29 * SAMPLE_RATE + SAMPLE_RATE / 2]),
+    )
+    .unwrap();
+    assert_eq!(result.duration_samples, MAX_DURATION_SAMPLES);
+    assert_eq!(result.shot_count, 2);
+    let mut dialogue = String::new();
+    for index in 0..MAX_LINES {
+        dialogue.push_str(if index % 2 == 0 {
+            "EMMA: Hei.\n"
+        } else {
+            "ALEX: Terve.\n"
+        });
+    }
+    let result = motion_script::auto_direction::direct_conversational(
+        SOURCE,
+        &dialogue,
+        Some(&[SAMPLE_RATE / 2; MAX_LINES]),
+    )
+    .unwrap();
+    assert_eq!(result.shot_count, MAX_LINES);
+    assert_eq!(
+        added_speech(
+            &motion_script::parse(&result.source).unwrap(),
+            result.first_scene
+        )
+        .len(),
+        MAX_LINES
+    );
+}
+
+#[test]
+fn custom_rigs_get_head_only_accents_and_finite_geometry_aware_cameras_on_small_canvas() {
+    let mut base = motion_script::parse(include_str!("../../../examples/acting-rig.yaml")).unwrap();
+    base.project.width = 320;
+    base.project.height = 180;
+    let source = motion_script::to_source(&base).unwrap();
+    let result = motion_script::auto_direction::direct_with_audio(
+        &source,
+        "PUPPET: Hei!\nFRIEND: Terve!",
+        &[24000, 24000],
+        &["one.wav".into(), "two.wav".into()],
+    )
+    .unwrap();
+    let script = motion_script::parse(&result.source).unwrap();
+    assert!(script.scenes[result.first_scene..].iter().all(|scene| scene
+        .composition
+        .camera
+        .iter()
+        .all(|key| key.at >= 0.0
+            && key.at <= scene.duration
+            && key.zoom.is_finite()
+            && key.zoom >= 0.05
+            && key.x.is_finite()
+            && key.y.is_finite())));
+    assert!(script.scenes[result.first_scene..]
+        .iter()
+        .all(|scene| !scene
+            .events
+            .iter()
+            .any(|event| matches!(event,Event::Gesture{actor,..}if actor=="PUPPET"))));
+}
