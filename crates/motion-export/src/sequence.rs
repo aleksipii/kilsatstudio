@@ -3,7 +3,7 @@ use super::*;
 use motion_scene::SequenceTimeline;
 use std::sync::Arc;
 #[derive(Serialize)]
-struct Contribution {
+pub(super) struct Contribution {
     scene_index: usize,
     local_sample: u64,
     weight: f64,
@@ -87,8 +87,10 @@ fn image(
     captions: CaptionMode,
 ) -> Result<resvg::tiny_skia::Pixmap, Error> {
     let svg = scene_svg(script, rendered, art, index, sample, validated, captions)?;
-    resvg::tiny_skia::Pixmap::decode_png(&media::rasterize_scaled(&svg, max_side)?)
-        .map_err(|e| invalid(e.to_string()))
+    if svg.len() > MAX_SVG_FRAME_BYTES {
+        return Err(invalid("sequence SVG scene byte budget exceeded"));
+    }
+    media::rasterize_scaled_pixmap(&svg, max_side)
 }
 
 /// Prefix references in internally generated SVG only. Prefixing every ID,
@@ -201,7 +203,7 @@ fn embedded_image_budget(art: &ArtContext, limit: u64) -> Result<u64, Error> {
     Ok(scenes.values().copied().max().unwrap_or(0))
 }
 
-fn preflight(
+pub(super) fn preflight(
     script: &Script,
     rendered: &[RenderedScene],
     art: Option<&ArtContext>,
@@ -379,7 +381,7 @@ fn preflight(
     Ok((timeline, total, working))
 }
 #[allow(clippy::too_many_arguments)]
-fn compose(
+pub(super) fn compose(
     script: &Script,
     rendered: &[RenderedScene],
     art: Option<&ArtContext>,

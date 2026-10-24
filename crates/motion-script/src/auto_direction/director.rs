@@ -6,6 +6,22 @@ use std::collections::{BTreeMap, BTreeSet};
 /// Make a stable stage and a bounded, editable shot for each scheduled line.
 /// Framing uses proportional upper-body targets, not inferred custom-rig bounds.
 pub(super) fn build_shots(script: &Script, lines: &[TimedLine]) -> Result<ShotList, String> {
+    build_shots_with_audio(script, lines, None)
+}
+
+pub(super) fn build_shots_with_audio(
+    script: &Script,
+    lines: &[TimedLine],
+    audio: Option<&[String]>,
+) -> Result<ShotList, String> {
+    if audio.is_some_and(|paths| {
+        paths.len() != lines.len()
+            || paths
+                .iter()
+                .any(|p| p.trim().is_empty() || p.len() > 4096 || p.contains('\0'))
+    }) {
+        return Err("Supply one bounded nonempty audio reference per dialogue line".into());
+    }
     script.validate().map_err(|error| error.to_string())?;
     if lines.is_empty() || lines.len() > MAX_LINES {
         return Err(format!("Direction needs 1–{MAX_LINES} dialogue lines."));
@@ -123,7 +139,7 @@ pub(super) fn build_shots(script: &Script, lines: &[TimedLine]) -> Result<ShotLi
                     actor: timed.line.actor.clone(),
                     text: timed.line.text.clone(),
                     emotion: timed.line.emotion.clone(),
-                    audio: None,
+                    audio: audio.map(|paths| paths[index].clone()),
                     duration: timed.duration_samples as f64 / SAMPLE_RATE as f64,
                 }),
                 lead_in: Some(if index == 0 {

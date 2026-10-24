@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn every_help_topic_draws_offline_from_the_same_user_guide() {
         let topics = sections();
-        assert_eq!(topics.len(), 10);
+        assert_eq!(topics.len(), 12);
         for (index, (title, body)) in topics.iter().enumerate() {
             assert!(!body.trim().is_empty());
             let ctx = egui::Context::default();

@@ -12,6 +12,7 @@ enum ExportChoice {
     Png,
     Svg,
     Mp4,
+    StreamingMp4,
 }
 
 fn export_request(
@@ -26,12 +27,16 @@ fn export_request(
     let format = match choice {
         ExportChoice::Png => ExportFormat::Png,
         ExportChoice::Svg => ExportFormat::Svg,
-        ExportChoice::Mp4 => {
+        ExportChoice::Mp4 | ExportChoice::StreamingMp4 => {
             let ffmpeg = std::path::PathBuf::from(ffmpeg.trim());
             if !ffmpeg.is_absolute() {
                 return Err("Use an absolute path to local FFmpeg for MP4.".into());
             }
-            ExportFormat::Mp4 { ffmpeg }
+            if choice == ExportChoice::StreamingMp4 {
+                ExportFormat::StreamingMp4 { ffmpeg }
+            } else {
+                ExportFormat::Mp4 { ffmpeg }
+            }
         }
     };
     Ok((destination, format))
@@ -452,7 +457,9 @@ impl Panel {
                             "MP4 + WAV",
                         );
                     });
-                    if self.export_choice == ExportChoice::Mp4 {
+                    ui.selectable_value(&mut self.export_choice,ExportChoice::StreamingMp4,"MP4 Full HD · suoratoisto");
+                    if self.export_choice==ExportChoice::StreamingMp4 {ui.weak("Enintään 60 s / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 300 s; tämä ei mittaa puheen valmistelua.");}
+                    if matches!(self.export_choice,ExportChoice::Mp4|ExportChoice::StreamingMp4) {
                         ui.label("Absolute path to local FFmpeg");
                         ui.text_edit_singleline(&mut self.ffmpeg);
                     }

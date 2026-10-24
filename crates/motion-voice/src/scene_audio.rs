@@ -209,6 +209,29 @@ pub fn derive_text_mouths(
     job: &DialogueJob,
     overrides: &motion_lipsync::english::Pronunciations,
 ) -> Vec<crate::diagnostics::PreparationDiagnostic> {
+    if job.request.voice.language == "fi-fi" {
+        return match clip.derive_finnish_estimate(&job.request.text) {
+            Ok(Some(info)) => {
+                let mut reports = crate::diagnostics::from_estimate(job.id, &job.actor, &info);
+                reports.push(
+                    crate::diagnostics::PreparationDiagnostic::LanguageEstimateUnmeasured {
+                        dialogue_id: job.id,
+                        actor: job.actor.clone(),
+                        language: "fi-fi".into(),
+                    },
+                );
+                reports
+            }
+            Ok(None) => Vec::new(),
+            Err(e) => vec![
+                crate::diagnostics::PreparationDiagnostic::TextEstimateUnavailable {
+                    dialogue_id: job.id,
+                    actor: job.actor.clone(),
+                    reason: e.to_string(),
+                },
+            ],
+        };
+    }
     match clip.derive_text_estimate(&job.request.text, overrides) {
         Ok(Some(info)) => crate::diagnostics::from_estimate(job.id, &job.actor, &info),
         Ok(None) => Vec::new(),

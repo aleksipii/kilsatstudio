@@ -272,6 +272,15 @@ fn every_shot_renders_non_blank_frames_with_expected_flat_colours() {
     // 3 father close-up: hall wall and skin.
     assert_color(at(3, (200.0, 100.0)), [28, 70, 64], "hall wall");
     assert_color(at(3, (320.0, 149.0)), [154, 119, 109], "father skin");
+    // Bold black outlines (`behind` mode, 1.8 units outside the round heads): boy
+    // head ellipse centre (320, 219) rx 28; father centre (320, 144) rx 31.
+    let outline = |p: [u8; 3], what: &str| {
+        assert!(p.iter().all(|c| *c < 24), "{what} outline: {p:?}");
+    };
+    outline(at(0, (348.9, 219.0)), "boy head");
+    outline(at(0, (291.1, 219.0)), "boy head");
+    outline(at(3, (351.9, 144.0)), "father head");
+    outline(at(3, (288.1, 144.0)), "father head");
     // The father must be absent from the bed shots and the boy from the others.
     assert!(!seen_first_frames[0]
         .as_chunks::<4>()

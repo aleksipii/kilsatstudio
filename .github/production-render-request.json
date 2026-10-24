@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "request_revision": 3,
+  "allow_downloads": true,
+  "publication_approved": false,
+  "render_profile": "full_hd",
+  "review_size": null,
+  "fps": 24,
+  "purpose": "Render 31 original Finnish Full HD episodes and seven unpublished compilations after the successful 960x540 review pass; measure Full HD separately on macOS CI."
+}

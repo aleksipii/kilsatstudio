@@ -14,7 +14,7 @@ with neutral dialogue.
 
 ## Files
 
-- `base.yaml` - project settings and both custom rigid rigs (colored polygons).
+- `base.yaml` - project settings and both custom rigid rigs (ellipse and rounded parts with bold black outlines, see [rig-outlines](../../docs/rig-outlines.md)).
 - `shots.yaml` - the shot list and cut rules (see [docs/shot-library.md](../../docs/shot-library.md)).
 - `night-room.kilsat` - generated project: expanded screenplay, bedroom/doorway/hallway
   artwork layers (rectangles and ellipses defined in

@@ -1,10 +1,40 @@
 # Remaining studio work and active agents
 
-Updated 2026-10-19. The first packages below merged in PR #55 after PR #54.
+Updated 2026-10-24. The first packages below merged in PR #55 after PR #54.
 The authoritative requirements, completion marks and acceptance evidence remain
 in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
+
+## Current status (PR #95)
+
+[Production integration](production-integration.md) now includes measured-audio
+directing/acting/camera, real local Finnish speech, reviewed continuous head-tilt
+recording, bounded Full HD streaming, GPU outlines/captions/lights/animated props,
+31 original Finnish source projects and a checked batch/compilation runner.
+All 31 actual Full HD episode MP4s and seven Full HD compilations have now been
+rendered and verified; download links and exact evidence are in the
+[Finnish season guide](kilsat-season.md). Human review and publication remain open.
+The final-source CI and season render results are tracked in master-progress.
+An actual 42.7second Full HD/24fps Finnish episode completed in 77.2seconds on
+Apple Silicon CI; this does not accept a physical Mac or speech/artistic quality.
+
+Remaining acceptance work is concrete:
+
+- Run the newest signed-by-developer candidate on a physical Mac: Finder launch,
+  offline audio, camera permissions, continuous tracking/recording, export and
+  the entire 300-second workflow. CI is a virtual machine.
+- Annotate actual Finnish speech and measure mouth boundaries, then listen and
+  review image/audio together. The Finnish text estimator remains an estimate.
+- Review character art, acting, composition, comic timing and all 31 episodes;
+  replace the clearly marked illustrative Kilsat screen with an approved capture.
+- Complete the exact upstream dependency/model/asset/NOTICE rights review and
+  run the explicit Developer ID/notarization workflow in an authorized Apple
+  environment. Tooling and CI never grant these rights.
+- Review GPU fixtures and device performance on actual Metal hardware before
+  treating GPU preview/export as production accepted.
+
+The tables and dated increments below preserve the earlier audit history.
 
 `[x]` means integrated and checked; `[ ]` means still open. The table's concrete
 packages are integrated; its final column remains open. Code tests cannot grant
@@ -12,7 +42,7 @@ physical-device or rights approval. Delivery evidence is below and in the master
 
 | Area / agent | Current concrete package | Further work left open |
 | --- | --- | --- |
-| Characters — `remaining_character` | Versioned bounded original-rig clip clipboard exchange between projects, explicit replacement and shared source history | Live (non-copy) custom-rig clip instancing, mirroring, multi-clip mixing and rest-orientation correction, a visual (canvas) weight/UV editor (numeric part texture/UV/two-joint weight controls: branch feat/rig-weight-uv-editor), idle and physical motion review (acting layer with part variants, viseme/emotion sprite swap, gaze and seeded blink: branch feat/rig-acting-layer, see custom-rigid-characters.md; CPU-rendered texture binding and two-joint skinning for custom rigs: branch feat/rig-textures-deformation; copy-based custom-rig clip library with joint mapping, translation scale and retiming: PR #57) |
+| Characters — `remaining_character` | Versioned bounded original-rig clip clipboard exchange between projects, explicit replacement and shared source history | Live (non-copy) custom-rig clip instancing, mirroring, multi-clip mixing and rest-orientation correction, a visual (canvas) weight/UV editor (numeric part texture/UV/two-joint weight controls: branch feat/rig-weight-uv-editor), idle and physical motion review (acting layer with part variants, viseme/emotion sprite swap, gaze and seeded blink: branch feat/rig-acting-layer, see custom-rigid-characters.md; CPU-rendered texture binding and two-joint skinning for custom rigs: branch feat/rig-textures-deformation; copy-based custom-rig clip library with joint mapping, translation scale and retiming: PR #57; per-part black outlines (over/behind/silhouette), ellipse parts and bounded corner rounding, CPU/SVG only, with the night-room rigs redesigned round and outlined: branch feat/rig-outlines-rounded, see [rig-outlines](rig-outlines.md); GPU outline commands and human art review remain open) |
 | Artist tools — `remaining_artist` | Scene-local animated image-mask rectangles, native key editing, shared preview/export and seek tests | Animated polygon vertices/painted strokes, non-uniform mask scale, retouch/image processing and physical stylus acceptance (rigid polygon/painted mask motion: PR #56) |
 | Speech — `remaining_speech` | Exact-audio sample-boundary mouth-shape editing, explicit manual provenance and Apply through existing history | Real forced-alignment integration, audited recognizer environment, annotated corpus and measured/perceptual quality |
 | Screenplay — `remaining_screenplay` | Validated cinematic push/pull/pan camera presets using existing camera tracks, detached native Apply; [reusable/conditional animation rules](animation-rules.md) and [audio cues](audio-cues.md) with detached native cue/rule editors (headless-tested only) | Cue waveform display/file picker, hand-exercised cue/rule editor UI and general editable compiled tracks (YAML-authored audio cues on the shared sample clock: see [audio cues](audio-cues.md)) |

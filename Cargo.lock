@@ -1715,6 +1715,7 @@ dependencies = [
  "motion-rig",
  "motion-scene",
  "motion-script",
+ "rustybuzz",
  "serde_json",
  "sha2",
  "thiserror 2.0.21",
@@ -2933,6 +2934,7 @@ name = "studio-desktop"
 version = "0.1.0"
 dependencies = [
  "eframe",
+ "hound",
  "motion-animation",
  "motion-art",
  "motion-audio",

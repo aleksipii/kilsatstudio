@@ -14,6 +14,7 @@ pub enum Format {
     Svg,
     Png,
     Mp4,
+    StreamingMp4,
 }
 
 pub struct Request {
@@ -79,6 +80,22 @@ impl Worker {
                     progress,
                     request.captions,
                 ),
+                Format::StreamingMp4 => motion_export::export_mp4_scene_streaming(
+                    &request.script,
+                    request.scene_index,
+                    &rendered,
+                    Some(&request.art),
+                    &request.destination,
+                    &request.ffmpeg,
+                    &motion_export::StreamingProfile::full_hd_24(),
+                    &request.cancel,
+                    progress,
+                    request.captions,
+                )
+                .map(|r| Report {
+                    frame_count: r.frame_count,
+                    output_directory: r.output_directory,
+                }),
                 Format::Mp4 => motion_export::export_mp4_scene_with_art_captions(
                     &request.script,
                     request.scene_index,

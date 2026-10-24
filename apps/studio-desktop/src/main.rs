@@ -12,6 +12,7 @@ mod cue_rule_editor;
 mod custom_rig_editor;
 mod demo;
 mod direct_manipulation;
+mod direction_worker;
 mod event_editor;
 mod event_factory;
 mod export_worker;
@@ -21,6 +22,7 @@ mod input_latency;
 mod keyframe_editor;
 mod kokoro_setup;
 mod live_clip_editor;
+mod local_speech_ui;
 mod managed_license_evidence;
 mod native_compositor;
 mod playback;
@@ -46,7 +48,7 @@ use motion_lipsync::{
     cache::{AlignmentCache, AlignmentStatus},
     Viseme,
 };
-use motion_tts::{CancellationToken, KokoroConfig, KokoroProvider, SpeechResult};
+use motion_tts::{CancellationToken, KokoroConfig, SpeechResult};
 use motion_voice::{dialogue_jobs, timeline::DialogueClip, DialogueJob, VoiceUpdate, VoiceWorker};
 use std::{
     path::Path,
@@ -111,6 +113,7 @@ struct NativeCanvas {
     revision: u64,
     request: native_compositor::Request,
     line_audio: Option<Arc<motion_audio::AudioBuffer>>,
+    head_preview: Option<(String, f64)>,
     last_requested: Option<u64>,
     shown: Option<u64>,
     failed: Option<u64>,
@@ -133,7 +136,24 @@ enum InspectorTab {
     Advanced,
 }
 
+struct PendingDirection {
+    generation: u64,
+    revision: u64,
+    source: String,
+    dialogue: String,
+    root: String,
+    piper_profile: String,
+}
 struct Studio {
+    direction_worker: direction_worker::Worker,
+    direction_generation: u64,
+    direction_pending: Option<PendingDirection>,
+    direction_imports: std::collections::BTreeMap<usize, String>,
+    direction_imports_for: String,
+    direction_report: String,
+    piper_config_path: String,
+    system_inventory: local_speech_ui::Inventory,
+    piper_profile_editor: local_speech_ui::ProfileEditor,
     help_open: bool,
     help_topic: usize,
     inspector_tab: InspectorTab,
@@ -354,6 +374,15 @@ impl Default for Studio {
             timeline_drag: None,
             timeline_drag_source: None,
             timeline_seek_drag: false,
+            direction_worker: direction_worker::Worker::new(),
+            direction_generation: 0,
+            direction_pending: None,
+            direction_imports: std::collections::BTreeMap::new(),
+            direction_imports_for: String::new(),
+            direction_report: String::new(),
+            piper_config_path: String::new(),
+            system_inventory: local_speech_ui::Inventory::default(),
+            piper_profile_editor: local_speech_ui::ProfileEditor::default(),
             help_open: false,
             help_topic: 0,
             inspector_tab: InspectorTab::default(),
@@ -823,7 +852,7 @@ impl Studio {
         }
         let mut apply = false;
         let mut reset = false;
-        egui::CollapsingHeader::new("Character voice · Kokoro").default_open(true).show(ui, |ui| {
+        egui::CollapsingHeader::new("Hahmon puheääni").default_open(true).show(ui, |ui| {
             ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
                 if let Some(draft) = &mut self.voice_draft { apply = draft.ui(ui); }
                 reset = ui.button("Reset voice draft").clicked();
@@ -2034,6 +2063,32 @@ impl Studio {
             } else { ui.weak("Oletushahmon päätä voi siirtää X/Y-suunnassa. Kamerakallistus tarvitsee mukautetun hahmon head-nivelen."); }
             apply = ui.button("Lisää pään avainruutu").clicked();
         });
+        if let Some(samples) = self.webcam_pose.take_recording() {
+            let actor = draft.actor.clone();
+            let expected = source.clone();
+            let time = self.playhead;
+            if enabled && expected == self.source {
+                match direct_manipulation::apply_head_recording(
+                    &self.source,
+                    self.scene_index,
+                    &actor,
+                    time,
+                    &samples,
+                ) {
+                    Ok(source) => {
+                        self.apply_structure(Ok(source));
+                        self.selected_actor = Some(actor);
+                        self.playhead = time;
+                        self.status = format!(
+                            "Kameranauhoitus lisätty: {} mittausta. Kumoa peruu koko nauhoituksen.",
+                            samples.len()
+                        );
+                    }
+                    Err(error) => self.status = error,
+                }
+            }
+            return;
+        }
         if apply && enabled && source == &self.source {
             let actor = draft.actor.clone();
             let time = self.playhead;
@@ -2054,6 +2109,7 @@ impl Studio {
                 .sync(ui.ctx(), &self.project_root, &document.assets);
         }
         self.sync_sequence_resources();
+        let head_preview = self.live_head_preview();
         let Some(script) = self.script.as_ref() else {
             return;
         };
@@ -2078,12 +2134,32 @@ impl Studio {
             .map(|p| p.playback_audio.clone());
         let changed = self.native_canvas.as_ref().is_none_or(|canvas| {
             canvas.revision != self.sequence_revision
+                || (canvas.head_preview != head_preview
+                    && (canvas.last_requested == canvas.shown || canvas.failed.is_some()))
                 || canvas.request.scene_index != self.scene_index
                 || canvas.request.captions != self.caption_mode
                 || !same_optional_arc(&canvas.request.manifest, &manifest)
                 || !same_optional_arc(&canvas.line_audio, &line_audio)
         });
         if changed {
+            let previous_texture = self
+                .native_canvas
+                .as_ref()
+                .filter(|c| {
+                    c.revision == self.sequence_revision
+                        && c.request.scene_index == self.scene_index
+                })
+                .and_then(|c| c.texture.clone());
+            let mut preview_script = script.clone();
+            if let Some((actor, tilt)) = &head_preview {
+                let _ = direct_manipulation::stage_head_preview(
+                    &mut preview_script,
+                    self.scene_index,
+                    actor,
+                    self.playhead,
+                    *tilt,
+                );
+            }
             self.native_canvas_generation = self.native_canvas_generation.wrapping_add(1);
             self.native_canvas = Some(NativeCanvas {
                 revision: self.sequence_revision,
@@ -2091,7 +2167,7 @@ impl Studio {
                     generation: self.native_canvas_generation,
                     scene_index: self.scene_index,
                     sample_frame: sample,
-                    script: Arc::new(script.clone()),
+                    script: Arc::new(preview_script),
                     captions: self.caption_mode,
                     art: Arc::new(motion_export::ArtContext {
                         document: self
@@ -2105,10 +2181,11 @@ impl Studio {
                     mouths: None,
                 },
                 line_audio,
+                head_preview,
                 last_requested: None,
                 shown: None,
                 failed: None,
-                texture: None,
+                texture: previous_texture,
                 error: None,
             });
         }
@@ -2263,7 +2340,8 @@ impl Studio {
             self.native_canvas_ui(ui);
             return;
         }
-        if let Some(script) = self.script.clone() {
+        if let Some(mut script) = self.script.clone() {
+            self.stage_live_head(&mut script);
             match motion_scene::evaluate(&script, self.scene_index, self.playhead) {
                 Ok(mut scene) => {
                     let frame = (self.playhead * 24000.0).round() as u64;
@@ -2339,6 +2417,194 @@ impl Studio {
         ui.add_space(8.0);
         ui.weak("Procedural preview · sample-clock mouth animation");
     }
+    fn piper_profile(&self) -> Option<std::path::PathBuf> {
+        let p = self.piper_config_path.trim();
+        (!p.is_empty()).then(|| p.into())
+    }
+    fn set_piper_profile(&mut self, path: String) {
+        if path == self.piper_config_path {
+            return;
+        }
+        self.piper_config_path = path;
+        self.stop_playback();
+        // Retain the cancelled token and busy state until the owning worker
+        // acknowledges it. A completed result already in its channel must also
+        // be rejected before a new preparation can replace that token.
+        if let Some(cancel) = &self.active_cancel {
+            cancel.cancel();
+        }
+        self.sequence_changed();
+        self.scene_preview = None;
+        self.scene_audio_active = false;
+        self.preview = None;
+        self.native_alignment.invalidate();
+        self.alignment_identity = None;
+        self.alignment_audio = None;
+        self.status =
+            "Piper-profiili vaihtui. Valmistele ääni uudelleen ennen toistoa tai vientiä.".into();
+    }
+    fn local_provider(&self) -> motion_tts::LocalSpeechProvider {
+        let provider = motion_tts::LocalSpeechProvider::new(self.kokoro_config());
+        match self.piper_profile() {
+            Some(path) => provider.with_piper_config_path(path),
+            None => provider,
+        }
+    }
+    fn start_measured_direction(&mut self) {
+        if !self.editing_idle() || self.setup_busy {
+            return;
+        }
+        self.flush_text_edit();
+        self.stop_playback();
+        let root = std::path::PathBuf::from(self.project_root.trim());
+        if !root.is_absolute() || !root.is_dir() {
+            self.status =
+                "Anna olemassa olevan projektikansion koko polku ennen puheohjausta.".into();
+            return;
+        }
+        self.direction_generation = self.direction_generation.wrapping_add(1);
+        let generation = self.direction_generation;
+        let cancel = CancellationToken::new();
+        let imported_audio = self
+            .direction_imports
+            .iter()
+            .filter(|(_, p)| !p.trim().is_empty())
+            .map(|(line, p)| (*line, p.trim().into()))
+            .collect();
+        let request = direction_worker::Request {
+            generation,
+            source: self.source.clone(),
+            dialogue: self.quick_start.dialogue.clone(),
+            root,
+            provider: Arc::new(self.local_provider()),
+            imported_audio,
+            cancel: cancel.clone(),
+        };
+        match self.direction_worker.submit(request) {
+            Ok(()) => {
+                self.direction_pending = Some(PendingDirection {
+                    generation,
+                    revision: self.document_revision,
+                    source: self.source.clone(),
+                    dialogue: self.quick_start.dialogue.clone(),
+                    root: self.project_root.clone(),
+                    piper_profile: self.piper_config_path.clone(),
+                });
+                self.active_cancel = Some(cancel);
+                self.busy = true;
+                self.status = "Valmistellaan oikea puhe ja mitataan repliikkien kestot…".into();
+            }
+            Err(error) => self.status = error,
+        }
+    }
+    fn poll_direction(&mut self) {
+        while let Some(update) = self.direction_worker.poll() {
+            match update {
+                direction_worker::Update::Progress {
+                    generation,
+                    completed,
+                    total,
+                    message,
+                } => {
+                    if self
+                        .direction_pending
+                        .as_ref()
+                        .is_some_and(|p| p.generation == generation)
+                    {
+                        self.status = format!("Puheohjaus {completed}/{total}: {message}");
+                    }
+                }
+                direction_worker::Update::Finished { generation, result } => {
+                    if !self
+                        .direction_pending
+                        .as_ref()
+                        .is_some_and(|p| p.generation == generation)
+                    {
+                        continue;
+                    }
+                    let pending = self.direction_pending.take().expect("matched pending");
+                    let cancelled = self
+                        .active_cancel
+                        .as_ref()
+                        .is_some_and(|t| t.is_cancelled());
+                    self.active_cancel = None;
+                    self.busy = false;
+                    if cancelled {
+                        self.status = "Puheohjaus peruttu. Projektia ei muutettu.".into();
+                        continue;
+                    }
+                    if pending.revision != self.document_revision
+                        || pending.source != self.source
+                        || pending.dialogue != self.quick_start.dialogue
+                        || pending.root != self.project_root
+                        || pending.piper_profile != self.piper_config_path
+                    {
+                        self.status =
+                            "Projekti tai vuorosanat vaihtuivat; ohjaustulos hylättiin.".into();
+                        continue;
+                    }
+                    match result {
+                        Ok(ready) if ready.original_source == self.source => {
+                            let expected = ready.result.source.clone();
+                            let first = ready.result.first_scene;
+                            let shots = ready.result.shot_count;
+                            let elapsed = ready.elapsed.as_secs_f64();
+                            self.direction_report = ready
+                                .audio
+                                .iter()
+                                .map(|audio| {
+                                    format!(
+                                        "Rivi {} · {} · {} · {} näytettä · SHA-256 {}",
+                                        audio.source_line,
+                                        audio.actor,
+                                        audio.relative_path,
+                                        audio.sample_count,
+                                        audio.wav_sha256
+                                    )
+                                })
+                                .collect::<Vec<_>>()
+                                .join("\n");
+                            self.apply_structure(Ok(expected.clone()));
+                            if self.source == expected {
+                                self.scene_index = first;
+                                self.reset_scene();
+                                self.inspector_tab = InspectorTab::Export;
+                                self.status=format!("Puheeseen ajoitettu ohjaus valmis: {shots} otosta, {} varmennettua WAVia, {:.1} s valmistelu. Valmistele Koko projekti / kohtauskooste esikatselua ja vientiä varten. Kumoa peruu lähdemuutoksen; WAVit säilyvät projektikansiossa.",ready.audio.len(),elapsed);
+                            }
+                        }
+                        Ok(_) => {
+                            self.status =
+                                "Ohjaustulos oli vanhasta lähteestä; tulos hylättiin.".into()
+                        }
+                        Err(error) => self.status = format!("Puheohjaus: {error}"),
+                    }
+                }
+            }
+        }
+    }
+    fn live_head_preview(&self) -> Option<(String, f64)> {
+        if !self.character_mode
+            || self.inspector_tab != InspectorTab::Edit
+            || !self.editing_idle()
+            || self.scene_playing()
+        {
+            return None;
+        }
+        self.selected_actor
+            .clone()
+            .zip(self.webcam_pose.live_roll_degrees().map(|v| v.round()))
+    }
+    fn stage_live_head(&self, script: &mut motion_script::Script) {
+        if let Some((actor, tilt)) = self.live_head_preview() {
+            let _ = direct_manipulation::stage_head_preview(
+                script,
+                self.scene_index,
+                &actor,
+                self.playhead,
+                tilt,
+            );
+        }
+    }
     fn kokoro_config(&self) -> KokoroConfig {
         KokoroConfig {
             python: self.python.clone().into(),
@@ -2366,6 +2632,7 @@ impl Studio {
             index: self.scene_index,
             root: self.project_root.clone().into(),
             config: self.kokoro_config(),
+            piper_config: self.piper_profile(),
             alignments: self.scene_alignment.clone(),
         };
         match self.scene_worker.submit(request) {
@@ -2392,9 +2659,7 @@ impl Studio {
                 self.reset_scene();
             }
         }
-        let provider = KokoroProvider {
-            config: self.kokoro_config(),
-        };
+        let provider = self.local_provider();
         self.scene_preview = None;
         self.scene_audio_active = false;
         let worker = VoiceWorker::new(Arc::new(provider), 1);
@@ -2412,12 +2677,12 @@ impl Studio {
             Err(e) => self.status = e.to_string(),
         }
     }
-    fn check_runtime(&mut self) {
+    fn kokoro_diagnostic_presets(&self) -> std::collections::BTreeSet<String> {
         let script = motion_script::parse(&self.source);
         let mut presets = std::collections::BTreeSet::new();
         if let Ok(script) = script {
             for character in script.characters.values() {
-                if let Some(voice) = &character.voice {
+                if let Some(voice) = character.voice.as_ref().filter(|v| v.provider == "kokoro") {
                     presets.insert(voice.preset.clone());
                 }
             }
@@ -2425,6 +2690,10 @@ impl Studio {
         if presets.is_empty() {
             presets.insert("af_heart".into());
         }
+        presets
+    }
+    fn check_runtime(&mut self) {
+        let presets = self.kokoro_diagnostic_presets();
         if presets
             .iter()
             .any(|p| p.is_empty() || !p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
@@ -2454,6 +2723,7 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        self.poll_direction();
         self.poll_kokoro_setup();
         if let Some(result) = self.asset_worker.poll() {
             self.busy = false;
@@ -3325,9 +3595,17 @@ impl Studio {
                         self.create_dialogue_scene();
                     }
                     ui.weak("Automaattiohjaus: enintään 2 puhujaa, 16 vuorosanaa ja 60 sekuntia. Tunne voidaan merkitä: EMMA[happy]: Hei! Tarkista arvioitu ajoitus puheesta.");
-                    if ui.button("Automaattiohjaa otokset").clicked() {
-                        self.auto_direct_dialogue();
-                    }
+                    if ui.button("Automaattiohjaa luonnos (arvioitu puhe)").clicked() {self.auto_direct_dialogue();}
+                    ui.weak("Puheohjaus käyttää oikeita WAV-kestoja, lisää reaktio-otoksia ja säilyttää muokattavan lähteen. Valitse hahmojen äänet oikealta Puhe-välilehdeltä.");
+                    if self.direction_imports_for!=self.quick_start.dialogue {self.direction_imports.clear();self.direction_imports_for=self.quick_start.dialogue.clone();}
+                    egui::CollapsingHeader::new("Omat WAV-äänet repliikeille (valinnainen)").show(ui,|ui|{
+                        if let Some(script)=&self.script {match motion_script::auto_direction::parse_dialogue(&self.quick_start.dialogue,script){
+                            Ok(lines)=>{for line in lines{ui.label(format!("Rivi {} · {}: {}",line.source_line,line.actor,line.text));ui.add(egui::TextEdit::singleline(self.direction_imports.entry(line.source_line).or_default()).hint_text("WAV-polku tai tyhjä: käytä hahmon puheääntä"));}},
+                            Err(error)=>{ui.weak(error);}
+                        }}
+                        ui.weak("Tuodun WAVin on oltava 24 kHz mono PCM16. Vuorosanojen muuttaminen tyhjentää nämä sidonnat.");
+                    });
+                    if ui.button("Ohjaa oikean puheen mukaan").clicked(){self.start_measured_direction();}
                 });
                 ui.separator();
                 ui.label("2. Valmistele puhe");
@@ -4183,6 +4461,7 @@ impl Studio {
                     script: script.clone(),
                     root: self.project_root.clone().into(),
                     config: self.kokoro_config(),
+                    piper_config: self.piper_profile(),
                     alignments: self.scene_alignment.clone(),
                     art: motion_export::ArtContext {
                         document: self
@@ -4258,6 +4537,38 @@ impl Studio {
             InspectorTab::Speech => {
                 ui.heading("Puhe ja äänet");
                 ui.weak("1. Yhdistä tai asenna Kokoro englanniksi, tai tuo oma WAV-ääni. 2. Valmistele kohtauksen ääni. 3. Kuuntele aikajanan Toista ääni -painikkeella.");
+                let mut piper_path = self.piper_config_path.clone();
+                field(
+                    ui,
+                    "Piper-asetustiedosto (JSON, koko polku)",
+                    &mut piper_path,
+                );
+                self.set_piper_profile(piper_path);
+                ui.weak("Suomi: valitse hahmolle Piper / fi-fi. Malli ja ohjelma asennetaan erikseen; asetus ei lataa niitä. Suun automaattinen liike on nimetty arvio, ei mitattu huulisynkka.");
+                let profile_idle = self.editing_idle() && !self.setup_busy;
+                ui.add_enabled_ui(profile_idle, |ui| {
+                    if let Some(path) = self.piper_profile_editor.ui(ui) {
+                        self.set_piper_profile(path.to_string_lossy().into_owned());
+                    }
+                });
+                if let Some(preset) = self.system_inventory.ui(ui) {
+                    if let Some(draft) = &mut self.voice_draft {
+                        draft.voice = Some(motion_script::VoiceConfig {
+                            provider: "system".into(),
+                            preset,
+                            language: "fi-fi".into(),
+                            speed: 1.0,
+                        });
+                    }
+                }
+                if !self.direction_report.is_empty() {
+                    egui::CollapsingHeader::new("Puheohjauksen ääniraportti").show(ui, |ui| {
+                        ui.label(&self.direction_report);
+                        if ui.button("Kopioi ääniraportti").clicked() {
+                            ui.ctx().copy_text(self.direction_report.clone());
+                        }
+                    });
+                }
                 self.voice_inspector_ui(ui);
                 self.dialogue_ui(ui);
                 ui.add_enabled_ui(self.editing_idle() && !self.setup_busy, |ui| {
@@ -4335,11 +4646,13 @@ impl Studio {
                 ui.selectable_value(&mut self.export_format, export_worker::Format::Svg, "SVG");
                 ui.selectable_value(&mut self.export_format, export_worker::Format::Png, "PNG");
                 ui.selectable_value(&mut self.export_format, export_worker::Format::Mp4, "MP4");
+                ui.selectable_value(&mut self.export_format, export_worker::Format::StreamingMp4, "MP4 Full HD · suoratoisto");
             });
-            if self.export_format == export_worker::Format::Mp4 {
+            if matches!(self.export_format,export_worker::Format::Mp4|export_worker::Format::StreamingMp4) {
                 field(ui, "Paikallinen FFmpeg-ohjelma (koko polku)", &mut self.ffmpeg_path);
                 ui.weak("Käyttää tätä paikallista ohjelmaa; ei lataa kooderia. MP4:n kuvamittojen on oltava parilliset.");
             }
+            if self.export_format==export_worker::Format::StreamingMp4 {ui.weak("Suoratoisto: enintään 60 s / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 300 s; koko tuotantoputken nopeutta ei luvata tällä asetuksella.");}
             field(
                 ui,
                 "Uusi tuloskansio (koko polku)",
@@ -8105,5 +8418,216 @@ mod finnish_workspace_tests {
         }
         assert_eq!(studio.snapshot(), before);
         assert!(!studio.history.can_undo());
+    }
+}
+
+#[cfg(test)]
+mod measured_direction_integration_tests {
+    use super::*;
+    struct Folder(std::path::PathBuf);
+    impl Folder {
+        fn new() -> Self {
+            let path = std::env::temp_dir().join(format!(
+                "kilsat-direction-ui-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            std::fs::create_dir(&path).unwrap();
+            let mut wav = hound::WavWriter::create(
+                path.join("line.wav"),
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate: 24000,
+                    bits_per_sample: 16,
+                    sample_format: hound::SampleFormat::Int,
+                },
+            )
+            .unwrap();
+            for _ in 0..24000 {
+                wav.write_sample(1000i16).unwrap();
+            }
+            wav.finalize().unwrap();
+            Self(path)
+        }
+    }
+    impl Drop for Folder {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    fn start(root: &Folder) -> Studio {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.project_root = root.0.to_string_lossy().into_owned();
+        studio.quick_start.dialogue = "EMMA: Hei!".into();
+        studio.direction_imports.insert(1, "line.wav".into());
+        studio.start_measured_direction();
+        assert!(studio.busy);
+        studio
+    }
+    fn finish(studio: &mut Studio) {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.direction_pending.is_some() {
+            studio.poll_direction();
+            assert!(Instant::now() < deadline, "{}", studio.status);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+    #[test]
+    fn measured_pcm_direction_is_one_undo_and_keeps_provenance() {
+        let root = Folder::new();
+        let mut studio = start(&root);
+        let original = studio.source.clone();
+        finish(&mut studio);
+        assert_ne!(studio.source, original);
+        assert!(studio.direction_report.contains("24000 näytettä"));
+        assert!(studio.direction_report.contains("SHA-256"));
+        assert!(studio.history.can_undo());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+    }
+    #[test]
+    fn stale_source_or_provider_context_cannot_commit_ready_audio() {
+        for provider_change in [false, true] {
+            let root = Folder::new();
+            let mut studio = start(&root);
+            if provider_change {
+                studio.piper_config_path = "changed.json".into();
+            } else {
+                studio.source.push('\n');
+            }
+            let expected = studio.source.clone();
+            finish(&mut studio);
+            assert_eq!(studio.source, expected);
+            assert!(!studio.history.can_undo());
+            assert!(studio.status.contains("hylättiin"));
+        }
+    }
+    #[test]
+    fn cancel_never_commits_an_already_finished_pending_result() {
+        let root = Folder::new();
+        let mut studio = start(&root);
+        let original = studio.source.clone();
+        studio.active_cancel.as_ref().unwrap().cancel();
+        finish(&mut studio);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        assert!(studio.status.contains("peruttu"));
+    }
+}
+
+#[cfg(test)]
+mod piper_profile_context_tests {
+    use super::*;
+
+    fn finish_audio(studio: &mut Studio) {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.busy {
+            studio.poll();
+            assert!(Instant::now() < deadline, "{}", studio.status);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    #[test]
+    fn profile_change_rejects_pending_scene_then_allows_fresh_preparation() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        let source = studio.source.clone();
+        let token = studio.active_cancel.clone().unwrap();
+        let sequence_revision = studio.sequence_revision;
+        studio.set_piper_profile("/new/profile.json".into());
+        assert!(token.is_cancelled());
+        assert!(
+            studio.busy,
+            "wait for the previous worker before replacing its token"
+        );
+        assert!(studio.sequence_revision > sequence_revision);
+        finish_audio(&mut studio);
+        assert!(studio.scene_preview.is_none());
+        assert!(studio.preview.is_none());
+        assert!(studio.script.is_some());
+        assert_eq!(studio.source, source);
+        assert!(!studio.history.can_undo());
+        // Explicit imported demo WAVs still work; this never invokes Piper.
+        studio.prepare_scene_audio();
+        finish_audio(&mut studio);
+        assert!(studio.scene_preview.is_some(), "{}", studio.status);
+    }
+
+    #[test]
+    fn profile_change_rejects_an_inflight_line_and_invalidates_alignment_context() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        finish_audio(&mut studio);
+        studio.generate();
+        let token = studio.active_cancel.clone().unwrap();
+        studio.set_piper_profile("/another/profile.json".into());
+        assert!(token.is_cancelled());
+        finish_audio(&mut studio);
+        assert!(studio.preview.is_none());
+        assert!(studio.scene_preview.is_none());
+        assert!(studio.alignment_identity.is_none());
+        assert!(studio.alignment_audio.is_none());
+        studio.generate();
+        finish_audio(&mut studio);
+        assert!(studio.preview.is_some(), "{}", studio.status);
+    }
+
+    #[test]
+    fn unchanged_profile_is_idle_stable_but_a_changed_profile_drops_prepared_scene() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        finish_audio(&mut studio);
+        let revision = studio.sequence_revision;
+        studio.set_piper_profile(String::new());
+        assert_eq!(studio.sequence_revision, revision);
+        assert!(studio.scene_preview.is_some());
+        studio.set_piper_profile("/new/profile.json".into());
+        assert!(studio.sequence_revision > revision);
+        assert!(studio.scene_preview.is_none());
+        assert!(!studio.history.can_undo());
+    }
+
+    #[test]
+    fn kokoro_diagnostics_exclude_piper_and_system_voice_presets() {
+        let mut studio = Studio::default();
+        let mut script = motion_script::parse(&studio.source).unwrap();
+        let mut english = script.characters.values().next().unwrap().clone();
+        english.voice = Some(motion_script::VoiceConfig {
+            provider: "kokoro".into(),
+            preset: "af_heart".into(),
+            language: "en-us".into(),
+            speed: 1.0,
+        });
+        let mut finnish = english.clone();
+        finnish.voice = Some(motion_script::VoiceConfig {
+            provider: "piper".into(),
+            preset: "piper_harri".into(),
+            language: "fi-fi".into(),
+            speed: 1.0,
+        });
+        let mut system = finnish.clone();
+        system.voice.as_mut().unwrap().provider = "system".into();
+        system.voice.as_mut().unwrap().preset = "Satu".into();
+        script.characters = [
+            ("EMMA".into(), english),
+            ("ALEX".into(), finnish),
+            ("SYSTEM".into(), system),
+        ]
+        .into_iter()
+        .collect();
+        studio.source = serde_yaml::to_string(&script).unwrap();
+        assert_eq!(
+            studio
+                .kokoro_diagnostic_presets()
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["af_heart"]
+        );
     }
 }

@@ -159,6 +159,36 @@ impl DialogueClip {
         self.text_estimated = Some(TextEstimate { track, identity });
         Ok(Some(info))
     }
+    /// Finnish text estimate; only measured leading/trailing silence constrains timing.
+    pub fn derive_finnish_estimate(
+        &mut self,
+        text: &str,
+    ) -> Result<Option<TextEstimateInfo>, SpeechError> {
+        if self.alignment.is_some() || self.estimated_alignment.is_some() {
+            self.text_estimated = None;
+            return Ok(None);
+        }
+        self.text_estimated = None;
+        let frames = self.audio.frames() as u64;
+        let span = energy_envelope(&self.audio.samples, EnvelopeConfig::DEFAULT_24K).speech_span();
+        let has_speech = span.is_some();
+        let (start, end) = span.map_or((0, 0), |s| (s.start, s.end));
+        let track = if has_speech {
+            motion_lipsync::finnish::estimate(text, frames, start, end)
+        } else {
+            motion_lipsync::finnish::silent_track(frames)
+        }
+        .map_err(|e| SpeechError(e.to_string()))?;
+        let info = TextEstimateInfo {
+            low_confidence_words: Vec::new(),
+            time_scale: track.time_scale,
+        };
+        self.text_estimated = Some(TextEstimate {
+            track,
+            identity: motion_lipsync::finnish::identity(text, frames, start, end),
+        });
+        Ok(Some(info))
+    }
     /// Both preview and export call this with the audio device/export sample clock.
     pub fn mouth_at(&self, scene_frame: u64) -> Result<Viseme, SpeechError> {
         if scene_frame < self.start_frame {

@@ -1,0 +1,83 @@
+name: Explicit Developer ID candidate
+on:
+  workflow_dispatch:
+    inputs:
+      identity:
+        type: string
+        required: true
+        description: 'Developer ID Application: NAME (TEAMID)'
+      allow_notarization:
+        type: boolean
+        default: false
+        description: Allow candidate upload to Apple for notarization
+permissions:
+  contents: read
+jobs:
+  sign-and-notarize:
+    runs-on: macos-15
+    timeout-minutes: 40
+    env:
+      SIGNING_IDENTITY: ${{ inputs.identity }}
+      CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+      CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+    steps:
+      - name: Require operator consent and signing configuration
+        env:
+          OPERATOR_CONSENT: ${{ inputs.allow_notarization }}
+        run: |
+          test "$OPERATOR_CONSENT" = true
+          for variable in SIGNING_IDENTITY CERTIFICATE_BASE64 CERTIFICATE_PASSWORD APPLE_ID APPLE_TEAM_ID APPLE_APP_PASSWORD; do
+            test -n "${!variable}" || { echo "Missing required signing configuration: $variable"; exit 1; }
+          done
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+      - name: Build release candidate and nested helpers
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '13.0'
+        run: |
+          cargo build --release --locked -p studio-desktop --target aarch64-apple-darwin
+          cargo build --release --locked -p motion-render --features gpu --example gpu_probe --target aarch64-apple-darwin
+          mkdir -p dist
+          swiftc -swift-version 5 -target arm64-apple-macos13.0 services/head-pose/main.swift -o dist/head_pose -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker services/head-pose/Info.plist
+      - name: Configure temporary signing keychain
+        run: |
+          password=$(uuidgen)
+          echo "::add-mask::$password"
+          keychain="$RUNNER_TEMP/kilsat-signing.keychain-db"
+          python3 - <<'PY'
+          import base64,os
+          from pathlib import Path
+          file=Path(os.environ['RUNNER_TEMP'])/'certificate.p12'
+          file.write_bytes(base64.b64decode(os.environ['CERTIFICATE_BASE64'],validate=True))
+          file.chmod(0o600)
+          PY
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 7200 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
+          login_keychain=$(security default-keychain -d user | tr -d ' "')
+          security list-keychains -d user -s "$keychain" "$login_keychain"
+          xcrun notarytool store-credentials kilsat-ci-notary --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD"
+      - name: Sign, notarize, staple and verify exact candidate
+        run: |
+          python3 scripts/developer_release.py --binary target/aarch64-apple-darwin/release/studio-desktop --gpu-probe target/aarch64-apple-darwin/release/examples/gpu_probe --head-pose dist/head_pose --commit "$GITHUB_SHA" --identity "$SIGNING_IDENTITY" --team "$APPLE_TEAM_ID" --notary-profile kilsat-ci-notary --output dist/developer-candidate.zip --report dist/developer-candidate.json --allow-notarization
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: developer-id-candidate-${{ github.sha }}
+          path: |
+            dist/developer-candidate.zip
+            dist/developer-candidate.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Delete temporary signing material
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          security delete-keychain "$RUNNER_TEMP/kilsat-signing.keychain-db" || true

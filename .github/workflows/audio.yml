@@ -100,6 +100,7 @@ jobs:
           cargo test --locked -p motion-export real_ffmpeg_encodes_h264_aac -- --ignored
           cargo test --locked -p motion-export embedded_art_is_retained_in_real_mp4_pipeline -- --ignored
           cargo test --locked -p motion-export real_ffmpeg_sequence_has_duration_and_crossfade_color -- --ignored
+          cargo test --locked -p motion-export real_ffmpeg_streaming_confirms_every_frame_and_has_no_png_sequence -- --ignored
       - name: Export night-room review MP4 (placeholder tones, not speech)
         run: |
           mkdir -p out

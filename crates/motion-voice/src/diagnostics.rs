@@ -7,6 +7,11 @@ pub const POOR_FIT_SCALE: std::ops::RangeInclusive<f64> = 0.4..=2.5;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum PreparationDiagnostic {
+    LanguageEstimateUnmeasured {
+        dialogue_id: u64,
+        actor: String,
+        language: String,
+    },
     /// Words not in the lexicon were pronounced by the rule-based fallback; add them
     /// under `pronunciations:` for a better text estimate.
     LowConfidencePronunciation {
@@ -31,13 +36,15 @@ pub enum PreparationDiagnostic {
 impl PreparationDiagnostic {
     pub fn dialogue_id(&self) -> u64 {
         match self {
-            Self::LowConfidencePronunciation { dialogue_id, .. }
+            Self::LanguageEstimateUnmeasured { dialogue_id, .. }
+            | Self::LowConfidencePronunciation { dialogue_id, .. }
             | Self::PoorTextEstimateFit { dialogue_id, .. }
             | Self::TextEstimateUnavailable { dialogue_id, .. } => *dialogue_id,
         }
     }
     pub fn message(&self) -> String {
         match self {
+            Self::LanguageEstimateUnmeasured{dialogue_id,actor,language} => format!("Dialogue {dialogue_id} ({actor}): {language} mouth shapes are orthographic estimates with silence detection, not audio alignment; perceptual quality is unmeasured."),
             Self::LowConfidencePronunciation {
                 dialogue_id,
                 actor,
