@@ -1,10 +1,37 @@
 # Remaining studio work and active agents
 
-Updated 2026-10-19. The first packages below merged in PR #55 after PR #54.
+Updated 2026-10-24. The first packages below merged in PR #55 after PR #54.
 The authoritative requirements, completion marks and acceptance evidence remain
 in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
+
+## Current status (PR #95)
+
+[Production integration](production-integration.md) now includes measured-audio
+directing/acting/camera, real local Finnish speech, reviewed continuous head-tilt
+recording, bounded Full HD streaming, GPU outlines/captions/lights/animated props,
+31 original Finnish source projects and a checked batch/compilation runner.
+The final-source CI and season render results are tracked in master-progress.
+An actual 42.7second Full HD/24fps Finnish episode completed in 77.2seconds on
+Apple Silicon CI; this does not accept a physical Mac or speech/artistic quality.
+
+Remaining acceptance work is concrete:
+
+- Run the newest signed-by-developer candidate on a physical Mac: Finder launch,
+  offline audio, camera permissions, continuous tracking/recording, export and
+  the entire 300-second workflow. CI is a virtual machine.
+- Annotate actual Finnish speech and measure mouth boundaries, then listen and
+  review image/audio together. The Finnish text estimator remains an estimate.
+- Review character art, acting, composition, comic timing and all 31 episodes;
+  replace the clearly marked illustrative Kilsat screen with an approved capture.
+- Complete the exact upstream dependency/model/asset/NOTICE rights review and
+  run the explicit Developer ID/notarization workflow in an authorized Apple
+  environment. Tooling and CI never grant these rights.
+- Review GPU fixtures and device performance on actual Metal hardware before
+  treating GPU preview/export as production accepted.
+
+The tables and dated increments below preserve the earlier audit history.
 
 `[x]` means integrated and checked; `[ ]` means still open. The table's concrete
 packages are integrated; its final column remains open. Code tests cannot grant

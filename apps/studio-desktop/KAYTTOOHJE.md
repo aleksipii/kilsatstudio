@@ -114,7 +114,7 @@ paina alhaalta Toista ääni. Kokoron testipuhe on erillinen asennustesti;
 se ei lisää vuorosanaa kohtaukseen.
 
 Kokoro ei tue suomea. Suomenkielinen paikallinen Piper-polku on luvussa 11. Voit myös tuoda oman paikallisen
-WAV-äänite valitun Speak-tapahtuman asetuksissa: valitse repliikki aikajanalta ja
+WAV-äänitteen valitun Speak-tapahtuman asetuksissa: valitse repliikki aikajanalta ja
 avaa Muokkaa. Aseta äänitteen polku sekä tarvittava ajoitus. Valmistele ääni sen
 jälkeen uudelleen. Tarkista suun ajoitus kuuntelemalla; tekstistä arvioitu ajoitus
 ei ole mitattu kohdistus.
@@ -185,7 +185,11 @@ Kumoa palauttaa lähteen mutta ei poista tuotettuja WAV-tiedostoja.
 
 Suomen puhetta varten valitse oikealta Puhe → hahmon puheääni → Piper, kieli
 fi-fi ja asennetun profiilin tunnus, esimerkiksi piper_harri. Anna Piperin
-asetustiedoston koko polku samalle välilehdelle. Malli ja ohjelma asennetaan
+asetustiedoston koko polku samalle välilehdelle. Uuden profiilin voit luoda siellä
+valitsemalla asennetun Piper-ohjelman, ONNX-mallin, mallin JSON-asetukset ja
+uuden profiilitiedoston polun. Välimuisti käyttää profiilin viereistä
+piper-cache-kansiota. Tallenna profiili uutena JSON-tiedostona ja ota se käyttöön.
+Malli ja ohjelma asennetaan
 erikseen; sovellus ei lataa niitä automaattisesti. Macin järjestelmä-äänten
 haku on erillinen yksityisen esikatselun vaihtoehto, jota ei hyväksytä sarjan
 julkaisuääneksi. Tarkista valitun mallin ja tuotannon käyttöoikeudet erikseen.

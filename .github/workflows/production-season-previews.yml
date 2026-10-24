@@ -1,4 +1,4 @@
-name: Production season review renders
+name: Production season renders
 on:
   push:
     branches: [feat/production-animation-pipeline, main]
@@ -8,7 +8,7 @@ on:
       allow_downloads:
         type: boolean
         default: false
-        description: Allow pinned Piper runtime/model downloads for review renders
+        description: Allow pinned Piper runtime/model downloads for unpublished renders
 permissions:
   contents: read
 concurrency:
@@ -26,15 +26,19 @@ jobs:
         group: [1, 2, 3, 4, 5, 6, 7]
     steps:
       - uses: actions/checkout@v4
-      - name: Check explicit review request
+      - name: Check explicit render request
+        id: request
         run: |
           python3 - <<'PY'
-          import json
+          import json, os
           from pathlib import Path
           request=json.loads(Path('.github/production-render-request.json').read_text())
           assert request['allow_downloads'] is True
           assert request['publication_approved'] is False
-          assert request['review_size']=='960x540' and request['fps']==24
+          assert request['fps']==24
+          assert (request['render_profile'],request['review_size']) in [('review','960x540'),('full_hd',None)]
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              print('profile='+request['render_profile'],file=output)
           PY
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v5
@@ -57,11 +61,16 @@ jobs:
         env:
           SEASON_GROUP: ${{ matrix.group }}
         run: |
-          python3 scripts/render_kilsat_season.py --group "$SEASON_GROUP" --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --piper-config "$RUNNER_TEMP/fi-voice/profile.json" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --output "$GITHUB_WORKSPACE/out/season-group-$SEASON_GROUP" --review-size 960x540
+          requested_review_size="$(python3 -c 'import json; print(json.load(open(".github/production-render-request.json"))["review_size"] or "")')"
+          size_args=()
+          if [ -n "$requested_review_size" ]; then
+            size_args=(--review-size "$requested_review_size")
+          fi
+          python3 scripts/render_kilsat_season.py --group "$SEASON_GROUP" --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --piper-config "$RUNNER_TEMP/fi-voice/profile.json" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --output "$GITHUB_WORKSPACE/out/season-group-$SEASON_GROUP" "${size_args[@]}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: kilsat-season-group-${{ matrix.group }}-${{ github.sha }}
+          name: kilsat-season-${{ steps.request.outputs.profile }}-group-${{ matrix.group }}-${{ github.sha }}
           path: |
             out/season-group-${{ matrix.group }}/
             ${{ runner.temp }}/fi-voice/download-evidence.json

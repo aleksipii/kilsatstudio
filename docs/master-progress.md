@@ -1,11 +1,34 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-21. A checked item identifies integrated, inspected implementation, not a
+2026-10-24. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
+
+## Current production integration — PR #95 (2026-10-24)
+
+The active branch `feat/production-animation-pipeline` integrates the outlined,
+rounded rigs from PR #89 and implements measured-audio direction with reaction
+shots, local Finnish speech, continuous reviewed head-tilt recording, bounded
+streaming Full HD export, expanded GPU commands, release tooling and 31 original
+Finnish episode sources. See [the integration record](production-integration.md)
+and [Finnish season instructions](kilsat-season.md). Older dated sections below
+are historical snapshots; their statements about missing Finnish speech,
+streaming Full HD or GPU captions are superseded by this integration.
+
+An actual Finnish 1920x1080/24fps, 42.708333-second episode completed the entire
+pipeline and independent media checks in 77.197seconds on Apple Silicon CI
+(VirtualMac2,1; CI/VM observed). The physical-Mac gate remains false. The exact
+source, host and artifact are recorded in the integration document. Season batch
+rendering and the final-source checks are being verified before merging PR #95.
+
+Still open: physical Mac GUI/audio/camera and signing acceptance, manual
+real-speech lip-sync annotations/listening, artistic/comic-timing review, an
+approved real Kilsat screen capture, final upstream/asset/dependency rights,
+production GPU/device acceptance and authorized Developer ID/notarization.
+M1–M6 whole-product acceptance is not granted by code or CI alone.
 
 ## Script-to-animation automation design (2026-10-20)
 

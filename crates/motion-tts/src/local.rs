@@ -683,7 +683,7 @@ mod tests {
                 let script = r#"#!/usr/bin/env python3
 import argparse,pathlib,sys,wave,struct,time
 p=argparse.ArgumentParser();p.add_argument('--model');p.add_argument('--config');p.add_argument('--output_file');p.add_argument('--length_scale');a=p.parse_args()
-root=pathlib.Path(a.model).parent();calls=root/'calls';calls.write_text(str(int(calls.read_text())+1) if calls.exists() else '1')
+root=pathlib.Path(a.model).parent;calls=root/'calls';calls.write_text(str(int(calls.read_text())+1) if calls.exists() else '1')
 text=sys.stdin.read()
 if 'timeout' in text: time.sleep(5)
 if 'invalid' in text: pathlib.Path(a.output_file).write_bytes(b'invalid');sys.exit(0)
