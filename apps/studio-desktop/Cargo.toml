@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+hound = "3.5"
 motion-animation = { path = "../../crates/motion-animation" }
 serde.workspace = true
 motion-art = { path = "../../crates/motion-art" }

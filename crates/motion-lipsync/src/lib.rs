@@ -3,6 +3,7 @@ pub mod cache;
 pub mod engine_reuse;
 pub mod english;
 pub mod estimated_cache;
+pub mod finnish;
 mod import;
 pub mod local_package;
 pub mod manual;

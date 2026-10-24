@@ -1605,8 +1605,13 @@ impl Script {
                 return Err(fail("empty character or asset".into()));
             }
             if let Some(v) = &c.voice {
-                if v.provider != "kokoro"
-                    || !["en-us", "en-gb"].contains(&v.language.as_str())
+                let provider_language = match v.provider.as_str() {
+                    "kokoro" => ["en-us", "en-gb"].contains(&v.language.as_str()),
+                    "system" => v.language == "fi-fi" && !v.preset.starts_with("piper_"),
+                    "piper" => v.language == "fi-fi" && v.preset.starts_with("piper_"),
+                    _ => false,
+                };
+                if !provider_language
                     || !v.speed.is_finite()
                     || !(0.5..=2.0).contains(&v.speed)
                     || v.preset.is_empty()
@@ -1617,7 +1622,7 @@ impl Script {
                         .all(|b| b.is_ascii_alphanumeric() || b == b'_')
                 {
                     return Err(fail(format!(
-                        "{id}: expected kokoro, en-us/en-gb, preset of 1..128 ASCII letters/digits/underscores, and speed 0.5..2.0"
+                        "{id}: expected kokoro/en-us/en-gb, system/fi-fi (private preview), or piper/fi-fi with piper_ preset; preset 1..128 ASCII letters/digits/underscores and speed 0.5..2.0"
                     )));
                 }
             }
