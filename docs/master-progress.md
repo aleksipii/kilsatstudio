@@ -7,9 +7,9 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
-## Current production integration — PR #95 (2026-10-24)
+## Current production integration — PR #95 merged (2026-10-24)
 
-The active branch `feat/production-animation-pipeline` integrates the outlined,
+Main now integrates the outlined,
 rounded rigs from PR #89 and implements measured-audio direction with reaction
 shots, local Finnish speech, continuous reviewed head-tilt recording, bounded
 streaming Full HD export, expanded GPU commands, release tooling and 31 original
@@ -28,7 +28,26 @@ completed all 31 Finnish episode videos and seven compilations (1920x1080/24fps,
 MP4/WAV/pipeline hashes match the recorded [evidence](evidence/kilsat-season-fullhd-ci.json).
 The final desktop correction invalidates prepared/pending audio on Piper profile
 changes; 253 local desktop tests pass with one existing host-information test
-excluded. Final-source checks are being verified before merging PR #95.
+excluded. All final-source checks passed before the authorized merge.
+
+PR #95 was normally merged as `048ea9c87577fd46f18a4ee250552ee7c6cc21f6`,
+preserving PR #89's ancestry; GitHub also marks PR #89 merged. Final source
+`e31c6b60f2ee97f06847daab8e6ebd7ff4133e42` passed
+[Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40128482356)
+and [Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40128482272).
+Linux/macOS passed **824/823 Rust tests**, with **eight default-ignored tests**
+each, **55 runtime and 121 repository Python tests** each. Both GPU jobs passed;
+the media job explicitly executed all **four real FFmpeg tests**, including the
+new streaming frame-completeness check. Ad-hoc signed packaging passed the
+camera helper's no-camera help/invalid-argument checks, archive audit and native
+linkage/build-evidence checks. No physical camera or GUI session is inferred.
+
+The merged-code main runs are now in progress:
+[Rust/GPU/media](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209964),
+[Mac package](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209962),
+[Full HD season](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986).
+Documentation-only status commits preserve these source bytes; they do not
+replace the merged-code checks with a new test claim.
 
 Still open: physical Mac GUI/audio/camera and signing acceptance, manual
 real-speech lip-sync annotations/listening, artistic/comic-timing review, an

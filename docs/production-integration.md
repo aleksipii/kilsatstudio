@@ -3,9 +3,14 @@
 Work branch: feat/production-animation-pipeline, based on main
 2a0168a5d3065157033e30a8abc8947a5cc9482c.
 
+Merged as PR #95 / `048ea9c87577fd46f18a4ee250552ee7c6cc21f6` on 2026-10-24,
+after green final-source Linux/macOS/GPU/media and Apple Silicon packaging.
+PR #89 is also marked merged. Exact final and post-merge results are tracked in
+[master-progress.md](master-progress.md).
+
 PR #89 head 64d7293b09602c84a12254500554b2a00f2b9d7f is integrated in this
-work branch: rounded custom-rig shapes and outlines. Its original CI passed;
-combined-source CI and artistic review are still required.
+work branch: rounded custom-rig shapes and outlines. Original and combined-source
+CI passed; artistic review remains open.
 
 ## Implemented workflow (2026-10-24, PR #95)
 
