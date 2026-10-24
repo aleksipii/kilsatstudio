@@ -81,6 +81,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         peak = peak.max(value.abs());
         squares += value * value;
     }
+    if peak == 0.0 {
+        return Err("local inference output contains only silence".into());
+    }
     let elapsed = started.elapsed().as_secs_f64();
     let duration = result.duration_seconds();
     let report = serde_json::json!({

@@ -61,7 +61,7 @@ Koesynteesi edellyttää erillistä allow-local-inference-valintaa eikä lataa m
 
 ## Macin järjestelmä-äänet ovat yksityistä esikatselua
 
-SystemSpeechProvider voi listata jo asennetut suomenkieliset macOS-äänet ja
+SystemSpeechProvider voi listata tuetut, jo asennetut suomenkieliset macOS-äänet ja
 käyttää valittua täsmällistä nimeä. Puuttuva ääni tuottaa virheen. Asennettuja
 ääniä ei oleteta olevan olemassa eikä englanninkielistä ääntä korvata suomen tilalle.
 Pyyntökohtainen uudelleenkäyttö on poistettu myös tästä polusta, koska ääniresurssien
@@ -128,7 +128,7 @@ omistavansa oikealla puheella annotoitua suomenkielistä laatukorpusta.
 
 ## Tarkistukset ja avoin hyväksyntä
 
-Seitsemän Python-testiä tarkistaa mittaussemantiikan synteettisillä fixtuureilla.
+Kahdeksan Python-testiä tarkistaa mittaussemantiikan synteettisillä fixtuureilla.
 Rust-testit kattavat palvelurajat, resamplauksen, peruutuksen/aikarajan,
 virheellisen WAV:n, resurssi-identiteetin sekä välimuistin konservatiivisuuden.
 Toteuttava agentti ei ajanut Rustia; integraattori kirjaa todelliset Cargo/CI-tulokset.

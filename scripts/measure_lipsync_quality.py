@@ -2,6 +2,7 @@
 """Measure declared mouth annotations against exact local audio; never grant release acceptance."""
 import argparse
 import hashlib
+import io
 import json
 import math
 from pathlib import Path
@@ -58,6 +59,12 @@ def measure(wav_bytes, language, candidate=None, reference=None, inference=None,
     if isinstance(max_boundary_p95_ms, bool) or not isinstance(max_boundary_p95_ms, (int, float)) or not math.isfinite(max_boundary_p95_ms) or not 0 <= max_boundary_p95_ms <= 1000:
         raise ValueError('boundary threshold must be finite within 0..1000 ms')
     frames, pcm_hash = wav_identity(wav_bytes)
+    with wave.open(io.BytesIO(wav_bytes), 'rb') as source:
+        has_signal = False
+        while block := source.readframes(16384):
+            if any(block):
+                has_signal = True
+                break
     audio_hash = digest(wav_bytes)
     origin = {'kind': 'unknown'}
     if inference is not None:
@@ -79,10 +86,10 @@ def measure(wav_bytes, language, candidate=None, reference=None, inference=None,
     if metrics is not None:
         active = metrics['active_shape_agreement']
         boundary = metrics['boundary_error']
-        numeric_pass = active is not None and active >= min_active_agreement and boundary['available'] and boundary['p95_ms'] <= max_boundary_p95_ms
+        numeric_pass = has_signal and active is not None and active >= min_active_agreement and boundary['available'] and boundary['p95_ms'] <= max_boundary_p95_ms
     if origin['kind'] in ('synthetic', 'stub'):
         state = 'synthetic_only'
-    elif metrics is None or metrics['active_shape_agreement'] is None or origin['kind'] == 'unknown':
+    elif not has_signal or metrics is None or metrics['active_shape_agreement'] is None or origin['kind'] == 'unknown':
         state = 'unmeasured'
     elif not numeric_pass or review is not None and not review['accepted']:
         state = 'fail'
@@ -91,7 +98,7 @@ def measure(wav_bytes, language, candidate=None, reference=None, inference=None,
     else:
         state = 'reviewed_declaration'
     return dict(schema_version=1, state=state, audio_sha256=audio_hash, pcm_sha256=pcm_hash,
-                language=language, sample_rate=24000, frame_count=frames,
+                language=language, sample_rate=24000, frame_count=frames, nonzero_signal=has_signal,
                 provenance=origin, metrics=metrics, metric_gate_passed=bool(numeric_pass),
                 thresholds=dict(min_active_shape_agreement=min_active_agreement, max_boundary_p95_ms=max_boundary_p95_ms),
                 human_review=review, production_acceptance='not_granted',

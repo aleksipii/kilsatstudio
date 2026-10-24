@@ -84,6 +84,16 @@ class LipSyncQualityTests(unittest.TestCase):
         with self.assertRaises(ValueError): quality.measure(audio, 'fi-fi', min_active_agreement=float('nan'))
         with self.assertRaises(ValueError): quality.decode_json(b'{"schema_version":1,"schema_version":1}')
 
+    def test_silent_audio_cannot_satisfy_the_quality_gate(self):
+        audio, candidate, reference, inference = fixture()
+        silent = audio[:44] + bytes(len(audio)-44)
+        fingerprint = hashlib.sha256(silent).hexdigest()
+        candidate['audio_sha256'] = reference['audio_sha256'] = inference['output_sha256'] = fingerprint
+        report = quality.measure(silent, 'fi-fi', candidate, reference, inference)
+        self.assertEqual(report['state'], 'unmeasured')
+        self.assertFalse(report['nonzero_signal'])
+        self.assertFalse(report['metric_gate_passed'])
+
     def test_cli_writes_new_unmeasured_report_and_preserves_existing_evidence(self):
         audio, *_ = fixture()
         with tempfile.TemporaryDirectory() as temp:
