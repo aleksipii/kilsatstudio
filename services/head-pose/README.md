@@ -15,7 +15,8 @@ The helper bounds permission/setup to 30 seconds, no measurable face to five
 seconds and stream capture to the selected duration. A last-resort 92-second
 helper watchdog and 95-second parent bound remain. The parent drains bounded
 JSONL and stderr, validates every angle/sequence/time, and kills/waits on cancel,
-Stop, malformed data or deadline. Nothing opens a camera at application startup.
+Stop, malformed data or deadline. A parent-death monitor exits the helper when
+the requesting desktop dies. Nothing opens a camera at application startup.
 
 The UI stages one-shot values or a maximum 30-second/600-sample recording. Stop
 is not Apply. A separate reviewed Apply supplies ordinary frame-snapped custom

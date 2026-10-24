@@ -51,6 +51,12 @@ fn validate_angles(roll: f64, yaw: Option<f64>, pitch: Option<f64>) -> Result<()
     }
     Ok(())
 }
+fn measured_angle(value: Option<f64>) -> String {
+    value.map_or_else(
+        || "ei mittausta".into(),
+        |v| format!("{:.1}°", v.to_degrees()),
+    )
+}
 fn decode_pose(bytes: &[u8]) -> Result<f64, String> {
     if bytes.len() > MAX_LINE {
         return Err("Camera pose exceeds protocol limit".into());
@@ -539,7 +545,7 @@ impl Panel {
                 if let Some(session)=&self.session {
                     if let Ok(state)=session.shared.lock() {
                         if let Some((pose,received))=&state.latest {
-                            ui.label(format!("Kallistus {:.1}° · yaw {:.1}° · pitch {:.1}°{}",pose.roll.to_degrees(),pose.yaw.unwrap_or(0.0).to_degrees(),pose.pitch.unwrap_or(0.0).to_degrees(),if received.elapsed()>FRESH {" · vanhentunut mittaus"} else {""}));
+                            ui.label(format!("Kallistus {:.1}° · yaw {} · pitch {}{}",pose.roll.to_degrees(),measured_angle(pose.yaw),measured_angle(pose.pitch),if received.elapsed()>FRESH {" · vanhentunut mittaus"} else {""}));
                         }
                     }
                 }
@@ -597,6 +603,8 @@ mod tests {
     }
     #[test]
     fn camera_protocol_is_bounded_and_angles_validated() {
+        assert_eq!(measured_angle(None), "ei mittausta");
+        assert_eq!(measured_angle(Some(0.0)), "0.0°");
         assert!(
             (decode_pose(br#"{"roll":0.5,"yaw":null,"pitch":0.1}"#).unwrap()
                 - 0.5_f64.to_degrees())

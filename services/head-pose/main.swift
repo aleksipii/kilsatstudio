@@ -1,5 +1,6 @@
 // Explicit local camera pose capture. No audio, saved images, files or network.
 import Foundation
+import Darwin
 import AVFoundation
 import Vision
 import CoreMedia
@@ -147,6 +148,13 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
     }
 }
 
+// A camera child must not outlive the desktop that requested it.
+let parentPID = getppid()
+func watchParent() {
+    if getppid() != parentPID { _exit(1) }
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.25) { watchParent() }
+}
+watchParent()
 let capture = HeadPoseCapture(options)
 DispatchQueue.global().asyncAfter(deadline: .now() + 30) { capture.permissionDeadline() }
 // Last-resort bound even if configuration/callback delivery unexpectedly stalls.
