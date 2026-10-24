@@ -29,7 +29,8 @@ truncation, unknown import keys and symlinks are rejected before unbounded work.
 Valid WAVs are published atomically, without overwriting prior files, under
 assets/auto-direction/<SHA256>.wav. Existing snapshots are verified before reuse.
 The whole preparation/direction batch has one cooperative 300-second watchdog;
-providers must honor the shared cancellation token. Rendering/export timing is
+providers must honor the shared cancellation token. Dropping the worker cancels
+active/queued requests without waiting on the UI thread. Rendering/export timing is
 not included in this preparation measurement.
 
 Ready contains the original source, directed result, verified source-line/actor/

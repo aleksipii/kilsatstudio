@@ -10,7 +10,7 @@ use std::{
     path::{Path, PathBuf},
     sync::{
         atomic::{AtomicU64, Ordering},
-        mpsc, Arc,
+        mpsc, Arc, Mutex,
     },
     thread,
     time::{Duration, Instant},
@@ -61,11 +61,23 @@ pub enum Update {
 pub struct Worker {
     sender: mpsc::SyncSender<Request>,
     updates: mpsc::Receiver<Update>,
+    pending: Arc<Mutex<Vec<CancellationToken>>>,
+}
+impl Drop for Worker {
+    fn drop(&mut self) {
+        if let Ok(pending) = self.pending.lock() {
+            for cancel in pending.iter() {
+                cancel.cancel();
+            }
+        }
+    }
 }
 impl Worker {
     pub fn new() -> Self {
         let (sender, requests) = mpsc::sync_channel::<Request>(1);
         let (progress, updates) = mpsc::sync_channel(8);
+        let pending = Arc::new(Mutex::new(Vec::<CancellationToken>::new()));
+        let worker_pending = Arc::clone(&pending);
         thread::spawn(move || {
             while let Ok(request) = requests.recv() {
                 let generation = request.generation;
@@ -85,6 +97,11 @@ impl Worker {
                             .into(),
                     )
                 });
+                if let Ok(mut pending) = worker_pending.lock() {
+                    if !pending.is_empty() {
+                        pending.remove(0);
+                    }
+                }
                 if progress
                     .send(Update::Finished { generation, result })
                     .is_err()
@@ -93,12 +110,25 @@ impl Worker {
                 }
             }
         });
-        Self { sender, updates }
+        Self {
+            sender,
+            updates,
+            pending,
+        }
     }
     pub fn submit(&self, request: Request) -> Result<(), String> {
-        self.sender
-            .try_send(request)
-            .map_err(|e| format!("Automatic direction queue: {e}"))
+        let mut pending = self
+            .pending
+            .lock()
+            .map_err(|_| "Automatic direction state unavailable")?;
+        pending.push(request.cancel.clone());
+        match self.sender.try_send(request) {
+            Ok(()) => Ok(()),
+            Err(error) => {
+                pending.pop();
+                Err(format!("Automatic direction queue: {error}"))
+            }
+        }
     }
     pub fn poll(&self) -> Option<Update> {
         self.updates.try_recv().ok()
@@ -518,5 +548,40 @@ mod tests {
         let (request, calls) = self::request(&project, "never.wav".into());
         assert!(prepare(request, Duration::ZERO, |_, _, _| {}).is_err());
         assert_eq!(calls.load(Ordering::Relaxed), 0);
+    }
+    #[test]
+    fn dropping_worker_cancels_an_active_cooperative_provider() {
+        struct WaitForCancel(Arc<std::sync::atomic::AtomicBool>);
+        impl SpeechProvider for WaitForCancel {
+            fn synthesize(&self, _: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+                Err(SpeechError("requires cancellation API".into()))
+            }
+            fn synthesize_cancellable(
+                &self,
+                _: SpeechRequest,
+                cancel: &CancellationToken,
+            ) -> Result<SpeechResult, SpeechError> {
+                self.0.store(true, Ordering::Release);
+                let deadline = Instant::now() + Duration::from_secs(2);
+                while !cancel.is_cancelled() && Instant::now() < deadline {
+                    thread::sleep(Duration::from_millis(1));
+                }
+                Err(SpeechError("stopped".into()))
+            }
+        }
+        let project = Project::new();
+        let (mut request, _) = request(&project, "unused.wav".into());
+        let started = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        request.provider = Arc::new(WaitForCancel(Arc::clone(&started)));
+        let cancel = request.cancel.clone();
+        let worker = Worker::new();
+        worker.submit(request).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !started.load(Ordering::Acquire) && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(1));
+        }
+        assert!(started.load(Ordering::Acquire));
+        drop(worker);
+        assert!(cancel.is_cancelled());
     }
 }
