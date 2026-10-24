@@ -47,11 +47,12 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
     private let lock = NSLock()
     private var finished = false
     private var started: Double?
+    private var configured = false
     private var lastFace = 0.0
     private var lastFrame = 0.0
     private var sequence = 0
     private let options: Options
-    init(_ options: Options) { self.options = options }
+    init(_ options: Options) { self.options = options; super.init() }
 
     func finish(_ error: String? = nil, pose: [String: Any]? = nil) {
         lock.lock()
@@ -70,7 +71,7 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
         }
     }
     func permissionDeadline() {
-        lock.lock(); let incomplete = started == nil && !finished; lock.unlock()
+        lock.lock(); let incomplete = !configured && !finished; lock.unlock()
         if incomplete { finish("Camera permission/setup timed out") }
     }
     private func checkDeadline() {
@@ -108,6 +109,7 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
                 let now = ProcessInfo.processInfo.systemUptime
                 self.lock.lock(); self.started = now; self.lastFace = now; self.lock.unlock()
                 self.session.startRunning()
+                self.lock.lock(); self.configured = true; self.lock.unlock()
                 self.checkDeadline()
             } catch { self.finish("Camera error: \(error.localizedDescription)") }
         }
