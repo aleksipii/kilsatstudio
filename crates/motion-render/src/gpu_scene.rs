@@ -492,6 +492,21 @@ fn polygon(p: vec2<f32>, offset: u32, count: u32) -> f32 {
  }
  return select(distance,-distance,winding!=0i);
 }
+fn compound_polygon(p: vec2<f32>, offset: u32, contours: u32) -> f32 {
+ var cursor=offset; var winding=0i; var distance=10000000.;
+ for(var contour=0u;contour<contours;contour=contour+1u) {
+  let count=u32(points[cursor].x); cursor=cursor+1u;
+  for(var i=0u;i<count;i=i+1u) {
+   let a=points[cursor+i];let b=points[cursor+(i+1u)%count];let edge=b-a;let delta=p-a;
+   let t=clamp(dot(delta,edge)/max(dot(edge,edge),.0000001),0.,1.);distance=min(distance,length(delta-edge*t));
+   let cross=edge.x*delta.y-delta.x*edge.y;
+   if a.y<=p.y && b.y>p.y && cross>0. {winding=winding+1i;}
+   if a.y>p.y && b.y<=p.y && cross<0. {winding=winding-1i;}
+  }
+  cursor=cursor+count;
+ }
+ return select(distance,-distance,winding!=0i);
+}
 fn erfc_approx(x: f32) -> f32 {
  // Abramowitz and Stegun 7.1.26, maximum absolute error about 1.5e-7.
  let t=1./(1.+.3275911*abs(x));
@@ -550,6 +565,14 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    colors[0]=vec4(s.color.rgb,1.); depth=0u; continue;
   }
   if !inside_canvas { continue; }
+  if kind>24.5 && kind<25.5 {
+   let padding=s.parameters.y+1.;
+   if any(p<s.inverse.xy-vec2(padding)) || any(p>s.inverse.zw+vec2(padding)) {continue;}
+   var distance=compound_polygon(p,u32(s.origin.x),u32(s.origin.y));
+   if s.parameters.y>0. {distance=abs(distance)-s.parameters.y;}
+   let coverage=1.-smoothstep(-.75,.75,distance);
+   colors[depth]=over(vec4(s.color.rgb,coverage*s.color.a),colors[depth],0.);continue;
+  }
   let local=vec2(s.inverse.x*p.x+s.inverse.z*p.y,s.inverse.y*p.x+s.inverse.w*p.y)+s.origin.xy;
   if kind>7.5 && kind<8.5 {
    depth=depth+1u; colors[depth]=vec4(0.); masks[depth]=1.;

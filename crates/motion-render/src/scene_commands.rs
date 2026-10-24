@@ -1,10 +1,8 @@
 //! Adapter-free commands for the experimental GPU scene compositor.
-//! No font rasterizer is provided: actor labels require explicit acknowledgement.
-//! The SVG string carries `<text display="none">` labels that the CPU raster path
-//! never draws, so omission matches the CPU pixels; see docs/gpu-parity.md.
-//! Captions (`captions` module, drawn by the CPU path with a bundled font) are
-//! deliberately unsupported here: this builder receives no caption cues, so GPU
-//! frames omit them. Do not use the GPU path for projects that enable captions.
+//! Actor labels retain explicit omission. Caption callers use `append_captions`
+//! with the bundled font, shaped native glyph contours and bounded fragment work.
+//! Complete scene requests must receive captions before `crossfade`.
+pub use crate::gpu_captions::append_captions;
 use motion_lipsync::Viseme;
 use motion_scene::{
     EvaluatedScene, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND,
@@ -49,6 +47,7 @@ pub struct SceneCommands {
     pub(crate) commands: Vec<Command>,
     pub(crate) points: Vec<[f32; 2]>,
     pub(crate) pixels: Vec<u32>,
+    pub(crate) caption_work: u64,
 }
 impl SceneCommands {
     pub fn dimensions(&self) -> (u32, u32) {
@@ -127,7 +126,11 @@ fn build_inner(
         .actors
         .iter()
         .flat_map(|a| &a.rigid_parts)
-        .map(|p| p.points.len() as u64 * (1 + u64::from(p.texture.is_some()) + u64::from(p.outline.is_some())) + 4)
+        .map(|p| {
+            p.points.len() as u64
+                * (1 + u64::from(p.texture.is_some()) + u64::from(p.outline.is_some()))
+                + 4
+        })
         .sum();
     if upper > MAX_COMMANDS
         || u64::from(width) * u64::from(height) * (upper as u64 + polygon_work + 1)
@@ -154,6 +157,7 @@ fn build_inner(
         commands: Vec::with_capacity(upper),
         points: Vec::new(),
         pixels: Vec::new(),
+        caption_work: 0,
     };
     let (cx, cy) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
     for actor in &scene.actors {
@@ -180,10 +184,18 @@ fn build_inner(
         ];
         if !actor.rigid_parts.is_empty() {
             use motion_rig::OutlineMode;
-            let geometries: Vec<[f32;4]> = actor.rigid_parts.iter().map(|part| {
-                let vertices: Vec<motion_art::Point> = part.points.iter().map(|p| motion_art::Point { x:p.x,y:p.y }).collect();
-                points(&mut result, &vertices)
-            }).collect::<Result<_,Error>>()?;
+            let geometries: Vec<[f32; 4]> = actor
+                .rigid_parts
+                .iter()
+                .map(|part| {
+                    let vertices: Vec<motion_art::Point> = part
+                        .points
+                        .iter()
+                        .map(|p| motion_art::Point { x: p.x, y: p.y })
+                        .collect();
+                    points(&mut result, &vertices)
+                })
+                .collect::<Result<_, Error>>()?;
             for (part, geometry) in actor.rigid_parts.iter().zip(&geometries) {
                 if let Some(outline) = part.outline.filter(|o| o.mode == OutlineMode::Silhouette) {
                     append_outline(&mut result, inv, origin, *geometry, outline, true);
@@ -201,46 +213,49 @@ fn build_inner(
                     [7.0, 0.0, 0.0, 0.0],
                 ]));
                 if let Some(texture) = &part.texture {
-                let Some((images, resources)) = art.as_mut() else {
-                    unreachable!("checked above");
-                };
-                // Same placement as the CPU: the sub-rectangle `uv` is stretched
-                // over `rest_bounds`, carried to actor space by `transform`.
-                let [bx, by, bw, bh] = texture.rest_bounds;
-                let [u0, v0, u1, v1] = texture.uv;
-                let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
-                let (ix, iy) = (bx - u0 * w, by - v0 * h);
-                let m = texture.transform;
-                let det = m.a * m.d - m.b * m.c;
-                if det.abs() < 1e-12 {
-                    // A singular transform collapses the image to nothing on the
-                    // CPU path as well.
-                    if let Some(outline) = part.outline.filter(|o| o.mode == OutlineMode::Over) { append_outline(&mut result, inv, origin, geometry, outline, false); }
-                    continue;
-                }
-                // rest = M^-1 (local - t); uv = (rest - image origin) / size.
-                let (ra, rb, rc, rd) = (m.d / det, -m.b / det, -m.c / det, m.a / det);
-                let rx = -(ra * m.tx + rc * m.ty);
-                let ry = -(rb * m.tx + rd * m.ty);
-                let (offset, iw, ih) =
-                    image_resource(&mut result, images, resources, &texture.asset)?;
-                result.commands.push(Command([
-                    inv,
-                    origin,
-                    [
-                        geometry[0],
-                        geometry[1],
-                        ((rx - ix) / w) as f32,
-                        ((ry - iy) / h) as f32,
-                    ],
-                    [
-                        (ra / w) as f32,
-                        (rb / h) as f32,
-                        (rc / w) as f32,
-                        (rd / h) as f32,
-                    ],
-                    [20.0, offset as f32, iw as f32, ih as f32],
-                ]));
+                    let Some((images, resources)) = art.as_mut() else {
+                        unreachable!("checked above");
+                    };
+                    // Same placement as the CPU: the sub-rectangle `uv` is stretched
+                    // over `rest_bounds`, carried to actor space by `transform`.
+                    let [bx, by, bw, bh] = texture.rest_bounds;
+                    let [u0, v0, u1, v1] = texture.uv;
+                    let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
+                    let (ix, iy) = (bx - u0 * w, by - v0 * h);
+                    let m = texture.transform;
+                    let det = m.a * m.d - m.b * m.c;
+                    if det.abs() < 1e-12 {
+                        // A singular transform collapses the image to nothing on the
+                        // CPU path as well.
+                        if let Some(outline) = part.outline.filter(|o| o.mode == OutlineMode::Over)
+                        {
+                            append_outline(&mut result, inv, origin, geometry, outline, false);
+                        }
+                        continue;
+                    }
+                    // rest = M^-1 (local - t); uv = (rest - image origin) / size.
+                    let (ra, rb, rc, rd) = (m.d / det, -m.b / det, -m.c / det, m.a / det);
+                    let rx = -(ra * m.tx + rc * m.ty);
+                    let ry = -(rb * m.tx + rd * m.ty);
+                    let (offset, iw, ih) =
+                        image_resource(&mut result, images, resources, &texture.asset)?;
+                    result.commands.push(Command([
+                        inv,
+                        origin,
+                        [
+                            geometry[0],
+                            geometry[1],
+                            ((rx - ix) / w) as f32,
+                            ((ry - iy) / h) as f32,
+                        ],
+                        [
+                            (ra / w) as f32,
+                            (rb / h) as f32,
+                            (rc / w) as f32,
+                            (rd / h) as f32,
+                        ],
+                        [20.0, offset as f32, iw as f32, ih as f32],
+                    ]));
                 }
                 if let Some(outline) = part.outline.filter(|o| o.mode == OutlineMode::Over) {
                     append_outline(&mut result, inv, origin, geometry, outline, false);
@@ -313,9 +328,22 @@ fn build_inner(
     Ok(result)
 }
 
-fn append_outline(result: &mut SceneCommands, inverse: [f32;4], origin: [f32;4], mut geometry: [f32;4], outline: motion_rig::EvaluatedOutline, behind: bool) {
+fn append_outline(
+    result: &mut SceneCommands,
+    inverse: [f32; 4],
+    origin: [f32; 4],
+    mut geometry: [f32; 4],
+    outline: motion_rig::EvaluatedOutline,
+    behind: bool,
+) {
     geometry[2] = (outline.width * if behind { 1.0 } else { 0.5 }) as f32;
-    result.commands.push(Command([inverse,origin,geometry,outline.color.map(|v| f32::from(v)/255.0),[21.0,0.0,0.0,0.0]]));
+    result.commands.push(Command([
+        inverse,
+        origin,
+        geometry,
+        outline.color.map(|v| f32::from(v) / 255.0),
+        [21.0, 0.0, 0.0, 0.0],
+    ]));
 }
 
 /// Build genuine GPU artwork commands. The decoded source resources are uploaded,
@@ -355,7 +383,15 @@ pub fn build_with_art(
         &mut resources,
         &mut work,
     )?;
-    append_lights(&mut result,scene,scene_id,document,images,true,&mut work)?;
+    append_lights(
+        &mut result,
+        scene,
+        scene_id,
+        document,
+        images,
+        true,
+        &mut work,
+    )?;
     result.commands.extend(actors);
     append_art(
         &mut result,
@@ -367,7 +403,15 @@ pub fn build_with_art(
         &mut resources,
         &mut work,
     )?;
-    append_lights(&mut result,scene,scene_id,document,images,false,&mut work)?;
+    append_lights(
+        &mut result,
+        scene,
+        scene_id,
+        document,
+        images,
+        false,
+        &mut work,
+    )?;
     if result.commands.len() > MAX_COMMANDS
         || u64::from(width) * u64::from(height) * work > MAX_FRAGMENT_WORK
     {
@@ -410,7 +454,14 @@ pub fn crossfade(
         return Err(Error::Budget);
     }
     let work = command_work(&first.commands) + command_work(&second.commands) + 3;
-    if u64::from(first.width) * u64::from(first.height) * work > MAX_FRAGMENT_WORK {
+    let caption_work = first
+        .caption_work
+        .checked_add(second.caption_work)
+        .ok_or(Error::Budget)?;
+    if (u64::from(first.width) * u64::from(first.height) * work)
+        .checked_add(caption_work)
+        .is_none_or(|n| n > MAX_FRAGMENT_WORK)
+    {
         return Err(Error::Budget);
     }
     let point_offset = first.points.len() as f32;
@@ -430,13 +481,17 @@ pub fn crossfade(
         if matches!(kind as u32, 6 | 7 | 11 | 17 | 19 | 20 | 21) {
             command.0[2][0] += point_offset;
         }
+        if kind == 25.0 {
+            command.0[1][0] += point_offset;
+        }
         first.commands.push(command);
     }
+    first.caption_work = caption_work;
     first.points.extend(second.points);
     first.pixels.extend(second.pixels);
     Ok(first)
 }
-fn command_work(commands: &[Command]) -> u64 {
+pub(crate) fn command_work(commands: &[Command]) -> u64 {
     commands
         .iter()
         .map(|c| {
@@ -457,34 +512,107 @@ fn command_work(commands: &[Command]) -> u64 {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn append_lights(result: &mut SceneCommands, scene: &EvaluatedScene, scene_id: &str, document: &motion_art::Document,
-                 images: &std::collections::BTreeMap<String,motion_art::ImageResource>, behind: bool, work: &mut u64) -> Result<(),Error> {
+fn append_lights(
+    result: &mut SceneCommands,
+    scene: &EvaluatedScene,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    behind: bool,
+    work: &mut u64,
+) -> Result<(), Error> {
     use motion_art::LightSource;
     let scale = result.canvas[2] as f64 / f64::from(scene.width);
     let factor = scale * scene.camera.zoom;
-    let (cx,cy) = scene.camera.project(0.0,0.0,scene.width,scene.height);
-    for radial_pass in [false,true] {
-        for light in document.lights.iter().filter(|l| l.scene_id == scene_id && l.behind_actors == behind && l.is_active(scene.time)) {
-            if matches!(light.source,LightSource::Radial {..}) != radial_pass {continue;}
+    let (cx, cy) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
+    for radial_pass in [false, true] {
+        for light in document.lights.iter().filter(|l| {
+            l.scene_id == scene_id && l.behind_actors == behind && l.is_active(scene.time)
+        }) {
+            if matches!(light.source, LightSource::Radial { .. }) != radial_pass {
+                continue;
+            }
             let strength = light.flicker_factor(scene.time);
-            let (inverse,origin,geometry,paint,parameters) = match &light.source {
-                LightSource::Ambient {color:c,strength:amount} => (
-                    [(1.0/scale) as f32,0.0,0.0,(1.0/scale) as f32],[-result.canvas[0]/scale as f32,-result.canvas[1]/scale as f32,(0.75/scale) as f32,0.0],
-                    [0.0,0.0,scene.width as f32,scene.height as f32], [f32::from(c.r)/255.0,f32::from(c.g)/255.0,f32::from(c.b)/255.0,(amount*strength) as f32], [22.0,1.0,0.0,0.0]),
-                LightSource::Vignette {strength:amount,inner} => (
-                    [(1.0/scale) as f32,0.0,0.0,(1.0/scale) as f32],[-result.canvas[0]/scale as f32,-result.canvas[1]/scale as f32,(0.75/scale) as f32,0.0],
-                    [0.0,0.0,scene.width as f32,scene.height as f32], [0.0,0.0,0.0,(amount*strength) as f32], [23.0,0.0,*inner as f32,0.0]),
-                LightSource::Radial {radius,aspect,softness,blend:mode,..} => {
-                    let Some(sample) = crate::sample_radial_light(scene,document,images,light)? else {continue;};
-                    ([(1.0/factor) as f32,0.0,0.0,(1.0/factor) as f32],
-                     [(-(result.canvas[0] as f64+scale*cx)/factor) as f32,(-(result.canvas[1] as f64+scale*cy)/factor) as f32,(0.75/factor) as f32,0.0],
-                     [sample.position.x as f32,sample.position.y as f32,*radius as f32,(radius*aspect) as f32],
-                     [(sample.rgb[0]*255.0).round() as f32/255.0,(sample.rgb[1]*255.0).round() as f32/255.0,(sample.rgb[2]*255.0).round() as f32/255.0,sample.alpha as f32], [24.0,blend(*mode),*softness as f32,0.0])
+            let (inverse, origin, geometry, paint, parameters) = match &light.source {
+                LightSource::Ambient {
+                    color: c,
+                    strength: amount,
+                } => (
+                    [(1.0 / scale) as f32, 0.0, 0.0, (1.0 / scale) as f32],
+                    [
+                        -result.canvas[0] / scale as f32,
+                        -result.canvas[1] / scale as f32,
+                        (0.75 / scale) as f32,
+                        0.0,
+                    ],
+                    [0.0, 0.0, scene.width as f32, scene.height as f32],
+                    [
+                        f32::from(c.r) / 255.0,
+                        f32::from(c.g) / 255.0,
+                        f32::from(c.b) / 255.0,
+                        (amount * strength) as f32,
+                    ],
+                    [22.0, 1.0, 0.0, 0.0],
+                ),
+                LightSource::Vignette {
+                    strength: amount,
+                    inner,
+                } => (
+                    [(1.0 / scale) as f32, 0.0, 0.0, (1.0 / scale) as f32],
+                    [
+                        -result.canvas[0] / scale as f32,
+                        -result.canvas[1] / scale as f32,
+                        (0.75 / scale) as f32,
+                        0.0,
+                    ],
+                    [0.0, 0.0, scene.width as f32, scene.height as f32],
+                    [0.0, 0.0, 0.0, (amount * strength) as f32],
+                    [23.0, 0.0, *inner as f32, 0.0],
+                ),
+                LightSource::Radial {
+                    radius,
+                    aspect,
+                    softness,
+                    blend: mode,
+                    ..
+                } => {
+                    let Some(sample) = crate::sample_radial_light(scene, document, images, light)?
+                    else {
+                        continue;
+                    };
+                    (
+                        [(1.0 / factor) as f32, 0.0, 0.0, (1.0 / factor) as f32],
+                        [
+                            (-(result.canvas[0] as f64 + scale * cx) / factor) as f32,
+                            (-(result.canvas[1] as f64 + scale * cy) / factor) as f32,
+                            (0.75 / factor) as f32,
+                            0.0,
+                        ],
+                        [
+                            sample.position.x as f32,
+                            sample.position.y as f32,
+                            *radius as f32,
+                            (radius * aspect) as f32,
+                        ],
+                        [
+                            (sample.rgb[0] * 255.0).round() as f32 / 255.0,
+                            (sample.rgb[1] * 255.0).round() as f32 / 255.0,
+                            (sample.rgb[2] * 255.0).round() as f32 / 255.0,
+                            sample.alpha as f32,
+                        ],
+                        [24.0, blend(*mode), *softness as f32, 0.0],
+                    )
                 }
             };
             *work = work.checked_add(1).ok_or(Error::Budget)?;
-            if result.commands.len() >= MAX_COMMANDS || u64::from(result.width)*u64::from(result.height)*(*work)>MAX_FRAGMENT_WORK {return Err(Error::Budget);}
-            result.commands.push(Command([inverse,origin,geometry,paint,parameters]));
+            if result.commands.len() >= MAX_COMMANDS
+                || u64::from(result.width) * u64::from(result.height) * (*work) > MAX_FRAGMENT_WORK
+            {
+                return Err(Error::Budget);
+            }
+            result
+                .commands
+                .push(Command([inverse, origin, geometry, paint, parameters]));
         }
     }
     Ok(())
@@ -522,7 +650,7 @@ fn image_resource(
 }
 
 const MAX_GPU_IMAGE_PIXELS: usize = 4 * 1024 * 1024;
-const MAX_GPU_POINTS: usize = 65_536;
+pub(crate) const MAX_GPU_POINTS: usize = 65_536;
 pub(crate) const MAX_COMPOSITION_DEPTH: usize = 16;
 
 fn art_error(error: motion_art::Error) -> Error {
@@ -845,9 +973,20 @@ fn append_art(
                         )
                     }
                     Content::AnimatedImage { rect: r, .. } => {
-                        let asset = layer.animated_asset(scene.time).ok_or_else(|| crate::Error::InvalidArtwork("animated image has no selectable frame".into()))?;
-                        let (offset,width,height) = image_resource(result,images,resources,asset)?;
-                        (5.0,rect(*r),[1.0;4],[5.0,offset as f32,width as f32,height as f32],4)
+                        let asset = layer.animated_asset(scene.time).ok_or_else(|| {
+                            crate::Error::InvalidArtwork(
+                                "animated image has no selectable frame".into(),
+                            )
+                        })?;
+                        let (offset, width, height) =
+                            image_resource(result, images, resources, asset)?;
+                        (
+                            5.0,
+                            rect(*r),
+                            [1.0; 4],
+                            [5.0, offset as f32, width as f32, height as f32],
+                            4,
+                        )
                     }
                     Content::Image { asset_id, rect: r } => {
                         let (offset, width, height) =
@@ -1586,7 +1725,11 @@ mod tests {
             lights: vec![light],
             ..Default::default()
         };
-        assert!(go(&lit, "s").unwrap().commands.iter().any(|c| c.0[4][0] == 23.0));
+        assert!(go(&lit, "s")
+            .unwrap()
+            .commands
+            .iter()
+            .any(|c| c.0[4][0] == 23.0));
         // Other scenes are unaffected.
         assert!(go(&lit, "other").is_ok());
         // An inactive prop must not read its unused source asset.
@@ -1655,8 +1798,8 @@ mod tests {
             mode: motion_rig::OutlineMode::Behind,
         });
         let outlined = build(&outlined, 64, 64, &[], Labels::OmitAcknowledged).unwrap();
-        assert_eq!(outlined.commands[0].0[4][0],21.0);
-        assert_eq!(outlined.commands[1].0[4][0],7.0);
+        assert_eq!(outlined.commands[0].0[4][0], 21.0);
+        assert_eq!(outlined.commands[1].0[4][0], 7.0);
         // Skinned parts arrive deformed, so they need no special treatment.
         assert!(build(&part(false, true), 64, 64, &[], Labels::OmitAcknowledged).is_ok());
         // Textures through the geometry-only entry point are explicit errors.
@@ -1699,12 +1842,22 @@ mod tests {
         let point_offset = commands.points.len() as f32;
         let pixel_offset = commands.pixels.len() as f32;
         let second = go(&images).unwrap();
-        let original = second.commands.iter().find(|c|c.0[4][0] == 20.0).unwrap().clone();
-        let mixed = crossfade(commands,second,0.5).unwrap();
-        let relocated = mixed.commands.iter().filter(|c|c.0[4][0] == 20.0).nth(1).unwrap();
-        assert_eq!(relocated.0[2][0],original.0[2][0]+point_offset);
-        assert_eq!(relocated.0[4][1],original.0[4][1]+pixel_offset);
-        assert_eq!(relocated.0[2][2..],original.0[2][2..]);
+        let original = second
+            .commands
+            .iter()
+            .find(|c| c.0[4][0] == 20.0)
+            .unwrap()
+            .clone();
+        let mixed = crossfade(commands, second, 0.5).unwrap();
+        let relocated = mixed
+            .commands
+            .iter()
+            .filter(|c| c.0[4][0] == 20.0)
+            .nth(1)
+            .unwrap();
+        assert_eq!(relocated.0[2][0], original.0[2][0] + point_offset);
+        assert_eq!(relocated.0[4][1], original.0[4][1] + pixel_offset);
+        assert_eq!(relocated.0[2][2..], original.0[2][2..]);
     }
     #[test]
     fn labels_cannot_silently_disappear() {
@@ -1806,37 +1959,104 @@ mod tests {
     #[test]
     fn round_outlines_preserve_actor_wide_silhouette_and_part_painter_order() {
         let mut evaluated = scene();
-        let mut part = motion_rig::EvaluatedPart { id:"body".into(), points:vec![motion_rig::Vec2::new(0.0,0.0),motion_rig::Vec2::new(10.0,0.0),motion_rig::Vec2::new(0.0,10.0)], color:[1,2,3,255],texture:None,skinned:false,
-            outline:Some(motion_rig::EvaluatedOutline {color:[0,0,0,255],width:3.0,mode:motion_rig::OutlineMode::Silhouette}) };
+        let mut part = motion_rig::EvaluatedPart {
+            id: "body".into(),
+            points: vec![
+                motion_rig::Vec2::new(0.0, 0.0),
+                motion_rig::Vec2::new(10.0, 0.0),
+                motion_rig::Vec2::new(0.0, 10.0),
+            ],
+            color: [1, 2, 3, 255],
+            texture: None,
+            skinned: false,
+            outline: Some(motion_rig::EvaluatedOutline {
+                color: [0, 0, 0, 255],
+                width: 3.0,
+                mode: motion_rig::OutlineMode::Silhouette,
+            }),
+        };
         let first = part.clone();
-        part.id="head".into(); part.outline.as_mut().unwrap().mode=motion_rig::OutlineMode::Over;
-        evaluated.actors[0].rigid_parts=vec![first,part];
-        let commands=build(&evaluated,64,64,&[],Labels::OmitAcknowledged).unwrap();
-        let kinds:Vec<_>=commands.commands.iter().map(|c|c.0[4][0] as u32).collect();
-        assert_eq!(kinds,vec![21,7,7,21]);
-        assert_eq!(commands.commands[0].0[2][2],3.0);
-        assert_eq!(commands.commands[3].0[2][2],1.5);
+        part.id = "head".into();
+        part.outline.as_mut().unwrap().mode = motion_rig::OutlineMode::Over;
+        evaluated.actors[0].rigid_parts = vec![first, part];
+        let commands = build(&evaluated, 64, 64, &[], Labels::OmitAcknowledged).unwrap();
+        let kinds: Vec<_> = commands.commands.iter().map(|c| c.0[4][0] as u32).collect();
+        assert_eq!(kinds, vec![21, 7, 7, 21]);
+        assert_eq!(commands.commands[0].0[2][2], 3.0);
+        assert_eq!(commands.commands[3].0[2][2], 1.5);
     }
 
     #[test]
     fn animated_images_sample_exact_half_open_frames_and_loop_without_stale_pixels() {
-        let mut evaluated=scene(); evaluated.actors.clear();
-        let mut prop=artwork_layer("phone",motion_art::Content::AnimatedImage {frames:vec![
-            motion_art::ImageFrame {asset_id:"a".into(),duration:0.5},motion_art::ImageFrame {asset_id:"b".into(),duration:0.5}],
-            rect:motion_art::Rect{x:2.0,y:3.0,width:12.0,height:10.0},playback:motion_art::Playback::Loop});
-        prop.active=Some(motion_art::TimeRange{start:0.0,end:2.0});
-        let document=motion_art::Document{layers:vec![prop],..Default::default()};
-        let images=std::collections::BTreeMap::from([
-            ("a".into(),motion_art::ImageResource::from_rgba(1,1,vec![255,0,0,255]).unwrap()),
-            ("b".into(),motion_art::ImageResource::from_rgba(1,1,vec![0,255,0,255]).unwrap())]);
-        for (time,pixel) in [(0.0,0xff0000ff),(0.5,0xff00ff00),(1.0,0xff0000ff)] {
-            evaluated.time=time;
-            let commands=build_with_art(&evaluated,64,64,&[],Labels::OmitAcknowledged,"s",&document,&images).unwrap();
-            assert_eq!(commands.pixels,vec![pixel]);
+        let mut evaluated = scene();
+        evaluated.actors.clear();
+        let mut prop = artwork_layer(
+            "phone",
+            motion_art::Content::AnimatedImage {
+                frames: vec![
+                    motion_art::ImageFrame {
+                        asset_id: "a".into(),
+                        duration: 0.5,
+                    },
+                    motion_art::ImageFrame {
+                        asset_id: "b".into(),
+                        duration: 0.5,
+                    },
+                ],
+                rect: motion_art::Rect {
+                    x: 2.0,
+                    y: 3.0,
+                    width: 12.0,
+                    height: 10.0,
+                },
+                playback: motion_art::Playback::Loop,
+            },
+        );
+        prop.active = Some(motion_art::TimeRange {
+            start: 0.0,
+            end: 2.0,
+        });
+        let document = motion_art::Document {
+            layers: vec![prop],
+            ..Default::default()
+        };
+        let images = std::collections::BTreeMap::from([
+            (
+                "a".into(),
+                motion_art::ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
+            ),
+            (
+                "b".into(),
+                motion_art::ImageResource::from_rgba(1, 1, vec![0, 255, 0, 255]).unwrap(),
+            ),
+        ]);
+        for (time, pixel) in [(0.0, 0xff0000ff), (0.5, 0xff00ff00), (1.0, 0xff0000ff)] {
+            evaluated.time = time;
+            let commands = build_with_art(
+                &evaluated,
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &images,
+            )
+            .unwrap();
+            assert_eq!(commands.pixels, vec![pixel]);
         }
-        evaluated.time=2.0;
-        let commands=build_with_art(&evaluated,64,64,&[],Labels::OmitAcknowledged,"s",&document,&std::collections::BTreeMap::new()).unwrap();
+        evaluated.time = 2.0;
+        let commands = build_with_art(
+            &evaluated,
+            64,
+            64,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &document,
+            &std::collections::BTreeMap::new(),
+        )
+        .unwrap();
         assert!(commands.pixels.is_empty());
     }
-
 }

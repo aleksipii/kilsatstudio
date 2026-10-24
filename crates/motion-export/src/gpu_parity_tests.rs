@@ -806,3 +806,235 @@ fn cpu_soft_pressure_brush_profile_is_the_reference_for_the_gpu_probe() {
         "soft edge must fall monotonically: {profile:?}"
     );
 }
+
+/// New feature probes have independent SVG/CPU references. Their hardware error
+/// values must be collected and reviewed before adding acceptance thresholds;
+/// existing measured guards above are deliberately unchanged.
+fn new_coverage_fixtures() -> Vec<Fixture> {
+    let mut fixtures = Vec::new();
+    for (name, mode) in [
+        ("outlined-over", motion_rig::OutlineMode::Over),
+        ("outlined-behind", motion_rig::OutlineMode::Behind),
+        ("outlined-silhouette", motion_rig::OutlineMode::Silhouette),
+    ] {
+        let mut scene = base_scene("#203040");
+        scene.actors[0].rigid_parts = vec![motion_rig::EvaluatedPart {
+            id: "body".into(),
+            points: vec![
+                motion_rig::Vec2::new(-20.0, -35.0),
+                motion_rig::Vec2::new(20.0, -35.0),
+                motion_rig::Vec2::new(20.0, 10.0),
+                motion_rig::Vec2::new(-20.0, 10.0),
+            ],
+            color: [225, 125, 65, 255],
+            texture: None,
+            skinned: false,
+            outline: Some(motion_rig::EvaluatedOutline {
+                color: [0, 0, 0, 255],
+                width: 3.0,
+                mode,
+            }),
+        }];
+        fixtures.push(Fixture {
+            name,
+            scene,
+            document: Document::default(),
+            images: BTreeMap::new(),
+            tolerance: TOL_RIG,
+        });
+    }
+    for (name, source) in [
+        (
+            "ambient-tint",
+            LightSource::Ambient {
+                color: rgba(60, 90, 120, 255),
+                strength: 0.6,
+            },
+        ),
+        (
+            "vignette",
+            LightSource::Vignette {
+                strength: 0.8,
+                inner: 0.25,
+            },
+        ),
+        (
+            "radial-screen",
+            LightSource::Radial {
+                position: pt(64.0, 64.0),
+                radius: 54.0,
+                aspect: 0.7,
+                softness: 0.75,
+                color: rgba(45, 165, 245, 255),
+                intensity: 0.8,
+                blend: BlendMode::Screen,
+                attachment: None,
+                track: Vec::new(),
+                screen_glow: None,
+            },
+        ),
+    ] {
+        fixtures.push(Fixture {
+            name,
+            scene: no_actors("#686040"),
+            document: Document {
+                lights: vec![Light {
+                    id: "probe".into(),
+                    scene_id: "s".into(),
+                    visible: true,
+                    active: None,
+                    flicker: None,
+                    behind_actors: false,
+                    source,
+                }],
+                ..Default::default()
+            },
+            images: BTreeMap::new(),
+            tolerance: TOL_SHAPES,
+        });
+    }
+    for (name, time) in [
+        ("animated-frame-first", 0.0),
+        ("animated-frame-boundary", 0.5),
+        ("animated-screen-glow", 0.5),
+    ] {
+        let mut scene = no_actors("#182030");
+        scene.time = time;
+        let mut document = doc(vec![layer(
+            "phone",
+            Content::AnimatedImage {
+                frames: vec![
+                    ImageFrame {
+                        asset_id: "red".into(),
+                        duration: 0.5,
+                    },
+                    ImageFrame {
+                        asset_id: "green".into(),
+                        duration: 0.5,
+                    },
+                ],
+                rect: rect(44.0, 44.0, 40.0, 40.0),
+                playback: Playback::Loop,
+            },
+            None,
+        )]);
+        if name == "animated-screen-glow" {
+            document.lights.push(Light {
+                id: "screen".into(),
+                scene_id: "s".into(),
+                visible: true,
+                active: None,
+                flicker: None,
+                behind_actors: false,
+                source: LightSource::Radial {
+                    position: pt(0.0, 0.0),
+                    radius: 58.0,
+                    aspect: 0.8,
+                    softness: 1.0,
+                    color: rgba(255, 255, 255, 255),
+                    intensity: 1.0,
+                    blend: BlendMode::Screen,
+                    attachment: None,
+                    track: Vec::new(),
+                    screen_glow: Some(ScreenGlow {
+                        layer_id: "phone".into(),
+                        gain: 1.0,
+                        tint: 1.0,
+                    }),
+                },
+            });
+        }
+        let images = BTreeMap::from([
+            (
+                "red".into(),
+                ImageResource::from_rgba(2, 2, [255, 40, 20, 255].repeat(4)).unwrap(),
+            ),
+            (
+                "green".into(),
+                ImageResource::from_rgba(2, 2, [20, 255, 40, 255].repeat(4)).unwrap(),
+            ),
+        ]);
+        fixtures.push(Fixture {
+            name,
+            scene,
+            document,
+            images,
+            tolerance: TOL_IMAGE,
+        });
+    }
+    fixtures
+}
+
+#[test]
+fn new_gpu_coverage_has_independent_cpu_reference_and_bounded_native_commands() {
+    let fixtures = new_coverage_fixtures();
+    assert_eq!(fixtures.len(), 9);
+    for fixture in fixtures {
+        let reference = cpu_reference(&fixture);
+        assert_eq!(reference.len(), (SIZE * SIZE * 4) as usize);
+        assert!(
+            reference.as_chunks::<4>().0.iter().all(|p| p[3] == 255),
+            "{} CPU alpha",
+            fixture.name
+        );
+        let commands = scene_commands::build_with_art(
+            &fixture.scene,
+            SIZE,
+            SIZE,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &fixture.document,
+            &fixture.images,
+        )
+        .unwrap();
+        assert!(
+            commands.command_count() > 0,
+            "{} has no native commands",
+            fixture.name
+        );
+    }
+}
+
+#[test]
+#[ignore = "requires actual GPU; records unaccepted new-feature measurements, not artistic/production parity approval"]
+fn gpu_parity_new_gpu_coverage_measurements() {
+    let cancel = AtomicBool::new(false);
+    let mut renderer = GpuSceneRenderer::new(backend(), &cancel).unwrap();
+    let mut report=String::from("Unaccepted new GPU feature measurements; no old guards changed.\nfixture | max | rms | changed | edge rms | interior rms\n");
+    for fixture in new_coverage_fixtures() {
+        let reference = cpu_reference(&fixture);
+        let commands = scene_commands::build_with_art(
+            &fixture.scene,
+            SIZE,
+            SIZE,
+            &[],
+            Labels::OmitAcknowledged,
+            "s",
+            &fixture.document,
+            &fixture.images,
+        )
+        .unwrap();
+        let candidate = renderer.render(&commands, &cancel).unwrap();
+        assert!(
+            candidate.validation_errors.is_empty(),
+            "{}: {:?}",
+            fixture.name,
+            candidate.validation_errors
+        );
+        let difference = compare_decoded_rgba(SIZE, SIZE, &reference, &candidate.rgba).unwrap();
+        report += &format!(
+            "{} | {:?} | {:.3?} | {:.6} | {:.3} | {:.3}\n",
+            fixture.name,
+            difference.maximum_channel_error,
+            difference.rms_channel_error,
+            difference.changed_pixel_fraction,
+            difference.edge_rms_error,
+            difference.interior_rms_error
+        );
+    }
+    println!("{report}");
+    if let Ok(path) = std::env::var("KILSAT_NEW_PARITY_REPORT") {
+        std::fs::write(path, report).unwrap();
+    }
+}
