@@ -21,8 +21,14 @@ streaming Full HD or GPU captions are superseded by this integration.
 An actual Finnish 1920x1080/24fps, 42.708333-second episode completed the entire
 pipeline and independent media checks in 77.197seconds on Apple Silicon CI
 (VirtualMac2,1; CI/VM observed). The physical-Mac gate remains false. The exact
-source, host and artifact are recorded in the integration document. Season batch
-rendering and the final-source checks are being verified before merging PR #95.
+source, host and artifact are recorded in the integration document. A separate
+[Full HD CI run](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644)
+completed all 31 Finnish episode videos and seven compilations (1920x1080/24fps,
+22min8.4s total episode runtime). All seven downloaded artifact archives and their
+MP4/WAV/pipeline hashes match the recorded [evidence](evidence/kilsat-season-fullhd-ci.json).
+The final desktop correction invalidates prepared/pending audio on Piper profile
+changes; 253 local desktop tests pass with one existing host-information test
+excluded. Final-source checks are being verified before merging PR #95.
 
 Still open: physical Mac GUI/audio/camera and signing acceptance, manual
 real-speech lip-sync annotations/listening, artistic/comic-timing review, an

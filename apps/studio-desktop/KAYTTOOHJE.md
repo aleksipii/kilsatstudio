@@ -189,6 +189,8 @@ asetustiedoston koko polku samalle välilehdelle. Uuden profiilin voit luoda sie
 valitsemalla asennetun Piper-ohjelman, ONNX-mallin, mallin JSON-asetukset ja
 uuden profiilitiedoston polun. Välimuisti käyttää profiilin viereistä
 piper-cache-kansiota. Tallenna profiili uutena JSON-tiedostona ja ota se käyttöön.
+Profiilin vaihtaminen peruu keskeneräisen äänivalmistelun ja tyhjentää valmistellut
+esikatselut. Valmistele sen jälkeen kohtauksen tai koko projektin ääni uudelleen.
 Malli ja ohjelma asennetaan
 erikseen; sovellus ei lataa niitä automaattisesti. Macin järjestelmä-äänten
 haku on erillinen yksityisen esikatselun vaihtoehto, jota ei hyväksytä sarjan

@@ -43,7 +43,8 @@ def file_hash(path: Path, limit=MAX_MEDIA) -> str:
 
 def read_json(path: Path) -> dict:
     file_hash(path, MAX_JSON)
-    data = path.read_bytes()
+    with path.open("rb") as source:
+        data = source.read(MAX_JSON + 1)
     if len(data) > MAX_JSON:
         raise ValueError("JSON grew beyond budget")
     value = json.loads(data)
@@ -301,7 +302,7 @@ def render_compilation_video(ffmpeg: Path, ffprobe: Path, concat: Path, audio: P
                "-i", str(concat), "-i", str(audio), "-map", "0:v:0", "-map", "1:a:0",
                "-vf", "setpts=N/(24*TB)", "-r", "24", "-fps_mode", "cfr",
                "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-c:a", "aac",
-               "-movflags", "+faststart", str(video)]
+               "-movflags", "+faststart", "-fs", str(MAX_MEDIA), str(video)]
     run_bounded(command, logs, "compilation-encode", 180)
     observed = inspect_media(probe(ffprobe, video, logs, "compilation-probe"), width, height, frames)
     return observed

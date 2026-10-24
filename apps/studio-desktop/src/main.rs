@@ -2421,6 +2421,28 @@ impl Studio {
         let p = self.piper_config_path.trim();
         (!p.is_empty()).then(|| p.into())
     }
+    fn set_piper_profile(&mut self, path: String) {
+        if path == self.piper_config_path {
+            return;
+        }
+        self.piper_config_path = path;
+        self.stop_playback();
+        // Retain the cancelled token and busy state until the owning worker
+        // acknowledges it. A completed result already in its channel must also
+        // be rejected before a new preparation can replace that token.
+        if let Some(cancel) = &self.active_cancel {
+            cancel.cancel();
+        }
+        self.sequence_changed();
+        self.scene_preview = None;
+        self.scene_audio_active = false;
+        self.preview = None;
+        self.native_alignment.invalidate();
+        self.alignment_identity = None;
+        self.alignment_audio = None;
+        self.status =
+            "Piper-profiili vaihtui. Valmistele ääni uudelleen ennen toistoa tai vientiä.".into();
+    }
     fn local_provider(&self) -> motion_tts::LocalSpeechProvider {
         let provider = motion_tts::LocalSpeechProvider::new(self.kokoro_config());
         match self.piper_profile() {
@@ -2655,12 +2677,12 @@ impl Studio {
             Err(e) => self.status = e.to_string(),
         }
     }
-    fn check_runtime(&mut self) {
+    fn kokoro_diagnostic_presets(&self) -> std::collections::BTreeSet<String> {
         let script = motion_script::parse(&self.source);
         let mut presets = std::collections::BTreeSet::new();
         if let Ok(script) = script {
             for character in script.characters.values() {
-                if let Some(voice) = &character.voice {
+                if let Some(voice) = character.voice.as_ref().filter(|v| v.provider == "kokoro") {
                     presets.insert(voice.preset.clone());
                 }
             }
@@ -2668,6 +2690,10 @@ impl Studio {
         if presets.is_empty() {
             presets.insert("af_heart".into());
         }
+        presets
+    }
+    fn check_runtime(&mut self) {
+        let presets = self.kokoro_diagnostic_presets();
         if presets
             .iter()
             .any(|p| p.is_empty() || !p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
@@ -4511,16 +4537,18 @@ impl Studio {
             InspectorTab::Speech => {
                 ui.heading("Puhe ja äänet");
                 ui.weak("1. Yhdistä tai asenna Kokoro englanniksi, tai tuo oma WAV-ääni. 2. Valmistele kohtauksen ääni. 3. Kuuntele aikajanan Toista ääni -painikkeella.");
+                let mut piper_path = self.piper_config_path.clone();
                 field(
                     ui,
                     "Piper-asetustiedosto (JSON, koko polku)",
-                    &mut self.piper_config_path,
+                    &mut piper_path,
                 );
+                self.set_piper_profile(piper_path);
                 ui.weak("Suomi: valitse hahmolle Piper / fi-fi. Malli ja ohjelma asennetaan erikseen; asetus ei lataa niitä. Suun automaattinen liike on nimetty arvio, ei mitattu huulisynkka.");
                 let profile_idle = self.editing_idle() && !self.setup_busy;
                 ui.add_enabled_ui(profile_idle, |ui| {
                     if let Some(path) = self.piper_profile_editor.ui(ui) {
-                        self.piper_config_path = path.to_string_lossy().into_owned();
+                        self.set_piper_profile(path.to_string_lossy().into_owned());
                     }
                 });
                 if let Some(preset) = self.system_inventory.ui(ui) {
@@ -8489,5 +8517,117 @@ mod measured_direction_integration_tests {
         assert_eq!(studio.source, original);
         assert!(!studio.history.can_undo());
         assert!(studio.status.contains("peruttu"));
+    }
+}
+
+#[cfg(test)]
+mod piper_profile_context_tests {
+    use super::*;
+
+    fn finish_audio(studio: &mut Studio) {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.busy {
+            studio.poll();
+            assert!(Instant::now() < deadline, "{}", studio.status);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+
+    #[test]
+    fn profile_change_rejects_pending_scene_then_allows_fresh_preparation() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        let source = studio.source.clone();
+        let token = studio.active_cancel.clone().unwrap();
+        let sequence_revision = studio.sequence_revision;
+        studio.set_piper_profile("/new/profile.json".into());
+        assert!(token.is_cancelled());
+        assert!(
+            studio.busy,
+            "wait for the previous worker before replacing its token"
+        );
+        assert!(studio.sequence_revision > sequence_revision);
+        finish_audio(&mut studio);
+        assert!(studio.scene_preview.is_none());
+        assert!(studio.preview.is_none());
+        assert!(studio.script.is_some());
+        assert_eq!(studio.source, source);
+        assert!(!studio.history.can_undo());
+        // Explicit imported demo WAVs still work; this never invokes Piper.
+        studio.prepare_scene_audio();
+        finish_audio(&mut studio);
+        assert!(studio.scene_preview.is_some(), "{}", studio.status);
+    }
+
+    #[test]
+    fn profile_change_rejects_an_inflight_line_and_invalidates_alignment_context() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        finish_audio(&mut studio);
+        studio.generate();
+        let token = studio.active_cancel.clone().unwrap();
+        studio.set_piper_profile("/another/profile.json".into());
+        assert!(token.is_cancelled());
+        finish_audio(&mut studio);
+        assert!(studio.preview.is_none());
+        assert!(studio.scene_preview.is_none());
+        assert!(studio.alignment_identity.is_none());
+        assert!(studio.alignment_audio.is_none());
+        studio.generate();
+        finish_audio(&mut studio);
+        assert!(studio.preview.is_some(), "{}", studio.status);
+    }
+
+    #[test]
+    fn unchanged_profile_is_idle_stable_but_a_changed_profile_drops_prepared_scene() {
+        let mut studio = Studio::default();
+        studio.load_sound_check();
+        finish_audio(&mut studio);
+        let revision = studio.sequence_revision;
+        studio.set_piper_profile(String::new());
+        assert_eq!(studio.sequence_revision, revision);
+        assert!(studio.scene_preview.is_some());
+        studio.set_piper_profile("/new/profile.json".into());
+        assert!(studio.sequence_revision > revision);
+        assert!(studio.scene_preview.is_none());
+        assert!(!studio.history.can_undo());
+    }
+
+    #[test]
+    fn kokoro_diagnostics_exclude_piper_and_system_voice_presets() {
+        let mut studio = Studio::default();
+        let mut script = motion_script::parse(&studio.source).unwrap();
+        let mut english = script.characters.values().next().unwrap().clone();
+        english.voice = Some(motion_script::VoiceConfig {
+            provider: "kokoro".into(),
+            preset: "af_heart".into(),
+            language: "en-us".into(),
+            speed: 1.0,
+        });
+        let mut finnish = english.clone();
+        finnish.voice = Some(motion_script::VoiceConfig {
+            provider: "piper".into(),
+            preset: "piper_harri".into(),
+            language: "fi-fi".into(),
+            speed: 1.0,
+        });
+        let mut system = finnish.clone();
+        system.voice.as_mut().unwrap().provider = "system".into();
+        system.voice.as_mut().unwrap().preset = "Satu".into();
+        script.characters = [
+            ("EMMA".into(), english),
+            ("ALEX".into(), finnish),
+            ("SYSTEM".into(), system),
+        ]
+        .into_iter()
+        .collect();
+        studio.source = serde_yaml::to_string(&script).unwrap();
+        assert_eq!(
+            studio
+                .kokoro_diagnostic_presets()
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["af_heart"]
+        );
     }
 }

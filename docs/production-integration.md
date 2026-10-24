@@ -47,7 +47,7 @@ twelve topics including real speech, profile creation, Full HD and camera record
 
 The final-source CI links and results are recorded in [master-progress.md](master-progress.md).
 Local checks have passed rustfmt, a strict all-target/all-feature Clippy-backed
-workspace check, 249 desktop tests (one pre-existing environment-dependent test
+workspace check, 253 desktop tests (one pre-existing environment-dependent test
 excluded locally), speech/voice tests and 121 repository Python tests. The broad
 local Rust run exposed a Python fixture's incorrect `Path.parent()` call; it was
 fixed to the property `Path.parent`, then the speech/voice/desktop suites passed.
@@ -76,6 +76,24 @@ compilation MP4s at 960x540/24fps**, each checked against decoded frames, audio
 sample counts, track starts/durations and input/media hashes. These are review
 renders. Request revision three explicitly selects full_hd with no review-size
 override for the subsequent complete season run. Publication remains unapproved.
+
+That [Full HD run](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644)
+also completed all seven groups on source `3e847b7348479f2ec6cacc9e690bb209003f2393`:
+**31 real Finnish episode videos and seven compilations, all 1920x1080/24fps**.
+The 31 episodes total 1,328.416667seconds (22min8.4s), with individual durations
+39.333333..45.333333seconds. Their measured speech/preparation/export times on
+Linux CI are 46.4574..79.7703seconds; these are CI observations, not physical Mac
+acceptance. The parent downloaded all seven artifact ZIPs, matched their published
+SHA-256 digests and verified every episode/compilation MP4, WAV and pipeline receipt
+hash. The compact [build evidence](evidence/kilsat-season-fullhd-ci.json) records
+all source/media hashes, frame/sample counts and artifact IDs.
+
+The final UI review also corrected Piper profile invalidation: explicit path
+changes cancel pending speech, discard prepared scene/line/sequence audio and
+invalidate alignment previews before re-preparation. Four regression tests cover
+pending scene and line jobs, idle-stable unchanged settings, prepared-scene reset
+and provider-specific Kokoro diagnostics. An English Kokoro check never requests
+`.pt` files for Finnish Piper/system presets.
 
 ## Implementation ownership
 

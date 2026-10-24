@@ -13,6 +13,31 @@ Valmiit videot ja niiden todellinen tila tarkistetaan kunkin ajon kuiteista.
 Pelkkä 31 projektitiedoston olemassaolo ei tarkoita, että kaikki 31 MP4:ää olisi
 renderöity tai hyväksytty julkaistavaksi.
 
+## Valmiit Full HD -videot
+
+[CI-ajo 40127342644](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644)
+renderöi ja tarkisti kaikki 31 suomenkielistä jaksoa sekä seitsemän koostetta
+1920 × 1080 / 24 fps -muodossa. Jaksot kestävät 39,3–45,3 sekuntia, yhteensä
+22 minuuttia 8,4 sekuntia. Lähdeversio on 3e847b7348479f2ec6cacc9e690bb209003f2393.
+Integraattori latasi kaikki seitsemän pakettia ja tarkisti tiedostotiivisteet;
+[todennusraportti](evidence/kilsat-season-fullhd-ci.json) sisältää luvut ja tunnisteet.
+
+| Jaksot | Lataa jaksot ja kooste |
+| --- | --- |
+| 01–05 | [Full HD -ryhmä 1](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573639619) |
+| 06–10 | [Full HD -ryhmä 2](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573074289) |
+| 11–15 | [Full HD -ryhmä 3](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573354929) |
+| 16–20 | [Full HD -ryhmä 4](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573519599) |
+| 21–25 | [Full HD -ryhmä 5](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12572994378) |
+| 26–30 | [Full HD -ryhmä 6](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12572624460) |
+| 31 | [Full HD -ryhmä 7](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12572629344) |
+
+Pura ZIP ja etsi season-group-alkuinen kansio. Jokaisen ep-alkuisen kansion
+sequence.mp4 on kyseinen jakso; compilation/sequence.mp4 on ryhmän kooste.
+GitHub-artefaktit säilyvät 14 päivää; lataa säilytettävät videot itsellesi.
+Tekninen renderöinti on valmis. Taiteellista laatua, huulisynkkaa ja
+julkaisuoikeuksia ei ole hyväksytty; niitä koskevat tarkistukset ovat alempana.
+
 Lähdeprofiili on 1920 × 1080, 24 kuvaa sekunnissa ja 30–60 sekuntia jaksoa kohden.
 Lähteen kesto on ajoitusluonnos. Renderöintityökalu tuottaa oikean puheen ja
 sovittaa sitä sisältävien otosten kestot mitatun äänen mukaan. Puheen pituutta ei

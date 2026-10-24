@@ -67,13 +67,19 @@ jobs:
             size_args=(--review-size "$requested_review_size")
           fi
           python3 scripts/render_kilsat_season.py --group "$SEASON_GROUP" --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --piper-config "$RUNNER_TEMP/fi-voice/profile.json" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --output "$GITHUB_WORKSPACE/out/season-group-$SEASON_GROUP" "${size_args[@]}"
+      - name: Keep download evidence beside the rendered group
+        if: always()
+        env:
+          SEASON_GROUP: ${{ matrix.group }}
+        run: |
+          if [ -d "out/season-group-$SEASON_GROUP" ] && [ -f "$RUNNER_TEMP/fi-voice/download-evidence.json" ]; then
+            cp "$RUNNER_TEMP/fi-voice/download-evidence.json" "out/season-group-$SEASON_GROUP/download-evidence.json"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: kilsat-season-${{ steps.request.outputs.profile }}-group-${{ matrix.group }}-${{ github.sha }}
-          path: |
-            out/season-group-${{ matrix.group }}/
-            ${{ runner.temp }}/fi-voice/download-evidence.json
+          path: out/season-group-${{ matrix.group }}/
           if-no-files-found: warn
           retention-days: 14
   full-hd-mac-measurement:
@@ -98,12 +104,11 @@ jobs:
         run: |
           mkdir -p out/mac-benchmark
           python3 scripts/benchmark_animation_pipeline.py --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --project "$GITHUB_WORKSPACE/examples/kilsat-season/ep01.kilsat" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --piper-config "$RUNNER_TEMP/fi-voice/profile.json" --output "$GITHUB_WORKSPACE/out/mac-benchmark/full-hd" --report "$GITHUB_WORKSPACE/out/mac-benchmark/measurement.json" --retime-dialogue
+          cp "$RUNNER_TEMP/fi-voice/download-evidence.json" out/mac-benchmark/download-evidence.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: kilsat-full-hd-mac-ci-${{ github.sha }}
-          path: |
-            out/mac-benchmark/
-            ${{ runner.temp }}/fi-voice/download-evidence.json
+          path: out/mac-benchmark/
           if-no-files-found: warn
           retention-days: 14
