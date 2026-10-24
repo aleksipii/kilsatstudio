@@ -42,12 +42,24 @@ new streaming frame-completeness check. Ad-hoc signed packaging passed the
 camera helper's no-camera help/invalid-argument checks, archive audit and native
 linkage/build-evidence checks. No physical camera or GUI session is inferred.
 
-The merged-code main runs are now in progress:
+All merged-code main runs passed:
 [Rust/GPU/media](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209964),
 [Mac package](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209962),
 [Full HD season](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986).
-Documentation-only status commits preserve these source bytes; they do not
-replace the merged-code checks with a new test claim.
+Main verification on `048ea9c87577fd46f18a4ee250552ee7c6cc21f6` passed the
+same **824/823 Rust**, **55 runtime + 121 repository Python tests** per platform,
+**49 GPU library + 2 probe tests** per platform (four physical GPU tests remain
+ignored) and **four real FFmpeg tests**. All seven Full HD groups completed again:
+31 actual episode MP4s and seven compilations. The independent main Apple Silicon
+CI measurement completed in **88.205seconds**; this is CI timing, not physical
+Mac acceptance.
+
+[Download the main Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209962/artifacts/12575020684).
+The build is ad-hoc signed, not Developer ID notarized. Unzip the outer artifact
+and its contained application ZIP, then open Kilsat Studio Preview.app in Finder.
+Finnish speech requires a configured local Piper profile or explicit WAVs.
+Documentation-only status commits preserve the checked source bytes; no new
+Rust test claim is inferred from their text edits.
 
 Still open: physical Mac GUI/audio/camera and signing acceptance, manual
 real-speech lip-sync annotations/listening, artistic/comic-timing review, an

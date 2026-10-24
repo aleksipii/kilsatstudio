@@ -5,7 +5,9 @@ Work branch: feat/production-animation-pipeline, based on main
 
 Merged as PR #95 / `048ea9c87577fd46f18a4ee250552ee7c6cc21f6` on 2026-10-24,
 after green final-source Linux/macOS/GPU/media and Apple Silicon packaging.
-PR #89 is also marked merged. Exact final and post-merge results are tracked in
+PR #89 is also marked merged. All post-merge main Rust/GPU/media, Mac packaging,
+design and Full HD season runs also passed. The main whole-pipeline CI measurement
+completed in 88.205seconds. Exact results and downloads are tracked in
 [master-progress.md](master-progress.md).
 
 PR #89 head 64d7293b09602c84a12254500554b2a00f2b9d7f is integrated in this

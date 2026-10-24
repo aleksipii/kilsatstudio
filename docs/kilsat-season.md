@@ -22,15 +22,20 @@ renderöi ja tarkisti kaikki 31 suomenkielistä jaksoa sekä seitsemän koostett
 Integraattori latasi kaikki seitsemän pakettia ja tarkisti tiedostotiivisteet;
 [todennusraportti](evidence/kilsat-season-fullhd-ci.json) sisältää luvut ja tunnisteet.
 
+Myös [mainin uusinta-ajo 40129209986](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986)
+valmistui kokonaan. Alla olevat latauslinkit ovat tästä uusimmasta main-ajosta
+(lähdeversio 048ea9c87577fd46f18a4ee250552ee7c6cc21f6). Yllä kuvatun aiemman ajon
+ladattuihin tiedostoihin sidottu todennusraportti säilyy erikseen omalla lähdetunnuksellaan.
+
 | Jaksot | Lataa jaksot ja kooste |
 | --- | --- |
-| 01–05 | [Full HD -ryhmä 1](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573639619) |
-| 06–10 | [Full HD -ryhmä 2](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573074289) |
-| 11–15 | [Full HD -ryhmä 3](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573354929) |
-| 16–20 | [Full HD -ryhmä 4](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12573519599) |
-| 21–25 | [Full HD -ryhmä 5](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12572994378) |
-| 26–30 | [Full HD -ryhmä 6](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12572624460) |
-| 31 | [Full HD -ryhmä 7](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644/artifacts/12572629344) |
+| 01–05 | [Full HD -ryhmä 1](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12574468230) |
+| 06–10 | [Full HD -ryhmä 2](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12574202061) |
+| 11–15 | [Full HD -ryhmä 3](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12574677925) |
+| 16–20 | [Full HD -ryhmä 4](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12574911676) |
+| 21–25 | [Full HD -ryhmä 5](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12574961578) |
+| 26–30 | [Full HD -ryhmä 6](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12574756501) |
+| 31 | [Full HD -ryhmä 7](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986/artifacts/12573981644) |
 
 Pura ZIP ja etsi season-group-alkuinen kansio. Jokaisen ep-alkuisen kansion
 sequence.mp4 on kyseinen jakso; compilation/sequence.mp4 on ryhmän kooste.

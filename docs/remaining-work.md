@@ -15,8 +15,8 @@ recording, bounded Full HD streaming, GPU outlines/captions/lights/animated prop
 All 31 actual Full HD episode MP4s and seven Full HD compilations have now been
 rendered and verified; download links and exact evidence are in the
 [Finnish season guide](kilsat-season.md). Human review and publication remain open.
-Final-source CI passed before merge; post-merge main checks and season render
-results are tracked in master-progress.
+Final-source and post-merge main CI passed, including every Full HD season group.
+Exact checks, source hashes and downloads are tracked in master-progress.
 An actual 42.7second Full HD/24fps Finnish episode completed in 77.2seconds on
 Apple Silicon CI; this does not accept a physical Mac or speech/artistic quality.
 
@@ -34,6 +34,8 @@ Remaining acceptance work is concrete:
   environment. Tooling and CI never grant these rights.
 - Review GPU fixtures and device performance on actual Metal hardware before
   treating GPU preview/export as production accepted.
+- Finish localization of the remaining advanced tools and raw backend diagnostics;
+  the main workflow and twelve-topic offline guide are in Finnish.
 
 The tables and dated increments below preserve the earlier audit history.
 
