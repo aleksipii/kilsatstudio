@@ -153,6 +153,7 @@ struct Studio {
     direction_report: String,
     piper_config_path: String,
     system_inventory: local_speech_ui::Inventory,
+    piper_profile_editor: local_speech_ui::ProfileEditor,
     help_open: bool,
     help_topic: usize,
     inspector_tab: InspectorTab,
@@ -381,6 +382,7 @@ impl Default for Studio {
             direction_report: String::new(),
             piper_config_path: String::new(),
             system_inventory: local_speech_ui::Inventory::default(),
+            piper_profile_editor: local_speech_ui::ProfileEditor::default(),
             help_open: false,
             help_topic: 0,
             inspector_tab: InspectorTab::default(),
@@ -4515,6 +4517,12 @@ impl Studio {
                     &mut self.piper_config_path,
                 );
                 ui.weak("Suomi: valitse hahmolle Piper / fi-fi. Malli ja ohjelma asennetaan erikseen; asetus ei lataa niitä. Suun automaattinen liike on nimetty arvio, ei mitattu huulisynkka.");
+                let profile_idle = self.editing_idle() && !self.setup_busy;
+                ui.add_enabled_ui(profile_idle, |ui| {
+                    if let Some(path) = self.piper_profile_editor.ui(ui) {
+                        self.piper_config_path = path.to_string_lossy().into_owned();
+                    }
+                });
                 if let Some(preset) = self.system_inventory.ui(ui) {
                     if let Some(draft) = &mut self.voice_draft {
                         draft.voice = Some(motion_script::VoiceConfig {
@@ -8382,5 +8390,104 @@ mod finnish_workspace_tests {
         }
         assert_eq!(studio.snapshot(), before);
         assert!(!studio.history.can_undo());
+    }
+}
+
+#[cfg(test)]
+mod measured_direction_integration_tests {
+    use super::*;
+    struct Folder(std::path::PathBuf);
+    impl Folder {
+        fn new() -> Self {
+            let path = std::env::temp_dir().join(format!(
+                "kilsat-direction-ui-{}-{}",
+                std::process::id(),
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos()
+            ));
+            std::fs::create_dir(&path).unwrap();
+            let mut wav = hound::WavWriter::create(
+                path.join("line.wav"),
+                hound::WavSpec {
+                    channels: 1,
+                    sample_rate: 24000,
+                    bits_per_sample: 16,
+                    sample_format: hound::SampleFormat::Int,
+                },
+            )
+            .unwrap();
+            for _ in 0..24000 {
+                wav.write_sample(1000i16).unwrap();
+            }
+            wav.finalize().unwrap();
+            Self(path)
+        }
+    }
+    impl Drop for Folder {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    fn start(root: &Folder) -> Studio {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.project_root = root.0.to_string_lossy().into_owned();
+        studio.quick_start.dialogue = "EMMA: Hei!".into();
+        studio.direction_imports.insert(1, "line.wav".into());
+        studio.start_measured_direction();
+        assert!(studio.busy);
+        studio
+    }
+    fn finish(studio: &mut Studio) {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while studio.direction_pending.is_some() {
+            studio.poll_direction();
+            assert!(Instant::now() < deadline, "{}", studio.status);
+            std::thread::sleep(Duration::from_millis(5));
+        }
+    }
+    #[test]
+    fn measured_pcm_direction_is_one_undo_and_keeps_provenance() {
+        let root = Folder::new();
+        let mut studio = start(&root);
+        let original = studio.source.clone();
+        finish(&mut studio);
+        assert_ne!(studio.source, original);
+        assert!(studio.direction_report.contains("24000 näytettä"));
+        assert!(studio.direction_report.contains("SHA-256"));
+        assert!(studio.history.can_undo());
+        studio.undo_edit(false);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+    }
+    #[test]
+    fn stale_source_or_provider_context_cannot_commit_ready_audio() {
+        for provider_change in [false, true] {
+            let root = Folder::new();
+            let mut studio = start(&root);
+            if provider_change {
+                studio.piper_config_path = "changed.json".into();
+            } else {
+                studio.source.push('\n');
+            }
+            let expected = studio.source.clone();
+            finish(&mut studio);
+            assert_eq!(studio.source, expected);
+            assert!(!studio.history.can_undo());
+            assert!(studio.status.contains("hylättiin"));
+        }
+    }
+    #[test]
+    fn cancel_never_commits_an_already_finished_pending_result() {
+        let root = Folder::new();
+        let mut studio = start(&root);
+        let original = studio.source.clone();
+        studio.active_cancel.as_ref().unwrap().cancel();
+        finish(&mut studio);
+        assert_eq!(studio.source, original);
+        assert!(!studio.history.can_undo());
+        assert!(studio.status.contains("peruttu"));
     }
 }

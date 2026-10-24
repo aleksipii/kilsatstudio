@@ -260,6 +260,14 @@ pub fn export_mp4_scene_streaming(
     progress: impl FnMut(Progress),
     captions: CaptionMode,
 ) -> Result<StreamingReport, Error> {
+    check(cancel)?;
+    bounded_json(script, MAX_SOURCE)?;
+    if let Some(art) = art {
+        art.document
+            .validate()
+            .map_err(|e| invalid(e.to_string()))?;
+        bounded_json(&art.document, 8 * MAX_SOURCE)?;
+    }
     let selected = script
         .scenes
         .get(index)

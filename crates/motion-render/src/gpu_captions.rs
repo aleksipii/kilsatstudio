@@ -147,7 +147,7 @@ pub fn append_captions(
                 );
                 let glyph = u16::try_from(info.glyph_id)
                     .map_err(|_| invalid("caption glyph id exceeds font range"))?;
-                face.outline_glyph(ttf_parser::GlyphId(glyph), &mut builder);
+                let _ = face.outline_glyph(ttf_parser::GlyphId(glyph), &mut builder);
                 builder.finish();
                 if builder.overflow {
                     return Err(Error::Budget);

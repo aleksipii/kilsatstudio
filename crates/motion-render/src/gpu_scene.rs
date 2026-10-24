@@ -646,8 +646,8 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    }
    if kind>23.5 {
     let radius=length((local-s.geometry.xy)/s.geometry.zw);
-    if radius>1. {continue;}
     let softness=s.parameters.z;
+    if radius>1. && softness>0. {continue;}
     if softness>0. {
      let q=clamp((radius-(1.-softness))/softness*6.,0.,6.);
      let lo=floor(q)/6.; let hi=min(floor(q)+1.,6.)/6.;

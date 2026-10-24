@@ -4327,3 +4327,25 @@ mod caption_style_tests {
         assert!(parse(&source(", captions: {unknown: 1}")).is_err());
     }
 }
+
+#[cfg(test)]
+mod local_finnish_voice_boundary_tests {
+    use super::*;
+    fn source(provider: &str, preset: &str, language: &str) -> String {
+        format!("characters:\n  AINO:\n    asset: aino\n    voice: {{provider: {provider}, preset: {preset}, language: {language}, speed: 1}}\nscenes: []\n")
+    }
+    #[test]
+    fn providers_cannot_silently_cross_finnish_and_english_boundaries() {
+        assert!(parse(&source("piper", "piper_harri", "fi-fi")).is_ok());
+        assert!(parse(&source("system", "Satu", "fi-fi")).is_ok());
+        for (provider, preset, language) in [
+            ("kokoro", "af_heart", "fi-fi"),
+            ("system", "piper_harri", "fi-fi"),
+            ("piper", "Satu", "fi-fi"),
+            ("piper", "piper_harri", "en-us"),
+            ("cloud", "voice", "fi-fi"),
+        ] {
+            assert!(parse(&source(provider, preset, language)).is_err());
+        }
+    }
+}

@@ -1,7 +1,7 @@
 //! Explicit local real-speech preparation and bounded streaming export.
 //! No model/voice download, no fabricated speech and no publication approval.
-use motion_export::{ArtContext, CaptionMode, StreamingProfile};
-use motion_script::{Event, Script};
+use motion_export::{ArtContext, StreamingProfile};
+use motion_script::Event;
 use motion_tts::{CancellationToken, KokoroConfig, LocalSpeechProvider, SpeechProvider};
 use std::{
     collections::BTreeMap,
@@ -441,21 +441,48 @@ fn run(started: Instant) -> Result<serde_json::Value, Failure> {
             art.images.insert(asset.id.clone(), image);
         }
     }
+    let alignments: BTreeMap<u64, motion_lipsync::cache::AlignmentInput> =
+        if document.timing.scene.trim().is_empty() {
+            BTreeMap::new()
+        } else {
+            serde_json::from_str(&document.timing.scene)?
+        };
+    if alignments.keys().any(|id| !measured.contains_key(id)) {
+        return Err(fail("project timing names an unknown dialogue"));
+    }
+    let alignment_cache =
+        motion_lipsync::cache::AlignmentCache::new(parent.join("alignment-cache"));
     let mut rendered = Vec::new();
     let mut diagnostics = Vec::new();
+    let mut alignment_statuses = BTreeMap::new();
     for index in 0..script.scenes.len() {
         check(started, &args, &cancel)?;
-        let prepared = motion_voice::scene_audio::prepare_scene_with_cancellation(
+        let scene_inputs: BTreeMap<_, _> = alignments
+            .iter()
+            .filter(|(id, _)| {
+                jobs.iter()
+                    .any(|job| job.id == **id && job.scene == script.scenes[index].id)
+            })
+            .map(|(id, input)| (*id, input.clone()))
+            .collect();
+        let prepared = motion_voice::scene_audio::prepare_scene_with_alignment_inputs(
             &script,
             index,
             root,
             &provider,
-            &BTreeMap::new(),
+            &scene_inputs,
+            &alignment_cache,
             &cancel,
             |_| {},
         )?;
-        diagnostics.extend(prepared.diagnostics.iter().map(|d| d.message()));
-        rendered.push(prepared.rendered);
+        diagnostics.extend(prepared.prepared.diagnostics.iter().map(|d| d.message()));
+        alignment_statuses.extend(
+            prepared
+                .alignment_statuses
+                .into_iter()
+                .map(|(id, status)| (id, format!("{status:?}"))),
+        );
+        rendered.push(prepared.prepared.rendered);
     }
     let preparation_seconds = started.elapsed().as_secs_f64();
     check(started, &args, &cancel)?;
@@ -523,7 +550,7 @@ fn run(started: Instant) -> Result<serde_json::Value, Failure> {
         "deadline_seconds":args.deadline,"elapsed_seconds":elapsed,"within_deadline":elapsed<=args.deadline as f64,"within_five_minutes":elapsed<=300.0,
         "speech_elapsed_seconds":speech_seconds,"preparation_elapsed_seconds":preparation_seconds,"streaming":streaming,
         "review":args.review.is_some(),"private_system_preview_used":private_system,"publication_approved":false,
-        "artistic_quality":"unmeasured","lip_sync_quality":"unmeasured","dialogue_audio":source_audio,"scene_durations":scene_durations,"diagnostics":diagnostics});
+        "artistic_quality":"unmeasured","lip_sync_quality":"unmeasured","alignment_statuses":alignment_statuses,"dialogue_audio":source_audio,"scene_durations":scene_durations,"diagnostics":diagnostics});
     write_json(&args.output.join("pipeline-report.json"), &report)?;
     check(started, &args, &cancel)?;
     output.complete = true;
