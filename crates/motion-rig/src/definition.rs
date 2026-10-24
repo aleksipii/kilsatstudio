@@ -86,7 +86,9 @@ fn default_blink_duration() -> f64 {
     0.12
 }
 /// Alternate appearance of a part; omitted fields keep the base part's values.
-/// Alpha 0 hides the part. A skinned part's variant polygon must keep its point count.
+/// Alpha 0 hides the part (fill and outline). A skinned part's variant polygon
+/// must keep its point count. `points` and `ellipse` are mutually exclusive; either
+/// replaces the base shape (polygon or ellipse) entirely.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PartVariantDefinition {
@@ -96,7 +98,72 @@ pub struct PartVariantDefinition {
     pub color: Option<[u8; 4]>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub texture: Option<PartTextureDefinition>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ellipse: Option<EllipseDefinition>,
+    /// Overrides the part's `smooth` (0 turns rounding off for this variant).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub smooth: Option<u32>,
+    /// Overrides the part's outline (width 0 removes it for this variant).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outline: Option<OutlineDefinition>,
 }
+/// A joint-local axis-aligned ellipse, expanded at evaluation time into a fixed
+/// `ELLIPSE_SEGMENTS`-vertex polygon (vertex `i` at angle `2*pi*i/ELLIPSE_SEGMENTS`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EllipseDefinition {
+    #[serde(default)]
+    pub cx: f64,
+    #[serde(default)]
+    pub cy: f64,
+    pub rx: f64,
+    pub ry: f64,
+}
+/// Where a part's outline is drawn relative to fills.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OutlineMode {
+    /// A stroke of `width` centred on the edge, drawn over this part's fill.
+    #[default]
+    Over,
+    /// A stroke drawn just before this part's fill, so only an outer band of
+    /// `width` shows; parts drawn later (a head over a body) cover it.
+    Behind,
+    /// Drawn in an actor-wide pass before any fill: overlapping silhouette parts
+    /// share one outer outline with no seams where they join.
+    Silhouette,
+}
+/// Bold cut-out outline. `width` is in evaluated rig (actor) units, before the
+/// actor's own scale and the camera; joint scale does not change it.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OutlineDefinition {
+    #[serde(default = "black")]
+    pub color: [u8; 4],
+    pub width: f64,
+    #[serde(default, skip_serializing_if = "is_default_mode")]
+    pub mode: OutlineMode,
+}
+fn black() -> [u8; 4] {
+    [0, 0, 0, 255]
+}
+fn is_default_mode(mode: &OutlineMode) -> bool {
+    *mode == OutlineMode::Over
+}
+fn is_zero(value: &u32) -> bool {
+    *value == 0
+}
+/// Vertices of an expanded ellipse part.
+pub const ELLIPSE_SEGMENTS: usize = 48;
+/// Largest accepted `smooth` value (quadratic samples per control-polygon corner).
+pub const MAX_SMOOTH: u32 = 16;
+/// Upper bound on vertices of one evaluated part after ellipse expansion and
+/// rounding; renderers accept evaluated polygons up to this size.
+pub const MAX_EVALUATED_POINTS: usize = 512;
+/// Bound on all expanded vertices of a rig (every part and variant), which bounds
+/// the quadratic simplicity checks run once during preparation.
+pub const MAX_RIG_EXPANDED_POINTS: usize = 16_384;
+pub const MAX_OUTLINE_WIDTH: f64 = 64.0;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RigJointDefinition {
@@ -121,7 +188,9 @@ fn one() -> f64 {
 pub struct RigidPartDefinition {
     pub id: String,
     pub joint: String,
-    /// Joint-local polygon vertices; source order is draw order.
+    /// Joint-local polygon vertices (the control polygon when `smooth` is set).
+    /// Omitted only when `ellipse` gives the shape. Part order is draw order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub points: Vec<[f64; 2]>,
     pub color: [u8; 4],
     /// Optional project image drawn inside the (possibly deformed) polygon.
@@ -136,6 +205,19 @@ pub struct RigidPartDefinition {
     /// expressions and blinks.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub variants: BTreeMap<String, PartVariantDefinition>,
+    /// Optional ellipse shape instead of `points` (not combinable with `skin`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ellipse: Option<EllipseDefinition>,
+    /// Corner rounding: 0 keeps the polygon; `n` in 2..=16 replaces every corner
+    /// by a quadratic Bezier from the incoming edge midpoint to the outgoing edge
+    /// midpoint (control point: the vertex), sampled `n` times: a closed uniform
+    /// quadratic B-spline inside the control polygon's convex hull. Applied after
+    /// posing and skinning, so deformed parts stay smooth.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub smooth: u32,
+    /// Optional bold outline drawn by the SVG renderer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outline: Option<OutlineDefinition>,
 }
 /// Image binding for a part. `uv` is `[u0, v0, u1, v1]`, the image sub-rectangle
 /// (fractions of the image, v downwards) stretched over the part's rest-pose
@@ -166,6 +248,15 @@ pub struct EvaluatedPart {
     pub texture: Option<EvaluatedTexture>,
     /// True when vertices were deformed by skin weights.
     pub skinned: bool,
+    /// Outline to draw; `None` when none is defined, its width is zero, or the
+    /// fill or outline colour is fully transparent.
+    pub outline: Option<EvaluatedOutline>,
+}
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EvaluatedOutline {
+    pub color: [u8; 4],
+    pub width: f64,
+    pub mode: OutlineMode,
 }
 /// Texture placement: `uv` maps onto `rest_bounds` (`[x, y, w, h]`, joint-local
 /// rest coordinates); `transform` carries those coordinates into actor space.
@@ -271,25 +362,135 @@ fn validate_polygon(points: &[[f64; 2]]) -> Result<(), Error> {
     }
     Ok(())
 }
-fn validate_variants(part: &RigidPartDefinition) -> Result<(), Error> {
+fn validate_ellipse(e: &EllipseDefinition) -> Result<(), Error> {
+    let centre = [e.cx, e.cy]
+        .iter()
+        .all(|v| v.is_finite() && v.abs() <= 1_000_000.0);
+    let radii = [e.rx, e.ry]
+        .iter()
+        .all(|v| v.is_finite() && (1e-3..=1_000_000.0).contains(v));
+    if centre && radii {
+        Ok(())
+    } else {
+        Err(Error::InvalidDefinition)
+    }
+}
+fn validate_outline(o: &OutlineDefinition) -> Result<(), Error> {
+    if o.width.is_finite() && (0.0..=MAX_OUTLINE_WIDTH).contains(&o.width) {
+        Ok(())
+    } else {
+        Err(Error::InvalidDefinition)
+    }
+}
+fn validate_smooth(samples: u32) -> Result<(), Error> {
+    if samples == 0 || (2..=MAX_SMOOTH).contains(&samples) {
+        Ok(())
+    } else {
+        Err(Error::InvalidDefinition)
+    }
+}
+/// Fixed-segment polygon of an ellipse, starting at angle 0 (+x) with increasing angle.
+fn ellipse_points(e: &EllipseDefinition) -> Vec<[f64; 2]> {
+    (0..ELLIPSE_SEGMENTS)
+        .map(|i| {
+            let angle = std::f64::consts::TAU * i as f64 / ELLIPSE_SEGMENTS as f64;
+            let (sin, cos) = angle.sin_cos();
+            [e.cx + e.rx * cos, e.cy + e.ry * sin]
+        })
+        .collect()
+}
+/// Replace each corner by a quadratic Bezier between adjacent edge midpoints with
+/// the vertex as control point, sampled `samples` times (`t = k / samples`,
+/// `k < samples`). Zero returns the polygon unchanged. Bounded: callers validated
+/// `points.len() * samples <= MAX_EVALUATED_POINTS`.
+pub fn round_corners(points: &[Vec2], samples: u32) -> Vec<Vec2> {
+    if samples == 0 {
+        return points.to_vec();
+    }
+    let n = points.len();
+    let mut out = Vec::with_capacity(n * samples as usize);
+    for i in 0..n {
+        let (prev, p, next) = (points[(i + n - 1) % n], points[i], points[(i + 1) % n]);
+        let a = Vec2::new((prev.x + p.x) * 0.5, (prev.y + p.y) * 0.5);
+        let b = Vec2::new((p.x + next.x) * 0.5, (p.y + next.y) * 0.5);
+        for k in 0..samples {
+            let t = f64::from(k) / f64::from(samples);
+            let u = 1.0 - t;
+            let (wa, wp, wb) = (u * u, 2.0 * u * t, t * t);
+            out.push(Vec2::new(
+                wa * a.x + wp * p.x + wb * b.x,
+                wa * a.y + wp * p.y + wb * b.y,
+            ));
+        }
+    }
+    out
+}
+/// Check one resolved shape (control polygon plus rounding) and return how many
+/// vertices it expands to. The rounded polygon must remain simple.
+fn validate_expanded(control: &[[f64; 2]], samples: u32) -> Result<usize, Error> {
+    validate_smooth(samples)?;
+    let count = control.len() * (samples.max(1) as usize);
+    if count > MAX_EVALUATED_POINTS {
+        return Err(Error::InvalidDefinition);
+    }
+    if samples > 0 {
+        let points: Vec<Vec2> = control.iter().map(|p| Vec2::new(p[0], p[1])).collect();
+        let rounded: Vec<[f64; 2]> = round_corners(&points, samples)
+            .iter()
+            .map(|p| [p.x, p.y])
+            .collect();
+        validate_polygon(&rounded)?;
+    }
+    Ok(count)
+}
+/// The part's control polygon: its points, or its expanded ellipse.
+fn part_control(part: &RigidPartDefinition) -> Result<Vec<[f64; 2]>, Error> {
+    match (&part.ellipse, part.points.is_empty()) {
+        (Some(e), true) => {
+            validate_ellipse(e)?;
+            Ok(ellipse_points(e))
+        }
+        (None, false) => Ok(part.points.clone()),
+        _ => Err(Error::InvalidDefinition),
+    }
+}
+/// Validate variants and return the vertices their shapes expand to.
+fn validate_variants(part: &RigidPartDefinition, base: &[[f64; 2]]) -> Result<usize, Error> {
     if part.variants.len() > MAX_VARIANTS_PER_PART {
         return Err(Error::InvalidDefinition);
     }
+    let mut expanded = 0;
     for (id, variant) in &part.variants {
         if !valid_id(id) {
             return Err(Error::InvalidDefinition);
         }
-        if let Some(points) = &variant.points {
-            validate_polygon(points)?;
-            if !part.skin.is_empty() && points.len() != part.points.len() {
-                return Err(Error::InvalidDefinition);
+        let control = match (&variant.points, &variant.ellipse) {
+            (Some(_), Some(_)) => return Err(Error::InvalidDefinition),
+            (Some(points), None) => {
+                validate_polygon(points)?;
+                if !part.skin.is_empty() && points.len() != part.points.len() {
+                    return Err(Error::InvalidDefinition);
+                }
+                points.clone()
             }
-        }
+            (None, Some(e)) => {
+                if !part.skin.is_empty() {
+                    return Err(Error::InvalidDefinition);
+                }
+                validate_ellipse(e)?;
+                ellipse_points(e)
+            }
+            (None, None) => base.to_vec(),
+        };
         if let Some(t) = &variant.texture {
             validate_texture(t)?;
         }
+        if let Some(o) = &variant.outline {
+            validate_outline(o)?;
+        }
+        expanded += validate_expanded(&control, variant.smooth.unwrap_or(part.smooth))?;
     }
-    Ok(())
+    Ok(expanded)
 }
 fn validate_skin_and_texture(
     part: &RigidPartDefinition,
@@ -394,13 +595,20 @@ impl RigDefinition {
         }
         let rig = Rig::new(joints).map_err(|_| Error::InvalidDefinition)?;
         let mut parts = BTreeSet::new();
+        let mut expanded = 0usize;
         for part in &self.parts {
             if !valid_id(&part.id)
                 || !parts.insert(&part.id)
                 || !ids.contains_key(part.joint.as_str())
-                || !(3..=64).contains(&part.points.len())
-                || part
-                    .points
+            {
+                return Err(Error::InvalidDefinition);
+            }
+            if part.ellipse.is_some() && !part.skin.is_empty() {
+                return Err(Error::InvalidDefinition);
+            }
+            let control = part_control(part)?;
+            if !(3..=64).contains(&control.len())
+                || control
                     .iter()
                     .flatten()
                     .any(|v| !v.is_finite() || v.abs() > 1_000_000.0)
@@ -409,16 +617,22 @@ impl RigDefinition {
             }
             // Reject crossings and retraced edges so nonzero and even-odd renderers
             // agree on the accepted simple polygons, including concave outlines.
-            if !simple_polygon(&part.points) {
+            if !simple_polygon(&control) {
                 return Err(Error::InvalidDefinition);
             }
             validate_skin_and_texture(part, &ids)?;
-            validate_variants(part)?;
-            let area: f64 = part
-                .points
+            if let Some(o) = &part.outline {
+                validate_outline(o)?;
+            }
+            expanded += validate_expanded(&control, part.smooth)?;
+            expanded += validate_variants(part, &control)?;
+            if expanded > MAX_RIG_EXPANDED_POINTS {
+                return Err(Error::InvalidDefinition);
+            }
+            let area: f64 = control
                 .iter()
-                .zip(part.points.iter().cycle().skip(1))
-                .take(part.points.len())
+                .zip(control.iter().cycle().skip(1))
+                .take(control.len())
                 .map(|(a, b)| a[0] * b[1] - b[0] * a[1])
                 .sum();
             if !area.is_finite() || area.abs() < 1e-9 {
@@ -556,9 +770,20 @@ impl RigDefinition {
                             .collect()
                     })
                     .collect();
+                // Resolve ellipses to their fixed polygons once, so posing only
+                // transforms control points (validated by `build`).
+                let mut definition = part.clone();
+                if let Some(e) = definition.ellipse.take() {
+                    definition.points = ellipse_points(&e);
+                }
+                for variant in definition.variants.values_mut() {
+                    if let Some(e) = variant.ellipse.take() {
+                        variant.points = Some(ellipse_points(&e));
+                    }
+                }
                 PreparedPart {
                     joint,
-                    definition: part.clone(),
+                    definition,
                     skin,
                 }
             })
@@ -825,12 +1050,28 @@ impl PreparedRig {
                 })
             }
         };
+        // Rounding is affine-invariant, so rounding posed control points equals
+        // posing the rounded rest shape for rigid parts, and follows skinning.
+        let points = round_corners(
+            &points,
+            variant.and_then(|v| v.smooth).unwrap_or(part.smooth),
+        );
+        let outline = variant
+            .and_then(|v| v.outline)
+            .or(part.outline)
+            .filter(|o| o.width > 0.0 && o.color[3] > 0 && color[3] > 0)
+            .map(|o| EvaluatedOutline {
+                color: o.color,
+                width: o.width,
+                mode: o.mode,
+            });
         Ok(EvaluatedPart {
             id: part.id.clone(),
             points,
             color,
             texture,
             skinned,
+            outline,
         })
     }
     /// True when the rig declares visemes, expressions or eyes.
@@ -969,9 +1210,7 @@ mod tests {
                 joint: "hand".into(),
                 points: vec![[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]],
                 color: [255, 0, 20, 128],
-                texture: None,
-                skin: Vec::new(),
-                variants: BTreeMap::new(),
+                ..Default::default()
             }],
             ..Default::default()
         }
@@ -1227,5 +1466,273 @@ mod tests {
         let (sin, cos) = 0.5f64.sin_cos();
         assert!((fit.a - cos).abs() < 1e-9 && (fit.b - sin).abs() < 1e-9);
         assert!((fit.tx - (10.0 - 10.0 * cos)).abs() < 1e-9);
+    }
+    fn square() -> Vec<[f64; 2]> {
+        vec![[0.0, 0.0], [20.0, 0.0], [20.0, 20.0], [0.0, 20.0]]
+    }
+    /// Largest turning angle (radians) between consecutive edges of a closed polygon.
+    fn max_turn(points: &[Vec2]) -> f64 {
+        let n = points.len();
+        (0..n)
+            .map(|i| {
+                let (a, b, c) = (points[i], points[(i + 1) % n], points[(i + 2) % n]);
+                let (ux, uy, vx, vy) = (b.x - a.x, b.y - a.y, c.x - b.x, c.y - b.y);
+                (ux * vy - uy * vx).atan2(ux * vx + uy * vy).abs()
+            })
+            .fold(0.0, f64::max)
+    }
+    #[test]
+    fn ellipse_parts_expand_to_a_fixed_polygon_through_the_joint_transform() {
+        let mut d = definition();
+        d.parts[0].points.clear();
+        d.parts[0].ellipse = Some(EllipseDefinition {
+            cx: 1.0,
+            cy: 2.0,
+            rx: 3.0,
+            ry: 1.5,
+        });
+        let parts = d.evaluate_parts().unwrap();
+        assert_eq!(parts[0].points.len(), ELLIPSE_SEGMENTS);
+        // Root: translate (10, 20), rotate 90 degrees, scale 2; hand at x = 3.
+        let hand = d.prepare().unwrap().world(&[]).unwrap()[1];
+        for (i, p) in parts[0].points.iter().enumerate() {
+            let angle = std::f64::consts::TAU * i as f64 / ELLIPSE_SEGMENTS as f64;
+            let q = hand.point(Vec2::new(1.0 + 3.0 * angle.cos(), 2.0 + 1.5 * angle.sin()));
+            assert!((p.x - q.x).abs() < 1e-9 && (p.y - q.y).abs() < 1e-9);
+        }
+        // 2:1 ellipse: the sharpest turn (at the long ends) is about 2 * TAU / 48.
+        assert!(max_turn(&parts[0].points) < 0.3);
+        // Serialization keeps `points` out for ellipse parts and legacy fields only otherwise.
+        let legacy = definition();
+        assert!(legacy.parts[0].ellipse.is_none() && legacy.parts[0].smooth == 0);
+    }
+    #[test]
+    fn rounding_is_bounded_smooth_inside_the_hull_and_commutes_with_rigid_posing() {
+        let mut d = definition();
+        d.parts[0].points = square();
+        d.parts[0].smooth = 8;
+        let prepared = d.prepare().unwrap();
+        let rounded = &prepared.evaluate_parts(&[]).unwrap()[0].points;
+        assert_eq!(rounded.len(), 4 * 8);
+        // No sharp corner survives: every turn is a small fraction of the 90 degrees.
+        assert!(max_turn(rounded) < 0.25, "{}", max_turn(rounded));
+        // Rounding the posed control polygon equals posing the rounded rest shape.
+        let hand = prepared.world(&[]).unwrap()[1];
+        let rest: Vec<Vec2> = square().iter().map(|p| Vec2::new(p[0], p[1])).collect();
+        for (a, b) in round_corners(&rest, 8).iter().zip(rounded) {
+            let q = hand.point(*a);
+            assert!((q.x - b.x).abs() < 1e-9 && (q.y - b.y).abs() < 1e-9);
+        }
+        // Rest-space rounded square: corners cut, edge midpoints kept, inside the hull.
+        let local = round_corners(&rest, 8);
+        assert!(local
+            .iter()
+            .all(|p| (0.0..=20.0).contains(&p.x) && (0.0..=20.0).contains(&p.y)));
+        assert!(local.iter().any(|p| p.x == 10.0 && p.y == 0.0));
+        let corner = local
+            .iter()
+            .map(|p| p.x.hypot(p.y))
+            .fold(f64::MAX, f64::min);
+        assert!(corner > 3.0, "corner kept at distance {corner}");
+        // Deterministic: repeated evaluation is bit-identical.
+        assert_eq!(
+            prepared.evaluate_parts(&[]).unwrap(),
+            prepared.evaluate_parts(&[]).unwrap()
+        );
+        assert_eq!(round_corners(&rest, 0), rest);
+    }
+    #[test]
+    fn skinned_parts_are_rounded_after_deformation() {
+        let mut d = skinned();
+        d.parts[0].smooth = 4;
+        let mut plain = skinned();
+        plain.parts[0].smooth = 0;
+        let (a, b) = (d.prepare().unwrap(), plain.prepare().unwrap());
+        let deformed = bend(&b, 0.6);
+        let expected = round_corners(&deformed[0].points, 4);
+        let rounded = bend(&a, 0.6);
+        assert!(rounded[0].skinned);
+        assert_eq!(rounded[0].points, expected);
+    }
+    #[test]
+    fn outlines_resolve_per_variant_and_hide_with_transparent_fills() {
+        let mut d = definition();
+        let outline = OutlineDefinition {
+            color: [0, 0, 0, 255],
+            width: 2.0,
+            mode: OutlineMode::Behind,
+        };
+        d.parts[0].color[3] = 255;
+        d.parts[0].outline = Some(outline);
+        d.parts[0].variants = BTreeMap::from([
+            (
+                "thin".to_string(),
+                PartVariantDefinition {
+                    outline: Some(OutlineDefinition {
+                        width: 0.5,
+                        mode: OutlineMode::Over,
+                        ..outline
+                    }),
+                    ..Default::default()
+                },
+            ),
+            (
+                "none".to_string(),
+                PartVariantDefinition {
+                    outline: Some(OutlineDefinition {
+                        width: 0.0,
+                        ..outline
+                    }),
+                    ..Default::default()
+                },
+            ),
+            (
+                "hidden".to_string(),
+                PartVariantDefinition {
+                    color: Some([1, 2, 3, 0]),
+                    ..Default::default()
+                },
+            ),
+            (
+                "round".to_string(),
+                PartVariantDefinition {
+                    ellipse: Some(EllipseDefinition {
+                        cx: 0.0,
+                        cy: 0.0,
+                        rx: 2.0,
+                        ry: 2.0,
+                    }),
+                    smooth: Some(0),
+                    ..Default::default()
+                },
+            ),
+        ]);
+        d.expressions = BTreeMap::from([(
+            "happy".to_string(),
+            vec![ExpressionVariant {
+                part: "hand_shape".into(),
+                variant: "thin".into(),
+            }],
+        )]);
+        let prepared = d.prepare().unwrap();
+        let base = &prepared.evaluate_parts(&[]).unwrap()[0];
+        assert_eq!(
+            base.outline,
+            Some(EvaluatedOutline {
+                color: [0, 0, 0, 255],
+                width: 2.0,
+                mode: OutlineMode::Behind
+            })
+        );
+        let world = prepared.world(&[]).unwrap();
+        let variant = |name: &str| {
+            let index = d.parts[0].variants.keys().position(|k| k == name).unwrap();
+            prepared.evaluate_part(0, &world, Some(index)).unwrap()
+        };
+        let thin = variant("thin").outline.unwrap();
+        assert_eq!((thin.width, thin.mode), (0.5, OutlineMode::Over));
+        assert_eq!(variant("none").outline, None);
+        assert_eq!(variant("hidden").outline, None);
+        assert_eq!(variant("round").points.len(), ELLIPSE_SEGMENTS);
+        let input = ActingInput {
+            emotion: "happy",
+            blink: false,
+        };
+        let (acting, _) = prepared.evaluate_acting(&[], input).unwrap();
+        assert_eq!(acting[0].outline.unwrap().width, 0.5);
+    }
+    #[test]
+    #[allow(clippy::type_complexity)]
+    fn invalid_shapes_rounding_and_outlines_are_rejected() {
+        let e = EllipseDefinition {
+            cx: 0.0,
+            cy: 0.0,
+            rx: 4.0,
+            ry: 4.0,
+        };
+        let cases: Vec<Box<dyn Fn(&mut RigDefinition)>> = vec![
+            // An ellipse with points, or neither.
+            Box::new(move |d| d.parts[0].ellipse = Some(e)),
+            Box::new(|d| d.parts[0].points.clear()),
+            Box::new(move |d| {
+                d.parts[0].points.clear();
+                d.parts[0].ellipse = Some(EllipseDefinition { rx: 0.0, ..e });
+            }),
+            Box::new(move |d| {
+                d.parts[0].points.clear();
+                d.parts[0].ellipse = Some(EllipseDefinition { cy: f64::NAN, ..e });
+            }),
+            Box::new(|d| d.parts[0].smooth = 1),
+            Box::new(|d| d.parts[0].smooth = MAX_SMOOTH + 1),
+            // 64 control points times 16 samples exceeds the evaluated bound.
+            Box::new(|d| {
+                d.parts[0].points = (0..64)
+                    .map(|i| {
+                        let a = std::f64::consts::TAU * f64::from(i) / 64.0;
+                        [10.0 * a.cos(), 10.0 * a.sin()]
+                    })
+                    .collect();
+                d.parts[0].smooth = 16;
+            }),
+            Box::new(|d| {
+                d.parts[0].outline = Some(OutlineDefinition {
+                    color: [0; 4],
+                    width: f64::NAN,
+                    mode: OutlineMode::Over,
+                })
+            }),
+            Box::new(|d| {
+                d.parts[0].outline = Some(OutlineDefinition {
+                    color: [0; 4],
+                    width: -1.0,
+                    mode: OutlineMode::Over,
+                })
+            }),
+            Box::new(|d| {
+                d.parts[0].outline = Some(OutlineDefinition {
+                    color: [0; 4],
+                    width: MAX_OUTLINE_WIDTH + 1.0,
+                    mode: OutlineMode::Over,
+                })
+            }),
+            Box::new(move |d| {
+                d.parts[0].variants.insert(
+                    "v".into(),
+                    PartVariantDefinition {
+                        points: Some(square()),
+                        ellipse: Some(e),
+                        ..Default::default()
+                    },
+                );
+            }),
+            Box::new(|d| {
+                d.parts[0].variants.insert(
+                    "v".into(),
+                    PartVariantDefinition {
+                        smooth: Some(99),
+                        ..Default::default()
+                    },
+                );
+            }),
+        ];
+        for (i, mutate) in cases.iter().enumerate() {
+            let mut d = definition();
+            mutate(&mut d);
+            assert_eq!(d.validate(), Err(Error::InvalidDefinition), "case {i}");
+        }
+        // Skinned parts cannot become ellipses (skin weights are per control point).
+        let mut s = skinned();
+        s.parts[0].variants.insert(
+            "v".into(),
+            PartVariantDefinition {
+                ellipse: Some(e),
+                ..Default::default()
+            },
+        );
+        assert_eq!(s.validate(), Err(Error::InvalidDefinition));
+        let mut s = skinned();
+        s.parts[0].points.clear();
+        s.parts[0].ellipse = Some(e);
+        assert_eq!(s.validate(), Err(Error::InvalidDefinition));
     }
 }
