@@ -39,6 +39,10 @@ jobs:
         run: |
           mkdir -p dist/build-inputs
           swiftc -swift-version 5 -target arm64-apple-macos13.0 services/head-pose/main.swift -o dist/head_pose -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker services/head-pose/Info.plist
+          dist/head_pose --help > dist/build-inputs/head-pose-help.txt
+          invalid_status=0
+          dist/head_pose --stream --duration 0 > dist/build-inputs/head-pose-invalid.txt 2>&1 || invalid_status=$?
+          test "$invalid_status" -eq 2
           swiftc --version > dist/build-inputs/swift.txt
           shasum -a 256 services/head-pose/main.swift services/head-pose/Info.plist > dist/build-inputs/head-pose-source.sha256
       - name: Save resolved workspace build observations

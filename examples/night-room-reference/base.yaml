@@ -1,5 +1,6 @@
 # Original, self-contained characters for the night-room reference sequence.
-# Flat cut-out rigs built only from colored polygons: no third-party art.
+# Flat cut-out rigs with bold black outlines and round shapes (ellipse parts and
+# rounded control polygons, docs/rig-outlines.md): no third-party art.
 # Scenes are generated from shots.yaml; see README.md.
 #
 # Integrated features (docs/shot-library.md): speaker-coloured captions
@@ -7,6 +8,11 @@
 # with gaze and seeded blinks, brow expressions). Lights and the animated phone
 # screen live in the project artwork built by crates/motion-export/tests/support.
 # Everything is original placeholder art awaiting human review.
+#
+# Outline modes: `behind` (silhouette parts: a later part's fill covers the
+# earlier part's outline, so a body outline sits under the head) and the default
+# `over` (facial features drawn on top of the face). Collinear extra control
+# points keep a corner tight under `smooth` (rounding spans edge midpoints).
 project:
   title: Night room reference (original art)
   fps: 24
@@ -43,27 +49,29 @@ characters:
         # World position of the hand with STAN placed at (320, 300): (333.03, 278.06).
         - {id: hand, parent: arm, x: 0, y: 32, rotation: -0.35}
       parts:
-        - {id: pyjama_top, joint: torso, points: [[-26, -62], [26, -62], [32, 12], [-32, 12]], color: [60, 100, 190, 255]}
-        - {id: football_patch_a, joint: torso, points: [[-18, -30], [-10, -34], [-3, -28], [-5, -18], [-15, -17]], color: [235, 235, 235, 255]}
-        - {id: football_patch_b, joint: torso, points: [[8, -8], [16, -12], [23, -6], [21, 3], [11, 4]], color: [235, 235, 235, 255]}
-        - {id: sleeve, joint: arm, points: [[-8, -4], [8, -4], [7, 34], [-7, 34]], color: [50, 86, 170, 255]}
-        - {id: hand_skin, joint: hand, points: [[-14, -4], [14, -4], [15, 8], [0, 12], [-15, 8]], color: [240, 196, 160, 255]}
+        - {id: pyjama_top, joint: torso, points: [[-20, -66], [20, -66], [30, -58], [32, -30], [36, 14], [-36, 14], [-32, -30], [-30, -58]], smooth: 3, color: [60, 100, 190, 255], outline: {width: 1.8, mode: behind}}
+        - {id: football_patch_a, joint: torso, points: [[-18, -30], [-10, -34], [-3, -28], [-5, -18], [-15, -17]], smooth: 3, color: [235, 235, 235, 255], outline: {width: 1.1}}
+        - {id: football_patch_b, joint: torso, points: [[8, -8], [16, -12], [23, -6], [21, 3], [11, 4]], smooth: 3, color: [235, 235, 235, 255], outline: {width: 1.1}}
+        - {id: sleeve, joint: arm, points: [[-8, -4], [8, -4], [8, 34], [-8, 34]], smooth: 3, color: [50, 86, 170, 255], outline: {width: 1.6, mode: behind}}
+        - {id: hand_skin, joint: hand, ellipse: {cx: 0, cy: 5, rx: 19.5, ry: 8.5}, color: [240, 196, 160, 255], outline: {width: 1.4, mode: behind}}
         # The phone body; its screen is an animated image layer plus a light in the
-        # project artwork (screen_glow), not a rig part.
-        - {id: phone_body, joint: hand, points: [[-16, -16], [16, -16], [16, 32], [-16, 32]], color: [28, 28, 36, 255]}
-        - {id: head_skin, joint: head, points: [[-17, 0], [-24, -16], [-22, -36], [-10, -48], [10, -48], [22, -36], [24, -16], [17, 0]], color: [240, 196, 160, 255]}
-        - {id: eye_l_outline, joint: head, points: [[-17.7625, -29.745], [-2.2375, -29.745], [-2.2375, -15.255], [-17.7625, -15.255]], color: [20, 18, 28, 255], variants: {blink: {points: [[-16.75, -23.62], [-3.25, -23.62], [-3.25, -21.38], [-16.75, -21.38]], color: [20, 18, 28, 255]}}}
-        - {id: eye_l, joint: head, points: [[-16.75, -28.8], [-3.25, -28.8], [-3.25, -16.2], [-16.75, -16.2]], color: [236, 236, 242, 255], variants: {blink: {points: [[-16.75, -23.62], [-3.25, -23.62], [-3.25, -21.38], [-16.75, -21.38]], color: [90, 60, 60, 255]}}}
-        - {id: pupil_l, joint: head, points: [[-12.5, -25.75], [-7.5, -25.75], [-7.5, -19.25], [-12.5, -19.25]], color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
-        - {id: eye_r_outline, joint: head, points: [[2.2375, -29.745], [17.7625, -29.745], [17.7625, -15.255], [2.2375, -15.255]], color: [20, 18, 28, 255], variants: {blink: {points: [[3.25, -23.62], [16.75, -23.62], [16.75, -21.38], [3.25, -21.38]], color: [20, 18, 28, 255]}}}
-        - {id: eye_r, joint: head, points: [[3.25, -28.8], [16.75, -28.8], [16.75, -16.2], [3.25, -16.2]], color: [236, 236, 242, 255], variants: {blink: {points: [[3.25, -23.62], [16.75, -23.62], [16.75, -21.38], [3.25, -21.38]], color: [90, 60, 60, 255]}}}
-        - {id: pupil_r, joint: head, points: [[7.5, -25.75], [12.5, -25.75], [12.5, -19.25], [7.5, -19.25]], color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
-        - {id: brow_l, joint: head, points: [[-16.825, -31.5], [-4.175, -31.5], [-4.175, -28.0], [-16.825, -28.0]], color: [60, 40, 40, 255], variants: {worried: {points: [[-16.825, -30.1], [-4.175, -37.1], [-4.175, -33.6], [-16.825, -26.6]]}, raised: {points: [[-16.825, -37.1], [-4.175, -37.1], [-4.175, -33.6], [-16.825, -33.6]]}, angry: {points: [[-16.825, -32.9], [-4.175, -27.3], [-4.175, -23.8], [-16.825, -29.4]]}}}
-        - {id: brow_r, joint: head, points: [[4.175, -31.5], [16.825, -31.5], [16.825, -28.0], [4.175, -28.0]], color: [60, 40, 40, 255], variants: {worried: {points: [[4.175, -37.1], [16.825, -30.1], [16.825, -26.6], [4.175, -33.6]]}, raised: {points: [[4.175, -37.1], [16.825, -37.1], [16.825, -33.6], [4.175, -33.6]]}, angry: {points: [[4.175, -27.3], [16.825, -32.9], [16.825, -29.4], [4.175, -23.8]]}}}
-        - {id: mouth, joint: head, points: [[-6, -10], [6, -10], [5, -6], [-5, -6]], color: [30, 18, 27, 255], variants: {closed: {points: [[-7, -9], [0, -8], [7, -9], [6, -7], [0, -6], [-6, -7]], color: [30, 18, 27, 255]}, teeth_lip: {points: [[-6, -10], [6, -10], [5, -5], [-5, -5]], color: [235, 225, 215, 255]}, tongue_teeth: {points: [[-5, -10], [5, -10], [5, -5], [-5, -5]], color: [210, 110, 120, 255]}, tongue_up: {points: [[-5, -11], [5, -11], [6, -5], [-6, -5]], color: [190, 90, 100, 255]}, sibilant: {points: [[-7, -9.5], [7, -9.5], [6, -6], [-6, -6]], color: [225, 210, 205, 255]}, sh: {points: [[-2, -12], [3, -12], [6, -9], [4, -4], [-3, -4], [-5, -8]], color: [30, 18, 27, 255]}, r: {points: [[-4, -12], [4, -12], [6, -9], [4, -5], [-4, -4], [-6, -8]], color: [30, 18, 27, 255]}, a: {points: [[-5, -14], [5, -14], [8, -11], [8, -5], [5, -1], [-5, -1], [-8, -5], [-8, -11]], color: [30, 18, 27, 255]}, e: {points: [[-7, -12], [6, -12], [9, -9], [7, -4], [-6, -3], [-9, -7]], color: [30, 18, 27, 255]}, i: {points: [[-9, -10], [7, -10], [10, -8], [8, -5], [-8, -5], [-10, -8]], color: [30, 18, 27, 255]}, o: {points: [[-3, -14], [3, -14], [6, -11], [7, -7], [4, -2], [-3, -2], [-6, -5], [-6, -10]], color: [30, 18, 27, 255]}, u: {points: [[-2, -12], [2, -12], [4, -10], [4, -6], [2, -4], [-2, -4], [-4, -6], [-4, -10]], color: [30, 18, 27, 255]}}}
-        - {id: beanie_crown, joint: head, points: [[-23, -46], [-19, -60], [-8, -70], [8, -70], [19, -60], [23, -46]], color: [210, 60, 70, 255]}
-        - {id: beanie_band, joint: head, points: [[-24, -46], [24, -46], [24, -38], [-24, -38]], color: [235, 225, 200, 255]}
-        - {id: pompom, joint: head, points: [[-9, -77], [-6, -83], [0, -86], [6, -83], [9, -77], [6, -71], [0, -68], [-6, -71]], color: [245, 245, 245, 255]}
+        # project artwork (screen_glow), not a rig part. Collinear points keep the
+        # corner radius small.
+        - {id: phone_body, joint: hand, points: [[-13, -16], [13, -16], [16, -16], [16, -13], [16, 29], [16, 32], [13, 32], [-13, 32], [-16, 32], [-16, 29], [-16, -13], [-16, -16]], smooth: 3, color: [28, 28, 36, 255], outline: {width: 1.4, mode: behind}}
+        - {id: head_skin, joint: head, ellipse: {cx: 0, cy: -21, rx: 28, ry: 27}, color: [240, 196, 160, 255], outline: {width: 1.8, mode: behind}}
+        # Round eyes: white with a black outline over the face, a round pupil, and
+        # a closed lid (skin-coloured, still outlined) while blinking.
+        - {id: eye_l, joint: head, ellipse: {cx: -10, cy: -22.5, rx: 9, ry: 10}, color: [244, 244, 248, 255], outline: {width: 1.4}, variants: {blink: {color: [240, 196, 160, 255]}}}
+        - {id: pupil_l, joint: head, ellipse: {cx: -10, cy: -22.5, rx: 2.8, ry: 3.4}, color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
+        - {id: eye_r, joint: head, ellipse: {cx: 10, cy: -22.5, rx: 9, ry: 10}, color: [244, 244, 248, 255], outline: {width: 1.4}, variants: {blink: {color: [240, 196, 160, 255]}}}
+        - {id: pupil_r, joint: head, ellipse: {cx: 10, cy: -22.5, rx: 2.8, ry: 3.4}, color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
+        - {id: brow_l, joint: head, points: [[-17, -35.5], [-4, -35.5], [-4, -33], [-17, -33]], smooth: 2, color: [40, 26, 26, 255], variants: {worried: {points: [[-17, -34], [-4, -40.5], [-4, -38], [-17, -31.5]]}, raised: {points: [[-17, -38.5], [-4, -38.5], [-4, -36], [-17, -36]]}, angry: {points: [[-17, -37], [-4, -31], [-4, -28.5], [-17, -34.5]]}}}
+        - {id: brow_r, joint: head, points: [[4, -35.5], [17, -35.5], [17, -33], [4, -33]], smooth: 2, color: [40, 26, 26, 255], variants: {worried: {points: [[4, -40.5], [17, -34], [17, -31.5], [4, -38]]}, raised: {points: [[4, -38.5], [17, -38.5], [17, -36], [4, -36]]}, angry: {points: [[4, -31], [17, -37], [17, -34.5], [4, -28.5]]}}}
+        # Every viseme variant inherits the rounding and the outline.
+        - {id: mouth, joint: head, points: [[-6, -8], [6, -8], [5, -4], [-5, -4]], smooth: 3, color: [30, 18, 27, 255], outline: {width: 1.0}, variants: {closed: {points: [[-7, -7], [0, -6], [7, -7], [6, -5], [0, -4], [-6, -5]], color: [30, 18, 27, 255]}, teeth_lip: {points: [[-6, -8], [6, -8], [5, -3], [-5, -3]], color: [235, 225, 215, 255]}, tongue_teeth: {points: [[-5, -8], [5, -8], [5, -3], [-5, -3]], color: [210, 110, 120, 255]}, tongue_up: {points: [[-5, -9], [5, -9], [6, -3], [-6, -3]], color: [190, 90, 100, 255]}, sibilant: {points: [[-7, -7.5], [7, -7.5], [6, -4], [-6, -4]], color: [225, 210, 205, 255]}, sh: {points: [[-2, -10], [3, -10], [6, -7], [4, -2], [-3, -2], [-5, -6]], color: [30, 18, 27, 255]}, r: {points: [[-4, -10], [4, -10], [6, -7], [4, -3], [-4, -2], [-6, -6]], color: [30, 18, 27, 255]}, a: {points: [[-5, -12], [5, -12], [8, -9], [8, -3], [5, 1], [-5, 1], [-8, -3], [-8, -9]], color: [30, 18, 27, 255]}, e: {points: [[-7, -10], [6, -10], [9, -7], [7, -2], [-6, -1], [-9, -5]], color: [30, 18, 27, 255]}, i: {points: [[-9, -8], [7, -8], [10, -6], [8, -3], [-8, -3], [-10, -6]], color: [30, 18, 27, 255]}, o: {points: [[-3, -12], [3, -12], [6, -9], [7, -5], [4, 0], [-3, 0], [-6, -3], [-6, -8]], color: [30, 18, 27, 255]}, u: {points: [[-2, -10], [2, -10], [4, -8], [4, -4], [2, -2], [-2, -2], [-4, -4], [-4, -8]], color: [30, 18, 27, 255]}}}
+        - {id: beanie_crown, joint: head, points: [[-26, -41], [26, -41], [29, -41], [28, -58], [16, -71], [-16, -71], [-28, -58], [-29, -41]], smooth: 4, color: [210, 60, 70, 255], outline: {width: 1.8, mode: behind}}
+        - {id: beanie_band, joint: head, points: [[-30, -46], [-27, -46], [27, -46], [30, -46], [30, -39], [27, -39], [-27, -39], [-30, -39]], smooth: 4, color: [235, 225, 200, 255], outline: {width: 1.6, mode: behind}}
+        - {id: pompom, joint: head, ellipse: {cx: 0, cy: -76, rx: 8.5, ry: 8}, color: [245, 245, 245, 255], outline: {width: 1.6, mode: behind}}
       visemes:
         part: mouth
         map: {closed: closed, teeth_lip: teeth_lip, tongue_teeth: tongue_teeth, tongue_up: tongue_up, sibilant: sibilant, sh: sh, r: r, a: a, e: e, i: i, o: o, u: u}
@@ -80,7 +88,7 @@ characters:
       eyes:
         pupils: [pupil_l, pupil_r]
         travel: 3
-        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r, eye_l_outline, eye_r_outline], variant: blink, interval: 2.2, duration: 0.14}
+        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r], variant: blink, interval: 2.2, duration: 0.14}
   # A father in a work shirt. The origin is his waist; feet are 110 px below.
   DAD:
     asset: characters/dad-cutout
@@ -94,27 +102,26 @@ characters:
         - {id: arm_l, parent: torso, x: -38, y: -70}
         - {id: arm_r, parent: torso, x: 38, y: -70}
       parts:
-        - {id: trousers_l, joint: root, points: [[-32, 18], [-4, 18], [-6, 110], [-30, 110]], color: [50, 50, 60, 255]}
-        - {id: trousers_r, joint: root, points: [[4, 18], [32, 18], [30, 110], [6, 110]], color: [50, 50, 60, 255]}
-        - {id: work_shirt, joint: torso, points: [[-36, -84], [36, -84], [42, 24], [-42, 24]], color: [76, 66, 65, 255]}
-        - {id: collar, joint: torso, points: [[-14, -84], [14, -84], [0, -66]], color: [44, 37, 42, 255]}
-        - {id: chest_pocket, joint: torso, points: [[10, -56], [28, -56], [28, -38], [10, -38]], color: [60, 50, 54, 255]}
-        - {id: sleeve_l, joint: arm_l, points: [[-9, -4], [9, -4], [8, 60], [-8, 60]], color: [76, 66, 65, 255]}
-        - {id: hand_l, joint: arm_l, points: [[-8, 60], [8, 60], [7, 74], [-7, 74]], color: [154, 119, 109, 255]}
-        - {id: sleeve_r, joint: arm_r, points: [[-9, -4], [9, -4], [8, 60], [-8, 60]], color: [76, 66, 65, 255]}
-        - {id: hand_r, joint: arm_r, points: [[-8, 60], [8, 60], [7, 74], [-7, 74]], color: [154, 119, 109, 255]}
-        - {id: head_skin, joint: head, points: [[-22, 0], [-30, -20], [-28, -46], [-14, -62], [14, -62], [28, -46], [30, -20], [22, 0]], color: [154, 119, 109, 255]}
-        - {id: hair, joint: head, points: [[-29, -44], [-14, -64], [14, -64], [29, -44], [24, -50], [0, -54], [-24, -50]], color: [50, 36, 30, 255]}
-        - {id: eye_l_outline, joint: head, points: [[-19.7625, -37.44], [-4.2375, -37.44], [-4.2375, -24.56], [-19.7625, -24.56]], color: [20, 18, 28, 255], variants: {blink: {points: [[-18.75, -32.12], [-5.25, -32.12], [-5.25, -29.88], [-18.75, -29.88]], color: [20, 18, 28, 255]}}}
-        - {id: eye_l, joint: head, points: [[-18.75, -36.6], [-5.25, -36.6], [-5.25, -25.4], [-18.75, -25.4]], color: [236, 236, 242, 255], variants: {blink: {points: [[-18.75, -32.12], [-5.25, -32.12], [-5.25, -29.88], [-18.75, -29.88]], color: [90, 55, 50, 255]}}}
-        - {id: pupil_l, joint: head, points: [[-14.5, -34.25], [-9.5, -34.25], [-9.5, -27.75], [-14.5, -27.75]], color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
-        - {id: eye_r_outline, joint: head, points: [[4.2375, -37.44], [19.7625, -37.44], [19.7625, -24.56], [4.2375, -24.56]], color: [20, 18, 28, 255], variants: {blink: {points: [[5.25, -32.12], [18.75, -32.12], [18.75, -29.88], [5.25, -29.88]], color: [20, 18, 28, 255]}}}
-        - {id: eye_r, joint: head, points: [[5.25, -36.6], [18.75, -36.6], [18.75, -25.4], [5.25, -25.4]], color: [236, 236, 242, 255], variants: {blink: {points: [[5.25, -32.12], [18.75, -32.12], [18.75, -29.88], [5.25, -29.88]], color: [90, 55, 50, 255]}}}
-        - {id: pupil_r, joint: head, points: [[9.5, -34.25], [14.5, -34.25], [14.5, -27.75], [9.5, -27.75]], color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
-        - {id: brow_l, joint: head, points: [[-19.975, -42.6], [-5.025, -42.6], [-5.025, -38.4], [-19.975, -38.4]], color: [50, 36, 30, 255], variants: {worried: {points: [[-19.975, -41.2], [-5.025, -48.2], [-5.025, -44.0], [-19.975, -37.0]]}, raised: {points: [[-19.975, -48.2], [-5.025, -48.2], [-5.025, -44.0], [-19.975, -44.0]]}, angry: {points: [[-19.975, -44.0], [-5.025, -38.4], [-5.025, -34.2], [-19.975, -39.8]]}}}
-        - {id: brow_r, joint: head, points: [[5.025, -42.6], [19.975, -42.6], [19.975, -38.4], [5.025, -38.4]], color: [50, 36, 30, 255], variants: {worried: {points: [[5.025, -48.2], [19.975, -41.2], [19.975, -37.0], [5.025, -44.0]]}, raised: {points: [[5.025, -48.2], [19.975, -48.2], [19.975, -44.0], [5.025, -44.0]]}, angry: {points: [[5.025, -38.4], [19.975, -44.0], [19.975, -39.8], [5.025, -34.2]]}}}
-        - {id: mouth, joint: head, points: [[-6, -6.6], [6, -6.6], [5, -3.4], [-5, -3.4]], color: [30, 18, 27, 255], variants: {closed: {points: [[-7, -5.8], [0, -5.0], [7, -5.8], [6, -4.2], [0, -3.4], [-6, -4.2]], color: [30, 18, 27, 255]}, teeth_lip: {points: [[-6, -6.6], [6, -6.6], [5, -2.6], [-5, -2.6]], color: [235, 225, 215, 255]}, tongue_teeth: {points: [[-5, -6.6], [5, -6.6], [5, -2.6], [-5, -2.6]], color: [210, 110, 120, 255]}, tongue_up: {points: [[-5, -7.4], [5, -7.4], [6, -2.6], [-6, -2.6]], color: [190, 90, 100, 255]}, sibilant: {points: [[-7, -6.2], [7, -6.2], [6, -3.4], [-6, -3.4]], color: [225, 210, 205, 255]}, sh: {points: [[-2, -8.2], [3, -8.2], [6, -5.8], [4, -1.8], [-3, -1.8], [-5, -5.0]], color: [30, 18, 27, 255]}, r: {points: [[-4, -8.2], [4, -8.2], [6, -5.8], [4, -2.6], [-4, -1.8], [-6, -5.0]], color: [30, 18, 27, 255]}, a: {points: [[-5, -9.8], [5, -9.8], [8, -7.4], [8, -2.6], [5, 0.6], [-5, 0.6], [-8, -2.6], [-8, -7.4]], color: [30, 18, 27, 255]}, e: {points: [[-7, -8.2], [6, -8.2], [9, -5.8], [7, -1.8], [-6, -1.0], [-9, -4.2]], color: [30, 18, 27, 255]}, i: {points: [[-9, -6.6], [7, -6.6], [10, -5.0], [8, -2.6], [-8, -2.6], [-10, -5.0]], color: [30, 18, 27, 255]}, o: {points: [[-3, -9.8], [3, -9.8], [6, -7.4], [7, -4.2], [4, -0.2], [-3, -0.2], [-6, -2.6], [-6, -6.6]], color: [30, 18, 27, 255]}, u: {points: [[-2, -8.2], [2, -8.2], [4, -6.6], [4, -3.4], [2, -1.8], [-2, -1.8], [-4, -3.4], [-4, -6.6]], color: [30, 18, 27, 255]}}}
-        - {id: moustache, joint: head, points: [[-14, -14], [14, -14], [11, -8], [0, -10], [-11, -8]], color: [50, 36, 30, 255]}
+        - {id: trousers_l, joint: root, points: [[-32, 18], [-4, 18], [-6, 110], [-30, 110]], smooth: 2, color: [50, 50, 60, 255], outline: {width: 1.8, mode: behind}}
+        - {id: trousers_r, joint: root, points: [[4, 18], [32, 18], [30, 110], [6, 110]], smooth: 2, color: [50, 50, 60, 255], outline: {width: 1.8, mode: behind}}
+        - {id: work_shirt, joint: torso, points: [[-28, -88], [28, -88], [40, -74], [44, 24], [-44, 24], [-40, -74]], smooth: 3, color: [76, 66, 65, 255], outline: {width: 1.8, mode: behind}}
+        - {id: collar, joint: torso, points: [[-14, -86], [14, -86], [0, -66]], color: [44, 37, 42, 255], outline: {width: 1.1}}
+        - {id: chest_pocket, joint: torso, points: [[10, -56], [28, -56], [28, -38], [10, -38]], smooth: 2, color: [60, 50, 54, 255], outline: {width: 1.1}}
+        - {id: sleeve_l, joint: arm_l, points: [[-9, -4], [9, -4], [8, 60], [-8, 60]], smooth: 3, color: [76, 66, 65, 255], outline: {width: 1.6, mode: behind}}
+        - {id: hand_l, joint: arm_l, ellipse: {cx: 0, cy: 66, rx: 8, ry: 9}, color: [154, 119, 109, 255], outline: {width: 1.4, mode: behind}}
+        - {id: sleeve_r, joint: arm_r, points: [[-9, -4], [9, -4], [8, 60], [-8, 60]], smooth: 3, color: [76, 66, 65, 255], outline: {width: 1.6, mode: behind}}
+        - {id: hand_r, joint: arm_r, ellipse: {cx: 0, cy: 66, rx: 8, ry: 9}, color: [154, 119, 109, 255], outline: {width: 1.4, mode: behind}}
+        - {id: head_skin, joint: head, ellipse: {cx: 0, cy: -30, rx: 31, ry: 32}, color: [154, 119, 109, 255], outline: {width: 1.8, mode: behind}}
+        - {id: hair, joint: head, points: [[-31, -42], [-30, -56], [-16, -67], [16, -67], [30, -56], [31, -42], [22, -52], [0, -56], [-22, -52]], smooth: 3, color: [50, 36, 30, 255], outline: {width: 1.6, mode: behind}}
+        - {id: eye_l, joint: head, ellipse: {cx: -12, cy: -31, rx: 8.5, ry: 9}, color: [244, 244, 248, 255], outline: {width: 1.4}, variants: {blink: {color: [154, 119, 109, 255]}}}
+        - {id: pupil_l, joint: head, ellipse: {cx: -12, cy: -31, rx: 2.8, ry: 3.4}, color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
+        - {id: eye_r, joint: head, ellipse: {cx: 12, cy: -31, rx: 8.5, ry: 9}, color: [244, 244, 248, 255], outline: {width: 1.4}, variants: {blink: {color: [154, 119, 109, 255]}}}
+        - {id: pupil_r, joint: head, ellipse: {cx: 12, cy: -31, rx: 2.8, ry: 3.4}, color: [30, 24, 40, 255], variants: {blink: {color: [30, 24, 40, 0]}}}
+        - {id: brow_l, joint: head, points: [[-19.975, -42.6], [-5.025, -42.6], [-5.025, -38.4], [-19.975, -38.4]], smooth: 2, color: [50, 36, 30, 255], variants: {worried: {points: [[-19.975, -41.2], [-5.025, -48.2], [-5.025, -44.0], [-19.975, -37.0]]}, raised: {points: [[-19.975, -48.2], [-5.025, -48.2], [-5.025, -44.0], [-19.975, -44.0]]}, angry: {points: [[-19.975, -44.0], [-5.025, -38.4], [-5.025, -34.2], [-19.975, -39.8]]}}}
+        - {id: brow_r, joint: head, points: [[5.025, -42.6], [19.975, -42.6], [19.975, -38.4], [5.025, -38.4]], smooth: 2, color: [50, 36, 30, 255], variants: {worried: {points: [[5.025, -48.2], [19.975, -41.2], [19.975, -37.0], [5.025, -44.0]]}, raised: {points: [[5.025, -48.2], [19.975, -48.2], [19.975, -44.0], [5.025, -44.0]]}, angry: {points: [[5.025, -38.4], [19.975, -44.0], [19.975, -39.8], [5.025, -34.2]]}}}
+        # Every viseme variant inherits the rounding and the outline.
+        - {id: mouth, joint: head, points: [[-6, -6.6], [6, -6.6], [5, -3.4], [-5, -3.4]], smooth: 3, color: [30, 18, 27, 255], outline: {width: 1.0}, variants: {closed: {points: [[-7, -5.8], [0, -5.0], [7, -5.8], [6, -4.2], [0, -3.4], [-6, -4.2]], color: [30, 18, 27, 255]}, teeth_lip: {points: [[-6, -6.6], [6, -6.6], [5, -2.6], [-5, -2.6]], color: [235, 225, 215, 255]}, tongue_teeth: {points: [[-5, -6.6], [5, -6.6], [5, -2.6], [-5, -2.6]], color: [210, 110, 120, 255]}, tongue_up: {points: [[-5, -7.4], [5, -7.4], [6, -2.6], [-6, -2.6]], color: [190, 90, 100, 255]}, sibilant: {points: [[-7, -6.2], [7, -6.2], [6, -3.4], [-6, -3.4]], color: [225, 210, 205, 255]}, sh: {points: [[-2, -8.2], [3, -8.2], [6, -5.8], [4, -1.8], [-3, -1.8], [-5, -5.0]], color: [30, 18, 27, 255]}, r: {points: [[-4, -8.2], [4, -8.2], [6, -5.8], [4, -2.6], [-4, -1.8], [-6, -5.0]], color: [30, 18, 27, 255]}, a: {points: [[-5, -9.8], [5, -9.8], [8, -7.4], [8, -2.6], [5, 0.6], [-5, 0.6], [-8, -2.6], [-8, -7.4]], color: [30, 18, 27, 255]}, e: {points: [[-7, -8.2], [6, -8.2], [9, -5.8], [7, -1.8], [-6, -1.0], [-9, -4.2]], color: [30, 18, 27, 255]}, i: {points: [[-9, -6.6], [7, -6.6], [10, -5.0], [8, -2.6], [-8, -2.6], [-10, -5.0]], color: [30, 18, 27, 255]}, o: {points: [[-3, -9.8], [3, -9.8], [6, -7.4], [7, -4.2], [4, -0.2], [-3, -0.2], [-6, -2.6], [-6, -6.6]], color: [30, 18, 27, 255]}, u: {points: [[-2, -8.2], [2, -8.2], [4, -6.6], [4, -3.4], [2, -1.8], [-2, -1.8], [-4, -3.4], [-4, -6.6]], color: [30, 18, 27, 255]}}}
+        - {id: moustache, joint: head, points: [[-14, -14], [14, -14], [11, -8], [0, -10], [-11, -8]], smooth: 2, color: [50, 36, 30, 255], outline: {width: 1.1}}
       visemes:
         part: mouth
         map: {closed: closed, teeth_lip: teeth_lip, tongue_teeth: tongue_teeth, tongue_up: tongue_up, sibilant: sibilant, sh: sh, r: r, a: a, e: e, i: i, o: o, u: u}
@@ -131,5 +138,5 @@ characters:
       eyes:
         pupils: [pupil_l, pupil_r]
         travel: 3
-        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r, eye_l_outline, eye_r_outline], variant: blink, interval: 2.3, duration: 0.14}
+        blink: {parts: [eye_l, eye_r, pupil_l, pupil_r], variant: blink, interval: 2.3, duration: 0.14}
 scenes: []

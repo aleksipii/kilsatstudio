@@ -1605,8 +1605,13 @@ impl Script {
                 return Err(fail("empty character or asset".into()));
             }
             if let Some(v) = &c.voice {
-                if v.provider != "kokoro"
-                    || !["en-us", "en-gb"].contains(&v.language.as_str())
+                let provider_language = match v.provider.as_str() {
+                    "kokoro" => ["en-us", "en-gb"].contains(&v.language.as_str()),
+                    "system" => v.language == "fi-fi" && !v.preset.starts_with("piper_"),
+                    "piper" => v.language == "fi-fi" && v.preset.starts_with("piper_"),
+                    _ => false,
+                };
+                if !provider_language
                     || !v.speed.is_finite()
                     || !(0.5..=2.0).contains(&v.speed)
                     || v.preset.is_empty()
@@ -1617,7 +1622,7 @@ impl Script {
                         .all(|b| b.is_ascii_alphanumeric() || b == b'_')
                 {
                     return Err(fail(format!(
-                        "{id}: expected kokoro, en-us/en-gb, preset of 1..128 ASCII letters/digits/underscores, and speed 0.5..2.0"
+                        "{id}: expected kokoro/en-us/en-gb, system/fi-fi (private preview), or piper/fi-fi with piper_ preset; preset 1..128 ASCII letters/digits/underscores and speed 0.5..2.0"
                     )));
                 }
             }
@@ -4320,5 +4325,27 @@ mod caption_style_tests {
             assert!(error.contains("project.captions"), "{bad}: {error}");
         }
         assert!(parse(&source(", captions: {unknown: 1}")).is_err());
+    }
+}
+
+#[cfg(test)]
+mod local_finnish_voice_boundary_tests {
+    use super::*;
+    fn source(provider: &str, preset: &str, language: &str) -> String {
+        format!("characters:\n  AINO:\n    asset: aino\n    voice: {{provider: {provider}, preset: {preset}, language: {language}, speed: 1}}\nscenes: []\n")
+    }
+    #[test]
+    fn providers_cannot_silently_cross_finnish_and_english_boundaries() {
+        assert!(parse(&source("piper", "piper_harri", "fi-fi")).is_ok());
+        assert!(parse(&source("system", "Satu", "fi-fi")).is_ok());
+        for (provider, preset, language) in [
+            ("kokoro", "af_heart", "fi-fi"),
+            ("system", "piper_harri", "fi-fi"),
+            ("piper", "Satu", "fi-fi"),
+            ("piper", "piper_harri", "en-us"),
+            ("cloud", "voice", "fi-fi"),
+        ] {
+            assert!(parse(&source(provider, preset, language)).is_err());
+        }
     }
 }

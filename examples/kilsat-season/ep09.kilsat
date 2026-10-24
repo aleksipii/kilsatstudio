@@ -1,0 +1,1385 @@
+{
+  "art": {
+    "layers": [
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line01_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line01",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line01_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line01",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line01_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line01",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line01_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line01",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line01_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line01",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line01_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line01",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line02_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line02",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line02_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line02",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line02_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line02",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line02_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line02",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line02_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line02",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line02_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line02",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line03_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line03",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line03_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line03",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line03_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line03",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line03_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line03",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line03_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line03",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line03_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line03",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line04_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line04",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line04_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line04",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line04_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line04",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line04_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line04",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line04_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line04",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line04_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line04",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line05_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line05",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line05_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line05",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line05_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line05",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line05_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line05",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line05_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line05",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line05_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line05",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "asset_id": "kilsat_example",
+          "rect": {
+            "height": 720,
+            "width": 720,
+            "x": 600,
+            "y": 180
+          },
+          "type": "image"
+        },
+        "id": "e09_kilsat_illustrative_screen",
+        "name": "illustrative_screen",
+        "opacity": 1.0,
+        "plane": "foreground",
+        "scene_id": "e09_kilsat",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line06_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line06",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line06_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line06",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line06_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line06",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line06_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line06",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line06_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line06",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line06_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line06",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line07_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line07",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line07_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line07",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line07_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line07",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line07_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line07",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line07_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line07",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line07_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line07",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line08_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line08",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line08_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line08",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line08_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line08",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line08_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line08",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line08_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line08",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_line08_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_line08",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 158,
+            "g": 174,
+            "r": 184
+          },
+          "rect": {
+            "height": 200,
+            "width": 1920,
+            "x": 0,
+            "y": 880
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_reaction_floor",
+        "name": "floor",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_reaction",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 124,
+            "g": 119,
+            "r": 95
+          },
+          "rect": {
+            "height": 10,
+            "width": 1920,
+            "x": 0,
+            "y": 872
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_reaction_skirting",
+        "name": "skirting",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_reaction",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 280,
+            "width": 380,
+            "x": 770,
+            "y": 160
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_reaction_window_frame",
+        "name": "window_frame",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_reaction",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 205,
+            "g": 201,
+            "r": 166
+          },
+          "rect": {
+            "height": 250,
+            "width": 350,
+            "x": 785,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_reaction_window",
+        "name": "window",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_reaction",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 250,
+            "width": 12,
+            "x": 955,
+            "y": 175
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_reaction_window_cross_v",
+        "name": "window_cross_v",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_reaction",
+        "visible": true
+      },
+      {
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "color": {
+            "a": 255,
+            "b": 104,
+            "g": 95,
+            "r": 75
+          },
+          "rect": {
+            "height": 12,
+            "width": 350,
+            "x": 785,
+            "y": 290
+          },
+          "type": "rectangle"
+        },
+        "id": "e09_reaction_window_cross_h",
+        "name": "window_cross_h",
+        "opacity": 1.0,
+        "plane": "background",
+        "scene_id": "e09_reaction",
+        "visible": true
+      }
+    ]
+  },
+  "assets": [
+    {
+      "id": "kilsat_example",
+      "kind": "image",
+      "path": "assets/kilsat-example.png"
+    }
+  ],
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kilsat 09 – Tehokkuuskilpailu\",\"width\":1920,\"height\":1080,\"fps\":24,\"captions\":{\"enabled\":true,\"font_size\":54,\"speaker_fill\":{\"AINO\":\"#ffdf7c\",\"RANE\":\"#ffffff\"},\"outline_width\":4,\"bottom_margin\":0.035,\"max_width\":0.9,\"line_height\":1.08,\"uppercase\":false,\"background\":\"#17232b\"}},\"characters\":{\"AINO\":{\"asset\":\"characters/aino-original\",\"default_pose\":\"idle\",\"rig\":{\"version\":1,\"id\":\"aino_original\",\"joints\":[{\"id\":\"root\",\"parent\":null},{\"id\":\"torso\",\"parent\":\"root\"},{\"id\":\"head\",\"parent\":\"torso\",\"y\":-144},{\"id\":\"arm_l\",\"parent\":\"torso\",\"x\":-43,\"y\":-103},{\"id\":\"arm_r\",\"parent\":\"torso\",\"x\":43,\"y\":-103}],\"parts\":[{\"id\":\"leg_l\",\"joint\":\"root\",\"points\":[[-30,15],[-4,15],[-7,116],[-29,116]],\"color\":[52,66,81,255],\"smooth\":2,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"leg_r\",\"joint\":\"root\",\"points\":[[4,15],[30,15],[29,116],[7,116]],\"color\":[52,66,81,255],\"smooth\":2,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"shoe_l\",\"joint\":\"root\",\"ellipse\":{\"cx\":-20,\"cy\":120,\"rx\":20,\"ry\":9},\"color\":[38,41,47,255],\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"shoe_r\",\"joint\":\"root\",\"ellipse\":{\"cx\":20,\"cy\":120,\"rx\":20,\"ry\":9},\"color\":[38,41,47,255],\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"torso\",\"joint\":\"torso\",\"points\":[[-30,-116],[30,-116],[45,-92],[43,22],[-43,22],[-45,-92]],\"color\":[42,136,132,255],\"smooth\":3,\"outline\":{\"width\":2.4,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"collar\",\"joint\":\"torso\",\"points\":[[-16,-116],[16,-116],[0,-92]],\"color\":[231,224,208,255],\"smooth\":2,\"outline\":{\"width\":1.3,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"sleeve_l\",\"joint\":\"arm_l\",\"points\":[[-11,-3],[11,-3],[10,66],[-10,66]],\"color\":[42,136,132,255],\"smooth\":3,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hand_l\",\"joint\":\"arm_l\",\"ellipse\":{\"cx\":0,\"cy\":72,\"rx\":10,\"ry\":12},\"color\":[233,184,151,255],\"outline\":{\"width\":1.8,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"sleeve_r\",\"joint\":\"arm_r\",\"points\":[[-11,-3],[11,-3],[10,66],[-10,66]],\"color\":[42,136,132,255],\"smooth\":3,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hand_r\",\"joint\":\"arm_r\",\"ellipse\":{\"cx\":0,\"cy\":72,\"rx\":10,\"ry\":12},\"color\":[233,184,151,255],\"outline\":{\"width\":1.8,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hair_back\",\"joint\":\"head\",\"ellipse\":{\"cx\":0,\"cy\":-25,\"rx\":40,\"ry\":46},\"color\":[74,45,43,255],\"outline\":{\"width\":2.2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"face\",\"joint\":\"head\",\"ellipse\":{\"cx\":0,\"cy\":-24,\"rx\":31,\"ry\":37},\"color\":[233,184,151,255],\"outline\":{\"width\":2.2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hair_top\",\"joint\":\"head\",\"points\":[[-32,-39],[-28,-57],[-12,-69],[12,-65],[29,-51],[32,-37],[12,-50],[-7,-47],[-20,-35]],\"color\":[74,45,43,255],\"smooth\":3,\"outline\":{\"width\":1.8,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"eye_l\",\"joint\":\"head\",\"ellipse\":{\"cx\":-13,\"cy\":-27,\"rx\":8.5,\"ry\":10},\"color\":[249,250,249,255],\"outline\":{\"width\":1.2,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"ellipse\":{\"cx\":-13,\"cy\":-27,\"rx\":8.5,\"ry\":1.1},\"color\":[233,184,151,255]}}},{\"id\":\"pupil_l\",\"joint\":\"head\",\"ellipse\":{\"cx\":-13,\"cy\":-26,\"rx\":3.6,\"ry\":4.6},\"color\":[36,40,47,255],\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"color\":[0,0,0,0]}}},{\"id\":\"brow_l\",\"joint\":\"head\",\"points\":[[-22,-44],[-4,-44],[-4,-40],[-22,-40]],\"color\":[74,45,43,255],\"smooth\":2,\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"raised\":{\"points\":[[-22,-52],[-4,-52],[-4,-48],[-22,-48]]},\"worried\":{\"points\":[[-22,-44],[-4,-50],[-4,-46],[-22,-40]]},\"angry\":{\"points\":[[-22,-47],[-4,-39],[-4,-35],[-22,-43]]}}},{\"id\":\"eye_r\",\"joint\":\"head\",\"ellipse\":{\"cx\":13,\"cy\":-27,\"rx\":8.5,\"ry\":10},\"color\":[249,250,249,255],\"outline\":{\"width\":1.2,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"ellipse\":{\"cx\":13,\"cy\":-27,\"rx\":8.5,\"ry\":1.1},\"color\":[233,184,151,255]}}},{\"id\":\"pupil_r\",\"joint\":\"head\",\"ellipse\":{\"cx\":13,\"cy\":-26,\"rx\":3.6,\"ry\":4.6},\"color\":[36,40,47,255],\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"color\":[0,0,0,0]}}},{\"id\":\"brow_r\",\"joint\":\"head\",\"points\":[[4,-44],[22,-44],[22,-40],[4,-40]],\"color\":[74,45,43,255],\"smooth\":2,\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"raised\":{\"points\":[[4,-52],[22,-52],[22,-48],[4,-48]]},\"worried\":{\"points\":[[4,-44],[22,-50],[22,-46],[4,-40]]},\"angry\":{\"points\":[[4,-39],[22,-47],[22,-43],[4,-35]]}}},{\"id\":\"nose\",\"joint\":\"head\",\"points\":[[0,-24],[-4,-9],[5,-9]],\"color\":[233,184,151,255],\"smooth\":2,\"outline\":{\"width\":1,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"mouth\",\"joint\":\"head\",\"ellipse\":{\"cx\":0,\"cy\":3,\"rx\":10,\"ry\":1.7},\"color\":[86,36,43,255],\"outline\":{\"width\":1.1,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"closed\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":11,\"ry\":1.4}},\"teeth_lip\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":3},\"color\":[247,239,225,255]},\"tongue_teeth\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":5}},\"tongue_up\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":11,\"ry\":6}},\"sibilant\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":12,\"ry\":3}},\"sh\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":6}},\"r\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":6}},\"a\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":11,\"ry\":11}},\"e\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":13,\"ry\":5}},\"i\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":14,\"ry\":3}},\"o\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":7,\"ry\":10}},\"u\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":5,\"ry\":7}}}}],\"visemes\":{\"part\":\"mouth\",\"map\":{\"closed\":\"closed\",\"teeth_lip\":\"teeth_lip\",\"tongue_teeth\":\"tongue_teeth\",\"tongue_up\":\"tongue_up\",\"sibilant\":\"sibilant\",\"sh\":\"sh\",\"r\":\"r\",\"a\":\"a\",\"e\":\"e\",\"i\":\"i\",\"o\":\"o\",\"u\":\"u\"}},\"expressions\":{\"happy\":[{\"part\":\"brow_l\",\"variant\":\"raised\"},{\"part\":\"brow_r\",\"variant\":\"raised\"}],\"sad\":[{\"part\":\"brow_l\",\"variant\":\"worried\"},{\"part\":\"brow_r\",\"variant\":\"worried\"}],\"surprised\":[{\"part\":\"brow_l\",\"variant\":\"raised\"},{\"part\":\"brow_r\",\"variant\":\"raised\"}],\"angry\":[{\"part\":\"brow_l\",\"variant\":\"angry\"},{\"part\":\"brow_r\",\"variant\":\"angry\"}]},\"eyes\":{\"pupils\":[\"pupil_l\",\"pupil_r\"],\"travel\":3.0,\"blink\":{\"parts\":[\"eye_l\",\"eye_r\",\"pupil_l\",\"pupil_r\"],\"variant\":\"blink\",\"interval\":3.4,\"duration\":0.13}}},\"voice\":{\"provider\":\"piper\",\"preset\":\"piper_harri\",\"language\":\"fi-fi\",\"speed\":1.0}},\"RANE\":{\"asset\":\"characters/rane-original\",\"default_pose\":\"idle\",\"rig\":{\"version\":1,\"id\":\"rane_original\",\"joints\":[{\"id\":\"root\",\"parent\":null},{\"id\":\"torso\",\"parent\":\"root\"},{\"id\":\"head\",\"parent\":\"torso\",\"y\":-144},{\"id\":\"arm_l\",\"parent\":\"torso\",\"x\":-43,\"y\":-103},{\"id\":\"arm_r\",\"parent\":\"torso\",\"x\":43,\"y\":-103}],\"parts\":[{\"id\":\"leg_l\",\"joint\":\"root\",\"points\":[[-30,15],[-4,15],[-7,116],[-29,116]],\"color\":[52,66,81,255],\"smooth\":2,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"leg_r\",\"joint\":\"root\",\"points\":[[4,15],[30,15],[29,116],[7,116]],\"color\":[52,66,81,255],\"smooth\":2,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"shoe_l\",\"joint\":\"root\",\"ellipse\":{\"cx\":-20,\"cy\":120,\"rx\":20,\"ry\":9},\"color\":[38,41,47,255],\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"shoe_r\",\"joint\":\"root\",\"ellipse\":{\"cx\":20,\"cy\":120,\"rx\":20,\"ry\":9},\"color\":[38,41,47,255],\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"torso\",\"joint\":\"torso\",\"points\":[[-30,-116],[30,-116],[45,-92],[43,22],[-43,22],[-45,-92]],\"color\":[137,83,58,255],\"smooth\":3,\"outline\":{\"width\":2.4,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"collar\",\"joint\":\"torso\",\"points\":[[-16,-116],[16,-116],[0,-92]],\"color\":[231,224,208,255],\"smooth\":2,\"outline\":{\"width\":1.3,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"sleeve_l\",\"joint\":\"arm_l\",\"points\":[[-11,-3],[11,-3],[10,66],[-10,66]],\"color\":[137,83,58,255],\"smooth\":3,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hand_l\",\"joint\":\"arm_l\",\"ellipse\":{\"cx\":0,\"cy\":72,\"rx\":10,\"ry\":12},\"color\":[202,149,118,255],\"outline\":{\"width\":1.8,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"sleeve_r\",\"joint\":\"arm_r\",\"points\":[[-11,-3],[11,-3],[10,66],[-10,66]],\"color\":[137,83,58,255],\"smooth\":3,\"outline\":{\"width\":2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hand_r\",\"joint\":\"arm_r\",\"ellipse\":{\"cx\":0,\"cy\":72,\"rx\":10,\"ry\":12},\"color\":[202,149,118,255],\"outline\":{\"width\":1.8,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"face\",\"joint\":\"head\",\"ellipse\":{\"cx\":0,\"cy\":-24,\"rx\":34,\"ry\":40},\"color\":[202,149,118,255],\"outline\":{\"width\":2.2,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"hair_top\",\"joint\":\"head\",\"points\":[[-32,-39],[-28,-57],[-12,-69],[12,-65],[29,-51],[32,-37],[12,-50],[-7,-47],[-20,-35]],\"color\":[61,56,63,255],\"smooth\":3,\"outline\":{\"width\":1.8,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"eye_l\",\"joint\":\"head\",\"ellipse\":{\"cx\":-13,\"cy\":-27,\"rx\":8.5,\"ry\":10},\"color\":[249,250,249,255],\"outline\":{\"width\":1.2,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"ellipse\":{\"cx\":-13,\"cy\":-27,\"rx\":8.5,\"ry\":1.1},\"color\":[202,149,118,255]}}},{\"id\":\"pupil_l\",\"joint\":\"head\",\"ellipse\":{\"cx\":-13,\"cy\":-26,\"rx\":3.6,\"ry\":4.6},\"color\":[36,40,47,255],\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"color\":[0,0,0,0]}}},{\"id\":\"brow_l\",\"joint\":\"head\",\"points\":[[-22,-44],[-4,-39],[-4,-35],[-22,-40]],\"color\":[61,56,63,255],\"smooth\":2,\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"raised\":{\"points\":[[-22,-52],[-4,-52],[-4,-48],[-22,-48]]},\"worried\":{\"points\":[[-22,-44],[-4,-50],[-4,-46],[-22,-40]]},\"angry\":{\"points\":[[-22,-47],[-4,-39],[-4,-35],[-22,-43]]}}},{\"id\":\"eye_r\",\"joint\":\"head\",\"ellipse\":{\"cx\":13,\"cy\":-27,\"rx\":8.5,\"ry\":10},\"color\":[249,250,249,255],\"outline\":{\"width\":1.2,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"ellipse\":{\"cx\":13,\"cy\":-27,\"rx\":8.5,\"ry\":1.1},\"color\":[202,149,118,255]}}},{\"id\":\"pupil_r\",\"joint\":\"head\",\"ellipse\":{\"cx\":13,\"cy\":-26,\"rx\":3.6,\"ry\":4.6},\"color\":[36,40,47,255],\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"blink\":{\"color\":[0,0,0,0]}}},{\"id\":\"brow_r\",\"joint\":\"head\",\"points\":[[4,-44],[22,-39],[22,-35],[4,-40]],\"color\":[61,56,63,255],\"smooth\":2,\"outline\":{\"width\":0,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"raised\":{\"points\":[[4,-52],[22,-52],[22,-48],[4,-48]]},\"worried\":{\"points\":[[4,-44],[22,-50],[22,-46],[4,-40]]},\"angry\":{\"points\":[[4,-39],[22,-47],[22,-43],[4,-35]]}}},{\"id\":\"nose\",\"joint\":\"head\",\"points\":[[0,-24],[-4,-9],[5,-9]],\"color\":[202,149,118,255],\"smooth\":2,\"outline\":{\"width\":1,\"mode\":\"behind\",\"color\":[27,28,36,255]}},{\"id\":\"mouth\",\"joint\":\"head\",\"ellipse\":{\"cx\":0,\"cy\":3,\"rx\":10,\"ry\":1.7},\"color\":[86,36,43,255],\"outline\":{\"width\":1.1,\"mode\":\"behind\",\"color\":[27,28,36,255]},\"variants\":{\"closed\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":11,\"ry\":1.4}},\"teeth_lip\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":3},\"color\":[247,239,225,255]},\"tongue_teeth\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":5}},\"tongue_up\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":11,\"ry\":6}},\"sibilant\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":12,\"ry\":3}},\"sh\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":6}},\"r\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":9,\"ry\":6}},\"a\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":11,\"ry\":11}},\"e\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":13,\"ry\":5}},\"i\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":14,\"ry\":3}},\"o\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":7,\"ry\":10}},\"u\":{\"ellipse\":{\"cx\":0,\"cy\":5,\"rx\":5,\"ry\":7}}}},{\"id\":\"tie\",\"joint\":\"torso\",\"points\":[[-7,-95],[0,-104],[7,-95],[12,-43],[0,-30],[-12,-43]],\"color\":[58,43,56,255],\"smooth\":2,\"outline\":{\"width\":1.1,\"mode\":\"behind\",\"color\":[27,28,36,255]}}],\"visemes\":{\"part\":\"mouth\",\"map\":{\"closed\":\"closed\",\"teeth_lip\":\"teeth_lip\",\"tongue_teeth\":\"tongue_teeth\",\"tongue_up\":\"tongue_up\",\"sibilant\":\"sibilant\",\"sh\":\"sh\",\"r\":\"r\",\"a\":\"a\",\"e\":\"e\",\"i\":\"i\",\"o\":\"o\",\"u\":\"u\"}},\"expressions\":{\"happy\":[{\"part\":\"brow_l\",\"variant\":\"raised\"},{\"part\":\"brow_r\",\"variant\":\"raised\"}],\"sad\":[{\"part\":\"brow_l\",\"variant\":\"worried\"},{\"part\":\"brow_r\",\"variant\":\"worried\"}],\"surprised\":[{\"part\":\"brow_l\",\"variant\":\"raised\"},{\"part\":\"brow_r\",\"variant\":\"raised\"}],\"angry\":[{\"part\":\"brow_l\",\"variant\":\"angry\"},{\"part\":\"brow_r\",\"variant\":\"angry\"}]},\"eyes\":{\"pupils\":[\"pupil_l\",\"pupil_r\"],\"travel\":3.0,\"blink\":{\"parts\":[\"eye_l\",\"eye_r\",\"pupil_l\",\"pupil_r\"],\"variant\":\"blink\",\"interval\":4.1,\"duration\":0.13}}},\"voice\":{\"provider\":\"piper\",\"preset\":\"piper_harri\",\"language\":\"fi-fi\",\"speed\":0.93}}},\"scenes\":[{\"id\":\"e09_line01\",\"duration\":4.0,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":0,\"y\":-75,\"zoom\":1.0},{\"at\":4.0,\"x\":0,\"y\":-75,\"zoom\":1.018}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.045},{\"at\":0.75,\"rotation\":-0.025},{\"at\":4.0,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.19},{\"at\":4.0,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.025},{\"at\":0.75,\"rotation\":-0.035},{\"at\":4.0,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.03},{\"at\":4.0,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"AINO\",\"value\":\"happy\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"AINO\",\"text\":\"Miten valitsit kuukauden tehokkaimman työntekijän?\",\"emotion\":\"happy\",\"audio\":null}]},{\"id\":\"e09_line02\",\"duration\":4.1,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":190,\"y\":-75,\"zoom\":1.24},{\"at\":4.1,\"x\":190,\"y\":-75,\"zoom\":1.258}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.025},{\"at\":0.75,\"rotation\":0.035},{\"at\":4.1,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.03},{\"at\":4.1,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.045},{\"at\":0.75,\"rotation\":0.025},{\"at\":4.1,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.19},{\"at\":4.1,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"RANE\",\"value\":\"happy\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"RANE\",\"text\":\"Katsoin, kuka näytti kiireiseltä pysäköintialueella.\",\"emotion\":\"happy\",\"audio\":null}]},{\"id\":\"e09_line03\",\"duration\":3.9,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":-170,\"y\":-75,\"zoom\":1.3199999999999998},{\"at\":3.9,\"x\":-170,\"y\":-75,\"zoom\":1.3379999999999999}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.045},{\"at\":0.75,\"rotation\":-0.025},{\"at\":3.9,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.19},{\"at\":3.9,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.025},{\"at\":0.75,\"rotation\":-0.035},{\"at\":3.9,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.03},{\"at\":3.9,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"AINO\",\"value\":\"surprised\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"AINO\",\"text\":\"Minä hoidin samat käynnit yhdellä kierroksella.\",\"emotion\":\"surprised\",\"audio\":null}]},{\"id\":\"e09_line04\",\"duration\":4.1,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":190,\"y\":-75,\"zoom\":1.16},{\"at\":4.1,\"x\":190,\"y\":-75,\"zoom\":1.178}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.025},{\"at\":0.75,\"rotation\":0.035},{\"at\":4.1,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.03},{\"at\":4.1,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.045},{\"at\":0.75,\"rotation\":0.025},{\"at\":4.1,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.19},{\"at\":4.1,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"RANE\",\"value\":\"happy\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"RANE\",\"text\":\"Siksi et näkynyt tarpeeksi monta kertaa ikkunastani.\",\"emotion\":\"happy\",\"audio\":null}]},{\"id\":\"e09_line05\",\"duration\":4.3,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":0,\"y\":-75,\"zoom\":1.08},{\"at\":4.3,\"x\":0,\"y\":-75,\"zoom\":1.098}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.045},{\"at\":0.75,\"rotation\":-0.025},{\"at\":4.3,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.19},{\"at\":4.3,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.025},{\"at\":0.75,\"rotation\":-0.035},{\"at\":4.3,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.03},{\"at\":4.3,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"AINO\",\"value\":\"surprised\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"AINO\",\"text\":\"Kilsatiin kirjatut kilometrit näyttävät lyhyemmän kierroksen.\",\"emotion\":\"surprised\",\"audio\":null}]},{\"id\":\"e09_kilsat\",\"duration\":3.0,\"background\":\"illustrative Kilsat screen, not actual app capture\",\"composition\":{\"background_color\":\"#213e35\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{\"AINO\":{\"visible\":false},\"RANE\":{\"visible\":false}}},\"events\":[]},{\"id\":\"e09_line06\",\"duration\":4.0,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":190,\"y\":-75,\"zoom\":1.3199999999999998},{\"at\":4.0,\"x\":190,\"y\":-75,\"zoom\":1.3379999999999999}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.025},{\"at\":0.75,\"rotation\":0.035},{\"at\":4.0,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.03},{\"at\":4.0,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.045},{\"at\":0.75,\"rotation\":0.025},{\"at\":4.0,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.19},{\"at\":4.0,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"RANE\",\"value\":\"angry\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"RANE\",\"text\":\"Tehokkuutta ei mitata kilometreillä vaan näkyvyydellä.\",\"emotion\":\"angry\",\"audio\":null}]},{\"id\":\"e09_line07\",\"duration\":4.2,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":-170,\"y\":-75,\"zoom\":1.16},{\"at\":4.2,\"x\":-170,\"y\":-75,\"zoom\":1.178}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.045},{\"at\":0.75,\"rotation\":-0.025},{\"at\":4.2,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.19},{\"at\":4.2,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":0.025},{\"at\":0.75,\"rotation\":-0.035},{\"at\":4.2,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.03},{\"at\":4.2,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"AINO\",\"value\":\"happy\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"AINO\",\"text\":\"Sitten pyöröovi voittaa seuraavan kuukauden.\",\"emotion\":\"happy\",\"audio\":null}]},{\"id\":\"e09_line08\",\"duration\":4.667,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":350,\"y\":-75,\"zoom\":1.38},{\"at\":4.667,\"x\":350,\"y\":-75,\"zoom\":1.398}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.025},{\"at\":0.75,\"rotation\":0.035},{\"at\":4.667,\"rotation\":0}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.03},{\"at\":4.667,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.28,\"rotation\":-0.045},{\"at\":0.75,\"rotation\":0.025},{\"at\":4.667,\"rotation\":0}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.19},{\"at\":4.667,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"RANE\",\"value\":\"angry\"},{\"type\":\"speak\",\"at\":0.35,\"actor\":\"RANE\",\"text\":\"Se onkin ollut poikkeuksellisen sitoutunut. Kutsun sen kehityskeskusteluun.\",\"emotion\":\"angry\",\"audio\":null}]},{\"id\":\"e09_reaction\",\"duration\":1.8,\"background\":\"toimisto\",\"composition\":{\"background_color\":\"#e6e1d6\",\"camera\":[{\"at\":0,\"x\":0,\"y\":-75,\"zoom\":1.14}],\"layers\":{\"AINO\":{\"z\":0,\"visible\":true},\"RANE\":{\"z\":1,\"visible\":true}},\"actor_tracks\":{\"AINO\":[{\"at\":0,\"x\":-350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}],\"RANE\":[{\"at\":0,\"x\":350,\"y\":44,\"scale_x\":2.2,\"scale_y\":2.2}]},\"joint_tracks\":{\"AINO\":{\"head\":[{\"at\":0},{\"at\":0.55,\"rotation\":-0.065},{\"at\":1.8}],\"arm_l\":[{\"at\":0},{\"at\":0.45,\"rotation\":0.03},{\"at\":1.8,\"rotation\":0}]},\"RANE\":{\"head\":[{\"at\":0},{\"at\":0.7,\"rotation\":0.075},{\"at\":1.8}],\"arm_r\":[{\"at\":0},{\"at\":0.45,\"rotation\":-0.03},{\"at\":1.8,\"rotation\":0}]}},\"gaze_tracks\":{\"AINO\":[{\"at\":0,\"target\":\"RANE\"},{\"at\":0.6,\"x\":960,\"y\":50}],\"RANE\":[{\"at\":0,\"target\":\"AINO\"}]}},\"events\":[{\"type\":\"emotion\",\"at\":0,\"actor\":\"AINO\",\"value\":\"surprised\"},{\"type\":\"emotion\",\"at\":0,\"actor\":\"RANE\",\"value\":\"angry\"}]}]}"
+}

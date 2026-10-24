@@ -4,6 +4,8 @@ pub mod captions;
 #[cfg(feature = "gpu")]
 pub mod gpu;
 #[cfg(feature = "gpu")]
+mod gpu_captions;
+#[cfg(feature = "gpu")]
 pub mod gpu_scene;
 #[cfg(feature = "gpu")]
 pub mod scene_commands;
@@ -116,6 +118,30 @@ fn append_rig_texture(
     Ok(())
 }
 
+/// One closed outline stroke with round joins (no miter spikes on sharp or
+/// finely rounded corners). `stroke_width` is the full SVG stroke width; modes
+/// drawn beneath a fill pass twice the visible band.
+fn append_outline(
+    svg: &mut String,
+    part: &motion_rig::EvaluatedPart,
+    color: [u8; 4],
+    stroke_width: f64,
+) {
+    svg.push_str("<polygon points=\"");
+    for point in &part.points {
+        write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
+    }
+    write!(
+        svg,
+        "\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{:.6}\" stroke-width=\"{stroke_width:.6}\" stroke-linejoin=\"round\"/>",
+        color[0],
+        color[1],
+        color[2],
+        f64::from(color[3]) / 255.0
+    )
+    .unwrap();
+}
+
 pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) -> Result<(), Error> {
     if [scene.width, scene.height, width, height]
         .iter()
@@ -156,8 +182,12 @@ pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) ->
             })
             || actor.rigid_parts.len() > 256
             || actor.rigid_parts.iter().any(|part| {
-                !(3..=64).contains(&part.points.len())
+                !(3..=motion_rig::MAX_EVALUATED_POINTS).contains(&part.points.len())
                     || bad_texture(part)
+                    || part.outline.is_some_and(|o| {
+                        !o.width.is_finite()
+                            || !(0.0..=motion_rig::MAX_OUTLINE_WIDTH).contains(&o.width)
+                    })
                     || part.points.iter().any(|p| {
                         !p.x.is_finite()
                             || !p.y.is_finite()
@@ -248,7 +278,17 @@ fn render_scene(
             .unwrap();
         }
         if !actor.rigid_parts.is_empty() {
+            use motion_rig::OutlineMode;
+            // Silhouette outlines first, beneath every fill of this actor.
+            for part in &actor.rigid_parts {
+                if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Silhouette) {
+                    append_outline(&mut svg, part, o.color, o.width * 2.0);
+                }
+            }
             for (part_index, part) in actor.rigid_parts.iter().enumerate() {
+                if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Behind) {
+                    append_outline(&mut svg, part, o.color, o.width * 2.0);
+                }
                 svg.push_str("<polygon points=\"");
                 for point in &part.points {
                     write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
@@ -269,6 +309,9 @@ fn render_scene(
                     rig_images,
                     &mut embedded_rig_bytes,
                 )?;
+                if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Over) {
+                    append_outline(&mut svg, part, o.color, o.width);
+                }
             }
         } else {
             let p = &actor.skeleton;
@@ -714,6 +757,91 @@ fn hex(color: &motion_art::Color) -> String {
     format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
 }
 
+pub(crate) struct SampledRadialLight {
+    pub position: motion_art::Point,
+    pub rgb: [f64; 3],
+    pub alpha: f64,
+}
+
+pub(crate) fn sample_radial_light(
+    scene: &EvaluatedScene,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    light: &motion_art::Light,
+) -> Result<Option<SampledRadialLight>, Error> {
+    let motion_art::LightSource::Radial {
+        color,
+        intensity,
+        attachment,
+        screen_glow,
+        ..
+    } = &light.source
+    else {
+        return Ok(None);
+    };
+    let mut position = light.sample_position(scene.time).expect("radial light");
+    let mut rgb = [
+        f64::from(color.r) / 255.0,
+        f64::from(color.g) / 255.0,
+        f64::from(color.b) / 255.0,
+    ];
+    let mut alpha = intensity * light.flicker_factor(scene.time);
+    if let Some(id) = attachment {
+        match scene.actors.iter().find(|a| &a.id == id) {
+            Some(a) => {
+                position.x += a.x;
+                position.y += a.y;
+            }
+            None => return Ok(None),
+        }
+    }
+    if let Some(glow) = screen_glow {
+        let Some(prop) = document
+            .layers
+            .iter()
+            .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
+        else {
+            return Ok(None);
+        };
+        let (asset_id, rect) = match &prop.content {
+            motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
+            motion_art::Content::AnimatedImage { rect, .. } => {
+                (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
+            }
+            _ => return Ok(None),
+        };
+        let image = images
+            .get(asset_id)
+            .ok_or_else(|| Error::InvalidArtwork(format!("missing decoded image {asset_id}")))?;
+        let avg = image.average_rgb();
+        let peak = avg.iter().cloned().fold(0.0, f64::max);
+        if peak <= 0.0 {
+            return Ok(None);
+        }
+        let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
+        for (channel, value) in rgb.iter_mut().enumerate() {
+            *value += (avg[channel] / peak - *value) * glow.tint;
+        }
+        alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
+        position.x += rect.x + rect.width / 2.0;
+        position.y += rect.y + rect.height / 2.0;
+        if let Some(owner) = &prop.attachment {
+            match scene.actors.iter().find(|a| &a.id == owner) {
+                Some(a) => {
+                    position.x += a.x;
+                    position.y += a.y;
+                }
+                None => return Ok(None),
+            }
+        }
+    }
+    Ok(Some(SampledRadialLight {
+        position,
+        rgb,
+        alpha,
+    }))
+}
+
 /// Lights on the selected side of the actors. Ambient tint and vignette are canvas-space
 /// (outside the camera); radial lights live in scene space under `camera`.
 /// Ambient/vignette come first so glows stay bright over a darkened room.
@@ -757,72 +885,20 @@ fn append_lights(
             radius,
             aspect,
             softness,
-            color,
-            intensity,
             blend,
-            attachment,
-            screen_glow,
             ..
         } = &light.source
         else {
             continue;
         };
-        let mut position = light.sample_position(scene.time).expect("radial light");
-        let mut rgb = [
-            f64::from(color.r) / 255.0,
-            f64::from(color.g) / 255.0,
-            f64::from(color.b) / 255.0,
-        ];
-        let mut alpha = intensity * light.flicker_factor(scene.time);
-        if let Some(id) = attachment {
-            match scene.actors.iter().find(|a| &a.id == id) {
-                Some(a) => {
-                    position.x += a.x;
-                    position.y += a.y;
-                }
-                None => continue,
-            }
-        }
-        if let Some(glow) = screen_glow {
-            let Some(prop) = document
-                .layers
-                .iter()
-                .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
-            else {
-                continue;
-            };
-            let (asset_id, rect) = match &prop.content {
-                motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
-                motion_art::Content::AnimatedImage { rect, .. } => {
-                    (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
-                }
-                _ => continue,
-            };
-            let image = images.get(asset_id).ok_or_else(|| {
-                Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
-            })?;
-            let avg = image.average_rgb();
-            let peak = avg.iter().cloned().fold(0.0, f64::max);
-            if peak <= 0.0 {
-                continue;
-            }
-            let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
-            for (channel, value) in rgb.iter_mut().enumerate() {
-                *value += (avg[channel] / peak - *value) * glow.tint;
-            }
-            alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
-            position.x += rect.x + rect.width / 2.0;
-            position.y += rect.y + rect.height / 2.0;
-            if let Some(owner) = &prop.attachment {
-                match scene.actors.iter().find(|a| &a.id == owner) {
-                    Some(a) => {
-                        position.x += a.x;
-                        position.y += a.y;
-                    }
-                    None => continue,
-                }
-            }
-        }
+        let Some(sample) = sample_radial_light(scene, document, images, light)? else {
+            continue;
+        };
+        let SampledRadialLight {
+            position,
+            rgb,
+            alpha,
+        } = sample;
         if !opened {
             write!(svg, "<g transform=\"{camera}\">").unwrap();
             opened = true;
@@ -924,11 +1000,41 @@ mod tests {
         assert!(svg.contains("fill=\"#142850\" fill-opacity=\"0.501961\""));
         assert!(svg.contains("rotate(90.000000)"));
         assert!(!svg.contains("<circle r=\"25\""));
+        // Legacy rigs: no outline strokes and no new serialized fields.
+        assert!(!svg.contains("stroke-linejoin"));
+        let rig = serde_json::to_value(script.characters["PUPPET"].rig.as_ref().unwrap()).unwrap();
+        let keys =
+            |v: &serde_json::Value| v.as_object().unwrap().keys().cloned().collect::<Vec<_>>();
+        assert_eq!(keys(&rig), ["id", "joints", "parts", "version"]);
+        assert_eq!(keys(&rig["parts"][0]), ["color", "id", "joint", "points"]);
         evaluated.actors[0].rigid_parts[0].points[0].x = f64::NAN;
         assert_eq!(
             render_svg(&evaluated, 640, 360),
             Err(Error::InvalidActor(0))
         );
+    }
+    #[test]
+    fn outline_modes_order_strokes_around_fills() {
+        let source = "characters:\n  PUPPET:\n    asset: custom\n    rig:\n      version: 1\n      id: puppet\n      joints: [{id: root, parent: null}]\n      parts:\n        - {id: a, joint: root, points: [[0,0],[10,0],[0,10]], color: [1,1,1,255], outline: {width: 2, mode: behind}}\n        - {id: b, joint: root, ellipse: {rx: 5, ry: 4}, color: [2,2,2,255], outline: {width: 1, color: [9,8,7,128]}}\n        - {id: c, joint: root, points: [[0,0],[10,0],[10,10],[0,10]], smooth: 2, color: [3,3,3,255], outline: {width: 3, mode: silhouette}}\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        let script = motion_script::parse(source).unwrap();
+        let evaluated = motion_scene::evaluate(&script, 0, 0.5).unwrap();
+        let svg = render_svg(&evaluated, 640, 360).unwrap();
+        let at = |needle: &str| svg.find(needle).unwrap_or_else(|| panic!("{needle}"));
+        let silhouette = at("stroke-width=\"6.000000\"");
+        let behind = at("stroke-width=\"4.000000\"");
+        let fill_a = at("fill=\"#010101\"");
+        let fill_b = at("fill=\"#020202\"");
+        let over = at("stroke=\"#090807\" stroke-opacity=\"0.501961\" stroke-width=\"1.000000\"");
+        let fill_c = at("fill=\"#030303\"");
+        assert!(silhouette < behind && behind < fill_a && fill_a < fill_b);
+        assert!(fill_b < over && over < fill_c);
+        assert_eq!(svg.matches("stroke-linejoin=\"round\"").count(), 3);
+        // Ellipse and rounded parts are dense polygons.
+        let parts = &evaluated.actors[0].rigid_parts;
+        assert_eq!((parts[1].points.len(), parts[2].points.len()), (48, 8));
+        let mut bad = evaluated.clone();
+        bad.actors[0].rigid_parts[0].outline.as_mut().unwrap().width = f64::INFINITY;
+        assert_eq!(render_svg(&bad, 640, 360), Err(Error::InvalidActor(0)));
     }
     #[test]
     fn deterministic_geometry_and_letterbox() {

@@ -1,10 +1,12 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
 pub mod definition;
 pub use definition::{
-    ActingInput, BlinkDefinition, EvaluatedPart, EvaluatedTexture, ExpressionVariant,
-    EyesDefinition, MouthShapes, PartTextureDefinition, PartVariantDefinition, PreparedRig,
+    round_corners, ActingInput, BlinkDefinition, EllipseDefinition, EvaluatedOutline,
+    EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, MouthShapes,
+    OutlineDefinition, OutlineMode, PartTextureDefinition, PartVariantDefinition, PreparedRig,
     RigDefinition, RigJointDefinition, RigidPartDefinition, VertexWeight, VisemeMapDefinition,
-    EMOTION_NAMES, VISEME_NAMES,
+    ELLIPSE_SEGMENTS, EMOTION_NAMES, MAX_EVALUATED_POINTS, MAX_OUTLINE_WIDTH, MAX_SMOOTH,
+    VISEME_NAMES,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {
