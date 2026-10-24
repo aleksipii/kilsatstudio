@@ -17,34 +17,70 @@ impl Draft {
 
     /// Request application; the caller validates and commits the document.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.label(format!("Voice: {}", self.actor));
+        ui.label(format!("Hahmon ääni: {}", self.actor));
         let mut enabled = self.voice.is_some();
-        if ui.checkbox(&mut enabled, "Enable Kokoro voice").changed() {
+        if ui
+            .checkbox(&mut enabled, "Käytä paikallista puheääntä")
+            .changed()
+        {
             self.voice = enabled.then(default_voice);
         }
         if let Some(voice) = &mut self.voice {
-            // This editor only configures the approved local Kokoro provider.
-            voice.provider = "kokoro".into();
-            ui.label("Provider: kokoro (local)");
-            ui.label("Voice preset");
-            ui.add(egui::TextEdit::singleline(&mut voice.preset).char_limit(128));
-            ui.horizontal(|ui| {
-                for preset in ["af_heart", "am_michael"] {
-                    if ui.button(preset).clicked() {
-                        voice.preset = preset.into();
+            let before = voice.provider.clone();
+            egui::ComboBox::from_label("Puhepalvelu")
+                .selected_text(&voice.provider)
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut voice.provider, "kokoro".into(), "Kokoro · englanti");
+                    ui.selectable_value(&mut voice.provider, "piper".into(), "Piper · suomi");
+                    ui.selectable_value(
+                        &mut voice.provider,
+                        "system".into(),
+                        "macOS · yksityinen esikatselu",
+                    );
+                });
+            if before != voice.provider {
+                match voice.provider.as_str() {
+                    "piper" => {
+                        voice.language = "fi-fi".into();
+                        voice.preset = "piper_harri".into();
+                    }
+                    "system" => {
+                        voice.language = "fi-fi".into();
+                        voice.preset.clear();
+                    }
+                    _ => {
                         voice.language = "en-us".into();
+                        voice.preset = "af_heart".into();
                     }
                 }
-            });
-            egui::ComboBox::from_label("Language")
-                .selected_text(&voice.language)
-                .show_ui(ui, |ui| {
-                    for language in ["en-us", "en-gb"] {
-                        ui.selectable_value(&mut voice.language, language.into(), language);
+            }
+            ui.label("Äänen tunnus (asennettava erikseen)");
+            ui.add(egui::TextEdit::singleline(&mut voice.preset).char_limit(128));
+            if voice.provider == "kokoro" {
+                ui.horizontal(|ui| {
+                    for preset in ["af_heart", "am_michael"] {
+                        if ui.button(preset).clicked() {
+                            voice.preset = preset.into();
+                        }
                     }
                 });
+                egui::ComboBox::from_label("Kieli")
+                    .selected_text(&voice.language)
+                    .show_ui(ui, |ui| {
+                        for language in ["en-us", "en-gb"] {
+                            ui.selectable_value(&mut voice.language, language.into(), language);
+                        }
+                    });
+            } else {
+                ui.label("Kieli: suomi (fi-fi)");
+                if voice.provider == "system" {
+                    ui.colored_label(egui::Color32::YELLOW,"Vain yksityinen esikatselu. Valitse asennettu ääni Puhe-välilehden hakutoiminnolla.");
+                } else {
+                    ui.weak("Anna Piper-asetustiedoston polku Puhe-välilehdellä. Sovellus ei lataa mallia eikä myönnä julkaisuoikeuksia.");
+                }
+            }
             ui.horizontal(|ui| {
-                ui.label("Speech speed");
+                ui.label("Puheen nopeus");
                 ui.add(
                     egui::DragValue::new(&mut voice.speed)
                         .range(0.5..=2.0)
@@ -57,7 +93,7 @@ impl Draft {
             ui.small("Disabling voice is valid only when all this character's dialogue lines use imported audio.");
         }
         ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
-        ui.button("Apply voice").clicked()
+        ui.button("Käytä ääniasetuksia").clicked()
     }
 }
 

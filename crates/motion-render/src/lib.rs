@@ -4,6 +4,8 @@ pub mod captions;
 #[cfg(feature = "gpu")]
 pub mod gpu;
 #[cfg(feature = "gpu")]
+mod gpu_captions;
+#[cfg(feature = "gpu")]
 pub mod gpu_scene;
 #[cfg(feature = "gpu")]
 pub mod scene_commands;
@@ -755,6 +757,91 @@ fn hex(color: &motion_art::Color) -> String {
     format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
 }
 
+pub(crate) struct SampledRadialLight {
+    pub position: motion_art::Point,
+    pub rgb: [f64; 3],
+    pub alpha: f64,
+}
+
+pub(crate) fn sample_radial_light(
+    scene: &EvaluatedScene,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    light: &motion_art::Light,
+) -> Result<Option<SampledRadialLight>, Error> {
+    let motion_art::LightSource::Radial {
+        color,
+        intensity,
+        attachment,
+        screen_glow,
+        ..
+    } = &light.source
+    else {
+        return Ok(None);
+    };
+    let mut position = light.sample_position(scene.time).expect("radial light");
+    let mut rgb = [
+        f64::from(color.r) / 255.0,
+        f64::from(color.g) / 255.0,
+        f64::from(color.b) / 255.0,
+    ];
+    let mut alpha = intensity * light.flicker_factor(scene.time);
+    if let Some(id) = attachment {
+        match scene.actors.iter().find(|a| &a.id == id) {
+            Some(a) => {
+                position.x += a.x;
+                position.y += a.y;
+            }
+            None => return Ok(None),
+        }
+    }
+    if let Some(glow) = screen_glow {
+        let Some(prop) = document
+            .layers
+            .iter()
+            .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
+        else {
+            return Ok(None);
+        };
+        let (asset_id, rect) = match &prop.content {
+            motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
+            motion_art::Content::AnimatedImage { rect, .. } => {
+                (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
+            }
+            _ => return Ok(None),
+        };
+        let image = images
+            .get(asset_id)
+            .ok_or_else(|| Error::InvalidArtwork(format!("missing decoded image {asset_id}")))?;
+        let avg = image.average_rgb();
+        let peak = avg.iter().cloned().fold(0.0, f64::max);
+        if peak <= 0.0 {
+            return Ok(None);
+        }
+        let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
+        for (channel, value) in rgb.iter_mut().enumerate() {
+            *value += (avg[channel] / peak - *value) * glow.tint;
+        }
+        alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
+        position.x += rect.x + rect.width / 2.0;
+        position.y += rect.y + rect.height / 2.0;
+        if let Some(owner) = &prop.attachment {
+            match scene.actors.iter().find(|a| &a.id == owner) {
+                Some(a) => {
+                    position.x += a.x;
+                    position.y += a.y;
+                }
+                None => return Ok(None),
+            }
+        }
+    }
+    Ok(Some(SampledRadialLight {
+        position,
+        rgb,
+        alpha,
+    }))
+}
+
 /// Lights on the selected side of the actors. Ambient tint and vignette are canvas-space
 /// (outside the camera); radial lights live in scene space under `camera`.
 /// Ambient/vignette come first so glows stay bright over a darkened room.
@@ -798,72 +885,20 @@ fn append_lights(
             radius,
             aspect,
             softness,
-            color,
-            intensity,
             blend,
-            attachment,
-            screen_glow,
             ..
         } = &light.source
         else {
             continue;
         };
-        let mut position = light.sample_position(scene.time).expect("radial light");
-        let mut rgb = [
-            f64::from(color.r) / 255.0,
-            f64::from(color.g) / 255.0,
-            f64::from(color.b) / 255.0,
-        ];
-        let mut alpha = intensity * light.flicker_factor(scene.time);
-        if let Some(id) = attachment {
-            match scene.actors.iter().find(|a| &a.id == id) {
-                Some(a) => {
-                    position.x += a.x;
-                    position.y += a.y;
-                }
-                None => continue,
-            }
-        }
-        if let Some(glow) = screen_glow {
-            let Some(prop) = document
-                .layers
-                .iter()
-                .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
-            else {
-                continue;
-            };
-            let (asset_id, rect) = match &prop.content {
-                motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
-                motion_art::Content::AnimatedImage { rect, .. } => {
-                    (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
-                }
-                _ => continue,
-            };
-            let image = images.get(asset_id).ok_or_else(|| {
-                Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
-            })?;
-            let avg = image.average_rgb();
-            let peak = avg.iter().cloned().fold(0.0, f64::max);
-            if peak <= 0.0 {
-                continue;
-            }
-            let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
-            for (channel, value) in rgb.iter_mut().enumerate() {
-                *value += (avg[channel] / peak - *value) * glow.tint;
-            }
-            alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
-            position.x += rect.x + rect.width / 2.0;
-            position.y += rect.y + rect.height / 2.0;
-            if let Some(owner) = &prop.attachment {
-                match scene.actors.iter().find(|a| &a.id == owner) {
-                    Some(a) => {
-                        position.x += a.x;
-                        position.y += a.y;
-                    }
-                    None => continue,
-                }
-            }
-        }
+        let Some(sample) = sample_radial_light(scene, document, images, light)? else {
+            continue;
+        };
+        let SampledRadialLight {
+            position,
+            rgb,
+            alpha,
+        } = sample;
         if !opened {
             write!(svg, "<g transform=\"{camera}\">").unwrap();
             opened = true;

@@ -492,6 +492,21 @@ fn polygon(p: vec2<f32>, offset: u32, count: u32) -> f32 {
  }
  return select(distance,-distance,winding!=0i);
 }
+fn compound_polygon(p: vec2<f32>, offset: u32, contours: u32) -> f32 {
+ var cursor=offset; var winding=0i; var distance=10000000.;
+ for(var contour=0u;contour<contours;contour=contour+1u) {
+  let count=u32(points[cursor].x); cursor=cursor+1u;
+  for(var i=0u;i<count;i=i+1u) {
+   let a=points[cursor+i];let b=points[cursor+(i+1u)%count];let edge=b-a;let delta=p-a;
+   let t=clamp(dot(delta,edge)/max(dot(edge,edge),.0000001),0.,1.);distance=min(distance,length(delta-edge*t));
+   let cross=edge.x*delta.y-delta.x*edge.y;
+   if a.y<=p.y && b.y>p.y && cross>0. {winding=winding+1i;}
+   if a.y>p.y && b.y<=p.y && cross<0. {winding=winding-1i;}
+  }
+  cursor=cursor+count;
+ }
+ return select(distance,-distance,winding!=0i);
+}
 fn erfc_approx(x: f32) -> f32 {
  // Abramowitz and Stegun 7.1.26, maximum absolute error about 1.5e-7.
  let t=1./(1.+.3275911*abs(x));
@@ -550,6 +565,14 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    colors[0]=vec4(s.color.rgb,1.); depth=0u; continue;
   }
   if !inside_canvas { continue; }
+  if kind>24.5 && kind<25.5 {
+   let padding=s.parameters.y+1.;
+   if any(p<s.inverse.xy-vec2(padding)) || any(p>s.inverse.zw+vec2(padding)) {continue;}
+   var distance=compound_polygon(p,u32(s.origin.x),u32(s.origin.y));
+   if s.parameters.y>0. {distance=abs(distance)-s.parameters.y;}
+   let coverage=1.-smoothstep(-.75,.75,distance);
+   colors[depth]=over(vec4(s.color.rgb,coverage*s.color.a),colors[depth],0.);continue;
+  }
   let local=vec2(s.inverse.x*p.x+s.inverse.z*p.y,s.inverse.y*p.x+s.inverse.w*p.y)+s.origin.xy;
   if kind>7.5 && kind<8.5 {
    depth=depth+1u; colors[depth]=vec4(0.); masks[depth]=1.;
@@ -615,6 +638,25 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    if s.color.x>.5 { coverage=dot(value.rgb,vec3(.2125,.7154,.0721))*value.a; }
    masks[depth]=masks[depth]*coverage; continue;
   }
+  if kind>21.5 && kind<24.5 {
+   var amount=1.;
+   if kind>22.5 && kind<23.5 {
+    let radius=length((local-s.geometry.xy-s.geometry.zw*.5)/s.geometry.zw)/.707107;
+    amount=clamp((radius-s.parameters.z)/max(1.-s.parameters.z,.000001),0.,1.);
+   }
+   if kind>23.5 {
+    let radius=length((local-s.geometry.xy)/s.geometry.zw);
+    if radius>1. {continue;}
+    let softness=s.parameters.z;
+    if softness>0. {
+     let q=clamp((radius-(1.-softness))/softness*6.,0.,6.);
+     let lo=floor(q)/6.; let hi=min(floor(q)+1.,6.)/6.;
+     let a=1.-lo*lo*(3.-2.*lo); let b=1.-hi*hi*(3.-2.*hi);
+     amount=mix(a,b,fract(q));
+    } else {amount=1.-smoothstep(-s.origin.z,s.origin.z,(radius-1.)*min(s.geometry.z,s.geometry.w));}
+   }
+   colors[depth]=over(vec4(s.color.rgb,s.color.a*amount),colors[depth],s.parameters.y);continue;
+  }
   if kind>4.5 && kind<5.5 { colors[depth]=over(image_color(local,s),colors[depth],0.); continue; }
   var distance=0.;
   if kind>3.5 && kind<4.5 {
@@ -628,6 +670,7 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
     let t=clamp(dot(local-a,delta)/max(dot(delta,delta),.0000001),0.,1.);
     distance=min(distance,length(local-a-delta*t)-s.geometry.z);
    }
+  } else if kind>20.5 && kind<21.5 { distance=abs(polygon(local,u32(s.geometry.x),u32(s.geometry.y)))-s.geometry.z;
   } else if kind>6.5 && kind<7.5 { distance=polygon(local,u32(s.geometry.x),u32(s.geometry.y));
   } else { distance=distance_to_shape(local,s); }
   let coverage=1.-smoothstep(-s.origin.z,s.origin.z,distance);

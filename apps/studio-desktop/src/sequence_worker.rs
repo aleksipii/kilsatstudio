@@ -29,6 +29,7 @@ pub struct PrepareRequest {
     pub script: Script,
     pub root: PathBuf,
     pub config: KokoroConfig,
+    pub piper_config: Option<PathBuf>,
     pub alignments: String,
     pub art: ArtContext,
     pub cancel: CancellationToken,
@@ -37,6 +38,7 @@ pub enum ExportFormat {
     Png,
     Svg,
     Mp4 { ffmpeg: PathBuf },
+    StreamingMp4 { ffmpeg: PathBuf },
 }
 
 pub enum Task {
@@ -233,6 +235,23 @@ fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
                 })
             };
             let result = match format {
+                ExportFormat::StreamingMp4 { ffmpeg } => {
+                    motion_export::export_mp4_sequence_streaming(
+                        &prepared.script,
+                        &prepared.rendered,
+                        Some(&prepared.art),
+                        &destination,
+                        &ffmpeg,
+                        &motion_export::StreamingProfile::full_hd_24(),
+                        &cancel,
+                        report,
+                        captions,
+                    )
+                    .map(|r| Report {
+                        frame_count: r.frame_count,
+                        output_directory: r.output_directory,
+                    })
+                }
                 ExportFormat::Mp4 { ffmpeg } => motion_export::export_mp4_sequence_captions(
                     &prepared.script,
                     &prepared.rendered,
@@ -300,9 +319,10 @@ fn prepare(
     if let Some(id) = inputs.keys().find(|id| !jobs.iter().any(|j| j.id == **id)) {
         return Err(format!("Unknown project alignment dialogue ID {id}"));
     }
-    let provider = motion_tts::KokoroProvider {
-        config: request.config.clone(),
-    };
+    let mut provider = motion_tts::LocalSpeechProvider::new(request.config.clone());
+    if let Some(path) = &request.piper_config {
+        provider = provider.with_piper_config_path(path.clone());
+    }
     let cache = AlignmentCache::new(request.config.cache_directory.join("alignments"));
     let Stages {
         rendered,
@@ -542,7 +562,7 @@ mod tests {
                 voices_directory: "/never-execute/voices".into(), cache_directory: std::env::temp_dir().join("sequence-test-unused-cache"),
                 model_version: "test".into(), timeout: Duration::from_secs(1),
             },
-            alignments: String::new(), art: ArtContext::default(), cancel: CancellationToken::default(),
+            piper_config: None, alignments: String::new(), art: ArtContext::default(), cancel: CancellationToken::default(),
         }
     }
     fn finish(worker: &Worker) -> Update {

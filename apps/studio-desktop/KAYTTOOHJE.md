@@ -113,7 +113,7 @@ Valitse hahmon ääni ja paina Valmistele kohtauksen ääni. Odota valmistumista
 paina alhaalta Toista ääni. Kokoron testipuhe on erillinen asennustesti;
 se ei lisää vuorosanaa kohtaukseen.
 
-Suomenkielinen Kokoro-puhe ei ole tässä versiossa tuettu. Tuo oma paikallinen
+Kokoro ei tue suomea. Suomenkielinen paikallinen Piper-polku on luvussa 11. Voit myös tuoda oman paikallisen
 WAV-äänite valitun Speak-tapahtuman asetuksissa: valitse repliikki aikajanalta ja
 avaa Muokkaa. Aseta äänitteen polku sekä tarvittava ajoitus. Valmistele ääni sen
 jälkeen uudelleen. Tarkista suun ajoitus kuuntelemalla; tekstistä arvioitu ajoitus
@@ -172,3 +172,44 @@ Lisäasetukset-välilehdeltä. Ne eivät ole tarpeen ensimmäisen hahmoliikkeen 
 Mac-lataus: pura ladattu ZIP ja mahdollinen sen sisällä oleva ZIP. Avaa Kilsat
 Studio Preview.app Finderissä. Lataaminen ei käynnistä sovellusta. Jos macOS
 estää avaamisen, tarkista Tietosuoja ja suojaus -asetusten Avaa silti -toiminto.
+
+
+## 11. Puheeseen ajoitettu ohjaus ja Full HD
+
+Luo animaatio vuorosanoista -osiossa Ohjaa oikean puheen mukaan valmistaa
+repliikkien oikeat WAV-äänet taustalla, mittaa näytemäärät ja lisää muokattavat
+otokset, reaktiot ja kamerat. Voit antaa kullekin repliikille oman 24 kHz mono
+PCM16 -WAVin. Tyhjä polku käyttää hahmon paikallista puheääntä. Anna ensin
+olemassa oleva projektikansio; mitatut äänet tallentuvat sen assets-kansioon.
+Kumoa palauttaa lähteen mutta ei poista tuotettuja WAV-tiedostoja.
+
+Suomen puhetta varten valitse oikealta Puhe → hahmon puheääni → Piper, kieli
+fi-fi ja asennetun profiilin tunnus, esimerkiksi piper_harri. Anna Piperin
+asetustiedoston koko polku samalle välilehdelle. Malli ja ohjelma asennetaan
+erikseen; sovellus ei lataa niitä automaattisesti. Macin järjestelmä-äänten
+haku on erillinen yksityisen esikatselun vaihtoehto, jota ei hyväksytä sarjan
+julkaisuääneksi. Tarkista valitun mallin ja tuotannon käyttöoikeudet erikseen.
+Automaattinen suun liike on myös suomeksi nimetty arvio; se ei ole mitattu
+äänikohdistus.
+
+Kun ohjaus on valmis, avaa Vie video → Koko projekti / kohtauskooste ja
+valmistele kooste. MP4 Full HD · suoratoisto käyttää enintään 1920×1080 /
+24 fps / 60 sekuntia ja kirjoittaa videota ilman PNG-välitiedostoja.
+Kuvakokoa tai ruutunopeutta ei pienennetä automaattisesti. Viennin 300 sekunnin
+määräaika koskee vientivaihetta; koko puheesta videoon -putken viiden minuutin
+tavoite on mitattava erikseen.
+
+## 12. Kameranauhoitus
+
+Valitse mukautettu hahmo, jolla on head-nivel, ja avaa Muokkaa → Webkamera.
+Käynnistä paikallinen seuranta erillisellä painikkeella. Kun tuore mittaus näkyy,
+aloita nauhoitus, liikuta päätä ja pysäytä. Tarkista tulos ja lisää nauhoitus
+erillisellä Käytä-painikkeella: pysäyttäminen ei vielä muuta animaatiota.
+Nauhoitus lisää pään kallistuksen avainruudut yhtenä kumottavana muokkauksena.
+X/Y-siirrot, mittakaava ja hahmon vartalon asento säilyvät.
+
+Pidä nauhoitus kohtauksen jäljellä olevan keston sisällä. Toistopään, hahmon,
+kohtauksen, lähteen tai välilehden vaihtaminen peruu keskeneräisen kaappauksen.
+Kuvat ja ääni eivät tallennu; vain mitattu pään kallistus voidaan lisätä
+animaatioon. Yaw/pitch ovat mittaustietoja, eivät 3D-vartalon liikkeenkaappausta.
+Fyysisen kameran toiminta ja suuntakalibrointi on varmistettava oikealla Macilla.

@@ -12,6 +12,7 @@ pub struct Request {
     pub index: usize,
     pub root: PathBuf,
     pub config: KokoroConfig,
+    pub piper_config: Option<PathBuf>,
     pub alignments: String,
     pub cancel: CancellationToken,
 }
@@ -40,13 +41,15 @@ impl Worker {
                     let alignments = parse_alignment_inputs(&request.alignments)?;
                     let cache =
                         AlignmentCache::new(request.config.cache_directory.join("alignments"));
+                    let mut provider = motion_tts::LocalSpeechProvider::new(request.config.clone());
+                    if let Some(path) = &request.piper_config {
+                        provider = provider.with_piper_config_path(path.clone());
+                    }
                     let prepared = prepare_scene_with_alignment_inputs(
                         &request.script,
                         request.index,
                         &request.root,
-                        &motion_tts::KokoroProvider {
-                            config: request.config,
-                        },
+                        &provider,
                         &alignments,
                         &cache,
                         &request.cancel,
