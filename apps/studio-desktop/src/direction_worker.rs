@@ -354,7 +354,10 @@ fn prepare(
     let mut result =
         auto_direction::direct_with_audio(&request.source, &request.dialogue, &counts, &paths)?;
     check(&request.cancel, started, limit)?;
-    result.diagnostics.push("Desktop worker verified complete decoded PCM16/mono24kHz WAV lengths and immutable SHA256-bound snapshots. This verifies timing inputs, not phoneme/lip-sync, voice rights or artistic quality. Undo does not remove the retained audio files.".into());
+    result
+        .diagnostics
+        .retain(|message| !message.starts_with("Timing uses caller-supplied"));
+    result.diagnostics.insert(0,"Desktop worker verified complete decoded PCM16/mono24kHz WAV lengths and immutable SHA256-bound snapshots. This verifies timing inputs, not phoneme/lip-sync, voice rights or artistic quality. Undo does not remove the retained audio files.".into());
     Ok(Ready {
         original_source: request.source,
         result,

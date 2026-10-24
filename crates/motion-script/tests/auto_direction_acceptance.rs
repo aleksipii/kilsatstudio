@@ -278,3 +278,39 @@ fn custom_rigs_get_head_only_accents_and_finite_geometry_aware_cameras_on_small_
             .iter()
             .any(|event| matches!(event,Event::Gesture{actor,..}if actor=="PUPPET"))));
 }
+
+#[test]
+fn framed_custom_head_accent_returns_to_rest_and_the_first_shot_contains_its_geometry() {
+    let mut base = motion_script::parse(include_str!("../../../examples/acting-rig.yaml")).unwrap();
+    base.project.width = 320;
+    base.project.height = 180;
+    let source = motion_script::to_source(&base).unwrap();
+    let result = motion_script::auto_direction::direct_with_audio(
+        &source,
+        "PUPPET: Hei!\nFRIEND: Terve!",
+        &[24000, 24000],
+        &["one.wav".into(), "two.wav".into()],
+    )
+    .unwrap();
+    let directed = motion_script::parse(&result.source).unwrap();
+    let scene = &directed.scenes[result.first_scene];
+    let keys = &scene.composition.joint_tracks["PUPPET"]["head"];
+    assert_eq!(keys.len(), 3);
+    assert_eq!(keys[0].rotation, 0.0);
+    assert_ne!(keys[1].rotation, 0.0);
+    assert_eq!(keys[2].rotation, 0.0);
+    assert!(keys
+        .iter()
+        .all(|key| key.x == 0.0 && key.y == 0.0 && key.scale_x == 1.0 && key.scale_y == 1.0));
+    let root = &scene.composition.actor_tracks["PUPPET"][0];
+    let camera = &scene.composition.camera[0];
+    let rig = base.characters["PUPPET"].rig.as_ref().unwrap();
+    for part in rig.evaluate_parts().unwrap() {
+        for point in part.points {
+            let x = (root.x + point.x - camera.x) * camera.zoom + 160.0;
+            let y = (126.0 + root.y + point.y - 90.0 - camera.y) * camera.zoom + 90.0;
+            assert!((0.0..=320.0).contains(&x), "x={x}");
+            assert!((0.0..=180.0).contains(&y), "y={y}");
+        }
+    }
+}

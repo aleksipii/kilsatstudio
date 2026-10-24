@@ -357,6 +357,11 @@ fn fit_camera(
                     }
                     for part in parts {
                         let margin = 12.0
+                            + definition
+                                .eyes
+                                .as_ref()
+                                .map_or(0.0, |eyes| eyes.travel.abs())
+                                * root.scale_x.max(root.scale_y)
                             + part
                                 .outline
                                 .map_or(0.0, |o| o.width * root.scale_x.max(root.scale_y));
