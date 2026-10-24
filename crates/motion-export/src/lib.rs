@@ -27,6 +27,7 @@ mod rig_texture_tests;
 mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
 mod sequence;
+mod streaming;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art, export_mp4_scene_with_art_captions};
 use motion_lipsync::{AlignmentSource, Viseme};
 pub use motion_script::CaptionMode;
@@ -44,6 +45,9 @@ use std::{
     fs,
     io::Write,
     path::{Path, PathBuf},
+};
+pub use streaming::{
+    export_mp4_scene_streaming, export_mp4_sequence_streaming, StreamingProfile, StreamingReport,
 };
 
 #[derive(Debug, Clone, Default)]
