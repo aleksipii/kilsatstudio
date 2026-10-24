@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import shutil
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -89,7 +90,8 @@ class SeasonTests(unittest.TestCase):
         self.assertEqual(season.inspect_media(media, 960, 540, 960)["frame_count"], 960)
         for stream, field, value in ((0, "nb_read_frames", "959"), (0, "width", 1920),
                                      (0, "avg_frame_rate", "12/1"), (1, "codec_name", "mp3"),
-                                     (1, "duration", "35.0"), (1, "channels", 2)):
+                                     (1, "duration", "35.0"), (1, "channels", 2),
+                                     (0, "start_time", "0.041992")):
             changed = copy.deepcopy(media)
             changed["streams"][stream][field] = value
             with self.assertRaises(ValueError, msg=field):
@@ -131,6 +133,73 @@ class SeasonTests(unittest.TestCase):
             (root / "input.wav").write_bytes(data[:-100])
             with self.assertRaisesRegex(ValueError, "truncated"):
                 season.join_audio([(root / "input.wav", 720)], root / "truncated.wav")
+
+    def test_reused_compilation_requires_retained_pcm_bytes_and_exact_sample_clock(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = root / "audio.wav"
+            self.make_wav(path, 720000, 321)
+            receipt = {"sample_count": 720000, "sample_rate": 24000, "sha256": season.file_hash(path)}
+            season.verify_joined_audio(path, receipt, 720000)
+            self.make_wav(path, 720000, -321)
+            with self.assertRaisesRegex(ValueError, "differs"):
+                season.verify_joined_audio(path, receipt, 720000)
+            receipt["sha256"] = season.file_hash(path)
+            with self.assertRaisesRegex(ValueError, "differs"):
+                season.verify_joined_audio(path, receipt, 721000)
+            path.unlink()
+            with self.assertRaises(ValueError):
+                season.verify_joined_audio(path, receipt, 720000)
+
+    def test_episode_media_changed_after_validation_cannot_enter_a_compilation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            receipt = {}
+            for filename, key in (("sequence.mp4", "video_sha256"), ("audio.wav", "audio_sha256"),
+                                  ("pipeline-report.json", "pipeline_sha256")):
+                (root / filename).write_bytes(filename.encode())
+                receipt[key] = season.file_hash(root / filename)
+            season.verify_episode_hashes(root, receipt)
+            (root / "audio.wav").write_bytes(b"different spoken content")
+            with self.assertRaisesRegex(ValueError, "changed during compilation"):
+                season.verify_episode_hashes(root, receipt)
+
+    def test_saved_receipts_cannot_turn_rendering_into_quality_or_rights_approval(self):
+        receipt = {"schema_version": 1, "publication_approved": False, "acceptance": season.UNMEASURED.copy()}
+        season.unapproved_receipt(receipt)
+        receipt["publication_approved"] = True
+        with self.assertRaises(ValueError):
+            season.unapproved_receipt(receipt)
+        receipt["publication_approved"] = False
+        receipt["acceptance"]["artistic_review"] = True
+        with self.assertRaises(ValueError):
+            season.unapproved_receipt(receipt)
+
+    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "actual FFmpeg and ffprobe required")
+    def test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock(self):
+        ffmpeg, ffprobe = Path(shutil.which("ffmpeg")), Path(shutil.which("ffprobe"))
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            episodes = []
+            concat = root / "inputs.txt"
+            for index, color in enumerate(("red", "blue")):
+                directory = root / f"ep{index:02}"
+                directory.mkdir()
+                self.make_wav(directory / "audio.wav", 720000 - 317, 1234 + index)
+                subprocess.run([str(ffmpeg), "-v", "error", "-nostdin", "-n", "-f", "lavfi",
+                                "-i", f"color=c={color}:s=64x36:r=24:d=30", "-i", str(directory / "audio.wav"),
+                                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-bf", "3", "-c:a", "aac",
+                                str(directory / "sequence.mp4")], check=True, capture_output=True, timeout=30)
+                episodes.append((directory / "audio.wav", 720))
+            concat.write_text("file 'ep00/sequence.mp4'\nduration 30\nfile 'ep01/sequence.mp4'\nduration 30\n")
+            season.join_audio(episodes, root / "joined.wav")
+            observed = season.render_compilation_video(ffmpeg, ffprobe, concat, root / "joined.wav",
+                                                      root / "compilation.mp4", root, 64, 36, 1440)
+            self.assertEqual(observed["frame_count"], 1440)
+            media = json.loads(subprocess.check_output([str(ffprobe), "-v", "error", "-show_streams",
+                                                       "-of", "json", str(root / "compilation.mp4")]))
+            for stream in media["streams"]:
+                self.assertLessEqual(abs(float(stream["start_time"])), 1 / 24000)
 
     def test_subprocess_failure_and_timeout_do_not_report_a_completed_episode(self):
         with tempfile.TemporaryDirectory() as temporary:

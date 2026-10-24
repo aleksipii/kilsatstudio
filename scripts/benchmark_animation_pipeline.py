@@ -164,6 +164,11 @@ def main(argv=None) -> int:
     for path in [args.exporter, args.ffmpeg, args.ffprobe]:
         if not path.is_absolute() or not path.is_file():
             parser.error("executables must be explicit absolute local paths")
+    # Homebrew exposes selected tools through symlinks. Bind and execute their
+    # actual files, rather than rejecting every ordinary macOS installation.
+    args.exporter = args.exporter.resolve(strict=True)
+    args.ffmpeg = args.ffmpeg.resolve(strict=True)
+    args.ffprobe = args.ffprobe.resolve(strict=True)
     started = time.monotonic()
     report = {"schema_version": 1, "status": "failed", "run_label": args.run_label,
               "cache_state": "operator-declared label; actual provider behaviour is in the pipeline report",
@@ -210,7 +215,7 @@ def main(argv=None) -> int:
         raise ValueError("benchmark report exceeds1MiB")
     with args.report.open("xb") as output:
         output.write(encoded)
-    print(json.dumps({"status": report["status"], "report": str(args.report), "elapsed_seconds": report["elapsed_seconds"]}))
+    print(json.dumps({"status": report["status"], "report": str(args.report), "elapsed_seconds": report["elapsed_seconds"], "error": report.get("error")}))
     return 0 if report["status"] == "completed" else 1
 
 

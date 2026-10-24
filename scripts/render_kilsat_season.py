@@ -189,6 +189,9 @@ def inspect_media(media: dict, width: int, height: int, frames: int) -> dict:
         seconds = float(stream.get("duration", duration))
         if not math.isfinite(seconds) or abs(seconds - frames / 24) > 0.09:
             raise ValueError("audio/video track duration differs from the frame clock")
+        start = float(stream.get("start_time", 0))
+        if not math.isfinite(start) or abs(start) > 1 / 24_000:
+            raise ValueError("audio/video tracks must start on the same zero sample")
     return {"frame_count": frames, "duration_seconds": duration,
             "width": width, "height": height, "fps": 24, "audio_sample_rate": 24_000}
 
@@ -260,6 +263,50 @@ def join_audio(episodes: list[tuple[Path, int]], output: Path) -> dict:
             "spoken_audio_truncated": False, "sha256": file_hash(output)}
 
 
+def verify_episode_hashes(directory: Path, receipt: dict):
+    for filename, key in (("sequence.mp4", "video_sha256"), ("audio.wav", "audio_sha256"),
+                          ("pipeline-report.json", "pipeline_sha256")):
+        if file_hash(directory / filename) != receipt.get(key):
+            raise ValueError(f"completed episode changed during compilation: {directory.name}/{filename}")
+
+
+def verify_joined_audio(path: Path, receipt: dict, samples: int):
+    if (receipt.get("sample_count") != samples or receipt.get("sample_rate") != 24_000
+            or file_hash(path) != receipt.get("sha256")):
+        raise ValueError("compilation PCM audio differs from its receipt")
+    with wave.open(str(path), "rb") as audio:
+        if (audio.getnchannels(), audio.getsampwidth(), audio.getframerate(), audio.getnframes(),
+                audio.getcomptype()) != (1, 2, 24_000, samples, "NONE"):
+            raise ValueError("compilation PCM format or sample clock differs from its receipt")
+        remaining = samples
+        while remaining:
+            count = min(remaining, 32_768)
+            if len(audio.readframes(count)) != count * 2:
+                raise ValueError("compilation PCM audio is truncated")
+            remaining -= count
+
+
+def unapproved_receipt(receipt: dict):
+    if (receipt.get("schema_version") != 1 or receipt.get("publication_approved") is not False
+            or receipt.get("acceptance") != UNMEASURED):
+        raise ValueError("a render receipt cannot grant production or publication approval")
+
+
+def render_compilation_video(ffmpeg: Path, ffprobe: Path, concat: Path, audio: Path,
+                             video: Path, logs: Path, width: int, height: int, frames: int) -> dict:
+    # MP4/AAC priming can offset concat input timestamps. Rebase the decoded
+    # video on its exact frame count and encode all frames. `-shortest` with
+    # stream copy drops delayed H.264 B-frames at the audio boundary.
+    command = [str(ffmpeg), "-v", "error", "-nostdin", "-n", "-f", "concat", "-safe", "1",
+               "-i", str(concat), "-i", str(audio), "-map", "0:v:0", "-map", "1:a:0",
+               "-vf", "setpts=N/(24*TB)", "-r", "24", "-fps_mode", "cfr",
+               "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-c:a", "aac",
+               "-movflags", "+faststart", str(video)]
+    run_bounded(command, logs, "compilation-encode", 180)
+    observed = inspect_media(probe(ffprobe, video, logs, "compilation-probe"), width, height, frames)
+    return observed
+
+
 def execute(args) -> dict:
     started = time.monotonic()
     if args.season.is_symlink() or not args.season.is_dir():
@@ -301,6 +348,7 @@ def execute(args) -> dict:
                 if not args.resume or directory.is_symlink():
                     raise ValueError(f"episode output already exists: {directory}")
                 previous = read_json(receipt_path)
+                unapproved_receipt(previous)
                 if previous.get("inputs") != identity or previous.get("project_sha256") != entry["project_sha256"]:
                     raise ValueError("resume receipt does not match the exact render inputs")
                 evidence = validate_episode(directory, width, height, ffprobe, logs, f"ep{number:02}-resume-probe")
@@ -331,11 +379,14 @@ def execute(args) -> dict:
         compilation = output / "compilation"
         completion = compilation / "render-receipt.json"
         receipts = [read_json(output / e["directory"] / "render-receipt.json") for e in report["episodes"]]
+        for episode, receipt in zip(report["episodes"], receipts):
+            verify_episode_hashes(output / episode["directory"], receipt)
         frames = sum(e["observed"]["frame_count"] for e in receipts)
         if compilation.exists():
             if not args.resume or compilation.is_symlink():
                 raise ValueError("compilation output already exists")
             compiled = read_json(completion)
+            unapproved_receipt(compiled)
             if compiled.get("episode_receipts") != report["episodes"] or compiled.get("inputs") != identity:
                 # Reuse status is operational, not part of content identity.
                 expected = [{k: v for k, v in e.items() if k != "completed_media_reused"} for e in report["episodes"]]
@@ -344,7 +395,9 @@ def execute(args) -> dict:
                     raise ValueError("compilation inputs changed")
             if file_hash(compilation / "sequence.mp4") != compiled.get("video_sha256"):
                 raise ValueError("compilation media hash changed")
-            inspect_media(probe(ffprobe, compilation / "sequence.mp4", logs, "compilation-resume-probe"), width, height, frames)
+            observed = inspect_media(probe(ffprobe, compilation / "sequence.mp4", logs, "compilation-resume-probe"), width, height, frames)
+            if observed != compiled.get("observed"):
+                raise ValueError("actual compilation observations differ from its receipt")
         else:
             compilation.mkdir()
             joined = join_audio([(output / e["directory"] / "audio.wav", e["observed"]["frame_count"])
@@ -354,17 +407,16 @@ def execute(args) -> dict:
                 for e in report["episodes"]:
                     target.write(f"file '{e['directory']}/sequence.mp4'\n")
                     target.write(f"duration {e['observed']['frame_count'] / 24:.12f}\n")
-            command = [str(ffmpeg), "-v", "error", "-nostdin", "-n", "-f", "concat", "-safe", "1",
-                       "-i", str(concat), "-i", str(compilation / "audio.wav"),
-                       "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac",
-                       "-movflags", "+faststart", "-shortest", str(compilation / "sequence.mp4")]
-            run_bounded(command, logs, "compilation-encode", 180)
-            observed = inspect_media(probe(ffprobe, compilation / "sequence.mp4", logs, "compilation-probe"), width, height, frames)
+            observed = render_compilation_video(ffmpeg, ffprobe, concat, compilation / "audio.wav",
+                                                compilation / "sequence.mp4", logs, width, height, frames)
             compiled = {"schema_version": 1, "group": args.group, "inputs": identity,
                         "episode_receipts": report["episodes"], "observed": observed,
                         "audio": joined, "video_sha256": file_hash(compilation / "sequence.mp4"),
                         "publication_approved": False, "acceptance": UNMEASURED}
             write_json(completion, compiled)
+        verify_joined_audio(compilation / "audio.wav", compiled.get("audio", {}), frames * 1000)
+        for episode, receipt in zip(report["episodes"], receipts):
+            verify_episode_hashes(output / episode["directory"], receipt)
         if load_manifest(season) != manifest or input_identity(season, exporter, profile, ffmpeg, ffprobe, args.group, width, height) != identity:
             raise ValueError("source, voice or executable changed during compilation validation")
         report.update(status="completed", compilation=compiled)
@@ -375,7 +427,8 @@ def execute(args) -> dict:
     report_path = output / f"group-report-{time.time_ns()}.json"
     write_json(report_path, report)
     print(json.dumps({"status": report["status"], "group": args.group, "report": str(report_path),
-                      "episodes_checked": len(report["episodes"]), "publication_approved": False}), flush=True)
+                      "episodes_checked": len(report["episodes"]), "publication_approved": False,
+                      "error": report.get("error")}), flush=True)
     return report
 
 
