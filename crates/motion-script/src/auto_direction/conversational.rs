@@ -206,7 +206,7 @@ fn accent(
     if !(end > midpoint && midpoint > lead) {
         return Ok(());
     }
-    let sign = if index % 2 == 0 { 1.0 } else { -1.0 };
+    let sign = if index.is_multiple_of(2) { 1.0 } else { -1.0 };
     if let Some(rig) = &character.rig {
         if let Some(head) = rig
             .joints

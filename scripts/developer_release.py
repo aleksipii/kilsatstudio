@@ -63,8 +63,12 @@ def run_release(repo: Path, binary: Path, gpu: Path, head: Path, commit: str, id
             run([*command,str(item)],check=True,capture_output=True,text=True,timeout=120)
             run(["codesign","--verify","--strict",str(item)],check=True,capture_output=True,text=True,timeout=60)
         details=run(["codesign","--display","--verbose=4",str(bundle)],check=True,capture_output=True,text=True,timeout=60)
-        detail=details.stdout+details.stderr
-        if f"TeamIdentifier={team}" not in detail or "Authority=Developer ID Application:" not in detail:
+        # Inspect complete fields from both streams; a matching prefix (or a
+        # contradictory second TeamIdentifier) does not verify the requested team.
+        fields={line.strip() for text in (details.stdout,details.stderr) for line in text.splitlines()}
+        teams={field.removeprefix("TeamIdentifier=") for field in fields if field.startswith("TeamIdentifier=")}
+        developer_id=any(field.startswith("Authority=Developer ID Application: ") for field in fields)
+        if teams!={team} or not developer_id:
             raise ValueError("signed app identity/team verification failed")
         submission=Path(temporary)/"submission.zip"
         run(["ditto","-c","-k","--keepParent",str(bundle),str(submission)],check=True,capture_output=True,text=True,timeout=120)

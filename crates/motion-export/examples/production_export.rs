@@ -224,7 +224,9 @@ fn pcm(path: &Path) -> Result<motion_audio::AudioBuffer, Failure> {
     }
     let samples = data
         .ok_or_else(|| fail("missing WAV data"))?
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|b| f32::from(i16::from_le_bytes([b[0], b[1]])) / 32768.0)
         .collect();
     Ok(motion_audio::AudioBuffer {

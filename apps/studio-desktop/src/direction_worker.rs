@@ -213,7 +213,7 @@ fn decoded_snapshot(
         if decoded > frames {
             return Err("WAV contains excess PCM".into());
         }
-        if decoded % 8192 == 0 {
+        if decoded.is_multiple_of(8192) {
             check(cancel, started, limit)?;
         }
     }

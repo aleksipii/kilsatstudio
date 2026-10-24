@@ -497,7 +497,7 @@ pub fn export_mp4_sequence_streaming(
         .lines()
         .filter_map(|l| l.strip_prefix("frame="))
         .filter_map(|v| v.trim().parse::<u64>().ok())
-        .last();
+        .next_back();
     if !progress_text.lines().any(|l| l == "progress=end") || encoded_frames != Some(total) {
         return Err(invalid(
             "encoder did not confirm every requested frame; output may have reached its size limit",
