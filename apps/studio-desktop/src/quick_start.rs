@@ -1,4 +1,5 @@
 //! Plain dialogue to a new, editable scene; no synthesis or file side effects.
+use crate::project_history::MAX_SOURCE_BYTES;
 use motion_script::{Event, Scene};
 
 pub struct Draft {
@@ -98,8 +99,8 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
         events,
     };
     let updated = motion_script::add_scene(source, scene).map_err(|e| e.to_string())?;
-    if updated.len() > 100_000 {
-        return Err("Tulos ylittää työpöytäsovelluksen käsikirjoituksen 100 KB:n rajan.".into());
+    if updated.len() > MAX_SOURCE_BYTES {
+        return Err("Tulos ylittää työpöytäsovelluksen käsikirjoituksen 256 KiB:n rajan.".into());
     }
     Ok((updated, script.scenes.len()))
 }

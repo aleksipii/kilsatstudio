@@ -1,5 +1,6 @@
 //! Bounded off-thread measured-audio directing. Provider duration metadata is not
 //! trusted: timing comes only from a decoded, immutable project-local WAV copy.
+use crate::project_history::MAX_SOURCE_BYTES;
 use motion_script::auto_direction::{self, DirectionResult};
 use motion_tts::{CancellationToken, SpeechProvider, SpeechRequest, VoiceSettings};
 use sha2::{Digest, Sha256};
@@ -298,8 +299,8 @@ fn prepare(
         return Err("Puheohjauksen aikarajan on oltava 1–300 sekuntia".into());
     }
     check(&request.cancel, started, limit)?;
-    if request.source.len() > 100_000 {
-        return Err("Käsikirjoitus ylittää 100 KB:n rajan".into());
+    if request.source.len() > MAX_SOURCE_BYTES {
+        return Err("Käsikirjoitus ylittää 256 KiB:n rajan".into());
     }
     let script = motion_script::parse(&request.source).map_err(|e| e.to_string())?;
     let lines = auto_direction::parse_dialogue(&request.dialogue, &script)?;

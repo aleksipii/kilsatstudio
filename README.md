@@ -80,6 +80,13 @@ two-joint skinning, outlined/rounded parts, expressions and viseme mouths.
 
 ## Practical macOS test build
 
+The **Tikku-ukkostudio** button opens an editable, silent 30-second starter with
+six original articulated stick figures, four sets and 14 props. The
+[asset pack guide](examples/stick-studio/README.md) describes the cast, native
+projects and PNG/SVG exports. The [professional studio roadmap](docs/professional-studio-next.md)
+prioritizes an asset browser/recovery, visual animation/contact tools and
+integrated sound editing with measured speech quality.
+
 Preview builds for Apple Silicon, macOS 13+, are available from the
 [macOS practical preview workflow](https://github.com/aleksipii/kilsatstudio/actions/workflows/macos-preview.yml).
 See the [practical test guide](docs/practical-testing.md) for download and launch

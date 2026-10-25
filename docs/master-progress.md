@@ -7,6 +7,53 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Editable stick studio asset pack — integration in progress (2026-10-25)
+
+The [starter pack](../examples/stick-studio/README.md) adds six original custom
+rigs: Noutaja the Grim Reaper, Veikko the commuter, Päsmä the boss, Kipinä the
+inventor, Kiire the courier and Sisu the grandmother. They share 15 joints,
+13 configured visemes, expressions, gaze/blink and five reusable joint clips.
+Four editable sets and 14 props accompany 24 individual native projects and a
+self-contained six-shot, 30-second 1920x1080/24fps starter. The Finnish
+**Tikku-ukkostudio** button loads it through the existing source/artwork history.
+Undo/Redo preserves the preceding work; loading clears the save path.
+
+Normal editing serializes the compact 54,099-byte starter above the old 100 KB
+editor limit. The shared desktop screenplay limit is now 256 KiB, including
+history, opening/saving and direction workers. Individual-rig, timing, 64-entry
+and eight-MiB history limits are unchanged. An actual head-edit regression tests
+normalization above 100 KB, Undo/Redo and save/reopen; oversized input is rejected.
+
+The shared SVG renderer now optionally omits only its two default canvas fills.
+The native asset exporter reuses project decode, scene evaluation and rendering
+to produce six transparent character PNG/SVG pairs, four opaque background pairs
+and 14 transparent prop pairs. Legacy opaque SVG output is regression-tested.
+Packaging verifies source/tool hashes, alpha reports, all image dimensions and
+independently probes/fully decodes the real H.264/AAC showcase. The actual local
+video has **720 frames / 30.000 seconds**, with exactly 720,000 zero PCM samples;
+it is deliberately silent, with no synthesized speech or model downloads.
+The local asset/video/probe/package stage took **46.345 seconds**; this is not a
+physical-Mac or cold-start production benchmark. All six review frames and the
+24-asset contact sheet were visually inspected for framing and readability.
+
+Local validation passed format, workspace/all-target/all-feature strict Clippy,
+141 repository Python and 55 runtime tests, 259 desktop tests and all four native
+asset-export tests (including changed pixels confined to each configured mouth).
+The first broad local Rust run hit two existing recognizer-enrollment tests that
+need unavailable host `/proc` data. Remaining crate/target tests passed with
+those two and the existing desktop exact-cache enrollment test excluded locally;
+normal CI keeps all three enabled. Main integration, unfiltered Linux/macOS,
+GPU/media checks, Mac packaging and the dedicated asset/video workflow still
+need their actual CI results recorded here after success.
+
+The [professional studio roadmap](professional-studio-next.md) prioritizes a
+thumbnail/search library and recovery, visual IK/contact/curve/shot tools and
+integrated multitrack sound with measured FI/EN speech quality. The assets and
+silent demo do not complete those features. Physical Mac/device/Metal acceptance,
+human artistic and real-speech review, exact rights review and Developer ID /
+notarization remain open. ArtCraft marketing was used only as a high-level
+workflow reference; no Storytold source, dependency or adapter was introduced.
+
 ## Three English episodes — PR #97 merged (2026-10-25)
 
 [PR #97](https://github.com/aleksipii/kilsatstudio/pull/97) merged as

@@ -50,6 +50,24 @@ hahmoilla. Valitse haluttu kohtaus vasemmalta KOHTAUKSET-listasta.
 Projektin lisätyökalut -osiosta löydät kohtauksen keston ja kuvakoon asetukset,
 hahmojen lisäämisen sekä kohtausten kopioinnin, järjestyksen ja poiston.
 
+Tikku-ukkostudio:
+
+Paina vasemmalta Tikku-ukkostudio. Se avaa kuusi alkuperäistä nivelhahmoa:
+viikatemies Noutajan sekä Veikon, Päsmän, Kipinän, Kiireen ja Sisun.
+Mukana on kuusi viiden sekunnin kohtausta taustoineen ja esineineen.
+Esimerkki on äänetön ja toimii ilman lisäresursseja tai puhemallia.
+
+Valitse vasemmalta kohtaus ja hahmo. Pysäytä toisto, siirrä aikajanan toistopää
+haluttuun aikaan ja vedä hahmoa näyttämöllä Hahmot-tilassa. Oikealla Muokkaa →
+Pään asento säätää päätä; Lisää pään avainruutu tallentaa asennon.
+Hahmorakenteen nivelten avainruudut -osiossa voit muokata muita niveliä.
+Kuvitus-tilassa valitset ja muokkaat taustojen ja esineiden tasoja.
+
+Valitse olemassa oleva projektikansio ja anna uusi koko .kilsat-tiedostopolku
+ennen tallentamista. Esimerkin avaaminen tyhjentää tallennuspolun.
+Kumoa palauttaa edellisen projektin käsikirjoituksen ja kuvituksen;
+anna tallennuspolku uudelleen tarvittaessa.
+
 ## 4. Animoi hahmo hiirellä
 
 Valitse näyttämön Hahmot-tila. Napsauta hahmoa tai sen nimeä vasemmalla.

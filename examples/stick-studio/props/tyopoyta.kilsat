@@ -1,0 +1,239 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Työpöytä\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_tyopoyta_leg_left",
+        "name": "tyopoyta leg left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72.38461538461539,
+            "y": 168.0,
+            "width": 19.46153846153846,
+            "height": 218.3076923076923
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_leg_right",
+        "name": "tyopoyta leg right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 421.0,
+            "y": 168.0,
+            "width": 19.46153846153846,
+            "height": 218.3076923076923
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_foot_left",
+        "name": "tyopoyta foot left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 58.84615384615385,
+            "y": 362.61538461538464,
+            "width": 46.53846153846154,
+            "height": 14.384615384615385
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_foot_right",
+        "name": "tyopoyta foot right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 407.46153846153845,
+            "y": 362.61538461538464,
+            "width": 46.53846153846154,
+            "height": 14.384615384615385
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_drawer_outline",
+        "name": "tyopoyta drawer outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 307.6153846153846,
+            "y": 173.0769230769231,
+            "width": 113.38461538461539,
+            "height": 99.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_drawer_fill",
+        "name": "tyopoyta drawer fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 314.38461538461536,
+            "y": 179.84615384615387,
+            "width": 99.84615384615384,
+            "height": 85.46153846153847
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_handle",
+        "name": "tyopoyta handle",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 342.3076923076923,
+              "y": 207.76923076923077
+            },
+            {
+              "x": 386.3076923076923,
+              "y": 207.76923076923077
+            }
+          ],
+          "width": 6.769230769230769,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_top_outline",
+        "name": "tyopoyta top outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 47.84615384615385,
+            "y": 136.6923076923077,
+            "width": 416.3076923076923,
+            "height": 41.46153846153846
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_tyopoyta_top_fill",
+        "name": "tyopoyta top fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 54.61538461538461,
+            "y": 143.46153846153845,
+            "width": 402.7692307692308,
+            "height": 27.923076923076923
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

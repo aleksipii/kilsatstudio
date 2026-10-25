@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "title": "Tikku-ukkostudio",
+  "authorship": "Original independently authored editable geometric artwork; no third-party artwork or model assets.",
+  "cast": [
+    {
+      "id": "NOUTAJA",
+      "name": "Noutaja",
+      "role": "Ystävällinen, lakoninen viikatemies",
+      "accent": "#9A93AE"
+    },
+    {
+      "id": "VEIKKO",
+      "name": "Veikko",
+      "role": "Samaistuttava työmatkalainen",
+      "accent": "#5E91AE"
+    },
+    {
+      "id": "PASMA",
+      "name": "Päsmä",
+      "role": "Mahtipontinen pomo ja sääntöjen vartija",
+      "accent": "#B76257"
+    },
+    {
+      "id": "KIPINA",
+      "name": "Kipinä",
+      "role": "Utelias keksijä ja korjaaja",
+      "accent": "#CE8A47"
+    },
+    {
+      "id": "KIIRE",
+      "name": "Kiire",
+      "role": "Aina liikkeellä oleva lähetti",
+      "accent": "#9CA95F"
+    },
+    {
+      "id": "SISU",
+      "name": "Sisu",
+      "role": "Neuvokas, rauhallinen mummo",
+      "accent": "#9F7E9B"
+    }
+  ],
+  "joint_ids": [
+    "root",
+    "torso",
+    "head",
+    "upper_arm_l",
+    "forearm_l",
+    "hand_l",
+    "upper_arm_r",
+    "forearm_r",
+    "hand_r",
+    "thigh_l",
+    "shin_l",
+    "foot_l",
+    "thigh_r",
+    "shin_r",
+    "foot_r"
+  ],
+  "starter_project": "stick-studio.kilsat",
+  "starter_sha256": "6970d9cb79c3dda7992dc1f1b92c24ce386c9eb1aa84497e83d826a18ae39572",
+  "starter_source_bytes": 54099,
+  "artistic_review": false,
+  "physical_mac_review": false,
+  "items": [
+    {
+      "id": "noutaja",
+      "name": "Noutaja",
+      "kind": "character",
+      "project": "characters/noutaja.kilsat",
+      "transparent": true,
+      "export_width": 768,
+      "export_height": 1024,
+      "project_sha256": "1e2ab31c272a5fae992020d48a70ca95d859500b9eb624d49e076f770f3d4049"
+    },
+    {
+      "id": "veikko",
+      "name": "Veikko",
+      "kind": "character",
+      "project": "characters/veikko.kilsat",
+      "transparent": true,
+      "export_width": 768,
+      "export_height": 1024,
+      "project_sha256": "dee73a9188771a98a29cfd8db3e5c709e949a50efc0fd67631fdb3790f09fe61"
+    },
+    {
+      "id": "pasma",
+      "name": "Päsmä",
+      "kind": "character",
+      "project": "characters/pasma.kilsat",
+      "transparent": true,
+      "export_width": 768,
+      "export_height": 1024,
+      "project_sha256": "14c6614af5ddc76e57d0bf2627a9592ded86b8f67bd338d29772ed01a639abe1"
+    },
+    {
+      "id": "kipina",
+      "name": "Kipinä",
+      "kind": "character",
+      "project": "characters/kipina.kilsat",
+      "transparent": true,
+      "export_width": 768,
+      "export_height": 1024,
+      "project_sha256": "7fc77ca206bf2674245acbdd07c942f7f0c41a1e7f1f740a060b70235e847196"
+    },
+    {
+      "id": "kiire",
+      "name": "Kiire",
+      "kind": "character",
+      "project": "characters/kiire.kilsat",
+      "transparent": true,
+      "export_width": 768,
+      "export_height": 1024,
+      "project_sha256": "0908fca26d212b67716c6a51cf4aaf229dc853917700a929b9976f509734e285"
+    },
+    {
+      "id": "sisu",
+      "name": "Sisu",
+      "kind": "character",
+      "project": "characters/sisu.kilsat",
+      "transparent": true,
+      "export_width": 768,
+      "export_height": 1024,
+      "project_sha256": "47bb3165bd1d908906406685b847e8f52817d7e315b9632c48224c06e2e0e28e"
+    },
+    {
+      "id": "toimisto",
+      "name": "Loputtoman palaverin toimisto",
+      "kind": "background",
+      "project": "backgrounds/toimisto.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "173804d801bc4fd2774a79c9ab99c05b6886b27d76456c6732ac8007012af09a"
+    },
+    {
+      "id": "pysakki",
+      "name": "Yövuoron pysäkki",
+      "kind": "background",
+      "project": "backgrounds/pysakki.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "5951b295dfde1d1be2e82554c82e9bdd3f2975125df31eed8b9b1c9bd5d558af"
+    },
+    {
+      "id": "hautausmaa",
+      "name": "Kuunsirpin hautausmaa",
+      "kind": "background",
+      "project": "backgrounds/hautausmaa.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "48b153d3a468b9f6afcca1549dffdaf55a0f0b095f08d5c23baee388a49b3d38"
+    },
+    {
+      "id": "kahvila",
+      "name": "Viimeisen kahvin kahvila",
+      "kind": "background",
+      "project": "backgrounds/kahvila.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "077450f7c5d5390f3faa172c7a6efa9ea8afc07e800a71050349799e2ba3bb5a"
+    },
+    {
+      "id": "viikate",
+      "name": "Noutajan viikate",
+      "kind": "prop",
+      "project": "props/viikate.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "b81da93fb4cd5f84c43b1070ee759d38309be358c25085422d820465c0b0f162"
+    },
+    {
+      "id": "kahvikuppi",
+      "name": "Viimeinen kahvikuppi",
+      "kind": "prop",
+      "project": "props/kahvikuppi.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "6527f96db0f03aeb472ab465307ebfe4d7597a6a4e2836728edefdd7ec65a1de"
+    },
+    {
+      "id": "toimistotuoli",
+      "name": "Palaverituoli",
+      "kind": "prop",
+      "project": "props/toimistotuoli.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "0fda90e078634faf0c0dedfd1db469502966e413d8636ad5105b08d38f152faf"
+    },
+    {
+      "id": "tyopoyta",
+      "name": "Työpöytä",
+      "kind": "prop",
+      "project": "props/tyopoyta.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "c9fab214c2e02180abeb3b093be0db3ae71da2cc232413074b06c32342da0d6d"
+    },
+    {
+      "id": "kannettava",
+      "name": "Kannettava tietokone",
+      "kind": "prop",
+      "project": "props/kannettava.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "c5a971f3b6091954b214248809e3e8c2301495583ff848ec3bea2083d9098e5d"
+    },
+    {
+      "id": "puhelin",
+      "name": "Puhelin",
+      "kind": "prop",
+      "project": "props/puhelin.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "05fb06b3350e7dee7e962d8eb0e84547dfd56c0b64d11ba871b7f711d04dd467"
+    },
+    {
+      "id": "ajopaivakirja",
+      "name": "Ajopäiväkirja",
+      "kind": "prop",
+      "project": "props/ajopaivakirja.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "224a72d82b1aa7c71d97a54b4467a18ae7759bf194cecfd3e7199f186c9931f2"
+    },
+    {
+      "id": "kello",
+      "name": "Myöhässä oleva kello",
+      "kind": "prop",
+      "project": "props/kello.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "344b513ddbef4d2056d803f70871ea151a71e956f89eebc5ecfc0597e1f05add"
+    },
+    {
+      "id": "liikennemerkki",
+      "name": "Yövuoron pysäkkimerkki",
+      "kind": "prop",
+      "project": "props/liikennemerkki.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "cb84998db66e760d114d5b9109c1a4c5d96c8b15db62181f7a32e4cf2928acce"
+    },
+    {
+      "id": "paketti",
+      "name": "Salaperäinen paketti",
+      "kind": "prop",
+      "project": "props/paketti.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "32858a10da61ba837704ecae19a9f94fa75e78c1712acdee1b82c5a83815f051"
+    },
+    {
+      "id": "tyokaluavain",
+      "name": "Kipinän kiintoavain",
+      "kind": "prop",
+      "project": "props/tyokaluavain.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "261b398077c11086c8d9dd3a16c1043fe260b1e5cdd0b2decc984974b508cdcc"
+    },
+    {
+      "id": "sateenvarjo",
+      "name": "Yövuoron sateenvarjo",
+      "kind": "prop",
+      "project": "props/sateenvarjo.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "2e9115502cf7aff1155458f6ba470048e84b0176a8378edd1d6e220935220aa7"
+    },
+    {
+      "id": "auto",
+      "name": "Veikon pieni auto",
+      "kind": "prop",
+      "project": "props/auto.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "257520fae05da322a661b7b984617d1aaa84ca7bc37521860098ac6548baf307"
+    },
+    {
+      "id": "vuoronumerolaite",
+      "name": "Ikuisen jonon vuoronumerolaite",
+      "kind": "prop",
+      "project": "props/vuoronumerolaite.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "f8381fd4e3bbf423f6165aba94c92b6858d4cf9935fd77573e041124d9db6e3a"
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Noutajan viikate\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_viikate_staff_outline",
+        "name": "viikate staff outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 204.4375,
+              "y": 455.375
+            },
+            {
+              "x": 204.4375,
+              "y": 92.375
+            }
+          ],
+          "width": 13.75,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_viikate_staff_wood",
+        "name": "viikate staff wood",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 204.4375,
+              "y": 454.0
+            },
+            {
+              "x": 204.4375,
+              "y": 93.0625
+            }
+          ],
+          "width": 7.5625,
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_viikate_blade_outline",
+        "name": "viikate blade outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 205.125,
+              "y": 108.875
+            },
+            {
+              "x": 223.6875,
+              "y": 82.75
+            },
+            {
+              "x": 260.8125,
+              "y": 64.875
+            },
+            {
+              "x": 300.0,
+              "y": 64.875
+            },
+            {
+              "x": 336.4375,
+              "y": 80.6875
+            }
+          ],
+          "width": 21.3125,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_viikate_blade_metal",
+        "name": "viikate blade metal",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 205.125,
+              "y": 108.875
+            },
+            {
+              "x": 223.6875,
+              "y": 82.75
+            },
+            {
+              "x": 260.8125,
+              "y": 64.875
+            },
+            {
+              "x": 300.0,
+              "y": 64.875
+            },
+            {
+              "x": 336.4375,
+              "y": 80.6875
+            }
+          ],
+          "width": 13.75,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_viikate_blade_tip",
+        "name": "viikate blade tip",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 328.1875,
+              "y": 77.9375
+            },
+            {
+              "x": 348.8125,
+              "y": 97.1875
+            },
+            {
+              "x": 339.875,
+              "y": 81.375
+            }
+          ],
+          "width": 4.8125,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_viikate_collar",
+        "name": "viikate collar",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 194.8125,
+            "y": 113.0,
+            "width": 19.25,
+            "height": 15.125
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_viikate_collar_band",
+        "name": "viikate collar band",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 196.875,
+            "y": 115.75,
+            "width": 15.125,
+            "height": 4.125
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

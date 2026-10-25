@@ -1,0 +1,258 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Salaperäinen paketti\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_paketti_box_outline",
+        "name": "paketti box outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 66.80000000000003,
+            "y": 125.46666666666667,
+            "width": 378.4,
+            "height": 283.06666666666666
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_box_fill",
+        "name": "paketti box fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 80.00000000000003,
+            "y": 138.66666666666669,
+            "width": 352.0,
+            "height": 256.66666666666663
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_lid",
+        "name": "paketti lid",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 80.00000000000003,
+            "y": 138.66666666666669,
+            "width": 352.0,
+            "height": 55.73333333333333
+          },
+          "color": {
+            "r": 189,
+            "g": 151,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_tape",
+        "name": "paketti tape",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 222.26666666666668,
+            "y": 138.66666666666669,
+            "width": 52.8,
+            "height": 256.66666666666663
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_seam",
+        "name": "paketti seam",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 81.4666666666667,
+              "y": 198.8
+            },
+            {
+              "x": 430.5333333333333,
+              "y": 198.8
+            }
+          ],
+          "width": 10.266666666666666,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_label",
+        "name": "paketti label",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 301.4666666666667,
+            "y": 247.2,
+            "width": 93.86666666666666,
+            "height": 98.26666666666667
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_arrow",
+        "name": "paketti arrow",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 320.5333333333333,
+              "y": 297.06666666666666
+            },
+            {
+              "x": 348.4,
+              "y": 267.73333333333335
+            },
+            {
+              "x": 376.26666666666665,
+              "y": 297.06666666666666
+            }
+          ],
+          "width": 8.799999999999999,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_arrow_stem",
+        "name": "paketti arrow stem",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 348.4,
+              "y": 269.2
+            },
+            {
+              "x": 348.4,
+              "y": 327.8666666666667
+            }
+          ],
+          "width": 8.799999999999999,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paketti_scuff",
+        "name": "paketti scuff",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 104.93333333333335,
+              "y": 349.8666666666667
+            },
+            {
+              "x": 151.86666666666667,
+              "y": 373.33333333333337
+            }
+          ],
+          "width": 8.799999999999999,
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

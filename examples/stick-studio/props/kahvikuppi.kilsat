@@ -1,0 +1,307 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Viimeinen kahvikuppi\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_kahvikuppi_handle_outline",
+        "name": "kahvikuppi handle outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 309.5652173913044,
+            "y": 190.95652173913044,
+            "width": 133.91304347826087,
+            "height": 156.8695652173913
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_handle_fill",
+        "name": "kahvikuppi handle fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 328.69565217391306,
+            "y": 210.08695652173913,
+            "width": 95.65217391304348,
+            "height": 118.60869565217392
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_base_outline",
+        "name": "kahvikuppi base outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 93.3913043478261,
+            "y": 319.13043478260875,
+            "width": 273.5652173913044,
+            "height": 105.21739130434783
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_base_fill",
+        "name": "kahvikuppi base fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 108.69565217391305,
+            "y": 317.21739130434787,
+            "width": 242.95652173913044,
+            "height": 89.91304347826087
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_body_outline",
+        "name": "kahvikuppi body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 93.3913043478261,
+            "y": 190.95652173913044,
+            "width": 273.5652173913044,
+            "height": 191.30434782608697
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_body_fill",
+        "name": "kahvikuppi body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 108.69565217391305,
+            "y": 206.2608695652174,
+            "width": 242.95652173913044,
+            "height": 160.69565217391306
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_rim_outline",
+        "name": "kahvikuppi rim outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 93.3913043478261,
+            "y": 156.52173913043478,
+            "width": 273.5652173913044,
+            "height": 88.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_coffee",
+        "name": "kahvikuppi coffee",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 110.60869565217392,
+            "y": 173.7391304347826,
+            "width": 239.13043478260872,
+            "height": 53.56521739130435
+          },
+          "color": {
+            "r": 111,
+            "g": 76,
+            "b": 55,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_steam_left",
+        "name": "kahvikuppi steam left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 173.73913043478262,
+              "y": 129.73913043478262
+            },
+            {
+              "x": 156.52173913043478,
+              "y": 99.13043478260869
+            },
+            {
+              "x": 171.82608695652175,
+              "y": 64.69565217391303
+            }
+          ],
+          "width": 11.478260869565219,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_steam_right",
+        "name": "kahvikuppi steam right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 259.82608695652175,
+              "y": 125.91304347826087
+            },
+            {
+              "x": 278.95652173913044,
+              "y": 95.30434782608695
+            },
+            {
+              "x": 261.7391304347826,
+              "y": 64.69565217391303
+            }
+          ],
+          "width": 11.478260869565219,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kahvikuppi_glaze",
+        "name": "kahvikuppi glaze",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 135.47826086956522,
+              "y": 265.5652173913044
+            },
+            {
+              "x": 135.47826086956522,
+              "y": 334.4347826086956
+            }
+          ],
+          "width": 13.391304347826088,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}
