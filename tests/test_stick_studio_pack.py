@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from unittest import mock
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('build_stick_studio_pack', ROOT/'scripts/build_stick_studio_pack.py')
@@ -67,6 +68,63 @@ def rewrite_project(source, manifest, item, change):
 
 
 class StickPackTests(unittest.TestCase):
+    def test_archive_publishes_completed_outputs_without_renderer_staging_trees(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            output = root/'delivery'
+            output.mkdir()
+            for directory in ('images', 'video', 'projects', 'logs'):
+                (output/directory).mkdir()
+            for name in ('LICENSE', 'NOTICE', 'ALOITA-TAALTA.md', 'professional-studio-next.md',
+                         'pack-report.json', 'render-inputs.json', 'HAHMOT-JA-ESINEET.png'):
+                (output/name).write_bytes(b'checked fixture deliverable')
+            (output/'video/sequence.mp4').write_bytes(b'completed and independently checked movie fixture')
+            (output/'.kilsat-stream-6-1').mkdir()
+            (output/'.kilsat-stream-6-1/sequence.mp4').write_bytes(b'incomplete renderer staging fixture')
+            (output/'.kilsat-pipeline-input-9-1').mkdir()
+            (output/'.kilsat-pipeline-input-9-1/source.kilsat').write_bytes(b'internal source snapshot fixture')
+            (output/'video/.kilsat-stream-nested').mkdir()
+            (output/'video/.kilsat-stream-nested/partial.mp4').write_bytes(b'incomplete nested fixture')
+            archive = packer.archive_pack(output)
+            with zipfile.ZipFile(archive) as delivery:
+                self.assertEqual(delivery.read('video/sequence.mp4'),
+                                 b'completed and independently checked movie fixture')
+                self.assertEqual(len(delivery.namelist()),8)
+                self.assertTrue(all(not any(part.startswith('.kilsat-') for part in Path(name).parts)
+                                    for name in delivery.namelist()))
+            archive.unlink()
+            (output/'unvalidated-extra.mp4').write_bytes(b'unknown file must not be published')
+            with self.assertRaisesRegex(ValueError,'unexpected root'):
+                packer.archive_pack(output)
+            self.assertFalse(archive.exists())
+
+    def test_archive_rejects_wrong_root_kinds_and_symlinks_in_published_trees(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            output = root/'delivery'
+            output.mkdir()
+            for directory in ('images', 'video', 'projects', 'logs'):
+                (output/directory).mkdir()
+            for name in ('LICENSE', 'NOTICE', 'ALOITA-TAALTA.md', 'professional-studio-next.md',
+                         'pack-report.json', 'render-inputs.json'):
+                (output/name).write_bytes(b'checked fixture')
+            (output/'video').rmdir()
+            (output/'video').write_bytes(b'wrong root kind')
+            with self.assertRaisesRegex(ValueError,'directory has the wrong'):
+                packer.archive_pack(output)
+            (output/'video').unlink()
+            (output/'video').mkdir()
+            (output/'LICENSE').unlink()
+            (output/'LICENSE').mkdir()
+            with self.assertRaisesRegex(ValueError,'file has the wrong'):
+                packer.archive_pack(output)
+            (output/'LICENSE').rmdir()
+            (output/'LICENSE').write_bytes(b'checked fixture')
+            (output/'video/link').symlink_to(root, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError,'symbolic'):
+                packer.archive_pack(output)
+            self.assertFalse((root/'Kilsat-Tikku-ukkostudio.zip').exists())
+
     def test_all_sources_and_guides_are_hash_bound_without_quality_approval(self):
         with tempfile.TemporaryDirectory() as temporary:
             source,roadmap,manifest = fixture(Path(temporary).resolve())

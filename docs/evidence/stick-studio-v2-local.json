@@ -32,8 +32,8 @@
     "reason": "sandbox lacks /proc/sys/kernel/osrelease; unfiltered CI required"
   },
   "python_repository_tests": {
-    "ran": 144,
-    "passed": 144,
+    "ran": 146,
+    "passed": 146,
     "skipped": 0
   },
   "runtime_tests": {
@@ -41,7 +41,14 @@
   },
   "rustfmt_passed": true,
   "strict_clippy_all_targets_all_features_passed": true,
-  "workspace_tests": "running; final result will be recorded after CI",
+  "workspace_tests": {
+    "unique_passed": 850,
+    "failed_tests": 0,
+    "default_ignored": 8,
+    "host_filtered": 3,
+    "two_commands": "first completed through motion-script unit tests; remaining packages resumed after rebuilding one zero-header cached executable",
+    "host_cache_corruption_recovered": true
+  },
   "native_video": {
     "profile": {
       "width": 1920,
@@ -67,8 +74,9 @@
     "physical_mac_performance_measured": false
   },
   "local_bundle": {
-    "sha256": "2c004d23a4d5d2accc524dbc6b949d9e069795fff8fcc27e423fe22d5b465fa0",
-    "size_bytes": 4553329
+    "sha256": "38eb6ca8d34be2c503419afcbaa45a0ed6f3b2c5f590f2d3d5f3e9969109a634",
+    "size_bytes": 3501594,
+    "only_completed_outputs_archived": true
   },
   "visual_review": {
     "native_30_asset_contact_sheet_inspected": true,
@@ -86,5 +94,9 @@
     "Timed pickup/release and visual IK/floor locking",
     "Perceptual speech/lipsync and comedy direction assessment",
     "Developer ID, notarization and final rights audit"
-  ]
+  ],
+  "archive_boundary_tests": {
+    "passed": 14,
+    "failed": 0
+  }
 }

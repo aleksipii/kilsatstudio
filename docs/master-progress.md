@@ -2185,11 +2185,13 @@ Kuvallinen suunnitelma ja hyväksyntäehdot ovat
 [stick-studio-art-direction.md](stick-studio-art-direction.md).
 
 Paikallisesti läpäisivät seitsemän natiivivientitestiä (42 taivutussiluettia
-ja puhelimen FK-/rasterivastaavuus), 272 työpöytätestiä, 144 Python-testiä,
+ja puhelimen FK-/rasterivastaavuus), 272 työpöytätestiä, 146 Python-testiä,
 55 runtime-testiä, rustfmt ja tiukka kaikkien targettien/featureiden Clippy.
 Yksi desktop-testi rajattiin paikallisesti puuttuvan /proc-tiedoston vuoksi;
-CI ajetaan rajaamatta. Koko workspace-testi sekä PR:n ja mainin CI ovat tässä
-kirjaushetkessä vielä kesken. Todellinen MP4 tarkistettiin: 1920×1080, 24 fps,
+CI ajetaan rajaamatta. Koko workspacen 850 yksittäistä Rust-testiä läpäisivät;
+kolme /proc-riippuvaista testiä rajattiin paikallisesti. Yksi viallinen
+käännösvälimuistin suoritettava tiedosto rakennettiin uudelleen ja loput
+paketit ajettiin erikseen. PR:n ja mainin CI ovat tässä kirjaushetkessä kesken. Todellinen MP4 tarkistettiin: 1920×1080, 24 fps,
 720 ruutua / 30 s, täysi dekoodaus ja 720 000 nollasamplea. Natiivit sisältökuvat,
 kuusi taivutuskuvaa ja kuusi lopullista kohtausta tarkastettiin kuvallisesti.
 Tarkat paikalliset tiedot: [stick-studio-v2-local.json](evidence/stick-studio-v2-local.json).
@@ -2198,3 +2200,8 @@ Fyysisen Macin UI-/ääni-/kamera-/Metal-käyttötestit, ajastetut esinekontakti
 visuaalinen IK ja jalkalukitus sekä taiteellinen/puheen laadun hyväksyntä jäävät
 erikseen tehtäviksi. Developer ID, notarisointi ja lopullinen oikeustarkistus
 eivät seuraa teknisten testien läpäisystä.
+
+Paketin arkistointi rajattiin valmiisiin toimituskansioihin ja tiedostoihin.
+Renderöinnin väliaikaiset työpuut eivät päädy jaettavaan ZIPiin; tuntematon
+toimituksen juuritiedosto tai väärä tiedostolaji estää arkistoinnin.
+Kaksi lisäregressiota tarkistaa nämä rajat.

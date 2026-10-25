@@ -293,6 +293,46 @@ def validate_video(directory: Path, ffmpeg: Path, ffprobe: Path, logs: Path) -> 
 
 
 def archive_pack(output: Path) -> Path:
+    # Publish only completed deliverables. A renderer's best-effort cleanup can
+    # leave staging trees behind; those are never delivery inputs, even when
+    # they happen to contain a plausible sequence.mp4.
+    directories = {'images', 'video', 'projects', 'logs'}
+    files = {'LICENSE', 'NOTICE', 'ALOITA-TAALTA.md', 'professional-studio-next.md',
+             'pack-report.json', 'render-inputs.json'}
+    optional = {'HAHMOT-JA-ESINEET.png'}
+    output = safe_path(output)
+    if not output.is_dir():
+        raise ValueError('completed delivery must be a regular directory')
+    entries = {entry.name: entry for entry in output.iterdir()
+               if not entry.name.startswith('.kilsat-')}
+    if set(entries) - directories - files - optional:
+        raise ValueError('unexpected root entry in completed delivery')
+    if not directories | files <= set(entries):
+        raise ValueError('completed delivery is missing a required root entry')
+    inputs = []
+    for name, entry in sorted(entries.items()):
+        safe_path(entry)
+        if name in directories:
+            if not entry.is_dir():
+                raise ValueError('completed delivery directory has the wrong entry kind')
+            for parent, children, names in os.walk(entry, followlinks=False):
+                # Prune staging directories before walking them. Check every
+                # retained directory explicitly so symlinks cannot be skipped
+                # silently by os.walk(followlinks=False).
+                children[:] = sorted(child for child in children if not child.startswith('.kilsat-'))
+                for child in children:
+                    safe_path(Path(parent) / child)
+                for child in sorted(names):
+                    if child.startswith('.kilsat-'):
+                        continue
+                    path = safe_path(Path(parent) / child)
+                    if not path.is_file():
+                        raise ValueError('completed delivery contains a non-regular file')
+                    inputs.append(path)
+        else:
+            if not entry.is_file():
+                raise ValueError('completed delivery file has the wrong entry kind')
+            inputs.append(entry)
     archive = output.parent / 'Kilsat-Tikku-ukkostudio.zip'
     # Never replace another completed delivery.
     created = False
@@ -300,10 +340,8 @@ def archive_pack(output: Path) -> Path:
         with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as target:
             created = True
             total = 0
-            for path in sorted(output.rglob('*')):
+            for path in sorted(inputs):
                 safe_path(path)
-                if not path.is_file():
-                    continue
                 size = path.stat().st_size
                 total += size
                 if total > MAX_OUTPUT:
