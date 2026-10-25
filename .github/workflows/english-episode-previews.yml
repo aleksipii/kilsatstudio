@@ -25,13 +25,13 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 40
     env:
-      KOKORO_ROOT: ${{ runner.temp }}/kokoro-english
       ENGLISH_OUTPUT: ${{ github.workspace }}/out/kilsat-english
     steps:
       - uses: actions/checkout@v4
       - name: Check the explicit English render request
         run: |
           test "$(uname -m)" = arm64
+          echo "KOKORO_ROOT=$RUNNER_TEMP/kokoro-english" >> "$GITHUB_ENV"
           python3 - <<'PY'
           import json
           from pathlib import Path
