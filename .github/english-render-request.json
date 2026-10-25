@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "purpose": "User-requested three English Aino/Rane episode videos",
+  "language": "en-us",
+  "episodes": [1, 2, 3],
+  "allow_downloads": true,
+  "model": "hexgrad/Kokoro-82M",
+  "voices": {"AINO": "af_heart", "RANE": "am_michael"},
+  "render_profile": "full_hd",
+  "fps": 24,
+  "publication_approved": false
+}

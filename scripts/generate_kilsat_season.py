@@ -25,8 +25,11 @@ def encode(value) -> bytes:
 # Original geometric five-by-seven lettering, solely for the illustrative prop.
 FONT = {
 'A':['01110','10001','10001','11111','10001','10001','10001'],
+'C':['01111','10000','10000','10000','10000','10000','01111'],
 'D':['11110','10001','10001','10001','10001','10001','11110'],
 'E':['11111','10000','10000','11110','10000','10000','11111'],
+'G':['01110','10001','10000','10111','10001','10001','01110'],
+'H':['10001','10001','10001','11111','10001','10001','10001'],
 'I':['11111','00100','00100','00100','00100','00100','11111'],
 'J':['00111','00010','00010','00010','10010','10010','01100'],
 'K':['10001','10010','10100','11000','10100','10010','10001'],
@@ -40,6 +43,7 @@ FONT = {
 'T':['11111','00100','00100','00100','00100','00100','00100'],
 'U':['10001','10001','10001','10001','10001','10001','01110'],
 'V':['10001','10001','10001','10001','10001','01010','00100'],
+'X':['10001','10001','01010','00100','01010','10001','10001'],
 'Y':['10001','10001','01010','00100','00100','00100','00100'],
 '0':['01110','10001','10011','10101','11001','10001','01110'],
 '1':['00100','01100','00100','00100','00100','00100','01110'],
@@ -55,7 +59,9 @@ FONT = {
 }
 
 
-def example_screen() -> bytes:
+def example_screen(language='fi-fi') -> bytes:
+    if language not in ('fi-fi', 'en-us'):
+        raise ValueError('unsupported illustrative screen language')
     side=512
     pixels=bytearray([229,237,233,255] * side * side)
     def rect(x,y,w,h,color):
@@ -72,10 +78,11 @@ def example_screen() -> bytes:
     dark=(25,42,38,255); green=(24,112,87,255); white=(255,255,255,255)
     rect(34,12,444,488,dark);rect(48,40,416,430,white)
     rect(48,40,416,95,green);text('KILSAT',152,63,6,white)
-    text('AJOPAIVAKIRJA',80,158,4,dark)
-    for y,label in [(220,'TYOMATKA'),(285,'ASIAKAS'),(350,'KOTI')]:
+    text('MILEAGE LOG' if language == 'en-us' else 'AJOPAIVAKIRJA',80,158,4,dark)
+    labels = ['COMMUTE', 'CLIENT', 'HOME'] if language == 'en-us' else ['TYOMATKA', 'ASIAKAS', 'KOTI']
+    for y,label in zip((220,285,350), labels):
         rect(68,y-9,376,52,(237,244,240,255));text(label,80,y,3,dark)
-    rect(48,408,416,62,(251,214,81,255));text('ESIMERKKI',148,424,4,dark)
+    rect(48,408,416,62,(251,214,81,255));text('EXAMPLE' if language == 'en-us' else 'ESIMERKKI',148,424,4,dark)
     rows=b''.join(b'\x00'+pixels[y*side*4:(y+1)*side*4] for y in range(side))
     def chunk(kind,data):
         return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)

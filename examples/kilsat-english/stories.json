@@ -1,0 +1,55 @@
+{
+  "title": "Kilsat - Rane Knows Better",
+  "language": "en-us",
+  "authorship": "Three project-authored English adaptations of the original Aino and Rane satire; not translations of an external series.",
+  "episodes": [
+    {
+      "number": 1,
+      "title": "The Free Commute",
+      "arc": "The Cost of Being Right",
+      "set": "parkkipaikka",
+      "turns": [
+        "I added up my commute. It costs more than my lunch.",
+        "Mine is free. I simply keep it outside my budget.",
+        "Fuel, tires, and repairs don't disappear outside your spreadsheet.",
+        "Those are car expenses. I just happen to be inside it.",
+        "I logged the trip in Kilsat. Those kilometers actually happened.",
+        "Then your driving log needs a more positive attitude toward numbers.",
+        "The car still needs fuel. Which budget is paying for that?",
+        "Cancel your lunch. My free commute needs a bigger budget."
+      ]
+    },
+    {
+      "number": 2,
+      "title": "The No-Travel Meeting",
+      "arc": "The Cost of Being Right",
+      "set": "toimisto",
+      "turns": [
+        "Everyone drove here for a meeting about making fewer trips.",
+        "Exactly. You can't build a remote culture without showing up.",
+        "We could have stayed home and discussed this on a call.",
+        "And miss seeing who arrives early enough to find parking?",
+        "I logged today's trip in Kilsat. What should I call it?",
+        "Necessary travel. Never let the evidence undermine an important initiative.",
+        "All right. What's our actual decision for reducing unnecessary journeys?",
+        "We'll meet here again tomorrow. Attendance will demonstrate our progress."
+      ]
+    },
+    {
+      "number": 3,
+      "title": "The Savings Bonus",
+      "arc": "The Cost of Being Right",
+      "set": "kahvila",
+      "turns": [
+        "I combined the client visits. One trip instead of three.",
+        "Excellent. My efficiency bonus should finally pay for this coffee.",
+        "You told me combining them would make the company look small.",
+        "I was testing your resilience. Obviously, my leadership worked perfectly.",
+        "The actual trips are in Kilsat. Your objections are in email.",
+        "You're obsessing over details instead of celebrating our shared success.",
+        "Shared success? You've just asked me to pay for your coffee.",
+        "Of course. My bonus is personal. Your sacrifice is a team effort."
+      ]
+    }
+  ]
+}
