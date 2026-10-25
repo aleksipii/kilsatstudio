@@ -8,6 +8,10 @@ on:
       - examples/kilsat-english/**
       - scripts/generate_kilsat_english.py
       - scripts/render_kilsat_english.py
+      - services/kokoro-runtime/setup-manifest.json
+      - services/kokoro-runtime/setup_kokoro.py
+      - services/kokoro-runtime/runtime.py
+      - services/kokoro-runtime/requirements.txt
   workflow_dispatch:
     inputs:
       allow_downloads:
@@ -83,6 +87,14 @@ jobs:
           PY
           cp services/kokoro-runtime/setup-manifest.json "$ENGLISH_OUTPUT/evidence/"
           cp "$KOKORO_ROOT/evidence/"*.json "$KOKORO_ROOT/evidence/freeze.txt" "$ENGLISH_OUTPUT/evidence/"
+      - name: Load the installed English tokenizer before inference
+        run: |
+          "$KOKORO_ROOT/venv/bin/python" - <<'PY'
+          import importlib.metadata, spacy
+          language = spacy.load('en_core_web_sm')
+          assert len(language('I logged the trip in Kilsat.')) > 0
+          print('English tokenizer loaded; preshed=' + importlib.metadata.version('preshed'))
+          PY
       - name: Retain the verified environment for subsequent render attempts
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4

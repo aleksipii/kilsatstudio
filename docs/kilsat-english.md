@@ -25,6 +25,10 @@ real local Kokoro speech: **Aino: af_heart**, **Rane: am_michael**, **en-US**.
 The requested model, voices and language wheel are pinned and SHA-256 checked.
 No model weights or inference environment are stored in Git.
 
+An initial real inference run exposed a new spaCy/Preshed dependency regression.
+The setup now pins Preshed 3.0.13 and rebuilds the environment with new evidence.
+The exact inference traceback is retained on failures; no substitute audio is used.
+
 The first run is pending. A successful artifact contains `videos/ep01/sequence.mp4`,
 `videos/ep02/sequence.mp4` and `videos/ep03/sequence.mp4`, their PCM WAVs,
 pipeline/measurement reports and independently checked render receipts.
