@@ -24,6 +24,12 @@ def fixture(root):
     source = root/'source'
     source.mkdir()
     (source/'README.md').write_text('Fixture-only guide',encoding='utf-8')
+    catalog = {'schema_version':1, 'items':[
+        {'id':identifier, 'name':identifier, 'width':12, 'height':20, 'grip':[0,0],
+         'parts':[{'id':'case','joint':'grip','points':[[-6,-20],[6,-20],[6,0],[-6,0]],'color':[40,40,40,255]}],
+         'grip_parts':[{'id':'finger','joint':'grip','ellipse':{'cx':0,'cy':0,'rx':4,'ry':3},'color':[40,40,40,255]}]}
+        for identifier in packer.HAND_PROP_IDS]}
+    write(source/'hand-props.json',catalog)
     roadmap = root/'roadmap.md'
     roadmap.write_text('Fixture-only acceptance gates',encoding='utf-8')
     starter = {'format_version':2,'assets':[],
@@ -31,7 +37,8 @@ def fixture(root):
                                     'characters':{str(i):{} for i in range(6)},
                                     'scenes':[{'id':str(i),'duration':5,'events':[]} for i in range(6)]})}
     write(source/'stick-studio.kilsat',starter)
-    manifest = {'schema_version':1,'artistic_review':False,'physical_mac_review':False,
+    manifest = {'schema_version':1,'pack_revision':2,'artistic_review':False,'physical_mac_review':False,
+                'hand_props_catalog':'hand-props.json','hand_props_sha256':packer.file_hash(source/'hand-props.json'),
                 'starter_project':'stick-studio.kilsat','starter_sha256':packer.file_hash(source/'stick-studio.kilsat'),
                 'starter_source_bytes':len(starter['source'].encode()),'items':[]}
     for kind,count in packer.COUNTS.items():
@@ -65,7 +72,8 @@ class StickPackTests(unittest.TestCase):
             source,roadmap,manifest = fixture(Path(temporary).resolve())
             actual,identity = packer.source_identity(source,roadmap)
             self.assertEqual(actual,manifest)
-            self.assertEqual(len(identity['source_sha256']),27)
+            self.assertEqual(len(identity['source_sha256']),34)
+            self.assertEqual(identity['pack_revision'],2)
             self.assertFalse(identity['artistic_review'])
             self.assertFalse(identity['physical_mac_review'])
             self.assertFalse(identity['publication_approved'])
@@ -87,6 +95,60 @@ class StickPackTests(unittest.TestCase):
                 if change == 'mac': manifest['physical_mac_review'] = True
                 write(source/'manifest.json',manifest)
                 with self.assertRaises(ValueError):
+                    packer.source_identity(source,roadmap)
+
+    def test_pack_revision_must_explicitly_select_current_geometry(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source,roadmap,original = fixture(Path(temporary).resolve())
+            for revision in (None, 0, 1, 3, True, '2'):
+                manifest = copy.deepcopy(original)
+                if revision is None:
+                    manifest.pop('pack_revision')
+                else:
+                    manifest['pack_revision'] = revision
+                write(source/'manifest.json',manifest)
+                with self.assertRaisesRegex(ValueError,'revision-two'):
+                    packer.source_identity(source,roadmap)
+
+    def test_hand_catalog_bytes_are_hash_bound_and_its_path_is_fixed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source,roadmap,manifest = fixture(Path(temporary).resolve())
+            catalog_path = source/'hand-props.json'
+            catalog = json.loads(catalog_path.read_text())
+            catalog['items'][0]['parts'][0]['points'][0][0] = -7
+            write(catalog_path,catalog)
+            with self.assertRaisesRegex(ValueError,'catalog changed'):
+                packer.source_identity(source,roadmap)
+            manifest['hand_props_sha256'] = packer.file_hash(catalog_path)
+            write(source/'manifest.json',manifest)
+            self.assertIn('hand-props.json',packer.source_identity(source,roadmap)[1]['source_sha256'])
+            manifest['hand_props_catalog'] = '../outside.json'
+            write(source/'manifest.json',manifest)
+            with self.assertRaisesRegex(ValueError,'catalog path'):
+                packer.source_identity(source,roadmap)
+
+    def test_rehashed_hand_catalog_rejects_external_and_unbounded_geometry(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source,roadmap,manifest = fixture(Path(temporary).resolve())
+            path = source/'hand-props.json'
+            original = json.loads(path.read_text())
+            for invalid in ('future','ids','texture','skin','variants','smooth','ellipse','nan','vertices','grip'):
+                catalog = copy.deepcopy(original)
+                part = catalog['items'][0]['parts'][0]
+                if invalid == 'future': catalog['schema_version'] = 2
+                if invalid == 'ids': catalog['items'][0]['id'] = 'unlisted'
+                if invalid == 'texture': part['texture'] = {'asset':'external.png'}
+                if invalid == 'skin': part['skin'] = []
+                if invalid == 'variants': part['variants'] = {}
+                if invalid == 'smooth': part['smooth'] = 16
+                if invalid == 'ellipse': part['ellipse'] = {'cx':0,'cy':0,'rx':0,'ry':3}
+                if invalid == 'nan': part['points'][0][0] = float('nan')
+                if invalid == 'vertices': part['points'] *= 100
+                if invalid == 'grip': catalog['items'][0]['grip'] = [1,0]
+                write(path,catalog)
+                manifest['hand_props_sha256'] = packer.file_hash(path)
+                write(source/'manifest.json',manifest)
+                with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                     packer.source_identity(source,roadmap)
 
     def test_identifiers_paths_dimensions_and_transparency_cannot_escape_the_manifest(self):

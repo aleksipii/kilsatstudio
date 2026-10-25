@@ -5,6 +5,7 @@ mod art_editor;
 mod art_resources;
 mod asset_worker;
 mod bone_editor;
+mod camera_framing;
 mod clip_editor;
 mod clip_library;
 mod composition_editor;
@@ -18,6 +19,7 @@ mod event_factory;
 mod export_worker;
 mod gpu_check_panel;
 mod gpu_check_worker;
+mod hand_props;
 mod input_latency;
 mod keyframe_editor;
 mod kokoro_setup;
@@ -187,6 +189,7 @@ struct Studio {
     rule_draft: Option<(String, cue_rule_editor::RuleDraft)>,
     joint_draft: Option<(String, bone_editor::Draft)>,
     rig_clips: rig_clip_editor::State,
+    hand_props: hand_props::State,
     selected_joint: String,
     custom_rig_draft: Option<(String, custom_rig_editor::Draft)>,
     clip_draft: Option<(String, clip_editor::Draft)>,
@@ -349,6 +352,7 @@ impl Default for Studio {
             rule_draft: None,
             joint_draft: None,
             rig_clips: rig_clip_editor::State::default(),
+            hand_props: hand_props::State::default(),
             selected_joint: String::new(),
             clip_library_draft: None,
             live_clip_draft: None,
@@ -2080,6 +2084,209 @@ impl Studio {
             ui.ctx().request_repaint();
         }
     }
+    /// One validated edit, preserving the artist's selection and scene position.
+    fn apply_artist_source(&mut self, result: Result<String, String>, success: &str) {
+        if !self.editing_idle() || self.setup_busy || self.scene_playing() {
+            return;
+        }
+        let actor = self.selected_actor.clone();
+        let time = self.playhead;
+        match result {
+            Ok(source) => {
+                self.apply_structure(Ok(source.clone()));
+                if self.source == source {
+                    self.selected_actor = actor;
+                    self.playhead = time;
+                    if let Some(clock) = &mut self.scene_transport {
+                        let _ = clock.seek_seconds(time);
+                    }
+                    self.status = success.into();
+                }
+            }
+            Err(error) => self.status = format!("Muutos epäonnistui: {error}"),
+        }
+    }
+    fn apply_hand_prop(&mut self, remove: bool) {
+        if !self.editing_idle() || self.setup_busy || self.scene_playing() {
+            return;
+        }
+        let result = (|| {
+            let actor = self
+                .selected_actor
+                .as_deref()
+                .ok_or("Valitse hahmo ensin.")?;
+            if remove {
+                hand_props::remove(&self.source, actor, self.hand_props.hand)
+            } else {
+                let catalog = hand_props::catalog()?;
+                let item = catalog
+                    .items
+                    .get(self.hand_props.item_index)
+                    .ok_or("Valitse esine.")?;
+                hand_props::attach(
+                    &self.source,
+                    actor,
+                    self.hand_props.hand,
+                    item,
+                    self.hand_props.placement,
+                )
+            }
+        })();
+        self.apply_artist_source(result, if remove {
+            "Käsiesine poistettu hahmon kaikista kohtauksista. Kumoa palauttaa sen."
+        } else {
+            "Esine kiinnitetty käteen hahmon kaikissa kohtauksissa. Käden nivelet liikuttavat sitä. Kumoa peruu otteen."
+        });
+    }
+    fn hand_props_ui(&mut self, ui: &mut egui::Ui) {
+        ui.separator();
+        ui.label(egui::RichText::new("Esine käteen").strong());
+        let catalog = match hand_props::catalog() {
+            Ok(catalog) => catalog,
+            Err(error) => {
+                ui.colored_label(
+                    egui::Color32::LIGHT_RED,
+                    format!("Esineluetteloa ei voitu avata: {error}"),
+                );
+                return;
+            }
+        };
+        let Some(rig) = self
+            .script
+            .as_ref()
+            .and_then(|s| {
+                self.selected_actor
+                    .as_deref()
+                    .and_then(|a| s.characters.get(a))
+            })
+            .and_then(|c| c.rig.as_ref())
+        else {
+            ui.weak("Valitse mukautettu nivelhahmo näyttämöltä tai vasemmalta.");
+            return;
+        };
+        let problem = hand_props::hand_problem(rig, self.hand_props.hand);
+        let has_prop = rig
+            .parts
+            .iter()
+            .any(|p| p.id.starts_with(self.hand_props.hand.prefix()));
+        let enabled = self.editing_idle() && !self.setup_busy && !self.scene_playing();
+        let mut attach = false;
+        let mut remove = false;
+        ui.add_enabled_ui(enabled, |ui| {
+            egui::ComboBox::from_id_salt("hand_prop_item")
+                .selected_text(
+                    catalog
+                        .items
+                        .get(self.hand_props.item_index)
+                        .map_or("Valitse esine", |i| i.name.as_str()),
+                )
+                .show_ui(ui, |ui| {
+                    for (i, item) in catalog.items.iter().enumerate() {
+                        ui.selectable_value(&mut self.hand_props.item_index, i, &item.name);
+                    }
+                });
+            ui.horizontal(|ui| {
+                ui.selectable_value(
+                    &mut self.hand_props.hand,
+                    hand_props::Hand::Left,
+                    hand_props::Hand::Left.label(),
+                );
+                ui.selectable_value(
+                    &mut self.hand_props.hand,
+                    hand_props::Hand::Right,
+                    hand_props::Hand::Right.label(),
+                );
+            });
+            if let Some(problem) = &problem {
+                ui.weak(problem);
+            }
+            egui::CollapsingHeader::new("Säädä otetta").show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("X");
+                    ui.add(
+                        egui::DragValue::new(&mut self.hand_props.placement.x)
+                            .range(-100.0..=100.0),
+                    );
+                    ui.label("Y");
+                    ui.add(
+                        egui::DragValue::new(&mut self.hand_props.placement.y)
+                            .range(-100.0..=100.0),
+                    );
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Kierto °");
+                    ui.add(
+                        egui::DragValue::new(&mut self.hand_props.placement.rotation_degrees)
+                            .range(-180.0..=180.0),
+                    );
+                    ui.label("Koko");
+                    ui.add(
+                        egui::DragValue::new(&mut self.hand_props.placement.scale)
+                            .speed(0.01)
+                            .range(0.25..=3.0),
+                    );
+                });
+                if ui.button("Palauta oletusote").clicked() {
+                    self.hand_props.placement = Default::default();
+                }
+            });
+            ui.horizontal(|ui| {
+                attach = ui
+                    .add_enabled(
+                        problem.is_none(),
+                        egui::Button::new(if has_prop {
+                            "Vaihda esine / ote"
+                        } else {
+                            "Kiinnitä käteen"
+                        }),
+                    )
+                    .clicked();
+                remove = ui
+                    .add_enabled(has_prop, egui::Button::new("Poista käsiesine"))
+                    .clicked();
+            });
+        });
+        ui.small("Ote koskee tätä hahmoa kaikissa kohtauksissa. Valitse puhelimesta näyttö-, taka- tai vinonäkymä. Pysäytä toisto ennen muutosta.");
+        if attach || remove {
+            self.apply_hand_prop(remove);
+        }
+    }
+    fn apply_camera_shot(&mut self, shot: camera_framing::Shot) {
+        if !self.editing_idle() || self.setup_busy || self.scene_playing() {
+            return;
+        }
+        let result = camera_framing::apply(
+            &self.source,
+            self.scene_index,
+            self.selected_actor.as_deref(),
+            self.playhead,
+            shot,
+        );
+        self.apply_artist_source(
+            result,
+            "Kuvakoon avainruutu lisätty toistopään kohdalle. Kumoa peruu rajauksen.",
+        );
+    }
+    fn camera_framing_ui(&mut self, ui: &mut egui::Ui) {
+        ui.separator();
+        ui.label(egui::RichText::new("Kamera ja kuvakoko").strong());
+        let enabled = self.editing_idle() && !self.setup_busy && !self.scene_playing();
+        let mut selected = None;
+        ui.add_enabled_ui(enabled, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                for shot in camera_framing::Shot::ALL {
+                    if ui.button(shot.label()).clicked() {
+                        selected = Some(shot);
+                    }
+                }
+            });
+        });
+        ui.small("Rajaa 2D-näkymää valitun hahmon tai käsiesineen ympärille. Avainruutu tulee nykyiseen aikaan; aiemmat avainruudut säilyvät.");
+        if let Some(shot) = selected {
+            self.apply_camera_shot(shot);
+        }
+    }
+
     fn head_controls_ui(&mut self, ui: &mut egui::Ui) {
         let Some((script, actor)) = self.script.as_ref().zip(self.selected_actor.as_deref()) else {
             self.head_draft = None;
@@ -4634,6 +4841,8 @@ impl Studio {
                     ui.label(egui::RichText::new(actor).strong().size(18.0));
                 }
                 if self.character_mode {
+                    self.hand_props_ui(ui);
+                    self.camera_framing_ui(ui);
                     self.head_controls_ui(ui);
                     self.keyframe_inspector_ui(ui);
                     self.event_inspector_ui(ui);
@@ -9099,5 +9308,94 @@ mod piper_profile_context_tests {
                 .collect::<Vec<_>>(),
             vec!["af_heart"]
         );
+    }
+}
+
+#[cfg(test)]
+mod hand_prop_workflow_tests {
+    use super::*;
+    fn studio() -> Studio {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.load_stick_studio();
+        studio.history.reset(&studio.source);
+        studio.selected_actor = Some("VEIKKO".into());
+        studio.scene_index = 2;
+        studio.playhead = 1.25;
+        studio
+    }
+    #[test]
+    fn actual_hand_prop_transaction_preserves_art_selection_time_and_has_one_undo_step() {
+        let mut studio = studio();
+        let before = studio.snapshot();
+        let art = studio.project_document.as_ref().unwrap().art.clone();
+        studio.hand_props.hand = hand_props::Hand::Left;
+        studio.hand_props.item_index = 0;
+        studio.apply_hand_prop(false);
+        assert_ne!(studio.source, before.source, "{}", studio.status);
+        assert_eq!(studio.selected_actor.as_deref(), Some("VEIKKO"));
+        assert_eq!(studio.scene_index, 2);
+        assert_eq!(studio.playhead, 1.25);
+        assert_eq!(studio.project_document.as_ref().unwrap().art, art);
+        let after = studio.snapshot();
+        let rig = studio.script.as_ref().unwrap().characters["VEIKKO"]
+            .rig
+            .as_ref()
+            .unwrap();
+        assert!(rig.parts.iter().any(|p| p.id == "heldprop_l_puhelin_case"));
+        studio.undo_edit(false);
+        assert_eq!(studio.snapshot(), before);
+        assert!(!studio.history.can_undo());
+        studio.undo_edit(true);
+        assert_eq!(studio.snapshot(), after);
+        studio.selected_actor = Some("VEIKKO".into());
+        studio.playhead = 1.25;
+        studio.apply_hand_prop(true);
+        assert!(!studio.script.as_ref().unwrap().characters["VEIKKO"]
+            .rig
+            .as_ref()
+            .unwrap()
+            .parts
+            .iter()
+            .any(|p| p.id.starts_with("heldprop_l_")));
+        studio.undo_edit(false);
+        assert_eq!(studio.snapshot(), after);
+    }
+    #[test]
+    fn busy_guards_and_invalid_prop_changes_leave_source_art_and_history_untouched() {
+        let mut studio = studio();
+        let before = studio.snapshot();
+        for guard in 0..4 {
+            studio.busy = guard == 0;
+            studio.export_busy = guard == 1;
+            studio.diagnostics_busy = guard == 2;
+            studio.setup_busy = guard == 3;
+            studio.apply_hand_prop(false);
+            studio.apply_camera_shot(camera_framing::Shot::CloseUp);
+            assert_eq!(studio.snapshot(), before);
+            assert!(!studio.history.can_undo());
+        }
+        studio.setup_busy = false;
+        studio.hand_props.placement.scale = f64::NAN;
+        studio.apply_hand_prop(false);
+        assert_eq!(studio.snapshot(), before);
+        assert!(!studio.history.can_undo());
+        studio.apply_artist_source(Ok("x".repeat(MAX_SOURCE_BYTES + 1)), "must not succeed");
+        assert_eq!(studio.snapshot(), before);
+        assert!(!studio.history.can_undo());
+    }
+    #[test]
+    fn camera_button_creates_one_native_key_and_preserves_artist_context() {
+        let mut studio = studio();
+        let before = studio.snapshot();
+        studio.apply_camera_shot(camera_framing::Shot::CloseUp);
+        assert_ne!(studio.source, before.source, "{}", studio.status);
+        assert_eq!(studio.selected_actor.as_deref(), Some("VEIKKO"));
+        assert_eq!(studio.playhead, 1.25);
+        let camera = &studio.script.as_ref().unwrap().scenes[2].composition.camera;
+        assert!(camera.iter().any(|k| k.at == 1.25));
+        studio.undo_edit(false);
+        assert_eq!(studio.snapshot(), before);
+        assert!(!studio.history.can_undo());
     }
 }

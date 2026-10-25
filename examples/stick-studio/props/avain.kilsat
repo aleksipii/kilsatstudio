@@ -1,0 +1,8 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Avain\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{\"ESINE\":{\"asset\":\"props/avain-original\",\"rig\":{\"version\":1,\"id\":\"avain_original\",\"joints\":[{\"id\":\"root\",\"parent\":null}],\"parts\":[{\"id\":\"bow\",\"joint\":\"root\",\"ellipse\":{\"cx\":0,\"cy\":-23,\"rx\":11,\"ry\":12},\"color\":[221,175,91,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1,\"mode\":\"behind\"}},{\"id\":\"bow_hole\",\"joint\":\"root\",\"ellipse\":{\"cx\":0,\"cy\":-23,\"rx\":4.5,\"ry\":5.5},\"color\":[36,40,45,255]},{\"id\":\"shaft\",\"joint\":\"root\",\"points\":[[-3,-15],[3,-15],[3,22],[-3,22]],\"color\":[221,175,91,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1,\"mode\":\"behind\"}},{\"id\":\"tooth_0\",\"joint\":\"root\",\"points\":[[2,12],[10,12],[10,17],[2,17]],\"color\":[221,175,91,255]},{\"id\":\"tooth_1\",\"joint\":\"root\",\"points\":[[2,21],[10,21],[10,26],[2,26]],\"color\":[221,175,91,255]}]}}},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"events\":[],\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"actor_tracks\":{\"ESINE\":[{\"at\":0,\"easing\":\"smoothstep\",\"x\":0.0,\"y\":-71.41639344262293,\"scale_x\":6.885245901639344,\"scale_y\":6.885245901639344}]}}}]}",
+  "assets": [],
+  "art": {
+    "layers": []
+  }
+}

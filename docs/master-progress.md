@@ -2165,3 +2165,36 @@ embedded-guide rendering test passed. It changes no editor behavior. Further
 workflow runs are recorded in the documentation PR rather than inferred from
 these earlier results. Physical Mac GUI/camera, calibration, continuous mocap
 and artistic acceptance remain open.
+
+
+## 2026-10-25 — Tikku-ukkostudio 2: nivelet, käsiotteet ja kuvakoot
+
+Käyttäjän kuvissa näkyneet lantion ja hartioiden aukot korjataan tasapaksuilla,
+nivelen keskelle päättyvillä pyöristetyillä raajoilla, lantio-/hartiaviivoilla
+ja nivelen mukaan jaetulla selkärangalla. Hahmot säilyvät tikkuhahmoina.
+Esine käteen -työkalu kiinnittää yhdeksän vaihtoehtoa olemassa oleviin käden
+niveliin; puhelimesta on näyttö-, taka- ja vinonäkymä. Kiinnitys koskee hahmoa
+kaikissa kohtauksissa, säilyttää tunnusesineet ja tukee kumoa/toista-historiaa.
+Viisi 2D-kuvakokoa kirjoittaa tavallisen kameran avainruudun. Neljän taustan
+syvyyttä ja kontrastia on parannettu, suuri harmaa soikio ja pienet irralliset
+reunarekvisiitat poistettu.
+
+Sisältöversio 2 sisältää 30 erillistä projektia, 60 PNG/SVG-kuvaa, yhdeksän
+käsiotteen luettelon ja kuuden kohtauksen 30 sekunnin äänettömän Full HD -demon.
+Kuvallinen suunnitelma ja hyväksyntäehdot ovat
+[stick-studio-art-direction.md](stick-studio-art-direction.md).
+
+Paikallisesti läpäisivät seitsemän natiivivientitestiä (42 taivutussiluettia
+ja puhelimen FK-/rasterivastaavuus), 272 työpöytätestiä, 144 Python-testiä,
+55 runtime-testiä, rustfmt ja tiukka kaikkien targettien/featureiden Clippy.
+Yksi desktop-testi rajattiin paikallisesti puuttuvan /proc-tiedoston vuoksi;
+CI ajetaan rajaamatta. Koko workspace-testi sekä PR:n ja mainin CI ovat tässä
+kirjaushetkessä vielä kesken. Todellinen MP4 tarkistettiin: 1920×1080, 24 fps,
+720 ruutua / 30 s, täysi dekoodaus ja 720 000 nollasamplea. Natiivit sisältökuvat,
+kuusi taivutuskuvaa ja kuusi lopullista kohtausta tarkastettiin kuvallisesti.
+Tarkat paikalliset tiedot: [stick-studio-v2-local.json](evidence/stick-studio-v2-local.json).
+
+Fyysisen Macin UI-/ääni-/kamera-/Metal-käyttötestit, ajastetut esinekontaktit,
+visuaalinen IK ja jalkalukitus sekä taiteellinen/puheen laadun hyväksyntä jäävät
+erikseen tehtäviksi. Developer ID, notarisointi ja lopullinen oikeustarkistus
+eivät seuraa teknisten testien läpäisystä.

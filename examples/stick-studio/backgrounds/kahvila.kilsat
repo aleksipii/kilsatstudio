@@ -42,14 +42,224 @@
           "type": "rectangle",
           "rect": {
             "x": 0,
-            "y": 960,
+            "y": 810,
             "width": 1920,
-            "height": 120
+            "height": 270
           },
           "color": {
-            "r": 182,
-            "g": 153,
-            "b": 120,
+            "r": 201,
+            "g": 170,
+            "b": 133,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_seam_0",
+        "name": "kahvila floor seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840,
+              "y": 810
+            },
+            {
+              "x": -260,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_seam_1",
+        "name": "kahvila floor seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900,
+              "y": 810
+            },
+            {
+              "x": 220,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_seam_2",
+        "name": "kahvila floor seam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 810
+            },
+            {
+              "x": 700,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_seam_3",
+        "name": "kahvila floor seam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020,
+              "y": 810
+            },
+            {
+              "x": 1180,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_seam_4",
+        "name": "kahvila floor seam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080,
+              "y": 810
+            },
+            {
+              "x": 1660,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_cross_0",
+        "name": "kahvila floor cross 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 866
+            },
+            {
+              "x": 1920,
+              "y": 866
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_floor_cross_1",
+        "name": "kahvila floor cross 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 957
+            },
+            {
+              "x": 1920,
+              "y": 957
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 181,
+            "g": 150,
+            "b": 118,
             "a": 255
           }
         }
@@ -67,14 +277,14 @@
           "type": "rectangle",
           "rect": {
             "x": 0,
-            "y": 948,
+            "y": 798,
             "width": 1920,
             "height": 12
           },
           "color": {
-            "r": 170,
-            "g": 90,
-            "b": 61,
+            "r": 161,
+            "g": 105,
+            "b": 81,
             "a": 255
           }
         }
@@ -653,6 +863,400 @@
             "r": 211,
             "g": 225,
             "b": 203,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_shelf",
+        "name": "kahvila shelf",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 96,
+            "y": 389,
+            "width": 235,
+            "height": 12
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_cup_shelf_0",
+        "name": "kahvila cup shelf 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 119,
+            "y": 356,
+            "width": 30,
+            "height": 31
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_cup_shelf_1",
+        "name": "kahvila cup shelf 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 175,
+            "y": 356,
+            "width": 30,
+            "height": 31
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_cup_shelf_2",
+        "name": "kahvila cup shelf 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 231,
+            "y": 356,
+            "width": 30,
+            "height": 31
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_leg",
+        "name": "kahvila table leg",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1715,
+            "y": 789,
+            "width": 13,
+            "height": 160
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_feet",
+        "name": "kahvila table feet",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1650,
+              "y": 949
+            },
+            {
+              "x": 1721,
+              "y": 923
+            },
+            {
+              "x": 1791,
+              "y": 949
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_top_outline",
+        "name": "kahvila table top outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1575,
+            "y": 744,
+            "width": 284,
+            "height": 61
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_top",
+        "name": "kahvila table top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1583,
+            "y": 749,
+            "width": 268,
+            "height": 45
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_cup",
+        "name": "kahvila table cup",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1674,
+            "y": 721,
+            "width": 33,
+            "height": 32
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_coffee",
+        "name": "kahvila table coffee",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1674,
+            "y": 716,
+            "width": 33,
+            "height": 10
+          },
+          "color": {
+            "r": 111,
+            "g": 76,
+            "b": 55,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_table_cup_handle",
+        "name": "kahvila table cup handle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1707,
+              "y": 727
+            },
+            {
+              "x": 1719,
+              "y": 727
+            },
+            {
+              "x": 1719,
+              "y": 742
+            },
+            {
+              "x": 1707,
+              "y": 742
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_chair_back",
+        "name": "kahvila chair back",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1854,
+              "y": 708
+            },
+            {
+              "x": 1883,
+              "y": 708
+            },
+            {
+              "x": 1883,
+              "y": 840
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_chair_base",
+        "name": "kahvila chair base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1816,
+              "y": 946
+            },
+            {
+              "x": 1828,
+              "y": 842
+            },
+            {
+              "x": 1882,
+              "y": 842
+            },
+            {
+              "x": 1896,
+              "y": 946
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_kahvila_chair_seat",
+        "name": "kahvila chair seat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1807,
+            "y": 829,
+            "width": 84,
+            "height": 16
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
             "a": 255
           }
         }

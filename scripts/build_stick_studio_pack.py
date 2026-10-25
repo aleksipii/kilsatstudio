@@ -11,6 +11,7 @@ import argparse
 from collections import Counter
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -25,12 +26,15 @@ from render_kilsat_season import (MAX_JSON, file_hash, inspect_media, probe,
                                   read_json, run_bounded, write_json)
 
 REPO = Path(__file__).resolve().parents[1]
-COUNTS = {'character': 6, 'background': 4, 'prop': 14}
+COUNTS = {'character': 6, 'background': 4, 'prop': 20}
+HAND_PROP_IDS = ('puhelin', 'puhelin_takana', 'puhelin_vino', 'kahvikuppi', 'kirja',
+                 'avain', 'tabletti', 'kyna', 'tyokaluavain')
 DIRECTORIES = {'character': 'characters', 'background': 'backgrounds', 'prop': 'props'}
 PROFILE = {'width': 1920, 'height': 1080, 'fps': 24, 'seconds': 30, 'frames': 720,
            'audio_samples': 720_000, 'speech': False}
 MAX_OUTPUT = 256 * 1024 * 1024
 MAX_ARCHIVE = 50 * 1024 * 1024
+MAX_HAND_CATALOG = 128 * 1024
 
 
 def safe_path(path: Path) -> Path:
@@ -65,20 +69,86 @@ def silent_project(path: Path) -> dict:
     return source
 
 
+def hand_prop_catalog(path: Path) -> dict:
+    """Check the bounded local-geometry interchange boundary, not reimplement FK.
+
+    The Rust rig validator remains responsible for polygon simplicity and the
+    canonical scene evaluator remains responsible for all hand transforms.
+    """
+    file_hash(path, MAX_HAND_CATALOG)
+    catalog = read_json(path)
+    if (not isinstance(catalog, dict) or set(catalog) != {'schema_version', 'items'}
+            or type(catalog.get('schema_version')) is not int or catalog['schema_version'] != 1
+            or not isinstance(catalog.get('items'), list)
+            or len(catalog['items']) != len(HAND_PROP_IDS)):
+        raise ValueError('hand-prop catalog requires schema 1 and exactly nine items')
+    def number(value, bound=10_000):
+        return type(value) in (int, float) and math.isfinite(value) and abs(value) <= bound
+    def rgba(value):
+        return isinstance(value, list) and len(value) == 4 and all(type(v) is int and 0 <= v <= 255 for v in value)
+    for expected, item in zip(HAND_PROP_IDS, catalog['items']):
+        if (not isinstance(item, dict)
+                or set(item) != {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts'}
+                or item.get('id') != expected or not isinstance(item.get('name'), str)
+                or not 1 <= len(item['name']) <= 128 or any(ord(c) < 32 for c in item['name'])
+                or not all(number(item.get(key), 512) and item[key] > 0 for key in ('width', 'height'))
+                or item.get('grip') != [0, 0] or any(type(v) not in (int, float) for v in item['grip'])
+                or not isinstance(item.get('parts'), list) or not item['parts']
+                or not isinstance(item.get('grip_parts'), list) or not item['grip_parts']
+                or len(item['parts']) + len(item['grip_parts']) > 32):
+            raise ValueError('hand-prop catalog IDs, grip, dimensions or native parts differ')
+        seen = set()
+        for part in item['parts'] + item['grip_parts']:
+            if (not isinstance(part, dict) or not {'id', 'joint', 'color'} <= set(part)
+                    or not set(part) <= {'id', 'joint', 'color', 'points', 'ellipse', 'outline'}
+                    or not isinstance(part.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9_]{0,63}', part['id'])
+                    or part['id'] in seen or part['joint'] != 'grip' or not rgba(part['color'])
+                    or ('points' in part) == ('ellipse' in part)):
+                raise ValueError('hand props must contain unique local native polygon/ellipse parts only')
+            seen.add(part['id'])
+            if 'points' in part:
+                points = part['points']
+                if (not isinstance(points, list) or not 3 <= len(points) <= 128
+                        or any(not isinstance(p, list) or len(p) != 2 or not all(number(v) for v in p) for p in points)):
+                    raise ValueError('hand-prop polygon exceeds finite vertex bounds')
+            if 'ellipse' in part:
+                ellipse = part['ellipse']
+                if (not isinstance(ellipse, dict) or set(ellipse) != {'cx', 'cy', 'rx', 'ry'}
+                        or not all(number(v) for v in ellipse.values())
+                        or ellipse['rx'] <= 0 or ellipse['ry'] <= 0):
+                    raise ValueError('hand-prop ellipse exceeds finite positive bounds')
+            if 'outline' in part:
+                outline = part['outline']
+                if (not isinstance(outline, dict) or not {'color', 'width'} <= set(outline)
+                        or not set(outline) <= {'color', 'width', 'mode'} or not rgba(outline['color'])
+                        or not number(outline['width'], 64) or outline['width'] < 0
+                        or outline.get('mode', 'over') not in ('over', 'behind', 'silhouette')):
+                    raise ValueError('hand-prop outline exceeds native bounds')
+    return catalog
+
+
 def source_identity(root: Path, roadmap: Path) -> tuple[dict, dict]:
     root, roadmap = safe_path(root), safe_path(roadmap)
     manifest = read_json(root / 'manifest.json')
     if (manifest.get('schema_version') != 1
+            or type(manifest.get('pack_revision')) is not int or manifest['pack_revision'] != 2
             or manifest.get('artistic_review') is not False
             or manifest.get('physical_mac_review') is not False
             or manifest.get('starter_project') != 'stick-studio.kilsat'):
-        raise ValueError('expected an unreviewed version-one stick-studio manifest')
+        raise ValueError('expected an unreviewed schema-one revision-two stick-studio manifest')
     items = manifest.get('items')
-    if (not isinstance(items, list) or len(items) != 24
+    if (not isinstance(items, list) or len(items) != 30
             or any(not isinstance(item, dict) for item in items)
             or Counter(item.get('kind') for item in items) != COUNTS):
-        raise ValueError('stick pack requires exactly six characters, four backgrounds and 14 props')
+        raise ValueError('stick pack requires exactly six characters, four backgrounds and 20 props')
     hashes = {'manifest.json': file_hash(root / 'manifest.json', MAX_JSON)}
+    if manifest.get('hand_props_catalog') != 'hand-props.json':
+        raise ValueError('hand-prop catalog path must be hand-props.json')
+    catalog = pack_path(root, manifest['hand_props_catalog'])
+    hand_prop_catalog(catalog)
+    hashes['hand-props.json'] = file_hash(catalog, MAX_HAND_CATALOG)
+    if hashes['hand-props.json'] != manifest.get('hand_props_sha256'):
+        raise ValueError('hand-prop catalog changed')
     seen = set()
     for item in items:
         identifier, kind = item.get('id'), item.get('kind')
@@ -113,7 +183,7 @@ def source_identity(root: Path, roadmap: Path) -> tuple[dict, dict]:
             or len(read_json(starter)['source'].encode()) != manifest.get('starter_source_bytes')):
         raise ValueError('starter must retain six characters and six five-second Full HD scenes')
     hashes['README.md'] = file_hash(root / 'README.md', MAX_JSON)
-    return manifest, {'schema_version': 1, 'source_sha256': hashes,
+    return manifest, {'schema_version': 1, 'pack_revision': 2, 'source_sha256': hashes,
                       'roadmap': {'path': str(roadmap), 'sha256': file_hash(roadmap, MAX_JSON)},
                       'license_notices': {name: file_hash(REPO/name, MAX_JSON) for name in ('LICENSE','NOTICE')},
                       'profile': PROFILE, 'artistic_review': False, 'physical_mac_review': False,
@@ -150,11 +220,11 @@ def validate_images(directory: Path, manifest: dict) -> dict:
     hashes = {}
     report = read_json(directory / 'export-report.json')
     exported = report.get('items')
-    if (report.get('schema_version') != 1 or not isinstance(exported, list)
+    if (report.get('schema_version') != 1 or report.get('pack_revision') != 2 or not isinstance(exported, list)
             or len(exported) != len(manifest['items'])):
         raise ValueError('native asset exporter report is incomplete')
     observed = {(item.get('kind'),item.get('id')): item for item in exported}
-    if len(observed) != 24:
+    if len(observed) != 30:
         raise ValueError('native asset exporter report has duplicate items')
     for item in manifest['items']:
         actual = observed.get((item['kind'],item['id']), {})

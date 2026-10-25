@@ -11,7 +11,7 @@ on:
       - crates/**
       - Cargo.lock
   push:
-    branches: [main, feat/stick-studio-asset-pack]
+    branches: [main, feat/stick-studio-asset-pack, feat/stick-studio-joints-and-props]
     paths:
       - .github/workflows/stick-studio-preview.yml
       - examples/stick-studio/**
@@ -62,7 +62,7 @@ jobs:
           /usr/bin/ffprobe -version
       - name: Build the existing production renderer and native asset exporter
         run: cargo build --release --locked -p motion-export --example production_export --example stick_studio_assets
-      - name: Export 24 native assets and independently verify the silent Full HD showcase
+      - name: Export 30 native assets and independently verify the silent Full HD showcase
         run: |
           python3 scripts/build_stick_studio_pack.py --asset-exporter "$GITHUB_WORKSPACE/target/release/examples/stick_studio_assets" --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --ffmpeg /usr/bin/ffmpeg --ffprobe /usr/bin/ffprobe --output "$GITHUB_WORKSPACE/out/stick-studio"
       - uses: actions/upload-artifact@v4

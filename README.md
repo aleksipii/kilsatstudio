@@ -81,9 +81,15 @@ two-joint skinning, outlined/rounded parts, expressions and viseme mouths.
 ## Practical macOS test build
 
 The **Tikku-ukkostudio** button opens an editable, silent 30-second starter with
-six original articulated stick figures, four sets and 14 props. The
+six original articulated stick figures, four sets and 20 props. Connected round
+limbs preserve the stick-figure style in bent poses. **Esine käteen** attaches
+nine hand-prop choices, including front, back and oblique phone views, to a
+character across all scenes. Framing buttons write native 2D camera keys for
+wide, two-person, medium, close-up and held-prop shots. The
 [asset pack guide](examples/stick-studio/README.md) describes the cast, native
-projects and PNG/SVG exports. The [professional studio roadmap](docs/professional-studio-next.md)
+projects and 60 PNG/SVG exports. The [art direction plan](docs/stick-studio-art-direction.md)
+sets the joint, grip, background and framing review criteria. The
+[professional studio roadmap](docs/professional-studio-next.md)
 prioritizes an asset browser/recovery, visual animation/contact tools and
 integrated sound editing with measured speech quality.
 
