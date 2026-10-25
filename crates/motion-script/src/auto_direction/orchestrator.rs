@@ -1,10 +1,8 @@
 //! Integrates pure direction stages with the existing shot compiler.
 use super::{
     acting, director, parser, timing, DirectionResult, TimingSource, GAP_SAMPLES,
-    MAX_DURATION_SAMPLES, MAX_LINES, SAMPLE_RATE,
+    MAX_DURATION_SAMPLES, MAX_LINES, MAX_SOURCE_BYTES, SAMPLE_RATE,
 };
-
-const MAX_SOURCE_BYTES: usize = 100_000;
 
 /// Append a bounded automatic-direction draft to the existing screenplay.
 ///
@@ -19,7 +17,7 @@ pub fn direct(
     supplied_samples: Option<&[u64]>,
 ) -> Result<DirectionResult, String> {
     if source.len() > MAX_SOURCE_BYTES {
-        return Err("Screenplay exceeds the desktop's 100 KB source limit.".into());
+        return Err("Screenplay exceeds the 256 KiB source limit.".into());
     }
     let script = crate::parse(source).map_err(|error| error.to_string())?;
     let first_scene = script.scenes.len();
@@ -82,7 +80,7 @@ pub fn direct(
     }
     let source = crate::to_source(&expansion.script).map_err(|error| error.to_string())?;
     if source.len() > MAX_SOURCE_BYTES {
-        return Err("Directed screenplay exceeds the desktop's 100 KB source limit.".into());
+        return Err("Directed screenplay exceeds the 256 KiB source limit.".into());
     }
     let mut diagnostics = vec![match timing_source {
         TimingSource::Estimated => "Draft timing: dialogue durations are text estimates. Generate or import actual speech, then retime before final export; no audio or lip-sync was generated.".into(),

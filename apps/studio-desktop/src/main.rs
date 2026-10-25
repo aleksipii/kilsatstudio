@@ -8631,6 +8631,113 @@ mod stick_studio_tests {
     }
 
     #[test]
+    fn all_directors_accept_normalized_stick_project_and_preserve_authored_scenes() {
+        use motion_script::auto_direction::{self, TimingSource, SAMPLE_RATE};
+        const DIALOGUE: &str = "NOUTAJA: Onko vuoroni jo?\nVEIKKO: Kahvitauon jälkeen.";
+        let document = stick_studio::load().unwrap();
+        let original = motion_script::parse(&document.source).unwrap();
+        assert_eq!(original.characters.len(), 6);
+        assert_eq!(original.scenes.len(), 6);
+        let normalized = motion_script::to_source(&original).unwrap();
+        assert!(normalized.len() > 100_000);
+        assert!(normalized.len() <= MAX_SOURCE_BYTES);
+        assert_eq!(MAX_SOURCE_BYTES, auto_direction::MAX_SOURCE_BYTES);
+        let paths = [
+            "assets/director/noutaja.wav".into(),
+            "assets/director/veikko.wav".into(),
+        ];
+        let samples = [2 * SAMPLE_RATE, 2 * SAMPLE_RATE];
+        // These pure directors do not open the explicitly supplied WAV paths.
+        let results = [
+            (
+                "direct",
+                auto_direction::direct(&normalized, DIALOGUE, None),
+            ),
+            (
+                "conversational",
+                auto_direction::direct_conversational(&normalized, DIALOGUE, None),
+            ),
+            (
+                "audio",
+                auto_direction::direct_with_audio(&normalized, DIALOGUE, &samples, &paths),
+            ),
+        ];
+        for (profile, result) in results {
+            let result = result.unwrap_or_else(|error| panic!("{profile}: {error}"));
+            assert!(result.source.len() > 100_000, "{profile}");
+            assert!(result.source.len() <= MAX_SOURCE_BYTES, "{profile}");
+            assert_eq!(result.first_scene, 6, "{profile}");
+            assert!(result.shot_count > 0 && result.shot_count <= auto_direction::MAX_LINES);
+            assert!(result.duration_samples <= auto_direction::MAX_DURATION_SAMPLES);
+            let directed = motion_script::parse(&result.source).expect(profile);
+            directed.validate().expect(profile);
+            assert_eq!(directed.characters.len(), 6, "{profile}");
+            assert_eq!(directed.scenes.len(), 6 + result.shot_count, "{profile}");
+            assert_eq!(
+                serde_yaml::to_value(&directed.characters).unwrap(),
+                serde_yaml::to_value(&original.characters).unwrap(),
+                "{profile} changed the cast"
+            );
+            assert_eq!(
+                serde_yaml::to_value(&directed.scenes[..6]).unwrap(),
+                serde_yaml::to_value(&original.scenes).unwrap(),
+                "{profile} changed authored scenes"
+            );
+            let spoken: Vec<_> = directed.scenes[6..]
+                .iter()
+                .flat_map(|scene| &scene.events)
+                .filter_map(|event| match event {
+                    motion_script::Event::Speak {
+                        actor, text, audio, ..
+                    } => Some((actor.as_str(), text.as_str(), audio.as_deref())),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(spoken.len(), 2, "{profile}");
+            assert_eq!((spoken[0].0, spoken[0].1), ("NOUTAJA", "Onko vuoroni jo?"));
+            assert_eq!(
+                (spoken[1].0, spoken[1].1),
+                ("VEIKKO", "Kahvitauon jälkeen.")
+            );
+            if profile == "audio" {
+                assert_eq!(result.timing_source, TimingSource::SuppliedSamples);
+                assert_eq!(spoken[0].2, Some(paths[0].as_str()));
+                assert_eq!(spoken[1].2, Some(paths[1].as_str()));
+            } else {
+                assert_eq!(result.timing_source, TimingSource::Estimated);
+                assert!(spoken.iter().all(|line| line.2.is_none()));
+            }
+        }
+    }
+
+    #[test]
+    fn all_directors_reject_one_byte_over_source_budget_before_parsing() {
+        use motion_script::auto_direction;
+        // Invalid YAML ensures the reported error comes from the byte guard.
+        let oversized = "[".repeat(MAX_SOURCE_BYTES + 1);
+        let paths = [
+            "assets/director/noutaja.wav".into(),
+            "assets/director/veikko.wav".into(),
+        ];
+        let dialogue = "NOUTAJA: Hei!\nVEIKKO: Terve!";
+        let results = [
+            ("direct", auto_direction::direct(&oversized, dialogue, None)),
+            (
+                "conversational",
+                auto_direction::direct_conversational(&oversized, dialogue, None),
+            ),
+            (
+                "audio",
+                auto_direction::direct_with_audio(&oversized, dialogue, &[24_000, 24_000], &paths),
+            ),
+        ];
+        for (profile, result) in results {
+            let error = result.expect_err(profile);
+            assert!(error.contains("256 KiB"), "{profile}: {error}");
+        }
+    }
+
+    #[test]
     fn whole_source_guard_rejects_one_byte_over_budget_without_changing_project() {
         let mut studio = Studio::default();
         studio.validate();

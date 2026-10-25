@@ -9,11 +9,12 @@ kuva-, puhe- tai mallilatauksia. Esittely on tarkoituksella **äänetön**.
 1. Avaa uuden version Kilsat Studio ja paina **Tikku-ukkostudio**.
    Vaihtoehtoisesti avaa `stick-studio.kilsat` projektin avauskentästä.
 2. Valitse vasemmalta kohtaus ja sen hahmo. Paina **Toista**.
-3. **Muokkaa → Hahmot:** valitse hahmo esikatselusta ja vedä se hiirellä
+3. Valitse näyttämön **Hahmot**-tila ja vedä hahmoa hiirellä
    uuteen paikkaan. Liike tallentuu aikajanan valittuun hetkeen. **Kumoa**
    palauttaa muutoksen. Pään ja muiden nivelten avainruutuja voi muokata
    niveltyökaluilla. Tämä paketti ei lisää visuaalista IK-editoria.
-4. **Muokkaa → Taide:** muokkaa taustojen ja esineiden geometrisia tasoja.
+4. Valitse näyttämön **Kuvitus**-tila ja oikealta **Muokkaa**, jotta voit
+   muokata taustojen ja esineiden geometrisia tasoja.
    `backgrounds/`, `props/` ja `characters/` sisältävät myös erilliset projektit.
 5. Tallenna omalla nimellä ennen pidempää työskentelyä. Malliprojektin avaaminen
    on kumottava muutos; sovellus ei vielä sisällä automaattista palautustallennusta.

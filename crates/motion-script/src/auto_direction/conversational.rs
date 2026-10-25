@@ -2,12 +2,11 @@
 //! Inputs here remain caller-supplied: only the desktop PCM worker verifies WAVs.
 use super::{
     acting, director, parser, timing, DirectionResult, TimingSource, MAX_DURATION_SAMPLES,
-    MAX_LINES, SAMPLE_RATE,
+    MAX_LINES, MAX_SOURCE_BYTES, SAMPLE_RATE,
 };
 use crate::{ActorEasing, ActorKey, CameraKey, Composition, Event, ReactionShot, Script};
 use std::collections::BTreeSet;
 
-const MAX_SOURCE: usize = 100_000;
 const REACTION_SAMPLES: u64 = SAMPLE_RATE / 2;
 
 /// Richer editable draft. Speech durations are estimated unless explicitly supplied.
@@ -37,8 +36,8 @@ fn build(
     supplied: Option<&[u64]>,
     paths: Option<&[String]>,
 ) -> Result<DirectionResult, String> {
-    if source.len() > MAX_SOURCE {
-        return Err("Screenplay exceeds 100KB".into());
+    if source.len() > MAX_SOURCE_BYTES {
+        return Err("Screenplay exceeds the 256 KiB source limit.".into());
     }
     let script = crate::parse(source).map_err(|e| e.to_string())?;
     let first_scene = script.scenes.len();
@@ -177,8 +176,8 @@ fn build(
         return Err("Directed sequence exceeds60seconds; speech was not truncated".into());
     }
     let output = crate::to_source(&expansion.script).map_err(|e| e.to_string())?;
-    if output.len() > MAX_SOURCE {
-        return Err("Directed source exceeds100KB".into());
+    if output.len() > MAX_SOURCE_BYTES {
+        return Err("Directed screenplay exceeds the 256 KiB source limit.".into());
     }
     Ok(DirectionResult {source:output,first_scene,shot_count:targets.len(),duration_samples,
         timing_source:if supplied.is_some(){TimingSource::SuppliedSamples}else{TimingSource::Estimated},

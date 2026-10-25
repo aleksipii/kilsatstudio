@@ -19,8 +19,9 @@ self-contained six-shot, 30-second 1920x1080/24fps starter. The Finnish
 Undo/Redo preserves the preceding work; loading clears the save path.
 
 Normal editing serializes the compact 54,099-byte starter above the old 100 KB
-editor limit. The shared desktop screenplay limit is now 256 KiB, including
-history, opening/saving and direction workers. Individual-rig, timing, 64-entry
+editor limit. The shared screenplay limit is now 256 KiB, including the desktop,
+history, opening/saving, direction workers and all three core director entry points.
+Individual-rig, timing, 64-entry
 and eight-MiB history limits are unchanged. An actual head-edit regression tests
 normalization above 100 KB, Undo/Redo and save/reopen; oversized input is rejected.
 
@@ -45,6 +46,13 @@ those two and the existing desktop exact-cache enrollment test excluded locally;
 normal CI keeps all three enabled. Main integration, unfiltered Linux/macOS,
 GPU/media checks, Mac packaging and the dedicated asset/video workflow still
 need their actual CI results recorded here after success.
+
+Final review caught the core directors retaining their own 100 KB guards; the
+shared core/editor constant fixes that second boundary too. All three director
+entry points now accept the actual normalized six-rig starter and reject one
+byte above the bound before parsing. Six targeted starter tests, 16 core direction
+tests and refreshed workspace/all-target/all-feature strict Clippy passed after
+that fix. The asset guide also uses the actual Hahmot/Kuvitus workspace labels.
 
 The [professional studio roadmap](professional-studio-next.md) prioritizes a
 thumbnail/search library and recovery, visual IK/contact/curve/shot tools and

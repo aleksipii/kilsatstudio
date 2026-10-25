@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 
 /// Bounded whole-screenplay budget shared by desktop editing, history and workers.
-pub(crate) const MAX_SOURCE_BYTES: usize = 256 * 1024;
+pub(crate) const MAX_SOURCE_BYTES: usize = motion_script::auto_direction::MAX_SOURCE_BYTES;
 const MAX_ENTRIES: usize = 64;
 const MAX_BYTES: usize = 8 * 1024 * 1024;
 
