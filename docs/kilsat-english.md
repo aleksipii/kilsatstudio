@@ -29,12 +29,43 @@ An initial real inference run exposed a new spaCy/Preshed dependency regression.
 The setup now pins Preshed 3.0.13 and rebuilds the environment with new evidence.
 The exact inference traceback is retained on failures; no substitute audio is used.
 
-The first run is pending. A successful artifact contains `videos/ep01/sequence.mp4`,
+[All three real English videos completed](https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861).
+[Download the Full HD video/evidence package](https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861/artifacts/12593905647).
+This verified run uses source `8d68d021937dce8f0961e42a5d233b6b7d418e2f`,
+merged in PR #97 as `ef97286d2bae44e42f50d962406a6e2c6edac92e`.
+
+| Episode | Actual duration | Decoded frames | Observed pipeline time |
+| --- | --- | --- | --- |
+| The Free Commute | 44.125 s | 1059 | 206.336 s |
+| The No-Travel Meeting | 45.208333 s | 1085 | 158.701 s |
+| The Savings Bonus | 46.625 s | 1119 | 194.814 s |
+
+The integrator downloaded the artifact, verified its SHA-256 and all three
+MP4/WAV/pipeline hashes, independently decoded/probed the videos and viewed actual
+opening/later frames. [Exact evidence](evidence/kilsat-english-ci.json) binds these
+observations to this source/run. This is technical/frame review; no human listening
+or annotated lip-sync/artistic acceptance is inferred.
+
+The package contains `videos/ep01/sequence.mp4`,
 `videos/ep02/sequence.mp4` and `videos/ep03/sequence.mp4`, their PCM WAVs,
 pipeline/measurement reports and independently checked render receipts.
 `videos/english-render-report.json` records completed episodes and their hashes.
 The source manifest's `not_synthesized`/`not_rendered` fields describe the source
 package; render receipts describe what an actual run produced.
+The GitHub review artifact expires on 2026-11-24.
+
+Each episode's project/speech/render/media-check attempt was within 300 seconds
+on Apple Silicon CI (VirtualMac2,1). Installing models, building the exporter and
+the full three-episode batch are outside the per-episode timer; the batch took
+567.248 seconds. Physical Mac and the full production target remain unaccepted.
+
+The [main repeat run](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515230)
+also completed all three episodes with the same frame counts and durations.
+[Its separate main artifact](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515230/artifacts/12593402307)
+is available too. The downloaded/hash-verified evidence above describes the first
+successful source run; it is not relabelled as a download of the main artifact.
+All merged-source checks passed and are tracked in
+[master-progress](master-progress.md#three-english-episodes--pr-97-merged-2026-10-25).
 
 ## Render again locally
 

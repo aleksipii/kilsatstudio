@@ -6,7 +6,24 @@ in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
 
-## Current Finnish desktop status — PR #96 merged
+## Current English episodes — PR #97 merged
+
+Three actual English Aino/Rane episode videos are complete at 1920x1080/24fps,
+with real Kokoro speech and English captions: 44.125, 45.208333 and 46.625 seconds.
+[Scripts/downloads](kilsat-english.md) and [hash-bound evidence](evidence/kilsat-english-ci.json)
+record the exact source, media and observed times. PR #97 merged as
+`ef97286d2bae44e42f50d962406a6e2c6edac92e` after all source checks passed.
+Main Rust/GPU/media, packaging, voice selection and the repeated renders of all
+three English episodes also passed. Source and main CI passed 825/824 Rust,
+55 runtime + 132 repository Python per OS,
+49 GPU library + 2 probe per OS and 4 real FFmpeg tests. The Preshed 3.0.14 English
+tokenizer regression is fixed by a 3.0.13 managed/development pin and actual
+inference was rerun successfully. Eight default Rust tests and four physical GPU
+tests per OS remain ignored. The 31 Finnish projects are preserved.
+Human voice/art/lip-sync, real Kilsat capture, physical devices, rights and
+production signing acceptance remain open.
+
+## Finnish desktop baseline — PR #96 merged
 
 PR #96 merged into main as `3a33b6f11e2b0ba611ea7a1f8e94d2ec3b43b70b`.
 Finnish controls, guidance and display names now cover the advanced desktop tools

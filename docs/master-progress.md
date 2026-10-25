@@ -7,18 +7,69 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
-## Three English episodes (2026-10-25)
+## Three English episodes — PR #97 merged (2026-10-25)
 
-The `feat/english-kilsat-episodes` increment adds three original English
-Aino/Rane adaptations, English captions and an English EXAMPLE mileage-log prop,
-with the existing original rigs/sets and 1920x1080/24fps/30–60s source profile.
-The 31 Finnish projects are unchanged. [Scripts and render instructions](kilsat-english.md)
-describe the new pack. Actual speech uses explicit local Kokoro af_heart and
-am_michael voices with en-us requests. The bounded runner reuses the production
-exporter and independent media checks, binds model/voice/source/tool hashes and
-checks actual rendered dialogue provenance. Source manifests do not claim media
-has already been produced. The first real-English CI render and integration are
-pending; quality, rights, approved Kilsat capture and physical-device gates stay open.
+[PR #97](https://github.com/aleksipii/kilsatstudio/pull/97) merged as
+`ef97286d2bae44e42f50d962406a6e2c6edac92e`, from final source
+`8d68d021937dce8f0961e42a5d233b6b7d418e2f`. Three original English
+Aino/Rane adaptations now have actual 1920x1080/24fps H.264/AAC videos,
+English captions and an English EXAMPLE mileage-log prop, using the existing
+original rigs/sets. The 31 Finnish projects and Finnish prop bytes are unchanged.
+[Scripts, project files and downloads](kilsat-english.md) describe the pack.
+Actual speech is local Kokoro af_heart (Aino) / am_michael (Rane), en-us:
+24 measured dialogue WAV records, with no placeholder or system-voice substitution.
+
+The [successful render](https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861)
+produced The Free Commute (**44.125 s / 1059 frames**), The No-Travel Meeting
+(**45.208333 s / 1085 frames**) and The Savings Bonus (**46.625 s / 1119 frames**).
+The integrator downloaded [artifact 12593905647](https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861/artifacts/12593905647),
+verified its archive SHA-256 and all MP4/WAV/pipeline hashes, independently
+decoded/probed the videos and inspected opening/later frames from each episode.
+[Exact evidence](evidence/kilsat-english-ci.json) remains bound to that source/run.
+Source manifests retain source-only not-rendered state; actual receipts record
+what the run completed.
+
+Observed per-episode project/speech/render/probe times were **206.336 / 158.701 /
+194.814 seconds** on VirtualMac2,1 Apple Silicon CI. Model/environment installation
+and compilation are outside these timers; the entire three-episode batch took
+**567.248 seconds**. No physical Mac or full-production timing gate is granted.
+The bounded runner reuses the production exporter/sample clock and independent
+media checks, binds source/model/voice/tool hashes and validates actual English
+dialogue PCM provenance. Initial real inference exposed Preshed 3.0.14 breaking
+spaCy tokenizer cache initialization; managed/development setup now pins 3.0.13,
+rebuilds the manifest-keyed environment and retains fresh freeze/evidence.
+The actual tokenizer load and all 24 real spoken lines passed with that pin.
+
+Final-source [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40178487305),
+[Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40178487300),
+[voice selection](https://github.com/aleksipii/kilsatstudio/actions/runs/40178487303)
+and the real English render passed before merge: **825 Linux / 824 macOS Rust**
+tests, eight default-ignored tests each, **55 runtime + 132 repository Python**
+tests per platform, **49 GPU library + 2 probe tests** per platform (four physical
+GPU tests ignored), and **four real FFmpeg tests**. Format/check/strict Clippy
+and the local 132 repository + 55 runtime Python tests passed.
+
+All merged-source main verification passed on
+`ef97286d2bae44e42f50d962406a6e2c6edac92e`:
+[Rust/GPU/media](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515217),
+[Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515247),
+[English render](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515230),
+[voice selection](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515204).
+Main passed the same **825/824 Rust**, **55 runtime + 132 repository Python**
+tests per platform, **49 GPU library + 2 probe tests** per platform (four physical
+GPU tests ignored) and **four real FFmpeg tests**. Eight default Rust tests remain
+ignored per platform. All three English episodes completed again with the same
+decoded frame counts and durations; [main video artifact 12593402307](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515230/artifacts/12593402307)
+is a separate repeat run. The downloaded/hash-verified media evidence above
+continues to describe the original successful source run.
+[Current main Mac preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515247/artifacts/12593781644)
+includes the corrected English setup pin; it is ad-hoc signed and not Developer
+ID notarized. Unzip both the artifact and its contained app ZIP and open the app
+in Finder; no physical GUI or audio-device run is inferred from packaging.
+These status-only documentation changes preserve the checked source bytes.
+Still open: human listening/annotated lip-sync and artistic/comic-timing review,
+approved real Kilsat capture, exact model/voice/dependency/asset rights, physical
+Mac/device/GPU acceptance and production Developer ID/notarization.
 
 ## Finnish desktop completion — PR #96 merged (2026-10-25)
 
