@@ -1,0 +1,78 @@
+name: Stick studio asset pack
+on:
+  pull_request:
+    paths:
+      - .github/workflows/stick-studio-preview.yml
+      - examples/stick-studio/**
+      - scripts/*stick*.py
+      - scripts/render_kilsat_season.py
+      - tests/test_stick_studio_pack.py
+      - docs/professional-studio-next.md
+      - crates/**
+      - Cargo.lock
+  push:
+    branches: [main, feat/stick-studio-asset-pack]
+    paths:
+      - .github/workflows/stick-studio-preview.yml
+      - examples/stick-studio/**
+      - scripts/*stick*.py
+      - scripts/render_kilsat_season.py
+      - tests/test_stick_studio_pack.py
+      - docs/professional-studio-next.md
+      - crates/**
+      - Cargo.lock
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stick-studio-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  real-asset-pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check source fixtures and packaging boundaries
+        run: |
+          python3 scripts/generate_stick_studio.py
+          git diff --exit-code -- examples/stick-studio
+          python3 -m unittest discover -s tests -p 'test_stick_studio_pack.py' -v
+          cargo test --locked -p motion-export --example stick_studio_assets
+      - name: Ensure local encoders with bounded installation
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -x /usr/bin/ffmpeg || ! -x /usr/bin/ffprobe ]]; then
+            if [[ -f /etc/apt/apt-mirrors.txt ]]; then
+              printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo -n tee /etc/apt/apt-mirrors.txt >/dev/null
+            fi
+            if [[ -f /etc/apt/apt-mirrors-security.txt ]]; then
+              printf '%s\n' 'https://security.ubuntu.com/ubuntu/' | sudo -n tee /etc/apt/apt-mirrors-security.txt >/dev/null
+            fi
+            timeout 120s sudo -n apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update
+            timeout 150s sudo -n env DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y --no-install-recommends ffmpeg
+          fi
+          /usr/bin/ffmpeg -version
+          /usr/bin/ffprobe -version
+      - name: Build the existing production renderer and native asset exporter
+        run: cargo build --release --locked -p motion-export --example production_export --example stick_studio_assets
+      - name: Export 24 native assets and independently verify the silent Full HD showcase
+        run: |
+          python3 scripts/build_stick_studio_pack.py --asset-exporter "$GITHUB_WORKSPACE/target/release/examples/stick_studio_assets" --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --ffmpeg /usr/bin/ffmpeg --ffprobe /usr/bin/ffprobe --output "$GITHUB_WORKSPACE/out/stick-studio"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stick-studio-assets-${{ github.sha }}
+          path: |
+            out/Kilsat-Tikku-ukkostudio.zip
+            out/stick-studio/pack-report.json
+            out/stick-studio/render-inputs.json
+            out/stick-studio/logs/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,574 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Loputtoman palaverin toimisto\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#f1ecdf\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "tausta_tausta_toimisto_wall",
+        "name": "toimisto wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_floor",
+        "name": "toimisto floor",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 960,
+            "width": 1920,
+            "height": 120
+          },
+          "color": {
+            "r": 195,
+            "g": 181,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_skirting",
+        "name": "toimisto skirting",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 948,
+            "width": 1920,
+            "height": 12
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_window_outline",
+        "name": "toimisto window outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70,
+            "y": 180,
+            "width": 330,
+            "height": 400
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_window_fill",
+        "name": "toimisto window fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82,
+            "y": 192,
+            "width": 306,
+            "height": 376
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_skyline_far",
+        "name": "toimisto skyline far",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 92,
+            "y": 414,
+            "width": 130,
+            "height": 140
+          },
+          "color": {
+            "r": 124,
+            "g": 159,
+            "b": 154,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_skyline_near",
+        "name": "toimisto skyline near",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 251,
+            "y": 365,
+            "width": 124,
+            "height": 189
+          },
+          "color": {
+            "r": 99,
+            "g": 139,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_mullion_v",
+        "name": "toimisto mullion v",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 229,
+            "y": 192,
+            "width": 12,
+            "height": 376
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_mullion_h",
+        "name": "toimisto mullion h",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82,
+            "y": 370,
+            "width": 306,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_clock_outline",
+        "name": "toimisto clock outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1632,
+            "y": 160,
+            "width": 170,
+            "height": 170
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_clock_fill",
+        "name": "toimisto clock fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1641,
+            "y": 169,
+            "width": 152,
+            "height": 152
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_clock_hour",
+        "name": "toimisto clock hour",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1717,
+              "y": 245
+            },
+            {
+              "x": 1680,
+              "y": 226
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_clock_minute",
+        "name": "toimisto clock minute",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1717,
+              "y": 245
+            },
+            {
+              "x": 1717,
+              "y": 187
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_clock_pin",
+        "name": "toimisto clock pin",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1710,
+            "y": 238,
+            "width": 14,
+            "height": 14
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_door_outline",
+        "name": "toimisto door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1660,
+            "y": 490,
+            "width": 180,
+            "height": 458
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_door_fill",
+        "name": "toimisto door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1670,
+            "y": 500,
+            "width": 160,
+            "height": 438
+          },
+          "color": {
+            "r": 130,
+            "g": 155,
+            "b": 145,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_door_glass",
+        "name": "toimisto door glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1692,
+            "y": 529,
+            "width": 116,
+            "height": 158
+          },
+          "color": {
+            "r": 191,
+            "g": 209,
+            "b": 189,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_door_handle",
+        "name": "toimisto door handle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1684,
+              "y": 740
+            },
+            {
+              "x": 1714,
+              "y": 740
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_side_desk",
+        "name": "toimisto side desk",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70,
+            "y": 755,
+            "width": 325,
+            "height": 28
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_side_desk_front",
+        "name": "toimisto side desk front",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 85,
+            "y": 783,
+            "width": 295,
+            "height": 49
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_desk_leg_left",
+        "name": "toimisto desk leg left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 832,
+            "width": 17,
+            "height": 116
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_toimisto_desk_leg_right",
+        "name": "toimisto desk leg right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 353,
+            "y": 832,
+            "width": 17,
+            "height": 116
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

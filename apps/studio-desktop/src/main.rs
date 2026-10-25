@@ -34,6 +34,7 @@ mod scene_settings;
 mod scene_worker;
 mod sequence_panel;
 mod sequence_worker;
+mod stick_studio;
 mod studio_help;
 mod timeline_edit;
 mod ui_metrics;
@@ -50,6 +51,7 @@ use motion_lipsync::{
 };
 use motion_tts::{CancellationToken, KokoroConfig, SpeechResult};
 use motion_voice::{dialogue_jobs, timeline::DialogueClip, DialogueJob, VoiceUpdate, VoiceWorker};
+use project_history::MAX_SOURCE_BYTES;
 use std::{
     path::Path,
     sync::{mpsc, Arc},
@@ -474,7 +476,7 @@ impl Studio {
             return;
         }
         match result {
-            Ok(source) if source.len() <= 100_000 => {
+            Ok(source) if source.len() <= MAX_SOURCE_BYTES => {
                 if let Some(document) = &self.project_document {
                     let mut candidate = document.clone();
                     candidate.source = source.clone();
@@ -496,7 +498,7 @@ impl Studio {
                 self.validate();
                 self.status = "Projektin rakenne päivitetty. Kumoa palauttaa edellisen käsikirjoituksen; valmistele ääni uudelleen.".into();
             }
-            Ok(_) => self.status = "Muutos ylittää käsikirjoituksen 100 kt:n kokorajan.".into(),
+            Ok(_) => self.status = "Muutos ylittää käsikirjoituksen 256 KiB:n kokorajan.".into(),
             Err(error) => self.status = format!("Projektin muokkaus epäonnistui: {error}"),
         }
     }
@@ -661,8 +663,9 @@ impl Studio {
                 return;
             }
         }
-        if source.len() > 100_000 {
-            self.settings_error = Some("Muokattu käsikirjoitus ylittää 100 kt:n kokorajan.".into());
+        if source.len() > MAX_SOURCE_BYTES {
+            self.settings_error =
+                Some("Muokattu käsikirjoitus ylittää 256 KiB:n kokorajan.".into());
             return;
         }
         if draft.duration_seconds < scene.duration {
@@ -781,9 +784,9 @@ impl Studio {
         }
         match motion_script::apply_voice(&self.source, &actor, draft.voice.clone()) {
             Ok(source) => {
-                if source.len() > 100_000 {
+                if source.len() > MAX_SOURCE_BYTES {
                     self.voice_edit_error =
-                        Some("Muokattu käsikirjoitus ylittää 100 kt:n kokorajan.".into());
+                        Some("Muokattu käsikirjoitus ylittää 256 KiB:n kokorajan.".into());
                     return;
                 }
                 self.flush_text_edit();
@@ -954,8 +957,8 @@ impl Studio {
             .is_some_and(|event| matches!(event, motion_script::Event::Speak { .. }));
         match motion_script::remove_event(&self.source, scene, event) {
             Ok(source) => {
-                if source.len() > 100_000 {
-                    self.status = "Muokattu käsikirjoitus ylittää 100 kt:n kokorajan.".into();
+                if source.len() > MAX_SOURCE_BYTES {
+                    self.status = "Muokattu käsikirjoitus ylittää 256 KiB:n kokorajan.".into();
                     return;
                 }
                 self.record_source_edit(&self.source.clone(), &source);
@@ -1153,9 +1156,9 @@ impl Studio {
         };
         match result {
             Ok(source) => {
-                if source.len() > 100_000 {
+                if source.len() > MAX_SOURCE_BYTES {
                     self.event_edit_error = Some(
-                        "Muokattu käsikirjoitus ylittää tallennuksen 100 kt:n kokorajan.".into(),
+                        "Muokattu käsikirjoitus ylittää tallennuksen 256 KiB:n kokorajan.".into(),
                     );
                     return;
                 }
@@ -1382,9 +1385,9 @@ impl Studio {
             let result = (|| -> Result<(motion_project::ProjectDocument, String), String> {
                 let path = std::fs::canonicalize(&self.script_path).map_err(|e| e.to_string())?;
                 let doc = motion_project::load(&path).map_err(|e| e.to_string())?;
-                if doc.source.len() > 100_000 {
+                if doc.source.len() > MAX_SOURCE_BYTES {
                     return Err(
-                        "Projektin käsikirjoitus ylittää muokkaimen 100 kt:n kokorajan".into(),
+                        "Projektin käsikirjoitus ylittää muokkaimen 256 KiB:n kokorajan".into(),
                     );
                 }
                 let root = path
@@ -1422,11 +1425,11 @@ impl Studio {
             let file = std::fs::File::open(&self.script_path)
                 .map_err(|e| format!("Tiedoston {} avaaminen: {e}", self.script_path))?;
             let mut bytes = Vec::new();
-            file.take(100_001)
+            file.take((MAX_SOURCE_BYTES + 1) as u64)
                 .read_to_end(&mut bytes)
                 .map_err(|e| format!("Read screenplay: {e}"))?;
-            if bytes.len() > 100_000 {
-                return Err("Screenplay exceeds 100 KB editor limit".into());
+            if bytes.len() > MAX_SOURCE_BYTES {
+                return Err("Käsikirjoitus ylittää muokkaimen 256 KiB:n kokorajan".into());
             }
             String::from_utf8(bytes)
                 .map_err(|e| format!("Käsikirjoituksen on oltava UTF-8-muotoinen: {e}"))
@@ -1459,9 +1462,9 @@ impl Studio {
             .is_some_and(|s| s == "kilsat")
         {
             let result = (|| -> Result<motion_project::ProjectDocument, String> {
-                if self.source.len() > 100_000 {
+                if self.source.len() > MAX_SOURCE_BYTES {
                     return Err(
-                        "Projektin käsikirjoitus ylittää muokkaimen 100 kt:n kokorajan".into(),
+                        "Projektin käsikirjoitus ylittää muokkaimen 256 KiB:n kokorajan".into(),
                     );
                 }
                 let parent = Path::new(&self.script_path)
@@ -1523,8 +1526,8 @@ impl Studio {
             return;
         }
         self.flush_text_edit();
-        if self.source.len() > 100_000 {
-            self.status = "Käsikirjoitus ylittää tallennuksen 100 kt:n kokorajan".into();
+        if self.source.len() > MAX_SOURCE_BYTES {
+            self.status = "Käsikirjoitus ylittää tallennuksen 256 KiB:n kokorajan".into();
             return;
         }
         self.status = match std::fs::write(&self.script_path, &self.source) {
@@ -1895,11 +1898,51 @@ impl Studio {
             Err(error) => self.status = format!("Jakson luominen epäonnistui: {error}"),
         }
     }
+    fn load_stick_studio(&mut self) {
+        if !self.editing_idle() {
+            return;
+        }
+        let document = match stick_studio::load() {
+            Ok(document) => document,
+            Err(error) => {
+                self.status = format!("Tikku-ukkostudion avaaminen epäonnistui: {error}");
+                return;
+            }
+        };
+        self.flush_text_edit();
+        let before = self.snapshot();
+        self.stop_playback();
+        self.source = document.source.clone();
+        self.caption_mode = document.caption_mode;
+        self.project_document = Some(document);
+        self.script_path.clear();
+        self.asset_dirty = false;
+        self.art_editor.reset();
+        self.art_editor.dirty = true;
+        self.alignment.clear();
+        self.scene_alignment.clear();
+        self.preview = None;
+        self.scene_index = 0;
+        self.selected_actor = Some("NOUTAJA".into());
+        self.selected_joint = "head".into();
+        self.editor_tab = false;
+        self.character_mode = true;
+        self.inspector_tab = InspectorTab::Edit;
+        self.reset_scene();
+        self.document_changed();
+        self.validate();
+        self.history.record(before, self.snapshot());
+        self.confirm_new_episode = false;
+        self.status = "Tikku-ukkostudio avattu: kuusi nivelhahmoa, taustat ja esineet ovat muokattavia. Esimerkki on äänetön. Tallenna uutena .kilsat-tiedostona. Kumoa palauttaa edellisen projektin sisällön ja kuvituksen.".into();
+    }
     fn creation_ui(&mut self, ui: &mut egui::Ui) {
         ui.add_enabled_ui(self.editing_idle(), |ui| {
             ui.horizontal_wrapped(|ui| {
                 if ui.button("+ Uusi kohtaus").clicked() { self.create_empty_scene(); }
                 if ui.button("+ Uusi jakso").clicked() { self.confirm_new_episode = true; }
+                if ui.button("Tikku-ukkostudio")
+                    .on_hover_text("Avaa kuusi alkuperäistä nivelhahmoa, taustat ja esineet. Tallenna nykyinen työ ensin, jos haluat erillisen tiedoston. Kumoa palauttaa sen sisällön.")
+                    .clicked() { self.load_stick_studio(); }
             });
             if self.confirm_new_episode {
                 ui.label("Aloitetaanko uusi jakso? Tallenna nykyinen projekti ensin, jos haluat siitä erillisen tiedoston.");
@@ -3717,7 +3760,7 @@ impl Studio {
                     let before = self.source.clone();
                     let response = ui.add(egui::TextEdit::multiline(&mut self.source)
                         .id(egui::Id::new("screenplay_editor"))
-                        .desired_rows(32).desired_width(f32::INFINITY).char_limit(100_000)
+                        .desired_rows(32).desired_width(f32::INFINITY).char_limit(MAX_SOURCE_BYTES)
                         .font(egui::TextStyle::Monospace).code_editor());
                     if response.changed()
                     {
@@ -3770,7 +3813,11 @@ impl Studio {
             }
             ui.add_space(16.0);
             ui.weak("Valitse hahmo listasta tai näyttämöltä. Ohjeet-painike neuvoo animoinnin.");
-            if self.demo_assets.is_some() {
+            if self.demo_assets.as_ref().is_some_and(|assets| {
+                self.jobs.iter().any(|job| {
+                    job.imported_audio.as_ref().is_some_and(|path| path.starts_with(&assets.root))
+                })
+            }) {
                 ui.add_space(8.0);
                 ui.colored_label(egui::Color32::from_rgb(238, 185, 107), "SYNTEETTINEN ÄÄNIESIMERKKI");
                 ui.weak("Esimerkki käyttää testiääniä ja havainnollista suun ajoitusta. Kopioi väliaikaiset resurssit ennen pysyvän projektin tallentamista.");
@@ -8436,6 +8483,293 @@ mod direct_manipulation_history_tests {
             studio.project_document.as_ref().unwrap().art.layers[0].id,
             "kept"
         );
+    }
+}
+
+#[cfg(test)]
+mod stick_studio_tests {
+    use super::*;
+
+    fn assert_starter(studio: &Studio) {
+        let script = studio.script.as_ref().expect(&studio.status);
+        assert_eq!(script.characters.len(), 6, "{}", studio.status);
+        assert_eq!(script.scenes.len(), 6);
+        for actor in ["NOUTAJA", "VEIKKO", "PASMA", "KIPINA", "KIIRE", "SISU"] {
+            let rig = script.characters[actor].rig.as_ref().unwrap();
+            assert_eq!(rig.joints.len(), 15);
+            assert!(rig.joints.iter().any(|joint| joint.id == "head"));
+        }
+        assert!(studio.jobs.is_empty());
+        let document = studio.project_document.as_ref().unwrap();
+        assert!(document.assets.is_empty());
+        assert!(document.timing.is_empty());
+        assert!(!document.art.layers.is_empty());
+        let mut current = document.clone();
+        current.source = studio.source.clone();
+        current.validate().unwrap();
+    }
+
+    #[test]
+    fn embedded_stick_project_loads_and_undo_restores_source_and_artwork() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let mut document = motion_project::ProjectDocument::new(studio.source.clone()).unwrap();
+        document.art.layers.push(motion_art::Layer {
+            id: "kept".into(),
+            name: "Kept artwork".into(),
+            scene_id: "intro".into(),
+            visible: true,
+            plane: motion_art::Plane::Background,
+            active: None,
+            opacity: 1.0,
+            attachment: None,
+            clip: None,
+            clip_shape: None,
+            blend: motion_art::BlendMode::Normal,
+            content: motion_art::Content::Rectangle {
+                rect: motion_art::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: 20.0,
+                    height: 10.0,
+                },
+                color: motion_art::Color {
+                    r: 1,
+                    g: 2,
+                    b: 3,
+                    a: 255,
+                },
+            },
+        });
+        studio.project_document = Some(document);
+        studio.script_path = "existing.kilsat".into();
+        let original = studio.snapshot();
+
+        studio.load_stick_studio();
+        assert_starter(&studio);
+        assert!(studio.script_path.is_empty());
+        assert_eq!(studio.selected_actor.as_deref(), Some("NOUTAJA"));
+        assert_eq!(studio.selected_joint, "head");
+        assert!(studio.inspector_tab == InspectorTab::Edit);
+        assert!(studio.character_mode && !studio.editor_tab);
+        assert!(studio.history.can_undo());
+        let starter = studio.snapshot();
+
+        studio.undo_edit(false);
+        assert_eq!(studio.snapshot(), original);
+        assert_eq!(
+            studio.project_document.as_ref().unwrap().art.layers[0].id,
+            "kept"
+        );
+        assert!(studio.script_path.is_empty());
+        assert!(!studio.history.can_undo());
+        studio.undo_edit(true);
+        assert_eq!(studio.snapshot(), starter);
+        assert_starter(&studio);
+    }
+
+    #[test]
+    fn actual_head_edit_over_100kb_roundtrips_through_history_and_saved_project() {
+        let mut studio = Studio::default();
+        studio.validate();
+        studio.load_stick_studio();
+        assert_starter(&studio);
+        let before = studio.snapshot();
+        let mut draft =
+            direct_manipulation::HeadDraft::new(studio.script.as_ref().unwrap(), 0, "NOUTAJA", 1.0)
+                .unwrap();
+        assert!(draft.supports_tilt);
+        draft.tilt_degrees = 12.0;
+        let edited = draft.apply(&studio.source).unwrap();
+        // Normal editor serialization expands compact rig YAML beyond the old cap.
+        assert!(edited.len() > 100_000, "normalized bytes: {}", edited.len());
+        assert!(edited.len() <= MAX_SOURCE_BYTES);
+        studio.apply_structure(Ok(edited.clone()));
+        assert_eq!(studio.source, edited, "{}", studio.status);
+        assert_starter(&studio);
+        let tracks = &studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .joint_tracks;
+        let key = tracks["NOUTAJA"]["head"]
+            .iter()
+            .find(|key| key.at == 1.0)
+            .unwrap();
+        assert!((key.rotation - 12.0_f64.to_radians()).abs() < 1e-12);
+        let after = studio.snapshot();
+
+        studio.undo_edit(false);
+        assert_eq!(studio.snapshot(), before);
+        studio.undo_edit(true);
+        assert_eq!(studio.snapshot(), after);
+        assert_starter(&studio);
+
+        let root = std::env::temp_dir().join(format!(
+            "kilsat-stick-edit-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&root).unwrap();
+        let path = root.join("edited.kilsat");
+        studio.project_root = root.to_string_lossy().into_owned();
+        studio.script_path = path.to_string_lossy().into_owned();
+        studio.save_script();
+        let saved = motion_project::load(&path).expect(&studio.status);
+        saved.validate().unwrap();
+        assert_eq!(saved.source, edited);
+        assert_eq!(saved.art, after.document().unwrap().art);
+
+        let mut reopened = Studio::default();
+        reopened.script_path = path.to_string_lossy().into_owned();
+        reopened.open_script();
+        assert_eq!(reopened.source, edited, "{}", reopened.status);
+        assert_eq!(reopened.snapshot(), after);
+        assert_starter(&reopened);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn all_directors_accept_normalized_stick_project_and_preserve_authored_scenes() {
+        use motion_script::auto_direction::{self, TimingSource, SAMPLE_RATE};
+        const DIALOGUE: &str = "NOUTAJA: Onko vuoroni jo?\nVEIKKO: Kahvitauon jälkeen.";
+        let document = stick_studio::load().unwrap();
+        let original = motion_script::parse(&document.source).unwrap();
+        assert_eq!(original.characters.len(), 6);
+        assert_eq!(original.scenes.len(), 6);
+        let normalized = motion_script::to_source(&original).unwrap();
+        assert!(normalized.len() > 100_000);
+        assert!(normalized.len() <= MAX_SOURCE_BYTES);
+        assert_eq!(MAX_SOURCE_BYTES, auto_direction::MAX_SOURCE_BYTES);
+        let paths = [
+            "assets/director/noutaja.wav".into(),
+            "assets/director/veikko.wav".into(),
+        ];
+        let samples = [2 * SAMPLE_RATE, 2 * SAMPLE_RATE];
+        // These pure directors do not open the explicitly supplied WAV paths.
+        let results = [
+            (
+                "direct",
+                auto_direction::direct(&normalized, DIALOGUE, None),
+            ),
+            (
+                "conversational",
+                auto_direction::direct_conversational(&normalized, DIALOGUE, None),
+            ),
+            (
+                "audio",
+                auto_direction::direct_with_audio(&normalized, DIALOGUE, &samples, &paths),
+            ),
+        ];
+        for (profile, result) in results {
+            let result = result.unwrap_or_else(|error| panic!("{profile}: {error}"));
+            assert!(result.source.len() > 100_000, "{profile}");
+            assert!(result.source.len() <= MAX_SOURCE_BYTES, "{profile}");
+            assert_eq!(result.first_scene, 6, "{profile}");
+            assert!(result.shot_count > 0 && result.shot_count <= auto_direction::MAX_LINES);
+            assert!(result.duration_samples <= auto_direction::MAX_DURATION_SAMPLES);
+            let directed = motion_script::parse(&result.source).expect(profile);
+            directed.validate().expect(profile);
+            assert_eq!(directed.characters.len(), 6, "{profile}");
+            assert_eq!(directed.scenes.len(), 6 + result.shot_count, "{profile}");
+            assert_eq!(
+                serde_yaml::to_value(&directed.characters).unwrap(),
+                serde_yaml::to_value(&original.characters).unwrap(),
+                "{profile} changed the cast"
+            );
+            assert_eq!(
+                serde_yaml::to_value(&directed.scenes[..6]).unwrap(),
+                serde_yaml::to_value(&original.scenes).unwrap(),
+                "{profile} changed authored scenes"
+            );
+            let spoken: Vec<_> = directed.scenes[6..]
+                .iter()
+                .flat_map(|scene| &scene.events)
+                .filter_map(|event| match event {
+                    motion_script::Event::Speak {
+                        actor, text, audio, ..
+                    } => Some((actor.as_str(), text.as_str(), audio.as_deref())),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(spoken.len(), 2, "{profile}");
+            assert_eq!((spoken[0].0, spoken[0].1), ("NOUTAJA", "Onko vuoroni jo?"));
+            assert_eq!(
+                (spoken[1].0, spoken[1].1),
+                ("VEIKKO", "Kahvitauon jälkeen.")
+            );
+            if profile == "audio" {
+                assert_eq!(result.timing_source, TimingSource::SuppliedSamples);
+                assert_eq!(spoken[0].2, Some(paths[0].as_str()));
+                assert_eq!(spoken[1].2, Some(paths[1].as_str()));
+            } else {
+                assert_eq!(result.timing_source, TimingSource::Estimated);
+                assert!(spoken.iter().all(|line| line.2.is_none()));
+            }
+        }
+    }
+
+    #[test]
+    fn all_directors_reject_one_byte_over_source_budget_before_parsing() {
+        use motion_script::auto_direction;
+        // Invalid YAML ensures the reported error comes from the byte guard.
+        let oversized = "[".repeat(MAX_SOURCE_BYTES + 1);
+        let paths = [
+            "assets/director/noutaja.wav".into(),
+            "assets/director/veikko.wav".into(),
+        ];
+        let dialogue = "NOUTAJA: Hei!\nVEIKKO: Terve!";
+        let results = [
+            ("direct", auto_direction::direct(&oversized, dialogue, None)),
+            (
+                "conversational",
+                auto_direction::direct_conversational(&oversized, dialogue, None),
+            ),
+            (
+                "audio",
+                auto_direction::direct_with_audio(&oversized, dialogue, &[24_000, 24_000], &paths),
+            ),
+        ];
+        for (profile, result) in results {
+            let error = result.expect_err(profile);
+            assert!(error.contains("256 KiB"), "{profile}: {error}");
+        }
+    }
+
+    #[test]
+    fn whole_source_guard_rejects_one_byte_over_budget_without_changing_project() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let before = studio.snapshot();
+        let oversized = format!(
+            "#{}\n{}",
+            "x".repeat(MAX_SOURCE_BYTES + 1 - studio.source.len() - 2),
+            studio.source
+        );
+        assert_eq!(oversized.len(), MAX_SOURCE_BYTES + 1);
+        motion_script::parse(&oversized).unwrap();
+        studio.apply_structure(Ok(oversized));
+        assert_eq!(studio.snapshot(), before);
+        assert!(studio.status.contains("256 KiB"));
+        assert!(!studio.history.can_undo());
+    }
+
+    #[test]
+    fn embedded_stick_project_cannot_replace_work_during_a_background_job() {
+        for gate in 0..3 {
+            let mut studio = Studio::default();
+            studio.validate();
+            studio.script_path = "existing.kilsat".into();
+            let before = studio.snapshot();
+            studio.busy = gate == 0;
+            studio.diagnostics_busy = gate == 1;
+            studio.export_busy = gate == 2;
+            studio.load_stick_studio();
+            assert_eq!(studio.snapshot(), before);
+            assert_eq!(studio.script_path, "existing.kilsat");
+            assert!(!studio.history.can_undo());
+        }
     }
 }
 

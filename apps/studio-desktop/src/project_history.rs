@@ -2,6 +2,8 @@
 //! Snapshots never contain audio/image buffers or perform filesystem operations.
 use std::collections::VecDeque;
 
+/// Bounded whole-screenplay budget shared by desktop editing, history and workers.
+pub(crate) const MAX_SOURCE_BYTES: usize = motion_script::auto_direction::MAX_SOURCE_BYTES;
 const MAX_ENTRIES: usize = 64;
 const MAX_BYTES: usize = 8 * 1024 * 1024;
 
@@ -53,8 +55,8 @@ impl Snapshot {
             })
     }
     fn validate(&self) -> Result<(), String> {
-        if self.source.len() > 100_000 {
-            return Err("History source exceeds editor limit".into());
+        if self.source.len() > MAX_SOURCE_BYTES {
+            return Err("History source exceeds 256 KiB editor limit".into());
         }
         if let Some(p) = &self.project {
             if p.format_version != motion_project::FORMAT_VERSION
@@ -234,6 +236,42 @@ mod tests {
                 },
             },
         }
+    }
+    #[test]
+    fn screenplay_budget_accepts_exact_limit_and_rejects_next_byte_atomically() {
+        let source = format!(
+            "#{}\n{SOURCE}",
+            "x".repeat(MAX_SOURCE_BYTES - SOURCE.len() - 2)
+        );
+        assert_eq!(source.len(), MAX_SOURCE_BYTES);
+        let exact = Snapshot::capture(&source, None);
+        assert!(exact.source_was_valid);
+        exact.validate().unwrap();
+        let oversized = Snapshot::capture(&(source + "\n"), None);
+        assert_eq!(oversized.source.len(), MAX_SOURCE_BYTES + 1);
+        assert!(oversized.source_was_valid);
+        assert!(oversized.validate().is_err());
+        let initial = Snapshot::capture(SOURCE, None);
+        let mut history = History::new(SOURCE);
+        history.record(initial.clone(), exact.clone());
+        let bytes = history.bytes;
+        assert!(history.navigate(oversized.clone(), false).is_err());
+        assert_eq!(history.bytes, bytes);
+        assert!(history.can_undo() && !history.can_redo());
+        assert_eq!(
+            history.navigate(exact.clone(), false).unwrap(),
+            Some(initial.clone())
+        );
+        assert_eq!(
+            history.navigate(initial, true).unwrap(),
+            Some(exact.clone())
+        );
+        // An oversized destination must also leave both stacks untouched.
+        history.record(oversized, exact.clone());
+        let bytes = history.bytes;
+        assert!(history.navigate(exact, false).is_err());
+        assert_eq!(history.bytes, bytes);
+        assert!(history.can_undo() && !history.can_redo());
     }
     #[test]
     fn timing_apply_is_one_history_step_and_roundtrips_without_audio_buffers() {

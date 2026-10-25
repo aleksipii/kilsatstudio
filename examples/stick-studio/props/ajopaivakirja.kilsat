@@ -1,0 +1,262 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Ajopäiväkirja\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_ajopaivakirja_cover_outline",
+        "name": "ajopaivakirja cover outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 114.06451612903224,
+            "y": 67.2258064516129,
+            "width": 288.1290322580645,
+            "height": 378.9677419354839
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_cover_fill",
+        "name": "ajopaivakirja cover fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 126.83870967741933,
+            "y": 80.0,
+            "width": 262.58064516129036,
+            "height": 353.4193548387097
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_spine",
+        "name": "ajopaivakirja spine",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 123.99999999999999,
+            "y": 80.0,
+            "width": 36.903225806451616,
+            "height": 353.4193548387097
+          },
+          "color": {
+            "r": 126,
+            "g": 69,
+            "b": 53,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_label",
+        "name": "ajopaivakirja label",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 186.4516129032258,
+            "y": 129.67741935483872,
+            "width": 168.90322580645162,
+            "height": 141.93548387096774
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_road",
+        "name": "ajopaivakirja road",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 220.51612903225805,
+              "y": 244.6451612903226
+            },
+            {
+              "x": 253.16129032258064,
+              "y": 153.80645161290323
+            },
+            {
+              "x": 287.2258064516129,
+              "y": 153.80645161290323
+            },
+            {
+              "x": 321.2903225806451,
+              "y": 244.6451612903226
+            }
+          ],
+          "width": 11.35483870967742,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_road_dashes",
+        "name": "ajopaivakirja road dashes",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 270.19354838709677,
+              "y": 187.8709677419355
+            },
+            {
+              "x": 270.19354838709677,
+              "y": 223.35483870967744
+            }
+          ],
+          "width": 7.096774193548388,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_binding_top",
+        "name": "ajopaivakirja binding top",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 101.29032258064515,
+              "y": 145.29032258064518
+            },
+            {
+              "x": 146.70967741935482,
+              "y": 145.29032258064518
+            }
+          ],
+          "width": 12.774193548387098,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_binding_bottom",
+        "name": "ajopaivakirja binding bottom",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 101.29032258064515,
+              "y": 370.9677419354839
+            },
+            {
+              "x": 146.70967741935482,
+              "y": 370.9677419354839
+            }
+          ],
+          "width": 12.774193548387098,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_ajopaivakirja_bookmark",
+        "name": "ajopaivakirja bookmark",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 331.2258064516129,
+            "y": 388.0,
+            "width": 31.225806451612904,
+            "height": 73.80645161290323
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

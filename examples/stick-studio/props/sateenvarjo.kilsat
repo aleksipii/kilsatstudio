@@ -1,0 +1,285 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Yövuoron sateenvarjo\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_sateenvarjo_shaft",
+        "name": "sateenvarjo shaft",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 79.02222222222221
+            },
+            {
+              "x": 256.0,
+              "y": 401.68888888888887
+            },
+            {
+              "x": 269.68888888888887,
+              "y": 432.0
+            },
+            {
+              "x": 293.15555555555557,
+              "y": 437.8666666666667
+            },
+            {
+              "x": 311.73333333333335,
+              "y": 418.3111111111111
+            }
+          ],
+          "width": 13.688888888888888,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_canopy_outline",
+        "name": "sateenvarjo canopy outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 89.77777777777779,
+          "y": 70.22222222222223,
+          "width": 332.44444444444446,
+          "height": 133.95555555555555
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 89.77777777777779,
+            "y": 70.22222222222223,
+            "width": 332.44444444444446,
+            "height": 202.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_canopy_fill",
+        "name": "sateenvarjo canopy fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 98.57777777777778,
+          "y": 79.02222222222221,
+          "width": 314.84444444444443,
+          "height": 119.28888888888889
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 98.57777777777778,
+            "y": 79.02222222222221,
+            "width": 314.84444444444443,
+            "height": 184.79999999999998
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_handle_grip",
+        "name": "sateenvarjo handle grip",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 268.7111111111111,
+              "y": 431.0222222222222
+            },
+            {
+              "x": 293.15555555555557,
+              "y": 437.8666666666667
+            },
+            {
+              "x": 311.73333333333335,
+              "y": 418.3111111111111
+            }
+          ],
+          "width": 7.822222222222222,
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_left_rib",
+        "name": "sateenvarjo left rib",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 81.95555555555555
+            },
+            {
+              "x": 199.2888888888889,
+              "y": 123.02222222222223
+            },
+            {
+              "x": 175.82222222222222,
+              "y": 192.44444444444443
+            }
+          ],
+          "width": 6.844444444444444,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_right_rib",
+        "name": "sateenvarjo right rib",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 81.95555555555555
+            },
+            {
+              "x": 312.7111111111111,
+              "y": 123.02222222222223
+            },
+            {
+              "x": 336.17777777777775,
+              "y": 192.44444444444443
+            }
+          ],
+          "width": 6.844444444444444,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_rim",
+        "name": "sateenvarjo rim",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 94.66666666666667,
+              "y": 189.51111111111112
+            },
+            {
+              "x": 175.82222222222222,
+              "y": 206.13333333333333
+            },
+            {
+              "x": 256.0,
+              "y": 189.51111111111112
+            },
+            {
+              "x": 336.17777777777775,
+              "y": 206.13333333333333
+            },
+            {
+              "x": 417.3333333333333,
+              "y": 189.51111111111112
+            }
+          ],
+          "width": 11.733333333333333,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_sateenvarjo_tip",
+        "name": "sateenvarjo tip",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 60.44444444444444
+            },
+            {
+              "x": 256.0,
+              "y": 80.0
+            }
+          ],
+          "width": 8.799999999999999,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

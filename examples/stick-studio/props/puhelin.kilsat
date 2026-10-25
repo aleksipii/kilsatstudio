@@ -1,0 +1,248 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Puhelin\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_puhelin_case_outline",
+        "name": "puhelin case outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 166.37037037037038,
+            "y": 57.18518518518518,
+            "width": 179.25925925925924,
+            "height": 394.3703703703703
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_case_fill",
+        "name": "puhelin case fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 179.40740740740742,
+            "y": 70.22222222222223,
+            "width": 153.1851851851852,
+            "height": 368.29629629629625
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_screen",
+        "name": "puhelin screen",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 189.1851851851852,
+            "y": 104.44444444444444,
+            "width": 133.62962962962962,
+            "height": 268.88888888888886
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_speaker",
+        "name": "puhelin speaker",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 225.03703703703707,
+              "y": 83.25925925925927
+            },
+            {
+              "x": 286.96296296296293,
+              "y": 83.25925925925927
+            }
+          ],
+          "width": 8.148148148148147,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_home",
+        "name": "puhelin home",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 242.962962962963,
+            "y": 397.77777777777777,
+            "width": 26.074074074074073,
+            "height": 26.074074074074073
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_message",
+        "name": "puhelin message",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 205.4814814814815,
+            "y": 140.2962962962963,
+            "width": 99.4074074074074,
+            "height": 45.629629629629626
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_message_two",
+        "name": "puhelin message two",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 220.14814814814815,
+            "y": 205.48148148148147,
+            "width": 84.74074074074073,
+            "height": 34.22222222222222
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_notification",
+        "name": "puhelin notification",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 213.62962962962965,
+              "y": 293.48148148148147
+            },
+            {
+              "x": 234.81481481481484,
+              "y": 314.66666666666663
+            },
+            {
+              "x": 286.96296296296293,
+              "y": 262.5185185185185
+            }
+          ],
+          "width": 13.037037037037036,
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_puhelin_side_button",
+        "name": "puhelin side button",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 345.6296296296297,
+            "y": 146.8148148148148,
+            "width": 8.148148148148147,
+            "height": 57.03703703703703
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

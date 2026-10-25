@@ -13,6 +13,8 @@ pub use parser::parse_dialogue;
 pub use timing::time_lines;
 
 pub const SAMPLE_RATE: u64 = 24_000;
+/// Whole-screenplay input/output budget, also shared by the desktop editor.
+pub const MAX_SOURCE_BYTES: usize = 256 * 1024;
 pub const MAX_LINES: usize = 16;
 pub const MAX_TEXT_BYTES: usize = 16_000;
 pub const MAX_DURATION_SAMPLES: u64 = 60 * SAMPLE_RATE;
