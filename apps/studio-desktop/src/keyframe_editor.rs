@@ -45,29 +45,29 @@ impl Draft {
     /// Returns true only when Apply is requested. Drawing controls does not sort,
     /// clamp, retime or otherwise rewrite existing keys.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.heading(format!("{} transform keys", self.actor));
-        ui.small("Offsets add to movement events. Rotation is radians; scales multiply the character root.");
-        ui.small("Keys must be in increasing time order inside the scene. Easing controls the segment after a key.");
+        ui.heading(format!("{} · muunnosavainruudut", self.actor));
+        ui.small("Siirrot lisätään liikkeisiin. Kierto annetaan radiaaneina; mittakaava muuttaa koko hahmon kokoa.");
+        ui.small("Avainruutujen aikojen pitää kasvaa kohtauksen sisällä. Pehmennys ohjaa avainruudusta seuraavaa liikettä.");
         let mut remove = None;
         for (index, key) in self.keys.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
-                egui::CollapsingHeader::new(format!("Key {} · {:.3}s", index + 1, key.at))
+                egui::CollapsingHeader::new(format!("Avainruutu {} · {:.3} s", index + 1, key.at))
                     .default_open(true)
                     .show(ui, |ui| {
                         egui::Grid::new("key_fields").num_columns(2).show(ui, |ui| {
                             for (label, value, speed) in [
-                                ("Time (seconds)", &mut key.at, 0.05),
-                                ("X offset", &mut key.x, 1.0),
-                                ("Y offset", &mut key.y, 1.0),
-                                ("Rotation (radians)", &mut key.rotation, 0.01),
-                                ("Scale X", &mut key.scale_x, 0.01),
-                                ("Scale Y", &mut key.scale_y, 0.01),
+                                ("Aika (sekuntia)", &mut key.at, 0.05),
+                                ("X-siirto", &mut key.x, 1.0),
+                                ("Y-siirto", &mut key.y, 1.0),
+                                ("Kierto (radiaania)", &mut key.rotation, 0.01),
+                                ("X-mittakaava", &mut key.scale_x, 0.01),
+                                ("Y-mittakaava", &mut key.scale_y, 0.01),
                             ] {
                                 ui.label(label);
                                 ui.add(egui::DragValue::new(value).speed(speed));
                                 ui.end_row();
                             }
-                            ui.label("Easing");
+                            ui.label("Liikkeen pehmennys");
                             egui::ComboBox::from_id_salt("easing")
                                 .selected_text(easing_label(key.easing))
                                 .show_ui(ui, |ui| {
@@ -85,7 +85,7 @@ impl Draft {
                                 });
                             ui.end_row();
                         });
-                        if ui.button("Remove key").clicked() {
+                        if ui.button("Poista avainruutu").clicked() {
                             remove = Some(index);
                         }
                     });
@@ -100,22 +100,22 @@ impl Draft {
                 .last()
                 .is_none_or(|key| key.at + 1.0 <= self.duration);
         if ui
-            .add_enabled(can_add, egui::Button::new("Add key"))
+            .add_enabled(can_add, egui::Button::new("Lisää avainruutu"))
             .clicked()
         {
             self.add_key();
         }
         if !can_add {
-            ui.small("No room for another key one second after the last; adjust its time or scene duration.");
+            ui.small("Seuraava avainruutu ei mahdu sekuntia viimeisen jälkeen. Muuta aikaa tai kohtauksen kestoa.");
         }
         if self.keys.is_empty() {
-            ui.small("Applying an empty list removes this actor's transform track.");
+            ui.small("Tyhjän luettelon käyttäminen poistaa hahmon muunnosraidan.");
         }
-        ui.small("Apply validates the screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Käytä tarkistaa käsikirjoituksen ja tallentaa kumottavan muokkauksen. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let mut apply = false;
         ui.horizontal(|ui| {
-            apply = ui.button("Apply transform keys").clicked();
-            if ui.button("Reset key draft").clicked() {
+            apply = ui.button("Käytä muunnosavainruutuja").clicked();
+            if ui.button("Palauta avainruutuluonnos").clicked() {
                 self.reset();
             }
         });
@@ -125,9 +125,9 @@ impl Draft {
 
 fn easing_label(easing: ActorEasing) -> &'static str {
     match easing {
-        ActorEasing::Linear => "Linear",
-        ActorEasing::Smoothstep => "Smoothstep",
-        ActorEasing::Hold => "Hold",
+        ActorEasing::Linear => "Tasainen",
+        ActorEasing::Smoothstep => "Pehmennetty",
+        ActorEasing::Hold => "Pidä asento",
     }
 }
 

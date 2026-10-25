@@ -16,7 +16,7 @@ pub mod edit {
     ) -> Result<&mut motion_rig::RigidPartDefinition, String> {
         rig.parts
             .get_mut(part)
-            .ok_or_else(|| format!("Part #{part} does not exist"))
+            .ok_or_else(|| format!("Osaa #{part} ei ole."))
     }
     /// Bind (or with `None` unbind) a texture asset; an existing UV rectangle is kept.
     pub fn set_texture(
@@ -37,7 +37,7 @@ pub mod edit {
         let texture = part
             .texture
             .as_mut()
-            .ok_or("Choose a texture asset before editing UVs")?;
+            .ok_or("Valitse tekstuurin kuvaresurssi ennen UV-koordinaattien muokkaamista.")?;
         texture.uv = uv;
         Ok(())
     }
@@ -70,13 +70,13 @@ pub mod edit {
         influences: Vec<VertexWeight>,
     ) -> Result<(), String> {
         if !(1..=2).contains(&influences.len()) {
-            return Err("A vertex needs one or two influences".into());
+            return Err("Kärki tarvitsee yhden tai kaksi nivelvaikutusta.".into());
         }
         ensure_skin(rig, part)?;
         let slot = part_mut(rig, part)?
             .skin
             .get_mut(vertex)
-            .ok_or_else(|| format!("Vertex #{vertex} does not exist"))?;
+            .ok_or_else(|| format!("Kärkeä #{vertex} ei ole."))?;
         *slot = influences;
         Ok(())
     }
@@ -90,14 +90,14 @@ pub mod edit {
         let slot = part_mut(rig, part)?
             .skin
             .get_mut(vertex)
-            .ok_or_else(|| format!("Vertex #{vertex} has no skin entry"))?;
+            .ok_or_else(|| format!("Kärjellä #{vertex} ei ole muodonmuutospainoja."))?;
         let sum: f64 = slot.iter().map(|w| w.weight).sum();
         if slot.iter().any(|w| !w.weight.is_finite() || w.weight < 0.0)
             || !sum.is_finite()
             || sum <= 0.0
         {
             return Err(format!(
-                "Vertex #{vertex}: weights must be finite, non-negative and not all zero to normalize"
+                "Kärki #{vertex}: painojen tulee olla äärellisiä ja vähintään nolla. Ainakin yhden painon on oltava yli nolla normalisointia varten."
             ));
         }
         for w in slot.iter_mut() {
@@ -120,7 +120,7 @@ pub mod edit {
             if let Some(t) = &part.texture {
                 if !images.contains(&t.asset) {
                     out.push(format!(
-                        "Part {}: texture asset '{}' is not an Image asset in the project inventory",
+                        "Osa {}: tekstuurin resurssi '{}' ei ole projektin kuvaresurssi.",
                         part.id, t.asset
                     ));
                 }
@@ -129,14 +129,14 @@ pub mod edit {
                 let sum: f64 = v.iter().map(|w| w.weight).sum();
                 if (sum - 1.0).abs() > motion_rig::definition::SKIN_WEIGHT_TOLERANCE {
                     out.push(format!(
-                        "Part {} vertex #{i}: weights sum to {sum:.6}, expected 1 (use Normalize)",
+                        "Osan {} kärki #{i}: painojen summa on {sum:.6}, odotettu summa on 1. Käytä normalisointia.",
                         part.id
                     ));
                 }
             }
         }
         if let Err(error) = rig.validate() {
-            out.push(format!("Rig validation: {error}"));
+            out.push(format!("Hahmorakenteen tarkistus: {error}"));
         }
         out
     }
@@ -169,14 +169,14 @@ impl Draft {
     }
     pub fn apply(&self, source: &str) -> Result<String, String> {
         if self.yaml.len() > 100_000 {
-            return Err("Rig draft exceeds the 100 KB editor limit".into());
+            return Err("Hahmorakenteen luonnos ylittää muokkaimen 100 kt:n rajan.".into());
         }
         let mut script = motion_script::parse(source).map_err(|e| e.to_string())?;
         let rig = serde_yaml::from_str(&self.yaml).map_err(|e| e.to_string())?;
         let character = script
             .characters
             .get_mut(&self.actor)
-            .ok_or("Character no longer exists")?;
+            .ok_or("Hahmoa ei enää ole.")?;
         character.rig = Some(rig);
         script.validate().map_err(|e| e.to_string())?;
         serde_yaml::to_string(&script).map_err(|e| e.to_string())
@@ -186,7 +186,7 @@ impl Draft {
         script
             .characters
             .get_mut(&self.actor)
-            .ok_or("Character no longer exists")?
+            .ok_or("Hahmoa ei enää ole.")?
             .rig = None;
         script.validate().map_err(|e| e.to_string())?;
         serde_yaml::to_string(&script).map_err(|e| e.to_string())
@@ -208,7 +208,7 @@ impl Draft {
         }
     }
     fn texture_skin_ui(&mut self, ui: &mut egui::Ui, images: &[String]) {
-        egui::CollapsingHeader::new("Part texture and skin weights")
+        egui::CollapsingHeader::new("Osan tekstuuri ja muodonmuutospainot")
             .default_open(true)
             .show(ui, |ui| {
                 let rig = match serde_yaml::from_str::<RigDefinition>(&self.yaml) {
@@ -216,18 +216,18 @@ impl Draft {
                     Err(error) => {
                         ui.colored_label(
                             egui::Color32::LIGHT_RED,
-                            format!("Controls disabled until the YAML parses: {error}"),
+                            format!("Korjaa YAML ennen säätimien käyttöä: {error}"),
                         );
                         return;
                     }
                 };
-                ui.small("Controls rewrite the YAML draft above (comments and formatting are normalised); nothing changes in the project until Apply.");
+                ui.small("Säätimet päivittävät yllä olevan YAML-luonnoksen ja yhtenäistävät sen muotoilun. Kommentit poistetaan. Projekti muuttuu vasta Käytä-painikkeella.");
                 if rig.parts.is_empty() {
                     return;
                 }
                 self.part = self.part.min(rig.parts.len() - 1);
                 egui::ComboBox::from_id_salt("rig_part")
-                    .selected_text(format!("Part: {}", rig.parts[self.part].id))
+                    .selected_text(format!("Osa: {}", rig.parts[self.part].id))
                     .show_ui(ui, |ui| {
                         for (i, p) in rig.parts.iter().enumerate() {
                             ui.selectable_value(&mut self.part, i, &p.id);
@@ -236,19 +236,19 @@ impl Draft {
                 let part = &rig.parts[self.part];
                 let part_index = self.part;
                 if images.is_empty() && part.texture.is_none() {
-                    ui.add_enabled(false, egui::Button::new("Texture asset"));
-                    ui.small("No Image assets in the project inventory. Import a PNG/JPEG under Project asset inventory first.");
+                    ui.add_enabled(false, egui::Button::new("Tekstuurin kuvaresurssi"));
+                    ui.small("Projektissa ei ole kuvaresursseja. Tuo ensin PNG- tai JPEG-kuva projektin Resurssit-osiossa.");
                 } else {
                     let current = part.texture.as_ref().map(|t| t.asset.clone());
                     let mut choice = current.clone();
                     egui::ComboBox::from_id_salt("rig_texture")
                         .selected_text(match &current {
-                            Some(a) if images.contains(a) => format!("Texture: {a}"),
-                            Some(a) => format!("Texture: {a} (missing)"),
-                            None => "Texture: none".into(),
+                            Some(a) if images.contains(a) => format!("Tekstuuri: {a}"),
+                            Some(a) => format!("Tekstuuri: {a} (puuttuu)"),
+                            None => "Tekstuuri: ei valittu".into(),
                         })
                         .show_ui(ui, |ui| {
-                            ui.selectable_value(&mut choice, None, "none");
+                            ui.selectable_value(&mut choice, None, "ei valittu");
                             for image in images {
                                 ui.selectable_value(&mut choice, Some(image.clone()), image);
                             }
@@ -264,7 +264,7 @@ impl Draft {
                             ui.label(*label);
                             ui.add(egui::DragValue::new(value).speed(0.005).range(0.0..=1.0));
                         }
-                        if ui.button("Whole image").clicked() {
+                        if ui.button("Koko kuva").clicked() {
                             uv = edit::FULL_UV;
                         }
                     });
@@ -276,18 +276,18 @@ impl Draft {
                 let skinned = !part.skin.is_empty();
                 ui.horizontal(|ui| {
                     ui.label(if skinned {
-                        "Skin: per-vertex weights"
+                        "Muodonmuutos: kärkikohtaiset painot"
                     } else {
-                        "Skin: rigid (no weights)"
+                        "Muodonmuutos: jäykkä osa ilman painoja"
                     });
                     if skinned {
-                        if ui.button("Normalize all").clicked() {
+                        if ui.button("Normalisoi kaikki").clicked() {
                             self.mutate(|r| edit::normalize_all(r, part_index));
                         }
-                        if ui.button("Remove skin").clicked() {
+                        if ui.button("Poista muodonmuutospainot").clicked() {
                             self.mutate(|r| edit::clear_skin(r, part_index));
                         }
-                    } else if ui.button("Add skin weights").clicked() {
+                    } else if ui.button("Lisää muodonmuutospainot").clicked() {
                         self.mutate(|r| edit::ensure_skin(r, part_index));
                     }
                 });
@@ -295,13 +295,13 @@ impl Draft {
                     self.vertex = self.vertex.min(part.points.len() - 1);
                     let vertex = self.vertex;
                     ui.horizontal(|ui| {
-                        ui.label("Vertex");
+                        ui.label("Kärki");
                         ui.add(
                             egui::DragValue::new(&mut self.vertex)
                                 .range(0..=part.points.len() - 1),
                         );
                         let p = part.points[vertex];
-                        ui.weak(format!("at ({}, {})", p[0], p[1]));
+                        ui.weak(format!("kohdassa ({}, {})", p[0], p[1]));
                     });
                     let current = part.skin.get(vertex).cloned().unwrap_or_default();
                     let mut edited = current.clone();
@@ -323,7 +323,7 @@ impl Draft {
                         });
                     }
                     ui.horizontal(|ui| {
-                        if edited.len() == 1 && ui.button("Add second influence").clicked() {
+                        if edited.len() == 1 && ui.button("Lisää toinen nivelvaikutus").clicked() {
                             let other = joints
                                 .iter()
                                 .find(|j| **j != edited[0].joint)
@@ -333,11 +333,11 @@ impl Draft {
                                 weight: 0.0,
                             });
                         }
-                        if edited.len() == 2 && ui.button("Remove second influence").clicked() {
+                        if edited.len() == 2 && ui.button("Poista toinen nivelvaikutus").clicked() {
                             edited.truncate(1);
                             edited[0].weight = 1.0;
                         }
-                        if ui.button("Normalize vertex").clicked() {
+                        if ui.button("Normalisoi kärki").clicked() {
                             self.mutate(|r| edit::normalize_vertex(r, part_index, vertex));
                         }
                     });
@@ -351,7 +351,7 @@ impl Draft {
                 let latest = serde_yaml::from_str::<RigDefinition>(&self.yaml).unwrap_or(rig);
                 let issues = edit::issues(&latest, images);
                 if issues.is_empty() {
-                    ui.small("No texture/skin problems found; Apply still re-validates the whole project.");
+                    ui.small("Tekstuurissa tai muodonmuutospainoissa ei löytynyt ongelmia. Käytä tarkistaa koko projektin uudelleen.");
                 }
                 for issue in issues {
                     ui.colored_label(egui::Color32::LIGHT_RED, issue);
@@ -360,8 +360,8 @@ impl Draft {
     }
     /// 1=Apply, 2=restore original humanoid; parent provides context guard/history.
     pub fn ui(&mut self, ui: &mut egui::Ui, images: &[String]) -> u8 {
-        ui.heading(format!("{} · Custom rigid character", self.actor));
-        ui.small("Edit version 1 joint hierarchy and joint-local colored polygons. Joints must precede their children. Part order controls drawing. This replaces humanoid artwork; custom clips are a separate capability.");
+        ui.heading(format!("{} · mukautettu hahmorakenne", self.actor));
+        ui.small("Muokkaa version 1 nivelhierarkiaa ja nivelten värillisiä monikulmioita. Ylänivelen tulee olla ennen alaniveliä. Osien järjestys määrää piirtojärjestyksen. Tämä korvaa alkuperäisen ihmishahmon kuvituksen. Liikekatkelmat muokataan erikseen.");
         ui.add(
             egui::TextEdit::multiline(&mut self.yaml)
                 .code_editor()
@@ -371,13 +371,13 @@ impl Draft {
         self.texture_skin_ui(ui, images);
         let mut action = 0;
         ui.horizontal(|ui| {
-            if ui.button("Apply custom rig").clicked() {
+            if ui.button("Käytä hahmorakenne").clicked() {
                 action = 1;
             }
-            if ui.button("Reset draft").clicked() {
+            if ui.button("Palauta luonnos").clicked() {
                 self.yaml.clone_from(&self.original);
             }
-            if ui.button("Use original humanoid").clicked() {
+            if ui.button("Käytä alkuperäistä ihmishahmoa").clicked() {
                 action = 2;
             }
         });
@@ -452,11 +452,11 @@ mod tests {
         assert!(edit::issues(&rig, &images()).is_empty());
         assert!(edit::issues(&rig, &[])
             .iter()
-            .any(|i| i.contains("not an Image asset")));
+            .any(|i| i.contains("ei ole projektin kuvaresurssi")));
         edit::set_uv(&mut rig, 0, [0.0, 0.0, 1.5, 1.0]).unwrap();
         assert!(edit::issues(&rig, &images())
             .iter()
-            .any(|i| i.starts_with("Rig validation")));
+            .any(|i| i.starts_with("Hahmorakenteen tarkistus")));
     }
     #[test]
     fn skin_influences_normalize_and_validate() {
@@ -478,8 +478,10 @@ mod tests {
         };
         edit::set_influences(&mut rig, 1, 0, two(0.6, 0.6)).unwrap();
         let issues = edit::issues(&rig, &[]);
-        assert!(issues.iter().any(|i| i.contains("sum to 1.200000")));
-        assert!(issues.iter().any(|i| i.starts_with("Rig validation")));
+        assert!(issues.iter().any(|i| i.contains("summa on 1.200000")));
+        assert!(issues
+            .iter()
+            .any(|i| i.starts_with("Hahmorakenteen tarkistus")));
         edit::normalize_vertex(&mut rig, 1, 0).unwrap();
         assert!(edit::issues(&rig, &[]).is_empty());
         assert_eq!(rig.parts[1].skin[0][0].weight, 0.5);
@@ -503,7 +505,7 @@ mod tests {
         .unwrap();
         assert!(edit::issues(&rig, &[])
             .iter()
-            .any(|i| i.starts_with("Rig validation")));
+            .any(|i| i.starts_with("Hahmorakenteen tarkistus")));
         edit::clear_skin(&mut rig, 1).unwrap();
         assert!(!serde_yaml::to_string(&rig).unwrap().contains("skin"));
     }
@@ -516,7 +518,7 @@ mod tests {
         let before = draft.yaml.clone();
         draft.mutate(|r| edit::set_uv(r, 7, FULL));
         assert_eq!(draft.yaml, before);
-        assert!(draft.notice.contains("does not exist") || !draft.notice.is_empty());
+        assert!(draft.notice.contains("ei ole") || !draft.notice.is_empty());
         draft.yaml = "not: [valid".into();
         draft.mutate(|_| Ok(()));
         assert_eq!(draft.yaml, "not: [valid");

@@ -1,11 +1,35 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-24. A checked item identifies integrated, inspected implementation, not a
+2026-10-25. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
+
+## Finnish desktop completion (2026-10-25)
+
+Branch `feat/finnish-desktop-completion` completes Finnish controls, guidance,
+status/error context and enum display names across the desktop's scene, speech,
+timing, rig/clip, artwork, sequence, export, GPU and performance panels. The camera
+helper's purpose/usage/errors and bundled permission description are also Finnish.
+Protocol/serialization keys, stored IDs, source examples and exact backend error
+details are preserved. Six agents owned separate modules; the parent integrated
+the main workspace, truthful mouth-source display, user guide and checks.
+
+An absent imported alignment no longer falsely reports a resting mouth when a
+text estimate is actually prepared. The UI uses `DialogueClip::mouth_source()`;
+legacy tool estimates are labelled generically, without attributing them all to
+Rhubarb or claiming measured quality. A regression test checks estimated versus
+absent mouth data in the rendered UI while preserving the document and history.
+
+Local verification: 254 desktop tests passed (one existing host-information test
+excluded locally), 121 repository Python tests passed, and strict all-target,
+all-feature workspace checking passed. Actual egui meshes were captured and
+visually inspected at 1440x900; existing minimum-window checks remain. Serde
+attributes and raw fixture literals were compared unchanged; the camera's
+non-string code is unchanged. Combined CI and main integration are next. These
+checks do not grant physical-Mac, artistic, lip-sync-quality or release acceptance.
 
 ## Current production integration — PR #95 merged (2026-10-24)
 

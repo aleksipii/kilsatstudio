@@ -105,7 +105,7 @@ impl InputLatency {
         serde_json::json!({"capacity":CAPACITY,"abandoned_inputs":self.abandoned,
             "input_to_update_end":Self::summary(self.samples.iter().map(|s| s.update_ms)),
             "input_to_next_frame_start":Self::summary(self.samples.iter().map(|s| s.next_frame_ms)),
-            "limitations":"Application-side time from the update pass that first sees a key, text, mouse-button or wheel event until the end of that pass and the start of the next pass. Excludes OS/windowing delay before egui receives the event and display scan-out; not photon or end-to-end display latency. Pointer motion is not sampled."})
+            "limitations":"Sovelluksessa mitattu aika näppäin-, teksti-, hiiren painike- tai vieritystapahtuman ensimmäisenä havaitsevan päivityskierroksen alusta saman kierroksen loppuun ja seuraavan kierroksen alkuun. Käyttöjärjestelmän ja ikkunointijärjestelmän viive ennen tapahtuman saapumista eguihin sekä kuvan piirtyminen fyysiselle näytölle eivät sisälly mittaukseen. Valoviivettä tai koko syötteestä näyttöön ulottuvaa viivettä ei mitata. Hiiren liikkeestä ei oteta näytteitä."})
     }
 }
 

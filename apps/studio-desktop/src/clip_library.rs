@@ -94,14 +94,14 @@ impl State {
                 .map_or(0.0, |clip| clip.duration);
             self.context = Some(context);
         }
-        ui.small("Project-local clips contain authored bone tracks. Root movement, procedural strengths, speech and facial animation are not copied.");
-        ui.small("Applying replaces ALL target actor bone tracks. Key times stay unchanged unless retiming is enabled. Apply supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Projektin liikekatkelmat sisältävät käsin tehdyt luuradat. Hahmon kulkureittiä, sääntöliikkeiden voimakkuuksia, puhetta ja kasvoanimaatiota ei kopioida.");
+        ui.small("Käyttäminen korvaa hahmon kaikki luuradat. Avainruutujen ajat säilyvät, ellet ota uudelleenajoitusta käyttöön. Muutoksen voi kumota. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let scene = script.scenes.get(scene_index);
         let valid_target = scene.is_some() && script.characters.contains_key(actor);
         let has_tracks = scene
             .and_then(|scene| scene.composition.bone_tracks.get(actor))
             .is_some_and(|tracks| tracks.values().any(|keys| !keys.is_empty()));
-        ui.label(format!("Capture from {actor}"));
+        ui.label(format!("Tallenna hahmosta {actor}"));
         if ui.text_edit_singleline(&mut self.name).changed() {
             self.replace_capture = false;
         }
@@ -111,19 +111,19 @@ impl State {
                 .name
                 .bytes()
                 .all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-');
-        ui.small("Name: 1–64 ASCII letters, digits, underscores or hyphens.");
+        ui.small("Nimi: 1–64 ASCII-kirjainta, numeroa, alaviivaa tai yhdysmerkkiä.");
         let exists = script.animation_clips.contains_key(&self.name);
         if exists {
             let (scenes, instances) = reference_counts(script, &self.name);
             if instances > 0 {
                 ui.colored_label(
                     egui::Color32::YELLOW,
-                    format!("Replacing this clip changes {instances} live instances in {scenes} scenes. Replacement must fit every reference."),
+                    format!("Katkelman korvaaminen vaikuttaa {instances} suoraan viittaukseen {scenes} kohtauksessa. Korvaavan katkelman tulee sopia kaikkiin viittauksiin."),
                 );
             }
             ui.checkbox(
                 &mut self.replace_capture,
-                "Replace this existing library clip",
+                "Korvaa tämä kirjaston liikekatkelma",
             );
         }
         let can_capture = valid_target
@@ -134,7 +134,7 @@ impl State {
             && scene.is_some_and(|scene| scene.duration <= 600.0);
         let mut action = None;
         if ui
-            .add_enabled(can_capture, egui::Button::new("Capture bone tracks"))
+            .add_enabled(can_capture, egui::Button::new("Tallenna luuradat"))
             .clicked()
         {
             action = Some(Action::Capture {
@@ -144,13 +144,13 @@ impl State {
             self.replace_capture = false;
         }
         if !has_tracks {
-            ui.small("Add authored bone keys to this actor before capturing a clip.");
+            ui.small("Lisää hahmolle käsin tehdyt luiden avainruudut ennen liikekatkelman tallentamista.");
         }
         ui.separator();
         let previous = self.selected.clone();
         egui::ComboBox::from_id_salt("authored_bone_clip")
             .selected_text(if self.selected.is_empty() {
-                "Select a clip"
+                "Valitse liikekatkelma"
             } else {
                 &self.selected
             })
@@ -172,29 +172,35 @@ impl State {
         if let Some(clip) = script.animation_clips.get(&self.selected) {
             let key_count: usize = clip.bone_tracks.values().map(Vec::len).sum();
             ui.label(format!(
-                "{:.2} seconds · {} bones · {key_count} keys",
+                "{:.2} sekuntia · {} luuta · {key_count} avainruutua",
                 clip.duration,
                 clip.bone_tracks.len()
             ));
             if ui
-                .checkbox(&mut self.retime, "Scale and offset copied key times")
+                .checkbox(
+                    &mut self.retime,
+                    "Skaalaa ja siirrä kopioitujen avainruutujen ajat",
+                )
                 .changed()
             {
                 self.replace_target = false;
             }
             if self.retime {
-                ui.small("Copied tracks are independent. Bone tracks hold their endpoint poses before and after their keys; this does not create a live clip window or mix clips.");
+                ui.small("Kopioidut radat ovat itsenäisiä. Ne säilyttävät pääteasentonsa ennen ensimmäistä ja viimeisen avainruudun jälkeen. Kopiointi ei luo suoraa katkelmaviittausta eikä sekoita liikekatkelmia.");
                 ui.horizontal(|ui| {
-                    ui.label("Start (seconds)");
+                    ui.label("Alku (sekuntia)");
                     if time_field(ui, &mut self.at) {
                         self.replace_target = false;
                     }
-                    ui.label("Duration (seconds)");
+                    ui.label("Kesto (sekuntia)");
                     if time_field(ui, &mut self.duration) {
                         self.replace_target = false;
                     }
                 });
-                if ui.button("Reset copied key timing").clicked() {
+                if ui
+                    .button("Palauta kopioitujen avainruutujen ajoitus")
+                    .clicked()
+                {
                     self.at = 0.0;
                     self.duration = clip.duration;
                     self.replace_target = false;
@@ -217,20 +223,20 @@ impl State {
                 ui.colored_label(
                     egui::Color32::LIGHT_RED,
                     if self.retime {
-                        "Start must be finite and nonnegative; duration must be positive and the end must fit this scene."
+                        "Alkuajan tulee olla äärellinen ja vähintään nolla. Keston tulee olla positiivinen, ja loppuhetken tulee mahtua kohtaukseen."
                     } else {
-                        "The selected clip is longer than this scene; enable retiming to compress it or choose a longer target scene."
+                        "Valittu liikekatkelma on kohtausta pidempi. Tiivistä sen ajoitusta uudelleenajoituksella tai valitse pidempi kohdekohtaus."
                     },
                 );
             }
             ui.checkbox(
                 &mut self.replace_target,
-                format!("Replace all bone tracks on {actor}"),
+                format!("Korvaa hahmon {actor} kaikki luuradat"),
             );
             if ui
                 .add_enabled(
                     valid_target && fits && self.replace_target,
-                    egui::Button::new("Apply selected bone clip"),
+                    egui::Button::new("Käytä valittu liikekatkelma"),
                 )
                 .clicked()
             {
@@ -250,18 +256,18 @@ impl State {
             let (referenced_scenes, references) = reference_counts(script, &self.selected);
             if references > 0 {
                 self.confirm_delete = false;
-                ui.small(format!("Used by {references} live instances in {referenced_scenes} scenes. Remove those instances before deleting this library clip."));
+                ui.small(format!("Käytössä {references} suorassa viittauksessa {referenced_scenes} kohtauksessa. Poista viittaukset ennen kirjaston liikekatkelman poistamista."));
             }
             ui.add_enabled_ui(references == 0, |ui| {
                 ui.checkbox(
                     &mut self.confirm_delete,
-                    "Delete selected clip from this project",
+                    "Vahvista valitun liikekatkelman poistaminen projektista",
                 );
             });
             if ui
                 .add_enabled(
                     self.confirm_delete && references == 0,
-                    egui::Button::new("Delete library clip"),
+                    egui::Button::new("Poista kirjaston liikekatkelma"),
                 )
                 .clicked()
             {
@@ -273,32 +279,32 @@ impl State {
         } else {
             self.replace_target = false;
             self.confirm_delete = false;
-            ui.small("Select a captured clip to inspect or apply it.");
+            ui.small("Valitse tallennettu liikekatkelma tarkastelua tai käyttämistä varten.");
         }
         ui.separator();
-        ui.collapsing("Share clips between projects", |ui| {
-            ui.small("Version 1 · original seven-bone rig only. Copy the JSON text into another project's clip library. Custom rigs, textures, speech and assets are not included.");
+        ui.collapsing("Siirrä liikekatkelmia projektien välillä", |ui| {
+            ui.small("Versio 1 · alkuperäinen seitsemän luun hahmorakenne. Kopioi JSON-teksti toisen projektin liikekirjastoon. Mukautettuja hahmorakenteita, tekstuureja, puhetta ja resursseja ei siirretä.");
             ui.horizontal(|ui| {
-                if ui.add_enabled(!self.selected.is_empty(), egui::Button::new("Copy selected clip")).clicked() {
+                if ui.add_enabled(!self.selected.is_empty(), egui::Button::new("Kopioi valittu liikekatkelma")).clicked() {
                     match export_library(script, Some(&self.selected)) {
-                        Ok(text) => { ui.ctx().copy_text(text); self.exchange_status = "Clip copied. Paste it into the destination project below.".into(); }
+                        Ok(text) => { ui.ctx().copy_text(text); self.exchange_status = "Liikekatkelma kopioitu. Liitä teksti kohdeprojektin tämän osion kenttään.".into(); }
                         Err(error) => self.exchange_status = error.to_string(),
                     }
                 }
-                if ui.add_enabled(!script.animation_clips.is_empty(), egui::Button::new("Copy all clips")).clicked() {
+                if ui.add_enabled(!script.animation_clips.is_empty(), egui::Button::new("Kopioi kaikki liikekatkelmat")).clicked() {
                     match export_library(script, None) {
-                        Ok(text) => { ui.ctx().copy_text(text); self.exchange_status = "Library copied.".into(); }
+                        Ok(text) => { ui.ctx().copy_text(text); self.exchange_status = "Liikekirjasto kopioitu.".into(); }
                         Err(error) => self.exchange_status = error.to_string(),
                     }
                 }
             });
-            if ui.add(egui::TextEdit::multiline(&mut self.exchange).char_limit(EXCHANGE_LIMIT).desired_rows(5).hint_text("Paste exported clip library JSON")).changed() {
+            if ui.add(egui::TextEdit::multiline(&mut self.exchange).char_limit(EXCHANGE_LIMIT).desired_rows(5).hint_text("Liitä viedyn liikekirjaston JSON-teksti")).changed() {
                 self.replace_import = false;
                 self.exchange_status.clear();
             }
-            ui.checkbox(&mut self.replace_import, "Replace matching clip names (also changes their live instances)");
-            ui.small("Import is one Undo step. Every affected live reference must remain valid. YAML comments and formatting are normalized.");
-            if ui.add_enabled(!self.exchange.trim().is_empty(), egui::Button::new("Import clips into this project")).clicked() {
+            ui.checkbox(&mut self.replace_import, "Korvaa samannimiset liikekatkelmat (vaikuttaa suoriin viittauksiin)");
+            ui.small("Tuonnin voi kumota yhdellä toiminnolla. Jokaisen muuttuvan suoran viittauksen tulee pysyä kelvollisena. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
+            if ui.add_enabled(!self.exchange.trim().is_empty(), egui::Button::new("Tuo liikekatkelmat tähän projektiin")).clicked() {
                 action = Some(Action::Import { text: self.exchange.clone(), replace: self.replace_import });
                 self.replace_import = false;
             }
@@ -318,10 +324,9 @@ fn exchange_error(message: impl Into<String>) -> motion_script::Error {
 fn export_library(script: &Script, selected: Option<&str>) -> Result<String, motion_script::Error> {
     script.validate()?;
     let clips = if let Some(name) = selected {
-        let clip = script
-            .animation_clips
-            .get(name)
-            .ok_or_else(|| exchange_error("Select an existing clip to export"))?;
+        let clip = script.animation_clips.get(name).ok_or_else(|| {
+            exchange_error("Valitse olemassa oleva liikekatkelma vientiä varten.")
+        })?;
         serde_json::to_value(std::collections::BTreeMap::from([(name, clip)]))
             .map_err(|error| exchange_error(error.to_string()))?
     } else {
@@ -333,7 +338,9 @@ fn export_library(script: &Script, selected: Option<&str>) -> Result<String, mot
     }))
     .map_err(|error| exchange_error(error.to_string()))?;
     if text.len() > EXCHANGE_LIMIT {
-        return Err(exchange_error("Clip exchange exceeds the one MiB limit"));
+        return Err(exchange_error(
+            "Siirrettävä liikekirjasto ylittää yhden MiB:n rajan.",
+        ));
     }
     Ok(text)
 }
@@ -341,32 +348,34 @@ fn export_library(script: &Script, selected: Option<&str>) -> Result<String, mot
 fn import_library(source: &str, text: &str, replace: bool) -> Result<String, motion_script::Error> {
     if source.len() > EXCHANGE_LIMIT || text.len() > EXCHANGE_LIMIT {
         return Err(exchange_error(
-            "Clip exchange and screenplay are limited to one MiB each",
+            "Siirrettävä liikekirjasto ja käsikirjoitus saavat olla enintään yhden MiB:n kokoisia.",
         ));
     }
     let envelope: serde_json::Value = serde_json::from_str(text)
-        .map_err(|error| exchange_error(format!("Clip library JSON: {error}")))?;
+        .map_err(|error| exchange_error(format!("Liikekirjaston JSON: {error}")))?;
     let object = envelope
         .as_object()
-        .ok_or_else(|| exchange_error("Clip library must be a JSON object"))?;
+        .ok_or_else(|| exchange_error("Liikekirjaston tulee olla JSON-olio."))?;
     if object.len() != 4
         || envelope["format"] != "kilsat-clip-library"
         || envelope["version"].as_u64() != Some(1)
         || envelope["rig"] != "original-seven-bone"
     {
-        return Err(exchange_error("Expected kilsat-clip-library version 1 for the original-seven-bone rig with only format, version, rig and clips fields"));
+        return Err(exchange_error("Odotettu muoto on kilsat-clip-library, versio 1 ja hahmorakenne original-seven-bone. Sallitut kentät ovat format, version, rig ja clips."));
     }
     let clips: std::collections::BTreeMap<String, motion_script::AnimationClip> =
         serde_json::from_value(envelope["clips"].clone())
-            .map_err(|error| exchange_error(format!("Clip library: {error}")))?;
+            .map_err(|error| exchange_error(format!("Liikekirjasto: {error}")))?;
     if clips.is_empty() || clips.len() > 64 {
-        return Err(exchange_error("Import requires 1..64 clips"));
+        return Err(exchange_error(
+            "Tuotavassa kirjastossa tulee olla 1–64 liikekatkelmaa.",
+        ));
     }
     let mut candidate = motion_script::parse(source)?;
     for (name, clip) in clips {
         if !replace && candidate.animation_clips.contains_key(&name) {
             return Err(exchange_error(format!(
-                "Clip {name} already exists; explicitly enable replacement"
+                "Liikekatkelma {name} on jo olemassa. Salli korvaaminen erillisellä valinnalla."
             )));
         }
         candidate.animation_clips.insert(name, clip);
@@ -375,7 +384,7 @@ fn import_library(source: &str, text: &str, replace: bool) -> Result<String, mot
     let output = serde_yaml::to_string(&candidate)?;
     if output.len() > EXCHANGE_LIMIT {
         return Err(exchange_error(
-            "Imported screenplay exceeds the one MiB limit",
+            "Tuotu käsikirjoitus ylittää yhden MiB:n rajan.",
         ));
     }
     Ok(output)

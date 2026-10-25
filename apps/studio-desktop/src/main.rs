@@ -391,7 +391,7 @@ impl Default for Studio {
             head_draft: None,
             webcam_pose: webcam_pose::Panel::default(),
             confirm_new_episode: false,
-            episode_title: "New episode".into(),
+            episode_title: "Uusi jakso".into(),
             quick_start: quick_start::Draft::default(),
             history: project_history::History::new(include_str!(
                 "../../../examples/hello-emma.yaml"
@@ -430,7 +430,7 @@ impl Default for Studio {
             revision: String::new(),
             project_root: ".".into(),
             alignment: String::new(),
-            status: "Validate screenplay to select dialogue. No assets are downloaded.".into(),
+            status: "Tarkista käsikirjoitus, jotta voit valita repliikin. Resursseja ei ladata automaattisesti.".into(),
             worker: None,
             pending_job: None,
             preview: None,
@@ -494,10 +494,10 @@ impl Studio {
                 self.preview = None;
                 self.selected_actor = None;
                 self.validate();
-                self.status = "Project structure updated. Undo restores the previous source; prepare audio again.".into();
+                self.status = "Projektin rakenne päivitetty. Kumoa palauttaa edellisen käsikirjoituksen; valmistele ääni uudelleen.".into();
             }
-            Ok(_) => self.status = "Edit exceeds the 100 KB desktop source limit.".into(),
-            Err(error) => self.status = error.to_string(),
+            Ok(_) => self.status = "Muutos ylittää käsikirjoituksen 100 kt:n kokorajan.".into(),
+            Err(error) => self.status = format!("Projektin muokkaus epäonnistui: {error}"),
         }
     }
 
@@ -510,7 +510,7 @@ impl Studio {
             let selected = script
                 .scenes
                 .get(self.scene_index)
-                .ok_or("Selected scene is no longer available")?
+                .ok_or("Valittua kohtausta ei enää ole")?
                 .id
                 .clone();
             let mut document =
@@ -532,74 +532,74 @@ impl Studio {
                         self.scene_index = index;
                         self.reset_scene();
                     }
-                    self.status = "Scene order updated. Transitions and timing were validated; Undo restores the previous source.".into();
+                    self.status = "Kohtausten järjestys päivitetty. Siirtymät ja ajoitus tarkistettiin; Kumoa palauttaa edellisen käsikirjoituksen.".into();
                 }
             }
-            Err(error) => self.status = format!("Timeline edit: {error}"),
+            Err(error) => self.status = format!("Aikajanan muokkaus: {error}"),
         }
     }
 
     fn structure_ui(&mut self, ui: &mut egui::Ui) {
         egui::CollapsingHeader::new("Lisää, kopioi tai poista").show(ui, |ui| {
             ui.add_enabled_ui(self.script.is_some() && !self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
-                field(ui, "New stable identifier", &mut self.lifecycle_id);
-                field(ui, "New character asset reference", &mut self.lifecycle_asset);
-                ui.weak("Asset references are preserved; this preview renders procedural rigs.");
+                field(ui, "Uusi pysyvä tunniste", &mut self.lifecycle_id);
+                field(ui, "Uuden hahmon resurssiviite", &mut self.lifecycle_asset);
+                ui.weak("Resurssiviitteet säilyvät. Esikatselu käyttää projektin hahmorakenteita.");
                 let id = self.lifecycle_id.trim().to_string();
-                if ui.button("Add scene").clicked() {
+                if ui.button("Lisää kohtaus").clicked() {
                     let result = motion_script::add_scene(&self.source, motion_script::Scene { composition: Default::default(), id: id.clone(), duration: 5.0, background: None, events: vec![] });
                     self.apply_structure(result);
                 }
-                if ui.button("Duplicate selected scene").clicked() {
+                if ui.button("Kopioi valittu kohtaus").clicked() {
                     self.apply_structure(motion_script::duplicate_scene(&self.source, self.scene_index, &id));
                 }
                 let scene_ids: Vec<_> = self.script.as_ref().map(|s| s.scenes.iter()
                     .map(|scene| scene.id.clone()).collect()).unwrap_or_default();
                 if let Some(selected) = scene_ids.get(self.scene_index).cloned() {
                     ui.horizontal(|ui| {
-                        if ui.add_enabled(self.scene_index > 0, egui::Button::new("Move scene earlier")).clicked() {
+                        if ui.add_enabled(self.scene_index > 0, egui::Button::new("Siirrä kohtausta aiemmaksi")).clicked() {
                             self.apply_timeline_edit(motion_scene::editable_timeline::TimelineEdit::MoveScene {
                                 scene_id: selected.clone(), before: scene_ids.get(self.scene_index - 1).cloned(),
                             });
                         }
-                        if ui.add_enabled(self.scene_index + 1 < scene_ids.len(), egui::Button::new("Move scene later")).clicked() {
+                        if ui.add_enabled(self.scene_index + 1 < scene_ids.len(), egui::Button::new("Siirrä kohtausta myöhemmäksi")).clicked() {
                             self.apply_timeline_edit(motion_scene::editable_timeline::TimelineEdit::MoveScene {
                                 scene_id: selected.clone(), before: scene_ids.get(self.scene_index + 2).cloned(),
                             });
                         }
                     });
                 }
-                if ui.button("Delete selected scene…").clicked() {
+                if ui.button("Poista valittu kohtaus…").clicked() {
                     if let Some(scene) = self.script.as_ref().and_then(|s| s.scenes.get(self.scene_index)) {
                         self.lifecycle_delete = Some((true, scene.id.clone(), self.source.clone()));
                     }
                 }
-                if ui.button("Add character").clicked() {
+                if ui.button("Lisää hahmo").clicked() {
                     self.apply_structure(motion_script::add_character(&self.source, &id, motion_script::Character { asset: self.lifecycle_asset.trim().into(), default_pose: None, voice: None, rig: None }));
                 }
-                if ui.button("Duplicate selected character").clicked() {
+                if ui.button("Kopioi valittu hahmo").clicked() {
                     if let Some(character) = self.selected_actor.as_ref().and_then(|actor| self.script.as_ref()?.characters.get(actor)).cloned() {
                         self.apply_structure(motion_script::add_character(&self.source, &id, character));
                     }
                 }
-                if ui.button("Delete selected character…").clicked() {
+                if ui.button("Poista valittu hahmo…").clicked() {
                     if let Some(actor) = &self.selected_actor {
                         self.lifecycle_delete = Some((false, actor.clone(), self.source.clone()));
                     }
                 }
                 if let Some((scene, id, source)) = self.lifecycle_delete.clone() {
-                    ui.colored_label(egui::Color32::LIGHT_RED, format!("Delete {} {id}?", if scene {"scene and its events"} else {"character"}));
-                    ui.weak("Referenced characters cannot be deleted. Undo can restore successful changes.");
-                    if ui.button("Confirm deletion").clicked() {
+                    ui.colored_label(egui::Color32::LIGHT_RED, format!("Poistetaanko {} {id}?", if scene {"kohtaus tapahtumineen"} else {"hahmo"}));
+                    ui.weak("Käytössä olevaa hahmoa ei voi poistaa. Kumoa palauttaa tehdyt muutokset.");
+                    if ui.button("Vahvista poisto").clicked() {
                         self.lifecycle_delete = None;
-                        if source != self.source { self.status = "Source changed; select deletion again.".into(); }
+                        if source != self.source { self.status = "Käsikirjoitus vaihtui; valitse poistettava kohde uudelleen.".into(); }
                         else if scene {
                             if let Some(index) = self.script.as_ref().and_then(|s| s.scenes.iter().position(|s| s.id == id)) {
                                 self.apply_structure(motion_script::remove_scene(&self.source, index));
                             }
                         } else { self.apply_structure(motion_script::remove_character(&self.source, &id)); }
                     }
-                    if ui.button("Cancel deletion").clicked() { self.lifecycle_delete = None; }
+                    if ui.button("Peru poisto").clicked() { self.lifecycle_delete = None; }
                 }
             });
         });
@@ -616,8 +616,9 @@ impl Studio {
         if draft.scene_index != self.scene_index
             || self.settings_draft_source.as_deref() != Some(self.source.as_str())
         {
-            self.settings_error =
-                Some("Screenplay or scene changed; reset the settings draft.".into());
+            self.settings_error = Some(
+                "Käsikirjoitus tai kohtaus vaihtui; lataa asetusten luonnos uudelleen.".into(),
+            );
             return;
         }
         let Some(scene) = script.scenes.get(draft.scene_index) else {
@@ -633,7 +634,7 @@ impl Studio {
                 == serde_json::to_value(&draft.composition).ok();
         if unchanged {
             self.settings_error = None;
-            self.status = "Project and scene settings unchanged.".into();
+            self.status = "Projektin ja kohtauksen asetuksia ei muutettu.".into();
             return;
         }
         let source = match motion_script::apply_scene_settings_with_composition(
@@ -661,8 +662,7 @@ impl Studio {
             }
         }
         if source.len() > 100_000 {
-            self.settings_error =
-                Some("Edited screenplay exceeds the 100 KB desktop limit.".into());
+            self.settings_error = Some("Muokattu käsikirjoitus ylittää 100 kt:n kokorajan.".into());
             return;
         }
         if draft.duration_seconds < scene.duration {
@@ -684,13 +684,13 @@ impl Studio {
                     .checked_sub(clip.trim_start_frame)
                     .and_then(|length| clip.start_frame.checked_add(length))
                 else {
-                    self.settings_error = Some("Prepared dialogue timing is invalid; reprepare audio before changing duration.".into());
+                    self.settings_error = Some("Valmistellun repliikin ajoitus on virheellinen; valmistele ääni uudelleen ennen keston muuttamista.".into());
                     return;
                 };
                 required_end = required_end.max(end);
             }
             if ((draft.duration_seconds * 24_000.0).round() as u64) < required_end {
-                self.settings_error = Some(format!("Prepared dialogue ends at {:.3}s; move or shorten the line before reducing scene duration.",required_end as f64/24_000.0));
+                self.settings_error = Some(format!("Valmisteltu repliikki päättyy kohdassa {:.3} s. Siirrä tai lyhennä repliikkiä ennen kohtauksen lyhentämistä.",required_end as f64/24_000.0));
                 return;
             }
         }
@@ -703,7 +703,7 @@ impl Studio {
             self.settings_draft = scene_settings::Draft::new(script, self.scene_index);
             self.settings_draft_source = Some(self.source.clone());
         }
-        self.status = "Project / scene settings applied. Event times stay in seconds; prepare audio again before playback or export.".into();
+        self.status = "Projektin ja kohtauksen asetukset otettu käyttöön. Tapahtuma-ajat säilyvät sekunteina; valmistele ääni uudelleen ennen toistoa tai vientiä.".into();
     }
     fn settings_ui(&mut self, ui: &mut egui::Ui) {
         let Some(script) = &self.script else {
@@ -723,9 +723,9 @@ impl Studio {
         egui::CollapsingHeader::new("Projektin ja kohtauksen asetukset").show(ui, |ui| {
             ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
                 if let Some(draft) = &mut self.settings_draft { apply = draft.ui(ui); }
-                reset = ui.button("Reset settings draft").clicked();
+                reset = ui.button("Palauta asetusten luonnos").clicked();
             });
-            ui.weak("Apply resets pending edits and prepared audio. Speech lengths not yet generated are checked on the next preparation.");
+            ui.weak("Käytä tyhjentää keskeneräiset muokkaukset ja valmistellun äänen. Uusien puheäänien kestot tarkistetaan seuraavassa valmistelussa.");
         });
         if reset {
             self.settings_draft = self
@@ -738,7 +738,7 @@ impl Studio {
             self.apply_settings_draft();
         }
         if let Some(error) = &self.settings_error {
-            ui.colored_label(egui::Color32::LIGHT_RED, error);
+            ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
         }
     }
     fn apply_voice_draft(&mut self) {
@@ -776,14 +776,14 @@ impl Studio {
         };
         if unchanged {
             self.voice_edit_error = None;
-            self.status = "Voice settings unchanged.".into();
+            self.status = "Puheäänen asetuksia ei muutettu.".into();
             return;
         }
         match motion_script::apply_voice(&self.source, &actor, draft.voice.clone()) {
             Ok(source) => {
                 if source.len() > 100_000 {
                     self.voice_edit_error =
-                        Some("Edited screenplay exceeds the 100 KB desktop limit.".into());
+                        Some("Muokattu käsikirjoitus ylittää 100 kt:n kokorajan.".into());
                     return;
                 }
                 self.flush_text_edit();
@@ -823,7 +823,7 @@ impl Studio {
                     self.voice_draft = voice_editor::Draft::new(script, &actor);
                     self.voice_draft_source = Some(self.source.clone());
                 }
-                self.status = "Voice applied. Reprepare scene audio; affected synthesized-speech alignment was cleared. Cache entries are retained.".into();
+                self.status = "Puheääni otettu käyttöön. Valmistele kohtauksen ääni uudelleen; muuttuneen puheen vanha kohdistus poistettiin. Välimuistitiedostot säilyvät.".into();
             }
             Err(error) => self.voice_edit_error = Some(error.to_string()),
         }
@@ -855,9 +855,9 @@ impl Studio {
         egui::CollapsingHeader::new("Hahmon puheääni").default_open(true).show(ui, |ui| {
             ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
                 if let Some(draft) = &mut self.voice_draft { apply = draft.ui(ui); }
-                reset = ui.button("Reset voice draft").clicked();
+                reset = ui.button("Palauta puheäänen luonnos").clicked();
             });
-            ui.weak("Apply resets pending event edits and prepared scene audio. Reprepare to hear this voice.");
+            ui.weak("Käytä tyhjentää keskeneräiset tapahtumamuokkaukset ja valmistellun kohtausäänen. Valmistele ääni uudelleen kuullaksesi valinnan.");
         });
         if reset {
             self.voice_draft = self
@@ -870,7 +870,7 @@ impl Studio {
             self.apply_voice_draft();
         }
         if let Some(error) = &self.voice_edit_error {
-            ui.colored_label(egui::Color32::LIGHT_RED, error);
+            ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
         }
     }
     fn begin_event_draft(&mut self, kind: Option<event_factory::Kind>) {
@@ -917,9 +917,10 @@ impl Studio {
                     event,
                 });
                 self.status =
-                    "New event draft: edit its timing/properties, then choose Apply event.".into();
+                    "Uusi tapahtumaluonnos: muokkaa ajoitusta ja asetuksia, sitten paina Käytä."
+                        .into();
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Toiminto epäonnistui: {error}"),
         }
     }
     fn request_event_delete(&mut self) {
@@ -941,7 +942,7 @@ impl Studio {
             || self.selected_event != Some(event)
             || self.source != original
         {
-            self.status = "Event selection changed; delete cancelled.".into();
+            self.status = "Valittu tapahtuma vaihtui; poisto peruttiin.".into();
             return;
         }
         self.flush_text_edit();
@@ -954,7 +955,7 @@ impl Studio {
         match motion_script::remove_event(&self.source, scene, event) {
             Ok(source) => {
                 if source.len() > 100_000 {
-                    self.status = "Edited screenplay exceeds 100 KB.".into();
+                    self.status = "Muokattu käsikirjoitus ylittää 100 kt:n kokorajan.".into();
                     return;
                 }
                 self.record_source_edit(&self.source.clone(), &source);
@@ -965,9 +966,9 @@ impl Studio {
                     self.scene_alignment.clear();
                 }
                 self.validate();
-                self.status = "Event deleted. Undo restores the previous screenplay. Prepare scene audio again.".into();
+                self.status = "Tapahtuma poistettu. Kumoa palauttaa edellisen käsikirjoituksen. Valmistele kohtauksen ääni uudelleen.".into();
             }
-            Err(error) => self.status = format!("Delete event: {error}"),
+            Err(error) => self.status = format!("Tapahtuman poisto: {error}"),
         }
     }
     fn cancel_timeline_drag(&mut self) {
@@ -1010,7 +1011,7 @@ impl Studio {
         });
         self.apply_event_draft();
         if let Some(error) = &self.event_edit_error {
-            self.status = format!("Timeline edit rejected: {error}");
+            self.status = format!("Aikajanan muokkaus hylättiin: {error}");
         }
     }
     fn flush_text_edit(&mut self) {
@@ -1117,12 +1118,14 @@ impl Studio {
                     if let Err(error) = document.validate() {
                         self.script = None;
                         self.jobs.clear();
-                        self.status = format!("History restored an unfinished screenplay: {error}");
+                        self.status = format!(
+                            "Historiasta palautettu käsikirjoitus on keskeneräinen: {error}"
+                        );
                     }
                 }
             }
             Ok(None) => {}
-            Err(error) => self.status = format!("History unchanged: {error}"),
+            Err(error) => self.status = format!("Historiaa ei muutettu: {error}"),
         }
     }
     fn apply_event_draft(&mut self) {
@@ -1138,7 +1141,8 @@ impl Studio {
         let edits_speech = matches!(draft.event, motion_script::Event::Speak { .. });
         if self.inserting_event && self.event_draft_source.as_deref() != Some(self.source.as_str())
         {
-            self.event_edit_error = Some("Screenplay changed; create a new event draft.".into());
+            self.event_edit_error =
+                Some("Käsikirjoitus vaihtui; luo uusi tapahtumaluonnos.".into());
             return;
         }
         let insertion = self.inserting_event;
@@ -1150,8 +1154,9 @@ impl Studio {
         match result {
             Ok(source) => {
                 if source.len() > 100_000 {
-                    self.event_edit_error =
-                        Some("Edited screenplay exceeds the 100 KB desktop save limit.".into());
+                    self.event_edit_error = Some(
+                        "Muokattu käsikirjoitus ylittää tallennuksen 100 kt:n kokorajan.".into(),
+                    );
                     return;
                 }
                 self.record_source_edit(&self.source.clone(), &source);
@@ -1173,7 +1178,7 @@ impl Studio {
                         .and_then(|s| s.events.get(event))
                         .map(|e| e.actor_time().1.to_owned());
                     self.event_draft = event_editor::Draft::new(script, scene, event);
-                    self.status = "Event applied. Scene audio was invalidated; prepare it again before playback or export.".into();
+                    self.status = "Tapahtuma otettu käyttöön. Valmistele kohtauksen ääni uudelleen ennen toistoa tai vientiä.".into();
                 }
                 self.event_edit_error = None;
             }
@@ -1240,10 +1245,10 @@ impl Studio {
                 self.validate();
                 if self.script.is_some() {
                     self.prepare_scene_audio();
-                    self.status = "Preparing synthetic sound check (tones, not Kokoro speech). Manual mouth cues are illustrative. Then use Play scene audio.".into();
+                    self.status = "Valmistellaan synteettistä ääniesimerkkiä. Äänet ovat testiääniä ja suun ajoitus havainnollinen. Kuuntele painamalla Toista ääni.".into();
                 }
             }
-            Err(error) => self.status = format!("Sound check: {error}"),
+            Err(error) => self.status = format!("Ääniesimerkki: {error}"),
         }
     }
     /// Document/configuration mutation boundary; idle UI frames never serialize inputs.
@@ -1378,11 +1383,13 @@ impl Studio {
                 let path = std::fs::canonicalize(&self.script_path).map_err(|e| e.to_string())?;
                 let doc = motion_project::load(&path).map_err(|e| e.to_string())?;
                 if doc.source.len() > 100_000 {
-                    return Err("Project source exceeds 100 KB editor limit".into());
+                    return Err(
+                        "Projektin käsikirjoitus ylittää muokkaimen 100 kt:n kokorajan".into(),
+                    );
                 }
                 let root = path
                     .parent()
-                    .ok_or("Project has no parent directory")?
+                    .ok_or("Projektin kansiota ei löydy")?
                     .to_string_lossy()
                     .into_owned();
                 Ok((doc, root))
@@ -1405,7 +1412,7 @@ impl Studio {
                     self.scene_index = 0;
                     self.validate();
                 }
-                Err(error) => self.status = format!("Open project: {error}"),
+                Err(error) => self.status = format!("Projektin avaaminen: {error}"),
             }
             return;
         }
@@ -1413,7 +1420,7 @@ impl Studio {
         use std::io::Read;
         let result = (|| -> Result<String, String> {
             let file = std::fs::File::open(&self.script_path)
-                .map_err(|e| format!("Open {}: {e}", self.script_path))?;
+                .map_err(|e| format!("Tiedoston {} avaaminen: {e}", self.script_path))?;
             let mut bytes = Vec::new();
             file.take(100_001)
                 .read_to_end(&mut bytes)
@@ -1421,7 +1428,8 @@ impl Studio {
             if bytes.len() > 100_000 {
                 return Err("Screenplay exceeds 100 KB editor limit".into());
             }
-            String::from_utf8(bytes).map_err(|e| format!("Screenplay must be UTF-8: {e}"))
+            String::from_utf8(bytes)
+                .map_err(|e| format!("Käsikirjoituksen on oltava UTF-8-muotoinen: {e}"))
         })();
         match result {
             Ok(source) => {
@@ -1437,7 +1445,7 @@ impl Studio {
                 self.invalidate_scene();
                 self.jobs.clear();
                 self.preview = None;
-                self.status = "Opened screenplay; validate before generation. Imported audio uses configured project root.".into();
+                self.status = "Käsikirjoitus avattu; paina Tarkista ennen äänen valmistelua. Tuodut äänet käyttävät asetettua projektikansiota.".into();
             }
             Err(e) => self.status = e,
         }
@@ -1452,7 +1460,9 @@ impl Studio {
         {
             let result = (|| -> Result<motion_project::ProjectDocument, String> {
                 if self.source.len() > 100_000 {
-                    return Err("Project source exceeds 100 KB editor limit".into());
+                    return Err(
+                        "Projektin käsikirjoitus ylittää muokkaimen 100 kt:n kokorajan".into(),
+                    );
                 }
                 let parent = Path::new(&self.script_path)
                     .parent()
@@ -1462,7 +1472,7 @@ impl Studio {
                 let configured =
                     std::fs::canonicalize(&self.project_root).map_err(|e| e.to_string())?;
                 if root != configured {
-                    return Err("Save .kilsat beside the configured project root to preserve relative asset/audio paths. Copy assets explicitly before relocation.".into());
+                    return Err("Tallenna .kilsat asetettuun projektikansioon, jotta resurssien ja äänten suhteelliset polut säilyvät. Kopioi resurssit ennen projektin siirtämistä.".into());
                 }
                 let mut doc = self.project_document.clone().unwrap_or(
                     motion_project::ProjectDocument::new(self.source.clone())
@@ -1485,9 +1495,9 @@ impl Studio {
                     self.art_editor.dirty = false;
                     self.flush_text_edit();
                     self.asset_dirty = false;
-                    self.status = "Saved versioned project and asset inventory.".into();
+                    self.status = "Projekti ja resurssiluettelo tallennettu.".into();
                 }
-                Err(error) => self.status = format!("Save project: {error}"),
+                Err(error) => self.status = format!("Projektin tallentaminen: {error}"),
             }
             return;
         }
@@ -1499,7 +1509,7 @@ impl Studio {
                 .is_some_and(|d| !d.timing.is_empty())
         {
             self.status =
-                "Reviewed mouth timing requires .kilsat. Change the save path before saving."
+                "Tarkistettu suun ajoitus tarvitsee .kilsat-tiedoston. Vaihda tallennuspolku ennen tallentamista."
                     .into();
             return;
         }
@@ -1509,17 +1519,17 @@ impl Studio {
             .is_some_and(|d| !d.art.layers.is_empty())
         {
             self.status =
-                "Artwork requires .kilsat. Change the save path to .kilsat before saving.".into();
+                "Kuvitus tarvitsee .kilsat-tiedoston. Vaihda tallennuspolun päätteeksi .kilsat ennen tallentamista.".into();
             return;
         }
         self.flush_text_edit();
         if self.source.len() > 100_000 {
-            self.status = "Screenplay exceeds 100 KB save limit".into();
+            self.status = "Käsikirjoitus ylittää tallennuksen 100 kt:n kokorajan".into();
             return;
         }
         self.status = match std::fs::write(&self.script_path, &self.source) {
-            Ok(()) => format!("Saved screenplay to {}", self.script_path),
-            Err(e) => format!("Save {}: {e}", self.script_path),
+            Ok(()) => format!("Käsikirjoitus tallennettu: {}", self.script_path),
+            Err(e) => format!("Tiedoston {} tallentaminen: {e}", self.script_path),
         };
     }
     fn validate(&mut self) {
@@ -1541,7 +1551,7 @@ impl Studio {
                 self.selected = self.selected.min(self.jobs.len().saturating_sub(1));
                 self.preview = None;
                 self.status = format!(
-                    "Valid: {} dialogue events. Voice presets, speed and language come from YAML.",
+                    "Tarkistus valmis: {} repliikkiä. Puheääni, nopeus ja kieli määräytyvät käsikirjoituksesta.",
                     self.jobs.len()
                 );
             }
@@ -1549,7 +1559,7 @@ impl Studio {
                 self.invalidate_scene();
                 self.jobs.clear();
                 self.preview = None;
-                self.status = e;
+                self.status = format!("Käsikirjoituksen tarkistus epäonnistui: {e}");
             }
         }
     }
@@ -1558,7 +1568,7 @@ impl Studio {
             return;
         };
         ui.label(format!(
-            "Mixed scene {} · {} clips · {:.3}s",
+            "Kohtaus {} · {} repliikkiä · {:.3} s",
             preview.scene,
             preview.clips.len(),
             preview.audio.duration_seconds()
@@ -1586,14 +1596,14 @@ impl Studio {
                     }
                 }
             }
-            if ui.button("Pause audio").clicked() {
+            if ui.button("Tauota ääni").clicked() {
                 if let Some(player) = &self.playback {
                     if let Err(e) = player.pause() {
                         self.playback_error = Some(e);
                     }
                 }
             }
-            if ui.button("Resume audio").clicked() && self.scene_audio_active {
+            if ui.button("Jatka ääntä").clicked() && self.scene_audio_active {
                 self.sequence_panel.stop_transport();
                 if let Some(player) = &self.playback {
                     if let Err(e) = player.resume() {
@@ -1601,13 +1611,16 @@ impl Studio {
                     }
                 }
             }
-            if ui.button("Stop audio").clicked() {
+            if ui.button("Pysäytä ääni").clicked() {
                 self.stop_playback();
                 self.playhead = 0.0;
             }
         });
         if ui
-            .add(egui::Slider::new(&mut self.playhead, 0.0..=duration).text("Mixed scene seek (s)"))
+            .add(
+                egui::Slider::new(&mut self.playhead, 0.0..=duration)
+                    .text("Kohtauksen toistokohta (s)"),
+            )
             .changed()
         {
             if let Some(clock) = &mut self.scene_transport {
@@ -1623,15 +1636,18 @@ impl Studio {
         }
         if let Some(preview) = &self.scene_preview {
             for (id, status) in &preview.alignment_statuses {
-                ui.label(format!("Dialogue {id}: {}", alignment_status_text(*status)));
+                ui.label(format!(
+                    "Repliikki {id}: {}",
+                    alignment_status_text(*status)
+                ));
             }
             for message in &preview.diagnostics {
                 ui.colored_label(egui::Color32::YELLOW, message);
             }
         }
-        ui.label("One mixed source clock drives all actor mouths. Without alignment, mouths follow an English text estimate (not aligned to audio). Device latency and perceptual timing require Mac validation.");
+        ui.label("Yhteinen äänikello ohjaa kaikkien hahmojen suun liikkeitä. Tekstistä tehty ajoitus on arvio. Äänen ja kuvan yhteistoiminta on tarkistettava oikealla Macilla.");
         if let Some(error) = &self.playback_error {
-            ui.colored_label(egui::Color32::LIGHT_RED, error);
+            ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
         }
     }
     fn eligible_alignment_preview(&self) -> Option<&Preview> {
@@ -1764,7 +1780,7 @@ impl Studio {
             return;
         };
         if let Err(error) = self.commit_reviewed_timing(ready.json, ready.scene_json) {
-            self.status = format!("Timing unchanged: {error}");
+            self.status = format!("Ajoitusta ei muutettu: {error}");
             return;
         }
         self.stop_playback();
@@ -1788,10 +1804,13 @@ impl Studio {
                 self.busy = true;
                 self.active_cancel = Some(cancel);
                 self.status =
-                    "Preparing existing audio with reviewed mouth timing; no synthesis or download."
+                    "Valmistellaan olemassa olevaa ääntä tarkistetulla suun ajoituksella. Puhetta ei luoda eikä tiedostoja ladata."
                         .into();
             }
-            Err(e) => self.status = format!("Timing applied; prepare the line again: {e}"),
+            Err(e) => {
+                self.status =
+                    format!("Ajoitus otettu käyttöön; valmistele repliikki uudelleen: {e}")
+            }
         }
     }
     fn advanced_canvas_needed(&self) -> bool {
@@ -1840,10 +1859,11 @@ impl Studio {
                     self.scene_index = index;
                     self.reset_scene();
                     self.status =
-                        "New 10-second scene created. Drag characters to start animating.".into();
+                        "Uusi 10 sekunnin kohtaus luotu. Aloita animointi vetämällä hahmoja."
+                            .into();
                 }
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Kohtauksen luominen epäonnistui: {error}"),
         }
     }
     fn create_new_episode(&mut self) {
@@ -1870,9 +1890,9 @@ impl Studio {
                 self.validate();
                 self.history.record(before, self.snapshot());
                 self.confirm_new_episode = false;
-                self.status = "New episode ready. Save to a new file. Undo restores the previous project contents.".into();
+                self.status = "Uusi jakso valmis. Tallenna se uutena tiedostona. Kumoa palauttaa edellisen projektin sisällön.".into();
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Jakson luominen epäonnistui: {error}"),
         }
     }
     fn creation_ui(&mut self, ui: &mut egui::Ui) {
@@ -1941,7 +1961,7 @@ impl Studio {
                 self.playhead = drag.time;
             }
             Ok(_) => (),
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Hahmon siirtäminen epäonnistui: {error}"),
         }
     }
     fn character_canvas_ui(
@@ -2084,7 +2104,7 @@ impl Studio {
                             samples.len()
                         );
                     }
-                    Err(error) => self.status = error,
+                    Err(error) => self.status = format!("Pään muokkaus epäonnistui: {error}"),
                 }
             }
             return;
@@ -2098,7 +2118,7 @@ impl Studio {
                     self.selected_actor = Some(actor);
                     self.playhead = time;
                 }
-                Err(error) => self.status = error,
+                Err(error) => self.status = format!("Pään muokkaus epäonnistui: {error}"),
             }
         }
     }
@@ -2118,7 +2138,7 @@ impl Studio {
         };
         let total = (scene.duration * 24000.0).round() as u64;
         if total == 0 || !self.playhead.is_finite() {
-            ui.label("Invalid preview clock.");
+            ui.label("Esikatselun aikakello on virheellinen.");
             return;
         }
         let sample = ((self.playhead.max(0.0) * 24000.0).round() as u64).min(total);
@@ -2220,7 +2240,7 @@ impl Studio {
                     canvas.failed = Some(update.sample_frame);
                     // Unrenderable captions are reported, never silently dropped.
                     if e.contains("caption") {
-                        self.status = format!("Preview: {e}");
+                        self.status = format!("Esikatselu: {e}");
                     }
                     canvas.error = Some(e);
                 }
@@ -2257,7 +2277,7 @@ impl Studio {
                 }
             }
         }
-        ui.small("Shared scene preview · masks, blending, camera and timed mouths. Select artwork tools in the Inspector.");
+        ui.small("Kohtauksen esikatselu käyttää projektin maskeja, tasoja, kameraa ja suun ajoitusta. Kuvituksen työkalut löytyvät Muokkaa-välilehdeltä.");
         let canvas_rect = if let Some(texture) = &canvas.texture {
             let scale = (ui.available_width() / texture.size_vec2().x).min(1.0);
             Some(ui.image((texture.id(), texture.size_vec2() * scale)).rect)
@@ -2266,8 +2286,8 @@ impl Studio {
             None
         };
         if let Some(error) = &canvas.error {
-            ui.colored_label(egui::Color32::LIGHT_RED, error);
-            if ui.button("Retry scene preview").clicked() {
+            ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
+            if ui.button("Yritä esikatselua uudelleen").clicked() {
                 canvas.failed = None;
                 canvas.last_requested = None;
                 ui.ctx().request_repaint();
@@ -2331,7 +2351,7 @@ impl Studio {
             }
         });
         ui.weak(if self.character_mode {
-            "Vedä hahmoa → avainruutu nykyiseen aikaan. Siirrä toistopäätä ja vedä uudelleen. Esc peruu vedon."
+            "Vedä hahmoa lisätäksesi avainruudun nykyiseen aikaan. Siirrä toistopäätä ja vedä uudelleen. Esc peruu vedon."
         } else {
             "Kuvituksen työkalut löytyvät oikealta Muokkaa-välilehdeltä."
         });
@@ -2411,11 +2431,11 @@ impl Studio {
                 }
             }
         } else {
-            ui.label("Validate screenplay to enable deterministic scene preview.");
+            ui.label("Paina Tarkista, jotta voit esikatsella kohtausta.");
         }
         self.record_art_transaction();
         ui.add_space(8.0);
-        ui.weak("Procedural preview · sample-clock mouth animation");
+        ui.weak("Kohtauksen esikatselu · suun liike seuraa äänikelloa");
     }
     fn piper_profile(&self) -> Option<std::path::PathBuf> {
         let p = self.piper_config_path.trim();
@@ -2494,7 +2514,7 @@ impl Studio {
                 self.busy = true;
                 self.status = "Valmistellaan oikea puhe ja mitataan repliikkien kestot…".into();
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Puheohjauksen käynnistys epäonnistui: {error}"),
         }
     }
     fn poll_direction(&mut self) {
@@ -2639,9 +2659,9 @@ impl Studio {
             Ok(()) => {
                 self.active_cancel = Some(cancel);
                 self.busy = true;
-                self.status = "Preparing full scene on background worker…".into();
+                self.status = "Valmistellaan kohtauksen ääntä taustalla…".into();
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Kohtauksen äänen valmistelu epäonnistui: {error}"),
         }
     }
     fn generate(&mut self) {
@@ -2672,9 +2692,9 @@ impl Studio {
                 self.busy = true;
                 self.preview = None;
                 self.status =
-                    "Queued. Imported WAV takes precedence when configured in YAML.".into();
+                    "Valmistelu jonossa. Käsikirjoitukseen asetettu WAV-äänite ohittaa puhesynteesin.".into();
             }
-            Err(e) => self.status = e.to_string(),
+            Err(e) => self.status = format!("Repliikin valmistelu epäonnistui: {e}"),
         }
     }
     fn kokoro_diagnostic_presets(&self) -> std::collections::BTreeSet<String> {
@@ -2699,7 +2719,7 @@ impl Studio {
             .any(|p| p.is_empty() || !p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'))
         {
             self.diagnostics_report = Some(Err(
-                "Invalid voice preset in screenplay; validate it before checking local assets."
+                "Käsikirjoituksen puheäänen tunnus on virheellinen. Tarkista se ennen paikallisten resurssien tarkistusta."
                     .into(),
             ));
             return;
@@ -2737,10 +2757,10 @@ impl Studio {
                         self.project_document = Some(document);
                         self.document_changed();
                         self.asset_dirty = true;
-                        self.status = "Asset inventory updated; Save .kilsat to persist. Physical files are never removed by inventory removal.".into();
+                        self.status = "Resurssiluettelo päivitetty; tallenna .kilsat säilyttääksesi muutokset. Viitteen poistaminen ei poista tiedostoa levyltä.".into();
                     }
-                    Ok(_) => self.status = "Project changed during asset operation; inventory result discarded. Imported files remain available on disk.".into(),
-                    Err(error) => self.status = format!("Asset operation: {error}"),
+                    Ok(_) => self.status = "Projekti vaihtui resurssityön aikana; luettelon muutos hylättiin. Tuodut tiedostot säilyvät levyllä.".into(),
+                    Err(error) => self.status = format!("Resurssityö: {error}"),
                 }
             }
         }
@@ -2750,7 +2770,7 @@ impl Studio {
                 export_worker::Update::Progress(progress) => {
                     self.export_progress = Some(progress);
                     self.status = format!(
-                        "Export: {}/{} frames",
+                        "Vienti: {}/{} kuvaruutua",
                         progress.completed_frames, progress.total_frames
                     );
                 }
@@ -2761,12 +2781,12 @@ impl Studio {
                     self.export_progress = None;
                     self.status = match result {
                         Ok(report) => format!(
-                            "Exported {:?} ({} frames), scene.wav and timing manifests to {}",
+                            "Viety {:?} ({} kuvaruutua), scene.wav ja ajoitustiedot kansioon {}",
                             self.export_format,
                             report.frame_count,
                             report.output_directory.display()
                         ),
-                        Err(error) => format!("Scene export: {error}"),
+                        Err(error) => format!("Kohtauksen vienti: {error}"),
                     };
                 }
             }
@@ -2779,14 +2799,15 @@ impl Studio {
             match update {
                 scene_worker::Update::Progress(p) => {
                     self.status = format!(
-                        "Scene audio: {}/{} · dialogue {} · {}",
+                        "Kohtauksen ääni: {}/{} · repliikki {} · {}",
                         p.completed, p.total, p.dialogue_id, p.actor
                     )
                 }
                 scene_worker::Update::Finished(result) => {
                     self.busy = false;
                     if self.active_cancel.take().is_some_and(|c| c.is_cancelled()) {
-                        self.status = "Scene preparation cancelled. You can retry.".into();
+                        self.status =
+                            "Kohtauksen valmistelu peruttiin. Voit yrittää uudelleen.".into();
                         self.scene_preview = None;
                         continue;
                     }
@@ -2800,14 +2821,14 @@ impl Studio {
                                 .is_none_or(|s| s.id != prepared.scene_id)
                             {
                                 self.status =
-                                    "Discarded preparation for an invalidated scene.".into();
+                                    "Vanhentuneen kohtauksen valmistelutulos hylättiin.".into();
                                 continue;
                             }
                             let diagnostics: Vec<String> =
                                 prepared.diagnostics.iter().map(|d| d.message()).collect();
                             let audio = prepared.rendered.audio;
                             self.status = format!(
-                                "Scene ready: {} dialogue clips · {:.3}s",
+                                "Kohtaus valmis: {} repliikkiä · {:.3} s",
                                 prepared.clips.len(),
                                 audio.duration_seconds()
                             );
@@ -2822,7 +2843,7 @@ impl Studio {
                             });
                             self.playhead = 0.0;
                         }
-                        Err(error) => self.status = format!("Scene audio: {error}"),
+                        Err(error) => self.status = format!("Kohtauksen ääni: {error}"),
                     }
                 }
             }
@@ -2871,7 +2892,7 @@ impl Studio {
         let update = self.worker.as_ref().and_then(VoiceWorker::poll);
         match update {
             Some(VoiceUpdate::Started(_)) => {
-                self.status = "Generating/importing audio on background worker…".into()
+                self.status = "Luodaan tai tuodaan ääntä taustalla…".into()
             }
             Some(VoiceUpdate::Finished { result, .. }) => {
                 self.worker = None;
@@ -2889,9 +2910,12 @@ impl Studio {
                                 pronunciations: self.script_pronunciations(),
                                 cancel: self.active_cancel.clone().unwrap_or_default(),
                             }) {
-                                Ok(()) => self.status = "Preparing waveform and alignment…".into(),
+                                Ok(()) => {
+                                    self.status =
+                                        "Valmistellaan aaltomuotoa ja suun ajoitusta…".into()
+                                }
                                 Err(e) => {
-                                    self.status = e.to_string();
+                                    self.status = format!("Äänen valmistelu epäonnistui: {e}");
                                     self.busy = false;
                                     self.active_cancel = None;
                                 }
@@ -2899,7 +2923,7 @@ impl Studio {
                         }
                     }
                     Err(e) => {
-                        self.status = e.to_string();
+                        self.status = format!("Äänen valmistelu epäonnistui: {e}");
                         self.pending_job = None;
                         self.busy = false;
                         self.active_cancel = None;
@@ -2912,7 +2936,7 @@ impl Studio {
             self.busy = false;
             if self.active_cancel.take().is_some_and(|c| c.is_cancelled()) {
                 self.preview = None;
-                self.status = "Dialogue preparation cancelled. You can retry.".into();
+                self.status = "Repliikin valmistelu peruttiin. Voit yrittää uudelleen.".into();
                 return;
             }
             match result {
@@ -2931,7 +2955,7 @@ impl Studio {
                         });
                     if !fits_scene {
                         self.preview = None;
-                        self.status = "Dialogue extends beyond the selected scene or belongs to an invalidated scene. Increase scene duration or adjust dialogue timing, then validate and generate again.".into();
+                        self.status = "Repliikki ylittää valitun kohtauksen keston tai kuuluu vanhentuneeseen kohtaukseen. Pidennä kohtausta tai siirrä repliikkiä, paina Tarkista ja valmistele ääni uudelleen.".into();
                         return;
                     }
                     if self
@@ -2943,17 +2967,17 @@ impl Studio {
                         self.playhead = preview.clip.start_frame as f64 / 24000.0;
                     }
                     self.status = format!(
-                        "Ready: {:.3} s. {}",
+                        "Valmis: {:.3} s. {}",
                         preview.result.duration_seconds(),
                         if preview.result.cached {
-                            "Loaded from content cache."
+                            "Ladattu sisältövälimuistista."
                         } else {
-                            "Audio asset prepared."
+                            "Äänitiedosto valmisteltu."
                         }
                     );
                     self.preview = Some(preview);
                 }
-                Err(e) => self.status = format!("Audio/ alignment preview: {e}"),
+                Err(e) => self.status = format!("Äänen ja ajoituksen esikatselu: {e}"),
             }
         }
     }
@@ -2961,15 +2985,53 @@ impl Studio {
 fn alignment_status_text(status: AlignmentStatus) -> &'static str {
     match status {
         AlignmentStatus::EstimatedImported => {
-            "Estimated Rhubarb mouth cues imported · separate from phoneme cache · quality not measured"
+            "Rhubarb-arvio tuotu · erillinen äännevälimuistista · laatu mittaamatta"
         }
-        AlignmentStatus::None => "No alignment · mouth at rest",
+        AlignmentStatus::None => "Ei tuotua puhekohdistusta",
         AlignmentStatus::LegacyUnbound => {
-            "Legacy timing · unbound to audio/transcript · quality not measured"
+            "Vanha ajoitus · ei sidottu ääneen ja tekstiin · laatu mittaamatta"
         }
-        AlignmentStatus::BoundImported => "Bound timing imported and cached · quality not measured",
-        AlignmentStatus::BoundCacheHit => "Bound timing cache hit · quality not measured",
-        AlignmentStatus::BoundCacheMiss => "Bound timing cache miss · mouth at rest",
+        AlignmentStatus::BoundImported => {
+            "Ääneen sidottu ajoitus tuotu ja tallennettu välimuistiin · laatu mittaamatta"
+        }
+        AlignmentStatus::BoundCacheHit => {
+            "Ääneen sidottu ajoitus löytyi välimuistista · laatu mittaamatta"
+        }
+        AlignmentStatus::BoundCacheMiss => "Ääneen sidottua ajoitusta ei löytynyt välimuistista",
+    }
+}
+fn mouth_source_text(source: motion_voice::timeline::MouthSource) -> &'static str {
+    use motion_voice::timeline::MouthSource;
+    match source {
+        MouthSource::Manual => "Manuaalinen suun ajoitus · laatu arvioimatta",
+        MouthSource::Forced => "Ulkoisella työkalulla kohdistettu · laatu arvioimatta",
+        MouthSource::RhubarbEstimated => "Työkalulla arvioitu suun liike · laatu mittaamatta",
+        MouthSource::TextEstimated => "Tekstistä arvioitu suun liike · ei mitattua puhekohdistusta",
+        MouthSource::None => "Ei suun ajoitusta · suu lepoasennossa",
+    }
+}
+fn viseme_label(viseme: Viseme) -> &'static str {
+    match viseme {
+        Viseme::Rest => "lepo",
+        Viseme::Closed => "kiinni",
+        Viseme::TeethLip => "alahuuli ja hampaat",
+        Viseme::TongueTeeth => "kieli ja hampaat",
+        Viseme::TongueUp => "kieli ylhäällä",
+        Viseme::Sibilant => "S-äänne",
+        Viseme::Sh => "Š-äänne",
+        Viseme::R => "R-äänne",
+        Viseme::A => "A",
+        Viseme::E => "E",
+        Viseme::I => "I",
+        Viseme::O => "O",
+        Viseme::U => "U",
+    }
+}
+fn asset_kind_label(kind: &motion_project::AssetKind) -> &'static str {
+    match kind {
+        motion_project::AssetKind::Image => "kuva",
+        motion_project::AssetKind::Audio => "ääni",
+        motion_project::AssetKind::Other => "muu tiedosto",
     }
 }
 fn default_kokoro_root() -> String {
@@ -2991,9 +3053,9 @@ impl Studio {
                 self.stop_playback();
                 self.setup_busy = true;
                 self.diagnostics_busy = true;
-                self.setup_status = "Working locally…".into();
+                self.setup_status = "Paikallinen työ käynnissä…".into();
             }
-            Err(error) => self.setup_status = error,
+            Err(error) => self.setup_status = format!("Kokoro-toiminto epäonnistui: {error}"),
         }
     }
     fn apply_kokoro_profile(&mut self, profile: kokoro_setup::Profile) {
@@ -3015,14 +3077,16 @@ impl Studio {
     fn poll_kokoro_setup(&mut self) {
         while let Some(update) = self.kokoro_setup.poll() {
             match update {
-                kokoro_setup::Update::Progress(message) => self.setup_status = message,
+                kokoro_setup::Update::Progress(message) => {
+                    self.setup_status = format!("Kokoro: {message}")
+                }
                 kokoro_setup::Update::Finished(result) => {
                     self.setup_busy = false;
                     self.diagnostics_busy = false;
                     match result {
                         Ok(kokoro_setup::Outcome::Connected(profile)) => {
                             self.apply_kokoro_profile(profile);
-                            self.setup_status = "Local Kokoro connected. Run the English CPU speech test, then listen to the result.".into();
+                            self.setup_status = "Paikallinen Kokoro yhdistetty. Aja englanninkielinen puhetesti ja kuuntele tulos.".into();
                         }
                         Ok(kokoro_setup::Outcome::Tested {
                             wav,
@@ -3031,9 +3095,11 @@ impl Studio {
                             audio,
                         }) => {
                             self.test_audio = Some(audio);
-                            self.setup_status = format!("CPU speech test completed. {metrics}\nWAV: {}\nReport: {}\nListen to confirm speech quality. This does not validate lip-sync.", wav.display(), report.display());
+                            self.setup_status = format!("Puhetesti valmis. {metrics}\nWAV: {}\nRaportti: {}\nArvioi puheen laatu kuuntelemalla. Testi ei vahvista huulisynkkaa.", wav.display(), report.display());
                         }
-                        Err(error) => self.setup_status = error,
+                        Err(error) => {
+                            self.setup_status = format!("Kokoro-toiminto epäonnistui: {error}")
+                        }
                     }
                 }
             }
@@ -3041,7 +3107,7 @@ impl Studio {
         if let Some(player) = &self.test_player {
             let state = player.snapshot();
             if let Some(error) = state.error {
-                self.setup_status = format!("Test playback: {error}");
+                self.setup_status = format!("Testipuheen toisto: {error}");
                 self.test_player = None;
             } else if state.finished {
                 self.test_player = None;
@@ -3087,7 +3153,7 @@ impl Studio {
                 if let Some(audio) = self.test_audio.clone() {
                     match playback::Playback::new().and_then(|player| { player.play(audio, 0)?; Ok(player) }) {
                         Ok(player) => self.test_player = Some(player),
-                        Err(error) => self.setup_status = error,
+                        Err(error) => self.setup_status = format!("Kokoro-toiminto epäonnistui: {error}"),
                     }
                 }
             }
@@ -3096,7 +3162,7 @@ impl Studio {
             ui.spinner();
             if ui.button("Peru Kokoro-toiminto").clicked() {
                 self.kokoro_setup.cancel();
-                self.setup_status = "Cancelling…".into();
+                self.setup_status = "Perutaan…".into();
             }
         }
         if self.test_player.is_some() && ui.button("Pysäytä testipuhe").clicked() {
@@ -3111,9 +3177,9 @@ impl Studio {
 
 fn caption_mode_label(mode: motion_script::CaptionMode) -> &'static str {
     match mode {
-        motion_script::CaptionMode::Follow => "Follow screenplay",
-        motion_script::CaptionMode::Show => "Show",
-        motion_script::CaptionMode::Hide => "Hide",
+        motion_script::CaptionMode::Follow => "Käsikirjoituksen mukaan",
+        motion_script::CaptionMode::Show => "Näytä",
+        motion_script::CaptionMode::Hide => "Piilota",
     }
 }
 /// The user-level caption choice. Returns true when the user changed it.
@@ -3121,7 +3187,7 @@ fn caption_mode_ui(ui: &mut egui::Ui, mode: &mut motion_script::CaptionMode) -> 
     use motion_script::CaptionMode::{Follow, Hide, Show};
     let before = *mode;
     ui.horizontal(|ui| {
-        ui.label("Captions");
+        ui.label("Tekstitys");
         egui::ComboBox::from_id_salt("caption-mode")
             .selected_text(caption_mode_label(*mode))
             .show_ui(ui, |ui| {
@@ -3131,7 +3197,7 @@ fn caption_mode_ui(ui: &mut egui::Ui, mode: &mut motion_script::CaptionMode) -> 
             })
             .response
             .on_hover_text(
-                "Follow screenplay uses project.captions. Show and Hide override it for scene and sequence previews and for every export, without editing the screenplay. Show needs a project.captions style.",
+                "Käsikirjoituksen mukaan käyttää project.captions-asetusta. Näytä ja Piilota ohittavat sen esikatseluissa ja vienneissä muuttamatta käsikirjoitusta. Näytä tarvitsee project.captions-tyylin.",
             );
     });
     *mode != before
@@ -3144,65 +3210,64 @@ impl Studio {
     fn selected_alignment_edited(&mut self) {
         self.stop_playback();
         self.preview = None;
-        self.status =
-            "Selected-line timing changed; generate/load dialogue again to prepare timing.".into();
+        self.status = "Valitun repliikin ajoitus muuttui; valmistele repliikki uudelleen.".into();
     }
     fn runtime_ui(&mut self, ui: &mut egui::Ui) {
         self.kokoro_setup_ui(ui);
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
                     let mut runtime_changed = false;
-                    ui.heading("Advanced local runtime settings");
-                    ui.label("Supply existing local assets, or use the explicit installation flow above.");
-                    runtime_changed |= field(ui, "Python executable", &mut self.python);
-                    runtime_changed |= field(ui, "Sidecar script", &mut self.runtime);
-                    runtime_changed |= field(ui, "Model config JSON", &mut self.config);
-                    runtime_changed |= field(ui, "Model weights", &mut self.weights);
-                    runtime_changed |= field(ui, "Voice .pt directory", &mut self.voices);
-                    runtime_changed |= field(ui, "Cache directory", &mut self.cache);
-                    runtime_changed |= field(ui, "Immutable model + dependency revision", &mut self.revision);
-                    if ui.button("Check local Kokoro setup").clicked() { self.check_runtime(); }
-                    ui.label("Preflight checks local packages and files only; it does not run inference or prove compatibility.");
+                    ui.heading("Paikallisen puhemoottorin lisäasetukset");
+                    ui.label("Anna asennettujen paikallisten resurssien polut tai käytä yllä olevaa asennustoimintoa.");
+                    runtime_changed |= field(ui, "Python-ohjelma", &mut self.python);
+                    runtime_changed |= field(ui, "Puhemoottorin taustaskripti", &mut self.runtime);
+                    runtime_changed |= field(ui, "Mallin JSON-asetukset", &mut self.config);
+                    runtime_changed |= field(ui, "Mallitiedosto", &mut self.weights);
+                    runtime_changed |= field(ui, "Äänten .pt-kansio", &mut self.voices);
+                    runtime_changed |= field(ui, "Välimuistikansio", &mut self.cache);
+                    runtime_changed |= field(ui, "Mallin ja riippuvuuksien tarkka versio", &mut self.revision);
+                    if ui.button("Tarkista paikallinen Kokoro-asennus").clicked() { self.check_runtime(); }
+                    ui.label("Esitarkistus lukee paikalliset paketit ja tiedostot. Se ei luo puhetta eikä vahvista yhteensopivuutta.");
                     if runtime_changed { self.sequence_changed(); self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; self.preview = None; self.setup_profile = None; self.test_audio = None; }
-                    if field(ui, "Project root (imported WAV paths)", &mut self.project_root) {
+                    if field(ui, "Projektikansio (tuotujen WAVien polut)", &mut self.project_root) {
                         self.pending_text_edit = None; self.history.reset(&self.source);
                         self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
-                        self.status = "Project root changed; validate screenplay to resolve imported paths again.".into();
+                        self.status = "Projektikansio vaihtui; paina Tarkista, jotta tuotujen resurssien polut ratkaistaan uudelleen.".into();
                     }
                     ui.separator();
-                    ui.heading("Scene alignments JSON");
-                    ui.label("Map dialogue IDs to bound timing envelopes or legacy Alignment objects, for example {\"0\": {...}}. Legacy timing is unbound. Blank keeps mouths at rest; prepare again after editing.");
+                    ui.heading("Kohtauksen suun ajoitukset (JSON)");
+                    ui.label("Kohdista repliikkitunnisteet ääneen sidottuihin ajoituksiin tai vanhoihin Alignment-olioihin, esimerkiksi {\"0\": {...}}. Vanha ajoitus on sitomaton. Tyhjä kenttä sallii tekstiarvion; valmistele ääni uudelleen muokkauksen jälkeen.");
                     if ui.add(egui::TextEdit::multiline(&mut self.scene_alignment).desired_rows(5).char_limit(100_000).code_editor()).changed() { self.sequence_changed(); self.stop_playback(); self.scene_preview = None; self.scene_audio_active = false; }
                     for job in self.jobs.iter().filter(|job| self.script.as_ref().and_then(|s| s.scenes.get(self.scene_index)).is_some_and(|s| s.id == job.scene)) { ui.label(format!("ID {} · {} · {}", job.id, job.actor, job.request.text)); }
-                    ui.heading("Selected-line alignment JSON");
-                    ui.label("Paste a bound timing envelope (schema_version, key, optional alignment) or a legacy Alignment object (unbound). Blank keeps mouth at rest. Provenance checks do not measure timing quality.");
+                    ui.heading("Valitun repliikin suun ajoitus (JSON)");
+                    ui.label("Liitä ääneen sidottu ajoitus (schema_version, key, valinnainen alignment) tai vanha sitomaton Alignment-olio. Tyhjä kenttä sallii tekstiarvion. Alkuperän tarkistus ei mittaa ajoituksen laatua.");
                     if ui.add(egui::TextEdit::multiline(&mut self.alignment).desired_rows(7).char_limit(100_000).code_editor()).changed() { self.selected_alignment_edited(); }
         });
     }
     fn dialogue_ui(&mut self, ui: &mut egui::Ui) {
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
-                    egui::ComboBox::from_label("Dialogue event").selected_text(self.jobs.get(self.selected)
-                        .map(|j| format!("{} / {} @ {:.2}s", j.scene, j.actor, j.at)).unwrap_or_else(|| "Validate first".into()))
+                    egui::ComboBox::from_label("Repliikki").selected_text(self.jobs.get(self.selected)
+                        .map(|j| format!("{} / {} @ {:.2}s", j.scene, j.actor, j.at)).unwrap_or_else(|| "Paina ensin Tarkista".into()))
                         .show_ui(ui, |ui| {
                             for (index, job) in self.jobs.iter().enumerate() {
                                 if ui.selectable_value(&mut self.selected, index, format!("{} / {}: {}", job.scene, job.actor, job.request.text)).changed() { if let Some(p) = &self.playback { let _ = p.stop(); } self.preview = None; }
                             }
                         });
                     if let Some(job) = self.jobs.get_mut(self.selected) {
-                        ui.add(egui::DragValue::new(&mut job.at).range(0.0..=86_400.0).speed(0.01).prefix("Preview offset (s) "));
-                        ui.label("Offset changes apply to the next generation/import; edit YAML to persist them.");
+                        ui.add(egui::DragValue::new(&mut job.at).range(0.0..=86_400.0).speed(0.01).prefix("Repliikin aloitusaika (s) "));
+                        ui.label("Aloitusaika vaikuttaa seuraavaan äänen valmisteluun. Muuta myös käsikirjoitusta tallentaaksesi ajan.");
                     }
-                    if ui.add_enabled(!self.jobs.is_empty(), egui::Button::new("Generate / load selected dialogue")).clicked() { self.generate(); }
+                    if ui.add_enabled(!self.jobs.is_empty(), egui::Button::new("Valmistele valitun repliikin ääni")).clicked() { self.generate(); }
         });
     }
     fn line_preview_ui(&mut self, ui: &mut egui::Ui) {
         if let Some(preview) = &self.preview {
             ui.separator();
             ui.label(format!(
-                "Audio asset: {}",
+                "Äänitiedosto: {}",
                 preview.result.audio_path.display()
             ));
             ui.label(format!(
-                "Duration {:.3}s · {} Hz · {} frames",
+                "Kesto {:.3} s · {} Hz · {} ääninäytettä",
                 preview.result.duration_seconds(),
                 preview.result.sample_rate,
                 preview.result.sample_count
@@ -3212,15 +3277,15 @@ impl Studio {
             if let Some(player) = &self.playback {
                 let state = player.snapshot();
                 ui.label(if state.finished {
-                    "Playback ended"
+                    "Toisto päättynyt"
                 } else if state.playing {
-                    "Playing"
+                    "Toistetaan"
                 } else {
-                    "Paused / stopped"
+                    "Tauolla tai pysäytetty"
                 });
             }
             ui.horizontal(|ui| {
-                if ui.button("Play from cursor").clicked() {
+                if ui.button("Toista toistopäästä").clicked() {
                     self.sequence_panel.stop_transport();
                     self.scene_audio_active = false;
                     self.playback_error = None;
@@ -3258,7 +3323,7 @@ impl Studio {
                         }
                     }
                 }
-                if ui.button("Stop").clicked() {
+                if ui.button("Pysäytä").clicked() {
                     if let Some(p) = &self.playback {
                         if let Err(e) = p.stop() {
                             self.playback_error = Some(e);
@@ -3270,7 +3335,7 @@ impl Studio {
             if ui
                 .add(
                     egui::Slider::new(&mut self.playhead, start..=end.max(start + 0.01))
-                        .text("Scene playhead (s)"),
+                        .text("Kohtauksen toistokohta (s)"),
                 )
                 .changed()
             {
@@ -3283,19 +3348,18 @@ impl Studio {
             }
             let scene_frame = (self.playhead * 24000.0).round() as u64;
             let mouth = preview.clip.mouth_at(scene_frame).unwrap_or(Viseme::Rest);
-            ui.label(format!("Sample frame {scene_frame} · mouth {mouth:?}"));
+            ui.label(format!(
+                "Ääninäyte {scene_frame} · suun muoto {}",
+                viseme_label(mouth)
+            ));
             waveform(ui, &preview.peaks, (self.playhead - start) / (end - start));
             mouth_preview(ui, mouth);
-            ui.label("macOS playback uses the source playback position for mouth preview. Device latency and perceptual sync require Mac validation. MP4 export requires an explicitly selected local FFmpeg executable.");
+            ui.label("macOS-toisto käyttää äänen toistokohtaa suun esikatselussa. Viive ja havaittu huulisynkka on tarkistettava Macilla. MP4-vienti tarvitsee paikallisen FFmpeg-ohjelman.");
             if let Some(error) = &self.playback_error {
-                ui.colored_label(egui::Color32::LIGHT_RED, error);
+                ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
             }
             ui.label(alignment_status_text(preview.alignment_status));
-            if preview.clip.alignment.is_none() && preview.clip.estimated_alignment.is_none() {
-                ui.label(
-                    "No timed alignment: mouth stays at rest. Kokoro tokens are not timestamps.",
-                );
-            }
+            ui.label(mouth_source_text(preview.clip.mouth_source()));
         }
     }
     fn workspace_ui(&mut self, ctx: &egui::Context) {
@@ -3399,7 +3463,7 @@ impl Studio {
                                     .clicked()
                                 {
                                     cancel.cancel();
-                                    self.status = "Cancellation requested…".into();
+                                    self.status = "Peruutusta pyydetty…".into();
                                 }
                             }
                         }
@@ -3475,7 +3539,8 @@ impl Studio {
             .is_none_or(|e| e != "kilsat")
             || self.project_document.is_none()
         {
-            self.status = "Save this project as .kilsat before managing local assets.".into();
+            self.status =
+                "Tallenna projekti .kilsat-muotoon ennen paikallisten resurssien hallintaa.".into();
             return;
         }
         let parent = Path::new(&self.script_path)
@@ -3487,14 +3552,14 @@ impl Studio {
             .zip(std::fs::canonicalize(&self.project_root).ok())
             .is_some_and(|(root, configured)| root == configured);
         if !roots_match {
-            self.status = "Asset operations require the .kilsat path beside the configured project root. Open or save the intended project first.".into();
+            self.status = "Resurssien hallinta tarvitsee .kilsat-tiedoston asetettuun projektikansioon. Avaa tai tallenna haluttu projekti ensin.".into();
             return;
         }
         self.flush_text_edit();
         let mut document = self.project_document.clone().unwrap();
         document.source = self.source.clone();
         if let Err(error) = document.validate() {
-            self.status = error.to_string();
+            self.status = format!("Resurssityö epäonnistui: {error}");
             return;
         }
         let task = asset_worker::Task {
@@ -3507,29 +3572,29 @@ impl Studio {
                 self.asset_pending =
                     Some((self.source.clone(), self.script_path.clone(), document));
                 self.busy = true;
-                self.status = "Updating local assets on background worker…".into();
+                self.status = "Päivitetään paikallisia resursseja taustalla…".into();
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Resurssityö epäonnistui: {error}"),
         }
     }
     fn assets_ui(&mut self, ui: &mut egui::Ui) {
         egui::CollapsingHeader::new("Resurssit · kuvat ja äänet").show(ui, |ui| {
             if let Some(document) = &self.project_document {
-                for asset in &document.assets { ui.label(format!("{} · {:?} · {}", asset.id, asset.kind, asset.path)); }
+                for asset in &document.assets { ui.label(format!("{} · {} · {}", asset.id, asset_kind_label(&asset.kind), asset.path)); }
             }
-            if self.asset_dirty { ui.label("Unsaved inventory changes"); }
-            ui.weak("Import copies a local file into the project. Relink uses a project-relative path. Remove only forgets the reference. Place imported PNG/JPEG images using Artwork / layers in Inspector.");
+            if self.asset_dirty { ui.label("Tallentamattomia resurssimuutoksia"); }
+            ui.weak("Tuo kopioi paikallisen tiedoston projektiin. Vaihda viite käyttää projektikansioon suhteutettua polkua. Poista viite säilyttää tiedoston. Lisää tuodut PNG/JPEG-kuvat näyttämölle Kuvitus-tilan tasotyökaluilla.");
             ui.add_enabled_ui(!self.busy && !self.export_busy && !self.diagnostics_busy, |ui| {
-                field(ui, "Asset ID", &mut self.asset_id);
-                field(ui, "Import local path / relink project-relative path", &mut self.asset_path);
-                ui.horizontal(|ui| { ui.selectable_value(&mut self.asset_kind, 0, "Image"); ui.selectable_value(&mut self.asset_kind, 1, "Audio"); ui.selectable_value(&mut self.asset_kind, 2, "Other"); });
-                if ui.button("Import local file").clicked() {
+                field(ui, "Resurssin tunniste", &mut self.asset_id);
+                field(ui, "Tuotavan tiedoston koko polku / vaihdettavan viitteen suhteellinen polku", &mut self.asset_path);
+                ui.horizontal(|ui| { ui.selectable_value(&mut self.asset_kind, 0, "Kuva"); ui.selectable_value(&mut self.asset_kind, 1, "Ääni"); ui.selectable_value(&mut self.asset_kind, 2, "Muu"); });
+                if ui.button("Tuo paikallinen tiedosto").clicked() {
                     let kind = match self.asset_kind { 0 => motion_project::AssetKind::Image, 1 => motion_project::AssetKind::Audio, _ => motion_project::AssetKind::Other };
                     self.start_asset(asset_worker::Operation::Import { source: self.asset_path.clone().into(), id: self.asset_id.clone(), kind });
                 }
-                if ui.button("Relink reference").clicked() { self.start_asset(asset_worker::Operation::Relink { id: self.asset_id.clone(), path: self.asset_path.clone() }); }
-                if ui.button("Remove reference (keeps file)").clicked() { self.start_asset(asset_worker::Operation::Remove { id: self.asset_id.clone() }); }
-                ui.weak("Undo / Redo in the toolbar also restores inventory references. Imported physical files stay on disk.");
+                if ui.button("Vaihda resurssiviite").clicked() { self.start_asset(asset_worker::Operation::Relink { id: self.asset_id.clone(), path: self.asset_path.clone() }); }
+                if ui.button("Poista viite (säilytä tiedosto)").clicked() { self.start_asset(asset_worker::Operation::Remove { id: self.asset_id.clone() }); }
+                ui.weak("Yläpalkin Kumoa ja Tee uudelleen palauttavat myös resurssiviitteet. Tuodut tiedostot säilyvät levyllä.");
             });
         });
     }
@@ -3544,10 +3609,10 @@ impl Studio {
                 if self.source == source {
                     self.scene_index = index;
                     self.reset_scene();
-                    self.status = "Scene created. Preview movement, set up speech, then prepare audio and export. Save as .kilsat to keep your work.".into();
+                    self.status = "Kohtaus luotu. Esikatsele liikettä, valitse puheääni ja valmistele ääni ennen vientiä. Tallenna työ .kilsat-tiedostona.".into();
                 }
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Kohtauksen luominen epäonnistui: {error}"),
         }
     }
 
@@ -3563,12 +3628,12 @@ impl Studio {
                 if self.source == plan.source {
                     self.scene_index = plan.first_scene;
                     self.reset_scene();
-                    self.status = format!("Direction draft: {} shots, {:.2}s. {} Use sequence preview/export for all shots; existing scenes are retained. Undo restores the project.",
+                    self.status = format!("Ohjausluonnos: {} otosta, {:.2} s. {} Esikatsele ja vie kaikki otokset kohtauskoosteena. Nykyiset kohtaukset säilyvät; Kumoa palauttaa projektin.",
                         plan.shot_count, plan.duration_samples as f64 / 24_000.0,
                         plan.diagnostics.join(" "));
                 }
             }
-            Err(error) => self.status = format!("Automatic direction: {error}"),
+            Err(error) => self.status = format!("Automaattiohjaus: {error}"),
         }
     }
 
@@ -3580,7 +3645,7 @@ impl Studio {
                 let actors = self.script.as_ref().map(|script| {
                     script.characters.keys().cloned().collect::<Vec<_>>().join(", ")
                 }).unwrap_or_default();
-                ui.weak(format!("CHARACTER: dialogue · {actors}"));
+                ui.weak(format!("HAHMO: vuorosana · {actors}"));
                 let idle = !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy;
                 ui.add_enabled_ui(idle, |ui| {
                     ui.add(egui::TextEdit::multiline(&mut self.quick_start.dialogue)
@@ -3609,7 +3674,7 @@ impl Studio {
                 });
                 ui.separator();
                 ui.label("2. Valmistele puhe");
-                ui.weak("Avaa oikealta Puhe: asenna Kokoro englanniksi tai tuo suomenkielinen WAV-äänite Speak-tapahtumaan. Suomenkielistä Kokoro-puhetta ei vielä tueta.");
+            ui.weak("Avaa oikealta Puhe: valitse Piper suomeksi, Kokoro englanniksi tai oma WAV-äänite. Piper tarvitsee erikseen asennetun mallin ja profiilin.");
                 ui.add_enabled_ui(idle && self.script.is_some(), |ui| {
                     if ui.button("Valmistele kohtauksen ääni").clicked() {
                         self.prepare_scene_audio();
@@ -3626,7 +3691,7 @@ impl Studio {
                         self.save_script();
                     }
                 });
-                if ui.button("Avaa videon vienti →").clicked() {
+                if ui.button("Avaa videon vienti").clicked() {
                     self.inspector_tab = InspectorTab::Export;
                     self.export_format = export_worker::Format::Mp4;
                 }
@@ -3659,7 +3724,7 @@ impl Studio {
                         if self.pending_text_edit.is_none() { self.pending_text_edit = Some(before); }
                         self.alignment.clear(); self.scene_alignment.clear();
                         self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
-                        self.status = "Screenplay changed; validate before generation.".into();
+                        self.status = "Käsikirjoitus muuttui; paina Tarkista ennen äänen valmistelua.".into();
                     }
                     if response.lost_focus() { self.flush_text_edit(); }
                 });
@@ -3669,7 +3734,7 @@ impl Studio {
             self.creation_ui(ui);
             if let Some(script) = &self.script { ui.label(egui::RichText::new(&script.project.title).strong().size(16.0)); }
             ui.add_space(12.0);
-            ui.weak("Valitse kohtaus → vedä hahmoa → toista alhaalta.");
+            ui.weak("Valitse kohtaus, vedä hahmoa ja toista alhaalta.");
             section_label(ui, "KOHTAUKSET");
             let scenes: Vec<_> = self.script.as_ref().map(|s| s.scenes.iter().enumerate()
                 .map(|(i, scene)| (i, scene.id.clone(), scene.duration)).collect()).unwrap_or_default();
@@ -3707,8 +3772,8 @@ impl Studio {
             ui.weak("Valitse hahmo listasta tai näyttämöltä. Ohjeet-painike neuvoo animoinnin.");
             if self.demo_assets.is_some() {
                 ui.add_space(8.0);
-                ui.colored_label(egui::Color32::from_rgb(238, 185, 107), "SYNTHETIC SOUND CHECK");
-                ui.weak("Tones, not Kokoro speech. Temporary assets; copy them before saving a lasting project. Mouth cues are illustrative.");
+                ui.colored_label(egui::Color32::from_rgb(238, 185, 107), "SYNTEETTINEN ÄÄNIESIMERKKI");
+                ui.weak("Esimerkki käyttää testiääniä ja havainnollista suun ajoitusta. Kopioi väliaikaiset resurssit ennen pysyvän projektin tallentamista.");
             }
         });
     }
@@ -3726,7 +3791,7 @@ impl Studio {
         if let Some(document) = &mut self.project_document {
             self.art_editor
                 .clear_history_for_context(format!("{}:{}", self.document_revision, scene.id));
-            if ui.button("Reload images from disk").clicked() {
+            if ui.button("Lataa kuvat uudelleen levyltä").clicked() {
                 self.art_resources.reload();
                 if self.sequence_panel.busy() {
                     self.busy = false;
@@ -3754,7 +3819,7 @@ impl Studio {
                 },
             );
             if let Some(error) = &self.art_resources.error {
-                ui.colored_label(egui::Color32::LIGHT_RED, error);
+                ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
             }
         }
         self.record_art_transaction();
@@ -3786,9 +3851,12 @@ impl Studio {
             !self.busy && !self.diagnostics_busy && !self.export_busy,
             |ui| {
                 if let Some((_, draft)) = &mut self.keyframe_draft {
-                    egui::CollapsingHeader::new("Actor transform keyframes").show(ui, |ui| {
-                        apply = draft.ui(ui);
-                    });
+                    egui::CollapsingHeader::new("Hahmon sijainnin ja koon avainruudut").show(
+                        ui,
+                        |ui| {
+                            apply = draft.ui(ui);
+                        },
+                    );
                 }
             },
         );
@@ -3819,7 +3887,7 @@ impl Studio {
             || draft.scene_index != self.scene_index
             || current_scene != Some(draft.scene_id.as_str())
         {
-            self.status = "Audio cue draft belongs to an earlier source or scene; reload the draft before applying.".into();
+            self.status = "Äänivihjeen luonnos on vanhasta käsikirjoituksesta tai kohtauksesta; lataa se uudelleen ennen käyttöä.".into();
             self.cue_draft = None;
             return;
         }
@@ -3833,7 +3901,8 @@ impl Studio {
         };
         if source != &self.source {
             self.status =
-                "Rule draft belongs to an earlier source; reload the draft before applying.".into();
+                "Säännön luonnos on vanhasta käsikirjoituksesta; lataa se uudelleen ennen käyttöä."
+                    .into();
             self.rule_draft = None;
             return;
         }
@@ -3860,8 +3929,8 @@ impl Studio {
                 ));
             }
             ui.add_enabled_ui(editable, |ui| {
-                egui::CollapsingHeader::new("Audio cues").show(ui, |ui| {
-                    ui.small("Changing scene or source reloads saved cues and discards unapplied changes.");
+                egui::CollapsingHeader::new("Äänivihjeet").show(ui, |ui| {
+                    ui.small("Kohtauksen tai käsikirjoituksen vaihtaminen lataa tallennetut äänivihjeet ja hylkää käyttämättömät muutokset.");
                     if let Some((_, draft)) = &mut self.cue_draft {
                         apply_cues = draft.ui(ui);
                     }
@@ -3879,8 +3948,8 @@ impl Studio {
             ));
         }
         ui.add_enabled_ui(editable, |ui| {
-            egui::CollapsingHeader::new("Animation rules").show(ui, |ui| {
-                ui.small("A source change reloads saved rules and discards unapplied changes.");
+            egui::CollapsingHeader::new("Animaatiosäännöt").show(ui, |ui| {
+                ui.small("Käsikirjoituksen vaihtaminen lataa tallennetut säännöt ja hylkää käyttämättömät muutokset.");
                 if let Some((_, draft)) = &mut self.rule_draft {
                     apply_rules = draft.ui(ui);
                 }
@@ -3911,7 +3980,7 @@ impl Studio {
             || current_actor != Some(draft.actor.as_str())
             || draft.bone != self.selected_bone
         {
-            self.status = "Bone draft belongs to an earlier source, scene, actor or bone; reload the draft before applying.".into();
+            self.status = "Luun luonnos on aiemmasta käsikirjoituksesta, kohtauksesta, hahmosta tai luusta; lataa se uudelleen ennen käyttöä.".into();
             self.bone_draft = None;
             self.joint_draft = None;
             return;
@@ -3940,7 +4009,7 @@ impl Studio {
             || current_actor != Some(draft.actor.as_str())
             || draft.bone != self.selected_joint
         {
-            self.status = "Joint draft belongs to an earlier source, scene, actor or joint; reload the draft before applying.".into();
+            self.status = "Nivelen luonnos on aiemmasta käsikirjoituksesta, kohtauksesta, hahmosta tai nivelestä; lataa se uudelleen ennen käyttöä.".into();
             self.joint_draft = None;
             return;
         }
@@ -3975,7 +4044,7 @@ impl Studio {
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
             |ui| {
-                egui::CollapsingHeader::new("Custom rig joint keyframes").show(ui, |ui| {
+                egui::CollapsingHeader::new("Hahmorakenteen nivelten avainruudut").show(ui, |ui| {
                     egui::ComboBox::from_id_salt("authored_joint")
                         .selected_text(&self.selected_joint)
                         .show_ui(ui, |ui| {
@@ -3999,7 +4068,7 @@ impl Studio {
                             ),
                         ));
                     }
-                    ui.small("Changing scene, actor or joint reloads saved keys and discards unapplied changes.");
+                    ui.small("Kohtauksen, hahmon tai nivelen vaihtaminen lataa tallennetut avainruudut ja hylkää käyttämättömät muutokset.");
                     if let Some((_, draft)) = &mut self.joint_draft {
                         apply = draft.ui(ui);
                     }
@@ -4057,7 +4126,7 @@ impl Studio {
             || current_actor != Some(draft.actor.as_str())
         {
             self.status =
-                "Clip draft belongs to an earlier source, scene or actor; reload before applying."
+                "Liikekatkelman luonnos on aiemmasta käsikirjoituksesta, kohtauksesta tai hahmosta; lataa se uudelleen ennen käyttöä."
                     .into();
             self.clip_draft = None;
             self.clip_track_draft = None;
@@ -4086,7 +4155,7 @@ impl Studio {
             || current_actor != Some(draft.actor.as_str())
         {
             self.status =
-                "Animated strengths draft belongs to an earlier source, scene or actor; reload before applying."
+                "Vahvuuksien luonnos on aiemmasta käsikirjoituksesta, kohtauksesta tai hahmosta; lataa se uudelleen ennen käyttöä."
                     .into();
             self.clip_track_draft = None;
             self.clip_library_draft = None;
@@ -4136,12 +4205,12 @@ impl Studio {
         let mut apply = false;
         let mut apply_track = false;
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy, |ui| {
-            egui::CollapsingHeader::new("Animation layer strengths").show(ui, |ui| {
-                ui.small("Changing scene or actor reloads saved strengths and discards unapplied changes.");
+            egui::CollapsingHeader::new("Animaatiotasojen vahvuudet").show(ui, |ui| {
+                ui.small("Kohtauksen tai hahmon vaihtaminen lataa tallennetut vahvuudet ja hylkää käyttämättömät muutokset.");
                 if let Some((_, draft)) = &mut self.clip_draft { apply = draft.ui(ui); }
             });
-            egui::CollapsingHeader::new("Animated layer strengths").show(ui, |ui| {
-                ui.small("Changing scene or actor discards unapplied keys.");
+            egui::CollapsingHeader::new("Animoidut tasovahvuudet").show(ui, |ui| {
+                ui.small("Kohtauksen tai hahmon vaihtaminen hylkää käyttämättömät avainruudut.");
                 if let Some((_, draft)) = &mut self.clip_track_draft {
                     apply_track = draft.ui(ui);
                 }
@@ -4171,7 +4240,7 @@ impl Studio {
         });
         if source != self.source || scene_index != self.scene_index || current_actor != Some(actor)
         {
-            self.status = "Clip library belongs to an earlier source, scene or actor; reload before applying.".into();
+            self.status = "Liikekirjasto on aiemmasta käsikirjoituksesta, kohtauksesta tai hahmosta; lataa se uudelleen ennen käyttöä.".into();
             self.clip_library_draft = None;
             self.live_clip_draft = None;
             return;
@@ -4218,7 +4287,7 @@ impl Studio {
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
             |ui| {
-                egui::CollapsingHeader::new("Authored clip library").show(ui, |ui| {
+                egui::CollapsingHeader::new("Liikekatkelmien kirjasto").show(ui, |ui| {
                     if let Some((_, _, _, draft)) = &mut self.clip_library_draft {
                         action = draft.ui(ui, script, self.scene_index, actor);
                     }
@@ -4249,7 +4318,7 @@ impl Studio {
         });
         if source != self.source || scene_index != self.scene_index || current_actor != Some(actor)
         {
-            self.status = "Live clip draft belongs to an earlier source, scene or actor; reload before applying.".into();
+            self.status = "Liikekatkelman viitteen luonnos on aiemmasta käsikirjoituksesta, kohtauksesta tai hahmosta; lataa se uudelleen ennen käyttöä.".into();
             self.live_clip_draft = None;
             return;
         }
@@ -4274,7 +4343,7 @@ impl Studio {
             }
         };
         if !targets_actor {
-            self.status = "Select the instance's actor before editing this live clip.".into();
+            self.status = "Valitse viitteen hahmo ennen liikekatkelman muokkaamista.".into();
             return;
         }
         let result = action.apply(&self.source, scene_index);
@@ -4318,7 +4387,7 @@ impl Studio {
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
             |ui| {
-                egui::CollapsingHeader::new("Live authored clips").show(ui, |ui| {
+                egui::CollapsingHeader::new("Liikekatkelmien viitteet").show(ui, |ui| {
                     if let Some((_, _, _, draft)) = &mut self.live_clip_draft {
                         action = draft.ui(ui, script, self.scene_index, actor);
                     }
@@ -4364,7 +4433,7 @@ impl Studio {
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy && !self.setup_busy,
             |ui| {
-                egui::CollapsingHeader::new("Custom character rig").show(ui, |ui| {
+                egui::CollapsingHeader::new("Hahmon rakenne").show(ui, |ui| {
                     if let Some((_, draft)) = &mut self.custom_rig_draft {
                         action = draft.ui(ui, &images);
                     }
@@ -4389,7 +4458,8 @@ impl Studio {
                 .and_then(|script| script.characters.keys().next().map(String::as_str))
         });
         if source != &self.source || selected != Some(draft.actor.as_str()) {
-            self.status = "Character/source changed; reopen the custom rig draft.".into();
+            self.status =
+                "Hahmo tai käsikirjoitus vaihtui; avaa hahmorakenteen luonnos uudelleen.".into();
             return;
         }
         let result = match action {
@@ -4416,7 +4486,7 @@ impl Studio {
         };
         let mut apply = false;
         ui.add_enabled_ui(!self.busy && !self.diagnostics_busy && !self.export_busy, |ui| {
-            egui::CollapsingHeader::new("Per-bone keyframes").show(ui, |ui| {
+            egui::CollapsingHeader::new("Luiden avainruudut").show(ui, |ui| {
                 let old_bone = self.selected_bone.clone();
                 egui::ComboBox::from_id_salt("authored_bone")
                     .selected_text(&self.selected_bone).show_ui(ui, |ui| {
@@ -4425,7 +4495,7 @@ impl Studio {
                         }
                     });
                 if self.selected_bone != old_bone {
-                    ui.small("Bone changed: loaded that bone's saved keys; unapplied draft changes were discarded.");
+                    ui.small("Luu vaihtui: tallennetut avainruudut ladattiin ja käyttämättömät muutokset hylättiin.");
                 }
                 if !self.bone_draft.as_ref().is_some_and(|(source, draft)| {
                     source == &self.source && draft.scene_index == self.scene_index
@@ -4435,7 +4505,7 @@ impl Studio {
                         scene, self.scene_index, actor, &self.selected_bone,
                     )));
                 }
-                ui.small("Changing scene, actor or bone reloads saved keys and discards unapplied changes.");
+                ui.small("Kohtauksen, hahmon tai luun vaihtaminen lataa tallennetut avainruudut ja hylkää käyttämättömät muutokset.");
                 if let Some((_, draft)) = &mut self.bone_draft { apply = draft.ui(ui); }
             });
         });
@@ -4504,7 +4574,7 @@ impl Studio {
         // Keep the caption override available on every tab and synchronized to sequence export.
         if caption_mode_ui(ui, &mut self.caption_mode) {
             self.status = format!(
-                "Captions: {}. Applies to previews and exports; the screenplay is unchanged.",
+                "Tekstitys: {}. Valinta vaikuttaa esikatseluun ja vientiin; käsikirjoitus säilyy ennallaan.",
                 caption_mode_label(self.caption_mode)
             );
         }
@@ -4536,7 +4606,7 @@ impl Studio {
             }
             InspectorTab::Speech => {
                 ui.heading("Puhe ja äänet");
-                ui.weak("1. Yhdistä tai asenna Kokoro englanniksi, tai tuo oma WAV-ääni. 2. Valmistele kohtauksen ääni. 3. Kuuntele aikajanan Toista ääni -painikkeella.");
+                ui.weak("1. Valitse Piper suomeksi, Kokoro englanniksi tai oma WAV-äänite. 2. Valmistele kohtauksen ääni. 3. Kuuntele aikajanan Toista ääni -painikkeella.");
                 let mut piper_path = self.piper_config_path.clone();
                 field(
                     ui,
@@ -4681,14 +4751,14 @@ impl Studio {
                 .show_percentage(),
             );
             if progress.completed_frames >= progress.total_frames {
-                ui.label("Frames ready; finalizing / encoding…");
+                ui.label("Kuvaruudut valmiit; viimeistellään ja pakataan…");
             }
             ui.label(format!(
-                "{} / {} frames",
+                "{} / {} kuvaruutua",
                 progress.completed_frames, progress.total_frames
             ));
         }
-        ui.weak("Tuloskansiota ei saa olla vielä olemassa. Puuttuva suun kohdistus jättää suun lepoasentoon.");
+        ui.weak("Anna uusi tuloskansio. Vienti käyttää valmisteltua suun ajoitusta; tekstistä tehty liike on arvio. Jos ajoitusta ei synny, suu pysyy lepoasennossa.");
     }
 
     fn event_inspector_ui(&mut self, ui: &mut egui::Ui) {
@@ -4699,12 +4769,12 @@ impl Studio {
             self.script.is_some() && !self.busy && !self.diagnostics_busy && !self.export_busy,
             |ui| {
                 ui.horizontal(|ui| {
-                    ui.menu_button("+ Event", |ui| {
+                    ui.menu_button("+ Tapahtuma", |ui| {
                         for (label, kind) in [
-                            ("Move", event_factory::Kind::Move),
-                            ("Expression", event_factory::Kind::Emotion),
-                            ("Gesture", event_factory::Kind::Gesture),
-                            ("Dialogue", event_factory::Kind::Speak),
+                            ("Liike", event_factory::Kind::Move),
+                            ("Ilme", event_factory::Kind::Emotion),
+                            ("Ele", event_factory::Kind::Gesture),
+                            ("Repliikki", event_factory::Kind::Speak),
                         ] {
                             if ui.button(label).clicked() {
                                 create = Some(kind);
@@ -4714,10 +4784,10 @@ impl Studio {
                     });
                     let existing = self.selected_event.is_some() && !self.inserting_event;
                     duplicate = ui
-                        .add_enabled(existing, egui::Button::new("Duplicate"))
+                        .add_enabled(existing, egui::Button::new("Kopioi"))
                         .clicked();
                     delete = ui
-                        .add_enabled(existing, egui::Button::new("Delete event"))
+                        .add_enabled(existing, egui::Button::new("Poista tapahtuma"))
                         .clicked();
                 });
             },
@@ -4743,15 +4813,15 @@ impl Studio {
             self.pending_event_delete = None;
         }
         if self.pending_event_delete.is_some() {
-            ui.label("Remove this event? Undo can restore it.");
+            ui.label("Poistetaanko tämä tapahtuma? Kumoa palauttaa sen.");
             ui.add_enabled_ui(
                 !self.busy && !self.diagnostics_busy && !self.export_busy,
                 |ui| {
                     ui.horizontal(|ui| {
-                        if ui.button("Confirm delete").clicked() {
+                        if ui.button("Vahvista poisto").clicked() {
                             self.confirm_event_delete();
                         }
-                        if ui.button("Cancel delete").clicked() {
+                        if ui.button("Peru poisto").clicked() {
                             self.pending_event_delete = None;
                         }
                     });
@@ -4792,14 +4862,14 @@ impl Studio {
             if self.inserting_event {
                 "NEW EVENT · UNSAVED DRAFT"
             } else {
-                "SELECTED EVENT"
+                "VALITTU TAPAHTUMA"
             },
         );
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy,
             |ui| {
                 if self.inserting_event {
-                    cancel = ui.button("Cancel draft").clicked();
+                    cancel = ui.button("Peru luonnos").clicked();
                 }
                 if let Some(draft) = &mut self.event_draft {
                     apply = draft.ui(ui, &actors);
@@ -4811,12 +4881,12 @@ impl Studio {
             self.event_draft_source = None;
             self.event_draft = None;
             self.event_edit_error = None;
-            self.status = "Event draft cancelled; screenplay unchanged.".into();
+            self.status = "Tapahtumaluonnos peruttiin; käsikirjoitus säilyi ennallaan.".into();
         } else if apply {
             self.apply_event_draft();
         }
         if let Some(error) = &self.event_edit_error {
-            ui.colored_label(egui::Color32::LIGHT_RED, error);
+            ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
         }
     }
 
@@ -4826,7 +4896,7 @@ impl Studio {
         }
         let destination = std::path::PathBuf::from(self.export_path.trim());
         if !destination.is_absolute() {
-            self.status = "Export requires a new absolute output directory path.".into();
+            self.status = "Anna vientiä varten uuden tuloskansion koko polku.".into();
             return;
         }
         let (Some(script), Some(preview)) = (self.script.as_ref(), self.scene_preview.as_ref())
@@ -4838,21 +4908,21 @@ impl Studio {
             .get(self.scene_index)
             .is_none_or(|scene| scene.id != preview.scene)
         {
-            self.status = "Prepare audio for the selected scene before export.".into();
+            self.status = "Valmistele valitun kohtauksen ääni ennen vientiä.".into();
             return;
         }
         let cancel = CancellationToken::new();
         if self.export_format == export_worker::Format::Mp4
             && !Path::new(self.ffmpeg_path.trim()).is_absolute()
         {
-            self.status = "Choose an absolute path to a local FFmpeg executable.".into();
+            self.status = "Anna paikallisen FFmpeg-ohjelman koko polku.".into();
             return;
         }
         if let Some(document) = &self.project_document {
             let mut document = document.clone();
             document.source = self.source.clone();
             if let Err(error) = document.validate() {
-                self.status = error.to_string();
+                self.status = format!("Videon vienti epäonnistui: {error}");
                 return;
             }
         }
@@ -4886,11 +4956,11 @@ impl Studio {
                 self.active_cancel = Some(cancel);
                 self.export_progress = None;
                 self.status = format!(
-                    "Exporting {:?} and prepared scene audio…",
+                    "Viedään {:?} ja valmisteltua kohtausääntä…",
                     self.export_format
                 );
             }
-            Err(error) => self.status = error,
+            Err(error) => self.status = format!("Videon vienti epäonnistui: {error}"),
         }
     }
 
@@ -4955,7 +5025,7 @@ impl Studio {
             && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape))
         {
             self.cancel_timeline_drag();
-            self.status = "Timeline edit cancelled.".into();
+            self.status = "Aikajanan muokkaus peruttiin.".into();
         }
         ui.horizontal_wrapped(|ui| {
             ui.label(egui::RichText::new("AIKAJANA").strong());
@@ -5017,20 +5087,20 @@ impl Studio {
                     self.playhead
                 ));
                 for (name, color) in [
-                    ("Speak", SPEAK),
-                    ("Gesture", GESTURE),
-                    ("Emotion", EMOTION),
-                    ("Move", MOVE),
+                    ("Puhe", SPEAK),
+                    ("Ele", GESTURE),
+                    ("Ilme", EMOTION),
+                    ("Liike", MOVE),
                 ] {
                     ui.colored_label(color, name);
                 }
             });
         });
         if let Some(error) = &self.playback_error {
-            ui.colored_label(egui::Color32::LIGHT_RED, error);
+            ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
         }
         let Some(script) = &self.script else {
-            ui.weak("Validate a screenplay to show its actor tracks.");
+            ui.weak("Paina Tarkista, jotta hahmojen raidat näkyvät aikajanalla.");
             return;
         };
         let Some(scene) = script.scenes.get(self.scene_index) else {
@@ -5043,12 +5113,22 @@ impl Studio {
             let (at, actor) = event.actor_time();
             let (lane, label, color, duration) = match event {
                 motion_script::Event::Move { duration, .. } => {
-                    (0usize, "Move".to_string(), MOVE, *duration)
+                    (0usize, "Liike".to_string(), MOVE, *duration)
                 }
-                motion_script::Event::Emotion { value, .. } => (1, value.clone(), EMOTION, 0.0),
+                motion_script::Event::Emotion { value, .. } => (
+                    1,
+                    event_editor::expression_label(value).to_owned(),
+                    EMOTION,
+                    0.0,
+                ),
                 motion_script::Event::Gesture {
                     value, duration, ..
-                } => (2, value.clone(), GESTURE, *duration),
+                } => (
+                    2,
+                    event_editor::gesture_label(value).to_owned(),
+                    GESTURE,
+                    *duration,
+                ),
                 motion_script::Event::Speak { text, .. } => {
                     let clip_duration = self
                         .scene_preview
@@ -5149,7 +5229,7 @@ impl Studio {
                     if let Some(position) = ui.input(|input| input.pointer.latest_pos()) {
                         if let Some(drag) = &mut self.timeline_drag {
                             if let Err(error) = drag.update(position.x, track_width, duration, script.project.fps) {
-                                self.status = format!("Timeline edit: {error}");
+                                self.status = format!("Aikajanan muokkaus: {error}");
                                 self.timeline_drag = None;
                                 self.timeline_drag_source = None;
                             }
@@ -5166,7 +5246,7 @@ impl Studio {
                         let ghost=egui::Rect::from_min_max(egui::pos2(start.min(end-2.0),y),egui::pos2(end,y+15.0));
                         painter.rect_filled(ghost,3.0,ACCENT.gamma_multiply(0.25));
                         painter.rect_stroke(ghost,3.0,egui::Stroke::new(2.0_f32,ACCENT),egui::StrokeKind::Inside);
-                        painter.text(egui::pos2(start,rect.top()+2.0),egui::Align2::LEFT_TOP,format!("{:.3}s · release to apply",drag.proposed_at),egui::FontId::monospace(11.0),ACCENT);
+                        painter.text(egui::pos2(start,rect.top()+2.0),egui::Align2::LEFT_TOP,format!("{:.3} s · käytä vapauttamalla hiiri",drag.proposed_at),egui::FontId::monospace(11.0),ACCENT);
                     }
                 }
                 if response.drag_stopped_by(egui::PointerButton::Primary) {
@@ -5188,7 +5268,7 @@ impl Studio {
             if let Some(position) = response.hover_pos() {
                 if let Some((index,_)) = hit_boxes.iter().rev().find(|(_,bar)|bar.contains(position)) {
                     if let Some((_,_,actor,at,length,_,label,_)) = events.iter().find(|(i,..)|i==index) {
-                        response.on_hover_text(format!("{actor} · {label}\n{at:.3}s{}\nClick to inspect. Drag to retime; Escape cancels.", if *length > 0.0 { format!(" · {length:.3}s duration") } else { " · point marker / duration not prepared".into() }));
+                        response.on_hover_text(format!("{actor} · {label}\n{at:.3} s{}\nMuokkaa napsauttamalla. Siirrä aikaa vetämällä; Esc peruu.", if *length > 0.0 { format!(" · kesto {length:.3} s") } else { " · pistemerkki / kesto valmistelematta".into() }));
                     }
                 }
             }
@@ -5216,7 +5296,7 @@ impl Studio {
         if let Some(time) = seek {
             self.seek_scene(time);
         }
-        egui::CollapsingHeader::new("Scene audio / mixed waveform").show(ui, |ui| {
+        egui::CollapsingHeader::new("Kohtauksen ääni ja yhdistetty aaltomuoto").show(ui, |ui| {
             ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                 self.scene_audio_ui(ui);
             });
@@ -5378,7 +5458,7 @@ fn mouth_preview(ui: &mut egui::Ui, viseme: Viseme) {
         6.0,
         egui::Color32::from_rgb(190, 80, 100),
     );
-    ui.label("Symbolic viseme detail; the scene preview applies this mouth to the matching actor.");
+    ui.label("Suun muodon havainnollinen näkymä. Kohtauksen esikatselu käyttää muotoa oikealla hahmolla.");
 }
 
 fn scene_mouths(clips: &[DialogueClip], frame: u64) -> Vec<(&str, Viseme)> {
@@ -5520,7 +5600,11 @@ fn draw_scene(
         painter.text(
             point(0.0, 45.0),
             egui::Align2::CENTER_CENTER,
-            format!("{} · {}", actor.id, actor.emotion),
+            format!(
+                "{} · {}",
+                actor.id,
+                event_editor::expression_label(&actor.emotion)
+            ),
             egui::FontId::proportional((12.0 * scene.camera.zoom as f32).max(1.0)),
             egui::Color32::WHITE,
         );
@@ -5649,7 +5733,7 @@ mod scene_preview_tests {
         studio.undo_edit(false);
         assert_eq!(studio.source, alternate);
         assert!(studio.script.is_none());
-        assert!(studio.status.contains("unfinished screenplay"));
+        assert!(studio.status.contains("keskeneräinen"));
         assert!(studio.jobs.is_empty());
         studio.undo_edit(true);
         assert_eq!(studio.source, original);
@@ -5690,7 +5774,7 @@ mod scene_preview_tests {
         studio.project_document = Some(document);
         studio.script_path = "/unwritable/art-loss.yaml".into();
         studio.save_script();
-        assert!(studio.status.contains("Artwork requires .kilsat"));
+        assert!(studio.status.contains("Kuvitus tarvitsee .kilsat"));
     }
     use super::*;
     #[test]
@@ -5956,7 +6040,7 @@ mod scene_preview_tests {
         assert_eq!(studio.project_document.as_ref().unwrap().assets.len(), 1);
         assert!(studio.history.can_redo());
         assert!(!studio.asset_dirty);
-        assert!(studio.status.contains("discarded"));
+        assert!(studio.status.contains("hylättiin"));
         studio.project_root = root.join("missing-root").to_string_lossy().into();
         studio.start_asset(asset_worker::Operation::Import {
             source: root.join("image.dat"),
@@ -5965,7 +6049,7 @@ mod scene_preview_tests {
         });
         assert!(!root.join("resources").exists());
         assert!(!studio.busy);
-        assert!(studio.status.contains("configured project root"));
+        assert!(studio.status.contains("asetettuun projektikansioon"));
         std::fs::remove_dir_all(root).unwrap();
     }
     fn clip(start_frame: u64, actor: &str) -> DialogueClip {
@@ -6060,7 +6144,7 @@ mod scene_preview_tests {
         studio.script_path = other.join("moved.kilsat").to_string_lossy().into_owned();
         studio.save_script();
         assert!(!Path::new(&studio.script_path).exists());
-        assert!(studio.status.contains("relative asset/audio"));
+        assert!(studio.status.contains("suhteelliset polut"));
         studio.busy = true;
         studio.script_path = path.to_string_lossy().into_owned();
         studio.open_script();
@@ -6295,7 +6379,7 @@ mod scene_preview_tests {
         studio.timeline_drag_source = Some(original.clone());
         studio.finish_timeline_drag(overlapping);
         assert_eq!(studio.source, original);
-        assert!(studio.status.contains("Timeline edit rejected"));
+        assert!(studio.status.contains("Aikajanan muokkaus hylättiin"));
         assert!(!studio.history.can_undo());
         let mut stale = timeline_edit::Drag::new(0, 0, &event, 0.0).unwrap();
         stale.update(100.0, 1200.0, 12.0, 24).unwrap();
@@ -6561,7 +6645,7 @@ mod scene_preview_tests {
         studio.auto_direct_dialogue();
         assert_eq!(studio.scene_index, 1);
         assert_eq!(studio.script.as_ref().unwrap().scenes.len(), 3);
-        assert!(studio.status.contains("Direction draft"));
+        assert!(studio.status.contains("Ohjausluonnos"));
         let directed = studio.source.clone();
         studio.undo_edit(false);
         assert_eq!(studio.source, original);
@@ -6772,7 +6856,7 @@ mod scene_preview_tests {
         studio.settings_draft.as_mut().unwrap().project.title = "Changed".into();
         studio.settings_draft_source = Some("stale".into());
         studio.apply_settings_draft();
-        assert!(studio.settings_error.as_ref().unwrap().contains("changed"));
+        assert!(studio.settings_error.as_ref().unwrap().contains("vaihtui"));
         assert_eq!(studio.source, original);
         studio.settings_draft_source = Some(original.clone());
         studio.busy = true;
@@ -6946,18 +7030,17 @@ mod alignment_status_tests {
             studio.selected_alignment_edited();
             assert!(studio.preview.is_none());
             assert_eq!(studio.alignment, changed);
-            assert!(studio.status.contains("timing changed"));
+            assert!(studio.status.contains("ajoitus muuttui"));
         }
     }
     #[test]
-    fn timing_status_distinguishes_unbound_cache_and_rest() {
-        assert!(alignment_status_text(AlignmentStatus::LegacyUnbound).contains("unbound"));
-        assert!(alignment_status_text(AlignmentStatus::BoundCacheHit).contains("cache hit"));
-        assert!(alignment_status_text(AlignmentStatus::BoundCacheMiss).contains("mouth at rest"));
-        assert!(alignment_status_text(AlignmentStatus::None).contains("mouth at rest"));
-        assert!(
-            alignment_status_text(AlignmentStatus::BoundImported).contains("quality not measured")
-        );
+    fn timing_status_distinguishes_bindings_without_claiming_a_mouth_source() {
+        assert!(alignment_status_text(AlignmentStatus::LegacyUnbound).contains("ei sidottu"));
+        assert!(alignment_status_text(AlignmentStatus::BoundCacheHit).contains("löytyi"));
+        assert!(alignment_status_text(AlignmentStatus::BoundCacheMiss).contains("ei löytynyt"));
+        assert!(alignment_status_text(AlignmentStatus::None).contains("Ei tuotua"));
+        assert!(!alignment_status_text(AlignmentStatus::None).contains("lepoasennossa"));
+        assert!(alignment_status_text(AlignmentStatus::BoundImported).contains("laatu mittaamatta"));
     }
 }
 
@@ -7772,7 +7855,7 @@ mod editable_timeline_integration_tests {
             before: Some("missing".into()),
         });
         assert_eq!(studio.source, SOURCE);
-        assert!(studio.status.contains("Timeline edit"));
+        assert!(studio.status.contains("Aikajanan muokkaus"));
         studio.busy = true;
         studio.apply_timeline_edit(TimelineEdit::MoveScene {
             scene_id: "first".into(),
@@ -8149,7 +8232,7 @@ mod custom_rig_texture_skin_apply_tests {
         studio.custom_rig_draft = Some((stale, draft));
         studio.apply_custom_rig_draft(1);
         assert_eq!(studio.source, original);
-        assert!(studio.status.contains("changed"));
+        assert!(studio.status.contains("vaihtui"));
         let (mut studio, original, mut draft) =
             studio_with_rig_draft(Some(motion_project::AssetKind::Image));
         draft.actor = "EMMA".into();
@@ -8198,7 +8281,7 @@ mod timing_persistence_tests {
         studio.script_path = path.to_string_lossy().into_owned();
         studio.save_script();
         assert!(!path.exists());
-        assert!(studio.status.contains("requires .kilsat"));
+        assert!(studio.status.contains("tarvitsee .kilsat"));
         assert_eq!(studio.alignment, "{}");
     }
     #[test]
@@ -8247,9 +8330,12 @@ mod timing_persistence_tests {
         assert_eq!(studio.caption_mode, motion_script::CaptionMode::Follow);
         let mut changed = true;
         for (mode, label) in [
-            (motion_script::CaptionMode::Follow, "Follow screenplay"),
-            (motion_script::CaptionMode::Show, "Show"),
-            (motion_script::CaptionMode::Hide, "Hide"),
+            (
+                motion_script::CaptionMode::Follow,
+                "Käsikirjoituksen mukaan",
+            ),
+            (motion_script::CaptionMode::Show, "Näytä"),
+            (motion_script::CaptionMode::Hide, "Piilota"),
         ] {
             let mut shown = mode;
             let output = ctx.run(Default::default(), |ctx| {
@@ -8258,7 +8344,7 @@ mod timing_persistence_tests {
                 });
             });
             let text = drawn_text(&output);
-            assert!(text.contains("Captions") && text.contains(label), "{text}");
+            assert!(text.contains("Tekstitys") && text.contains(label), "{text}");
             assert!(!changed && shown == mode, "drawing alone never changes it");
         }
         // The full inspector hosts the control and keeps the sequence panel in step.
@@ -8266,7 +8352,7 @@ mod timing_persistence_tests {
         let output = ctx.run(Default::default(), |ctx| {
             egui::CentralPanel::default().show(ctx, |ui| studio.inspector_ui(ui));
         });
-        assert!(drawn_text(&output).contains("Captions"));
+        assert!(drawn_text(&output).contains("Tekstitys"));
         // A view/export option: no screenplay edit, no undo entry.
         assert_eq!(studio.source, source);
         assert!(!studio.history.can_undo() && !studio.history.can_redo());
@@ -8367,6 +8453,56 @@ mod finnish_workspace_tests {
             })
             .collect::<Vec<_>>()
             .join("\n")
+    }
+
+    #[test]
+    fn prepared_text_mouths_are_not_reported_as_rest_when_imported_alignment_is_absent() {
+        let mut studio = Studio::default();
+        let wait = |studio: &mut Studio| {
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while studio.busy {
+                studio.poll();
+                assert!(Instant::now() < deadline, "{}", studio.status);
+                std::thread::sleep(Duration::from_millis(5));
+            }
+        };
+        studio.load_sound_check();
+        wait(&mut studio);
+        studio.alignment.clear();
+        studio.generate();
+        wait(&mut studio);
+        let preview = studio.preview.as_ref().expect("imported test WAV prepared");
+        assert_eq!(preview.alignment_status, AlignmentStatus::None);
+        assert_eq!(
+            preview.clip.mouth_source(),
+            motion_voice::timeline::MouthSource::TextEstimated
+        );
+        let original = studio.snapshot();
+        let ctx = egui::Context::default();
+        let draw = |studio: &mut Studio| {
+            let output = ctx.run(
+                egui::RawInput {
+                    screen_rect: Some(egui::Rect::from_min_size(
+                        egui::Pos2::ZERO,
+                        egui::vec2(1000.0, 1200.0),
+                    )),
+                    ..Default::default()
+                },
+                |ctx| {
+                    egui::CentralPanel::default().show(ctx, |ui| studio.line_preview_ui(ui));
+                },
+            );
+            text(&output)
+        };
+        let shown = draw(&mut studio);
+        assert!(shown.contains("Tekstistä arvioitu"), "{shown}");
+        assert!(!shown.contains("suu lepoasennossa"), "{shown}");
+        studio.preview.as_mut().unwrap().clip.text_estimated = None;
+        let shown = draw(&mut studio);
+        assert!(shown.contains("Ei suun ajoitusta"), "{shown}");
+        assert!(!shown.contains("Tekstistä arvioitu"), "{shown}");
+        assert_eq!(studio.snapshot(), original);
+        assert!(!studio.history.can_undo());
     }
 
     #[test]

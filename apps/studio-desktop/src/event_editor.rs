@@ -36,25 +36,25 @@ impl Draft {
                     ui.selectable_value(actor, name.clone(), name);
                 }
             });
-        number(ui, "Start (s)", at);
+        number(ui, "Alku (s)", at);
         match &mut self.event {
             Event::Move { x, y, duration, .. } => {
                 number(ui, "X", x);
                 number(ui, "Y", y);
-                number(ui, "Duration (s)", duration);
+                number(ui, "Kesto (s)", duration);
             }
-            Event::Emotion { value, .. } => emotion(ui, "Expression", value),
+            Event::Emotion { value, .. } => emotion(ui, "Ilme", value),
             Event::Gesture {
                 value, duration, ..
             } => {
-                egui::ComboBox::from_label("Gesture")
-                    .selected_text(value.as_str())
+                egui::ComboBox::from_label("Ele")
+                    .selected_text(gesture_label(value))
                     .show_ui(ui, |ui| {
                         for name in motion_scene::GESTURES {
-                            ui.selectable_value(value, name.into(), name);
+                            ui.selectable_value(value, name.into(), gesture_label(name));
                         }
                     });
-                number(ui, "Duration (s)", duration);
+                number(ui, "Kesto (s)", duration);
             }
             Event::Speak {
                 text,
@@ -62,32 +62,35 @@ impl Draft {
                 audio,
                 ..
             } => {
-                ui.label("Dialogue");
+                ui.label("Vuorosana");
                 ui.add(
                     egui::TextEdit::multiline(text)
                         .desired_rows(4)
                         .char_limit(100_000),
                 );
                 let mut enabled = style.is_some();
-                if ui.checkbox(&mut enabled, "Expression metadata").changed() {
+                if ui
+                    .checkbox(&mut enabled, "Repliikin ilmemerkintä")
+                    .changed()
+                {
                     *style = enabled.then(|| "neutral".into());
                 }
                 if let Some(style) = style {
-                    emotion(ui, "Dialogue expression", style);
+                    emotion(ui, "Repliikin ilme", style);
                 }
-                ui.small("Expression metadata does not condition Kokoro speech.");
+                ui.small("Ilmemerkintä ei ohjaa Kokoro-puheen äänen ilmaisua.");
                 let mut imported = audio.is_some();
-                if ui.checkbox(&mut imported, "Use imported audio").changed() {
+                if ui.checkbox(&mut imported, "Käytä omaa äänitettä").changed() {
                     *audio = imported.then(String::new);
                 }
                 if let Some(path) = audio {
-                    ui.label("Audio path");
+                    ui.label("Äänitiedoston polku");
                     ui.add(egui::TextEdit::singleline(path).char_limit(4096));
                 }
             }
         }
-        ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
-        ui.button("Apply event").clicked()
+        ui.small("Kun käytät muutoksia, koko käsikirjoitus tarkistetaan. YAML-muotoilu yhtenäistetään ja kommentit poistetaan. Kumoa palauttaa edellisen lähteen.");
+        ui.button("Käytä").clicked()
     }
 }
 fn number(ui: &mut egui::Ui, label: &str, value: &mut f64) {
@@ -98,10 +101,31 @@ fn number(ui: &mut egui::Ui, label: &str, value: &mut f64) {
 }
 fn emotion(ui: &mut egui::Ui, label: &str, value: &mut String) {
     egui::ComboBox::from_label(label)
-        .selected_text(value.as_str())
+        .selected_text(expression_label(value))
         .show_ui(ui, |ui| {
             for expression in ["neutral", "happy", "sad", "surprised", "angry"] {
-                ui.selectable_value(value, expression.into(), expression);
+                ui.selectable_value(value, expression.into(), expression_label(expression));
             }
         });
+}
+
+pub(crate) fn expression_label(value: &str) -> &str {
+    match value {
+        "neutral" => "Neutraali",
+        "happy" => "Iloinen",
+        "sad" => "Surullinen",
+        "surprised" => "Yllättynyt",
+        "angry" => "Vihainen",
+        _ => value,
+    }
+}
+
+pub(crate) fn gesture_label(value: &str) -> &str {
+    match value {
+        "wave" => "Vilkutus",
+        "point" => "Osoitus",
+        "nod" => "Nyökkäys",
+        "shrug" => "Olankohautus",
+        _ => value,
+    }
 }

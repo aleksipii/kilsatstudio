@@ -5,6 +5,29 @@ use motion_art::{
     Plane, Point, Rect, TimeRange,
 };
 use std::collections::BTreeMap;
+
+fn blend_label(mode: BlendMode) -> &'static str {
+    match mode {
+        BlendMode::Normal => "Normaali",
+        BlendMode::Multiply => "Kertova (Multiply)",
+        BlendMode::Screen => "Vaalentava (Screen)",
+    }
+}
+
+fn plane_label(plane: Plane) -> &'static str {
+    match plane {
+        Plane::Background => "Tausta",
+        Plane::Foreground => "Etuala",
+    }
+}
+
+fn mask_channel_label(channel: motion_art::MaskChannel) -> &'static str {
+    match channel {
+        motion_art::MaskChannel::Alpha => "Läpinäkyvyys (alfa)",
+        motion_art::MaskChannel::Luminance => "Kirkkaus",
+    }
+}
+
 pub struct SceneContext<'a> {
     pub id: &'a str,
     pub duration: f64,
@@ -152,19 +175,19 @@ impl Default for Editor {
 }
 fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
     if text.len() > 16_384 {
-        return Err("Mask vertices exceed 16 KiB".into());
+        return Err("Maskin kärkipisteet ylittävät 16 KiB".into());
     }
     let mut points = Vec::new();
     for pair in text.split_whitespace() {
         if points.len() >= motion_art::MAX_MASK_POINTS {
-            return Err("Use at most 256 vertices".into());
+            return Err("Käytä enintään 256 kärkipistettä".into());
         }
         let (x, y) = pair
             .split_once(',')
-            .ok_or("Use whitespace-separated x,y vertices")?;
+            .ok_or("Anna x,y-kärkipisteet välilyönneillä erotettuina")?;
         points.push(Point {
-            x: x.parse().map_err(|_| "Invalid x coordinate")?,
-            y: y.parse().map_err(|_| "Invalid y coordinate")?,
+            x: x.parse().map_err(|_| "Virheellinen x-koordinaatti")?,
+            y: y.parse().map_err(|_| "Virheellinen y-koordinaatti")?,
         });
     }
     ClipShape::Polygon {
@@ -178,19 +201,23 @@ fn parse_mask_points(text: &str) -> Result<Vec<Point>, String> {
 }
 fn parse_motion_keys(text: &str, duration: f64) -> Result<Vec<MaskMotionKey>, String> {
     if text.len() > 24_576 {
-        return Err("Motion keys exceed 24 KiB".into());
+        return Err("Liikeavainruudut ylittävät 24 KiB".into());
     }
     let mut keys = Vec::new();
     for row in text.split_whitespace() {
         if keys.len() >= motion_art::MAX_MASK_KEYS {
-            return Err("Use at most 128 motion keys".into());
+            return Err("Käytä enintään 128 liikeavainruutua".into());
         }
         let values: Vec<f64> = row
             .split(',')
-            .map(|value| value.parse().map_err(|_| "Invalid motion key number"))
+            .map(|value| {
+                value
+                    .parse()
+                    .map_err(|_| "Virheellinen liikeavainruudun luku")
+            })
             .collect::<Result<_, _>>()?;
         if values.len() != 5 {
-            return Err("Use time,x,y,scale,rotation for each key".into());
+            return Err("Anna jokaiselle avainruudulle aika,x,y,mittakaava,kierto".into());
         }
         keys.push(MaskMotionKey {
             time: values[0],
@@ -215,7 +242,7 @@ fn parse_motion_keys(text: &str, duration: f64) -> Result<Vec<MaskMotionKey>, St
         || duration <= 0.0
         || keys.last().is_some_and(|key| key.time > duration)
     {
-        return Err("Motion keys must fit within the scene duration".into());
+        return Err("Liikeavainruutujen pitää mahtua kohtauksen kestoon".into());
     }
     Ok(keys)
 }
@@ -225,7 +252,7 @@ fn motion_key_controls(
     motion: &mut Vec<MaskMotionKey>,
     duration: f64,
 ) {
-    ui.label("Mask motion keys: time,x,y,scale,rotation(rad), moving the shape about its own centre (scene seconds, linear, first/last hold). Empty = static.");
+    ui.label("Maskin liikeavainruudut: aika,x,y,mittakaava,kierto(rad). Muoto liikkuu oman keskipisteensä suhteen. Aika on kohtauksen sekunteja; liike on tasainen ja päätyasennot säilyvät. Tyhjä = liikkumaton.");
     let id = ui.id().with(("mask-motion-keys", layer_id));
     let error_id = id.with("error");
     let initial = motion
@@ -241,7 +268,7 @@ fn motion_key_controls(
             .desired_rows(3)
             .char_limit(24_576),
     );
-    if ui.button("Apply mask motion").clicked() {
+    if ui.button("Käytä maskin liikettä").clicked() {
         match parse_motion_keys(&draft, duration) {
             Ok(next) => {
                 *motion = next;
@@ -257,19 +284,23 @@ fn motion_key_controls(
 }
 fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
     if text.len() > 24_576 {
-        return Err("Mask keys exceed 24 KiB".into());
+        return Err("Maskin avainruudut ylittävät 24 KiB".into());
     }
     let mut keys = Vec::new();
     for row in text.split_whitespace() {
         if keys.len() >= motion_art::MAX_MASK_KEYS {
-            return Err("Use at most 128 mask keys".into());
+            return Err("Käytä enintään 128 maskin avainruutua".into());
         }
         let values: Vec<f64> = row
             .split(',')
-            .map(|value| value.parse().map_err(|_| "Invalid mask key number"))
+            .map(|value| {
+                value
+                    .parse()
+                    .map_err(|_| "Virheellinen maskin avainruudun luku")
+            })
             .collect::<Result<_, _>>()?;
         if values.len() != 6 {
-            return Err("Use time,x,y,width,height,feather for each key".into());
+            return Err("Anna jokaiselle avainruudulle aika,x,y,leveys,korkeus,pehmennys".into());
         }
         keys.push(MaskKey {
             time: values[0],
@@ -298,7 +329,7 @@ fn parse_mask_keys(text: &str, duration: f64) -> Result<Vec<MaskKey>, String> {
         || duration <= 0.0
         || keys.last().is_some_and(|key| key.time > duration)
     {
-        return Err("Mask keys must fit within the scene duration".into());
+        return Err("Maskin avainruutujen pitää mahtua kohtauksen kestoon".into());
     }
     Ok(keys)
 }
@@ -307,19 +338,23 @@ fn parse_image_mask_keys(
     duration: f64,
 ) -> Result<Vec<motion_art::RectMaskKey>, String> {
     if text.len() > 24_576 {
-        return Err("Mask keys exceed 24 KiB".into());
+        return Err("Maskin avainruudut ylittävät 24 KiB".into());
     }
     let mut keys = Vec::new();
     for row in text.split_whitespace() {
         if keys.len() >= motion_art::MAX_MASK_KEYS {
-            return Err("Use at most 128 mask keys".into());
+            return Err("Käytä enintään 128 maskin avainruutua".into());
         }
         let values: Vec<f64> = row
             .split(',')
-            .map(|value| value.parse().map_err(|_| "Invalid mask key number"))
+            .map(|value| {
+                value
+                    .parse()
+                    .map_err(|_| "Virheellinen maskin avainruudun luku")
+            })
             .collect::<Result<_, _>>()?;
         if values.len() != 5 {
-            return Err("Use time,x,y,width,height for each key".into());
+            return Err("Anna jokaiselle avainruudulle aika,x,y,leveys,korkeus".into());
         }
         keys.push(motion_art::RectMaskKey {
             time: values[0],
@@ -349,11 +384,11 @@ fn parse_image_mask_keys(
     Ok(keys)
 }
 fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, images: &[&str]) {
-    egui::ComboBox::from_label("Blend")
-        .selected_text(format!("{:?}", layer.blend))
+    egui::ComboBox::from_label("Sekoitustapa")
+        .selected_text(blend_label(layer.blend))
         .show_ui(ui, |ui| {
             for mode in [BlendMode::Normal, BlendMode::Multiply, BlendMode::Screen] {
-                ui.selectable_value(&mut layer.blend, mode, format!("{mode:?}"));
+                ui.selectable_value(&mut layer.blend, mode, blend_label(mode));
             }
         });
     let mut kind = match &layer.clip_shape {
@@ -371,36 +406,33 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         }
     };
     let previous = kind;
-    egui::ComboBox::from_label("Clip mask")
+    egui::ComboBox::from_label("Rajausmaski")
         .selected_text(
             [
-                "None",
-                "Rectangle",
-                "Ellipse",
-                "Polygon",
-                "Soft / animated ellipse",
-                "Image (alpha / luminance)",
-                "Painted (vector brush / eraser)",
+                "Ei rajausta",
+                "Suorakulmio",
+                "Ellipsi",
+                "Monikulmio",
+                "Pehmennetty / animoitu ellipsi",
+                "Kuva (läpinäkyvyys / kirkkaus)",
+                "Maalattu (sivellin / pyyhin)",
             ][kind],
         )
         .show_ui(ui, |ui| {
             for (value, label) in [
-                "None",
-                "Rectangle",
-                "Ellipse",
-                "Polygon",
-                "Soft / animated ellipse",
-                "Image (alpha / luminance)",
-                "Painted (vector brush / eraser)",
+                "Ei rajausta",
+                "Suorakulmio",
+                "Ellipsi",
+                "Monikulmio",
+                "Pehmennetty / animoitu ellipsi",
+                "Kuva (läpinäkyvyys / kirkkaus)",
+                "Maalattu (sivellin / pyyhin)",
             ]
             .into_iter()
             .enumerate()
             {
                 if value == 5 && images.is_empty() {
-                    ui.add_enabled(
-                        false,
-                        egui::Label::new("Image mask (import an image first)"),
-                    );
+                    ui.add_enabled(false, egui::Label::new("Kuvamaski (tuo ensin kuva)"));
                     continue;
                 }
                 ui.selectable_value(&mut kind, value, label);
@@ -490,8 +522,8 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
             for (name, value) in [
                 ("X", &mut rect.x),
                 ("Y", &mut rect.y),
-                ("W", &mut rect.width),
-                ("H", &mut rect.height),
+                ("Leveys", &mut rect.width),
+                ("Korkeus", &mut rect.height),
             ] {
                 ui.label(name);
                 ui.add(egui::DragValue::new(value).speed(1.0));
@@ -507,36 +539,39 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         motion_key_controls(ui, &layer.id, motion, duration);
         ui.checkbox(
             base_visible,
-            "Initially show all content (unchecked: hide all)",
+            "Näytä aluksi koko sisältö (pois päältä: piilota kaikki)",
         );
-        ui.label(format!("{} ordered brush / eraser strokes", strokes.len()));
-        ui.weak("Choose Mask brush or Mask eraser, then drag or click on the canvas. Brush reveals; eraser hides. Each completed stroke is one Undo step. Changing the mask type replaces its strokes. CPU preview/export only.");
+        ui.label(format!(
+            "{} järjestettyä siveltimen / pyyhkimen vetoa",
+            strokes.len()
+        ));
+        ui.weak("Valitse Maskisivellin tai Maskipyyhin ja vedä tai napsauta näyttämöllä. Sivellin paljastaa, pyyhin piilottaa. Jokainen valmis veto on yksi kumottava muokkaus. Maskityypin vaihtaminen korvaa vedot. Esikatselu ja vienti käyttävät tässä CPU:ta.");
     }
     if let Some(ClipShape::Image {
         asset_id, channel, ..
     }) = &mut layer.clip_shape
     {
-        egui::ComboBox::from_label("Mask image")
+        egui::ComboBox::from_label("Maskin kuva")
             .selected_text(asset_id.as_str())
             .show_ui(ui, |ui| {
                 for id in images {
                     ui.selectable_value(asset_id, id.to_string(), *id);
                 }
             });
-        egui::ComboBox::from_label("Mask channel")
-            .selected_text(format!("{channel:?}"))
+        egui::ComboBox::from_label("Maskin kanava")
+            .selected_text(mask_channel_label(*channel))
             .show_ui(ui, |ui| {
                 for value in [
                     motion_art::MaskChannel::Alpha,
                     motion_art::MaskChannel::Luminance,
                 ] {
-                    ui.selectable_value(channel, value, format!("{value:?}"));
+                    ui.selectable_value(channel, value, mask_channel_label(value));
                 }
             });
-        ui.weak("The image is stretched over X/Y/W/H. Alpha: opaque pixels show content. Luminance: bright pixels show content. Production preview/export use CPU; image masks also support the explicit GPU experiment.");
+        ui.weak("Kuva venytetään X/Y/leveys/korkeus-alueelle. Alfa: peittävät pikselit näyttävät sisällön. Kirkkaus: vaaleat pikselit näyttävät sisällön. Tavallinen esikatselu ja vienti käyttävät CPU:ta; kuvamaskeja voi käyttää myös erikseen valittavassa GPU-kokeessa.");
     }
     if let Some(ClipShape::Image { keys, .. }) = &mut layer.clip_shape {
-        ui.label("Image mask keys: time,x,y,width,height (scene seconds). Linear; endpoints hold.");
+        ui.label("Kuvamaskin avainruudut: aika,x,y,leveys,korkeus (kohtauksen sekuntia). Liike on tasainen ja päätyasennot säilyvät.");
         let initial = keys
             .iter()
             .map(|key| {
@@ -557,7 +592,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                 .desired_rows(4)
                 .char_limit(24_576),
         );
-        if ui.button("Apply image mask animation keys").clicked() {
+        if ui.button("Käytä kuvamaskin avainruutuja").clicked() {
             match parse_image_mask_keys(&draft, duration) {
                 Ok(next) => {
                     *keys = next;
@@ -588,14 +623,14 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
             .data_mut(|d| d.get_temp::<String>(id))
             .unwrap_or(initial.clone());
         ui.label(
-            "Vertices: x,y pairs separated by spaces (3–256). Do not repeat the first vertex.",
+            "Kärkipisteet: 3–256 x,y-paria välilyönneillä erotettuina. Älä toista ensimmäistä pistettä.",
         );
         ui.add(
             egui::TextEdit::multiline(&mut draft)
                 .desired_rows(3)
                 .char_limit(16_384),
         );
-        if ui.button("Apply polygon vertices").clicked() {
+        if ui.button("Käytä monikulmion kärkipisteitä").clicked() {
             match parse_mask_points(&draft) {
                 Ok(next) => {
                     *points = next;
@@ -609,14 +644,14 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         ui.add(
             egui::Slider::new(feather, 0.0..=motion_art::MAX_POLYGON_FEATHER)
                 .logarithmic(true)
-                .text("Feather (blur σ, scene units)"),
+                .text("Reunan pehmennys (sumennus σ, kohtauksen yksikköä)"),
         );
-        ui.weak("0 = hard edge. Positive values blur the boundary; the edge keeps about half coverage. CPU preview/export only; the experimental GPU path reports it as unsupported.");
+        ui.weak("0 = terävä reuna. Positiivinen arvo sumentaa rajaa; reunalle jää noin puolet peittävyydestä. Tämä käyttää CPU-esikatselua ja -vientiä; tavallinen esikatselu ja vienti käyttävät CPU:ta. Kokeellinen GPU-polku tukee pehmennystä, mutta kulmat ja kapeat muodot voivat poiketa CPU-tuloksesta.");
     }
     if let Some(ClipShape::SoftEllipse { feather, keys, .. }) = &mut layer.clip_shape {
-        ui.add(egui::Slider::new(feather, 0.0..=1.0).text("Feather (inward)"));
-        ui.weak("0 = hard edge, 1 = fade from center. The base shape is used when no keys exist.");
-        ui.label("Animation keys: time,x,y,width,height,feather (scene seconds). Linear interpolation; first/last key holds.");
+        ui.add(egui::Slider::new(feather, 0.0..=1.0).text("Pehmennys sisäänpäin"));
+        ui.weak("0 = terävä reuna, 1 = häivytys keskipisteestä. Ilman avainruutuja käytetään perusmuotoa.");
+        ui.label("Avainruudut: aika,x,y,leveys,korkeus,pehmennys (kohtauksen sekuntia). Väliarvot lasketaan tasaisesti, ja ensimmäinen sekä viimeinen asento säilyvät.");
         let id = ui.id().with(("soft-mask-keys", &layer.id));
         let error_id = id.with("error");
         let initial = keys
@@ -637,7 +672,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
                 .desired_rows(4)
                 .char_limit(24_576),
         );
-        if ui.button("Apply mask animation keys").clicked() {
+        if ui.button("Käytä maskin avainruutuja").clicked() {
             match parse_mask_keys(&draft, duration) {
                 Ok(next) => {
                     *keys = next;
@@ -652,7 +687,7 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
         ui.data_mut(|data| data.insert_temp(id, draft));
     }
     if layer.clip_shape.is_some() || layer.blend != BlendMode::Normal {
-        ui.weak("Inspect this mask/blend in the shared scene preview, Whole project preview or PNG/MP4 export.");
+        ui.weak("Tarkista maski ja sekoitustapa kohtauksen tai koko projektin esikatselusta tai PNG-/MP4-viennistä.");
     }
 }
 
@@ -718,66 +753,66 @@ impl Editor {
         textures: &BTreeMap<String, egui::TextureHandle>,
     ) {
         let scene_id = scene.id;
-        egui::CollapsingHeader::new("Artwork / layers").show(ui,|ui| {
-   ui.horizontal_wrapped(|ui| { for (tool,name) in [(Tool::Select,"Select"),(Tool::Pen,"Pen"),(Tool::Rectangle,"Rectangle"),(Tool::Ellipse,"Ellipse"),(Tool::MaskPaint,"Mask brush"),(Tool::MaskErase,"Mask eraser")] {if ui.selectable_value(&mut self.tool,tool,name).changed(){self.points.clear();self.mask_gesture=None;}} });
+        egui::CollapsingHeader::new("Kuvitus ja tasot").show(ui,|ui| {
+   ui.horizontal_wrapped(|ui| { for (tool,name) in [(Tool::Select,"Valitse"),(Tool::Pen,"Kynä"),(Tool::Rectangle,"Suorakulmio"),(Tool::Ellipse,"Ellipsi"),(Tool::MaskPaint,"Maskisivellin"),(Tool::MaskErase,"Maskipyyhin")] {if ui.selectable_value(&mut self.tool,tool,name).changed(){self.points.clear();self.mask_gesture=None;}} });
    if matches!(self.tool, Tool::MaskPaint | Tool::MaskErase) {
     if self.mask_radius <= 0.0 { self.mask_radius = 12.0; }
-    ui.add(egui::Slider::new(&mut self.mask_radius, 0.5..=1000.0).logarithmic(true).text("Mask brush radius (scene units)"));
-    ui.add(egui::Slider::new(&mut self.mask_hardness, 0.0..=1.0).text("Mask hardness (1 = hard edge)"));
-    ui.checkbox(&mut self.mask_pressure, "Use device pressure for mask radius");
-    ui.weak("Pressure requires force events from the device/backend. Mouse or missing force uses full radius; tablet support on this Mac is not verified.");
-    ui.weak("Select a layer and explicitly choose its Painted clip mask first. Escape cancels the current stroke.");
+    ui.add(egui::Slider::new(&mut self.mask_radius, 0.5..=1000.0).logarithmic(true).text("Maskisiveltimen säde (kohtauksen yksikköä)"));
+    ui.add(egui::Slider::new(&mut self.mask_hardness, 0.0..=1.0).text("Maskin kovuus (1 = terävä reuna)"));
+    ui.checkbox(&mut self.mask_pressure, "Ohjaa maskin sädettä laitteen painetiedolla");
+    ui.weak("Painetieto edellyttää laitteen ja sen ajurin tukea. Hiirellä tai ilman painetietoa käytetään täyttä sädettä. Piirtopöydän toimintaa tällä Macilla ei ole varmistettu.");
+    ui.weak("Valitse ensin taso ja sille Maalattu-rajausmaski. Esc peruu keskeneräisen vedon.");
    }
-   ui.weak("Drag on canvas to draw. Background layers render behind characters; foreground layers render above them. Save as .kilsat to retain artwork.");
+   ui.weak("Piirrä vetämällä näyttämöllä. Taustatasot näkyvät hahmojen takana ja etualan tasot niiden edessä. Tallenna .kilsat-muodossa, jotta kuvitus säilyy.");
    self.group_controls(ui, document, scene_id);
    let mut next=document.clone();
    for layer in next.layers.iter_mut().filter(|l|l.scene_id==scene_id) { ui.horizontal(|ui| {ui.checkbox(&mut layer.visible,"");if ui.selectable_label(self.selected.as_deref()==Some(&layer.id),&layer.name).clicked(){self.selected=Some(layer.id.clone());}}); }
    if let Some(index)=next.layers.iter().position(|l|l.scene_id==scene_id && Some(&l.id)==self.selected.as_ref()) {
     let layer=&mut next.layers[index];
     ui.text_edit_singleline(&mut layer.name);
-    egui::ComboBox::from_label("Plane").selected_text(match layer.plane {Plane::Background=>"Background",Plane::Foreground=>"Foreground"}).show_ui(ui,|ui|{ui.selectable_value(&mut layer.plane,Plane::Background,"Background");ui.selectable_value(&mut layer.plane,Plane::Foreground,"Foreground");});
+    egui::ComboBox::from_label("Sijoitus").selected_text(match layer.plane {Plane::Background=>"Tausta",Plane::Foreground=>"Etuala"}).show_ui(ui,|ui|{ui.selectable_value(&mut layer.plane,Plane::Background,"Tausta");ui.selectable_value(&mut layer.plane,Plane::Foreground,"Etuala");});
     let mut timed=layer.active.is_some();
-    if ui.checkbox(&mut timed,"Visible during interval").changed(){layer.active=timed.then_some(TimeRange{start:0.0,end:scene.duration});}
-    if let Some(active)=&mut layer.active {ui.horizontal(|ui|{ui.label("Start (s)");ui.add(egui::DragValue::new(&mut active.start).speed(0.1));ui.label("End (s)");ui.add(egui::DragValue::new(&mut active.end).speed(0.1));});ui.weak(format!("Scene: {:.2} s. Start is included; end is excluded.",scene.duration));if !active.start.is_finite() || !active.end.is_finite() || active.start<0.0 || active.end<=active.start || active.end>scene.duration {ui.colored_label(egui::Color32::LIGHT_RED,"Use 0 ≤ start < end ≤ scene duration.");}}
+    if ui.checkbox(&mut timed,"Näkyvissä aikavälillä").changed(){layer.active=timed.then_some(TimeRange{start:0.0,end:scene.duration});}
+    if let Some(active)=&mut layer.active {ui.horizontal(|ui|{ui.label("Alku (s)");ui.add(egui::DragValue::new(&mut active.start).speed(0.1));ui.label("Loppu (s)");ui.add(egui::DragValue::new(&mut active.end).speed(0.1));});ui.weak(format!("Kohtaus: {:.2} s. Alkuhetki kuuluu aikaväliin, loppuhetki ei.",scene.duration));if !active.start.is_finite() || !active.end.is_finite() || active.start<0.0 || active.end<=active.start || active.end>scene.duration {ui.colored_label(egui::Color32::LIGHT_RED,"Käytä aikoja 0 ≤ alku < loppu ≤ kohtauksen kesto.");}}
 
-    ui.add(egui::Slider::new(&mut layer.opacity,0.0..=1.0).text("Opacity"));
-    if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("W",&mut rect.width),("H",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
-    egui::ComboBox::from_label("Follow actor translation").selected_text(layer.attachment.as_deref().unwrap_or("World")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"World");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
+    ui.add(egui::Slider::new(&mut layer.opacity,0.0..=1.0).text("Peittävyys"));
+    if let Content::Image{rect,..}|Content::Rectangle{rect,..}|Content::Ellipse{rect,..}=&mut layer.content {ui.horizontal(|ui|{for(name,value)in[("X",&mut rect.x),("Y",&mut rect.y),("Leveys",&mut rect.width),("Korkeus",&mut rect.height)]{ui.label(name);ui.add(egui::DragValue::new(value).speed(1.0));}});rect.width=rect.width.max(1.0);rect.height=rect.height.max(1.0);}
+    egui::ComboBox::from_label("Seuraa hahmon siirtoa").selected_text(layer.attachment.as_deref().unwrap_or("Kiinteä sijainti")).show_ui(ui,|ui| {ui.selectable_value(&mut layer.attachment,None,"Kiinteä sijainti");for actor in actors {ui.selectable_value(&mut layer.attachment,Some(actor.clone()),actor);}});
     let image_ids: Vec<&str> = assets.iter().filter(|a| a.kind == motion_project::AssetKind::Image).map(|a| a.id.as_str()).collect();
     compositing_controls(ui, layer, scene.duration, &image_ids);
-    ui.horizontal(|ui| {if ui.add_enabled(index>0 && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Lower")).clicked() { next.layers.swap(index,index-1); }
-   if ui.add_enabled(index+1<next.layers.len() && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Raise")).clicked(){ next.layers.swap(index,index+1); }
-   if ui.button("Delete layer").clicked(){let id=next.layers[index].id.clone(); if let Err(error)=next.apply(motion_art::Command::Remove{id}) {self.error=Some(error.to_string());} self.selected=None;}});
+    ui.horizontal(|ui| {if ui.add_enabled(index>0 && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Vie taakse")).clicked() { next.layers.swap(index,index-1); }
+   if ui.add_enabled(index+1<next.layers.len() && next.groups.is_empty() && next.order.is_empty(),egui::Button::new("Tuo eteen")).clicked(){ next.layers.swap(index,index+1); }
+   if ui.button("Poista taso").clicked(){let id=next.layers[index].id.clone(); if let Err(error)=next.apply(motion_art::Command::Remove{id}) {self.error=Some(error.to_string());} self.selected=None;}});
    }
    let images: Vec<_> = assets.iter().filter(|a| a.kind == motion_project::AssetKind::Image).collect();
    if !images.is_empty() {
-    ui.label(format!("Image assets ({})", images.len()));
+    ui.label(format!("Kuvaresurssit ({})", images.len()));
     egui::ScrollArea::vertical().id_salt("art-image-inventory").max_height(256.0).show_rows(ui, 76.0, images.len(), |ui, rows| {
      for row in rows {let asset = images[row];
       ui.push_id(&asset.id, |ui| {ui.horizontal(|ui| {
        asset_thumbnail(ui, textures.get(&asset.id));
        ui.vertical(|ui| {ui.add(egui::Label::new(&asset.id).truncate()).on_hover_text(&asset.path);
-        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Place foreground"),(Plane::Background,"Place background")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});
+        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Lisää etualalle"),(Plane::Background,"Lisää taustalle")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});
        });
       });});
      }
     });
    }
-   if next.layers.iter().any(|l| l.scene_id==scene_id && l.active.as_ref().is_some_and(|a|a.end>scene.duration)) {self.error=Some("Artwork interval exceeds scene duration".into());} else {
+   if next.layers.iter().any(|l| l.scene_id==scene_id && l.active.as_ref().is_some_and(|a|a.end>scene.duration)) {self.error=Some("Kuvituksen aikaväli ylittää kohtauksen keston".into());} else {
    self.commit(document,next);
    }
-   ui.weak("Undo / Redo uses the shared project history in the toolbar.");
-   if self.dirty {ui.label("Artwork has unsaved changes");}
+   ui.weak("Kumoa / Tee uudelleen käyttää yläpalkin yhteistä projektihistoriaa.");
+   if self.dirty {ui.label("Kuvituksessa on tallentamattomia muutoksia");}
    if let Some(error)=&self.error{ui.colored_label(egui::Color32::LIGHT_RED,error);}
   });
     }
     fn group_controls(&mut self, ui: &mut egui::Ui, document: &mut Document, scene_id: &str) {
         use motion_art::{ArtUnit, Command, Group};
-        ui.collapsing("Isolated groups / hierarchy", |ui| {
-            if ui.button("Create foreground group").clicked() {
+        ui.collapsing("Ryhmät ja hierarkia", |ui| {
+            if ui.button("Luo etualan ryhmä").clicked() {
                 let id = (1..).map(|n| format!("group-{n}")).find(|id| !document.layers.iter().any(|l| &l.id == id) && !document.groups.iter().any(|g| &g.id == id)).unwrap();
                 let mut candidate = document.clone();
-                let group = Group { id: id.clone(), scene_id: scene_id.into(), plane: Plane::Foreground, name: "Group".into(), visible: true, opacity: 1.0, blend: BlendMode::Normal, children: Vec::new() };
+                let group = Group { id: id.clone(), scene_id: scene_id.into(), plane: Plane::Foreground, name: "Ryhmä".into(), visible: true, opacity: 1.0, blend: BlendMode::Normal, children: Vec::new() };
                 match candidate.apply(Command::CreateGroup(group.clone())) {
                     Ok(()) => { self.commit(document, candidate); self.selected = Some(id); self.group_draft = Some(group); }
                     Err(e) => self.error = Some(e.to_string()),
@@ -804,30 +839,30 @@ impl Editor {
             }
             // Hidden groups remain selectable so visibility can always be restored.
             for group in document.groups.iter().filter(|g| g.scene_id == scene_id && !g.visible) {
-                if ui.selectable_label(self.selected.as_deref() == Some(&group.id), format!("Hidden group: {}", group.name)).clicked() { self.selected = Some(group.id.clone()); self.group_draft = Some(group.clone()); }
+                if ui.selectable_label(self.selected.as_deref() == Some(&group.id), format!("Piilotettu ryhmä: {}", group.name)).clicked() { self.selected = Some(group.id.clone()); self.group_draft = Some(group.clone()); }
             }
             let mut command = None;
             if let Some(draft) = &mut self.group_draft {
                 ui.text_edit_singleline(&mut draft.name);
-                ui.checkbox(&mut draft.visible, "Visible subtree");
-                ui.add(egui::Slider::new(&mut draft.opacity, 0.0..=1.0).text("Isolated opacity"));
-                egui::ComboBox::from_label("Group plane").selected_text(format!("{:?}", draft.plane)).show_ui(ui, |ui| {
-                    ui.selectable_value(&mut draft.plane, Plane::Background, "Background");
-                    ui.selectable_value(&mut draft.plane, Plane::Foreground, "Foreground");
+                ui.checkbox(&mut draft.visible, "Näytä ryhmä sisältöineen");
+                ui.add(egui::Slider::new(&mut draft.opacity, 0.0..=1.0).text("Ryhmän peittävyys"));
+                egui::ComboBox::from_label("Ryhmän sijoitus").selected_text(plane_label(draft.plane)).show_ui(ui, |ui| {
+                    ui.selectable_value(&mut draft.plane, Plane::Background, "Tausta");
+                    ui.selectable_value(&mut draft.plane, Plane::Foreground, "Etuala");
                 });
-                egui::ComboBox::from_label("Group blend").selected_text(format!("{:?}", draft.blend)).show_ui(ui, |ui| {
-                    for mode in [BlendMode::Normal, BlendMode::Multiply, BlendMode::Screen] { ui.selectable_value(&mut draft.blend, mode, format!("{mode:?}")); }
+                egui::ComboBox::from_label("Ryhmän sekoitustapa").selected_text(blend_label(draft.blend)).show_ui(ui, |ui| {
+                    for mode in [BlendMode::Normal, BlendMode::Multiply, BlendMode::Screen] { ui.selectable_value(&mut draft.blend, mode, blend_label(mode)); }
                 });
-                if ui.button("Apply group properties").clicked() { command = Some(Command::ReplaceGroup(draft.clone())); }
-                ui.weak("Ungroup keeps all children in order; removing opacity or blend can change appearance.");
-                if ui.button("Ungroup, keep children").clicked() { command = Some(Command::Ungroup { id: draft.id.clone() }); }
+                if ui.button("Käytä ryhmän asetuksia").clicked() { command = Some(Command::ReplaceGroup(draft.clone())); }
+                ui.weak("Ryhmän purkaminen säilyttää sisällön järjestyksen. Peittävyyden tai sekoitustavan poistuminen voi muuttaa ulkoasua.");
+                if ui.button("Pura ryhmä, säilytä sisältö").clicked() { command = Some(Command::Ungroup { id: draft.id.clone() }); }
             }
             if let Some(id) = &self.selected {
                 let unit = if document.groups.iter().any(|g| &g.id == id) { ArtUnit::Group(id.clone()) } else { ArtUnit::Layer(id.clone()) };
-                ui.label("Move selected item: parent ID (empty = root), sibling index");
+                ui.label("Siirrä valinta: emoryhmän tunnus (tyhjä = juuritaso), paikan indeksi (alkaen 0)");
                 ui.text_edit_singleline(&mut self.move_parent);
                 ui.add(egui::DragValue::new(&mut self.move_index).range(0..=motion_art::MAX_LAYERS));
-                if ui.button("Apply hierarchy move").clicked() {
+                if ui.button("Käytä hierarkiasiirtoa").clicked() {
                     command = Some(Command::Move { unit, parent: (!self.move_parent.is_empty()).then(|| self.move_parent.clone()), index: self.move_index });
                 }
             }
@@ -993,8 +1028,9 @@ impl Editor {
                 {
                     if draft.points.len() >= motion_art::MAX_MASK_STROKE_POINTS {
                         self.mask_gesture = None;
-                        self.error =
-                            Some("Mask stroke exceeds 2048 points; draw shorter strokes".into());
+                        self.error = Some(
+                            "Maskiveto ylittää 2048 pistettä. Piirrä lyhyempiä vetoja.".into(),
+                        );
                         return;
                     }
                     draft.points.push(point);
@@ -1129,7 +1165,7 @@ impl Editor {
             self.selected = Some(id.clone());
             next.layers.push(Layer {
                 id,
-                name: "Drawing".into(),
+                name: "Piirros".into(),
                 scene_id: scene_id.into(),
                 visible: true,
                 plane: Plane::Foreground,
@@ -1160,18 +1196,18 @@ fn asset_thumbnail(ui: &mut egui::Ui, texture: Option<&egui::TextureHandle>) {
             egui::Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
             egui::Color32::WHITE,
         );
-        response.on_hover_text("Decoded image preview");
+        response.on_hover_text("Ladatun kuvan esikatselu");
     } else {
         ui.painter()
             .rect_filled(rect, 3.0, ui.visuals().faint_bg_color);
         ui.painter().text(
             rect.center(),
             egui::Align2::CENTER_CENTER,
-            "No preview",
+            "Esikatselu puuttuu",
             egui::FontId::proportional(10.0),
             ui.visuals().weak_text_color(),
         );
-        response.on_hover_text("Preview pending or unavailable. Check resource loading errors; this does not confirm the image loaded.");
+        response.on_hover_text("Esikatselu on kesken tai puuttuu. Tarkista resurssien latausvirheet; kuvan latautumista ei ole vielä vahvistettu.");
     }
 }
 
@@ -1888,7 +1924,7 @@ mod tests {
         assert!(!editor.dirty);
         assert!(editor.transaction_before.is_none());
         assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Mesh(mesh) if mesh.texture_id == textures["present"].id())));
-        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == "No preview")));
+        assert!(output.shapes.iter().any(|shape| matches!(&shape.shape, egui::Shape::Text(text) if text.galley.text() == "Esikatselu puuttuu")));
     }
 
     use super::*;

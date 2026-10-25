@@ -1,10 +1,18 @@
 # Remaining studio work and active agents
 
-Updated 2026-10-24. The first packages below merged in PR #55 after PR #54.
+Updated 2026-10-25. The first packages below merged in PR #55 after PR #54.
 The authoritative requirements, completion marks and acceptance evidence remain
 in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
+
+## Finnish desktop follow-up
+
+The active `feat/finnish-desktop-completion` branch localizes the remaining
+desktop panels and camera helper, corrects the displayed mouth provenance and
+updates the embedded Finnish guide. Local desktop/Python/strict workspace checks
+pass; combined CI and merge are still required. Backend technical details,
+MotionScript keys and user data deliberately keep their original identifiers.
 
 ## Current status (PR #95 merged into main)
 

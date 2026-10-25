@@ -1,7 +1,8 @@
 # Kilsat Studion käyttöohje
 
-Ohje avautuu sovelluksen yläpalkin Ohjeet-painikkeesta. Päätoiminnot ovat
-suomeksi; osa edistyneistä työkaluista ja virheilmoituksista on englanniksi.
+Ohje avautuu sovelluksen yläpalkin Ohjeet-painikkeesta. Pääikkunan ja
+lisätyökalujen toiminnot ovat suomeksi. MotionScriptin avainsanat, tekniset
+tunnisteet ja ulkoisten ohjelmien alkuperäiset virhetiedot säilyvät ennallaan.
 
 ## 1. Aloita tästä
 
@@ -12,7 +13,8 @@ Keskellä Näyttämö: näet valitun kohtauksen ja siirrät hahmoja hiirellä.
 Alhaalla Aikajana: siirrä toistopäätä haluttuun aikaan ja toista animaatiota.
 
 Oikealla Muokkaa: hahmon pää, avainruudut ja kuvituksen työkalut.
-Puhe: vuorosanat, äänet ja Kokoron asennus. Vie video: valitun kohtauksen
+Puhe: vuorosanat, suomenkielinen Piper, omat WAV-äänet ja englanninkielisen
+Kokoron asennus. Vie video: valitun kohtauksen
 vienti tai koko projektin kohtauskooste. Lisäasetukset: tekniset tarkistukset.
 
 Ensimmäinen kokeilu: valitse hahmo näyttämöltä, siirrä aikajanan toistopäätä,
@@ -105,19 +107,25 @@ tai englantia.
 
 ## 7. Puhe ja suomenkielinen ääni
 
-Avaa oikealta Puhe. Kokoron asennus -osiossa voit yhdistää olemassa olevan
-paikallisen asennuksen tai asentaa englanninkielisen puheen mallin. Lataukset
-käynnistyvät vain erillisellä suostumuksella. Asennus tarvitsee Python 3.10–3.12:n.
+Avaa oikealta Puhe ja valitse hahmon puheääni. Suomen puhe käyttää Piperiä ja
+fi-fi-kieltä. Anna asennetun Piper-profiilin polku tai luo profiili asennetuista
+tiedostoista samassa näkymässä; tarkemmat vaiheet ovat luvussa 11.
+
+Englannin puhe käyttää Kokoroa. Kokoron asennus -osiossa voit yhdistää olemassa
+olevan paikallisen asennuksen tai asentaa mallin erillisellä lataussuostumuksella.
+Kokoron asennus tarvitsee Python 3.10–3.12:n.
 
 Valitse hahmon ääni ja paina Valmistele kohtauksen ääni. Odota valmistumista ja
 paina alhaalta Toista ääni. Kokoron testipuhe on erillinen asennustesti;
 se ei lisää vuorosanaa kohtaukseen.
 
-Kokoro ei tue suomea. Suomenkielinen paikallinen Piper-polku on luvussa 11. Voit myös tuoda oman paikallisen
-WAV-äänitteen valitun Speak-tapahtuman asetuksissa: valitse repliikki aikajanalta ja
+Voit myös tuoda oman paikallisen WAV-äänitteen valitun Repliikki-tapahtuman
+asetuksissa: valitse repliikki aikajanalta ja
 avaa Muokkaa. Aseta äänitteen polku sekä tarvittava ajoitus. Valmistele ääni sen
 jälkeen uudelleen. Tarkista suun ajoitus kuuntelemalla; tekstistä arvioitu ajoitus
-ei ole mitattu kohdistus.
+ei ole mitattu kohdistus. Valitun repliikin esikatselu kertoo ajoituksen todellisen
+lähteen: esimerkiksi Tekstistä arvioitu suun liike. Ei suun ajoitusta tarkoittaa,
+että repliikillä ei ole myöskään tekstistä arvioitua suun liikettä.
 
 Yläpalkin Ääniesimerkki käyttää synteettisiä testiääniä, ei oikeaa puhetta.
 Sen avulla voit kokeilla toistoa ja vientiä ilman mallin lataamista.
@@ -150,10 +158,10 @@ PNG-kuvaruudut ja WAV-ääni. SVG/PNG-vaihtoehdot löytyvät samasta paikasta.
 
 Automaattiohjauksen kaikki otokset tai useat kohtaukset viedään Koko projekti /
 kohtauskooste -osiosta, ei vain valitun kohtauksen viennillä. Valmistele koko
-kooste ennen vientiä. Osa koosteen asetuksista on vielä englanniksi.
+kooste ennen vientiä.
 
-Tekstitykset / Captions -valinta vaikuttaa esikatseluun ja vientiin muuttamatta
-käsikirjoitusta. Seuraa käsikirjoitusta, näytä tai piilota tekstitykset.
+Tekstitys-valinta vaikuttaa esikatseluun ja vientiin muuttamatta käsikirjoitusta.
+Valitse Käsikirjoituksen mukaan, Näytä tai Piilota.
 
 ## 10. Jos jokin ei toimi
 
@@ -163,7 +171,7 @@ Punainen virheilmoitus kertoo, mikä vaihe epäonnistui.
 Muokkaus estyy toiston tai taustatyön aikana: keskeytä toisto tai odota työn
 valmistumista. MotionScript-muokkauksen jälkeen paina Tarkista.
 
-Puuttuva ääni: avaa Puhe, tarkista Kokoron asennus tai WAV-polku ja valmistele
+Puuttuva ääni: avaa Puhe, tarkista Piper-profiili, Kokoron asennus tai WAV-polku ja valmistele
 kohtauksen ääni. Puuttuva MP4: tarkista FFmpeg-polku ja käytä uutta tuloskansiota.
 
 Tekniset raportit, Metal-tarkistus ja puheen kohdistus löytyvät oikean paneelin

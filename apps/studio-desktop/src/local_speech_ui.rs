@@ -29,7 +29,9 @@ impl Inventory {
                                 format!("Löytyi {} asennettua suomenkielistä ääntä.", voices.len());
                             self.voices = voices;
                         }
-                        Err(e) => self.status = e,
+                        Err(e) => {
+                            self.status = format!("Asennettujen äänten haku epäonnistui: {e}")
+                        }
                     }
                 }
                 Err(mpsc::TryRecvError::Disconnected) => {
@@ -44,7 +46,7 @@ impl Inventory {
         egui::CollapsingHeader::new("Macin järjestelmä-äänet · vain yksityinen esikatselu").show(ui,|ui|{
    ui.weak("Järjestelmä-ääniä ei hyväksytä sarjan julkaisuääniksi. Tuotantoon tarvitaan erikseen tarkistettu Piper-ääni tai oma WAV-äänite.");
    if ui.add_enabled(self.receiver.is_none(),egui::Button::new("Hae asennetut suomenkieliset äänet")).clicked(){let(tx,rx)=mpsc::sync_channel(1);let cancel=CancellationToken::new();let worker_cancel=cancel.clone();std::thread::spawn(move||{let result=motion_tts::installed_system_voices(&worker_cancel).map_err(|e|e.to_string());let _=tx.send(result);});self.receiver=Some(rx);self.cancel=Some(cancel);}
-   for voice in &self.voices{if ui.button(format!("{} → hahmon esikatseluääneksi",voice.preset)).clicked(){selected=Some(voice.preset.clone());}}
+   for voice in &self.voices{if ui.button(format!("Käytä ääntä {} esikatselussa",voice.preset)).clicked(){selected=Some(voice.preset.clone());}}
    ui.label(&self.status);
   });
         if self.receiver.is_some() {
@@ -90,7 +92,9 @@ fn save_profile(fields: ProfileFields) -> Result<std::path::PathBuf, String> {
         (&model, "ONNX-malli", 512 * 1024 * 1024),
         (&config, "mallin asetukset", 1024 * 1024),
     ] {
-        let metadata = std::fs::symlink_metadata(path).map_err(|e| format!("{label}: {e}"))?;
+        let metadata = std::fs::symlink_metadata(path).map_err(|e| {
+            format!("{label}: tiedostoa ei voitu lukea. Tarkista koko polku ja käyttöoikeudet. Tekninen virhe: {e}")
+        })?;
         if !path.is_absolute()
             || !metadata.is_file()
             || metadata.file_type().is_symlink()
@@ -129,7 +133,8 @@ fn save_profile(fields: ProfileFields) -> Result<std::path::PathBuf, String> {
                 .into(),
         timeout_seconds: 60,
     };
-    let bytes = serde_json::to_vec_pretty(&profile).map_err(|e| e.to_string())?;
+    let bytes = serde_json::to_vec_pretty(&profile)
+        .map_err(|e| format!("Profiilin JSON-asetuksia ei voitu muodostaa: {e}"))?;
     let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -138,7 +143,9 @@ fn save_profile(fields: ProfileFields) -> Result<std::path::PathBuf, String> {
     if let Err(error) = file.write_all(&bytes) {
         drop(file);
         let _ = std::fs::remove_file(&destination);
-        return Err(error.to_string());
+        return Err(format!(
+            "Piper-profiilin kirjoittaminen epäonnistui: {error}"
+        ));
     }
     Ok(destination)
 }

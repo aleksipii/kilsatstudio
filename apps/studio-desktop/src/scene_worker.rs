@@ -72,7 +72,10 @@ impl Worker {
                     })
                 }))
                 .unwrap_or_else(|_| {
-                    Err("Scene preparation worker panicked; retry after checking inputs".into())
+                    Err(
+                        "Kohtauksen valmistelija kaatui; tarkista syötteet ja yritä uudelleen"
+                            .into(),
+                    )
                 });
                 if updates.send(Update::Finished(result)).is_err() {
                     break;
@@ -84,7 +87,7 @@ impl Worker {
     pub fn submit(&self, request: Request) -> Result<(), String> {
         self.tx
             .try_send(request)
-            .map_err(|e| format!("Scene preparation queue: {e}"))
+            .map_err(|e| format!("Kohtauksen valmistelujono: {e}"))
     }
     pub fn poll(&self) -> Option<Update> {
         self.rx.try_recv().ok()
@@ -94,7 +97,10 @@ impl Worker {
 const MAX_ALIGNMENT_JSON_BYTES: usize = 100_000;
 fn check_json_size(input: &str) -> Result<(), String> {
     if input.len() > MAX_ALIGNMENT_JSON_BYTES {
-        return Err("Alignment JSON exceeds 100 KB; shorten the input and retry".into());
+        return Err(
+            "Puheen kohdistuksen JSON ylittää 100 KB:n rajan; lyhennä syötettä ja yritä uudelleen"
+                .into(),
+        );
     }
     Ok(())
 }
@@ -105,14 +111,14 @@ pub fn parse_alignment_input(input: &str) -> Result<Option<AlignmentInput>, Stri
     }
     serde_json::from_str(input)
         .map(Some)
-        .map_err(|e| format!("Alignment JSON: {e}"))
+        .map_err(|e| format!("Puheen kohdistuksen JSON: {e}"))
 }
 fn parse_alignment_inputs(input: &str) -> Result<BTreeMap<u64, AlignmentInput>, String> {
     check_json_size(input)?;
     if input.trim().is_empty() {
         return Ok(BTreeMap::new());
     }
-    serde_json::from_str(input).map_err(|e| format!("Scene alignment JSON: {e}"))
+    serde_json::from_str(input).map_err(|e| format!("Kohtauksen puhekohdistuksen JSON: {e}"))
 }
 
 #[cfg(test)]

@@ -22,7 +22,7 @@ fn export_request(
 ) -> Result<(std::path::PathBuf, ExportFormat), String> {
     let destination = std::path::PathBuf::from(destination.trim());
     if !destination.is_absolute() {
-        return Err("Use a new absolute output directory.".into());
+        return Err("Anna uuden tuloskansion koko polku.".into());
     }
     let format = match choice {
         ExportChoice::Png => ExportFormat::Png,
@@ -30,7 +30,9 @@ fn export_request(
         ExportChoice::Mp4 | ExportChoice::StreamingMp4 => {
             let ffmpeg = std::path::PathBuf::from(ffmpeg.trim());
             if !ffmpeg.is_absolute() {
-                return Err("Use an absolute path to local FFmpeg for MP4.".into());
+                return Err(
+                    "Anna paikallisen FFmpeg-ohjelman koko polku MP4-vientiä varten.".into(),
+                );
             }
             if choice == ExportChoice::StreamingMp4 {
                 ExportFormat::StreamingMp4 { ffmpeg }
@@ -92,7 +94,7 @@ impl Default for Panel {
             tick: Instant::now(),
             fraction: 0.0,
             busy: false,
-            status: "Prepare explicitly to synthesize local project audio.".into(),
+            status: "Valmistele projektin ääni ennen toistoa tai vientiä.".into(),
             destination: String::new(),
             ffmpeg: String::new(),
             export_choice: ExportChoice::Png,
@@ -126,7 +128,7 @@ impl Panel {
                 true
             }
             Err(error) => {
-                self.status = error;
+                self.status = format!("Kohtauskoosteen valmistelu: {error}");
                 self.cancel = None;
                 false
             }
@@ -193,7 +195,8 @@ impl Panel {
         self.busy = false;
         self.frame_pending = false;
         self.desired = 0;
-        self.status = "Project changed. Prepare again before playback or export.".into();
+        self.status =
+            "Projekti muuttui. Valmistele ääni uudelleen ennen toistoa tai vientiä.".into();
     }
     fn seek(&mut self, frame: u64) {
         self.generation = self.generation.wrapping_add(1);
@@ -219,7 +222,7 @@ impl Panel {
                     Ok(player) => self.player = Some(player),
                     Err(error) => {
                         self.silent = true;
-                        self.status = format!("Silent visual transport: {error}");
+                        self.status = format!("Kuvatoisto jatkuu ilman ääntä: {error}");
                     }
                 }
             }
@@ -239,7 +242,7 @@ impl Panel {
                     completed,
                     total,
                 } if generation == self.generation => {
-                    self.status = format!("Preparing scene {completed}/{total}")
+                    self.status = format!("Valmistellaan kohtausta {completed}/{total}")
                 }
                 Update::Prepared { generation, result } if generation == self.generation => {
                     self.busy = false;
@@ -248,10 +251,10 @@ impl Panel {
                         Ok(prepared) => {
                             self.prepared = Some(prepared);
                             self.status =
-                                "Project prepared. Shared 24 kHz sequence clock ready.".into();
+                                "Kohtauskooste valmisteltu. Kuva ja ääni käyttävät yhteistä 24 kHz:n näytekelloa.".into();
                             self.desired = 0;
                         }
-                        Err(error) => self.status = error,
+                        Err(error) => self.status = format!("Kohtauskoosteen valmistelu: {error}"),
                     }
                 }
                 Update::Frame {
@@ -276,7 +279,7 @@ impl Panel {
                             }
                             Err(error) => {
                                 self.failed_frame = Some(sample_frame);
-                                self.status = error;
+                                self.status = format!("Kohtauskoosteen esikatselu: {error}");
                             }
                         }
                     }
@@ -286,7 +289,7 @@ impl Panel {
                     progress,
                 } if generation == self.generation => {
                     self.status = format!(
-                        "Exporting {}/{} frames",
+                        "Viedään kuvaruutuja {}/{}",
                         progress.completed_frames, progress.total_frames
                     )
                 }
@@ -295,11 +298,11 @@ impl Panel {
                     self.cancel = None;
                     self.status = match result {
                         Ok(report) => format!(
-                            "Exported {} frames to {}",
+                            "Viety {} kuvaruutua kansioon {}",
                             report.frame_count,
                             report.output_directory.display()
                         ),
-                        Err(error) => error,
+                        Err(error) => format!("Kohtauskoosteen vienti: {error}"),
                     };
                 }
                 _ => {}
@@ -316,7 +319,7 @@ impl Panel {
                     let state = player.snapshot();
                     if let Some(error) = state.error {
                         self.silent = true;
-                        self.status = format!("Silent visual transport: {error}");
+                        self.status = format!("Kuvatoisto jatkuu ilman ääntä: {error}");
                         self.tick = Instant::now();
                     } else if state.loaded {
                         self.desired = state.position_frame.min(end);
@@ -363,7 +366,7 @@ impl Panel {
     pub fn ui(&mut self, ui: &mut egui::Ui, locked: bool, can_prepare: bool) -> bool {
         let mut started = false;
         ui.collapsing("Koko projekti / kohtauskooste", |ui| {
-            ui.label("Prepare uses your configured local Kokoro runtime. No automatic download.");
+            ui.label("Valmistelu käyttää valittua paikallista puheääntä tai tuotuja WAV-äänitteitä. Mallia ei ladata automaattisesti.");
             if ui
                 .add_enabled(
                     !locked
@@ -371,26 +374,29 @@ impl Panel {
                         && !self.worker_pending
                         && !self.frame_pending
                         && can_prepare,
-                    egui::Button::new("Prepare whole project"),
+                    egui::Button::new("Valmistele koko projekti"),
                 )
                 .clicked()
             {
                 self.prepare_requested = true;
             }
-            if self.busy && ui.button("Cancel sequence task").clicked() {
+            if self.busy && ui.button("Peruuta kohtauskoosteen työ").clicked() {
                 if let Some(cancel) = &self.cancel {
                     cancel.cancel();
                 }
             }
             ui.label(&self.status);
             if let Some(prepared) = self.prepared.clone() {
-                ui.label(format!("Alignment: {:?}", prepared.alignment_statuses));
+                ui.label("Huulisynkan ajoitus · laatua ei ole mitattu");
+                for (id, status) in &prepared.alignment_statuses {
+                    ui.label(format!("Repliikki {id}: {}", crate::alignment_status_text(*status)));
+                }
                 let end = prepared.timeline.total_samples();
                 crate::waveform(ui, &prepared.peaks, self.desired as f64 / end.max(1) as f64);
                 ui.add_enabled_ui(!locked && !self.busy, |ui| {
                     ui.horizontal(|ui| {
                         if ui
-                            .button(if self.playing { "Pause" } else { "Play" })
+                            .button(if self.playing { "Tauko" } else { "Toista" })
                             .clicked()
                         {
                             if self.playing {
@@ -416,18 +422,18 @@ impl Panel {
                                     Err(error) => {
                                         self.player = None;
                                         self.silent = true;
-                                        self.status = format!("Silent visual transport: {error}");
+                                        self.status = format!("Kuvatoisto jatkuu ilman ääntä: {error}");
                                     }
                                 }
                             }
                         }
-                        if ui.button("Restart").clicked() {
+                        if ui.button("Alkuun").clicked() {
                             self.seek(0);
                         }
                     });
                     let mut sample = self.desired;
                     if ui
-                        .add(egui::Slider::new(&mut sample, 0..=end).text("global sample / 24 kHz"))
+                        .add(egui::Slider::new(&mut sample, 0..=end).text("Kohtauskoosteen näyte / 24 kHz"))
                         .changed()
                     {
                         self.seek(sample);
@@ -437,10 +443,10 @@ impl Panel {
                         self.desired as f64 / 24000.0,
                         end as f64 / 24000.0
                     ));
-                    ui.label("New absolute output directory");
+                    ui.label("Uuden tuloskansion koko polku");
                     ui.text_edit_singleline(&mut self.destination);
                     ui.horizontal(|ui| {
-                        ui.label("Format");
+                        ui.label("Tiedostomuoto");
                         ui.selectable_value(
                             &mut self.export_choice,
                             ExportChoice::Png,
@@ -460,13 +466,13 @@ impl Panel {
                     ui.selectable_value(&mut self.export_choice,ExportChoice::StreamingMp4,"MP4 Full HD · suoratoisto");
                     if self.export_choice==ExportChoice::StreamingMp4 {ui.weak("Enintään 60 s / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 300 s; tämä ei mittaa puheen valmistelua.");}
                     if matches!(self.export_choice,ExportChoice::Mp4|ExportChoice::StreamingMp4) {
-                        ui.label("Absolute path to local FFmpeg");
+                        ui.label("Paikallisen FFmpeg-ohjelman koko polku");
                         ui.text_edit_singleline(&mut self.ffmpeg);
                     }
                     if ui
                         .add_enabled(
                             !self.frame_pending && !self.worker_pending,
-                            egui::Button::new("Export whole project"),
+                            egui::Button::new("Vie koko projekti"),
                         )
                         .clicked()
                     {
@@ -492,7 +498,7 @@ impl Panel {
                                         self.busy = true;
                                         started = true;
                                     }
-                                    Err(error) => self.status = error,
+                                    Err(error) => self.status = format!("Kohtauskoosteen vienti: {error}"),
                                 }
                             }
                         }
@@ -504,7 +510,7 @@ impl Panel {
                 let scale = (ui.available_width() / size.x).min(1.0);
                 ui.image((texture.id(), size * scale));
             } else if self.prepared.is_some() {
-                ui.label("Rendering current position…");
+                ui.label("Piirretään nykyistä kohtaa…");
             }
         });
         started

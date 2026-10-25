@@ -12,7 +12,7 @@ struct Options {
     var fps = 12
 }
 func usage(_ error: String? = nil) -> Never {
-    let help = "Usage: head_pose [--stream [--duration SECONDS(1..60)] [--fps FPS(1..20)]]\nNo arguments: one head tilt. --help never opens a camera.\n"
+    let help = "Käyttö: head_pose [--stream [--duration SEKUNTIA(1..60)] [--fps FPS(1..20)]]\nIlman valitsimia: yksi pään kallistus. --help ei avaa kameraa.\n"
     if let error = error { FileHandle.standardError.write(Data((error + "\n" + help).utf8)); exit(2) }
     FileHandle.standardOutput.write(Data(help.utf8)); exit(0)
 }
@@ -23,25 +23,25 @@ var argument = 0
 var seen = Set<String>()
 while argument < arguments.count {
     let flag = arguments[argument]
-    guard !seen.contains(flag) else { usage("Duplicate option: \(flag)") }
+    guard !seen.contains(flag) else { usage("Valitsin annettiin useammin kuin kerran: \(flag)") }
     seen.insert(flag)
     switch flag {
     case "--stream": options.stream = true
     case "--duration":
         argument += 1
         guard argument < arguments.count, let value = Double(arguments[argument]), value.isFinite,
-              value >= 1, value <= 60 else { usage("Duration must be within 1..60 seconds") }
+              value >= 1, value <= 60 else { usage("Keston on oltava 1–60 sekuntia") }
         options.duration = value
     case "--fps":
         argument += 1
         guard argument < arguments.count, let value = Int(arguments[argument]), value >= 1, value <= 20
-        else { usage("FPS must be within 1..20") }
+        else { usage("FPS-arvon on oltava 1–20") }
         options.fps = value
-    default: usage("Unknown option: \(flag)")
+    default: usage("Tuntematon valitsin: \(flag)")
     }
     argument += 1
 }
-if !options.stream && (seen.contains("--fps") || seen.contains("--duration")) { usage("Timing options require --stream") }
+if !options.stream && (seen.contains("--fps") || seen.contains("--duration")) { usage("Ajastusvalitsimet vaativat --stream-valitsimen") }
 
 final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let session = AVCaptureSession()
@@ -73,7 +73,7 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
     }
     func permissionDeadline() {
         lock.lock(); let incomplete = !configured && !finished; lock.unlock()
-        if incomplete { finish("Camera permission/setup timed out") }
+        if incomplete { finish("Kameran käyttöluvan tai käynnistyksen aikaraja ylittyi") }
     }
     private func checkDeadline() {
         lock.lock()
@@ -85,14 +85,14 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
         if let start = start {
             let now = ProcessInfo.processInfo.systemUptime
             if options.stream && now - start >= options.duration { finish(); return }
-            if now - last >= 5 { finish("No measurable face found for five seconds"); return }
+            if now - last >= 5 { finish("Kasvoja ei voitu mitata viiteen sekuntiin"); return }
         }
         DispatchQueue.global().asyncAfter(deadline: .now() + 0.25) { self.checkDeadline() }
     }
     func start() {
         DispatchQueue.global().async {
             do {
-                guard let camera = AVCaptureDevice.default(for: .video) else { self.finish("No camera found"); return }
+                guard let camera = AVCaptureDevice.default(for: .video) else { self.finish("Kameraa ei löytynyt"); return }
                 let input = try AVCaptureDeviceInput(device: camera)
                 let output = AVCaptureVideoDataOutput()
                 output.alwaysDiscardsLateVideoFrames = true
@@ -101,7 +101,7 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
                 self.session.beginConfiguration()
                 self.session.sessionPreset = .vga640x480
                 guard self.session.canAddInput(input), self.session.canAddOutput(output) else {
-                    self.session.commitConfiguration(); self.finish("Camera configuration unavailable"); return
+                    self.session.commitConfiguration(); self.finish("Kameran asetuksia ei voitu ottaa käyttöön"); return
                 }
                 self.session.addInput(input); self.session.addOutput(output); self.session.commitConfiguration()
                 self.lock.lock(); let done = self.finished; self.lock.unlock()
@@ -112,7 +112,7 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
                 self.session.startRunning()
                 self.lock.lock(); self.configured = true; self.lock.unlock()
                 self.checkDeadline()
-            } catch { self.finish("Camera error: \(error.localizedDescription)") }
+            } catch { self.finish("Kameravirhe: \(error.localizedDescription)") }
         }
     }
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer,
@@ -144,7 +144,7 @@ final class HeadPoseCapture: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
             pose["seq"] = seq; pose["time"] = elapsed
             let data = try JSONSerialization.data(withJSONObject: pose)
             FileHandle.standardOutput.write(data); FileHandle.standardOutput.write(Data([10]))
-        } catch { finish("Face analysis failed: \(error.localizedDescription)") }
+        } catch { finish("Kasvojen analysointi epäonnistui: \(error.localizedDescription)") }
     }
 }
 
@@ -158,14 +158,14 @@ watchParent()
 let capture = HeadPoseCapture(options)
 DispatchQueue.global().asyncAfter(deadline: .now() + 30) { capture.permissionDeadline() }
 // Last-resort bound even if configuration/callback delivery unexpectedly stalls.
-DispatchQueue.global().asyncAfter(deadline: .now() + 92) { capture.finish("Camera helper deadline exceeded") }
+DispatchQueue.global().asyncAfter(deadline: .now() + 92) { capture.finish("Kamera-apuohjelman aikaraja ylittyi") }
 switch AVCaptureDevice.authorizationStatus(for: .video) {
 case .authorized: capture.start()
 case .notDetermined:
     AVCaptureDevice.requestAccess(for: .video) { allowed in
-        if allowed { capture.start() } else { capture.finish("Camera access denied; check macOS Privacy & Security") }
+        if allowed { capture.start() } else { capture.finish("Kameran käyttö estettiin. Tarkista macOS:n Tietosuoja ja suojaus -asetukset") }
     }
-case .denied, .restricted: capture.finish("Camera access denied or restricted; check macOS Privacy & Security")
-@unknown default: capture.finish("Unknown camera permission status")
+case .denied, .restricted: capture.finish("Kameran käyttö on estetty tai rajoitettu. Tarkista macOS:n Tietosuoja ja suojaus -asetukset")
+@unknown default: capture.finish("Tuntematon kameran käyttöluvan tila")
 }
 RunLoop.main.run()
