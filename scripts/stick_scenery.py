@@ -16,7 +16,7 @@ RUST = (170, 90, 61, 255)
 AMBER = (221, 175, 91, 255)
 METAL = (185, 199, 197, 255)
 WOOD = (161, 125, 86, 255)
-NIGHT = (28, 45, 55, 255)
+NIGHT = (131, 153, 164, 255)
 
 
 def _layer(name, content, plane="foreground"):
@@ -87,8 +87,8 @@ def _backgrounds():
     bg = "background"
     office = [
         _rect("toimisto_wall", 0, 0, 1920, 1080, PAPER, bg),
-        _rect("toimisto_floor", 0, 960, 1920, 120, (195, 181, 156, 255), bg),
-        _rect("toimisto_skirting", 0, 948, 1920, 12, TEAL, bg),
+        _rect("toimisto_floor", 0, 810, 1920, 270, (203, 190, 165, 255), bg),
+        _rect("toimisto_skirting", 0, 798, 1920, 12, (103, 131, 120, 255), bg),
         *_panel("toimisto_window", 70, 180, 330, 400, TEAL_LIGHT, 12, bg),
         _rect("toimisto_skyline_far", 92, 414, 130, 140, (124, 159, 154, 255), bg),
         _rect("toimisto_skyline_near", 251, 365, 124, 189, (99, 139, 136, 255), bg),
@@ -108,8 +108,8 @@ def _backgrounds():
     ]
     bus_stop = [
         _rect("pysakki_night", 0, 0, 1920, 1080, NIGHT, bg),
-        _rect("pysakki_pavement", 0, 960, 1920, 120, (63, 77, 78, 255), bg),
-        _rect("pysakki_curb", 0, 948, 1920, 12, (122, 144, 139, 255), bg),
+        _rect("pysakki_pavement", 0, 810, 1920, 270, (150, 167, 167, 255), bg),
+        _rect("pysakki_curb", 0, 1020, 1920, 10, (94, 117, 120, 255), bg),
         _rect("pysakki_road_mark", 870, 1037, 490, 12, (203, 194, 158, 255), bg),
         _rect("pysakki_distant_roof", 0, 402, 370, 72, (35, 57, 63, 255), bg),
         _rect("pysakki_distant_house", 36, 474, 280, 260, (35, 57, 63, 255), bg),
@@ -133,9 +133,9 @@ def _backgrounds():
         _ellipse("pysakki_star_right", 1315, 116, 9, 9, PAPER, bg),
     ]
     graveyard = [
-        _rect("hautausmaa_sky", 0, 0, 1920, 1080, (34, 51, 57, 255), bg),
-        _rect("hautausmaa_ground", 0, 960, 1920, 120, (64, 85, 78, 255), bg),
-        _stroke("hautausmaa_horizon", [(0, 957), (490, 957), (770, 949), (1210, 957), (1914, 957)], 8, TEAL, bg),
+        _rect("hautausmaa_sky", 0, 0, 1920, 1080, (135, 155, 162, 255), bg),
+        _rect("hautausmaa_ground", 0, 810, 1920, 270, (155, 170, 150, 255), bg),
+        _stroke("hautausmaa_horizon", [(0, 814), (490, 814), (770, 806), (1210, 814), (1914, 814)], 8, TEAL, bg),
         _ellipse("hautausmaa_moon_halo", 1425, 86, 282, 282, (215, 224, 188, 16), bg),
         _ellipse("hautausmaa_moon", 1470, 131, 192, 192, (218, 224, 197, 255), bg),
         _ellipse("hautausmaa_moon_crater", 1508, 170, 37, 37, (197, 208, 182, 255), bg),
@@ -157,8 +157,8 @@ def _backgrounds():
     ]
     cafe = [
         _rect("kahvila_wall", 0, 0, 1920, 1080, (237, 222, 201, 255), bg),
-        _rect("kahvila_floor", 0, 960, 1920, 120, (182, 153, 120, 255), bg),
-        _rect("kahvila_skirting", 0, 948, 1920, 12, RUST, bg),
+        _rect("kahvila_floor", 0, 810, 1920, 270, (201, 170, 133, 255), bg),
+        _rect("kahvila_skirting", 0, 798, 1920, 12, (161, 105, 81, 255), bg),
         *_panel("kahvila_counter", 42, 686, 332, 262, RUST, 9, bg),
         _rect("kahvila_counter_panel", 72, 733, 271, 176, (149, 76, 55, 255), bg),
         _rect("kahvila_counter_top", 30, 663, 356, 30, INK, bg),
@@ -179,10 +179,89 @@ def _backgrounds():
         _rect("kahvila_window_street", 1566, 512, 264, 95, (127, 165, 154, 255), bg),
         _stroke("kahvila_window_reflection", [(1755, 270), (1797, 312), (1797, 348)], 7, (211, 225, 203, 255), bg),
     ]
+    # Receding seams and edge furniture establish a floor plane without filling
+    # the acting area. Foot contact remains y=960, inside the floor, not its edge.
+    for prefix, layers, tone in (
+        ("toimisto", office, (183, 173, 151, 255)),
+        ("kahvila", cafe, (181, 150, 118, 255)),
+    ):
+        floor_index = next(i for i, layer in enumerate(layers)
+                           if layer["id"] == prefix + "_skirting")
+        seams = [
+            _stroke(prefix + "_floor_seam_" + str(i),
+                    [(840 + i * 60, 810), (-260 + i * 480, 1080)], 2, tone, bg)
+            for i in range(5)
+        ]
+        seams.extend([
+            _stroke(prefix + "_floor_cross_0", [(0, 866), (1920, 866)], 2, tone, bg),
+            _stroke(prefix + "_floor_cross_1", [(0, 957), (1920, 957)], 2, tone, bg),
+        ])
+        layers[floor_index:floor_index] = seams
+    office.extend([
+        *_panel("toimisto_pinboard", 755, 225, 345, 180, (201, 177, 137, 255), 8, bg),
+        _rect("toimisto_pinboard_note_one", 780, 252, 88, 111, PAPER, bg),
+        _rect("toimisto_pinboard_note_two", 899, 265, 144, 78, (219, 226, 198, 255), bg),
+        _ellipse("toimisto_pinboard_pin", 817, 255, 9, 9, RUST, bg),
+        _ellipse("toimisto_pinboard_pin_two", 962, 270, 9, 9, RUST, bg),
+        _stroke("toimisto_note_rule", [(793, 286), (854, 286)], 3, (130, 146, 134, 255), bg),
+        _stroke("toimisto_note_rule_two", [(793, 305), (840, 305)], 3, (130, 146, 134, 255), bg),
+        _rect("toimisto_desk_books_0", 112, 727, 100, 15, RUST, bg),
+        _rect("toimisto_desk_books_1", 106, 742, 116, 13, PAPER, bg),
+        _stroke("toimisto_plant_stem", [(310, 723), (303, 650)], 5, TEAL, bg),
+        _ellipse("toimisto_plant_leaf_left", 260, 658, 48, 19, (100, 143, 122, 255), bg),
+        _ellipse("toimisto_plant_leaf_right", 304, 630, 43, 19, (100, 143, 122, 255), bg),
+        _rect("toimisto_plant_pot", 280, 710, 55, 43, RUST, bg),
+    ])
+    bus_stop.extend([
+        _stroke("pysakki_rear_curb", [(0, 811), (1920, 811)], 4, (114, 138, 141, 255), bg),
+        _stroke("pysakki_paving_seam_0", [(420, 812), (100, 1018)], 2, (129, 149, 151, 255), bg),
+        _stroke("pysakki_paving_seam_1", [(1420, 812), (1840, 1018)], 2, (129, 149, 151, 255), bg),
+        _stroke("pysakki_paving_cross", [(0, 900), (1920, 900)], 2, (129, 149, 151, 255), bg),
+        _rect("pysakki_road", 0, 1030, 1920, 50, (104, 126, 132, 255), bg),
+        _rect("pysakki_road_dash_0", 150, 1057, 220, 7, (218, 220, 198, 255), bg),
+        _rect("pysakki_road_dash_1", 780, 1057, 220, 7, (218, 220, 198, 255), bg),
+        _rect("pysakki_road_dash_2", 1410, 1057, 220, 7, (218, 220, 198, 255), bg),
+        *_panel("pysakki_timetable", 1662, 530, 150, 170, (226, 228, 211, 255), 5, bg),
+        _stroke("pysakki_timetable_rule_0", [(1680, 564), (1789, 564)], 4, TEAL, bg),
+        _stroke("pysakki_timetable_rule_1", [(1680, 594), (1773, 594)], 3, TEAL, bg),
+        _stroke("pysakki_timetable_rule_2", [(1680, 621), (1789, 621)], 3, TEAL, bg),
+        _stroke("pysakki_timetable_rule_3", [(1680, 648), (1773, 648)], 3, TEAL, bg),
+    ])
+    # A low distant fence adds depth; its quiet colors stay behind dark actors.
+    fence = [_stroke("hautausmaa_fence_rail", [(390, 743), (1450, 743)], 4,
+                     (112, 139, 139, 255), bg)]
+    fence.extend(_stroke("hautausmaa_fence_post_" + str(i),
+                         [(430 + i * 95, 715), (430 + i * 95, 809)], 4,
+                         (112, 139, 139, 255), bg) for i in range(11))
+    graveyard[4:4] = fence
+    graveyard.extend([
+        _stroke("hautausmaa_path_left", [(905, 814), (520, 1080)], 3,
+                (136, 155, 137, 255), bg),
+        _stroke("hautausmaa_path_right", [(1000, 814), (1450, 1080)], 3,
+                (136, 155, 137, 255), bg),
+        _ellipse("hautausmaa_moss_left", 86, 930, 128, 17, (104, 134, 117, 255), bg),
+        _ellipse("hautausmaa_moss_right", 1590, 948, 195, 13, (125, 148, 127, 255), bg),
+    ])
+    cafe.extend([
+        _rect("kahvila_shelf", 96, 389, 235, 12, WOOD, bg),
+        _rect("kahvila_cup_shelf_0", 119, 356, 30, 31, PAPER, bg),
+        _rect("kahvila_cup_shelf_1", 175, 356, 30, 31, PAPER, bg),
+        _rect("kahvila_cup_shelf_2", 231, 356, 30, 31, PAPER, bg),
+        _rect("kahvila_table_leg", 1715, 789, 13, 160, INK, bg),
+        _stroke("kahvila_table_feet", [(1650, 949), (1721, 923), (1791, 949)], 9, INK, bg),
+        _ellipse("kahvila_table_top_outline", 1575, 744, 284, 61, INK, bg),
+        _ellipse("kahvila_table_top", 1583, 749, 268, 45, WOOD, bg),
+        _rect("kahvila_table_cup", 1674, 721, 33, 32, PAPER, bg),
+        _ellipse("kahvila_table_coffee", 1674, 716, 33, 10, (111, 76, 55, 255), bg),
+        _stroke("kahvila_table_cup_handle", [(1707, 727), (1719, 727), (1719, 742), (1707, 742)], 4, PAPER, bg),
+        _stroke("kahvila_chair_back", [(1854, 708), (1883, 708), (1883, 840)], 9, INK, bg),
+        _stroke("kahvila_chair_base", [(1816, 946), (1828, 842), (1882, 842), (1896, 946)], 9, INK, bg),
+        _rect("kahvila_chair_seat", 1807, 829, 84, 16, RUST, bg),
+    ])
     return {
         "toimisto": dict(name="Loputtoman palaverin toimisto", color="#f1ecdf", layers=office),
-        "pysakki": dict(name="Yövuoron pysäkki", color="#1c2d37", layers=bus_stop),
-        "hautausmaa": dict(name="Kuunsirpin hautausmaa", color="#223339", layers=graveyard),
+        "pysakki": dict(name="Yövuoron pysäkki", color="#8399a4", layers=bus_stop),
+        "hautausmaa": dict(name="Kuunsirpin hautausmaa", color="#879ba2", layers=graveyard),
         "kahvila": dict(name="Viimeisen kahvin kahvila", color="#eddec9", layers=cafe),
     }
 

@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "title": "Tikku-ukkostudio",
+  "pack_revision": 2,
+  "title": "Tikku-ukkostudio 2",
   "authorship": "Original independently authored editable geometric artwork; no third-party artwork or model assets.",
   "cast": [
     {
@@ -58,8 +59,10 @@
     "foot_r"
   ],
   "starter_project": "stick-studio.kilsat",
-  "starter_sha256": "6970d9cb79c3dda7992dc1f1b92c24ce386c9eb1aa84497e83d826a18ae39572",
-  "starter_source_bytes": 54099,
+  "hand_props_catalog": "hand-props.json",
+  "hand_props_sha256": "9b1843d9faabad140e1ee079b786d59d3d0177ef520548eaf387fca52f697546",
+  "starter_sha256": "ddd0bf30cbb5016545afb5ab9286a913e1c86b086995bfc8e53b95cd65a8f536",
+  "starter_source_bytes": 76050,
   "artistic_review": false,
   "physical_mac_review": false,
   "items": [
@@ -71,7 +74,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "1e2ab31c272a5fae992020d48a70ca95d859500b9eb624d49e076f770f3d4049"
+      "project_sha256": "2d8875cd6c2db39e529cdd28d96fb987429af36bab12d7f997c37e8dfff78e03"
     },
     {
       "id": "veikko",
@@ -81,7 +84,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "dee73a9188771a98a29cfd8db3e5c709e949a50efc0fd67631fdb3790f09fe61"
+      "project_sha256": "f13ed3d9e132c64ac0eb75b013efabb32283b67ad8e67126fa2cbf681dbe11ee"
     },
     {
       "id": "pasma",
@@ -91,7 +94,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "14c6614af5ddc76e57d0bf2627a9592ded86b8f67bd338d29772ed01a639abe1"
+      "project_sha256": "9eb70d3541b4423e891bf625609857dfbee4e892df85e1af2eec5f6b62522335"
     },
     {
       "id": "kipina",
@@ -101,7 +104,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "7fc77ca206bf2674245acbdd07c942f7f0c41a1e7f1f740a060b70235e847196"
+      "project_sha256": "cbbb57d484c8da987fdec74433d474cf6bb6aa724d5b225d7644748b5f4583d0"
     },
     {
       "id": "kiire",
@@ -111,7 +114,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "0908fca26d212b67716c6a51cf4aaf229dc853917700a929b9976f509734e285"
+      "project_sha256": "2a6bd860adea7d6bc50d43cf264eb4f31dcef00e0ac9f0c671d48baeaa134307"
     },
     {
       "id": "sisu",
@@ -121,7 +124,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "47bb3165bd1d908906406685b847e8f52817d7e315b9632c48224c06e2e0e28e"
+      "project_sha256": "d11d20b038ceaea57f14b257b1416b66682878c91f2ff8facdb12ad6d610b687"
     },
     {
       "id": "toimisto",
@@ -131,7 +134,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "173804d801bc4fd2774a79c9ab99c05b6886b27d76456c6732ac8007012af09a"
+      "project_sha256": "ef0d52534236f00a9da29ead374b831df46af4f46558c648e0ce2b3083720aea"
     },
     {
       "id": "pysakki",
@@ -141,7 +144,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "5951b295dfde1d1be2e82554c82e9bdd3f2975125df31eed8b9b1c9bd5d558af"
+      "project_sha256": "2696732a593abde64fe8a62a3f69a38c98733ea2904d584ce05e796e5104e73c"
     },
     {
       "id": "hautausmaa",
@@ -151,7 +154,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "48b153d3a468b9f6afcca1549dffdaf55a0f0b095f08d5c23baee388a49b3d38"
+      "project_sha256": "e9369303613801f66a3ccece66f42c2d83fc7cbb9ea64d1d8762ceb119412575"
     },
     {
       "id": "kahvila",
@@ -161,7 +164,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "077450f7c5d5390f3faa172c7a6efa9ea8afc07e800a71050349799e2ba3bb5a"
+      "project_sha256": "0deffa6df1eeb9db040f76ef9d10750d1529a664bf33e96680f0d9824feb9b3c"
     },
     {
       "id": "viikate",
@@ -175,13 +178,13 @@
     },
     {
       "id": "kahvikuppi",
-      "name": "Viimeinen kahvikuppi",
+      "name": "Kahvikuppi",
       "kind": "prop",
       "project": "props/kahvikuppi.kilsat",
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "6527f96db0f03aeb472ab465307ebfe4d7597a6a4e2836728edefdd7ec65a1de"
+      "project_sha256": "0840ee644da0c50c1b3f0fa5cc06a2b85530b0647072eb2c3bf898ab0b3d4176"
     },
     {
       "id": "toimistotuoli",
@@ -215,13 +218,13 @@
     },
     {
       "id": "puhelin",
-      "name": "Puhelin",
+      "name": "Puhelin – näyttö",
       "kind": "prop",
       "project": "props/puhelin.kilsat",
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "05fb06b3350e7dee7e962d8eb0e84547dfd56c0b64d11ba871b7f711d04dd467"
+      "project_sha256": "932d02ce41ab617aa374b5f9654e025a673944a2e360280c21fe5b8847220e6a"
     },
     {
       "id": "ajopaivakirja",
@@ -265,13 +268,13 @@
     },
     {
       "id": "tyokaluavain",
-      "name": "Kipinän kiintoavain",
+      "name": "Kiintoavain",
       "kind": "prop",
       "project": "props/tyokaluavain.kilsat",
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "261b398077c11086c8d9dd3a16c1043fe260b1e5cdd0b2decc984974b508cdcc"
+      "project_sha256": "f237faf7643c3c7733db2438fabb95b997a065c97ac6e2ba7bd636ac1713ea77"
     },
     {
       "id": "sateenvarjo",
@@ -302,6 +305,66 @@
       "export_width": 512,
       "export_height": 512,
       "project_sha256": "f8381fd4e3bbf423f6165aba94c92b6858d4cf9935fd77573e041124d9db6e3a"
+    },
+    {
+      "id": "puhelin_takana",
+      "name": "Puhelin – takaosa",
+      "kind": "prop",
+      "project": "props/puhelin_takana.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "39c398167a79ab73180fa70389373f875f370edd57f4073d6fbf00423a716e39"
+    },
+    {
+      "id": "puhelin_vino",
+      "name": "Puhelin – viisto näkymä",
+      "kind": "prop",
+      "project": "props/puhelin_vino.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "6fb9537225f277f5e080ed7b1d1bab71645aa0a3e1bb1f0e5cd002c13317bc9d"
+    },
+    {
+      "id": "kirja",
+      "name": "Kirja",
+      "kind": "prop",
+      "project": "props/kirja.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "93ac5a9fc1274f7306da8dde08ea857ec5491351be31668e7a14269d875b4e43"
+    },
+    {
+      "id": "avain",
+      "name": "Avain",
+      "kind": "prop",
+      "project": "props/avain.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "17ef1313e05599f341da75da305cfd95a15bb71932d6141bd0e6bc7aafb4dac4"
+    },
+    {
+      "id": "tabletti",
+      "name": "Tabletti",
+      "kind": "prop",
+      "project": "props/tabletti.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "b1e72e1fcaa10d23c9ee88f6d941ceedd7b8d46ef7426b372ce1983b5930868f"
+    },
+    {
+      "id": "kyna",
+      "name": "Kynä",
+      "kind": "prop",
+      "project": "props/kyna.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "b47c286888369ff7bd0289bbe176cdf9e8f5638b78c41f8615bce80d8817e69c"
     }
   ]
 }

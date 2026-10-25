@@ -83,21 +83,48 @@ def _joints(reaper=False):
     return joints
 
 
-def _body():
-    # Separate thin joint-local sticks retain elbow/knee articulation; no filled
-    # humanoid torso is hidden under the clothes of the five ordinary characters.
+def _capsule(name, joint, start, end, radius, color=INK, width=0):
+    """Keep constant-width sticks joined at their actual rotation pivots.
+
+    Spline-rounding a long rectangle pulls its ends inward and narrows them.
+    These explicit semicircular caps extend one radius beyond both pivots, so
+    adjacent segments overlap even when an elbow, knee or shoulder is bent.
+    """
+    angle = math.atan2(end[1] - start[1], end[0] - start[0])
+    points = []
+    for center, first in ((start, angle + math.pi / 2),
+                          (end, angle - math.pi / 2)):
+        for step in range(7):
+            theta = first + math.pi * step / 6
+            points.append([round(center[0] + radius * math.cos(theta), 4),
+                           round(center[1] + radius * math.sin(theta), 4)])
+    return _polygon(name, joint, points, color, smooth=0, width=width)
+
+
+def _body(reaper=False):
+    # Each stick ends at the next joint, with an overlapping round cap. Bridges
+    # join the offset hips/shoulders to the spine instead of floating beside it.
     parts = []
     for side, sign in (("l", -1), ("r", 1)):
         parts.extend([
-            _polygon("thigh_" + side, "thigh_" + side, [[-4.5, -4], [4.5, -4], [4.5, 74], [-4.5, 74]], INK, 3),
-            _polygon("shin_" + side, "shin_" + side, [[-4, -4], [4, -4], [4, 65], [-4, 65]], INK, 3),
+            _capsule("thigh_" + side, "thigh_" + side, (0, 0), (0, 70), 4.5),
+            _capsule("shin_" + side, "shin_" + side, (0, 0), (0, 62), 4),
             _ellipse("foot_" + side, "foot_" + side, sign * 5, 4, 15, 6, INK),
         ])
-    parts.append(_polygon("torso", "torso", [[-5, -71], [5, -71], [5, 89], [-5, 89]], INK, 3))
+    shoulder = 43 if reaper else 22
+    parts.extend([
+        _capsule("hip_bridge", "root", (-13, 0), (13, 0), 4.5),
+        # Lower spine stays with the hips. Upper spine bends at the torso joint
+        # (0,-85), keeping the two pieces connected while the torso rotates.
+        _capsule("spine_base", "root", (0, 0), (0, -85), 5),
+        _capsule("torso", "torso", (0, 0), (0, -65), 5),
+        _capsule("shoulder_bridge", "torso", (-shoulder, -65), (shoulder, -65), 4.5),
+        _capsule("neck", "torso", (0, -65), (0, -110), 4.5),
+    ])
     for side in ("l", "r"):
         parts.extend([
-            _polygon("upper_arm_" + side, "upper_arm_" + side, [[-4.5, -5], [4.5, -5], [4.5, 62], [-4.5, 62]], INK, 3),
-            _polygon("forearm_" + side, "forearm_" + side, [[-4, -4], [4, -4], [4, 58], [-4, 58]], INK, 3),
+            _capsule("upper_arm_" + side, "upper_arm_" + side, (0, 0), (0, 58), 4.5),
+            _capsule("forearm_" + side, "forearm_" + side, (0, 0), (0, 54), 4),
             _ellipse("hand_" + side, "hand_" + side, 0, 2, 6, 8, INK),
         ])
     return parts
@@ -157,8 +184,8 @@ def _accessories(identifier, accent):
             _ellipse("hood_seam", "head", 0, 0, 47, 51, [55, 58, 65, 255]),
         ]
         front = [
-            _polygon("scythe_staff", "hand_r", [[-4, 177], [3, 177], [13, -225], [6, -225]], [70, 65, 65, 255], 2, 1.2),
-            _polygon("scythe_blade", "hand_r", [[6, -225], [48, -236], [100, -228], [145, -207], [167, -179], [128, -195], [90, -205], [47, -211], [11, -208]], METAL, 2, 2),
+            _capsule("scythe_staff", "hand_r", (0, 177), (9, -225), 3.5, [70, 65, 65, 255], 1.2),
+            _polygon("scythe_blade", "hand_r", [[6, -225], [48, -236], [100, -228], [145, -207], [167, -179], [128, -195], [90, -205], [47, -211], [11, -208]], METAL, 0, 2),
             _polygon("scythe_grip", "hand_r", [[-5, -10], [9, -10], [8, 13], [-6, 13]], accent, 2, 1),
         ]
     elif identifier == "VEIKKO":
@@ -221,9 +248,18 @@ def _accessories(identifier, accent):
             _ellipse("glasses_l", "head", -16, -3, 12, 13, [193, 216, 220, 36], 1.4),
             _ellipse("glasses_r", "head", 16, -3, 12, 13, [193, 216, 220, 36], 1.4),
             _polygon("glasses_bridge", "head", [[-4, -5], [4, -5], [4, -2], [-4, -2]], INK, 2),
-            _polygon("cane_staff", "hand_r", [[14, 4], [20, 4], [20, 180], [14, 180]], [103, 91, 88, 255], 2, 1),
-            _polygon("cane_handle", "hand_r", [[-5, -8], [13, -8], [22, -1], [20, 11], [14, 11], [14, 2], [10, -1], [-5, -1]], [103, 91, 88, 255], 2, 1),
+            _capsule("cane_staff", "hand_r", (17, 4), (17, 180), 3, [103, 91, 88, 255], 1),
+            _polygon("cane_handle", "hand_r", [[-5, -8], [13, -8], [22, -1], [20, 11], [14, 11], [14, 2], [10, -1], [-5, -1]], [103, 91, 88, 255], 0, 1),
         ]
+    # The hand ellipse reaches x=+-6. Move the clipboard's right edge inside it;
+    # keep the courier parcel's near edge over the palm after spline rounding.
+    shift = 6 if identifier == "PASMA" else -3 if identifier == "KIIRE" else 0
+    if shift:
+        for part in front:
+            if part["id"].startswith(("clipboard", "parcel")):
+                part["points"] = [[x + shift, y] for x, y in part["points"]]
+                # Straight box edges retain their intended grip silhouette.
+                part.pop("smooth", None)
     return clothes, behind, front
 
 
@@ -233,8 +269,8 @@ def characters():
     for cast in CAST:
         identifier = cast["id"]
         clothes, behind, front = _accessories(identifier, _rgba(cast["accent"]))
-        body = _body()
-        parts = body[:7] + clothes + body[7:] + behind + _face() + front
+        body = _body(identifier == "NOUTAJA")
+        parts = body[:11] + clothes + body[11:] + behind + _face() + front
         expressions = {
             "happy": [("brow_l", "happy"), ("brow_r", "happy"), ("mouth", "smile")],
             "sad": [("brow_l", "worried"), ("brow_r", "worried"), ("mouth", "frown")],
@@ -264,7 +300,7 @@ def _check():
     """Check declaration bounds and references without claiming native acceptance."""
     definitions = characters()
     size = len(json.dumps(definitions, ensure_ascii=False, separators=(",", ":")).encode())
-    assert size < 50_000, size
+    assert size < 60_000, size
     assert list(definitions) == [cast["id"] for cast in CAST]
     counts = {}
     for identifier, character in definitions.items():

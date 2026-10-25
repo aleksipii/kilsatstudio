@@ -1,6 +1,6 @@
 # Kilsat Studio: seuraavat askeleet ammattimaiseen työskentelyyn
 
-Arvioitu 2026-10-25. Lähtötilanne on integroitu PR #95–97 ja
+Arvioitu 2026-10-25. Lähtötilanne on integroitu PR #95–98 ja
 [nykyinen toteutus- ja hyväksyntäseuranta](master-progress.md).
 Tässä erotetaan olemassa oleva tekniikka, seuraavat käyttöliittymäparannukset ja
 aidolla laitteella tai ihmisen arvioinnilla osoitettava laatu. Tavoite on oma,
@@ -12,8 +12,9 @@ itsenäinen satiirianimaation tuotantotyökalu, jolla jakson saa tehtyä alusta 
    haettava kirjasto, tiedostonvalitsimet ja selkeä uuden jakson työnkulku.
    Automaattitallennus ja palautus suojaavat keskeneräistä luovaa työtä.
 2. **Animaation tekeminen kuvasta käsin.** Tartu käteen tai jalkaan, kiinnitä
-   jalka lattiaan ja käsi esineeseen, tallenna asento ja säädä liike- ja
-   kamerakäyriä. Nykyiset numeeriset/YAML-työkalut ovat tälle toimiva pohja.
+   jalka lattiaan, tallenna asento ja säädä liike- ja kamerakäyriä. Käsirekvisiitan
+   nykyinen koko projektin mittainen kiinnitys tarvitsee rinnalle ajastetut
+   poimimis- ja irrottamiskontaktit sekä visuaalisen nivelmuokkauksen.
 3. **Puhe, leikkaus ja ääni samassa näkymässä.** Dialogi, reaktiot, tauot,
    tehosteet ja musiikki omille raidoille. FI/EN-huulisynkan laatua parannetaan
    oikeasta puheesta mitatuilla virheillä ja kuuntelulla.
@@ -34,6 +35,13 @@ ehdotuksia seuraaville töille, eivät väitteitä jo läpäistyistä testeistä
 - **Editointi:** kohtauksia, hahmoja, tapahtumia, kameran avainruutuja ja
   kuvakerroksia voi muokata. Tapahtumia voi siirtää aikajanalla. Natiivi UI ja
   sovellukseen upotettu käyttöohje ovat suomeksi.
+- **Tikkuhahmot ja käsirekvisiitta:** toinen sisältöversio yhdistää raajojen
+  liitokset lantioon ja hartioihin sekä säilyttää pyöreät, ohuet tikkuviivat
+  taivutuksissa. Yhdeksän käteen sopivaa esinettä sisältää puhelimen kolme
+  näkymää. Kiinnitys seuraa valitun hahmon kättä kaikissa kohtauksissa.
+  Viisi kuvakokopainiketta kirjoittaa olemassa olevia 2D-kameran avainruutuja.
+  [Kuvallinen suunnitelma](stick-studio-art-direction.md) määrittää tarkistusehdot;
+  niiden toteutuneet tulokset kirjataan erikseen seurantaan.
 - **Uudelleenkäyttö:** alkuperäisrigin pose-/liikeklipit, JSON-kirjastovaihto,
   elävät klippi-instanssit ja lisättävä liike ovat toteutettuja. Omille rigeille
   on nivelraitojen talteenotto, kopiointi, aikavenytys ja manuaalinen nivelkartta.
@@ -54,10 +62,10 @@ ehdotuksia seuraaville töille, eivät väitteitä jo läpäistyistä testeistä
 | --- | --- | --- | --- |
 | Sisältökirjasto | `main.rs::assets_ui` tuo, uudelleenlinkittää ja poistaa asset-viitteitä polkukentistä. | Kuvat, haku, luokat, suosikit, tiedostonvalitsin ja veto kohtaukseen. | Käyttäjä lisää hahmon, taustan ja esineen ilman polkujen tai YAMLin kirjoittamista; tallennus/avaus säilyttää ne. |
 | Asennot ja liikkeet | `clip_library.rs`, `rig_clip_editor.rs`: kirjasto ja uudelleenkäyttö ovat jo olemassa. Oman rigin klippi kopioidaan; alkuperäisrigin live-ominaisuudet eivät siirry sille automaattisesti. | Kuvalliset asennot, peilaus, liikkeen kokeilu sekä selkeä rigiyhteensopivuus. | Kävely, osoitus, katse ja reaktio ovat valittavissa kirjastosta; ristiriitainen rigi antaa ymmärrettävän syyn. |
-| Rigin muokkaus ja kontaktit | `custom_rig_editor.rs` tarjoaa YAML-/numerokentät, tekstuurit ja kahden nivelen ihotusvaikutukset. | Visuaaliset nivelet ja painot, IK/FK, jalan lukitus ja käden/esineen kiinnitys. | Esimerkkikävelyssä lukittu jalka ei luista yli yhtä maailmakoordinaattipikseliä; kädessä oleva kahvikuppi seuraa valitun kontaktin ajan. |
+| Rigin muokkaus ja kontaktit | `custom_rig_editor.rs` tarjoaa YAML-/numerokentät, tekstuurit ja kahden nivelen ihotusvaikutukset. `hand_props.rs` kiinnittää esineen tavallisina osina käden niveleen kaikissa kohtauksissa. | Visuaaliset nivelet ja painot, IK/FK, jalan lukitus sekä esineen poimimisen/irrottamisen ajastus. | Esimerkkikävelyssä lukittu jalka ei luista yli yhtä maailmakoordinaattipikseliä; kahvikupin poimimishetki ja irrotus voidaan säätää ilman koko projektin rigin vaihtamista. |
 | Puhuvan oman hahmon laatu | `motion-rig::evaluate_acting` ja `motion-scene::apply_speech` tukevat määriteltyjä suu-/ilmeosia jo nyt. `scripts/stick_characters.py` määrittää uuden kuuden hahmon kaikki 13 visemiä, silmät, kulmakarvat ja neljä tunneilmettä. | Suun ja ilmeiden helppo visuaalinen tarkastus sekä oikealla FI/EN-puheella tehty laatumittaus; puhumaton vanha rigi erotetaan valmiiksi määritellystä hahmosta. | Oikea valmisteltu FI/EN-repliikki liikuttaa uuden hahmon suuta esikatselussa ja viennissä; annotoitu ajoitus ja kuuntelu osoittavat laadun, eivät pelkät suukartan olemassaolo tai äänetön demo. |
 | Liikekäyrät ja avainruudut | `keyframe_editor.rs`: x/y/kierto/mittakaava sekä Linear/Smoothstep/Hold. | Vedettävät avainruudut, monivalinta, arvo-/nopeuskäyrät ja viereisten asentojen haamukuvat. | Reaktion ennakointi, pysähdys ja jälkiliike voi säätää kuvallisesti; kumoa ja tallennus säilyttävät täsmälliset ajat. |
-| Kuvakoot ja leikkaus | Kameraraidat, kohtausjärjestys, ristihäivytykset ja tapahtuman alun siirto ovat olemassa; `timeline_edit.rs` säilyttää Move/Gesture-keston. | Kuvakortit, leikkausrajat, klippien reunatrimmaus ja hallittu seuraavien kohtien siirto. | Käyttäjä rakentaa yleiskuvan, puhujan lähikuvan ja kuulijan reaktion sekä säätää vitsin taukoa rikkomatta puhetta. |
+| Kuvakoot ja leikkaus | Kameraraidat, kohtausjärjestys, ristihäivytykset ja tapahtuman alun siirto ovat olemassa; `timeline_edit.rs` säilyttää Move/Gesture-keston. `camera_framing.rs` rajaa yleiskuvan, kahden hahmon kuvan, puolikuvan, lähikuvan tai käsiesineen lähikuvan olemassa olevalla 2D-kameralla. | Kuvakortit, leikkausrajat, klippien reunatrimmaus ja hallittu seuraavien kohtien siirto. | Käyttäjä rakentaa kuvakorteista puhujan lähikuvan ja kuulijan reaktion sekä säätää vitsin taukoa rikkomatta puhetta. |
 | Ääniraidat | `audio-cues.md`: dialogi ja cuet miksataan samalla 24 kHz:n kellolla; cueilla on aloitus, gain, trim ja kesto. | Omat dialogi/tehoste/musiikkiraidat, cue-aaltomuodot, solo/mute, panorointi, häivytykset ja voimakkuusautomaatio. | Repliikin päällä oleva musiikki vaimenee säädetysti; tehoste on kohdistettavissa ruutuun; esikatselu ja vienti käyttävät samaa miksausta. |
 | Äänen tuonti ja viimeistely | Nykyiset tehosteet vaativat 24 kHz mono PCM16 WAVin; ääni summataan ilman limitteriä. | Hallittu stereo/48 kHz -tuonti ja muunnos, huipputaso- ja äänekkyysmittaus sekä vientiasetukset. | Tavallinen musiikkitiedosto voidaan valita, esikuunnella ja muuntaa taustatyönä; yliohjaus näkyy ja julkaisu täyttää valitun äänekkyystavoitteen. |
 | FI/EN-huulisynkka | `manual-mouth-timing.md`: arvioiden tarkastus ja sampletarkka manuaalinen muokkaus; `lipsync-timing-evaluation.md`: rakenteen/energian arviointi. | Oikea puheeseen kohdistus, suun ajoituksen vedot aaltomuodossa ja versioitu käsin annotoitu vertailuaineisto. | Molemmille kielille raportoidaan onset/offset-virheiden mediaani ja p95 sekä ihmisen kuuntelutulos. Aineisto, menetelmä ja hyväksymisrajat päätetään ennen mittausta. |
@@ -68,9 +76,11 @@ ehdotuksia seuraaville töille, eivät väitteitä jo läpäistyistä testeistä
 ## Pienet toteutusvaiheet
 
 **Vaihe A — ensimmäinen oma satiirikohtaus.** Tässä lisäyksessä sisältöpaketti
-sisältää kuusi tikkuhahmoa, neljä taustaa ja 14 esinettä sekä sovelluksen
-aloituspainikkeen. Hahmojen suu-/ilmekartat ja silmäohjaus on jo määritelty;
-malliprojekti on äänetön. Projektin generoitu käsikirjoitus on 54 099 tavua.
+sisältää kuusi tikkuhahmoa, neljä taustaa ja 20 esinettä sekä sovelluksen
+aloituspainikkeen. Toinen sisältöversio korjaa nivelten aukot, parantaa taustojen
+syvyyttä ja lisää yhdeksän käsirekvisiittavaihtoehtoa sekä kuvakokopainikkeet.
+Hahmojen suu-/ilmekartat ja silmäohjaus on jo määritelty; malliprojekti on
+äänetön. Sen 30 sekuntia havainnollistavat käsiesineitä ja vaihtuvia rajauksia.
 Lisäyksen PR, tarkistustulokset ja yhdistämistila kirjataan erikseen
 `docs/master-progress.md`-seurantaan. Se ei vielä toteuta koko sisältökirjastoa,
 IK:ta tai studiota valmiiksi eikä osoita uuden hahmokaartin puheen laatua.
@@ -78,7 +88,7 @@ Jatkossa lisää kuvaselain, tiedostonvalitsimet ja palautus; testaa uuden
 projektin luominen, kahden hahmon sijoitus, tallennus ja uudelleenavaus.
 
 **Vaihe B — näyttely ja koominen rytmi.** Täydennä yhteensopivien rigien
-asentokirjaston kuvallista käyttöä ja käden/jalan kontakteja. Käytä uuden
+asentokirjaston kuvallista käyttöä, ajastettuja käsikontakteja ja jalan lukitusta. Käytä uuden
 hahmokaartin olemassa olevia suukarttoja oikean puheen kokeessa. Lisää sitten
 käyrät ja kuvakortit. Hyväksyntänä yksi 30–60 sekunnin kohtaus, jossa on
 ennakointi, vitsi, kuulijan reaktio, esinekontakti ja kolme tarkoituksellista

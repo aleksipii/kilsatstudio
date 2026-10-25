@@ -68,6 +68,36 @@ ennen tallentamista. Esimerkin avaaminen tyhjentää tallennuspolun.
 Kumoa palauttaa edellisen projektin käsikirjoituksen ja kuvituksen;
 anna tallennuspolku uudelleen tarvittaessa.
 
+Käsiesineet:
+
+Valitse näyttämön **Hahmot**-tila ja hahmo. Oikealla **Muokkaa → Esine käteen**
+avaa esineluettelon. Valitse esimerkiksi puhelin (näyttö, taka- tai vinonäkymä),
+kahvikuppi, kirja, avain, tabletti, kynä tai työkaluavain. Valitse **Vasen käsi**
+tai **Oikea käsi** ja paina **Kiinnitä käteen**. Esine seuraa käden, käsivarren,
+vartalon ja koko hahmon liikkeitä esikatselussa ja viennissä.
+
+**Säädä otetta** muuttaa X/Y-paikkaa, kiertoa ja kokoa käteen nähden.
+**Vaihda esine / ote** tallentaa uuden otteen. **Palauta oletusote** palauttaa
+vain säätimien luonnoksen; tallenna se painikkeella. **Poista käsiesine** poistaa
+tällä työkalulla lisätyn esineen. Hahmon alkuperäinen viikate, kirjoitusalusta,
+paketti tai kävelykeppi varaa oman kätensä: valitse toinen käsi.
+
+Ote muuttaa tämän hahmon rakennetta **kaikissa kohtauksissa**. Se ei tee
+esineen poimimiselle tai irrottamiselle ajastettua tapahtumaa. Pysäytä toisto
+ennen muokkausta. Yksi Kumoa peruu koko kiinnityksen, vaihdon tai poiston.
+
+Kamera ja kuvakoko:
+
+**Muokkaa → Kamera ja kuvakoko** tarjoaa **Yleiskuva**, **Hahmot samaan kuvaan**,
+**Puolikuva**, **Lähikuva** ja **Kädessä oleva esine** -painikkeet. Valitse hahmo
+ja vie toistopää haluttuun aikaan. Painike lisää tai korvaa kameran avainruudun
+tässä ajassa. Muut kameran avainruudut säilyvät; niiden väliin syntyy liike.
+Esinekuva tarvitsee valitun hahmon käteen tällä työkalulla kiinnitetyn esineen.
+Kumoa palauttaa edellisen rajauksen.
+
+Nämä ovat 2D-kuvan rajauksia ja zoomauksia. Puhelimen näyttö-, taka- ja vinonäkymä
+valitaan erillisinä esineinä esineluettelosta.
+
 ## 4. Animoi hahmo hiirellä
 
 Valitse näyttämön Hahmot-tila. Napsauta hahmoa tai sen nimeä vasemmalla.

@@ -17,7 +17,13 @@ const MAX_TOTAL_OUTPUT: usize = 256 * 1024 * 1024;
 #[derive(Debug, Deserialize)]
 struct Manifest {
     schema_version: u32,
+    #[serde(default = "legacy_pack_revision")]
+    pack_revision: u32,
     items: Vec<Item>,
+}
+
+fn legacy_pack_revision() -> u32 {
+    1
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -54,6 +60,7 @@ struct Exported {
 #[derive(Serialize)]
 struct Report {
     schema_version: u32,
+    pack_revision: u32,
     renderer: &'static str,
     source_hash_note: &'static str,
     items: Vec<Exported>,
@@ -78,8 +85,13 @@ fn expected_project(item: &Item) -> Result<String> {
 }
 
 fn validate_manifest(manifest: &Manifest) -> Result<()> {
-    if manifest.schema_version != 1 || manifest.items.len() != 24 {
-        return Err("asset manifest must use schema 1 and contain exactly 24 items".into());
+    let prop_count = match manifest.pack_revision {
+        1 => 14,
+        2 => 20,
+        _ => return Err("unsupported stick-studio pack revision".into()),
+    };
+    if manifest.schema_version != 1 || manifest.items.len() != 10 + prop_count {
+        return Err("asset manifest schema or revision item count differs".into());
     }
     let mut ids = BTreeSet::new();
     let mut counts = [0usize; 3];
@@ -115,9 +127,9 @@ fn validate_manifest(manifest: &Manifest) -> Result<()> {
         }
         counts[index] += 1;
     }
-    if counts != [6, 4, 14] {
+    if counts != [6, 4, prop_count] {
         return Err(
-            "asset manifest must contain six characters, four backgrounds and fourteen props"
+            "asset manifest must contain six characters, four backgrounds and its revision prop count"
                 .into(),
         );
     }
@@ -246,6 +258,7 @@ fn export(pack: &Path, output: &Path) -> Result<Report> {
     fs::create_dir(output)?;
     let mut items = Vec::new();
     let mut total = 0usize;
+    let pack_revision = manifest.pack_revision;
     for item in manifest.items {
         let (svg, png, transparent, visible) = render_item(pack, &item)?;
         total = total
@@ -280,6 +293,7 @@ fn export(pack: &Path, output: &Path) -> Result<Report> {
     }
     let report = Report {
         schema_version: 1,
+        pack_revision,
         renderer: "motion-project → motion-script → motion-scene → motion-render → resvg",
         source_hash_note: "SHA-256 values are declared by the pack manifest; this exporter does not independently verify them. Verify source hashes before packaging.",
         items,
@@ -316,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    fn all_twenty_four_native_projects_decode_evaluate_and_export_correct_alpha() {
+    fn all_native_projects_decode_evaluate_and_export_correct_alpha() {
         let root = pack();
         let manifest = load_manifest(&root).unwrap();
         for item in &manifest.items {
@@ -326,6 +340,333 @@ mod tests {
             assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");
             assert!(visible > 0, "{}", item.id);
             assert_eq!(transparent > 0, item.transparent, "{}", item.id);
+        }
+    }
+
+    fn raster(svg: &str, width: u32, height: u32) -> resvg::tiny_skia::Pixmap {
+        let tree = resvg::usvg::Tree::from_str(svg, &resvg::usvg::Options::default()).unwrap();
+        let mut pixels = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
+        resvg::render(
+            &tree,
+            resvg::tiny_skia::Transform::from_scale(
+                width as f32 / tree.size().width(),
+                height as f32 / tree.size().height(),
+            ),
+            &mut pixels.as_mut(),
+        );
+        pixels
+    }
+
+    /// Connected-component checks use the actual exported alpha, with no
+    /// dilation or relative-area exception that could hide a detached limb.
+    fn alpha_components(pixels: &resvg::tiny_skia::Pixmap) -> Vec<usize> {
+        let width = pixels.width() as usize;
+        let height = pixels.height() as usize;
+        let mut remaining: Vec<bool> = pixels
+            .data()
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|pixel| pixel[3] >= 32)
+            .collect();
+        let mut components = Vec::new();
+        for start in 0..remaining.len() {
+            if !remaining[start] {
+                continue;
+            }
+            remaining[start] = false;
+            let mut pending = vec![start];
+            let mut count = 0;
+            while let Some(index) = pending.pop() {
+                count += 1;
+                let x = index % width;
+                let y = index / width;
+                for ny in y.saturating_sub(1)..=(y + 1).min(height - 1) {
+                    for nx in x.saturating_sub(1)..=(x + 1).min(width - 1) {
+                        let next = ny * width + nx;
+                        if remaining[next] {
+                            remaining[next] = false;
+                            pending.push(next);
+                        }
+                    }
+                }
+            }
+            components.push(count);
+        }
+        components.sort_unstable_by(|a, b| b.cmp(a));
+        components
+    }
+
+    #[test]
+    fn all_six_silhouettes_remain_connected_through_bent_joint_poses() {
+        use serde_json::json;
+        let poses: [&[(&str, f64)]; 7] = [
+            &[],
+            &[
+                ("head", 0.35),
+                ("torso", 0.3),
+                ("upper_arm_l", 2.3),
+                ("forearm_l", -1.1),
+            ],
+            &[
+                ("head", -0.35),
+                ("torso", -0.3),
+                ("upper_arm_r", -2.3),
+                ("forearm_r", 1.1),
+            ],
+            &[
+                ("thigh_l", 0.7),
+                ("shin_l", -1.1),
+                ("thigh_r", -0.6),
+                ("shin_r", 0.9),
+            ],
+            &[
+                ("upper_arm_l", 1.3),
+                ("forearm_l", 1.4),
+                ("hand_l", -1.7),
+                ("upper_arm_r", -1.25),
+                ("forearm_r", -2.1),
+                ("hand_r", 3.51),
+            ],
+            &[
+                ("torso", 0.45),
+                ("upper_arm_l", -1.0),
+                ("upper_arm_r", 1.0),
+                ("thigh_l", -0.55),
+                ("shin_l", 1.0),
+            ],
+            &[
+                ("torso", -0.45),
+                ("upper_arm_l", 2.0),
+                ("upper_arm_r", -2.0),
+                ("thigh_r", 0.55),
+                ("shin_r", -1.0),
+            ],
+        ];
+        let root = pack();
+        let manifest = load_manifest(&root).unwrap();
+        for item in manifest
+            .items
+            .iter()
+            .filter(|item| item.kind == "character")
+        {
+            let project =
+                motion_project::decode(&fs::read(root.join(&item.project)).unwrap()).unwrap();
+            let original: serde_json::Value = serde_json::from_str(&project.source).unwrap();
+            let actor_id = original["characters"]
+                .as_object()
+                .unwrap()
+                .keys()
+                .next()
+                .unwrap()
+                .clone();
+            for (pose_index, offsets) in poses.iter().enumerate() {
+                let mut value = original.clone();
+                let composition = &mut value["scenes"][0]["composition"];
+                composition["camera"] = json!([{"at":0,"x":0,"y":0,"zoom":1}]);
+                // Keep even the reaper's long staff inside the test canvas.
+                composition["actor_tracks"] =
+                    json!({actor_id.clone():[{"at":0,"y":-110,"scale_x":1.1,"scale_y":1.1}]});
+                let mut tracks: serde_json::Map<String, serde_json::Value> = offsets
+                    .iter()
+                    .map(|(joint, rotation)| {
+                        ((*joint).to_owned(), json!([{"at":0,"rotation":rotation}]))
+                    })
+                    .collect();
+                if tracks.is_empty() {
+                    tracks.insert("root".into(), json!([{"at":0}]));
+                }
+                composition["joint_tracks"] = json!({actor_id.clone():tracks});
+                let script = motion_script::parse(&value.to_string()).unwrap();
+                let scene = motion_scene::evaluate(&script, 0, 0.0).unwrap();
+                let svg = motion_render::render_svg_with_art_transparent(
+                    &scene,
+                    item.export_width,
+                    item.export_height,
+                    &[],
+                    &script.scenes[0].id,
+                    &project.art,
+                    &BTreeMap::new(),
+                )
+                .unwrap();
+                let pixels = raster(&svg, item.export_width, item.export_height);
+                let components = alpha_components(&pixels);
+                let substantial = components.iter().filter(|count| **count > 4).count();
+                let dust: usize = components.iter().filter(|count| **count <= 4).sum();
+                assert_eq!(
+                    substantial, 1,
+                    "{} pose {pose_index}: detached silhouette components {components:?}",
+                    item.id
+                );
+                assert!(
+                    dust <= 16,
+                    "{} pose {pose_index}: excess detached pixels {dust}",
+                    item.id
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn held_phone_follows_hand_ancestors_root_and_camera_and_matches_native_preview() {
+        use serde_json::json;
+        use std::sync::Arc;
+        let project =
+            motion_project::decode(&fs::read(pack().join("stick-studio.kilsat")).unwrap()).unwrap();
+        let original: serde_json::Value = serde_json::from_str(&project.source).unwrap();
+        for (torso, shoulder, elbow, wrist, root_rotation, sx, sy, cx, cy, zoom) in [
+            (0.0, 0.0, 0.0, 0.0, 0.0_f64, 1.0, 1.0, 0.0, 0.0, 1.0),
+            (
+                0.23, -1.25, -2.1, 3.51, -0.17, 1.6, 1.2, -310.0, -105.0, 2.6,
+            ),
+            (-0.31, 0.8, 1.0, -0.6, 0.37, 1.1, 1.7, 220.0, -80.0, 1.8),
+        ] {
+            let offsets = BTreeMap::from([
+                ("torso", torso),
+                ("upper_arm_r", shoulder),
+                ("forearm_r", elbow),
+                ("hand_r", wrist),
+            ]);
+            let mut value = original.clone();
+            let composition = &mut value["scenes"][0]["composition"];
+            composition["camera"] = json!([{"at":0,"x":cx,"y":cy,"zoom":zoom}]);
+            composition["joint_tracks"] = json!({"VEIKKO":offsets.iter().map(|(joint,rotation)| ((*joint).to_owned(),json!([{"at":0,"rotation":rotation}]))).collect::<serde_json::Map<_,_>>()});
+            composition["actor_tracks"] = json!({"VEIKKO":[{"at":0,"x":-80,"y":-75,"rotation":root_rotation,"scale_x":sx,"scale_y":sy}]});
+            value["scenes"][0]["events"] = json!([]);
+            let script = motion_script::parse(&value.to_string()).unwrap();
+            let rig = script.characters["VEIKKO"].rig.as_ref().unwrap();
+            let held: Vec<_> = rig
+                .parts
+                .iter()
+                .filter(|part| part.id.starts_with("heldprop_r_"))
+                .collect();
+            assert!(
+                held.iter().any(|part| part.id == "heldprop_r_puhelin_case"),
+                "starter must demonstrate an actual hand-bound phone"
+            );
+            assert!(held.iter().all(|part| part.joint == "hand_r"));
+            let mut matrices: BTreeMap<&str, motion_rig::Affine2> = BTreeMap::new();
+            // Independent parent-by-parent FK expectation, rather than copying
+            // the evaluated wrist or another renderer's already posed points.
+            for joint in &rig.joints {
+                let local = motion_rig::Transform2 {
+                    translation: motion_rig::Vec2::new(joint.x, joint.y),
+                    rotation: joint.rotation
+                        + offsets.get(joint.id.as_str()).copied().unwrap_or(0.0),
+                    scale: motion_rig::Vec2::new(joint.scale_x, joint.scale_y),
+                }
+                .affine();
+                let world = joint
+                    .parent
+                    .as_deref()
+                    .map_or(local, |parent| matrices[parent].compose(local));
+                matrices.insert(&joint.id, world);
+            }
+            let scene = motion_scene::evaluate(&script, 0, 0.0).unwrap();
+            let actor = scene
+                .actors
+                .iter()
+                .find(|actor| actor.id == "VEIKKO")
+                .unwrap();
+            for definition in held {
+                let evaluated = actor
+                    .rigid_parts
+                    .iter()
+                    .find(|part| part.id == definition.id)
+                    .unwrap();
+                let points: Vec<[f64; 2]> = definition.ellipse.map_or_else(
+                    || definition.points.clone(),
+                    |ellipse| {
+                        (0..motion_rig::ELLIPSE_SEGMENTS)
+                            .map(|index| {
+                                let angle = std::f64::consts::TAU * index as f64
+                                    / motion_rig::ELLIPSE_SEGMENTS as f64;
+                                [
+                                    ellipse.cx + ellipse.rx * angle.cos(),
+                                    ellipse.cy + ellipse.ry * angle.sin(),
+                                ]
+                            })
+                            .collect()
+                    },
+                );
+                assert_eq!(
+                    definition.smooth, 0,
+                    "held geometry must preserve its grip outline"
+                );
+                assert_eq!(points.len(), evaluated.points.len());
+                for (point, actual) in points.iter().zip(&evaluated.points) {
+                    let expected =
+                        matrices["hand_r"].point(motion_rig::Vec2::new(point[0], point[1]));
+                    assert!(
+                        (expected.x - actual.x).abs() < 1e-8
+                            && (expected.y - actual.y).abs() < 1e-8,
+                        "{}: phone or fingers lost hand FK",
+                        definition.id
+                    );
+                    let (s, c) = root_rotation.sin_cos();
+                    let wx = actor.x + c * sx * expected.x - s * sy * expected.y;
+                    let wy = actor.y + s * sx * expected.x + c * sy * expected.y;
+                    let world = actor.local_to_world(motion_scene::Vec2::new(actual.x, actual.y));
+                    let projected =
+                        scene
+                            .camera
+                            .project(world.x, world.y, scene.width, scene.height);
+                    let expected_screen = (
+                        960.0 + (wx - 960.0 - cx) * zoom,
+                        540.0 + (wy - 540.0 - cy) * zoom,
+                    );
+                    assert!(
+                        (projected.0 - expected_screen.0).abs() < 1e-8
+                            && (projected.1 - expected_screen.1).abs() < 1e-8
+                    );
+                }
+            }
+            let art = motion_export::ArtContext {
+                document: project.art.clone(),
+                ..Default::default()
+            };
+            let preview =
+                motion_export::ScenePreview::new(Arc::new(script.clone()), 0, Arc::new(art), None)
+                    .unwrap();
+            let rgba = preview
+                .render(0, 640, &motion_tts::CancellationToken::new())
+                .unwrap();
+            let svg = motion_render::render_svg_with_art(
+                &scene,
+                scene.width,
+                scene.height,
+                &[],
+                &script.scenes[0].id,
+                &project.art,
+                &BTreeMap::new(),
+            )
+            .unwrap();
+            assert_eq!(rgba.rgba, raster(&svg, rgba.width, rgba.height).data());
+        }
+    }
+
+    #[test]
+    fn pack_revisions_are_explicit_and_legacy_asset_exports_still_work() {
+        let original: serde_json::Value =
+            serde_json::from_slice(&fs::read(pack().join("manifest.json")).unwrap()).unwrap();
+        let mut legacy = original.clone();
+        legacy.as_object_mut().unwrap().remove("pack_revision");
+        let mut props = 0;
+        legacy["items"].as_array_mut().unwrap().retain(|item| {
+            if item["kind"] == "prop" {
+                props += 1;
+                props <= 14
+            } else {
+                true
+            }
+        });
+        let parsed: Manifest = serde_json::from_value(legacy).unwrap();
+        assert_eq!(parsed.pack_revision, 1);
+        validate_manifest(&parsed).unwrap();
+        for revision in [0, 3, u32::MAX] {
+            let mut invalid = original.clone();
+            invalid["pack_revision"] = serde_json::json!(revision);
+            assert!(validate_manifest(&serde_json::from_value(invalid).unwrap()).is_err());
         }
     }
 
