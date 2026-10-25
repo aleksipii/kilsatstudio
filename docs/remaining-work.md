@@ -6,15 +6,26 @@ in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
 
-## Finnish desktop follow-up
+## Current Finnish desktop status — PR #96 merged
 
-The active `feat/finnish-desktop-completion` branch localizes the remaining
-desktop panels and camera helper, corrects the displayed mouth provenance and
-updates the embedded Finnish guide. Local desktop/Python/strict workspace checks
-pass; combined CI and merge are still required. Backend technical details,
-MotionScript keys and user data deliberately keep their original identifiers.
+PR #96 merged into main as `3a33b6f11e2b0ba611ea7a1f8e94d2ec3b43b70b`.
+Finnish controls, guidance and display names now cover the advanced desktop tools
+and camera helper, with a corrected prepared-mouth provenance display and an
+updated embedded guide. Main Linux/macOS, GPU/media and Mac packaging CI passed:
+**825/824 Rust**, **55 runtime + 121 repository Python** per platform,
+**49 GPU library + 2 probe tests** per platform and **four real FFmpeg tests**.
+Eight default Rust tests and four physical GPU tests per platform remain ignored.
+Exact source identities and check links are in [master-progress](master-progress.md).
 
-## Current status (PR #95 merged into main)
+[Download the current Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149/artifacts/12592070238).
+Unzip both the artifact and its contained app ZIP, then open Kilsat Studio
+Preview.app in Finder. The application does not launch from the download button.
+Use **Ohjeet** for the [Finnish guide](../apps/studio-desktop/KAYTTOOHJE.md).
+The app is ad-hoc signed; physical Mac and production release acceptance remain
+open. Backend technical details, MotionScript keys and user data retain their
+canonical identifiers.
+
+## Production baseline (PR #95 merged into main)
 
 [Production integration](production-integration.md) now includes measured-audio
 directing/acting/camera, real local Finnish speech, reviewed continuous head-tilt
@@ -42,8 +53,9 @@ Remaining acceptance work is concrete:
   environment. Tooling and CI never grant these rights.
 - Review GPU fixtures and device performance on actual Metal hardware before
   treating GPU preview/export as production accepted.
-- Finish localization of the remaining advanced tools and raw backend diagnostics;
-  the main workflow and twelve-topic offline guide are in Finnish.
+- Review Finnish wording, discoverability and accessibility with a user on a
+  physical Mac. Controls and the twelve-topic offline guide are now Finnish;
+  original backend technical diagnostics retain their canonical details.
 
 The tables and dated increments below preserve the earlier audit history.
 

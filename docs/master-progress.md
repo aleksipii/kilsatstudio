@@ -7,15 +7,18 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
-## Finnish desktop completion (2026-10-25)
+## Finnish desktop completion — PR #96 merged (2026-10-25)
 
-Branch `feat/finnish-desktop-completion` completes Finnish controls, guidance,
-status/error context and enum display names across the desktop's scene, speech,
-timing, rig/clip, artwork, sequence, export, GPU and performance panels. The camera
-helper's purpose/usage/errors and bundled permission description are also Finnish.
-Protocol/serialization keys, stored IDs, source examples and exact backend error
-details are preserved. Six agents owned separate modules; the parent integrated
-the main workspace, truthful mouth-source display, user guide and checks.
+[PR #96](https://github.com/aleksipii/kilsatstudio/pull/96) was normally merged as
+`3a33b6f11e2b0ba611ea7a1f8e94d2ec3b43b70b`, from final source
+`111f13c911805df07dabefda0d089fa236ce5028`. It completes Finnish controls,
+guidance, status/error context and enum display names across the desktop's scene,
+speech, timing, rig/clip, artwork, sequence, export, GPU and performance panels.
+The camera helper's purpose/usage/errors and bundled permission description are
+also Finnish. Protocol/serialization keys, stored IDs, source examples and exact
+backend error details are preserved. Six agents owned separate modules; the
+parent integrated the main workspace, truthful mouth-source display, user guide
+and checks.
 
 An absent imported alignment no longer falsely reports a resting mouth when a
 text estimate is actually prepared. The UI uses `DialogueClip::mouth_source()`;
@@ -28,10 +31,37 @@ excluded locally), 121 repository Python tests passed, and strict all-target,
 all-feature workspace checking passed. Actual egui meshes were captured and
 visually inspected at 1440x900; existing minimum-window checks remain. Serde
 attributes and raw fixture literals were compared unchanged; the camera's
-non-string code is unchanged. Combined CI and main integration are next. These
-checks do not grant physical-Mac, artistic, lip-sync-quality or release acceptance.
+non-string code is unchanged.
 
-## Current production integration — PR #95 merged (2026-10-24)
+Final-source [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40136324331)
+and [Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40136324321)
+passed before merge. Merged-source main
+[Rust/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527148)
+and [Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149)
+also passed. Both source and main runs passed **825 Linux / 824 macOS Rust
+tests**, with **eight default-ignored tests** each, **55 runtime + 121 repository
+Python tests** per platform, **49 GPU library + 2 probe tests** per platform
+(four physical GPU tests ignored) and **four explicitly executed real FFmpeg
+tests**. Format, workspace check and strict Clippy passed. The native Swift
+camera helper was built and its no-camera help/invalid-argument checks passed;
+the packaged archive and build/linkage evidence were checked.
+
+[Download the current main Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149/artifacts/12592070238).
+GitHub artifact `12592070238` has archive digest
+`sha256:f9e12e11c3eee8daa9549b9d0b8f175a2fb1ca249523502ea6099a49f537abad` and expires on 2026-11-08.
+Unzip the outer artifact and its contained application ZIP, then open
+**Kilsat Studio Preview.app** in Finder. Downloading does not launch it.
+The [twelve-topic Finnish guide](../apps/studio-desktop/KAYTTOOHJE.md) is embedded
+under **Ohjeet**. Finnish synthesis requires a configured local Piper profile or
+explicit WAVs. The preview is ad-hoc signed; Developer ID/notarization remain
+open. This status-only documentation update preserves the checked source bytes.
+
+Still open: physical Mac GUI/audio/camera and signing acceptance, manual
+real-speech lip-sync annotations/listening, artistic/comic-timing review, an
+approved real Kilsat screen capture, final upstream/asset/dependency rights and
+production GPU/device acceptance. M1–M6 whole-product acceptance is not granted.
+
+## Production integration — PR #95 baseline (2026-10-24)
 
 Main now integrates the outlined,
 rounded rigs from PR #89 and implements measured-audio direction with reaction
