@@ -183,7 +183,13 @@ def render(season: Path, exporter: Path, profile: Path, ffmpeg: Path,
                        "--ffprobe", identity["tools"]["ffprobe"]["path"],
                        "--output", str(directory), "--report", str(measurement_path),
                        "--retime-dialogue"]
-            run_bounded(command, logs, f"{stem}-pipeline", 330)
+            try:
+                run_bounded(command, logs, f"{stem}-pipeline", 330)
+            except ValueError:
+                if measurement_path.is_file():
+                    failure = read_json(measurement_path)
+                    raise ValueError(f"{stem} failed: {failure.get('error', 'see the measured pipeline report')}") from None
+                raise
             measured = read_json(measurement_path)
             if (measured.get("status") != "completed"
                     or measured.get("verdict", {}).get("media_valid") is not True

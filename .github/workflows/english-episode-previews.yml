@@ -83,11 +83,39 @@ jobs:
           PY
           cp services/kokoro-runtime/setup-manifest.json "$ENGLISH_OUTPUT/evidence/"
           cp "$KOKORO_ROOT/evidence/"*.json "$KOKORO_ROOT/evidence/freeze.txt" "$ENGLISH_OUTPUT/evidence/"
+      - name: Retain the verified environment for subsequent render attempts
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.KOKORO_ROOT }}
+          key: english-episodes-kokoro-v1-${{ runner.os }}-${{ runner.arch }}-py${{ steps.python.outputs.python-version }}-${{ hashFiles('services/kokoro-runtime/setup-manifest.json') }}
       - name: Ensure local media encoders
         run: command -v ffmpeg && command -v ffprobe || brew install ffmpeg
       - name: Render three real English Full HD episodes
+        id: render
         run: |
           python3 scripts/render_kilsat_english.py --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --kokoro-config "$ENGLISH_OUTPUT/kokoro-profile.json" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --output "$ENGLISH_OUTPUT/videos"
+      - name: Retain the exact inference traceback after a render failure
+        if: failure() && steps.render.outcome == 'failure'
+        timeout-minutes: 3
+        run: |
+          "$KOKORO_ROOT/venv/bin/python" - <<'PY' 2>&1 | tee "$ENGLISH_OUTPUT/inference-diagnostic.txt"
+          import importlib.util, json, os, tempfile, traceback
+          from pathlib import Path
+          spec = importlib.util.spec_from_file_location('runtime', 'services/kokoro-runtime/runtime.py')
+          runtime = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(runtime)
+          root = Path(os.environ['KOKORO_ROOT'])
+          line = json.loads(Path('examples/kilsat-english/stories.json').read_text())['episodes'][0]['turns'][0]
+          with tempfile.TemporaryDirectory() as temporary:
+              request = dict(protocol=1, request=dict(text=line, voice=dict(preset='af_heart', language='en-us', speed=1.0)),
+                             config_path=str(root / 'assets/config.json'), model_path=str(root / 'assets/kokoro-v1_0.pth'),
+                             voice_path=str(root / 'assets/voices/af_heart.pt'), output_path=str(Path(temporary) / 'diagnostic.wav'))
+              try:
+                  print(runtime.synthesize(request))
+              except Exception:
+                  traceback.print_exc()
+          PY
       - name: Extract actual video review frames
         run: |
           for episode in ep01 ep02 ep03; do
