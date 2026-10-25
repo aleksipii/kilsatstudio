@@ -18,7 +18,7 @@
     "background": 4,
     "prop": 14
   },
-  "source_identity_sha256": "32f7c3c71e256ec8a9e843b1f8c20ea32e3f95ead682a16afdffc4289b2d4f81",
+  "source_identity_sha256": "76dcc14a73dab3c0c82881de9c0fcedd9554054040c2d217ffd9ba2b2464dcd9",
   "video": {
     "observed": {
       "frame_count": 720,
@@ -34,12 +34,12 @@
     "sha256": {
       "sequence.mp4": "7d5c4b59bb036482a39463762d7ea1d32249c0dab14c286fbc712f44fc10a275",
       "audio.wav": "22a4da1b6841f7db580ce7f434cb659e7f7d4b0ec326c8ce3b0b8c333bc05e26",
-      "pipeline-report.json": "d0373d24f329ee8b711756530e430a84d6a6366702e0269c84228288d7a3d474"
+      "pipeline-report.json": "8970fc11511017bdae5e8973ece33cef041634a03c896f0728a073c3282cd903"
     }
   },
-  "elapsed_asset_video_probe_package_seconds": 46.34460522199993,
+  "elapsed_asset_video_probe_package_seconds": 38.85484095799984,
   "catalog_sha256": "afabb9ef690ce93e5d88aa70be57b70e81486c401f015e0e3b6ac8bdadb17acc",
-  "archive_sha256": "3d22f0370dd55b9ab06ebe8f1797b512aece196f5fdcc67ab84a7a08598522f8",
+  "archive_sha256": "3b8283b46fffbc8527a7f9155de8de5d18ab4f26d0a591df4f119276b03617b5",
   "checks": {
     "desktop_passed": 259,
     "desktop_host_excluded": 1,
@@ -54,7 +54,9 @@
     "physical_mac_review": false,
     "artistic_review": false,
     "speech_quality_measured": false,
-    "publication_approved": false
+    "publication_approved": false,
+    "starter_tests_after_core_budget_fix_passed": 6,
+    "core_direction_tests_passed": 16
   },
   "visual_review": "All 24 native exported assets and all six mid-shot review frames inspected; no human artistic acceptance inferred."
 }

@@ -7,7 +7,11 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
-## Editable stick studio asset pack — integration in progress (2026-10-25)
+## Editable stick studio asset pack — PR #98 merged (2026-10-25)
+
+[PR #98](https://github.com/aleksipii/kilsatstudio/pull/98) merged as
+`bc81fd21dd6dfc2627ad35ce633c38b22eff5223` from final source
+`16dc6f8e83254019ef2a339276f0a935237ff281` after all final-source checks passed.
 
 The [starter pack](../examples/stick-studio/README.md) adds six original custom
 rigs: Noutaja the Grim Reaper, Veikko the commuter, Päsmä the boss, Kipinä the
@@ -33,7 +37,7 @@ Packaging verifies source/tool hashes, alpha reports, all image dimensions and
 independently probes/fully decodes the real H.264/AAC showcase. The actual local
 video has **720 frames / 30.000 seconds**, with exactly 720,000 zero PCM samples;
 it is deliberately silent, with no synthesized speech or model downloads.
-The local asset/video/probe/package stage took **46.345 seconds**; this is not a
+The final local asset/video/probe/package stage took **38.855 seconds**; this is not a
 physical-Mac or cold-start production benchmark. All six review frames and the
 24-asset contact sheet were visually inspected for framing and readability.
 
@@ -43,9 +47,7 @@ asset-export tests (including changed pixels confined to each configured mouth).
 The first broad local Rust run hit two existing recognizer-enrollment tests that
 need unavailable host `/proc` data. Remaining crate/target tests passed with
 those two and the existing desktop exact-cache enrollment test excluded locally;
-normal CI keeps all three enabled. Main integration, unfiltered Linux/macOS,
-GPU/media checks, Mac packaging and the dedicated asset/video workflow still
-need their actual CI results recorded here after success.
+all three passed unfiltered in normal CI.
 
 Final review caught the core directors retaining their own 100 KB guards; the
 shared core/editor constant fixes that second boundary too. All three director
@@ -53,6 +55,39 @@ entry points now accept the actual normalized six-rig starter and reject one
 byte above the bound before parsing. Six targeted starter tests, 16 core direction
 tests and refreshed workspace/all-target/all-feature strict Clippy passed after
 that fix. The asset guide also uses the actual Hahmot/Kuvitus workspace labels.
+
+Final-source [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40215469157),
+[Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40215469059)
+and [native asset/video export](https://github.com/aleksipii/kilsatstudio/actions/runs/40215469193)
+all passed: **839 Linux / 838 macOS Rust** tests with eight default-ignored tests
+per OS, **55 runtime Python** tests and **140 passed / one skipped repository
+Python** tests per OS, **52 GPU library +
+two probe tests** per OS (four physical GPU tests ignored), and **four actual
+FFmpeg tests**. Core director limits, all six configured mouths and normal
+normalized-source editing were exercised on the final source.
+
+Merged main [Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189692),
+[native asset/video export](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189597)
+and [broad verification](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189665)
+all passed with the same Rust, Python, GPU and real-media counts. The skipped
+Python test needs FFmpeg/ffprobe, absent from the general test jobs; the separate
+media job executed all four actual Rust FFmpeg tests successfully. The integrator downloaded main
+[asset artifact 12608190948](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189597/artifacts/12608190948),
+verified its outer archive digest and all declared project/image/video hashes,
+then independently probed and fully decoded its 720-frame / 30-second Full HD
+H.264/AAC video. All 48 native images and six review PNGs are byte-identical to
+the visually inspected local exports. The main CI asset/video/probe/package
+stage took **39.047 seconds**, excluding compilation. This is an Ubuntu CI
+observation, not a physical Mac benchmark. [Exact evidence](evidence/stick-studio-ci.json)
+records the source, merge and artifact identities separately from acceptance.
+
+The [new main Apple Silicon app](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189692/artifacts/12608086135)
+includes the embedded starter and corrected source budget. Unzip the GitHub
+artifact and its contained app ZIP, open the app in Finder, and choose
+**Tikku-ukkostudio** in the left project panel. Packaging, helper compilation,
+ad-hoc signing, inventory and executable linkage checks passed; no physical GUI,
+camera, audio-device or production notarization acceptance is inferred.
+This final documentation/evidence record changes no checked application source.
 
 The [professional studio roadmap](professional-studio-next.md) prioritizes a
 thumbnail/search library and recovery, visual IK/contact/curve/shot tools and
