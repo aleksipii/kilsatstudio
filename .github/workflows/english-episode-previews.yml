@@ -62,7 +62,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p "$ENGLISH_OUTPUT"
-          python3 -I services/kokoro-runtime/setup_kokoro.py --root "$KOKORO_ROOT" --manifest services/kokoro-runtime/setup-manifest.json --allow-downloads > "$ENGLISH_OUTPUT/setup-log.jsonl"
+          python3 -I services/kokoro-runtime/setup_kokoro.py --root "$KOKORO_ROOT" --manifest "$GITHUB_WORKSPACE/services/kokoro-runtime/setup-manifest.json" --allow-downloads > "$ENGLISH_OUTPUT/setup-log.jsonl"
       - name: Re-verify model, voices and retained environment evidence
         run: |
           mkdir -p "$ENGLISH_OUTPUT/evidence"
