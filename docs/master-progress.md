@@ -7,6 +7,19 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Three English episodes (2026-10-25)
+
+The `feat/english-kilsat-episodes` increment adds three original English
+Aino/Rane adaptations, English captions and an English EXAMPLE mileage-log prop,
+with the existing original rigs/sets and 1920x1080/24fps/30–60s source profile.
+The 31 Finnish projects are unchanged. [Scripts and render instructions](kilsat-english.md)
+describe the new pack. Actual speech uses explicit local Kokoro af_heart and
+am_michael voices with en-us requests. The bounded runner reuses the production
+exporter and independent media checks, binds model/voice/source/tool hashes and
+checks actual rendered dialogue provenance. Source manifests do not claim media
+has already been produced. The first real-English CI render and integration are
+pending; quality, rights, approved Kilsat capture and physical-device gates stay open.
+
 ## Finnish desktop completion — PR #96 merged (2026-10-25)
 
 [PR #96](https://github.com/aleksipii/kilsatstudio/pull/96) was normally merged as

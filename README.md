@@ -32,6 +32,8 @@ not complete their redistribution review; see the
   pipeline. See [Full HD](docs/fullhd-performance.md) and [integration evidence](docs/production-integration.md).
 - Open the [31 original Finnish episode projects](examples/kilsat-season/KAUSI.md)
   or use the [checked season/compilation runner](docs/kilsat-season.md).
+- Open the [three English Aino/Rane episodes](docs/kilsat-english.md), with English
+  Kokoro voice bindings, captions and an explicit Full HD rendering workflow.
 
 - Reference authored clips as ordered live bone layers with activation windows, fades and optional local weight curves; see [live clip blending](docs/live-clip-blending.md).
 

@@ -13,6 +13,13 @@ and numpy ranges are development constraints, **not a redistribution lockfile**.
 A release must lock/test its entire environment for macOS arm64 and audit all
 runtime and phonemizer licenses. Keep all model weights outside Git.
 
+The managed setup and development requirements pin `preshed==3.0.13` after an
+actual Apple Silicon English run failed in spaCy tokenizer cache initialization
+with 3.0.14. This matches the [upstream cross-platform regression](https://github.com/explosion/spaCy/issues/14058).
+Rebuild an affected environment from the updated setup manifest so its freeze
+and retained evidence reflect the corrected dependencies; editing the recorded
+identity of an old environment does not repair it.
+
 Configure `KokoroConfig` with absolute local paths and `model_version` containing
 an immutable upstream revision plus the installed dependency lock digest. The
 provider also hashes actual model/config/voice/runtime bytes, text, language,

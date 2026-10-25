@@ -1,5 +1,9 @@
 # Kilsat-kauden lähdeprojektit ja paikallinen renderöinti
 
+Kolme englanninkielistä Aino–Rane-jaksoa ovat erillisessä
+[englannin jaksojen paketissa](kilsat-english.md): puhe, tekstitys ja Kilsat-
+esimerkkikuva ovat englanniksi. Alla oleva 31 jakson kausi säilyy suomenkielisenä.
+
 Kausi on uusi alkuperäinen suomenkielinen satiiri, jossa samaistuttava Aino ja
 omasta erinomaisuudestaan vakuuttunut Rane käsittelevät ajamista, työelämää ja
 ajopäiväkirjaa. Lähdeaineisto sisältää 31 erikseen kirjoitettua tarinaa,
