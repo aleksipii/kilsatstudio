@@ -2191,7 +2191,7 @@ Yksi desktop-testi rajattiin paikallisesti puuttuvan /proc-tiedoston vuoksi;
 CI ajetaan rajaamatta. Koko workspacen 850 yksittäistä Rust-testiä läpäisivät;
 kolme /proc-riippuvaista testiä rajattiin paikallisesti. Yksi viallinen
 käännösvälimuistin suoritettava tiedosto rakennettiin uudelleen ja loput
-paketit ajettiin erikseen. PR:n ja mainin CI ovat tässä kirjaushetkessä kesken. Todellinen MP4 tarkistettiin: 1920×1080, 24 fps,
+paketit ajettiin erikseen. PR #99 ja mainin kaikki CI-ajot läpäisivät; tarkat ajot ja artifactit ovat alla. Todellinen MP4 tarkistettiin: 1920×1080, 24 fps,
 720 ruutua / 30 s, täysi dekoodaus ja 720 000 nollasamplea. Natiivit sisältökuvat,
 kuusi taivutuskuvaa ja kuusi lopullista kohtausta tarkastettiin kuvallisesti.
 Tarkat paikalliset tiedot: [stick-studio-v2-local.json](evidence/stick-studio-v2-local.json).
@@ -2205,3 +2205,50 @@ Paketin arkistointi rajattiin valmiisiin toimituskansioihin ja tiedostoihin.
 Renderöinnin väliaikaiset työpuut eivät päädy jaettavaan ZIPiin; tuntematon
 toimituksen juuritiedosto tai väärä tiedostolaji estää arkistoinnin.
 Kaksi lisäregressiota tarkistaa nämä rajat.
+
+
+### PR #99 ja mainin tarkistettu toimitus
+
+[PR #99](https://github.com/aleksipii/kilsatstudio/pull/99) yhdistettiin mainiin
+commitilla `43e92a6cfb5287a562838269bfd9e5a494569ce7`. Sen tree vastaa
+paikallisesti tarkistettua lähdepuuta. PR:n kaikki viisi push/PR-ajoa ja
+mainin kaikki kolme työnkulkua valmistuivat onnistuneesti:
+
+- [Audio foundation](https://github.com/aleksipii/kilsatstudio/actions/runs/40239796240):
+  Linux 853 ja macOS 852 Rust-testiä läpäisi; kummallakin kahdeksan oletuksena
+  ohitettua testiä. Runtime-testit 55/55 kummallakin. Repositorion Python-testejä
+  ajettiin 146: 145 läpäisi, yksi FFmpeg/ffprobea tarvitseva testi ohitettiin
+  yleisessä testityössä. Erillinen oikean median työ läpäisi kaikki neljä
+  Rust/FFmpeg-testiä. GPU-työssä 52 kirjastotestiä ja kaksi probe-testiä
+  läpäisi kummallakin käyttöjärjestelmällä; neljä fyysisen GPU:n testiä jäi
+  oletuksena ohitetuksi. Rustfmt, check ja tiukka Clippy läpäisivät.
+- [Apple Silicon -paketointi](https://github.com/aleksipii/kilsatstudio/actions/runs/40239796225):
+  valmis arm64/macOS 13+ -sovellus, artifact `12616766597`. Ladatun ulomman
+  ZIPin tiiviste tarkistettiin. Sisempi sovellus-ZIP on
+  `1c3b57f9317b64f84042e223edbf81416b3b38527d63b353d47f6115eee26964`.
+  Alkuperäiset ZIP-tavut, suoritusoikeudet ja allekirjoitusmetadata säilyivät.
+  Mach-O/arm64, build-commit ja lisenssi tarkistettiin. Sovelluksen binäärissä
+  olevat malliprojekti ja käsiesineluettelo vastaavat täsmälleen mainin tavuja.
+  Paikallinen pakettiauditointi läpäisi; tämä ei ole notarisointi tai
+  fyysisen Macin käyttökokeen hyväksyntä.
+- [Sisältö- ja videopaketti](https://github.com/aleksipii/kilsatstudio/actions/runs/40239796213):
+  artifact `12616582079` ladattiin ja sen ulompi ZIP tarkistettiin. Kaikki
+  34 kanonista lähdetiivistettä ja 60 PNG/SVG-tiivistettä vastaavat paikallisesti
+  katsottuja lähteitä ja kuvia. Jaettavassa ZIPissä on yksi valmis MP4,
+  ei renderöinnin väliaikaisia työpuita. Oikean main-MP4:n erillinen tarkistus
+  vahvisti 720 ruutua, 30 s, 1920×1080, 24 fps, täyden dekoodauksen ja
+  720 000 nollasamplea. Main-videon SHA-256 on
+  `9993c3df6b47793eeed06d6ba744b4dbdae3fae50c1bc19b08e2c9b51cb8663d`.
+
+Paikallisen jaettavan sisältö-ZIPin tiiviste on
+`38eb6ca8d34be2c503419afcbaa45a0ed6f3b2c5f590f2d3d5f3e9969109a634`;
+se sisältää lisäksi natiiveista kuvista kootun kuvaston. Sen lähteet ja
+60 sisältökuvaa vastaavat tarkistettua main-artifactia. Kuuden kohtauksen
+äänetön esittely ja muokattavat projektit ovat mukana.
+Koneelliset havainnot: [stick-studio-v2-ci.json](evidence/stick-studio-v2-ci.json).
+
+Tämä loppukirjaus muuttaa vain dokumentaatiota ja testitodisteita.
+Tarkistetun sovelluksen ja sisältöprojektien tavut säilyvät samoina.
+Fyysisen Macin käyttö-, ääni-, kamera- ja Metal-hyväksyntä, ajastetut kontaktit,
+IK/jalkalukitus, taiteellinen/puheen laatukatselmus sekä tuotantoallekirjoitus,
+notarisointi ja lopullinen oikeustarkistus jäävät avoimiksi.

@@ -1,0 +1,328 @@
+{
+  "schema_version": 1,
+  "pull_request": {
+    "number": 99,
+    "url": "https://github.com/aleksipii/kilsatstudio/pull/99",
+    "source_head": "15717b4f689efd80d91dd38bba687e809fe2d620",
+    "runs": [
+      {
+        "id": 40239048161,
+        "name": "macOS practical preview",
+        "event": "pull_request",
+        "head_sha": "15717b4f689efd80d91dd38bba687e809fe2d620",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239048161"
+      },
+      {
+        "id": 40239048281,
+        "name": "Stick studio asset pack",
+        "event": "pull_request",
+        "head_sha": "15717b4f689efd80d91dd38bba687e809fe2d620",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239048281"
+      },
+      {
+        "id": 40239048162,
+        "name": "Audio foundation",
+        "event": "pull_request",
+        "head_sha": "15717b4f689efd80d91dd38bba687e809fe2d620",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239048162"
+      },
+      {
+        "id": 40239044941,
+        "name": "Stick studio asset pack",
+        "event": "push",
+        "head_sha": "15717b4f689efd80d91dd38bba687e809fe2d620",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239044941"
+      },
+      {
+        "id": 40239044891,
+        "name": "Audio foundation",
+        "event": "push",
+        "head_sha": "15717b4f689efd80d91dd38bba687e809fe2d620",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239044891"
+      }
+    ],
+    "job_observations": [
+      {
+        "job_id": 121306741494,
+        "name": "gpu-contracts (ubuntu-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 54,
+          "failed": 0,
+          "ignored": 4
+        },
+        "python": [],
+        "skipped_lines": []
+      },
+      {
+        "job_id": 121306741646,
+        "name": "rust (ubuntu-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 853,
+          "failed": 0,
+          "ignored": 8
+        },
+        "python": [
+          {
+            "ran": 55,
+            "passed": 55,
+            "skipped": 0
+          },
+          {
+            "ran": 146,
+            "passed": 145,
+            "skipped": 1
+          }
+        ],
+        "skipped_lines": [
+          "test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock (test_kilsat_season.SeasonTests.test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock) ... skipped 'actual FFmpeg and ffprobe required'"
+        ]
+      },
+      {
+        "job_id": 121306741649,
+        "name": "gpu-contracts (macos-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 54,
+          "failed": 0,
+          "ignored": 4
+        },
+        "python": [],
+        "skipped_lines": []
+      },
+      {
+        "job_id": 121306741695,
+        "name": "media-encoding",
+        "conclusion": "success",
+        "rust": {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0
+        },
+        "python": [],
+        "skipped_lines": []
+      },
+      {
+        "job_id": 121306741815,
+        "name": "rust (macos-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 852,
+          "failed": 0,
+          "ignored": 8
+        },
+        "python": [
+          {
+            "ran": 55,
+            "passed": 55,
+            "skipped": 0
+          },
+          {
+            "ran": 146,
+            "passed": 145,
+            "skipped": 1
+          }
+        ],
+        "skipped_lines": [
+          "test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock (test_kilsat_season.SeasonTests.test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock) ... skipped 'actual FFmpeg and ffprobe required'"
+        ]
+      }
+    ]
+  },
+  "main": {
+    "code_commit": "43e92a6cfb5287a562838269bfd9e5a494569ce7",
+    "code_tree": "2631ae7139a3c59d3b3f6e96d93f8fbdd1f56c20",
+    "runs": [
+      {
+        "id": 40239796225,
+        "name": "macOS practical preview",
+        "event": "push",
+        "head_sha": "43e92a6cfb5287a562838269bfd9e5a494569ce7",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239796225"
+      },
+      {
+        "id": 40239796213,
+        "name": "Stick studio asset pack",
+        "event": "push",
+        "head_sha": "43e92a6cfb5287a562838269bfd9e5a494569ce7",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239796213"
+      },
+      {
+        "id": 40239796240,
+        "name": "Audio foundation",
+        "event": "push",
+        "head_sha": "43e92a6cfb5287a562838269bfd9e5a494569ce7",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40239796240"
+      }
+    ],
+    "job_observations": [
+      {
+        "job_id": 121308947252,
+        "name": "media-encoding",
+        "conclusion": "success",
+        "rust": {
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0
+        },
+        "python": [],
+        "skipped_lines": []
+      },
+      {
+        "job_id": 121308947413,
+        "name": "gpu-contracts (macos-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 54,
+          "failed": 0,
+          "ignored": 4
+        },
+        "python": [],
+        "skipped_lines": []
+      },
+      {
+        "job_id": 121308947460,
+        "name": "rust (ubuntu-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 853,
+          "failed": 0,
+          "ignored": 8
+        },
+        "python": [
+          {
+            "ran": 55,
+            "passed": 55,
+            "skipped": 0
+          },
+          {
+            "ran": 146,
+            "passed": 145,
+            "skipped": 1
+          }
+        ],
+        "skipped_lines": [
+          "test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock (test_kilsat_season.SeasonTests.test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock) ... skipped 'actual FFmpeg and ffprobe required'"
+        ]
+      },
+      {
+        "job_id": 121308947515,
+        "name": "gpu-contracts (ubuntu-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 54,
+          "failed": 0,
+          "ignored": 4
+        },
+        "python": [],
+        "skipped_lines": []
+      },
+      {
+        "job_id": 121308947595,
+        "name": "rust (macos-latest)",
+        "conclusion": "success",
+        "rust": {
+          "passed": 852,
+          "failed": 0,
+          "ignored": 8
+        },
+        "python": [
+          {
+            "ran": 55,
+            "passed": 55,
+            "skipped": 0
+          },
+          {
+            "ran": 146,
+            "passed": 145,
+            "skipped": 1
+          }
+        ],
+        "skipped_lines": [
+          "test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock (test_kilsat_season.SeasonTests.test_real_h264_aac_compilation_retains_delayed_frames_on_the_shared_clock) ... skipped 'actual FFmpeg and ffprobe required'"
+        ]
+      }
+    ]
+  },
+  "local_evidence": "stick-studio-v2-local.json",
+  "delivery_preserves_reviewed_source": true,
+  "physical_mac_acceptance": false,
+  "artistic_approval": false,
+  "publication_approval": false,
+  "open_gates": [
+    "Physical Mac UI, audio, camera and Metal workflow",
+    "Timed pickup/release; visual IK and floor locking",
+    "Perceptual speech, lipsync, acting and comic timing review",
+    "Developer ID, notarization and final rights audit"
+  ],
+  "mac_artifact": {
+    "artifact_id": 12616766597,
+    "outer_sha256": "ec0b50fdb3ab075dfa45a522e6d34fdaddb1990b7d7d4e4927b66baa15284a11",
+    "app_zip_sha256": "1c3b57f9317b64f84042e223edbf81416b3b38527d63b353d47f6115eee26964",
+    "app_zip_size_bytes": 18870533,
+    "build_commit": "43e92a6cfb5287a562838269bfd9e5a494569ce7",
+    "architecture": "arm64",
+    "minimum_macos": "13.0",
+    "executable_mode_preserved": true,
+    "signature_metadata_present": true,
+    "embedded_starter_bytes_match": true,
+    "embedded_hand_catalog_bytes_match": true,
+    "ad_hoc_signed": true,
+    "notarized": false,
+    "physical_mac_workflow_tested": false
+  },
+  "asset_artifact": {
+    "artifact_id": 12616582079,
+    "outer_sha256": "d43604aae02601e705fc42cebc0a549c64e62cd0d6b6945685d110df082a90c2",
+    "pack_zip_sha256": "e6f0658d206da0e622e72f78a574c0bd9f40fe8c2af35d7ac248f106aecda8b6",
+    "pack_zip_size_bytes": 3009697,
+    "build_commit": "43e92a6cfb5287a562838269bfd9e5a494569ce7",
+    "canonical_source_hashes_verified": 34,
+    "all_native_image_hashes_match_local_reviewed_images": 60,
+    "only_completed_mp4_archived": true,
+    "independently_verified_video": {
+      "observed": {
+        "frame_count": 720,
+        "duration_seconds": 30.0,
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "audio_sample_rate": 24000
+      },
+      "full_decode_passed": true,
+      "speech_synthesized": false,
+      "silent_pcm_confirmed": true,
+      "sha256": {
+        "sequence.mp4": "9993c3df6b47793eeed06d6ba744b4dbdae3fae50c1bc19b08e2c9b51cb8663d",
+        "audio.wav": "22a4da1b6841f7db580ce7f434cb659e7f7d4b0ec326c8ce3b0b8c333bc05e26",
+        "pipeline-report.json": "a817935eed4074a7eda4612740a29ac31c0e9dd978fd42316c1c13ab3c6365d1"
+      }
+    }
+  },
+  "user_delivery": {
+    "mac_file": "Kilsat-Studio-Mac.zip",
+    "mac_sha256": "1c3b57f9317b64f84042e223edbf81416b3b38527d63b353d47f6115eee26964",
+    "asset_file": "Kilsat-Tikku-ukkostudio.zip",
+    "asset_sha256": "38eb6ca8d34be2c503419afcbaa45a0ed6f3b2c5f590f2d3d5f3e9969109a634",
+    "asset_contains_native_contact_sheet": true,
+    "source_files_match_main": 34,
+    "native_images_match_main": 60
+  }
+}
