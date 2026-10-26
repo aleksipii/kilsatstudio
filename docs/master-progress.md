@@ -7,6 +7,21 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A01 architecture and dependency review — 2026-10-26
+
+Status: **review**, not merged or release-approved. Source checkpoint:
+`773ac9417ee000668fd4f92750e25797a9f57e34`. See the
+[A01 architecture decisions](a01-architecture.md),
+[dependency rationale and status](a01-dependencies.md), and
+[machine-readable inventory](a01-dependency-inventory.json).
+
+Completed: source/manifest review, 14-module normal dependency DAG check,
+15 direct external dependency rationales and 434 lock-package entries.
+Inventory tests: 16/16 passed. No production code or interfaces changed.
+Open: enforced model-free policy, exact-artifact licensing and distribution
+review, target-specific graph, Python wheel lock and physical-device acceptance.
+Cargo is unavailable in this review environment; Rust checks were not run.
+
 ## Editable stick studio asset pack — PR #98 merged (2026-10-25)
 
 [PR #98](https://github.com/aleksipii/kilsatstudio/pull/98) merged as
