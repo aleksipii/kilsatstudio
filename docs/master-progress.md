@@ -2252,3 +2252,13 @@ Tarkistetun sovelluksen ja sisältöprojektien tavut säilyvät samoina.
 Fyysisen Macin käyttö-, ääni-, kamera- ja Metal-hyväksyntä, ajastetut kontaktit,
 IK/jalkalukitus, taiteellinen/puheen laatukatselmus sekä tuotantoallekirjoitus,
 notarisointi ja lopullinen oikeustarkistus jäävät avoimiksi.
+
+
+## 2026-10-26 — Arkkitehtuuri ja agenttisuunnitelma, PR #100 yhdistetty
+
+[PR #100](https://github.com/aleksipii/kilsatstudio/pull/100) yhdistettiin käyttäjän luvalla päähaaraan commitilla `ec442c25e84c705f0dbcf54d080f32758c7caf92`.
+
+- Tehty: [arkkitehtuuridokumentti](KILSAT-STUDIO-ARKKITEHTUURI-JA-AGENTIT.md), kymmenen agentin tehtävänannot, orkestroijan ohje, G0–G4-suunnitelma, tiivistelmä ja vaihekohtainen tehty/tekemättä-seuranta ovat päähaarassa.
+- Tarkistettu: GitHub vahvisti yhdistämisen; ennen yhdistämistä tallennettu dokumentti luettiin takaisin ja vastasi toimitusta täsmälleen. Sovellustestejä ei ajettu tässä dokumentointitoimituksessa eikä uusia CI-tuloksia oleteta.
+- Tekemättä: tämän suunnitelman toteutustyö ja sen validointi odottavat erillistä jatkotehtävää. Agenttimäärittelyt eivät tarkoita käynnistettyjä agenttiprosesseja. Nykyisen sovelluksen aiempi toteutus ja hyväksymisnäyttö säilyvät yllä olevissa merkinnöissä.
+- Rajaus: sovelluskoodia ei muutettu. Raportin SwiftUI-ehdotuksen suhde nykyiseen egui/eframe-linjaukseen ratkaistaan G0-vaiheessa.
