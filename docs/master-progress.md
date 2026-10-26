@@ -9,7 +9,8 @@ hardware, real-model or perceptual gate with mocked success.
 
 ## A01 architecture and dependency review — 2026-10-26
 
-Status: **review**, not merged or release-approved. Source checkpoint:
+Status: **merged** in [PR #101](https://github.com/aleksipii/kilsatstudio/pull/101)
+on 2026-10-26 as `cdff71dae61d1e4a861215a61158225ee9b9f54d`; not release-approved. Source checkpoint:
 `773ac9417ee000668fd4f92750e25797a9f57e34`. See the
 [A01 architecture decisions](a01-architecture.md),
 [dependency rationale and status](a01-dependencies.md), and
@@ -20,7 +21,14 @@ Completed: source/manifest review, 14-module normal dependency DAG check,
 Inventory tests: 16/16 passed. No production code or interfaces changed.
 Open: enforced model-free policy, exact-artifact licensing and distribution
 review, target-specific graph, Python wheel lock and physical-device acceptance.
-Cargo is unavailable in this review environment; Rust checks were not run.
+Cargo is unavailable in the local review environment; local Rust checks were not run.
+Before merge, GitHub Actions passed for head `b60c023dc0286b9f7006d589e91aaf9eb2d83822`:
+[Audio foundation #653](https://github.com/aleksipii/kilsatstudio/actions/runs/40395163758)
+(Rust fmt/check/Clippy/workspace tests and Python tests on macOS and Ubuntu,
+GPU contracts on both platforms, and media encoding), plus
+[macOS practical preview #356](https://github.com/aleksipii/kilsatstudio/actions/runs/40395163508).
+Codex review completed without findings. CI does not replace physical-device,
+real-model, licensing or model-free-policy acceptance.
 
 ## Editable stick studio asset pack — PR #98 merged (2026-10-25)
 
