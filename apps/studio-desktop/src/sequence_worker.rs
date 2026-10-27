@@ -33,6 +33,8 @@ pub struct PrepareRequest {
     pub alignments: String,
     pub art: ArtContext,
     pub cancel: CancellationToken,
+    /// Project model policy; see `scene_worker::speech_provider`.
+    pub policy: motion_project::ModelPolicy,
 }
 pub enum ExportFormat {
     Png,
@@ -319,10 +321,14 @@ fn prepare(
     if let Some(id) = inputs.keys().find(|id| !jobs.iter().any(|j| j.id == **id)) {
         return Err(format!("Unknown project alignment dialogue ID {id}"));
     }
-    let mut provider = motion_tts::LocalSpeechProvider::new(request.config.clone());
-    if let Some(path) = &request.piper_config {
-        provider = provider.with_piper_config_path(path.clone());
-    }
+    let provider = crate::scene_worker::speech_provider(
+        request.policy,
+        &request.script,
+        None,
+        &request.root,
+        &request.config,
+        request.piper_config.as_ref(),
+    )?;
     let cache = AlignmentCache::new(request.config.cache_directory.join("alignments"));
     let Stages {
         rendered,
@@ -335,7 +341,7 @@ fn prepare(
         &timeline,
         &inputs,
         &jobs,
-        &provider,
+        provider.as_ref(),
         &cache,
         PREPARE_WORKERS,
         progress,
@@ -563,6 +569,7 @@ mod tests {
                 model_version: "test".into(), timeout: Duration::from_secs(1),
             },
             piper_config: None, alignments: String::new(), art: ArtContext::default(), cancel: CancellationToken::default(),
+            policy: Default::default(),
         }
     }
     fn finish(worker: &Worker) -> Update {
