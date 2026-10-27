@@ -404,6 +404,8 @@ Tämä osio ohjaa agenttien työtä ja täsmentää alkuperäisen raportin tavoi
 
 Tässä määritellään kymmenen toteutusagenttia ja yksi orkestroija. Nämä ovat uudelleen käytettäviä tehtävänantoja; kaikkia toteutusagentteja ei ole käynnistetty eikä sovellusta rakennettu tämän dokumentin luonnin yhteydessä.
 
+Jokaisella agentilla on oma tehtävätiedosto (tarkistuslista, hyväksymisehdot ja lopputulema) kansiossa [`docs/agents/`](agents/README.md) ja Claude Code -aliagenttimäärittely kansiossa `.claude/agents/`.
+
 ### 7.1 Yhteinen toimintaohje
 
 Jokaiselle agentille annetaan tämä dokumentti, projektin lähdekoodi kun se on saatavilla, tehtävän tunnus ja rajattu muutosalue. Agentti lukee projektin AGENTS.md-ohjeet ennen muutoksia. Jos koodia ei ole saatavilla, agentti tuottaa suunnitelman ja merkitsee toteutuksen estyneeksi. Se ei keksi olemassa olevia API-rajapintoja tai testituloksia.
