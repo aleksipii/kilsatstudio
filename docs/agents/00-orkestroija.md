@@ -1,6 +1,6 @@
 # ORK — Orkestroija
 
-Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: G0/G1, 27.10.2026 (`main` `331f9d4`)
+Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G1-KS-002d, 27.10.2026 (`main` `da5d8d7`)
 
 ## Tavoite
 
@@ -30,8 +30,9 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | running (omistajat päätetty, ORK-G1-01…06) |
 | KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | review (yhdistetty `d9db5be`; ORK:n G1-katselmus) |
 | KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
-| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | todo (KS-002a ja KS-002b yhdistetty; `ready` ORK:n päätöksellä) |
-| KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | ready (vain G1-osuus) |
+| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | review (PR #107 yhdistetty `10135ad`; ORK:n G1-katselmus) |
+| KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | done (G1-osuus; PR #109 `ae39c4d`, ORK-G1-KS-002d) |
+| KS-002e | A07 | KS-002d, KS-003 | Ihmisen äänittämät fi/en-WAV-esimerkit ja niitä vasten tarkistettu ajoitus; AudioTimelinen käyttö suun arvioinnissa | todo (G2) |
 | KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | todo |
 | KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |
 | KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | todo |
@@ -225,9 +226,42 @@ lisää uutta cratea. Ainoa sallittu uusi riippuvuusreuna on `motion-scene → m
 ### G1:n hyväksyntäehto
 
 G1 hyväksytään vasta, kun (a) PR #102:n työ on rebasettu ja katselmoitu (PR #105, yhdistetty `d9db5be`), (b) A03:n EventLog v1 ja
-(c) A07:n AudioTimeline v1 ovat versioituja, sarjallistuvia ja testattuja, (d) A04 on kirjannut
+(c) A07:n AudioTimeline v1 (täyttyy: ORK-G1-KS-002d) ovat versioituja, sarjallistuvia ja testattuja, (d) A04 on kirjannut
 TrackSpec-sopimuksen ja ajan muunnossäännöt, ja (e) jokaisella on kelvollinen ja virheellinen
 esimerkki. Vasta sen jälkeen G2-tehtävät merkitään `ready`-tilaan.
+
+## ORK-G1-KS-002d — A07:n G1-osuuden katselmus: **hyväksytty** (27.10.2026)
+
+**Näyttö.**
+
+- PR #109 yhdistetty `main`iin (`ae39c4d`) käyttäjän nimenomaisella luvalla; kirjattu
+  `master-progress.md`hen (`da5d8d7`). PR:n CI `62f96be`:llä 12/12 läpäisi.
+- Ennen yhdistämistä haara yhdistettiin paikallisesti `main`iin (sis. A04:n PR #107):
+  `cargo fmt --all --check` ok, `cargo clippy --workspace --all-targets` 0 varoitusta,
+  `cargo test --workspace` 906 läpäisi, 0 epäonnistui, 8 ohitettu.
+- ORK:n pistokokeet `main`issa `ae39c4d`: `AUDIO_TIMELINE_FORMAT_VERSION = 1`,
+  `deny_unknown_fields`; `cargo test -p motion-lipsync --test audio_timeline_examples`
+  (2/2), `--lib audio_timeline` (5/5) ja `cargo test -p motion-voice --test model_free`
+  (3/3) läpäisivät; `examples/audio-timeline-v1/` sisältää 2 kelvollista ja 4
+  virheellistä esimerkkiä.
+
+**Arvio G1-ehtoa (c) ja (e) vasten.**
+
+| Ehto | Tulos |
+| --- | --- |
+| Versioitu | `format_version: 1`; muu versio on virhe (testi + esimerkki) |
+| Sarjallistuva | tiukka JSON, edestakainen muunnos identtinen (testit) |
+| Testattu | validointi, sijoittelu = `MixClip`, rajaus, sekoitus rajoilla, mallivapaa polku 0 kutsua |
+| Kelvollinen ja virheellinen esimerkki | fi `manual`, en `estimated`; päällekkäisyys, rajaus, versio, tuntematon IPA |
+| Omistajuus ORK-G1-04 | kello `motion-audio/src/clock.rs`, aikajana `motion-lipsync/src/audio_timeline.rs`; `motion-lipsync` ei riipu `motion-tts`:stä |
+| Uudet riippuvuusreunat | vain dev-riippuvuus `motion-voice → motion-project` (testit); normaali graafi ennallaan |
+
+**Rajaukset ja siirrot.** Hyväksyntä koskee vain G1-sopimusta. Suun ajoitusta ei ole
+mitattu oikeaa puhetta vasten. Ihmisen äänittämät esimerkit ja AudioTimelinen käyttö
+`motion-scene`n suun arvioinnissa siirretään KS-002e:hen (G2). `ModelPolicy`n tallennus
+`ProjectDocument`iin ja käyttöliittymän tarkistuskohdat ovat A09:n (G2/G3);
+`motion-export`in tarkistus A10:n; kellokopioiden delegointi A04/A02/A10:n; sekoituksen
+käyttö renderöijässä A08:n. G1 kokonaisuutena odottaa vielä KS-002a/b/c:n ORK-katselmusta.
 
 ## Hyväksymisehdot
 
@@ -255,6 +289,19 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Seuraavaksi: **A03** (EventLog v1, `motion-script/src/event_log.rs`). Rinnakkain
   voivat edetä A02 (PR #102:n rebase) ja A07 (näytekello + AudioTimeline v1), koska tiedostot
   eivät mene päällekkäin. A04 aloittaa, kun A02 on yhdistetty ja EventLog v1 on luonnoksena.
+
+### ORK-G1-KS-002d — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: A07:n KS-002d katselmoitu ja hyväksytty G1-osuudelta (ORK-G1-KS-002d); KS-002c:n
+  tila päivitetty vastaamaan yhdistettyä PR #107:ää; uusi KS-002e (A07, G2). Haara
+  `docs/ork-a07-merge`.
+- Tarkistettu: PR #109 yhdistetty `ae39c4d`, CI 12/12; yhdistetyn tuloksen paikalliset
+  tarkistukset (906/0/8); pistokokeet `main`issa (ks. ORK-G1-KS-002d). Tämä muutos on
+  pelkkää dokumentaatiota.
+- Tekemättä: KS-002a/b/c:n G1-katselmus ja koko G1:n hyväksyntä; G2-tehtävien `ready`.
+- Estot ja riskit: suun ajoitusta ei ole mitattu oikeaa puhetta vasten (KS-002e).
+- Seuraavaksi: ORK katselmoi KS-002a/b/c ja päättää G1:stä; sen jälkeen G2 (A04–A08).
 
 ## Kopioitava tehtävänanto
 
