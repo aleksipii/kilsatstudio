@@ -139,6 +139,29 @@ pub trait SpeechProvider: Send + Sync {
     }
 }
 
+/// Provider for the strict model-free path (ADR-A01-09): every call fails with a
+/// `SpeechError` and nothing is started, installed or downloaded. Callers should
+/// still check for missing imported audio before preparation, so this is the
+/// last line of defence rather than the user-facing error.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct DisabledSpeechProvider;
+impl DisabledSpeechProvider {
+    pub const MESSAGE: &'static str =
+        "speech synthesis is disabled by the strict model-free policy; import a 24 kHz mono WAV for this line";
+}
+impl SpeechProvider for DisabledSpeechProvider {
+    fn synthesize(&self, _: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+        Err(SpeechError(Self::MESSAGE.into()))
+    }
+    fn synthesize_cancellable(
+        &self,
+        _: SpeechRequest,
+        _: &CancellationToken,
+    ) -> Result<SpeechResult, SpeechError> {
+        Err(SpeechError(Self::MESSAGE.into()))
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct KokoroConfig {
     pub python: PathBuf,
@@ -372,6 +395,20 @@ impl SpeechProvider for KokoroProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn disabled_provider_fails_every_call_without_side_effects() {
+        let provider = DisabledSpeechProvider;
+        for _ in 0..3 {
+            let request = SpeechRequest {
+                text: "Hei".into(),
+                voice: VoiceSettings::default(),
+            };
+            let error = provider.synthesize(request.clone()).unwrap_err();
+            assert_eq!(error.0, DisabledSpeechProvider::MESSAGE);
+            let cancel = CancellationToken::new();
+            assert!(provider.synthesize_cancellable(request, &cancel).is_err());
+        }
+    }
     #[test]
     fn rejects_invalid_requests() {
         let mut r = SpeechRequest {

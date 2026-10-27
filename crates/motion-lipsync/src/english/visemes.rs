@@ -7,7 +7,7 @@ use crate::{AlignmentSource, Viseme};
 use serde::{Deserialize, Serialize};
 
 /// The dialogue sample clock shared by speech, mouth evaluation and export.
-pub const DIALOGUE_SAMPLE_RATE: u32 = 24_000;
+pub const DIALOGUE_SAMPLE_RATE: u32 = motion_audio::clock::DIALOGUE_SAMPLE_RATE;
 /// Same 300 s bound as `EstimatedVisemeAlignment`.
 pub const MAX_TRACK_FRAMES: u64 = 24_000 * 300;
 pub const TOOL_NAME: &str = "kilsat-english-estimator";

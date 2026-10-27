@@ -1,0 +1,112 @@
+{
+  "format_version": 1,
+  "scene_id": "kahvila",
+  "sample_rate": 24000,
+  "duration_samples": 48000,
+  "clips": [
+    {
+      "id": 0,
+      "actor": "AINO",
+      "language": "fi-fi",
+      "source": {
+        "kind": "imported",
+        "path": "audio/aino-hyvaa-yota.wav",
+        "pcm_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "source_samples": 14400,
+      "start_sample": 12000,
+      "trim_start_samples": 0,
+      "duration_samples": 14400,
+      "gain": 1.0,
+      "mouth": {
+        "source": {
+          "kind": "manual"
+        },
+        "phonemes": [
+          {
+            "phoneme": "h",
+            "start_sample": 1200,
+            "end_sample": 1900
+          },
+          {
+            "phoneme": "y",
+            "start_sample": 1900,
+            "end_sample": 3100
+          },
+          {
+            "phoneme": "ʋ",
+            "start_sample": 3100,
+            "end_sample": 3800
+          },
+          {
+            "phoneme": "æː",
+            "start_sample": 3800,
+            "end_sample": 6200
+          },
+          {
+            "phoneme": "y",
+            "start_sample": 6600,
+            "end_sample": 7600
+          },
+          {
+            "phoneme": "ø",
+            "start_sample": 7600,
+            "end_sample": 8800
+          },
+          {
+            "phoneme": "t",
+            "start_sample": 8800,
+            "end_sample": 9500
+          },
+          {
+            "phoneme": "æ",
+            "start_sample": 9500,
+            "end_sample": 11000
+          }
+        ],
+        "visemes": [
+          {
+            "start_sample": 1200,
+            "end_sample": 1900,
+            "viseme": "rest"
+          },
+          {
+            "start_sample": 1900,
+            "end_sample": 3100,
+            "viseme": "u"
+          },
+          {
+            "start_sample": 3100,
+            "end_sample": 3800,
+            "viseme": "teeth_lip"
+          },
+          {
+            "start_sample": 3800,
+            "end_sample": 6200,
+            "viseme": "a"
+          },
+          {
+            "start_sample": 6600,
+            "end_sample": 7600,
+            "viseme": "u"
+          },
+          {
+            "start_sample": 7600,
+            "end_sample": 8800,
+            "viseme": "o"
+          },
+          {
+            "start_sample": 8800,
+            "end_sample": 9500,
+            "viseme": "tongue_up"
+          },
+          {
+            "start_sample": 9500,
+            "end_sample": 11000,
+            "viseme": "a"
+          }
+        ]
+      }
+    }
+  ]
+}
