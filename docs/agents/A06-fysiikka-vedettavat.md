@@ -1,6 +1,6 @@
 # A06 — Fysiikka ja vedettävät raajat
 
-Tila: **review** (KS-003b, PR auki; G2, ORK-G1; EventLogin vapautustapahtumat vasta KS-002f:n jälkeen) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **review** (G2 KS-003b, haara `feat/a06-springs`, PR #115; tiedostot [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026); EventLogin vapautustapahtumat vasta KS-002f:n jälkeen) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -22,7 +22,12 @@ puhdas funktio ja arvot pysyvät äärellisinä myös vaimennussuhteen 1 lähell
 
 ## Sallittu muutosalue
 
-- Uusi moduuli `crates/motion-animation/src/spring.rs` (+ testit); vientien lisäys `lib.rs`:ään.
+Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026).
+
+- Uusi moduuli `crates/motion-animation/src/spring.rs` ja `tests/spring.rs`; `lib.rs`:ään vain
+  `pub mod spring;` ja sen uudelleenviennit (muu `lib.rs` jäädytetty G2:n ajaksi; `clips.rs` on A05:n).
+- Uusi `docs/physics-springs.md` (sopimus, profiilit, dangle-ehdotus).
+- Ei `motion-script`-riippuvuutta: vapautus ottaa tavallisia arvoja; EventLog → alkuarvot on A04:n (KS-003d).
 - Ei uutta cratea, ei `animato`-riippuvuutta ilman A01:n päätöstä.
 
 ## Riippuvuudet
