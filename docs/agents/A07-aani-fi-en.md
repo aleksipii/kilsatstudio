@@ -1,6 +1,6 @@
 # A07 — Suomen ja englannin ääni
 
-Tila: **done** G1-osuudelta (PR #109 `ae39c4d`, ORK-G1-KS-002d; näytekello `motion-audio/src/clock.rs`, AudioTimeline v1 `motion-lipsync/src/audio_timeline.rs`) · G2: KS-002e **ready** · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **done** G1-osuudelta (PR #109 `ae39c4d`, ORK-G1-KS-002d) · G2: KS-002e **ready** (palautus ORK-G2-02, kohta 2: ihmisen äänittämä WAV-puhe G2-kohtaukseen, `examples/g2-minimal-scene/audio/**`; vaatii käyttäjän äänitteen) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

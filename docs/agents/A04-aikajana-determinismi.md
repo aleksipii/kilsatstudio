@@ -1,6 +1,6 @@
 # A04 — Aikajana ja determinismi
 
-Tila: **done G1-osalta** (PR #107 yhdistetty `10135ad`; ORK-G1-A04 hyväksytty ehdolla) · palautus KS-002g **review** (haara `fix/a04-scene-clock-delegation`, PR #114): `motion_scene::time` delegoi `motion_audio::clock`iin · G2 KS-003d todo · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **done G1-osalta** (PR #107 `10135ad`) · KS-002g **done** (PR #114 `3551257`) · G2 KS-003d **ready** (ORK-G2-02, kohta 3: G2-kohtauksen aikahyppy ≡ ruuduittainen toisto) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

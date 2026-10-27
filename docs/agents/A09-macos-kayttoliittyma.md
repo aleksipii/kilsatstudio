@@ -1,6 +1,6 @@
 # A09 — macOS ja käyttöliittymä
 
-Tila: **todo** · Portti: G3 · Tehtävä: KS-004 · Lähtö: commit `496a8a4`
+Tila: **ready** (KS-004, ORK-G2-02; PR #118 `feat/a09-ui-levels` katselmoitavana; `done` odottaa G2:ta; `model_policy.rs` A07:n katselmuksella) · Portti: G3 · Tehtävä: KS-004 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
