@@ -1,6 +1,6 @@
 # A07 — Suomen ja englannin ääni
 
-Tila: **todo** · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **ready** G1-osuudelle (näytekello `motion-audio`, AudioTimeline `motion-lipsync`, ORK-G1-04) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

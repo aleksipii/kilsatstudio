@@ -1,6 +1,6 @@
 # A05 — Riggaus, IK ja esineet
 
-Tila: **todo** · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **todo** (G2; omistaja `motion-rig`, ORK-G1-05) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
