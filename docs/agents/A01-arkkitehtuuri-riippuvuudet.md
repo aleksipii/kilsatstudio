@@ -1,6 +1,6 @@
 # A01 — Arkkitehtuuri ja riippuvuudet
 
-Tila: **review** (katselmus yhdistetty PR #101:ssä; ei julkaisu- tai lisenssihyväksyntä)
+Tila: **done** G0-laajuudessa (ORK-G0, 27.10.2026; PR #101 ja #103). Ei julkaisu- tai lisenssihyväksyntä: avoimet kohdat siirretty KS-006/KS-007:ään (G4).
 Portti: G0 · Tehtävä: KS-001 · Lähtö: commit `496a8a4`
 
 ## Tavoite

@@ -1,6 +1,6 @@
 # A02 — DSL ja kääntäjä
 
-Tila: **todo** · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **review** (PR #102, rebase tarpeen; SceneSpec-omistaja ORK-G1-01) · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
