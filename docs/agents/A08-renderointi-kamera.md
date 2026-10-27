@@ -1,6 +1,6 @@
 # A08 — Renderöinti, kamera ja taustat
 
-Tila: **todo** (G2; renderöintisopimus `motion-render`, ORK-G1-06) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **ready** (G2 KS-003c, haara `feat/a08-render-camera`; renderöintisopimus `motion-render`, ORK-G1-06; tiedostot [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026); puhelinkohtaus odottaa KS-003a:ta) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -27,8 +27,12 @@ sommittelu ja käteen kiinnitetty puhelin toimivat eri kuvakulmissa.
 
 ## Sallittu muutosalue
 
-- `crates/motion-render/src/**`, `crates/motion-art/src/**` ja testit
-- `docs/composition.md`, `docs/camera-presets.md`, vertailukuvat `docs/evidence/`-kansioon
+Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026).
+
+- `crates/motion-render/**`, `crates/motion-art/**` ja testit
+- `docs/composition.md`, `docs/camera-presets.md`, `docs/art-rendering.md`, uusi `docs/render-contract.md`
+- Vertailukuvat `docs/evidence/g2-render/`, testikohtaus `examples/g2-minimal-scene/`
+- Ei `examples/stick-studio/**`, `motion-export`ia (A10) eikä `motion-scene`ä (pyynnöt A04:lle)
 - Kameran rajausapu `camera_framing.rs` vain A09:n kanssa sovitusti.
 
 ## Riippuvuudet

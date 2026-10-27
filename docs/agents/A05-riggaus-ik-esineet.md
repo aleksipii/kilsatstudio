@@ -1,6 +1,6 @@
 # A05 — Riggaus, IK ja esineet
 
-Tila: **todo** (G2; omistaja `motion-rig`, ORK-G1-05) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **ready** (G2 KS-003a, haara `feat/a05-rig-ik`; omistaja `motion-rig`, ORK-G1-05; tiedostot [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026)) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -27,9 +27,15 @@ pysyy kädessä hahmon liikkuessa ja kameran vaihtuessa.
 
 ## Sallittu muutosalue
 
-- `crates/motion-rig/src/**`, `crates/motion-animation/src/**` (ei A06:n fysiikkamoduulia)
-- `apps/studio-desktop/src/hand_props.rs` vain, jos esinesopimus siirretään jaettuun
-  crateen orkestroijan hyväksynnällä.
+Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026). Tiivistelmä:
+
+- `crates/motion-rig/**`; `crates/motion-animation/src/clips.rs` ja uusi
+  `crates/motion-animation/tests/limb_attachment.rs` (ei `lib.rs`:ää eikä A06:n `spring.rs`:ää).
+- `apps/studio-desktop/src/hand_props.rs` ja `examples/stick-studio/hand-props.json`
+  esineluettelon siirtoon `motion-rig`iin (ORK-G1-05); `main.rs` ennallaan.
+- `examples/g2-rig/**`, `docs/custom-rigid-characters.md`, `docs/rig-outlines.md`,
+  uusi `docs/rig-attachment-ik.md`.
+- IK-kohteen aikajanaraita: kirjoitettu muoto A02, ratkaisu A04 (KS-003d); A05 tarjoaa puhtaan funktion.
 - Ei `rusty_skelform`-riippuvuutta ilman A01:n päätöstä.
 
 ## Riippuvuudet

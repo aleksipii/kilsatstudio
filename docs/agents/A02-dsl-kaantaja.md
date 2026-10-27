@@ -1,6 +1,6 @@
 # A02 — DSL ja kääntäjä
 
-Tila: **review** (PR #105 yhdistetty `d9db5be`, korvaa PR #102:n; odottaa ORK:n G1-katselmusta; SceneSpec-omistaja ORK-G1-01) · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **done** G1-osalta (PR #105 `d9db5be`, korvaa PR #102:n; ORK-G1; SceneSpec-omistaja ORK-G1-01) · KS-002h **todo** · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
