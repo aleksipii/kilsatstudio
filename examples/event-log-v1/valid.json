@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "sample_rate": 24000,
+  "events": [
+    { "scene": "one", "sample": 96000, "source": "keyboard", "value": { "type": "key", "key": "x" } },
+    { "scene": "two", "sample": 24000, "source": "keyboard", "value": { "type": "key", "key": "space" } },
+    { "scene": "one", "sample": 120000, "source": "keyboard", "value": { "type": "key", "key": "space" } },
+    { "scene": "one", "sample": 132000, "source": "pointer", "value": { "type": "drag", "actor": "A", "joint": "head", "x": 1.5, "y": -2.0 } },
+    { "scene": "one", "sample": 144000, "source": "pointer", "value": { "type": "release", "actor": "A", "joint": "head" } },
+    { "scene": "two", "sample": 48000, "source": "camera", "value": { "type": "camera_pose", "roll": 0.2, "pitch": -0.1 } },
+    { "scene": "two", "sample": 72000, "source": "manual", "value": { "type": "drag", "actor": "C", "joint": "arm", "x": 1.5, "y": -2.0 } }
+  ]
+}

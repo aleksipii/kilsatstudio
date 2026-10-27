@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "sample_rate": 24000,
+  "events": [
+    { "scene": "one", "sample": 120000, "source": "keyboard", "value": { "type": "key", "key": "space" } },
+    { "scene": "one", "sample": 96000, "source": "keyboard", "value": { "type": "key", "key": "x" } }
+  ]
+}
