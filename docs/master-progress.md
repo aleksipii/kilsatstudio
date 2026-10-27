@@ -7,6 +7,36 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A04 TrackSpec, time conversions and seek equivalence — PR #107 merged (2026-10-27)
+
+Status: **merged** to `main` as `10135ad` from branch `feat/a04-timeline`
+([PR #107](https://github.com/aleksipii/kilsatstudio/pull/107)). The user delegated the
+review and merge decision to A04 after the first CI pass; the review added the missing
+G1 examples before merging. Owner A04, task KS-002c, contract ORK-G1-02 (resolved TrackSpec).
+
+Completed: `motion_scene::tracks` (`TrackTarget::{Abs, Rel, Revert}` resolved once into
+`{from, to}` spans with start/end samples; later start wins and interrupts, equal starts
+→ later written wins, finished spans hold exact `to`; `MAX_TRACK_SPANS`); `Event::Move`
+positions now come from resolved tracks in `PreparedAnimation` (endpoints exact; at most
+rounding difference from the old per-call chain, tested ≤ 1e-9); `-0.0` normalized;
+`ValidatedScript::evaluate_sample`. `motion_scene::time` names the existing 24 kHz rules
+(seconds → nearest sample, `floor(frame·24000/fps)` as in `motion-export`, sample → frame);
+`SEQUENCE_SAMPLE_RATE` moved there with the same public path. Contract, mapping of current
+authored data, conversion rules and determinism levels in
+[editable-timeline.md](editable-timeline.md#trackspec-overlap-order-and-time-conversion-a04);
+examples in `examples/trackspec-v1/`. No new clock or evaluator.
+
+Checks: local macOS `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace`
+(884 passed, 0 failed, 8 ignored). Direct seek is bit-identical to frame-by-frame playback
+(test). PR CI on `c95fbd9` 12/12 passed (rust macOS/Ubuntu, gpu-contracts, media-encoding,
+apple-silicon-preview, real-asset-pack).
+
+Open: authored `Rel`/`Revert` moves in MotionScript (A02 schema request); emotions,
+backgrounds, camera, gestures and clips keep their own evaluators (rules documented and
+tested, not migrated); `motion_scene::time` delegates to A07's `motion-audio` clock once it
+lands (ORK-G1-04); pixel/video determinism (A08/A10). G1 gate still needs A07 AudioTimeline v1.
+
 ## ORK G0 approval and G1 contract owners — PR #104 merged (2026-10-27)
 
 Status: **merged** to `main` as `698fd2f` from branch `docs/ork-g1` with the user's
@@ -758,6 +788,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] Versioned, validated EventLog of external input replayed deterministically through rule expansion (PR #106).
 - [x] Versioned editable scene-order/duration document compiled through the shared sequence clock (PR #43).
 - [x] Versioned seq/par/stagger schedules compiled to editable events with located, typed diagnostics (PR #105).
+- [x] Resolved Abs/Rel/Revert tracks with defined overlap order, shared s ↔ sample ↔ frame rules and bit-identical seek vs playback (PR #107).
 - [ ] General versioned editable compiled event/animation tracks.
 
 ## 3. Character rigging and animation
