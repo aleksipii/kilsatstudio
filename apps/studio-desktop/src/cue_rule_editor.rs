@@ -487,6 +487,7 @@ fn trigger_label(t: RuleTrigger) -> &'static str {
         RuleTrigger::Gesture => "Eletapahtuma",
         RuleTrigger::Move => "Liiketapahtuma",
         RuleTrigger::Time => "Määrätty aika",
+        RuleTrigger::Key => "Näppäintapahtuma (tapahtumaloki)",
     }
 }
 

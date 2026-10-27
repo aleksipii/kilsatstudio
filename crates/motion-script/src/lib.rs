@@ -2,13 +2,16 @@
 pub mod auto_direction;
 mod camera_presets;
 pub mod compiler;
+pub mod event_log;
 mod rules;
 mod shots;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
+pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 pub use rules::{
-    Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleTrigger, Rules, MAX_RULES,
-    MAX_RULE_NAME, MAX_RULE_OUTPUTS, MAX_RULE_OUTPUTS_PER_SCENE,
+    FiringSource, Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleExpansion,
+    RuleFiring, RuleTrigger, Rules, MAX_RULES, MAX_RULE_NAME, MAX_RULE_OUTPUTS,
+    MAX_RULE_OUTPUTS_PER_SCENE,
 };
 use serde::{Deserialize, Serialize};
 pub use shots::{

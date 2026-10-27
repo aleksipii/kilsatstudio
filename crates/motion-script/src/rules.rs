@@ -1,11 +1,14 @@
 //! Reusable, conditional animation rules.
 //!
-//! A rule is declarative data: a trigger (an authored event kind or a fixed
-//! scene time), optional conditions and one bounded effect. Expansion is a pure,
-//! deterministic function from a validated [`Script`] to an ordinary script whose
-//! compositions contain the generated clip instances and camera keys. Rules fire
-//! only on authored events, never on their own outputs, so recursion and cycles
-//! cannot occur. There is no scripting language and no runtime evaluation.
+//! A rule is declarative data: a trigger (an authored event kind, a fixed
+//! scene time or a logged key press), optional conditions and one bounded
+//! effect. Expansion is a pure, deterministic function from a validated
+//! [`Script`] (and, optionally, an [`EventLog`] of external input) to an ordinary
+//! script whose compositions contain the generated clip instances and camera keys. Rules fire only on
+//! authored events, fixed times and logged key presses, never on their own
+//! outputs, so recursion and cycles cannot occur. There is no scripting language
+//! and no runtime evaluation.
+use crate::event_log::{valid_key, EventLog, EventLogError, ExternalEvent, MAX_KEY_NAME};
 use crate::{
     camera_preset_keys, valid_clip_name, validate_emotion, CameraKey, CameraPreset, ClipBlendMode,
     ClipInstance, Error, Event, Script,
@@ -33,6 +36,9 @@ pub enum RuleTrigger {
     Move,
     /// Fires once per scene at `at`.
     Time,
+    /// Fires on each logged key press ([`ExternalEvent::Key`]) in the scene;
+    /// `value` optionally names the key. Without an event log it never fires.
+    Key,
 }
 
 /// Camera template used by a camera effect; same geometry as [`CameraPreset`].
@@ -153,12 +159,17 @@ pub enum RuleError {
     Bound(String),
     #[error("rule {rule}: {message}")]
     Invalid { rule: String, message: String },
+    #[error("event log: {0}")]
+    EventLog(#[from] EventLogError),
 }
 
 impl From<RuleError> for Error {
     fn from(error: RuleError) -> Self {
         match error {
             RuleError::Unsupported(message) => Error::Unsupported(message),
+            RuleError::EventLog(e @ EventLogError::UnsupportedVersion(_)) => {
+                Error::Unsupported(e.to_string())
+            }
             other => Error::Validation(other.to_string()),
         }
     }
@@ -192,7 +203,7 @@ pub(crate) fn precheck(document: &serde_yaml::Value) -> Result<(), Error> {
         check(
             rule.get("on"),
             "trigger",
-            &["emotion", "speak", "gesture", "move", "time"],
+            &["emotion", "speak", "gesture", "move", "time", "key"],
         )?;
         let then = rule.get("then");
         check(
@@ -212,6 +223,37 @@ pub(crate) fn precheck(document: &serde_yaml::Value) -> Result<(), Error> {
 struct Firing<'a> {
     time: f64,
     actor: Option<&'a str>,
+    source: FiringSource,
+}
+
+/// What produced one rule firing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FiringSource {
+    /// Authored event at this index of the scene's `events`.
+    Authored(usize),
+    /// The rule's fixed `at` time.
+    Time,
+    /// Event at this index of the [`EventLog`]'s `events`.
+    Logged(usize),
+}
+
+/// One rule firing whose conditions held, in expansion order.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RuleFiring {
+    pub scene: String,
+    pub rule: String,
+    /// Trigger time in scene seconds, before the effect offset.
+    pub time: f64,
+    pub source: FiringSource,
+    /// Generated clip instance ID; `None` for a camera effect.
+    pub clip_instance: Option<String>,
+}
+
+/// Expanded script plus the firings that produced its rule outputs.
+#[derive(Debug, Clone)]
+pub struct RuleExpansion {
+    pub script: Script,
+    pub firings: Vec<RuleFiring>,
 }
 
 impl Script {
@@ -221,13 +263,35 @@ impl Script {
     /// ascending trigger time and authored event order. Generated clip instances
     /// are appended after authored ones with IDs `r_<rule>_<n>` (`n` from 1 per
     /// rule and scene), so rule names control override layering. Preview, seek
-    /// and export all evaluate this one expanded script.
+    /// and export all evaluate this one expanded script. `key` rules do not fire
+    /// here; use [`Script::expand_rules_with_events`].
     pub fn expand_rules(&self) -> Result<Script, RuleError> {
+        self.expand(None).map(|expansion| expansion.script)
+    }
+
+    /// Expand rules with external input from `log`, which is validated against
+    /// this script first ([`EventLog::validate_for`]).
+    ///
+    /// Ordering is the same as [`Script::expand_rules`]; `key` rules fire on the
+    /// scene's logged key presses in log order (sample order within a scene).
+    /// With a log that contains no key presses the script equals
+    /// `expand_rules()`. Logged events never create facts that other rules
+    /// match, so expansion cannot chain.
+    pub fn expand_rules_with_events(&self, log: &EventLog) -> Result<RuleExpansion, RuleError> {
+        log.validate_for(self)?;
+        self.expand(Some(log))
+    }
+
+    fn expand(&self, log: Option<&EventLog>) -> Result<RuleExpansion, RuleError> {
         let mut out = self.clone();
         out.rules.clear();
+        let mut trace = Vec::new();
         if self.rules.is_empty() {
             out.validate().map_err(base_error)?;
-            return Ok(out);
+            return Ok(RuleExpansion {
+                script: out,
+                firings: trace,
+            });
         }
         if self.rules.len() > MAX_RULES {
             return Err(RuleError::Bound(format!("more than {MAX_RULES} rules")));
@@ -245,6 +309,14 @@ impl Script {
                     .0
                     .total_cmp(&original.events[*b].actor_time().0)
             });
+            // Emotion history per actor in time order (stable for equal times), so
+            // a condition lookup is a binary search instead of a full scan.
+            let mut emotions: BTreeMap<&str, Vec<(f64, &str)>> = BTreeMap::new();
+            for index in &order {
+                if let Event::Emotion { at, actor, value } = &original.events[*index] {
+                    emotions.entry(actor).or_default().push((*at, value));
+                }
+            }
             let mut scene_outputs = 0usize;
             let mut camera_spans: Vec<(f64, f64, String)> = Vec::new();
             let mut new_camera: Vec<CameraKey> = Vec::new();
@@ -269,7 +341,25 @@ impl Script {
                                 .actor
                                 .as_deref()
                                 .or(effect_actor(&rule.effect)),
+                            source: FiringSource::Time,
                         });
+                    }
+                } else if rule.on == RuleTrigger::Key {
+                    let Some(log) = log else { continue };
+                    for (index, event) in log.scene_events(&scene.id) {
+                        if let ExternalEvent::Key { key } = &event.value {
+                            if rule.value.as_ref().is_none_or(|v| v == key) {
+                                firings.push(Firing {
+                                    time: log.seconds(event.sample),
+                                    actor: rule
+                                        .condition
+                                        .actor
+                                        .as_deref()
+                                        .or(effect_actor(&rule.effect)),
+                                    source: FiringSource::Logged(index),
+                                });
+                            }
+                        }
                     }
                 } else {
                     for index in &order {
@@ -288,13 +378,14 @@ impl Script {
                             firings.push(Firing {
                                 time,
                                 actor: Some(actor),
+                                source: FiringSource::Authored(*index),
                             });
                         }
                     }
                 }
                 let mut n = 0usize;
                 for firing in firings {
-                    if !self.condition_holds(name, rule, original, &order, &firing)? {
+                    if !condition_holds(name, rule, &emotions, &firing)? {
                         continue;
                     }
                     n += 1;
@@ -312,7 +403,7 @@ impl Script {
                                 *offset
                             }
                         };
-                    match &rule.effect {
+                    let clip_instance = match &rule.effect {
                         RuleEffect::Clip {
                             clip,
                             actor,
@@ -342,7 +433,7 @@ impl Script {
                                 )));
                             }
                             scene.composition.clip_instances.push(ClipInstance {
-                                id,
+                                id: id.clone(),
                                 clip: clip.clone(),
                                 actor: target.into(),
                                 at: start,
@@ -356,6 +447,7 @@ impl Script {
                                 looping: false,
                                 joint_mask: vec![],
                             });
+                            Some(id)
                         }
                         RuleEffect::Camera {
                             preset, duration, ..
@@ -391,8 +483,16 @@ impl Script {
                                 k.at += start;
                                 k
                             }));
+                            None
                         }
-                    }
+                    };
+                    trace.push(RuleFiring {
+                        scene: scene.id.clone(),
+                        rule: name.clone(),
+                        time: firing.time,
+                        source: firing.source,
+                        clip_instance,
+                    });
                 }
             }
             if !new_camera.is_empty() {
@@ -404,7 +504,10 @@ impl Script {
             }
         }
         out.validate().map_err(base_error)?;
-        Ok(out)
+        Ok(RuleExpansion {
+            script: out,
+            firings: trace,
+        })
     }
 
     fn check_rule(&self, name: &str, rule: &Rule) -> Result<(), RuleError> {
@@ -430,6 +533,14 @@ impl Script {
                 }
                 match (on, rule.value.as_deref()) {
                     (_, None) => {}
+                    (RuleTrigger::Key, Some(v)) => {
+                        if !valid_key(v) {
+                            return Err(invalid(
+                                name,
+                                format!("key value must be 1..{MAX_KEY_NAME} ASCII letters, digits, '_' or '-'"),
+                            ));
+                        }
+                    }
                     (RuleTrigger::Emotion, Some(v)) => validate_emotion(v).map_err(base_error)?,
                     (RuleTrigger::Gesture, Some(v)) => {
                         if motion_animation::Gesture::parse(v).is_none() {
@@ -439,7 +550,12 @@ impl Script {
                             )));
                         }
                     }
-                    _ => return Err(invalid(name, "value applies only to emotion and gesture")),
+                    _ => {
+                        return Err(invalid(
+                            name,
+                            "value applies only to emotion, gesture and key",
+                        ))
+                    }
                 }
             }
         }
@@ -502,6 +618,9 @@ impl Script {
                 if rule.on == RuleTrigger::Time && condition.actor.is_none() && actor.is_none() {
                     return Err(invalid(name, "time trigger with a clip needs an actor"));
                 }
+                if rule.on == RuleTrigger::Key && condition.actor.is_none() && actor.is_none() {
+                    return Err(invalid(name, "key trigger with a clip needs an actor"));
+                }
                 if !finite(*offset) || !finite(*duration) || *duration <= 0.0 {
                     return Err(invalid(
                         name,
@@ -521,55 +640,54 @@ impl Script {
             }
         }
         if condition.emotion.is_some()
-            && rule.on == RuleTrigger::Time
+            && matches!(rule.on, RuleTrigger::Time | RuleTrigger::Key)
             && condition.actor.is_none()
             && effect_actor(&rule.effect).is_none()
         {
             return Err(invalid(
                 name,
-                "emotion condition on a time trigger needs an actor",
+                if rule.on == RuleTrigger::Time {
+                    "emotion condition on a time trigger needs an actor"
+                } else {
+                    "emotion condition on a key trigger needs an actor"
+                },
             ));
         }
         Ok(())
     }
+}
 
-    fn condition_holds(
-        &self,
-        name: &str,
-        rule: &Rule,
-        scene: &crate::Scene,
-        order: &[usize],
-        firing: &Firing<'_>,
-    ) -> Result<bool, RuleError> {
-        let c = &rule.condition;
-        if c.from.is_some_and(|from| firing.time < from)
-            || c.until.is_some_and(|until| firing.time >= until)
-        {
+fn condition_holds(
+    name: &str,
+    rule: &Rule,
+    emotions: &BTreeMap<&str, Vec<(f64, &str)>>,
+    firing: &Firing<'_>,
+) -> Result<bool, RuleError> {
+    let c = &rule.condition;
+    if c.from.is_some_and(|from| firing.time < from)
+        || c.until.is_some_and(|until| firing.time >= until)
+    {
+        return Ok(false);
+    }
+    if let Some(actor) = &c.actor {
+        if firing.actor != Some(actor.as_str()) {
             return Ok(false);
         }
-        if let Some(actor) = &c.actor {
-            if firing.actor != Some(actor.as_str()) {
-                return Ok(false);
-            }
-        }
-        if let Some(wanted) = &c.emotion {
-            let subject = firing
-                .actor
-                .ok_or_else(|| invalid(name, "emotion condition needs a subject actor"))?;
-            let mut current = "neutral";
-            for index in order {
-                if let Event::Emotion { at, actor, value } = &scene.events[*index] {
-                    if actor == subject && *at <= firing.time {
-                        current = value;
-                    }
-                }
-            }
-            if current != wanted {
-                return Ok(false);
-            }
-        }
-        Ok(true)
     }
+    if let Some(wanted) = &c.emotion {
+        let subject = firing
+            .actor
+            .ok_or_else(|| invalid(name, "emotion condition needs a subject actor"))?;
+        // Latest emotion event at or before the trigger time; `neutral` if none.
+        let current = emotions.get(subject).map_or("neutral", |history| {
+            let seen = history.partition_point(|(at, _)| *at <= firing.time);
+            seen.checked_sub(1).map_or("neutral", |i| history[i].1)
+        });
+        if current != wanted {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
 
 fn effect_actor(effect: &RuleEffect) -> Option<&str> {
