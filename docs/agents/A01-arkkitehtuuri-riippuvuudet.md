@@ -42,17 +42,25 @@ määrittää moduulirajat ja No AI -käyttöpolut, joihin muut agentit nojaavat
 - [x] Tuota koneellinen inventaario ja aja sen testit (16/16, PR #101).
 - [x] Kirjaa ADR-A01-01…05 (egui-lähtökohta, omistus, No AI -polut, determinismin tasot,
       lukitus ≠ lisenssihyväksyntä).
-- [ ] Luokittele `services/head-pose` (Apple Vision) No AI -polkuihin: tiukassa polussa
-      estettävä vai sallittu syötelaite; kirjaa ADR.
-- [ ] Arvioi neljä ehdokaskirjastoa (API, lisenssi, ylläpito, tarve) ja kirjaa
+- [x] Luokittele `services/head-pose` (Apple Vision) No AI -polkuihin: tiukassa polussa
+      estettävä vai sallittu syötelaite; kirjaa ADR. → ADR-A01-06: tiukassa estetään,
+      valinnaisessa ML-polussa sallittu käyttäjän käynnistämänä syötelaitteena.
+- [x] Arvioi neljä ehdokaskirjastoa (API, lisenssi, ylläpito, tarve) ja kirjaa
       päätös: hylätty / korvataan omalla toteutuksella / lisätään. Oletus: ei lisätä.
-- [ ] Kirjaa raportin 10 viseemin ja nykyisen 13 viseemin (`motion-lipsync::Viseme`)
-      ero A07:lle päätettäväksi.
-- [ ] Laadi tiukan No AI -politiikan rajapintaehdotus (tyyppi, omistava crate, tarkistuskohta)
-      ja luovuta A07/A09:lle.
-- [ ] Täydennä kohdekohtainen (macOS aarch64) riippuvuusgraafi `cargo tree --target`-ajolla.
+      → ADR-A01-07: `broadsheet` ja `rusty_skelform` hylätty; `rust-rule-engine` ja
+      `animato` korvataan omalla toteutuksella (A03, A06). Mitään ei lisätä.
+- [x] Kirjaa raportin 10 viseemin ja nykyisen 13 viseemin (`motion-lipsync::Viseme`)
+      ero A07:lle päätettäväksi. → ADR-A01-08 (vastaavuustaulukko ja suositus).
+- [x] Laadi tiukan No AI -politiikan rajapintaehdotus (tyyppi, omistava crate, tarkistuskohta)
+      ja luovuta A07/A09:lle. → ADR-A01-09: `ModelPolicy` + `ModelBackedStep`
+      `motion-project`-crateen; ei toteutettu.
+- [x] Täydennä kohdekohtainen (macOS aarch64) riippuvuusgraafi `cargo tree --target`-ajolla.
+      → 188 ulkoista pakettia (+22 `gpu`, +16 build); [a01-macos-aarch64-packages.txt](../a01-macos-aarch64-packages.txt).
 - [ ] Python-wheelien lukitus hasheineen `kokoro-runtime`-palvelulle tai kirjattu este.
+      **Este kirjattu** ([a01-open-decisions.md](../a01-open-decisions.md#kirjatut-estot-ei-ratkaistu-tässä-työssä));
+      lukitus tekemättä.
 - [ ] Kolmannen osapuolen lisenssitekstit ja NOTICE-velvoitteet jaeltaville artefakteille.
+      **Este kirjattu**; tekstit keräämättä.
 
 ## Hyväksymisehdot
 
@@ -70,7 +78,15 @@ rajapintaehdotus; ehdokaskirjastojen päätökset; avointen lisenssikohtien list
 
 - PR #101 (yhdistetty 26.10.2026, `cdff71d`): ADR:t, riippuvuuslista, 434 paketin
   inventaario, inventaariotestit 16/16. CI (macOS + Ubuntu) läpäisi.
-- Avoinna: yllä rastittamattomat kohdat.
+- Haara `docs/a01-open-decisions` (27.10.2026, lähtö `561036c`):
+  [a01-open-decisions.md](../a01-open-decisions.md) — ADR-A01-06 (head-pose/Apple Vision
+  mallipohjaisena syötteenä), ADR-A01-07 (neljä ehdokasta: ei lisätä), ADR-A01-08
+  (10 vs. 13 viseemiä, päätös A07:lle), ADR-A01-09 (`ModelPolicy`-rajapintaehdotus
+  A07/A09:lle) sekä macOS aarch64 -graafi `cargo tree --target aarch64-apple-darwin`
+  -ajoilla ([pakettilista](../a01-macos-aarch64-packages.txt)). Tuotantokoodia ei muutettu.
+- Avoinna (kirjattuina estoina): Python-wheelien hash-lukitus ja kolmannen osapuolen
+  lisenssitekstit/NOTICEt. Lisäksi ADR-A01-09:n toteutus on A07/A09:n työtä, ja
+  head-pose-avainruutujen alkuperämerkintä puuttuu (A09).
 
 ## Tarkistukset
 
