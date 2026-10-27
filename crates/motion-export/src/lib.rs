@@ -7,6 +7,8 @@ mod caption_tests;
 mod captions;
 #[cfg(test)]
 mod clip_library_tests;
+#[cfg(test)]
+mod export_preview_parity_tests;
 #[cfg(all(test, feature = "gpu"))]
 mod gpu_parity_tests;
 #[cfg(test)]
@@ -146,6 +148,33 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+    /// The caller-selected FFmpeg is not an absolute path to an existing file.
+    /// Raised before any output is created; Kilsat never searches PATH for it.
+    #[error("FFmpeg must be an explicit absolute path to a local executable: {}", path.display())]
+    EncoderUnavailable { path: PathBuf },
+    /// The export failed with `cause` and its own partial output could not be removed;
+    /// `path` names the directory that is left behind and must not be used.
+    #[error("{cause}; partial output left at {}: cleanup failed: {cleanup}", path.display())]
+    PartialOutput {
+        path: PathBuf,
+        cause: Box<Error>,
+        cleanup: std::io::Error,
+    },
+}
+/// Remove an export's own (newly created) output directory after a failure. The
+/// original error is returned; if removal fails, the leftover path is reported too.
+pub(crate) fn discard_partial<T>(destination: &Path, result: Result<T, Error>) -> Result<T, Error> {
+    let Err(cause) = result else {
+        return result;
+    };
+    match fs::remove_dir_all(destination) {
+        Ok(()) => Err(cause),
+        Err(cleanup) => Err(Error::PartialOutput {
+            path: destination.to_path_buf(),
+            cause: Box::new(cause),
+            cleanup,
+        }),
+    }
 }
 fn invalid(message: impl Into<String>) -> Error {
     Error::Invalid(message.into())
@@ -580,11 +609,11 @@ impl<'a> PreparedFrames<'a> {
     ) -> Result<(u64, f64, Vec<u8>), Error> {
         let script = self.script;
         check(cancel)?;
-        let sample = i
-            .checked_mul(SAMPLE_RATE as u64)
-            .ok_or_else(|| invalid("frame clock overflow"))?
-            / script.project.fps as u64;
-        let time = sample as f64 / SAMPLE_RATE as f64;
+        // Canonical sample clock (ORK-G1-04): t = floor(frame * 24000 / fps) / 24000,
+        // the same rule the preview uses through `ScenePreview::render`.
+        let sample = motion_audio::clock::frame_to_sample(i, script.project.fps)
+            .map_err(|e| invalid(format!("frame clock: {e}")))?;
+        let time = motion_audio::clock::sample_to_seconds(sample);
         let mut pose = self
             .validated
             .evaluate(scene_index, time)
@@ -916,11 +945,7 @@ fn export_sequence(
             output_directory: destination.to_path_buf(),
         })
     })();
-    if result.is_err() {
-        fs::remove_dir_all(destination)
-            .map_err(|e| invalid(format!("export failed; partial-output cleanup failed: {e}")))?;
-    }
-    result
+    discard_partial(destination, result)
 }
 fn write_new(path: &Path, bytes: &[u8]) -> Result<(), Error> {
     let mut file = fs::OpenOptions::new()

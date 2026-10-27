@@ -39,6 +39,7 @@ mod sequence_worker;
 mod stick_studio;
 mod studio_help;
 mod timeline_edit;
+mod ui_levels;
 mod ui_metrics;
 mod voice_editor;
 mod webcam_pose;
@@ -230,6 +231,12 @@ struct Studio {
     /// sequence preview and every export. Not screenplay text and not in undo history;
     /// persisted only in `.kilsat` project documents.
     caption_mode: motion_script::CaptionMode,
+    /// Progressive-disclosure level. UI state only: never in the screenplay or project.
+    ui_level: ui_levels::UiLevel,
+    /// Project model policy (ADR-A01-09), persisted in `.kilsat` documents.
+    model_policy: motion_project::ModelPolicy,
+    /// Canvas drags as EventLog v1, persisted in `.kilsat` documents.
+    drag_recorder: ui_levels::DragRecorder,
     ffmpeg_path: String,
     export_progress: Option<motion_export::Progress>,
     selected_actor: Option<String>,
@@ -469,6 +476,9 @@ impl Default for Studio {
             export_path: String::new(),
             export_format: Default::default(),
             caption_mode: Default::default(),
+            ui_level: Default::default(),
+            model_policy: Default::default(),
+            drag_recorder: Default::default(),
             ffmpeg_path: String::new(),
             export_progress: None,
         }
@@ -1402,10 +1412,12 @@ impl Studio {
                 Ok((doc, root))
             })();
             match result {
-                Ok((doc, root)) => {
+                Ok((mut doc, root)) => {
                     self.source = doc.source.clone();
                     let timing = doc.timing.clone();
                     self.caption_mode = doc.caption_mode;
+                    self.set_model_policy(doc.model_policy);
+                    self.load_event_log(&mut doc);
                     self.document_changed();
                     self.project_document = Some(doc);
                     self.art_editor.reset();
@@ -1443,6 +1455,9 @@ impl Studio {
                 self.art_editor.reset();
                 self.project_document = None;
                 self.asset_dirty = false;
+                // A plain screenplay has no recorded input. The model policy is kept,
+                // so a strict session never silently becomes model-enabled.
+                self.drag_recorder.clear();
                 self.source = source;
                 self.document_changed();
                 self.history.reset(&self.source);
@@ -1491,12 +1506,16 @@ impl Studio {
                     scene: self.scene_alignment.clone(),
                 };
                 doc.caption_mode = self.caption_mode;
+                doc.model_policy = self.model_policy;
+                doc.event_log = self.drag_recorder.project_log();
                 motion_project::save_atomic(Path::new(&self.script_path), &doc)
                     .map_err(|e| e.to_string())?;
                 Ok(doc)
             })();
             match result {
-                Ok(doc) => {
+                Ok(mut doc) => {
+                    // The recorder owns the live log; see `load_event_log`.
+                    doc.event_log = None;
                     self.project_document = Some(doc);
                     self.asset_dirty = false;
                     self.art_editor.dirty = false;
@@ -1708,6 +1727,15 @@ impl Studio {
     }
     fn native_alignment_ui(&mut self, ui: &mut egui::Ui) {
         self.sync_native_alignment();
+        if self.model_policy.is_strict() {
+            // Rhubarb uses PocketSphinx's acoustic model (ADR-A01-09): never started.
+            self.native_alignment.cancel();
+            ui.label("Puheen tunnistava kohdistus (Rhubarb)");
+            ui.weak(policy_block_text(
+                motion_project::ModelBackedStep::RecognizerAlignment,
+            ));
+            return;
+        }
         let can_run = !self.busy
             && !self.diagnostics_busy
             && !self.export_busy
@@ -1906,7 +1934,7 @@ impl Studio {
         if !self.editing_idle() {
             return;
         }
-        let document = match stick_studio::load() {
+        let mut document = match stick_studio::load() {
             Ok(document) => document,
             Err(error) => {
                 self.status = format!("Tikku-ukkostudion avaaminen epäonnistui: {error}");
@@ -1918,6 +1946,8 @@ impl Studio {
         self.stop_playback();
         self.source = document.source.clone();
         self.caption_mode = document.caption_mode;
+        self.set_model_policy(document.model_policy);
+        self.load_event_log(&mut document);
         self.project_document = Some(document);
         self.script_path.clear();
         self.asset_dirty = false;
@@ -1991,6 +2021,38 @@ impl Studio {
             }
         }
     }
+    /// Start an EventLog gesture for a whole-character drag of `actor`'s root joint.
+    fn begin_drag_recording(&mut self, scene: &motion_scene::EvaluatedScene, actor: &str) {
+        let Some(script) = &self.script else {
+            return;
+        };
+        let Some(scene_id) = script.scenes.get(self.scene_index).map(|s| s.id.clone()) else {
+            return;
+        };
+        let (Some(joint), Some(pose)) = (
+            ui_levels::drag_joint(script, actor),
+            scene.actors.iter().find(|pose| pose.id == actor),
+        ) else {
+            return;
+        };
+        // Humanoid: the hip joint. Custom rig: its root, which the actor transform moves.
+        let origin = if script
+            .characters
+            .get(actor)
+            .is_some_and(|c| c.rig.is_some())
+        {
+            [pose.x, pose.y]
+        } else {
+            let hip = pose.local_to_world(pose.skeleton[motion_animation::HIP]);
+            [hip.x, hip.y]
+        };
+        if let Err(error) =
+            self.drag_recorder
+                .begin(&scene_id, self.playhead, actor, &joint, origin)
+        {
+            self.status = error;
+        }
+    }
     fn finish_character_drag(
         &mut self,
         drag: direct_manipulation::Drag,
@@ -2056,6 +2118,9 @@ impl Studio {
                         pointer,
                     )
                     .ok();
+                    if self.character_drag.is_some() {
+                        self.begin_drag_recording(scene, &actor);
+                    }
                 }
             }
         }
@@ -2071,14 +2136,25 @@ impl Studio {
                 egui::StrokeKind::Inside,
             );
         }
+        let pointer_delta = self.character_drag.as_ref().and_then(|drag| {
+            ui.input(|i| i.pointer.interact_pos())
+                .and_then(|p| drag.delta(scene, p))
+        });
         if response.drag_stopped() {
             if let Some(drag) = self.character_drag.take() {
+                self.drag_recorder.release(pointer_delta);
                 if let Some(pointer) = ui.input(|i| i.pointer.interact_pos()) {
                     self.finish_character_drag(drag, scene, rect, pointer);
                 }
             }
         } else if self.character_drag.is_some() && !ui.input(|i| i.pointer.primary_down()) {
             self.character_drag = None;
+        } else if let Some(delta) = pointer_delta {
+            self.drag_recorder.update(delta);
+        }
+        if self.character_drag.is_none() {
+            // Escape, a lost gesture or a stale drag still ends with one release.
+            self.drag_recorder.cancel();
         }
         if self.character_drag.is_some() {
             ui.ctx().request_repaint();
@@ -2311,9 +2387,10 @@ impl Studio {
                     .map(|draft| (self.source.clone(), draft));
         }
         let enabled = self.editing_idle() && !self.scene_playing();
+        let strict = self.model_policy.is_strict();
         let context = format!(
-            "{}:{}:{}:{}:{}",
-            self.document_revision, self.scene_index, actor, at, enabled
+            "{}:{}:{}:{}:{}:{}",
+            self.document_revision, self.scene_index, actor, at, enabled, strict
         );
         self.webcam_pose.set_context(&context);
         let Some((source, draft)) = &mut self.head_draft else {
@@ -2328,7 +2405,12 @@ impl Studio {
             ui.horizontal(|ui| { ui.label("X"); ui.add(egui::DragValue::new(&mut draft.x)); ui.label("Y"); ui.add(egui::DragValue::new(&mut draft.y)); });
             if draft.supports_tilt {
                 ui.horizontal(|ui| { ui.label("Kallistus °"); ui.add(egui::DragValue::new(&mut draft.tilt_degrees)); });
-                self.webcam_pose.ui(ui);
+                if strict {
+                    // Apple Vision face tracking is model-backed (ADR-A01-06): not started.
+                    ui.weak(policy_block_text(motion_project::ModelBackedStep::CameraFaceTracking));
+                } else {
+                    self.webcam_pose.ui(ui);
+                }
                 if let Some(degrees) = self.webcam_pose.take_roll_degrees() { draft.tilt_degrees = degrees; }
             } else { ui.weak("Oletushahmon päätä voi siirtää X/Y-suunnassa. Kamerakallistus tarvitsee mukautetun hahmon head-nivelen."); }
             apply = ui.button("Lisää pään avainruutu").clicked();
@@ -2746,7 +2828,7 @@ impl Studio {
             source: self.source.clone(),
             dialogue: self.quick_start.dialogue.clone(),
             root,
-            provider: Arc::new(self.local_provider()),
+            provider: self.speech_provider(),
             imported_audio,
             cancel: cancel.clone(),
         };
@@ -2904,6 +2986,7 @@ impl Studio {
             config: self.kokoro_config(),
             piper_config: self.piper_profile(),
             alignments: self.scene_alignment.clone(),
+            policy: self.model_policy,
         };
         match self.scene_worker.submit(request) {
             Ok(()) => {
@@ -2929,10 +3012,15 @@ impl Studio {
                 self.reset_scene();
             }
         }
-        let provider = self.local_provider();
+        if job.imported_audio.is_none()
+            && !self.permit_model(motion_project::ModelBackedStep::SpeechSynthesis)
+        {
+            return;
+        }
+        let provider = self.speech_provider();
         self.scene_preview = None;
         self.scene_audio_active = false;
-        let worker = VoiceWorker::new(Arc::new(provider), 1);
+        let worker = VoiceWorker::new(provider, 1);
         let cancel = CancellationToken::new();
         match worker.submit_cancellable(job.clone(), cancel.clone()) {
             Ok(()) => {
@@ -3296,6 +3384,12 @@ impl Studio {
     }
     fn submit_kokoro(&mut self, task: kokoro_setup::Task) {
         if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        // Setup, connect and test all install or run Kokoro; strict blocks them
+        // regardless of the separate download consent.
+        if !self.permit_model(motion_project::ModelBackedStep::ModelDownload) {
+            self.setup_status = self.status.clone();
             return;
         }
         match self.kokoro_setup.submit(task) {
@@ -3695,6 +3789,8 @@ impl Studio {
                         }
                     });
                     if ui.button("Ohjeet").on_hover_text("Suomenkielinen käyttöopas: mistä tehdään mitäkin").clicked() { self.help_open = true; }
+                    ui.separator();
+                    self.level_and_policy_ui(ui);
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         ui.weak("OFFLINE / CPU");
                         if self.busy || self.diagnostics_busy {
@@ -4796,6 +4892,7 @@ impl Studio {
                         images: (*self.art_resources.images).clone(),
                     },
                     cancel: CancellationToken::new(),
+                    policy: self.model_policy,
                 });
             if let Some(request) = request {
                 if self.sequence_panel.start_prepare(request) {
@@ -4809,18 +4906,28 @@ impl Studio {
         }
     }
     fn inspector_ui(&mut self, ui: &mut egui::Ui) {
+        use ui_levels::Tool;
+        let level = self.ui_level;
         ui.heading("Työkalut");
         ui.horizontal_wrapped(|ui| {
             ui.selectable_value(&mut self.inspector_tab, InspectorTab::Edit, "Muokkaa");
             ui.selectable_value(&mut self.inspector_tab, InspectorTab::Speech, "Puhe");
             ui.selectable_value(&mut self.inspector_tab, InspectorTab::Export, "Vie video");
-            ui.selectable_value(
-                &mut self.inspector_tab,
-                InspectorTab::Advanced,
-                "Lisäasetukset",
-            );
+            if level.shows(Tool::AdvancedTab) {
+                ui.selectable_value(
+                    &mut self.inspector_tab,
+                    InspectorTab::Advanced,
+                    "Lisäasetukset",
+                );
+            }
         });
-        if self.inspector_tab != InspectorTab::Edit || !self.character_mode {
+        if self.inspector_tab == InspectorTab::Advanced && !level.shows(Tool::AdvancedTab) {
+            self.inspector_tab = InspectorTab::Edit;
+        }
+        if self.inspector_tab != InspectorTab::Edit
+            || !self.character_mode
+            || !level.shows(Tool::PoseControls)
+        {
             self.webcam_pose.set_context("head controls hidden");
             self.head_draft = None;
         }
@@ -4841,20 +4948,61 @@ impl Studio {
                     ui.label(egui::RichText::new(actor).strong().size(18.0));
                 }
                 if self.character_mode {
-                    self.hand_props_ui(ui);
-                    self.camera_framing_ui(ui);
-                    self.head_controls_ui(ui);
-                    self.keyframe_inspector_ui(ui);
-                    self.event_inspector_ui(ui);
-                    egui::CollapsingHeader::new("Lisää hahmon työkaluja").show(ui, |ui| {
-                        self.custom_rig_ui(ui);
-                        self.bone_inspector_ui(ui);
-                        self.cue_rule_inspector_ui(ui);
-                        self.joint_inspector_ui(ui);
-                        self.clip_inspector_ui(ui);
-                        self.clip_library_ui(ui);
-                        self.live_clip_ui(ui);
-                    });
+                    if level.shows(Tool::PoseControls) {
+                        self.hand_props_ui(ui);
+                        self.camera_framing_ui(ui);
+                        self.head_controls_ui(ui);
+                        self.keyframe_inspector_ui(ui);
+                    }
+                    if level.shows(Tool::EventInspector) {
+                        self.event_inspector_ui(ui);
+                    }
+                    if level.shows(Tool::VisemeCheck) {
+                        self.viseme_check_ui(ui);
+                    }
+                    if level.shows(Tool::PhysicsProfile) {
+                        ui.separator();
+                        egui::CollapsingHeader::new("Fysiikkaprofiilit (A06)").show(ui, |ui| {
+                            ui_levels::spring_profiles_ui(ui, level.shows(Tool::SpringParameters))
+                        });
+                    }
+                    if level.shows(Tool::RuleList) {
+                        ui.separator();
+                        self.rule_list_ui(ui);
+                    }
+                    if level.shows(Tool::RigTools) {
+                        egui::CollapsingHeader::new("Rig-nivelet, säännöt ja klipit").show(
+                            ui,
+                            |ui| {
+                                self.custom_rig_ui(ui);
+                                self.bone_inspector_ui(ui);
+                                self.cue_rule_inspector_ui(ui);
+                                self.joint_inspector_ui(ui);
+                                self.clip_inspector_ui(ui);
+                                self.clip_library_ui(ui);
+                                self.live_clip_ui(ui);
+                            },
+                        );
+                        ui.weak("Kahden luun IK (A05) on olemassa, mutta IK-kohteen aikajanaraita ja ratkaisu kohtausarvioinnissa odottavat A04:ää (KS-003d).");
+                    }
+                    ui.separator();
+                    ui.label(format!(
+                        "Tapahtumaloki: {} tapahtumaa (raahaukset ja vapautukset, 24 kHz)",
+                        self.drag_recorder.log().events.len()
+                    ));
+                    if ui
+                        .add_enabled(
+                            !self.drag_recorder.log().events.is_empty()
+                                && !self.drag_recorder.is_dragging(),
+                            egui::Button::new("Tyhjennä tapahtumaloki"),
+                        )
+                        .clicked()
+                    {
+                        self.drag_recorder.clear();
+                        self.status =
+                            "Tapahtumaloki tyhjennetty; tallenna .kilsat säilyttääksesi muutoksen."
+                                .into();
+                    }
                 } else {
                     ui.weak("Kuvitus-tila: piirrä tai muokkaa tasoja. Vaihda näyttämöltä Hahmot, kun haluat siirtää hahmoa.");
                     self.art_inspector_ui(ui);
@@ -5628,6 +5776,130 @@ fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
     )
 }
 
+/// Finnish explanation shown when the strict policy blocks a step.
+fn policy_block_text(step: motion_project::ModelBackedStep) -> &'static str {
+    use motion_project::ModelBackedStep::*;
+    match step {
+        SpeechSynthesis => "No AI -tila: puhesynteesi on estetty. Tuo jokaiselle repliikille 24 kHz mono -WAV.",
+        RecognizerAlignment => "No AI -tila: puheentunnistukseen perustuva kohdistus on estetty. Anna suun ajoitus käsin tai käytä sääntöpohjaista arviota.",
+        CameraFaceTracking => "No AI -tila: kameran kasvonseuranta on estetty. Animoi pää käsin.",
+        ModelDownload => "No AI -tila: mallien asennus, lataus ja testaus on estetty.",
+    }
+}
+
+impl Studio {
+    fn set_model_policy(&mut self, policy: motion_project::ModelPolicy) {
+        self.model_policy = policy;
+        if policy.is_strict() {
+            self.webcam_pose.set_context("strict model-free policy");
+            self.native_alignment.cancel();
+        }
+    }
+    /// The recorder becomes the only owner of a loaded log, so later screenplay
+    /// edits are checked against it only when the project is saved.
+    fn load_event_log(&mut self, document: &mut motion_project::ProjectDocument) {
+        match ui_levels::DragRecorder::from_project(document.event_log.take()) {
+            Ok(recorder) => self.drag_recorder = recorder,
+            Err(error) => {
+                self.drag_recorder = Default::default();
+                self.status = format!("Tapahtumalokia ei ladattu: {error}");
+            }
+        }
+    }
+    /// Desktop check point before a model-backed step (ADR-A01-09).
+    fn permit_model(&mut self, step: motion_project::ModelBackedStep) -> bool {
+        match self.model_policy.permit(step) {
+            Ok(()) => true,
+            Err(_) => {
+                self.status = policy_block_text(step).into();
+                false
+            }
+        }
+    }
+    /// Strict projects get a provider whose every call fails, so no synthesis can
+    /// run even if a check point were missed.
+    fn speech_provider(&self) -> Arc<dyn motion_tts::SpeechProvider> {
+        if self.model_policy.is_strict() {
+            Arc::new(motion_tts::DisabledSpeechProvider)
+        } else {
+            Arc::new(self.local_provider())
+        }
+    }
+    fn level_and_policy_ui(&mut self, ui: &mut egui::Ui) {
+        if ui_levels::level_picker(ui, &mut self.ui_level) {
+            if !self.ui_level.shows(ui_levels::Tool::AdvancedTab)
+                && self.inspector_tab == InspectorTab::Advanced
+            {
+                self.inspector_tab = InspectorTab::Edit;
+            }
+            self.status = format!(
+                "Käyttöliittymätaso {}: {} Taso on näkymäasetus eikä tallennu projektiin.",
+                self.ui_level.number(),
+                self.ui_level.summary()
+            );
+        }
+        ui.separator();
+        let mut strict = self.model_policy.is_strict();
+        let idle = self.editing_idle() && !self.setup_busy;
+        if ui
+            .add_enabled(idle, egui::Checkbox::new(&mut strict, "No AI"))
+            .on_hover_text("Projektikohtainen tiukka mallivapaa tila: ei puhesynteesiä, puheentunnistusta, kameran kasvonseurantaa eikä mallien latausta. Repliikit tarvitsevat tuodun WAV-äänen. Tallennetaan .kilsat-projektiin.")
+            .changed()
+        {
+            self.set_model_policy(if strict {
+                motion_project::ModelPolicy::Strict
+            } else {
+                motion_project::ModelPolicy::LocalPreprocessing
+            });
+            self.status = if strict {
+                "No AI -tila päällä: mallit eivät käynnisty. Tallenna .kilsat säilyttääksesi valinnan.".into()
+            } else {
+                "No AI -tila pois: paikalliset puhemallit sallittu. Tallenna .kilsat säilyttääksesi valinnan.".into()
+            };
+        }
+    }
+    /// Level 2: mouth shape at the playhead from prepared scene audio.
+    fn viseme_check_ui(&self, ui: &mut egui::Ui) {
+        ui.separator();
+        ui.label("Viseemitarkistus");
+        let Some(preview) = &self.scene_preview else {
+            ui.weak("Valmistele kohtauksen ääni Puhe-välilehdellä nähdäksesi suun muodot toistopään kohdalla.");
+            return;
+        };
+        let Ok(sample) = motion_audio::clock::seconds_to_sample(self.playhead) else {
+            return;
+        };
+        let mouths = scene_mouths(&preview.clips, sample);
+        if mouths.is_empty() {
+            ui.weak("Toistopään kohdalla ei ole repliikkiä.");
+        }
+        for (actor, viseme) in mouths {
+            ui.label(format!("{actor}: {}", viseme_label(viseme)));
+        }
+    }
+    /// Level 3: read-only rule list from the validated screenplay.
+    fn rule_list_ui(&self, ui: &mut egui::Ui) {
+        egui::CollapsingHeader::new("Sääntöluettelo").show(ui, |ui| {
+            let Some(script) = &self.script else {
+                ui.weak("Tarkista käsikirjoitus nähdäksesi säännöt.");
+                return;
+            };
+            if script.rules.is_empty() {
+                ui.weak("Käsikirjoituksessa ei ole sääntöjä (rules:).");
+            }
+            for (name, rule) in &script.rules {
+                let effect = serde_json::to_value(&rule.effect)
+                    .ok()
+                    .and_then(|v| v.get("type").and_then(|t| t.as_str()).map(str::to_owned))
+                    .unwrap_or_else(|| "?".into());
+                let value = rule.value.as_deref().unwrap_or("*");
+                ui.label(format!("{name}: kun {:?} ({value}) → {effect}", rule.on));
+            }
+            ui.weak("Muokkaa sääntöjä käsikirjoituksessa tai vihjesääntöeditorilla.");
+        });
+    }
+}
+
 impl eframe::App for Studio {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         let measurement_start = self.ui_metrics.enabled.then(Instant::now);
@@ -5665,6 +5937,9 @@ impl eframe::App for Studio {
             ctx.request_repaint_after(Duration::from_millis(50));
         }
         self.workspace_ui(ctx);
+        if self.character_drag.is_none() {
+            self.drag_recorder.cancel();
+        }
         self.sync_sequence_resources();
         self.ui_metrics.latency.end_frame(Instant::now());
         if let Some(start) = measurement_start {
@@ -9055,6 +9330,13 @@ mod finnish_workspace_tests {
         let mut studio = Studio::default();
         studio.validate();
         let before = studio.snapshot();
+        // Level 1 hides the advanced tab and falls back to editing.
+        studio.inspector_tab = InspectorTab::Advanced;
+        let _ = ctx.run(Default::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| studio.inspector_ui(ui));
+        });
+        assert!(studio.inspector_tab == InspectorTab::Edit);
+        studio.ui_level = ui_levels::UiLevel::Deep;
         for (tab, label) in [
             (InspectorTab::Edit, "Valitse hahmo"),
             (InspectorTab::Speech, "Puhe ja äänet"),
@@ -9397,5 +9679,55 @@ mod hand_prop_workflow_tests {
         studio.undo_edit(false);
         assert_eq!(studio.snapshot(), before);
         assert!(!studio.history.can_undo());
+    }
+}
+
+#[cfg(test)]
+mod a09_transport_tests {
+    use super::*;
+
+    /// Play, pause and seek all land on the 24 kHz grid and show the same frame
+    /// as evaluating that time directly with `motion_scene::evaluate` (A04).
+    #[test]
+    fn play_pause_and_seek_show_the_same_evaluated_frame() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let script = studio.script.clone().expect("default screenplay is valid");
+        let duration = script.scenes[studio.scene_index].duration;
+        assert!(duration > 1.0);
+
+        // Play for 0.75 s of wall time without scene audio.
+        studio.scene_transport.as_mut().unwrap().play();
+        studio.scene_tick = Instant::now() - Duration::from_millis(750);
+        studio.poll();
+        let played = studio.playhead;
+        assert!((0.75..0.85).contains(&played), "{played}");
+        assert_eq!(
+            (played * 24000.0).fract(),
+            0.0,
+            "playhead off the sample grid"
+        );
+
+        // Pause: time does not move however long we wait.
+        studio.scene_transport.as_mut().unwrap().pause();
+        studio.scene_tick = Instant::now() - Duration::from_secs(2);
+        studio.poll();
+        assert_eq!(studio.playhead, played);
+
+        let from_play =
+            motion_scene::evaluate(&script, studio.scene_index, studio.playhead).unwrap();
+
+        // Seek away and back: identical frame to the one reached by playing.
+        studio.seek_scene(duration);
+        assert_eq!(studio.playhead, quantized_seek(duration, duration));
+        studio.seek_scene(played);
+        assert_eq!(studio.playhead, played);
+        let from_seek =
+            motion_scene::evaluate(&script, studio.scene_index, studio.playhead).unwrap();
+        assert_eq!(from_seek, from_play);
+        assert_eq!(
+            studio.scene_transport.as_ref().unwrap().position_seconds(),
+            played
+        );
     }
 }

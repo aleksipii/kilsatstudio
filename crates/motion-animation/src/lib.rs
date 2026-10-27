@@ -11,8 +11,9 @@ use motion_rig::Joint;
 use motion_rig::Rig;
 pub use motion_rig::{Transform2, Vec2};
 pub use spring::{
-    release_state, DampingRegime, ForceProfile, ForcedSpring, Gust, ReleaseSample, Spring,
-    SpringError, SpringParams, SpringProfile, SpringState, Turbulence,
+    apply_dangle, dangle_joint, release_state, DampingRegime, DangleError, ForceProfile,
+    ForcedSpring, Gust, ReleaseSample, Spring, SpringError, SpringParams, SpringProfile,
+    SpringState, Turbulence,
 };
 pub const HIP: usize = 0;
 pub const CHEST: usize = 1;

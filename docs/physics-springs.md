@@ -94,15 +94,57 @@ puolella ORK-G1-04:n kellolla).
 - EventLogin kytkentä odottaa KS-002f:ää (24 000 Hz -validointi); tämä moduuli ei lue
   lokia suoraan.
 
-## Dangle-sopimus (ehdotus A05:lle, ei vielä sovittu)
+## Dangle-sopimus (A06 + A05, KS-003b)
 
-- Toissijaista liikettä saavat vain rigin lehtinivelet tai erikseen merkityt lisäosat
-  (hiukset, vaatteet, korvakorut, kädessä roikkuvat esineet), eivät IK-ketjun nivelet,
-  jotta IK-ratkaisu ja jousi eivät kilpaile samasta vapausasteesta.
-- Jousi ohjaa nivelen paikallista kulmaa additiivisena poikkeamana animoidusta asennosta;
-  tavoite on animoitu kulma, joten levossa poikkeama on nolla.
-- Nivelrajat (A05) leikkaavat lopputuloksen; jousen tila ei tiedä rajoista.
-- Avoinna: merkintätapa rig-määrittelyssä (A05) ja säätimet käyttöliittymässä (A09).
+Toissijainen liike (dangle) on jousen kulma, joka lisätään nivelen animoituun kiertoon.
+Sopimus nojaa A05:n kiinnityssopimukseen ([rig-attachment-ik.md](rig-attachment-ik.md)):
+lantio on juuri, raajat ovat kaksiluisia ketjuja (`STICK_LIMBS`), IK kirjoittaa ylä- ja
+alanivelen, käsi kantaa esinettä (`grip`) ja jalka koskettaa maata.
+
+**Mitkä nivelet.** `dangle_joint(rig, id)` palauttaa nivelen indeksin vain, kun nivel
+
+1. on rigissä (muuten `UnknownJoint`),
+2. ei ole juuri (`Root`): juuren kierto liikuttaisi koko hahmoa,
+3. ei ole kiinnitysrungon nivel (`Reserved`): `root`, `torso` eikä mikään
+   `STICK_LIMBS`in kahdestatoista nivelestä (`upper_arm_*`, `forearm_*`, `hand_*`,
+   `thigh_*`, `shin_*`, `foot_*`),
+4. ei ole minkään kiinnitysrungon nivelen esivanhempi (`MovesReserved`), joten esimerkiksi
+   oma `shoulder_l`-nivel käden yläpuolella hylätään.
+
+Nykyisillä kuudella tikku-ukolla sallittu on siis vain `head`. Lisänivelet, kuten hiukset,
+korvat, huivi tai käden alle roikkuva avaimenperä, ovat sallittuja, kun rig määrittelee ne.
+Käden alla oleva lisänivel ei liikuta kättä eikä kädessä olevaa esinettä, koska esineen
+osat ovat käden nivelellä eivätkä lisänivelellä. Rigin ilman tikku-ukkosopimuksen niveliä
+(esim. häntä) kaikki muut kuin juuri ovat sallittuja.
+
+**Miten.** `apply_dangle(offset, angle)` lisää kulman vain siirtymän kiertoon; siirto ja
+skaala säilyvät, joten A05:n sääntö "raajanivel saa vain kiertyä" pysyy voimassa.
+Kulma on äärellinen ja `|angle| ≤ π` (`InvalidAngle`). Tulos annetaan `PreparedRig`in
+tavalliselle arvioinnille (`world_transforms`, `evaluate_parts`), joka puristaa
+`rest + offset`-kierron nivelrajoihin. Jousen tila ei tiedä rajoista: rajalla näkyvä
+liike pysähtyy, mutta jousi jatkaa omaa liikettään ja palaa rajan sisään.
+
+**Mistä jousi saa liikkeensä.** Kulma on jousen `x(t)` tavoitteen 0 ympärillä (levossa
+poikkeama on nolla): vapautus raahauksesta (`Spring::from_release`), alkunopeus
+(`from_velocity`) tai tuuli (`ForcedSpring`). Vanhemman nivelen animoidun liikkeen
+aiheuttama jälkiliike vaatii vanhemman kulmakiihtyvyyden voimana ja kohtausajan, eli se
+kuuluu A04:n kohtausarviointiin (KS-003d) eikä ole tässä toteutettu.
+
+Testit (`tests/spring.rs`): sallitut ja hylätyt nivelet, esivanhemman hylkäys, rig ilman
+raajoja, `apply_dangle`n kanavat ja validointi sekä pään jousi vapautuksesta 24 fps:llä:
+kaikki raaja-, lantio-, vartalo- ja avaimenperänivelet pysyvät bitilleen paikallaan,
+pään kierto on puristettu ±0,3 rad rajaan ja ruutu 0 on raahauksen loppuasento. A05:n
+katselmuksen ehtona lisätty `dangles_leave_ik_grip_and_held_prop_unchanged`: puhelin
+oikeassa kädessä, oikean käden IK ja jouset päässä sekä käden alaisessa avaimenperässä;
+IK-ratkaisu, raajanivelet, otepiste ja puhelimen osat ovat bitilleen samat kuin ilman
+jousia, eikä mikään raajanivel irtoa (`attachment_gap` = 0).
+
+Katselmus: A05 hyväksyi sopimuksen ehdoin 27.10.2026; ehto (yllä mainittu yhteistesti)
+on täytetty.
+
+Avoinna: dangle-nivelten merkintätapa MotionScriptissä tai rig-määrittelyssä (A02/A05),
+jälkiliike vanhemman liikkeestä (A04, KS-003d), säätimet (A09) ja kytketyt ketjut
+(monilenkkinen hius).
 
 ## Rajoitukset
 

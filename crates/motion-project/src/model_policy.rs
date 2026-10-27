@@ -52,6 +52,11 @@ impl ModelPolicy {
         }
     }
 
+    /// Serde helper: the default policy is not written to project files.
+    pub fn is_default(&self) -> bool {
+        *self == Self::default()
+    }
+
     pub fn is_strict(self) -> bool {
         self == Self::Strict
     }
