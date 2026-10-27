@@ -1,6 +1,6 @@
 # A04 — Aikajana ja determinismi
 
-Tila: **todo** (A02 ja A03 yhdistetty; TrackSpec ORK-G1-02; `ready` ORK:n päätöksellä) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **review** (haara `feat/a04-timeline`; TrackSpec ORK-G1-02 `motion-scene/src/tracks.rs`) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -37,18 +37,26 @@ että `scene_at_time` on puhdas ajan funktio.
 
 ## Tehtävät — tarkistuslista
 
-- [ ] Kirjaa TrackSpec-sopimus: miten nykyiset tapahtumat ja klipit vastaavat
+- [x] Kirjaa TrackSpec-sopimus: miten nykyiset tapahtumat ja klipit vastaavat
       Abs- ja Rel-raitoja; määritä Revert (paluu perustilaan) eksplisiittisesti.
-- [ ] Rel-raitojen ratkaisu käännösvaiheessa konkreettisiksi `{from, to}`-väleiksi
+      → [editable-timeline.md § TrackSpec](../editable-timeline.md#trackspec-overlap-order-and-time-conversion-a04),
+      `TrackTarget::{Abs, Rel, Revert}`; Revert = raidan perusarvo.
+- [x] Rel-raitojen ratkaisu käännösvaiheessa konkreettisiksi `{from, to}`-väleiksi
       (entiteetti, ominaisuus) -pareittain, jotta toistossa vain interpoloidaan.
-- [ ] Päällekkäiset raidat samalle ominaisuudelle: määritä järjestys (esim. myöhempi alku
+      → `ResolvedTrack::resolve` valmisteluvaiheessa; `Event::Move` käyttää sitä arvioijassa.
+- [x] Päällekkäiset raidat samalle ominaisuudelle: määritä järjestys (esim. myöhempi alku
       voittaa, tasatilanteessa kirjoitusjärjestys) ja testaa.
-- [ ] Kirjaa ajan muunnokset: sekunnit ↔ 24 kHz:n näytekello ↔ ruutu (`t = frame / fps`),
-      pyöristyssääntö ja kohtausoffsetit.
-- [ ] Ekvivalenssitesti: suora aikahyppy `t` vs. peräkkäinen toisto ruuduittain samaan `t`:hen
-      → sama `EvaluatedScene` (bitti-identtinen tai kirjattu toleranssi).
-- [ ] Rajatapaukset: `t` = 0, kohtauksen loppu, kohtausraja, negatiivinen ja ei-äärellinen `t`.
-- [ ] Erottele determinismin tasot (ADR-A01-04): tila / pikselit / pakattu video.
+      → myöhempi alku voittaa, tasatilanteessa myöhemmin kirjoitettu; nykyisten
+      ominaisuuksien säännöt taulukoitu ja testattu.
+- [x] Kirjaa ajan muunnokset: sekunnit ↔ 24 kHz:n näytekello ↔ ruutu (`t = frame / fps`),
+      pyöristyssääntö ja kohtausoffsetit. → `motion_scene::time`; sama kaava kuin
+      `motion-export`issa (testattu).
+- [x] Ekvivalenssitesti: suora aikahyppy `t` vs. peräkkäinen toisto ruuduittain samaan `t`:hen
+      → sama `EvaluatedScene` (bitti-identtinen tai kirjattu toleranssi). → bitti-identtinen.
+- [x] Rajatapaukset: `t` = 0, kohtauksen loppu, kohtausraja, negatiivinen ja ei-äärellinen `t`.
+      → myös `-0.0` (normalisoidaan) ja kohtauksen ulkopuolinen näyte.
+- [x] Erottele determinismin tasot (ADR-A01-04): tila / pikselit / pakattu video.
+      → vain tila testattu A04:ssä; pikselit ja video A08/A10.
 
 ## Hyväksymisehdot
 
@@ -63,7 +71,42 @@ rajatapaustestit sekä ajan muunnossäännöt A07/A10:lle.
 
 ### Toteutunut lopputulema
 
-_Ei vielä aloitettu._
+### A04 / KS-002c — 27.10.2026
+- Tila: review
+- Omistaja: A04
+- Tehty: haara `feat/a04-timeline` (`main` `40b6cd5`:n päällä), vain `crates/motion-scene`
+  ja `docs/editable-timeline.md`.
+  - Uusi `src/tracks.rs`: `TrackTarget::{Abs, Rel, Revert}`, `AuthoredSpan`, `ResolvedSpan`
+    (`from`/`to`, alku- ja loppunäyte), `ResolvedTrack::{resolve, active, value_at}`,
+    `resolve_moves`, `MAX_TRACK_SPANS`. Päällekkäisyys: myöhempi alku voittaa ja keskeyttää,
+    tasatilanteessa myöhemmin kirjoitettu; valmis väli pitää tarkan `to`-arvon.
+  - Arvioija: `Event::Move` ratkaistaan kerran `PreparedAnimation`issa; arviointi vain
+    interpoloi (ei enää ketjutusta joka kutsulla). Liikkeiden loppupisteet ovat nyt tarkkoja;
+    vanhaan ketjuun verrattuna ero on enintään pyöristys (testi ≤ 1e-9).
+    `-0.0` normalisoidaan `0.0`:ksi. Uusi `ValidatedScript::evaluate_sample`.
+  - Uusi `src/time.rs`: `seconds_to_sample`, `sample_to_seconds`, `frame_to_sample`,
+    `frame_to_seconds`, `sample_to_frame`; `SEQUENCE_SAMPLE_RATE` siirretty sinne
+    (julkinen polku `motion_scene::SEQUENCE_SAMPLE_RATE` ennallaan). `sequence.rs` käyttää
+    samaa pyöristystä. Uutta kelloa tai arvioijaa ei luotu.
+  - Testit: `tests/timeline_determinism.rs` (6), `time.rs` (4), `tracks.rs` (4).
+  - Kelvollinen ja virheellinen esimerkki (G1-ehto e): `examples/trackspec-v1/`
+    (`valid.yaml`, `invalid-overlap.yaml`), joita testit lukevat.
+  - Sopimus, kuvaustaulukko, muunnossäännöt ja determinismin tasot:
+    [editable-timeline.md](../editable-timeline.md#trackspec-overlap-order-and-time-conversion-a04).
+- Tarkistettu (macOS, paikallisesti): `cargo fmt --all --check` ok; `cargo check --workspace` ok;
+  `cargo clippy --workspace --all-targets` 0 varoitusta; `cargo test --workspace` ok
+  (884 läpäisi, 0 epäonnistui, 8 ohitettu). Nykyiset motion-scene- ja motion-export-testit
+  läpäisevät muuttumattomina. CI: ks. PR.
+- Tekemättä: kirjoitettu `Rel`/`Revert`-liike puuttuu MotionScriptistä (skeemapyyntö A02:lle);
+  muut ominaisuudet (tunteet, taustat, kamera, eleet, klipit) käyttävät omia arvioijiaan,
+  joiden säännöt on kirjattu ja testattu, mutta joita ei ole siirretty `ResolvedTrack`iin;
+  pikseli- ja videotason determinismi (A08/A10).
+- Estot ja riskit: ORK-G1-04:n mukaan kanoninen kello kuuluu `motion-audio`on (A07);
+  `motion_scene::time` siirretään delegoimaan siihen, kun A07:n kello on yhdistetty.
+  Ruutuaika lasketaan näytekellon kautta (`floor`); jos fps ei jaa 24 000:ta, ruutuaika
+  poikkeaa arvosta `frame / fps` alle yhden näytteen verran.
+- Seuraavaksi: käyttäjän katselmus ja yhdistämislupa; ORK:n G1-katselmus (KS-002c);
+  A07 (kello `motion-audio`on, AudioTimeline v1) voi edetä rinnakkain.
 
 ## Kopioitava tehtävänanto
 

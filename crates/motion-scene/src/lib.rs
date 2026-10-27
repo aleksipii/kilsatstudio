@@ -6,7 +6,10 @@ pub use motion_animation::{GESTURES, POSTURE_BLEND_SECONDS};
 use motion_lipsync::Viseme;
 use motion_script::{Event, Script};
 mod sequence;
-pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline, SEQUENCE_SAMPLE_RATE};
+pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline};
+pub mod time;
+pub use time::SEQUENCE_SAMPLE_RATE;
+pub mod tracks;
 
 /// Head dip, in local skeleton units, at a fully open mouth.
 pub const SPEECH_HEAD_DIP: f64 = 3.0;
@@ -240,6 +243,15 @@ struct PreparedAnimation {
     joint_tracks: Vec<std::collections::BTreeMap<String, Vec<(usize, motion_animation::Track)>>>,
     library: std::collections::BTreeMap<String, BoneTracks>,
     scenes: Vec<std::collections::BTreeMap<String, BoneTracks>>,
+    /// Per scene and actor: `Event::Move` resolved once into `{from, to}` spans.
+    moves: Vec<std::collections::BTreeMap<String, tracks::ResolvedTrack>>,
+}
+/// Where every actor stands before its first move.
+fn actor_base(script: &Script) -> Vec2 {
+    Vec2::new(
+        script.project.width as f64 / 2.0,
+        script.project.height as f64 * 0.7,
+    )
 }
 fn prepare_bones(
     tracks: &std::collections::BTreeMap<String, Vec<motion_script::ActorKey>>,
@@ -331,12 +343,35 @@ impl PreparedAnimation {
                     .collect::<Result<_, Error>>()
             })
             .collect::<Result<_, Error>>()?;
+        let base = actor_base(script);
+        let moves = script
+            .scenes
+            .iter()
+            .map(|scene| {
+                let movers = scene
+                    .events
+                    .iter()
+                    .filter_map(|event| match event {
+                        Event::Move { actor, .. } => Some(actor.as_str()),
+                        _ => None,
+                    })
+                    .collect::<std::collections::BTreeSet<_>>();
+                movers
+                    .into_iter()
+                    .map(|actor| {
+                        let track = tracks::resolve_moves(base, &scene.events, actor)?;
+                        Ok((actor.to_owned(), track))
+                    })
+                    .collect::<Result<_, Error>>()
+            })
+            .collect::<Result<_, Error>>()?;
         Ok(Self {
             rigid_parts,
             rigs,
             joint_tracks,
             library,
             scenes,
+            moves,
         })
     }
     fn instance_tracks<'a>(
@@ -505,8 +540,19 @@ impl ValidatedScript {
         let prepared = std::sync::Arc::new(PreparedAnimation::new(&script)?);
         Ok(Self { script, prepared })
     }
+    /// `scene_at_time`: the evaluated scene at scene-local `time_seconds`, in
+    /// `[0, duration]`. A pure function of its arguments: no playback history,
+    /// so a direct seek equals frame-by-frame playback to the same time.
     pub fn evaluate(&self, scene_index: usize, time_seconds: f64) -> Result<EvaluatedScene, Error> {
         evaluate_validated(&self.script, &self.prepared, scene_index, time_seconds)
+    }
+    /// Evaluate at a scene-local sample on the shared 24 kHz clock.
+    pub fn evaluate_sample(
+        &self,
+        scene_index: usize,
+        local_sample: u64,
+    ) -> Result<EvaluatedScene, Error> {
+        self.evaluate(scene_index, time::sample_to_seconds(local_sample))
     }
 }
 pub fn evaluate(
@@ -611,6 +657,12 @@ fn evaluate_validated(
     if !time_seconds.is_finite() || time_seconds < 0.0 || time_seconds > scene.duration {
         return Err(Error::InvalidTime);
     }
+    // Seeking to -0.0 and 0.0 must give bit-identical scenes.
+    let time_seconds = if time_seconds == 0.0 {
+        0.0
+    } else {
+        time_seconds
+    };
     let mut events: Vec<_> = scene.events.iter().collect();
     // Stable ordering preserves source order for simultaneous expression events.
     events.sort_by(|a, b| a.actor_time().0.total_cmp(&b.actor_time().0));
@@ -625,10 +677,11 @@ fn evaluate_validated(
                 .is_none_or(|layer| layer.visible)
         })
         .map(|id| {
+            let base = actor_base(script);
             let mut pose = ActorPose {
                 id: id.clone(),
-                x: script.project.width as f64 / 2.0,
-                y: script.project.height as f64 * 0.7,
+                x: base.x,
+                y: base.y,
                 emotion: "neutral".into(),
                 rotation: 0.0,
                 scale: Vec2::new(1.0, 1.0),
@@ -652,18 +705,8 @@ fn evaluate_validated(
                     continue;
                 }
                 match event {
-                    Event::Move { x, y, duration, .. } => {
-                        // Overlapping moves are rejected by validation, so each starting
-                        // pose is the completed endpoint of the preceding movement.
-                        let progress = ((time_seconds - at) / duration).clamp(0.0, 1.0);
-                        walk_seconds = if progress < 1.0 && (pose.x != *x || pose.y != *y) {
-                            Some(time_seconds - at)
-                        } else {
-                            None
-                        };
-                        pose.x += (x - pose.x) * progress;
-                        pose.y += (y - pose.y) * progress;
-                    }
+                    // Positions come from the resolved move track below.
+                    Event::Move { .. } => {}
                     Event::Emotion { value, .. } => set_emotion(&mut pose, value, at),
                     Event::Speak {
                         emotion: Some(value),
@@ -684,6 +727,16 @@ fn evaluate_validated(
                     }
                     Event::Speak { .. } => {}
                 }
+            }
+            if let Some(track) = prepared.moves[scene_index].get(id) {
+                // Each move starts where the previous one ended (resolved once);
+                // the actor walks only while the active move is still changing.
+                let position = track.value_at(time_seconds);
+                (pose.x, pose.y) = (position.x, position.y);
+                walk_seconds = track
+                    .active(time_seconds)
+                    .filter(|span| span.progress(time_seconds) < 1.0 && span.from != span.to)
+                    .map(|span| time_seconds - span.at);
             }
             let emotion_changes: Vec<_> = emotion_changes
                 .iter()
