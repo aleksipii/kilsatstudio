@@ -7,6 +7,38 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A03 rule contract and EventLog v1 — PR #106 merged (2026-10-27)
+
+Status: **merged** to `main` as `6ddfdcc` from branch `feat/a03-rules-eventlog` with the
+user's explicit approval ([PR #106](https://github.com/aleksipii/kilsatstudio/pull/106)).
+Owner A03, task KS-002b, contract ORK-G1-03 (EventLog).
+
+Completed: `motion_script::event_log` (EventLog v1: versioned JSON log of `key`, `drag`,
+`camera_pose` and `release` events with integer scene-local sample positions, recorded
+`sample_rate`, source/type compatibility, per-scene order, bounds and script-reference
+validation with typed `EventLogError` paths); `key` rule trigger and
+`Script::expand_rules_with_events` returning the expanded script plus an ordered firing
+trace; `expand_rules()` order, IDs and messages unchanged (`rules_tests.rs` byte-identical).
+Emotion conditions use a per-scene history with binary search (same results). Decisions
+A03-D1 (rule name is the priority, no priority field) and A03-D2 (no chaining), rule
+contract, EventLog format and cost measurement in [animation-rules.md](animation-rules.md);
+valid/invalid examples in `examples/event-log-v1/`. One label line added to the desktop
+rule editor for the new trigger (A09 file; no menu entry). No RETE library added.
+
+Measurement (`rule_expansion_cost` example, Apple M1, 8 GB, macOS 27.0.1, rustc 1.99.1,
+release, single machine): 64 rules × 1024 events with a false emotion condition
+213 ms → 1.5 ms; 64 key rules × 1024 logged presses 0.25 ms. Not a constant-time claim.
+
+Checks: local macOS `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace`
+(870 passed, 0 failed, 8 ignored; 12 new EventLog tests). PR CI 12/12 passed (rust
+macOS/Ubuntu, gpu-contracts, media-encoding, apple-silicon-preview, real-asset-pack).
+
+Open: storing/recording the log in the project file and UI (A09, G3); consuming drag,
+release and camera-pose events in timeline and physics (A04/A06); `key` in the rule
+editor menu (A09); comparing the log's sample rate with the canonical clock once A07
+adds it (ORK-G1-04). G1 gate still needs A04 TrackSpec and A07 AudioTimeline v1.
+
 ## A02 versioned MotionScript compiler — PR #105 merged (2026-10-27)
 
 Status: **merged** to `main` as `d9db5be` from branch `feat/a02-dsl` with the user's
@@ -703,6 +735,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] SVG sequence compositing (PR #33).
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
+- [x] Versioned, validated EventLog of external input replayed deterministically through rule expansion (PR #106).
 - [x] Versioned editable scene-order/duration document compiled through the shared sequence clock (PR #43).
 - [x] Versioned seq/par/stagger schedules compiled to editable events with located, typed diagnostics (PR #105).
 - [ ] General versioned editable compiled event/animation tracks.
