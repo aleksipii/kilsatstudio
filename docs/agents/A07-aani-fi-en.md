@@ -110,7 +110,9 @@ viseemikuvaus ja esimerkit.
   892 läpäisi, 0 epäonnistui, 8 ohitettu.
   `python3 -m unittest discover -s services/kokoro-runtime/tests -v`: 55 ajettu, OK,
   5 ohitettu (synteesipolun testit vaativat NumPyn, jota ei ole asennettu).
-  Malleja ei ladattu eikä synteesiä ajettu. CI: ks. PR.
+  Malleja ei ladattu eikä synteesiä ajettu. PR [#109](https://github.com/aleksipii/kilsatstudio/pull/109):
+  CI 12/12 läpäisi (rust ja gpu-contracts macOS + Ubuntu, media-encoding,
+  real-asset-pack, apple-silicon-preview) commitilla `31dc4ad`.
 - Tekemättä: ihmisen äänittämät fi/en-WAV-esimerkit ja niitä vasten mitattu ajoitus;
   `ProjectDocument.model_policy` ja käyttöliittymän tarkistuskohdat (A09);
   `motion-export`in tarkistus ennen puheen valmistelua (A10); `motion_scene::time`,
