@@ -26,3 +26,4 @@ resvg = { version = "=0.45.1", default-features = false, features = ["raster-ima
 
 [dev-dependencies]
 motion-rig = { path = "../motion-rig" }
+sha2 = "0.10"
