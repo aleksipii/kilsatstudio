@@ -52,6 +52,9 @@ impl Snapshot {
                 timing: p.timing.clone(),
                 // A view/export option kept outside undo history (see docs/captions.md).
                 caption_mode: motion_script::CaptionMode::default(),
+                // Like captions, policy and recorded input stay outside undo history.
+                model_policy: motion_project::ModelPolicy::default(),
+                event_log: None,
             })
     }
     fn validate(&self) -> Result<(), String> {
