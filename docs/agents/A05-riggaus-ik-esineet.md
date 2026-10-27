@@ -91,9 +91,11 @@ KS-003a, haara `feat/a05-rig-ik-props` (27.10.2026). Sopimus: [rig-attachment-ik
 - **Testikohtaus A08:lle**: `examples/g2-rig/two-sticks-phone.json` (Veikko + Kipinä, puhelin oikeassa
   kädessä, IK-kohteet, kävely, laaja/lähikamera). `motion-rig/tests/g2_rig.rs` tarkistaa, että puhelimen
   pisteet pysyvät ≤ 0,5 px käden otepisteen muunnoksesta kaikissa asennoissa, askelissa ja kameroissa.
-- Tarkistettu työtilan juuresta: `cargo fmt --all --check`, `cargo check --workspace`,
-  `cargo clippy --workspace --all-targets` (ei varoituksia), `cargo test --workspace`
-  (38 sarjaa, 925 läpi, 0 virhettä, 8 ohitettu).
+- Tarkistettu työtilan juuresta yhteisellä `CARGO_TARGET_DIR`illä `cargo clean -p motion-rig -p
+  motion-animation -p studio-desktop` -ajon jälkeen: `cargo fmt --all --check`, `cargo check --workspace`,
+  `cargo clippy --workspace --all-targets` (ei varoituksia), `cargo test --workspace` (exit 0; 48
+  testisarjaa doc-testit mukaan lukien, 925 läpi, 0 virhettä, 8 ohitettu). Välissä toinen työpuu poisti
+  `motion-render`in käännöksen yhteisestä kansiosta; korjattu `cargo clean -p motion-render` ja uusi ajo.
 - Rajaukset: IK-aikajanaraita ja kohtausarviointi (KS-003d) puuttuvat; ei IK-editoria; kamera on testissä
   affiininen sijainen, ei renderöijän kuvaa; ei graafista tai Mac-laitetarkistusta.
 
