@@ -734,3 +734,78 @@ fn head_dangle_after_release_keeps_limbs_still_and_respects_joint_limits() {
         "spring settles towards rest"
     );
 }
+
+/// A05's review condition: a phone in the right hand, right-arm IK, and dangles
+/// on the head and on a keychain below that hand. The IK solution, every limb
+/// joint, the grip point and the phone's evaluated parts are bit-identical to
+/// the same pose without dangles, and no limb joint detaches.
+#[test]
+fn dangles_leave_ik_grip_and_held_prop_unchanged() {
+    use motion_rig::{attach_hand_prop, BendDirection, GripPlacement, HandPropCatalog, HandSide};
+    let catalog_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../examples/stick-studio/hand-props.json");
+    let catalog = HandPropCatalog::decode(&std::fs::read_to_string(catalog_path).unwrap()).unwrap();
+    let phone = catalog.items.iter().find(|i| i.id == "puhelin").unwrap();
+    let placement = GripPlacement {
+        x: 2.0,
+        y: 6.0,
+        rotation_degrees: -12.0,
+        scale: 1.0,
+    };
+    let mut def = stick_rig(&EXTRAS);
+    attach_hand_prop(&mut def, HandSide::Right, phone, placement).unwrap();
+    let rig = prepare(&def);
+    let limbs = rig.stick_limbs().unwrap();
+    let arm_r = limbs[1];
+    let head = dangle_joint(&rig, "head").unwrap();
+    let keychain = dangle_joint(&rig, "keychain").unwrap();
+    let rest = rig.world_transforms(&[]).unwrap();
+    let hand = rest[arm_r.end];
+    let held = |parts: Vec<motion_rig::EvaluatedPart>| -> Vec<motion_rig::EvaluatedPart> {
+        parts
+            .into_iter()
+            .filter(|p| p.id.starts_with("heldprop_r_"))
+            .collect()
+    };
+    let spring = Spring::from_velocity(SpringProfile::Bouncy.params(), 0.0, 0.4, 3.0).unwrap();
+    let targets = [(20.0, -30.0), (-15.0, -60.0), (40.0, 10.0), (400.0, 0.0)];
+    for (dx, dy) in targets {
+        let target = motion_animation::Vec2::new(hand.tx + dx, hand.ty + dy);
+        for frame in [0, 3, 7, 12, 24] {
+            let angle = spring.sample(frame as f64 / 24.0).unwrap().position;
+            let dangles = [
+                (head, apply_dangle(Transform2::default(), angle).unwrap()),
+                (
+                    keychain,
+                    apply_dangle(Transform2::default(), -angle).unwrap(),
+                ),
+            ];
+            let plain = rig
+                .solve_limb_ik(arm_r, target, BendDirection::Positive, &[])
+                .unwrap();
+            let swung = rig
+                .solve_limb_ik(arm_r, target, BendDirection::Positive, &dangles)
+                .unwrap();
+            assert_eq!(plain.offsets, swung.offsets);
+            assert_eq!(plain.end, swung.end);
+            let plain_offsets = plain.offsets.to_vec();
+            let swung_offsets: Vec<_> = dangles.iter().copied().chain(swung.offsets).collect();
+            let a = rig.world_transforms(&plain_offsets).unwrap();
+            let b = rig.world_transforms(&swung_offsets).unwrap();
+            for limb in limbs {
+                for j in [limb.anchor, limb.upper, limb.lower, limb.end] {
+                    assert_eq!(a[j], b[j]);
+                    assert_eq!(rig.attachment_gap(&b, j), 0.0);
+                }
+            }
+            assert_eq!(
+                placement.grip_world(a[arm_r.end]),
+                placement.grip_world(b[arm_r.end])
+            );
+            let phone_a = held(rig.evaluate_parts(&plain_offsets).unwrap());
+            assert!(!phone_a.is_empty());
+            assert_eq!(phone_a, held(rig.evaluate_parts(&swung_offsets).unwrap()));
+            assert_ne!(a[head], b[head], "the head dangle is visible");
+        }
+    }
+}

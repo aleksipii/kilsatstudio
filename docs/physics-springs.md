@@ -133,7 +133,14 @@ kuuluu A04:n kohtausarviointiin (KS-003d) eikä ole tässä toteutettu.
 Testit (`tests/spring.rs`): sallitut ja hylätyt nivelet, esivanhemman hylkäys, rig ilman
 raajoja, `apply_dangle`n kanavat ja validointi sekä pään jousi vapautuksesta 24 fps:llä:
 kaikki raaja-, lantio-, vartalo- ja avaimenperänivelet pysyvät bitilleen paikallaan,
-pään kierto on puristettu ±0,3 rad rajaan ja ruutu 0 on raahauksen loppuasento.
+pään kierto on puristettu ±0,3 rad rajaan ja ruutu 0 on raahauksen loppuasento. A05:n
+katselmuksen ehtona lisätty `dangles_leave_ik_grip_and_held_prop_unchanged`: puhelin
+oikeassa kädessä, oikean käden IK ja jouset päässä sekä käden alaisessa avaimenperässä;
+IK-ratkaisu, raajanivelet, otepiste ja puhelimen osat ovat bitilleen samat kuin ilman
+jousia, eikä mikään raajanivel irtoa (`attachment_gap` = 0).
+
+Katselmus: A05 hyväksyi sopimuksen ehdoin 27.10.2026; ehto (yllä mainittu yhteistesti)
+on täytetty.
 
 Avoinna: dangle-nivelten merkintätapa MotionScriptissä tai rig-määrittelyssä (A02/A05),
 jälkiliike vanhemman liikkeestä (A04, KS-003d), säätimet (A09) ja kytketyt ketjut

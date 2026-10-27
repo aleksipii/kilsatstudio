@@ -96,9 +96,15 @@ Dangle-sopimus (haara `feat/a06-dangle-contract`, 2026-10-27):
   kiinnitysrungon niveliä — `root`, `torso`, `STICK_LIMBS`in 12 niveltä — eivätkä niiden
   esivanhempia), `apply_dangle` (lisää kulman vain kiertoon, `|angle| ≤ π`), `DangleError`.
   `lib.rs`: uudelleenviennit. Nivelrajat puristaa `PreparedRig`in arviointi.
-- `tests/spring.rs`: 5 uutta testiä (24 yhteensä), mm. pään jousi vapautuksesta 24 fps:llä:
-  raajat, lantio, vartalo ja käden alainen lisänivel pysyvät bitilleen paikallaan ja raja
-  puristaa kierron.
+- `tests/spring.rs`: 6 uutta testiä (25 yhteensä), mm. pään jousi vapautuksesta 24 fps:llä
+  (raajat pysyvät bitilleen paikallaan, raja puristaa kierron) sekä A05:n ehtona vaatima
+  yhteistesti: puhelin oikeassa kädessä, oikean käden IK neljään kohteeseen (yksi
+  saavuttamaton) ja jouset päässä ja käden alaisessa avaimenperässä → IK-ratkaisu,
+  raajanivelet, `attachment_gap` = 0, otepiste ja puhelimen osat bitilleen samat kuin ilman
+  jousia.
+- A05:n katselmus (27.10.2026): **hyväksytty ehdoin**; ehto (IK + ote + esine -yhteistesti)
+  täytetty yllä. A05:n riskit: nimeen perustuva tunnistus on tarkoituksella konservatiivinen;
+  rajalla jousi voi näkyä pysähtymisenä.
 - `docs/physics-springs.md`: sopimus, sallitut nivelet, jousen lähteet ja avoimet kohdat.
 - Avoinna: dangle-nivelten merkintä MotionScriptiin/rigiin (A02/A05), jälkiliike vanhemman
   animaatiosta (A04, KS-003d), säätimet (A09).
