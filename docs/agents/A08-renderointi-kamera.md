@@ -1,6 +1,6 @@
 # A08 — Renderöinti, kamera ja taustat
 
-Tila: **ready** (G2, ORK-G1; renderöintisopimus `motion-render`, ORK-G1-06) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **review** (G2, KS-003c; puhelinosuus odottaa KS-003a) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -38,14 +38,20 @@ sommittelu ja käteen kiinnitetty puhelin toimivat eri kuvakulmissa.
 
 ## Tehtävät — tarkistuslista
 
-- [ ] Kirjaa renderöintisopimus: syöte `EvaluatedScene` → piirtokomennot; ei omaa kelloa.
-- [ ] Syvyysjärjestys: tausta → hahmot → esineet → etuala; tasatilanteen järjestys
-      dokumentoitu ja testattu.
-- [ ] Laaja- ja lähikuvan rajaussäännöt (esim. kasvot/käsi kuvan sisällä marginaalilla).
+- [x] Kirjaa renderöintisopimus: syöte `EvaluatedScene` → piirtokomennot; ei omaa kelloa.
+      → `docs/render-contract.md`, `motion_render::contract`.
+- [x] Syvyysjärjestys: tausta → hahmot → esineet → etuala; tasatilanteen järjestys
+      dokumentoitu ja testattu. → `contract::paint_order`, `depth_violations` + testit.
+- [x] Laaja- ja lähikuvan rajaussäännöt (esim. kasvot/käsi kuvan sisällä marginaalilla).
+      → `motion_render::framing` (`WIDE` 4 %, `CLOSE_UP` 8 % + kasvot ≥ 20 %).
 - [ ] Testikohtaus: kaksi tikku-ukkoa, tausta, puhelin kädessä, kameravaihto laajasta lähikuvaan.
+      → Tehty **ilman puhelinta** (`examples/g2-minimal-scene/`); puhelin odottaa KS-003a:n `grip`ia.
 - [ ] Vertailukuvat (PNG) kummastakin kuvakulmasta; tallenna hash ja renderöijä/alusta.
-- [ ] CPU/GPU-ero: kirjaa toleranssi; älä väitä pikselipariteettia ilman ajoa (ADR-A01-04).
-- [ ] Taustojen yhtenäinen tyyli: värit ja viivanpaksuus tikku-ukkotyylin ohjeen mukaan.
+      → Tehty ilman puhelinta (`docs/evidence/g2-render/`); puhelinkuvat avoinna.
+- [x] CPU/GPU-ero: kirjaa toleranssi; älä väitä pikselipariteettia ilman ajoa (ADR-A01-04).
+      → `docs/render-contract.md` § CPU and GPU; G2-kohtausta ei ajettu GPU:lla.
+- [x] Taustojen yhtenäinen tyyli: värit ja viivanpaksuus tikku-ukkotyylin ohjeen mukaan.
+      → `motion_art::style::check_background`; neljä taustaa + G2-kohtaus läpäisevät.
 
 ## Hyväksymisehdot
 
@@ -59,7 +65,30 @@ Odotettu: renderöintisopimus, rajaussäännöt, testikohtaus, vertailukuvat has
 
 ### Toteutunut lopputulema
 
-_Ei vielä aloitettu._
+### KS-003c (A08) — 27.10.2026, haara `feat/a08-render-camera`
+- Tila: review (puhelinosuus avoinna, odottaa KS-003a)
+- Tehty: renderöintisopimus (`docs/render-contract.md`); `motion_render::contract`
+  (`DepthBand`, `paint_order`, `depth_violations`); `motion_render::framing`
+  (`Subject`, `FramingRule::{WIDE, CLOSE_UP}`, `check_framing`);
+  `motion_art::style::check_background`; testikohtaus `examples/g2-minimal-scene/`
+  (VEIKKO + KIPINA, pysäkkitausta, etualan tolppa, kova leikkaus 2,0 s laajasta
+  lähikuvaan, generaattori toistaa tiedoston tavulleen); vertailukuvat ja hashit
+  `docs/evidence/g2-render/`; viittaukset `docs/composition.md`, `docs/camera-presets.md`.
+  Renderöijän tuloste ei muuttunut (vanhat golden-testit ennallaan).
+- Tarkistettu: `cargo fmt --all --check`, `cargo check --workspace`,
+  `cargo clippy --workspace --all-targets` (0 varoitusta) ja
+  `cargo test --workspace --no-fail-fast`: 923 testiä läpi, 0 epäonnistui; yhteisen
+  target-kansion kilpailutilanne kaatoi `motion-export`in doctest-käännöksen (E0463),
+  joka läpäisi erikseen ajettuna (0 doctestiä). Ennen ajoa `cargo clean -p motion-render`
+  ja `-p motion-art`. PNG:t tuotettu `motion-export`in `render_scene`-esimerkillä (resvg 0.45.1, CPU).
+- Tekemättä: puhelin kädessä -testikohtaus, puhelimen rajaustesti ja -vertailukuvat
+  (KS-003a `grip`); GPU-ajo G2-kohtauksesta; havainnollinen taidekatselmointi.
+- Estot ja riskit: puhelin odottaa A05:tä (KS-003a). Hahmojen tasatilanne nojaa
+  `motion-scene`n vakaaseen lajitteluun ID-järjestetyn kartan päällä (A04); testi
+  vartioi sitä. `stick-studio.kilsat` sisältää vanhat leivotut `heldprop_*`-osat; G2
+  käyttää hahmoarkkeja ilman niitä.
+- Seuraavaksi: KS-003a:n yhdistämisen jälkeen A08 sitoo puhelimen `grip`illä
+  VEIKKOn `hand_r`:ään, lisää sen `Subject`iksi molempiin kuvakulmiin ja päivittää kuvat.
 
 ## Kopioitava tehtävänanto
 
