@@ -1,6 +1,6 @@
 # A02 — DSL ja kääntäjä
 
-Tila: **todo** · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **running** · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -22,6 +22,39 @@ validoida kohteet, ajat ja virheet niin, että virheellinen syöte tuottaa paika
 - `seq`/`par`/`stagger`-primitiivejä ei ole; tapahtumilla on absoluuttiset kohtausajat.
 - Raportin `act`/`verb`-syntaksi (`fade_in`, `move_to`, `cam_to`, `highlight`) ei vastaa
   nykyistä skeemaa.
+
+## Päätökset (kirjattu ennen toteutusta, 27.10.2026)
+
+**A02-D1 — seq/par/stagger on kääntäjän syntaksisokeria.** Rakenteet lisätään
+versioituun kuoreen (`version: 1`, `script`, `schedules`) ja puretaan nykyisiksi
+absoluuttisiksi `Event`-ajoiksi ennen `Script::validate`a. Uutta tapahtumalajia,
+aikajanatyyppiä, kelloa tai jäsennintä ei luoda: kuori luetaan samalla `serde_yaml`-
+jäsentimellä ja sisempi `script` samalla `motion_script::parse`-funktiolla.
+Perusteet: (1) arvioija, editori, vienti ja säännöt kuluttavat jo `Script`iä, joten
+kaikki näkevät saman tuloksen; (2) vanha versioton `parse` säilyy ennallaan, joten
+vanhat esimerkit eivät muutu; (3) A04 omistaa ratkaistut raidat (ORK-G1-02), joten
+A02 ei tee ajoituksesta arvioitavaa tilaa.
+
+**A02-D2 — semantiikka.** Ajat ovat äärellisiä f64-sekunteja kohtauksen alusta;
+välit ovat puoliksi avoimia `[alku, loppu)`. Solmun alku on `S`, lapsen kesto `Dᵢ`:
+
+| Solmu | Lapsen `i` alku | Solmun kesto |
+| --- | --- | --- |
+| `seq` | `S + Σ_{j<i} Dⱼ` | `Σ Dᵢ` |
+| `par` | `S` | `max Dᵢ` |
+| `stagger(delay)` | `S + i·delay` | `max(i·delay + Dᵢ)` |
+| `wait(duration)` | – | `duration` |
+| `event(span)` | tapahtuma alkaa `S + event.at` | `span` |
+
+`children` ei saa olla tyhjä; `delay ≥ 0`; `duration` ja `span > 0`; `event.at ∈ [0, span)`;
+move/gesture mahtuu spaniin; solmun loppu ≤ kohtauksen kesto (kesto ei kasva).
+Tasatilanteessa järjestys on vakaa: ensin `script`in omat tapahtumat, sitten puun
+kirjoitusjärjestys. Puhe ei mittaa ääntä; kirjoittaja antaa spanin.
+
+**A02-D3 — virheet.** Tyypitetty `Diagnostic` (`DiagnosticCode`: syntax, schema,
+version, reference, time, unsupported, validation, limit), YAML-polku
+(`$.schedules["s"].children[1].event.actor`) ja syntaksivirheille rivi/sarake.
+Käännös on atominen; rajat 1 MiB, 1024 solmua, syvyys 32.
 
 ## Sallittu muutosalue
 
