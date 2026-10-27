@@ -7,6 +7,36 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval, in order: #111
+(`5f659f0`, ORK-G1 / ORK-G2-01 file areas, reconciled with the parallel #112 record),
+#113 (`5e93709`), #114 (`3551257`), #115 (`974ef76`), #117 (`824c399`), #116 (`9c69902`).
+
+Completed:
+- KS-002f (A03, #113): EventLog v1 accepts only the 24 kHz dialogue clock.
+- KS-002g (A04, #114): `motion_scene::time` delegates to `motion_audio::clock`; equivalence
+  test over seconds, frame rates and sample ranges.
+- KS-003b (A06, #115): `motion_animation::spring` – analytic damped springs, constant and
+  profiled forces at a fixed 1/1200 s step, five profiles, release initial state.
+- KS-003a (A05, #117): limb attachment contract, joint limits, two-bone IK, prop catalogue
+  and `grip` contract moved into `motion-rig`; `examples/g2-rig/`.
+- KS-003c (A08, #116, without the phone): depth bands and paint order, wide/close-up
+  framing rules, background style checks, `examples/g2-minimal-scene/`, two 960x540
+  reference PNGs (CPU/resvg).
+
+Checks: CI 12/12 on each code PR's final commit (#111 11/11). Branches were updated to
+`main` before merging; #117 lockfile verified with `--locked`; #116 re-checked locally
+against the new `main` (`cargo check --workspace --all-targets --locked`; motion-render,
+motion-art and motion-rig tests 99 passed, 0 failed). Agent-local runs used a shared
+target directory that caused intermittent cross-worktree build errors, so CI is the
+authoritative evidence.
+
+Open: phone-in-hand scene and references (A08), KS-003d (A04), KS-002e (A07), KS-002h
+(A02/A10), GPU parity for the G2 scene, visual art review, G2 sample. PR #108 is still
+open although its content reached `main` via #111. No hardware, perceptual or GPU
+acceptance is claimed.
+
 ## ORK G1 gate approved with condition — PR #112 merged (2026-10-27)
 
 Status: **merged** to `main` as `ecfa0de` from branch `docs/ork-g1-gate`

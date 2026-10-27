@@ -33,14 +33,14 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | done (PR #107 `10135ad`; ORK-G1-A04, ehto A07:n kellolle) |
 | KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | done (G1-osuus; PR #109 `ae39c4d`, ORK-G1-KS-002d) |
 | KS-002e | A07 | KS-002d, KS-003 | Ihmisen äänittämät fi/en-WAV-esimerkit ja niitä vasten tarkistettu ajoitus; AudioTimelinen käyttö suun arvioinnissa | todo (G2) |
-| KS-002f | A03 | KS-002b, KS-002d | G1-palautus: EventLog v1 hyväksyy vain kanonisen kellon `sample_rate`n (24 000) | ready (ORK-G1, puute 1) |
-| KS-002g | A04 | KS-002c, KS-002d | G1-palautus: `motion_scene::time` delegoi `motion_audio::clock`iin (ORK-G1-A04, ehto 1) | ready (ORK-G1, puute 2) |
+| KS-002f | A03 | KS-002b, KS-002d | G1-palautus: EventLog v1 hyväksyy vain kanonisen kellon `sample_rate`n (24 000) | done (PR #113 `5e93709`) |
+| KS-002g | A04 | KS-002c, KS-002d | G1-palautus: `motion_scene::time` delegoi `motion_audio::clock`iin (ORK-G1-A04, ehto 1) | done (PR #114 `3551257`; A02:n ja A10:n kopiot → KS-002h) |
 | KS-002h | A02 (+A10) | KS-002d | `motion_script::auto_direction::SAMPLE_RATE` kanonisen kellon aliakseksi; `motion-export`in testituen kellokopio (A10, ORK-G1/PR #112) | todo (ei estä G2:ta) |
-| KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | running (tiedostojako ORK-G2-01) |
-| KS-003a | A05 | KS-002 | Kiinnityssopimus, nivelrajat, kahden luun IK, `grip`-sidonta, esineluettelo `motion-rig`iin | ready (ORK-G2-01) |
-| KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | ready (ORK-G2-01) |
-| KS-003c | A08 | KS-002; puhelinkohtaus myös KS-003a | Renderöintisopimus, syvyysjärjestys, rajaussäännöt, testikohtaus ja vertailukuvat | ready (ORK-G2-01; puhelinkohtaus odottaa KS-003a:n `grip`-rajapintaa) |
-| KS-003d | A04 | KS-002g, KS-003a, KS-003b | `EvaluatedScene`-pyynnöt A05/A08:lta, IK-kohteen ja vapautuksen ratkaisu `motion-scene`ssä | todo (avataan, kun KS-003a/b:n rajapinnat on yhdistetty) |
+| KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | running (KS-002f/g, KS-003a/b yhdistetty; KS-003c puhelinta lukuun ottamatta; KS-003d ready) |
+| KS-003a | A05 | KS-002 | Kiinnityssopimus, nivelrajat, kahden luun IK, `grip`-sidonta, esineluettelo `motion-rig`iin | done (PR #117 `824c399`) |
+| KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | done (PR #115 `974ef76`; Dangle-ehdotus odottaa A05:n kommenttia) |
+| KS-003c | A08 | KS-002; puhelinkohtaus myös KS-003a | Renderöintisopimus, syvyysjärjestys, rajaussäännöt, testikohtaus ja vertailukuvat | osittain done (PR #116 `9c69902`); puhelinkohtaus ja sen vertailukuvat auki, `grip` nyt mainissa |
+| KS-003d | A04 | KS-002g, KS-003a, KS-003b | `EvaluatedScene`-pyynnöt A05/A08:lta, IK-kohteen ja vapautuksen ratkaisu `motion-scene`ssä | ready (avausehto täyttyi: KS-002g, KS-003a ja KS-003b yhdistetty 27.10.2026) |
 | KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |
 | KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | todo |
 | KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto) |
@@ -526,6 +526,24 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
   `Cargo.lock` voi konfliktoida A04:n ja A05:n välillä; ratkaisu rebase + uudelleentuotto.
 - Seuraavaksi: A05 (KS-003a), A06 (KS-003b) ja A08 (KS-003c) rinnakkain; A03 (KS-002f) ja
   A04 (KS-002g) korjaukset rinnakkain niiden kanssa.
+
+### ORK-G2 yhdistämiset — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: käyttäjän luvalla yhdistetty #111 (`5f659f0`, ORK-G1/ORK-G2-01; rinnakkainen #112-kirjaus
+  sovitettu), #113 A03 KS-002f (`5e93709`), #114 A04 KS-002g (`3551257`), #115 A06 KS-003b
+  (`974ef76`), #117 A05 KS-003a (`824c399`) ja #116 A08 KS-003c ilman puhelinta (`9c69902`).
+  KS-003d merkitty `ready`. PR #108 jäi auki: sen sisältö (ORK-G1-A04) tuli mainiin #111:n
+  mukana; sulkeminen odottaa käyttäjän lupaa.
+- Tarkistettu: jokaisen PR:n CI 12/12 (#111 11/11) viimeisellä commitilla; #113, #114, #115,
+  #116 ja #117 päivitettiin mainia vastaan ennen yhdistämistä (agenttitiedostojen tilarivien
+  ristiriidat ratkaistu); #117:n `Cargo.lock` tarkistettu `cargo metadata --locked` ja
+  `cargo check --workspace --locked`; #116 paikallisesti `cargo check --workspace --all-targets
+  --locked` ja motion-render/motion-art/motion-rig-testit 99/0 uutta mainia vastaan.
+- Tekemättä: A08:n puhelinkohtaus; KS-003d (A04); KS-002e (A07); KS-002h; G2-näyte.
+- Estot ja riskit: yhteinen `CARGO_TARGET_DIR` aiheutti agenttien välisiä ristikkäisiä
+  käännösvirheitä; seuraavalla kierroksella raskaat testiajot vuorotellen. Levytila on tiukka.
+- Seuraavaksi: A08 puhelinkohtaus (`grip`), A04 KS-003d.
 
 ## Kopioitava tehtävänanto
 
