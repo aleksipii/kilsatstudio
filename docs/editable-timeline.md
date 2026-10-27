@@ -67,3 +67,95 @@ Exact evidence is recorded in [master progress](master-progress.md).
 This is a bounded scene-order/duration editing step. General editing of compiled
 event tracks, event retiming, a versioned compiled-track interchange format,
 separate audio commands and conditional animation rules remain open.
+
+## TrackSpec, overlap order and time conversion (A04)
+
+Contract owner: `motion-scene` (ORK-G1-02). The authored form stays in
+`motion-script` (A02); resolved tracks are evaluated state and are not serialized.
+
+### `scene_at_time`
+
+`ValidatedScript::evaluate(scene_index, t)` is `scene_at_time`. It is a pure
+function of the validated script, the scene index and `t`: there is no playback
+history, cache of earlier frames or hidden clock. `evaluate_sample(scene_index,
+local_sample)` is the same function addressed on the 24 kHz clock. The one-shot
+`motion_scene::evaluate` prepares the same data and returns identical results.
+
+### Targets: Abs, Rel, Revert
+
+`motion_scene::tracks` resolves authored spans for one `(entity, property)` pair
+into concrete `{from, to}` intervals once, when the script is prepared:
+
+| Target | `to` |
+| --- | --- |
+| `Abs(v)` | `v` |
+| `Rel(d)` | `from + d`, where `from` is the track value at the span start |
+| `Revert` | the track's base value (not the value before the previous span) |
+
+`from` is always the track value at the span start, so `Rel` gives the cumulative
+`base + Σ prior deltas` sum without per-frame accumulation. Playback only finds the
+active span (binary search) and interpolates linearly. A finished span holds
+exactly `to` until the next span starts.
+
+### Mapping of current authored data
+
+| Authored data | Property | Target | Overlap rule |
+| --- | --- | --- | --- |
+| `Event::Move` | actor root position | `Abs`, starts where the previous move ended; holds | overlapping moves for one actor are a validation error; touching moves hand over the exact endpoint |
+| `actor_tracks` | root translation offset | `Rel` on top of the move position (keyframed) | one track per actor |
+| `actor_tracks` | rotation, scale | `Abs` (keyframed) | one track per actor |
+| `Event::Emotion` | emotion | `Abs` step; holds | latest start ≤ t wins; equal times: later written wins |
+| `background_keys` | background colour | `Abs` step; holds | strictly increasing times (validated) |
+| `camera` keys | camera pose | `Abs` keyframes; holds after the last key | strictly increasing times (validated) |
+| `Event::Gesture` | gesture weight | envelope that reverts to 0 at its end | strongest envelope wins; ties keep the earlier event |
+| clip instances | joint offsets | `Override` ≈ `Abs`, `Additive` ≈ `Rel`; revert outside their window | composed in row order; normalized groups by stable ID |
+| bone / joint tracks | joint offsets | `Abs` (keyframed) | one track per joint |
+
+Only `Event::Move` currently goes through `ResolvedTrack`. MotionScript has no
+authored `Rel` or `Revert` move yet; adding one is a schema request to A02. The
+other rows keep their existing evaluators; the table records their semantics so
+consumers can rely on them.
+
+### General overlap order
+
+For resolved tracks: spans are ordered by start time (`f64::total_cmp`), then by
+written order. The span with the latest start at or before `t` is active, so a
+later start interrupts an earlier span and takes its value at that instant as
+`from`. On equal starts the later-written span wins and the earlier one has no
+effect. Input order of the span slice does not change the result.
+
+### Time conversion
+
+`motion_scene::time` names the rules already used by `SequenceTimeline` and
+`motion-export`, on the single `SEQUENCE_SAMPLE_RATE` = 24 000 Hz clock:
+
+| Conversion | Rule |
+| --- | --- |
+| seconds → sample | nearest sample, halves away from zero; negative or non-finite is `InvalidTime` |
+| sample → seconds | `sample / 24000` |
+| frame → sample | `floor(frame × 24000 / fps)` in integer arithmetic (export's rule) |
+| frame → seconds | `frame_to_sample / 24000`; bit-identical to `frame / fps` when fps divides 24000 |
+| sample → frame | the last frame whose first sample is not after it |
+| scene offsets | scene start = sum of whole-sample durations minus crossfade overlaps; local sample = global − start |
+
+Scene durations and crossfades round to whole samples, so sequence seeks never
+accumulate floating-point drift. A scene's local time range is `[0, duration]`;
+the endpoint is valid for evaluation, but `frame_count` exports only frames
+strictly before it, and in a sequence the boundary sample belongs to the next
+scene at local sample 0. Negative, non-finite or past-the-end times are
+`Error::InvalidTime`; `-0.0` evaluates bit-identically to `0.0`.
+
+ORK-G1-04 places the canonical clock in `motion-audio` (A07). When it lands,
+`motion_scene::time` delegates to it rather than keeping a second definition.
+
+### Determinism levels (ADR-A01-04)
+
+1. **State** — tested here: the same script and time give a bit-identical
+   `EvaluatedScene` (compared via `Debug`, which distinguishes every relevant f64,
+   including `-0.0`). Direct seeks, backwards scrubbing, fresh evaluators and
+   frame-by-frame playback agree for every frame of a two-scene sequence.
+2. **Pixels** — not covered by A04; needs renderer, font and platform evidence (A08/A10).
+3. **Compressed video** — not covered; also requires codec and settings control (A10).
+
+Tests: `crates/motion-scene/tests/timeline_determinism.rs`, unit tests in
+`src/time.rs` and `src/tracks.rs`.
