@@ -7,6 +7,44 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A07 AudioTimeline v1, sample clock and strict model-free path — PR #109 merged (2026-10-27)
+
+Status: **merged** to `main` as `ae39c4d` from branch `feat/a07-audio-timeline`
+([PR #109](https://github.com/aleksipii/kilsatstudio/pull/109)) with the user's explicit
+approval. Owner A07, task KS-002d, contract ORK-G1-04.
+
+Completed: `motion_audio::clock` (canonical `DIALOGUE_SAMPLE_RATE` = 24 000 Hz and A04's
+seconds/sample/frame rules with typed `ClockError`; the motion-lipsync and motion-voice
+constants are now aliases). `motion_lipsync::audio_timeline` — AudioTimeline v1:
+`format_version: 1`, strict JSON, imported or synthesized source provenance (provider,
+model revision, voice, cache key, PCM hash), `MixClip`-compatible placement,
+source-local phoneme/viseme intervals with `AlignmentSource`, typed validation errors,
+`viseme_at` and a pure, boundary-tested `blend_at`. Strict model-free path:
+`motion_project::ModelPolicy::permit` (single check point, ADR-A01-09),
+`motion_tts::DisabledSpeechProvider`, `motion_voice::model_free` (missing WAV → typed
+error before any provider call, no fallback) and
+`motion_voice::audio_timeline::scene_audio_timeline`. Finnish estimator v2 (tests for
+ä/ö/y, long vowels, geminates; new rules for n + k/g, š/ž, x, NFD letters) and Finnish IPA
+`y ø ʋ ç x ɦ`. The 13 visemes are unchanged. Contract in
+[audio-timeline.md](audio-timeline.md); examples in `examples/audio-timeline-v1/`.
+
+Checks: local macOS on the branch: `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace` (892 passed,
+0 failed, 8 ignored); the branch merged with `main` after PR #107: fmt ok, clippy 0
+warnings, 906 passed, 0 failed, 8 ignored. `python3 -m unittest discover -s
+services/kokoro-runtime/tests -v`: 55 run, OK, 5 skipped (synthesis-path tests need NumPy,
+not installed). No model was downloaded and no synthesis ran. PR CI on `62f96be` 12/12
+passed. Acceptance test `crates/motion-voice/tests/model_free.rs`: a counting provider
+whose every call fails is called 0 times through preparation, export, project
+save/reopen and remix from the reloaded timeline.
+
+Open: human-recorded Finnish/English WAV examples and timing measured against them (mouth
+timing is structurally validated only); `ProjectDocument.model_policy` and UI/worker check
+points (A09); `motion-export` check before speech preparation (A10); `motion_scene::time`,
+`motion_script::auto_direction::SAMPLE_RATE` and export test support delegating to
+`motion_audio::clock` (A04/A02/A10); viseme blending in the renderer (A08). The Finnish
+estimator version bump invalidates earlier cached Finnish estimates by design.
+
 ## A04 TrackSpec, time conversions and seek equivalence — PR #107 merged (2026-10-27)
 
 Status: **merged** to `main` as `10135ad` from branch `feat/a04-timeline`
@@ -35,7 +73,8 @@ apple-silicon-preview, real-asset-pack).
 Open: authored `Rel`/`Revert` moves in MotionScript (A02 schema request); emotions,
 backgrounds, camera, gestures and clips keep their own evaluators (rules documented and
 tested, not migrated); `motion_scene::time` delegates to A07's `motion-audio` clock once it
-lands (ORK-G1-04); pixel/video determinism (A08/A10). G1 gate still needs A07 AudioTimeline v1.
+lands (ORK-G1-04); pixel/video determinism (A08/A10). G1 gate still needs A07 AudioTimeline v1
+(merged later in PR #109).
 
 ## ORK G0 approval and G1 contract owners — PR #104 merged (2026-10-27)
 
