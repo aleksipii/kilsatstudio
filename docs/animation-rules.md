@@ -118,7 +118,7 @@ Examples: [`examples/event-log-v1/`](../examples/event-log-v1/).
 | Field | Meaning and validation |
 | --- | --- |
 | `version` | `1`; any other value is `UnsupportedVersion` (reported before field errors). |
-| `sample_rate` | Samples per second of the clock `sample` counts, `1..=192000`. The log records the rate instead of copying a constant; the canonical dialogue clock (24 000 Hz) is A07's (ORK-G1-04), and consumers compare against it. |
+| `sample_rate` | Samples per second of the clock `sample` counts. Must be 24 000 (`EVENT_LOG_SAMPLE_RATE`, the canonical dialogue clock `motion_audio::clock`, ORK-G1-04); any other value is `EventLogError::UnsupportedSampleRate`. The field is kept so a log from another clock is rejected rather than reinterpreted. Before KS-002f (2026-10-27) version 1 accepted `1..=192000`; the application does not write event logs yet, and the bundled examples already used 24 000. |
 | `scene`, `sample` | Scene ID and integer scene-local sample. Within one scene samples must not decrease (`Order`); scenes may interleave. Against a script, `sample / sample_rate` must lie in `[0, duration)`. |
 | `source` | `keyboard`, `pointer`, `camera` or `manual`. Allowed: key ← keyboard; drag ← pointer; camera_pose ← camera; release ← pointer or keyboard; anything ← manual. |
 | `value` | `key {key}`; `drag {actor, joint, x, y}` (scene units, finite, \|v\| ≤ 100 000); `camera_pose {roll, yaw?, pitch?}` (radians, \|roll\| ≤ π/2, \|yaw\|, \|pitch\| ≤ π, same limits as the desktop head-pose panel); `release {actor, joint}`. Joints must exist on the actor: rig joints for custom rigs, humanoid bones otherwise. |

@@ -29,3 +29,10 @@ invalid durations, plus deterministic scene evaluation after seeking backward.
 Physical Mac interaction and perceptual framing acceptance remain separate.
 Actor-free audio cues, conditional/reusable rules and general compiled track
 editing remain open; see [screenplay workstream](workstreams/next-screenplay-timeline.md).
+
+Presets and shot templates only write camera keys. Whether a resulting frame keeps
+its subjects inside the wide (4 %) or close-up (8 %, face at least 20 % of frame
+height) margins is checked separately by `motion_render::framing::check_framing`;
+see [render contract § Framing](render-contract.md#framing-wide-and-close-shots).
+The G2 test scene (`examples/g2-minimal-scene/`) uses a hard cut built from two
+camera keys 10 ms apart, which no 24 fps frame samples.

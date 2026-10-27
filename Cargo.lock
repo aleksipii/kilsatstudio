@@ -1728,6 +1728,7 @@ name = "motion-rig"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "thiserror 2.0.21",
 ]
 
@@ -1736,6 +1737,7 @@ name = "motion-scene"
 version = "0.1.0"
 dependencies = [
  "motion-animation",
+ "motion-audio",
  "motion-lipsync",
  "motion-rig",
  "motion-script",

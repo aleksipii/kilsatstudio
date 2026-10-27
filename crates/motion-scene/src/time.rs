@@ -1,7 +1,9 @@
-//! Time conversions on the existing 24 kHz sequence sample clock.
+//! Time conversions on the canonical 24 kHz dialogue sample clock.
 //!
-//! This is not a second clock: it names the rules that `SequenceTimeline`,
-//! export and the evaluator already use, so A07/A10 can share one definition.
+//! This module owns no clock arithmetic (KS-002g, ORK-G1-A04): every function
+//! delegates to [`motion_audio::clock`] and only maps [`ClockError`] onto this
+//! crate's [`Error`], so sequence seeks, the evaluator, export and dialogue
+//! placement share one implementation.
 //!
 //! - Authored time is finite `f64` seconds from the scene start.
 //! - Seconds → samples rounds to the nearest sample, halves away from zero.
@@ -11,47 +13,46 @@
 //! - Scene offsets are sums of whole-sample durations, so sequence seeks never
 //!   accumulate floating-point drift.
 use crate::Error;
+use motion_audio::clock::{self, ClockError};
 
-/// Canonical dialogue and sequence sample rate (ORK-G1-04).
-pub const SEQUENCE_SAMPLE_RATE: u32 = 24_000;
-const RATE: u128 = SEQUENCE_SAMPLE_RATE as u128;
+/// Canonical dialogue and sequence sample rate (ORK-G1-04). An alias of
+/// [`motion_audio::clock::DIALOGUE_SAMPLE_RATE`], not a second definition.
+pub const SEQUENCE_SAMPLE_RATE: u32 = clock::DIALOGUE_SAMPLE_RATE;
+
+/// Maps the shared clock error onto the scene error kinds callers already match.
+fn scene_error(error: ClockError) -> Error {
+    match error {
+        ClockError::InvalidTime => Error::InvalidTime,
+        ClockError::InvalidFrameRate => Error::InvalidFrameClock,
+        ClockError::Overflow => Error::FrameBudget,
+    }
+}
 
 /// Nearest sample for a finite, non-negative time in seconds.
 pub fn seconds_to_sample(seconds: f64) -> Result<u64, Error> {
-    let value = (seconds * f64::from(SEQUENCE_SAMPLE_RATE)).round();
-    if !seconds.is_finite() || seconds < 0.0 || value >= u64::MAX as f64 {
-        return Err(Error::InvalidTime);
-    }
-    Ok(value as u64)
+    clock::seconds_to_sample(seconds).map_err(scene_error)
 }
 
 /// Scene-local seconds for a sample, as the evaluator receives them.
 pub fn sample_to_seconds(sample: u64) -> f64 {
-    sample as f64 / f64::from(SEQUENCE_SAMPLE_RATE)
+    clock::sample_to_seconds(sample)
 }
 
 /// First sample of a frame: `floor(frame * 24000 / fps)`.
 pub fn frame_to_sample(frame: u64, fps: u32) -> Result<u64, Error> {
-    if fps == 0 {
-        return Err(Error::InvalidFrameClock);
-    }
-    u64::try_from(u128::from(frame) * RATE / u128::from(fps)).map_err(|_| Error::FrameBudget)
+    clock::frame_to_sample(frame, fps).map_err(scene_error)
 }
 
 /// Scene-local evaluation time for a frame. When `fps` divides 24000
 /// (24, 25, 30, 60, …) this is bit-identical to `frame / fps`.
 pub fn frame_to_seconds(frame: u64, fps: u32) -> Result<f64, Error> {
-    frame_to_sample(frame, fps).map(sample_to_seconds)
+    clock::frame_to_seconds(frame, fps).map_err(scene_error)
 }
 
 /// The frame that displays `sample`: the largest `f` with
 /// `frame_to_sample(f, fps) <= sample`.
 pub fn sample_to_frame(sample: u64, fps: u32) -> Result<u64, Error> {
-    if fps == 0 {
-        return Err(Error::InvalidFrameClock);
-    }
-    let shown = ((u128::from(sample) + 1) * u128::from(fps) - 1) / RATE;
-    u64::try_from(shown).map_err(|_| Error::FrameBudget)
+    clock::sample_to_frame(sample, fps).map_err(scene_error)
 }
 
 #[cfg(test)]
@@ -68,7 +69,10 @@ mod tests {
         assert_eq!(seconds_to_sample(1.5 / 24_000.0).unwrap(), 2);
         assert_eq!(seconds_to_sample(0.49 / 24_000.0).unwrap(), 0);
         for bad in [-1e-9, f64::NAN, f64::INFINITY, f64::NEG_INFINITY, 1e300] {
-            assert!(seconds_to_sample(bad).is_err(), "{bad}");
+            assert!(
+                matches!(seconds_to_sample(bad), Err(Error::InvalidTime)),
+                "{bad}"
+            );
         }
     }
 
@@ -106,9 +110,18 @@ mod tests {
         }
         assert_eq!(frame_to_sample(1, 7).unwrap(), 3_428);
         assert_eq!(sample_to_frame(3_427, 7).unwrap(), 0);
-        assert!(frame_to_sample(1, 0).is_err());
-        assert!(sample_to_frame(1, 0).is_err());
-        assert!(frame_to_sample(u64::MAX, 1).is_err());
+        assert!(matches!(
+            frame_to_sample(1, 0),
+            Err(Error::InvalidFrameClock)
+        ));
+        assert!(matches!(
+            sample_to_frame(1, 0),
+            Err(Error::InvalidFrameClock)
+        ));
+        assert!(matches!(
+            frame_to_sample(u64::MAX, 1),
+            Err(Error::FrameBudget)
+        ));
     }
 
     #[test]
@@ -121,6 +134,89 @@ mod tests {
                 assert_eq!(
                     frame_to_seconds(i, fps).unwrap().to_bits(),
                     (export as f64 / 24_000.0).to_bits()
+                );
+            }
+        }
+    }
+
+    /// Same value, or the same error kind after mapping the shared clock error.
+    fn same<T, F>(scene: Result<T, Error>, audio: Result<T, ClockError>, eq: F) -> bool
+    where
+        F: Fn(&T, &T) -> bool,
+    {
+        match (scene, audio) {
+            (Ok(a), Ok(b)) => eq(&a, &b),
+            (Err(a), Err(b)) => {
+                std::mem::discriminant(&a) == std::mem::discriminant(&scene_error(b))
+            }
+            _ => false,
+        }
+    }
+
+    #[test]
+    fn scene_and_audio_clock_paths_are_identical() {
+        // KS-002g: both paths give the same samples, bit patterns and error kinds.
+        assert_eq!(SEQUENCE_SAMPLE_RATE, clock::DIALOGUE_SAMPLE_RATE);
+        let seconds = [
+            0.0,
+            -0.0,
+            0.5 / 24_000.0,
+            1.5 / 24_000.0,
+            0.49 / 24_000.0,
+            1.0 / 3.0,
+            1_234.567_891,
+            86_400.0,
+            -1e-9,
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            1e300,
+        ];
+        for value in seconds {
+            assert!(
+                same(
+                    seconds_to_sample(value),
+                    clock::seconds_to_sample(value),
+                    |a, b| a == b
+                ),
+                "seconds_to_sample({value})"
+            );
+        }
+        let samples = [0, 1, 3_427, 3_428, 23_999, 24_000, 1 << 40, u64::MAX];
+        for sample in samples {
+            assert_eq!(
+                sample_to_seconds(sample).to_bits(),
+                clock::sample_to_seconds(sample).to_bits()
+            );
+        }
+        let bits = |a: &f64, b: &f64| a.to_bits() == b.to_bits();
+        for fps in [0, 1, 7, 24, 25, 29, 30, 60, 24_000, u32::MAX] {
+            for frame in (0..3_000).chain([u64::MAX / 2, u64::MAX]) {
+                assert!(
+                    same(
+                        frame_to_sample(frame, fps),
+                        clock::frame_to_sample(frame, fps),
+                        |a, b| a == b
+                    ),
+                    "frame_to_sample({frame}, {fps})"
+                );
+                assert!(
+                    same(
+                        frame_to_seconds(frame, fps),
+                        clock::frame_to_seconds(frame, fps),
+                        bits
+                    ),
+                    "frame_to_seconds({frame}, {fps})"
+                );
+            }
+            for sample in (0..3_000).chain(samples) {
+                assert!(
+                    same(
+                        sample_to_frame(sample, fps),
+                        clock::sample_to_frame(sample, fps),
+                        |a, b| a == b
+                    ),
+                    "sample_to_frame({sample}, {fps})"
                 );
             }
         }
