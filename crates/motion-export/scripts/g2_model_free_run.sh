@@ -15,11 +15,12 @@ set -eu
 bin=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 out=$2
 format=$3
+ffmpeg_arg=${4:-}
 allow="(allow process-exec (literal \"$bin\"))"
 set -- "$out" "$format"
 if [ "$format" = mp4 ]; then
-  [ -n "${4:-}" ] || { echo "mp4 needs FFMPEG" >&2; exit 2; }
-  ffmpeg=$(realpath "$4")
+  [ -n "$ffmpeg_arg" ] || { echo "mp4 needs FFMPEG" >&2; exit 2; }
+  ffmpeg=$(realpath "$ffmpeg_arg")
   allow="$allow(allow process-exec (literal \"$ffmpeg\"))"
   set -- "$@" --ffmpeg "$ffmpeg"
 fi
