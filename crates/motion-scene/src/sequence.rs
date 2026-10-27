@@ -1,8 +1,7 @@
 //! Stateless, bounded sequence timing on the shared audio sample clock.
+use crate::time::seconds_to_sample;
 use crate::Error;
 use motion_script::{Script, Transition};
-
-pub const SEQUENCE_SAMPLE_RATE: u32 = 24_000;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SceneSpan {
@@ -26,14 +25,14 @@ pub struct SequenceTimeline {
 fn invalid(message: &str) -> Error {
     Error::InvalidSequence(message.into())
 }
+/// Durations use the shared nearest-sample rule and must be at least one sample.
 fn samples(seconds: f64) -> Result<u64, Error> {
-    let value = (seconds * f64::from(SEQUENCE_SAMPLE_RATE)).round();
-    if !seconds.is_finite() || seconds <= 0.0 || value < 1.0 || value >= u64::MAX as f64 {
-        return Err(invalid(
+    match seconds_to_sample(seconds) {
+        Ok(value) if seconds > 0.0 && value >= 1 => Ok(value),
+        _ => Err(invalid(
             "duration must round to a representable positive sample count",
-        ));
+        )),
     }
-    Ok(value as u64)
 }
 impl SequenceTimeline {
     pub fn compile(script: &Script) -> Result<Self, Error> {
