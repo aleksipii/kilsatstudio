@@ -1,6 +1,6 @@
 # A02 — DSL ja kääntäjä
 
-Tila: **running** · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **review** · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -70,20 +70,27 @@ Käännös on atominen; rajat 1 MiB, 1024 solmua, syvyys 32.
 
 ## Tehtävät — tarkistuslista
 
-- [ ] Dokumentoi nykyinen skeema ja sen versio; lisää eksplisiittinen versiokenttä,
+- [x] Dokumentoi nykyinen skeema ja sen versio; lisää eksplisiittinen versiokenttä,
       jos sellaista ei ole, taaksepäin yhteensopivasti.
-- [ ] Päätä: lisätäänkö `seq`/`par`/`stagger` kääntäjän syntaksisokerina, joka puretaan
+      → `docs/motionscript.md` § Versions: versioton = vanha skripti, `version: 1` = kuori;
+      JSON Schema `crates/motion-script/schema/`.
+- [x] Päätä: lisätäänkö `seq`/`par`/`stagger` kääntäjän syntaksisokerina, joka puretaan
       nykyisiksi absoluuttisiksi tapahtuma-ajoiksi ennen validointia. Kirjaa päätös.
-- [ ] Määritä semantiikka: `seq` = kesto summautuu; `par` = kesto on maksimi;
+      → A02-D1 (commit `a4917a3`, ennen toteutusta).
+- [x] Määritä semantiikka: `seq` = kesto summautuu; `par` = kesto on maksimi;
       `stagger(delay)` = i:nnen lapsen alku `i·delay`. Puoliksi avoimet välit `[alku, loppu)`.
-- [ ] Hylkää ei-äärelliset, negatiiviset ja nollakestot sekä tuntemattomat kohteet.
-- [ ] Erottele virhetyypit: syntaksivirhe, virheellinen viite, tukematon komento.
-      Tukematon verbi raportoidaan, ei ohiteta.
-- [ ] Virheisiin rivi/sarake tai YAML-polku (esim. `scenes[0].events[3].target`).
-- [ ] Testit: jokainen primitiivi, sisäkkäisyys, rajat, jokainen virhetyyppi, sama syöte →
-      sama käännetty tulos.
-- [ ] Esimerkit `examples/`-kansioon: kelvollinen ja virheellinen syöte odotettuine virheineen.
-- [ ] Kirjaa yhteinen SceneSpec-kuvaus (mitä kääntäjä luovuttaa A04:lle).
+      → A02-D2.
+- [x] Hylkää ei-äärelliset, negatiiviset ja nollakestot sekä tuntemattomat kohteet.
+- [x] Erottele virhetyypit: syntaksivirhe, virheellinen viite, tukematon komento.
+      Tukematon verbi raportoidaan, ei ohiteta. → `compiler::DiagnosticCode` (8 luokkaa).
+- [x] Virheisiin rivi/sarake tai YAML-polku (esim. `scenes[0].events[3].target`).
+      → polku aina; rivi/sarake YAML-syntaksivirheille.
+- [x] Testit: jokainen primitiivi, sisäkkäisyys, rajat, jokainen virhetyyppi, sama syöte →
+      sama käännetty tulos. → `crates/motion-script/tests/compiler.rs`, 18 testiä.
+- [x] Esimerkit `examples/`-kansioon: kelvollinen ja virheellinen syöte odotettuine virheineen.
+      → `examples/motionscript-v1/` (1 kelvollinen, 3 virheellistä `# expect:`-otsakkeella).
+- [x] Kirjaa yhteinen SceneSpec-kuvaus (mitä kääntäjä luovuttaa A04:lle).
+      → `docs/motionscript.md` § SceneSpec handed to A04.
 
 ## Hyväksymisehdot
 
@@ -98,7 +105,29 @@ paikannetut virheet, esimerkit ja SceneSpec-sopimus A04:lle.
 
 ### Toteutunut lopputulema
 
-_Ei vielä aloitettu._
+### A02 / KS-002a — 27.10.2026
+- Tila: review
+- Omistaja: A02
+- Tehty: haara `feat/a02-dsl` (`main` `331f9d4`:n päällä), korvaa konfliktissa olevan PR #102:n.
+  `a4917a3` päätös A02-D1…D3; `f0146f7` PR #102:n kääntäjä (`compiler.rs`,
+  `compile`/`compile_with_origins`, `Compilation`) rebasettuna, JSON Schema siirretty
+  `crates/motion-script/schema/`-kansioon, määrittely `docs/motionscript.md`:hen,
+  `master-progress.md`-muutos jätetty pois (päivitetään vasta yhdistämisen jälkeen);
+  `66dfce0` tyypitetty `DiagnosticCode`, kuoren kenttävirheet `schema`-luokkaan
+  (aiemmin väärin `syntax`), 10 uutta testiä ja kaksi virheellistä esimerkkiä.
+  `rules.rs`iä ei muutettu; uutta jäsennintä ei luotu.
+- Tarkistettu (macOS, paikallisesti): `cargo fmt --all --check` ok; `cargo check --workspace` ok;
+  `cargo clippy --workspace --all-targets` 0 varoitusta; `cargo test --workspace` ok
+  (0 epäonnistunutta); `cargo test -p motion-script` 93 + 9 + 18 ok;
+  `compile_script`-esimerkki tuottaa ajat 1, 1, 1.5, 3. Vanhat `examples/*.yaml` (5 kpl)
+  jäsentyvät ja tuottavat v1-kuoressa identtisen `Script`in. CI: ks. PR.
+- Tekemättä: editorin suora v1-avaus (A09); semanttisten virheiden rivi/sarake (vain polku);
+  vanhan `script`-osan sisäiset virheet paikantuvat vain polkuun `$.script`;
+  `examples/night-room-reference/*.yaml` eivät ole yksittäisiä skriptejä, eikä niitä testata tässä.
+- Estot ja riskit: PR #102 jää auki päällekkäisenä; sulkeminen käyttäjän päätöksellä.
+  Tilarivi voi konfliktoida haaran `docs/ork-g1` kanssa (sama rivi).
+- Seuraavaksi: käyttäjän katselmus ja yhdistämislupa; sen jälkeen A03 (EventLog v1,
+  `pub mod event_log;` `lib.rs`iin) ja A04 (TrackSpec `motion-scene`ssä).
 
 ## Kopioitava tehtävänanto
 
