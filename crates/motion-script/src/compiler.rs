@@ -8,10 +8,54 @@ pub const MAX_SOURCE_BYTES: usize = 1_048_576;
 pub const MAX_NODES: usize = 1024;
 pub const MAX_DEPTH: usize = 32;
 
+/// Diagnostic category. Each variant is a distinct, stable failure class.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DiagnosticCode {
+    /// Malformed YAML, including duplicate keys.
+    Syntax,
+    /// Missing or unknown field, or a value of the wrong shape.
+    Schema,
+    /// Unsupported document version.
+    Version,
+    /// Unknown scene or actor reference.
+    Reference,
+    /// Non-finite, negative or zero time, interval outside its span or scene,
+    /// or precision loss.
+    Time,
+    /// Unknown schedule operation or event type; reported, never skipped.
+    Unsupported,
+    /// Rejected by the existing `Script::validate`.
+    Validation,
+    /// Source size, node count or nesting depth limit exceeded.
+    Limit,
+}
+
+impl DiagnosticCode {
+    /// Stable lowercase name used in messages and documentation.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Syntax => "syntax",
+            Self::Schema => "schema",
+            Self::Version => "version",
+            Self::Reference => "reference",
+            Self::Time => "time",
+            Self::Unsupported => "unsupported",
+            Self::Validation => "validation",
+            Self::Limit => "limit",
+        }
+    }
+}
+
+impl std::fmt::Display for DiagnosticCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 #[error("{code} at {path}: {message}")]
 pub struct Diagnostic {
-    pub code: &'static str,
+    pub code: DiagnosticCode,
     /// YAML field path; sequence indexes are zero based.
     pub path: String,
     pub message: String,
@@ -19,7 +63,7 @@ pub struct Diagnostic {
     pub line: Option<usize>,
     pub column: Option<usize>,
 }
-fn fail(code: &'static str, path: &str, message: impl ToString) -> Diagnostic {
+fn fail(code: DiagnosticCode, path: &str, message: impl ToString) -> Diagnostic {
     Diagnostic {
         code,
         path: path.into(),
@@ -53,21 +97,29 @@ pub fn compile(source: &str) -> Result<Script, Diagnostic> {
 /// Compile with provenance for rule diagnostics and timeline inspection.
 pub fn compile_with_origins(source: &str) -> Result<Compilation, Diagnostic> {
     if source.len() > MAX_SOURCE_BYTES {
-        return Err(fail("limit", "$", "source exceeds 1 MiB"));
+        return Err(fail(DiagnosticCode::Limit, "$", "source exceeds 1 MiB"));
     }
-    let document: Document = serde_yaml::from_str(source).map_err(|error| {
-        let mut diagnostic = fail("syntax", "$", &error);
+    // Malformed YAML (with its location) is a syntax error; a well-formed document
+    // with missing or unknown envelope fields is a schema error.
+    let value: Value = serde_yaml::from_str(source).map_err(|error| {
+        let mut diagnostic = fail(DiagnosticCode::Syntax, "$", &error);
         if let Some(location) = error.location() {
             diagnostic.line = Some(location.line());
             diagnostic.column = Some(location.column());
         }
         diagnostic
     })?;
+    let document: Document =
+        serde_yaml::from_value(value).map_err(|error| fail(DiagnosticCode::Schema, "$", error))?;
     if document.version != VERSION {
-        return Err(fail("version", "$.version", "only version 1 is supported"));
+        return Err(fail(
+            DiagnosticCode::Version,
+            "$.version",
+            "only version 1 is supported",
+        ));
     }
     let script_yaml = serde_yaml::to_string(&document.script)
-        .map_err(|error| fail("schema", "$.script", error))?;
+        .map_err(|error| fail(DiagnosticCode::Schema, "$.script", error))?;
     let mut script = crate::parse(&script_yaml).map_err(|error| script_error("$.script", error))?;
     let mut origins: Vec<Vec<String>> = script
         .scenes
@@ -80,20 +132,27 @@ pub fn compile_with_origins(source: &str) -> Result<Compilation, Diagnostic> {
         })
         .collect();
     let mut count = 0;
-    let schedules = document
-        .schedules
-        .as_mapping()
-        .ok_or_else(|| fail("schema", "$.schedules", "expected scene-id mapping"))?;
+    let schedules = document.schedules.as_mapping().ok_or_else(|| {
+        fail(
+            DiagnosticCode::Schema,
+            "$.schedules",
+            "expected scene-id mapping",
+        )
+    })?;
     for (scene_id, node) in schedules {
-        let scene_id = scene_id
-            .as_str()
-            .ok_or_else(|| fail("schema", "$.schedules", "scene keys must be strings"))?;
+        let scene_id = scene_id.as_str().ok_or_else(|| {
+            fail(
+                DiagnosticCode::Schema,
+                "$.schedules",
+                "scene keys must be strings",
+            )
+        })?;
         let path = format!("$.schedules[{scene_id:?}]");
         let scene = script
             .scenes
             .iter()
             .position(|scene| scene.id == scene_id)
-            .ok_or_else(|| fail("reference", &path, "unknown scene"))?;
+            .ok_or_else(|| fail(DiagnosticCode::Reference, &path, "unknown scene"))?;
         let mut compiler = Compiler {
             script: &mut script,
             scene,
@@ -133,18 +192,21 @@ impl Compiler<'_> {
         *self.count += 1;
         if depth > MAX_DEPTH || *self.count > MAX_NODES {
             return Err(fail(
-                "limit",
+                DiagnosticCode::Limit,
                 path,
                 "schedule exceeds depth 32 or 1024 nodes",
             ));
         }
         let mapping = node
             .as_mapping()
-            .ok_or_else(|| fail("schema", path, "expected mapping"))?;
-        let op = node
-            .get("op")
-            .and_then(Value::as_str)
-            .ok_or_else(|| fail("schema", &format!("{path}.op"), "expected operation name"))?;
+            .ok_or_else(|| fail(DiagnosticCode::Schema, path, "expected mapping"))?;
+        let op = node.get("op").and_then(Value::as_str).ok_or_else(|| {
+            fail(
+                DiagnosticCode::Schema,
+                &format!("{path}.op"),
+                "expected operation name",
+            )
+        })?;
         let allowed: &[&str] = match op {
             "seq" | "par" => &["op", "children"],
             "stagger" => &["op", "children", "delay"],
@@ -152,7 +214,7 @@ impl Compiler<'_> {
             "event" => &["op", "span", "event"],
             _ => {
                 return Err(fail(
-                    "unsupported",
+                    DiagnosticCode::Unsupported,
                     &format!("{path}.op"),
                     format!("unsupported operation {op}"),
                 ))
@@ -160,7 +222,11 @@ impl Compiler<'_> {
         };
         for key in mapping.keys() {
             if !key.as_str().is_some_and(|key| allowed.contains(&key)) {
-                return Err(fail("schema", path, format!("unknown field {key:?}")));
+                return Err(fail(
+                    DiagnosticCode::Schema,
+                    path,
+                    format!("unknown field {key:?}"),
+                ));
             }
         }
         let duration = match op {
@@ -170,28 +236,28 @@ impl Compiler<'_> {
                 let event_path = format!("{path}.event");
                 let value = node
                     .get("event")
-                    .ok_or_else(|| fail("schema", &event_path, "missing event"))?;
+                    .ok_or_else(|| fail(DiagnosticCode::Schema, &event_path, "missing event"))?;
                 let kind = value.get("type").and_then(Value::as_str).unwrap_or("");
                 if !["move", "gesture", "speak", "emotion"].contains(&kind) {
                     return Err(fail(
-                        "unsupported",
+                        DiagnosticCode::Unsupported,
                         &format!("{event_path}.type"),
                         "expected move, gesture, speak or emotion",
                     ));
                 }
                 let mut event: Event = serde_yaml::from_value(value.clone())
-                    .map_err(|error| fail("schema", &event_path, error))?;
+                    .map_err(|error| fail(DiagnosticCode::Schema, &event_path, error))?;
                 let (offset, actor) = event.actor_time();
                 if !self.script.characters.contains_key(actor) {
                     return Err(fail(
-                        "reference",
+                        DiagnosticCode::Reference,
                         &format!("{event_path}.actor"),
                         format!("unknown actor {actor}"),
                     ));
                 }
                 if !offset.is_finite() || offset < 0.0 || offset >= span {
                     return Err(fail(
-                        "time",
+                        DiagnosticCode::Time,
                         &format!("{event_path}.at"),
                         "at must be finite and within [0, span)",
                     ));
@@ -203,7 +269,7 @@ impl Compiler<'_> {
                         || offset + duration <= offset
                     {
                         return Err(fail(
-                            "time",
+                            DiagnosticCode::Time,
                             &format!("{event_path}.duration"),
                             "positive representable duration must fit span",
                         ));
@@ -212,7 +278,7 @@ impl Compiler<'_> {
                 let at = start + offset;
                 if !at.is_finite() || (offset > 0.0 && at <= start) {
                     return Err(fail(
-                        "time",
+                        DiagnosticCode::Time,
                         &event_path,
                         "event time overflow or precision loss",
                     ));
@@ -223,7 +289,7 @@ impl Compiler<'_> {
                         || at + duration > start + span
                     {
                         return Err(fail(
-                            "time",
+                            DiagnosticCode::Time,
                             &format!("{event_path}.duration"),
                             "absolute interval overflows or loses precision",
                         ));
@@ -249,9 +315,19 @@ impl Compiler<'_> {
                 let children = node
                     .get("children")
                     .and_then(Value::as_sequence)
-                    .ok_or_else(|| fail("schema", &children_path, "expected children sequence"))?;
+                    .ok_or_else(|| {
+                        fail(
+                            DiagnosticCode::Schema,
+                            &children_path,
+                            "expected children sequence",
+                        )
+                    })?;
                 if children.is_empty() {
-                    return Err(fail("schema", &children_path, "children must not be empty"));
+                    return Err(fail(
+                        DiagnosticCode::Schema,
+                        &children_path,
+                        "children must not be empty",
+                    ));
                 }
                 let delay = if op == "stagger" {
                     number(node, "delay", path, false)?
@@ -269,7 +345,11 @@ impl Compiler<'_> {
                     if !child_start.is_finite()
                         || (index > 0 && delay > 0.0 && child_start <= previous_start)
                     {
-                        return Err(fail("time", path, "start time overflow or precision loss"));
+                        return Err(fail(
+                            DiagnosticCode::Time,
+                            path,
+                            "start time overflow or precision loss",
+                        ));
                     }
                     previous_start = child_start;
                     let span = self.node(
@@ -286,7 +366,7 @@ impl Compiler<'_> {
         let end = start + duration;
         if !end.is_finite() || end <= start || end > self.script.scenes[self.scene].duration {
             return Err(fail(
-                "time",
+                DiagnosticCode::Time,
                 path,
                 "interval overflows, loses precision or exceeds scene duration",
             ));
@@ -295,13 +375,16 @@ impl Compiler<'_> {
     }
 }
 fn number(node: &Value, key: &str, path: &str, positive: bool) -> Result<f64, Diagnostic> {
-    let value = node
-        .get(key)
-        .and_then(Value::as_f64)
-        .ok_or_else(|| fail("schema", &format!("{path}.{key}"), "expected number"))?;
+    let value = node.get(key).and_then(Value::as_f64).ok_or_else(|| {
+        fail(
+            DiagnosticCode::Schema,
+            &format!("{path}.{key}"),
+            "expected number",
+        )
+    })?;
     if !value.is_finite() || value < 0.0 || (positive && value == 0.0) {
         return Err(fail(
-            "time",
+            DiagnosticCode::Time,
             &format!("{path}.{key}"),
             "expected finite nonnegative time (duration/span must be positive)",
         ));
@@ -311,9 +394,9 @@ fn number(node: &Value, key: &str, path: &str, positive: bool) -> Result<f64, Di
 
 fn script_error(path: &str, error: crate::Error) -> Diagnostic {
     let code = match &error {
-        crate::Error::Syntax(_) => "schema",
-        crate::Error::Unsupported(_) => "unsupported",
-        crate::Error::Validation(_) => "validation",
+        crate::Error::Syntax(_) => DiagnosticCode::Schema,
+        crate::Error::Unsupported(_) => DiagnosticCode::Unsupported,
+        crate::Error::Validation(_) => DiagnosticCode::Validation,
     };
     fail(code, path, error)
 }

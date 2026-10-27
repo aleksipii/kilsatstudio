@@ -1,0 +1,11 @@
+# expect: unsupported $.schedules["opening"].children[1].op
+version: 1
+script:
+  characters: {EMMA: {asset: emma}}
+  scenes: [{id: opening, duration: 3, events: []}]
+schedules:
+  opening:
+    op: seq
+    children:
+      - {op: wait, duration: 1}
+      - {op: loop, children: [{op: wait, duration: 1}]}
