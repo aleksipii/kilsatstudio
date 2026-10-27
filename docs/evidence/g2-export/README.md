@@ -79,6 +79,14 @@ appears in the output. CI checks first that the same sandbox profile really bloc
 `curl` and `/bin/echo`. `sandbox-exec` is deprecated by Apple but works on macOS 15
 runners and on macOS 27 locally.
 
+Limits: the sandbox shows that no network connection and no other process was
+started. It does not by itself prove that no model file was read in-process
+(`allow default` permits file reads); that guarantee comes from `ModelPolicy::Strict`
+and `DisabledSpeechProvider`. The summary field `model_policy` is fixed by the
+command, not read back from the run. The G2 scene has no dialogue, so the strict
+path has not yet been run with imported WAV speech. Streaming MP4 export
+(`streaming.rs`) does not yet report `Error::PartialOutput`.
+
 ```sh
 cargo build --locked --release -p motion-export --example g2_export
 crates/motion-export/scripts/g2_model_free_run.sh target/release/examples/g2_export OUT_DIR png
@@ -107,7 +115,7 @@ Local, [`local-apple-m1.json`](local-apple-m1.json):
 | SVG | 30.4 ms | 24.3 ms | 33.6 ms | 0.32 ms |
 | PNG | 1531.9 ms | 1485.5 ms | 1544.8 ms | 15.96 ms |
 
-CI, [run 40558399213](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213) (commit `c594cb8`): GitHub `macos-15`, VirtualMac2,1
+CI, [run 40558399213](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213) (commit `c594cb8`; head `d5203c0` re-run [40560366530](https://github.com/aleksipii/kilsatstudio/actions/runs/40560366530) also passed): GitHub `macos-15`, VirtualMac2,1
 Apple M1 (virtual), 3 CPUs, 7 GiB, macOS 15.7.9 (24G830), rustc 1.99.1, 5 measured runs:
 SVG median 31.9 ms (31.4–32.8), PNG median 3038.0 ms (2830.9–3095.3). The same run
 decoded the MP4 as 96 frames, video 4.000 s, audio 4.000 s.

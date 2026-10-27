@@ -52,7 +52,7 @@ CI ja tulosraportti.
 - [x] Suorituskykymittaus: laite, macOS, resoluutio, fps, kohtaus, commit; ei väitteitä
       60/120 FPS:stä tai 100 000 entiteetistä ilman mittausta.
 - [ ] Kokoa G4-raportti: testit, vertailukuvat, macOS-käynnistys, vienti, mittaukset.
-      (Odottaa G3:a: A09:n käyttöliittymä ja KS-003a:n puhelin.)
+      (Odottaa G3:a: A09:n käyttöliittymä ja puhelin G2-kohtauksessa, KS-003c.)
 
 ## Hyväksymisehdot
 
@@ -105,7 +105,7 @@ Tila `review`; ORK päättää hyväksynnästä.
   `cargo check --workspace` ok; `cargo clippy --workspace --all-targets` 0 varoitusta;
   `cargo test --workspace` 976 läpäisi, 0 epäonnistui, 9 ohitettu. Täyden levyn testi
   ajettu erikseen RAM-levyllä: läpi.
-- **CI macOS** (`Export QA`, commit `c594cb8`, [ajo](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213)): GitHub `macos-15`,
+- **CI macOS** (`Export QA`, mittaus commitissa `c594cb8` [ajo](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213); head `d5203c0` [ajo](https://github.com/aleksipii/kilsatstudio/actions/runs/40560366530) läpi): GitHub `macos-15`,
   VirtualMac2,1 Apple M1 (virtual) 3 CPU 7 GiB, macOS 15.7.9 (24G830), rustc 1.99.1.
   `g2_export` 7 läpi / 1 ohitettu, pariteettitesti läpi, täysi levy RAM-levyllä läpi,
   hiekkalaatikon kontrolli estää verkon ja prosessit, mallittomat SVG/PNG 96 ruutua ja
@@ -113,6 +113,10 @@ Tila `review`; ORK päättää hyväksynnästä.
   ääni 4,000 s. Ajoaika (5 ajoa): SVG mediaani 31,9 ms, PNG 3038,0 ms. Ensimmäinen ajo
   (`5fa82c8`) kaatui skriptivirheeseen MP4-vaiheessa; korjattu `c594cb8`:ssä.
   Lisäksi `Audio foundation` (`rust` macOS + Ubuntu) ajaa uudet testit `--workspace`-ajossa.
+- **Rajaus (ORK-katselmus).** Hiekkalaatikko todistaa, ettei verkkoyhteyksiä eikä
+  aliprosesseja ole; mallittomuuden takaavat `ModelPolicy::Strict` ja `DisabledSpeechProvider`.
+  G2:ssa ei ole puhetta, joten tuotua WAVia ei ole vielä ajettu tiukalla polulla. Striimaava
+  MP4 (`streaming.rs`) ei vielä palauta `PartialOutput`ia.
 - **Tekemättä.** G4-raportti (odottaa G3:a). MP4-vientiä ei ajettu paikallisesti (koneella ei
   FFmpegiä); se ajetaan CI:ssä. Fyysisen Macin GUI-esikatselun FPS:ää ei mitattu.
   KS-002h:n `tests/support`-kellokopio (`SAMPLE_RATE`-vakio) on yhä erillinen vakio.
