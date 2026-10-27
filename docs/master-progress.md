@@ -7,6 +7,16 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G1 review of A07 KS-002d — PR #110 merged (2026-10-27)
+
+Status: **merged** to `main` as `393c2f1` from branch `docs/ork-a07-merge`
+([PR #110](https://github.com/aleksipii/kilsatstudio/pull/110)) with the user's explicit
+approval. Documentation only: ORK-G1-KS-002d approves A07's G1 part (KS-002d `done`),
+records KS-002c as merged, adds KS-002e (A07, G2: human-recorded fi/en WAV examples and
+AudioTimeline use in mouth evaluation) and updates status lines. Checks: PR CI 11/11
+passed; evidence for the approval is PR #109's CI and local checks (see below). Open: the
+G1 gate as a whole (KS-002a/b/c review).
+
 ## A07 AudioTimeline v1, sample clock and strict model-free path — PR #109 merged (2026-10-27)
 
 Status: **merged** to `main` as `ae39c4d` from branch `feat/a07-audio-timeline`
