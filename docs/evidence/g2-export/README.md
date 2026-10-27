@@ -107,7 +107,12 @@ Local, [`local-apple-m1.json`](local-apple-m1.json):
 | SVG | 30.4 ms | 24.3 ms | 33.6 ms | 0.32 ms |
 | PNG | 1531.9 ms | 1485.5 ms | 1544.8 ms | 15.96 ms |
 
-CI: the `Export QA` workflow measures the same command on the GitHub `macos-15`
+CI, [run 40558399213](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213) (commit `c594cb8`): GitHub `macos-15`, VirtualMac2,1
+Apple M1 (virtual), 3 CPUs, 7 GiB, macOS 15.7.9 (24G830), rustc 1.99.1, 5 measured runs:
+SVG median 31.9 ms (31.4–32.8), PNG median 3038.0 ms (2830.9–3095.3). The same run
+decoded the MP4 as 96 frames, video 4.000 s, audio 4.000 s.
+
+The `Export QA` workflow measures the same command on the GitHub `macos-15`
 runner (shared virtual machine, 5 measured runs) and writes the table with the
 runner's model, macOS version, rustc and commit into the job summary and the
 `g2-export-qa-<sha>` artifact. CI timings are not comparable with a physical Mac.

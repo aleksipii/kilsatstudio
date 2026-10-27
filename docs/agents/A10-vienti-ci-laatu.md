@@ -105,6 +105,14 @@ Tila `review`; ORK päättää hyväksynnästä.
   `cargo check --workspace` ok; `cargo clippy --workspace --all-targets` 0 varoitusta;
   `cargo test --workspace` 976 läpäisi, 0 epäonnistui, 9 ohitettu. Täyden levyn testi
   ajettu erikseen RAM-levyllä: läpi.
+- **CI macOS** (`Export QA`, commit `c594cb8`, [ajo](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213)): GitHub `macos-15`,
+  VirtualMac2,1 Apple M1 (virtual) 3 CPU 7 GiB, macOS 15.7.9 (24G830), rustc 1.99.1.
+  `g2_export` 7 läpi / 1 ohitettu, pariteettitesti läpi, täysi levy RAM-levyllä läpi,
+  hiekkalaatikon kontrolli estää verkon ja prosessit, mallittomat SVG/PNG 96 ruutua ja
+  96 000 näytettä (SVG-sarjan tiiviste = kirjattu), MP4: 96 dekoodattua ruutua, video 4,000 s,
+  ääni 4,000 s. Ajoaika (5 ajoa): SVG mediaani 31,9 ms, PNG 3038,0 ms. Ensimmäinen ajo
+  (`5fa82c8`) kaatui skriptivirheeseen MP4-vaiheessa; korjattu `c594cb8`:ssä.
+  Lisäksi `Audio foundation` (`rust` macOS + Ubuntu) ajaa uudet testit `--workspace`-ajossa.
 - **Tekemättä.** G4-raportti (odottaa G3:a). MP4-vientiä ei ajettu paikallisesti (koneella ei
   FFmpegiä); se ajetaan CI:ssä. Fyysisen Macin GUI-esikatselun FPS:ää ei mitattu.
   KS-002h:n `tests/support`-kellokopio (`SAMPLE_RATE`-vakio) on yhä erillinen vakio.
