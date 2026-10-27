@@ -7,6 +7,29 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A02 versioned MotionScript compiler — PR #105 merged (2026-10-27)
+
+Status: **merged** to `main` as `d9db5be` from branch `feat/a02-dsl` with the user's
+explicit approval ([PR #105](https://github.com/aleksipii/kilsatstudio/pull/105); replaces
+conflicting PR #102). Owner A02, task KS-002a, contract ORK-G1-01 (SceneSpec).
+
+Completed: decision A02-D1…D3 recorded before implementation (seq/par/stagger are
+compiler sugar in a `version: 1` envelope, lowered to absolute `Event` times before
+`Script::validate`; half-open intervals); `motion_script::compiler::{compile,
+compile_with_origins, Compilation}`; typed `DiagnosticCode` with YAML paths and
+line/column for syntax errors; envelope JSON Schema in `crates/motion-script/schema/`;
+specification and SceneSpec handoff in [motionscript.md](motionscript.md); valid and
+invalid examples in `examples/motionscript-v1/`. Legacy versionless `parse` unchanged;
+all five legacy `examples/*.yaml` parse and wrap identically. `rules.rs` untouched.
+
+Checks: local macOS `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace`
+(0 failures; compiler suite 18/18). PR CI 12/12 passed (rust macOS/Ubuntu,
+gpu-contracts, media-encoding, apple-silicon-preview, real-asset-pack).
+
+Open: direct v1 opening in the desktop editor (A09); line/column for semantic errors
+(path only); G1 gate still needs A03 EventLog v1, A04 TrackSpec and A07 AudioTimeline v1.
+
 ## Architecture agent task files — 2026-10-27
 
 Status: **merged** to `main` as `ce57c3da14a35a52a95e24a119852d65abae9d5d` from branch `docs/architecture-agents`
@@ -681,6 +704,7 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
 - [x] Versioned editable scene-order/duration document compiled through the shared sequence clock (PR #43).
+- [x] Versioned seq/par/stagger schedules compiled to editable events with located, typed diagnostics (PR #105).
 - [ ] General versioned editable compiled event/animation tracks.
 
 ## 3. Character rigging and animation

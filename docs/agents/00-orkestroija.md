@@ -28,7 +28,7 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | --- | --- | --- | --- | --- |
 | KS-001 | A01 + ORK | – | G0: koodikartoitus, riippuvuudet, No AI -politiikka, UI-linjaus | done (ORK-G0) |
 | KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | running (omistajat päätetty, ORK-G1-01…06) |
-| KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #102 | review (rebase tarpeen) |
+| KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | review (yhdistetty `d9db5be`; ORK:n G1-katselmus) |
 | KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | ready |
 | KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | todo |
 | KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | ready (vain G1-osuus) |
@@ -126,7 +126,7 @@ lisää uutta cratea. Ainoa sallittu uusi riippuvuusreuna on `motion-scene → m
 
 | Päätös | Sopimus | Omistava crate | Kirjoittaja | Sijainti | Kuluttajat |
 | --- | --- | --- | --- | --- | --- |
-| ORK-G1-01 | SceneSpec | `motion-script` | A02 | `src/compiler.rs` (PR #102), `Script`/`Scene`/`Event` `src/lib.rs`issä | A03, A04, A09, automaattiohjaus 01 |
+| ORK-G1-01 | SceneSpec | `motion-script` | A02 | `src/compiler.rs` (PR #105), `Script`/`Scene`/`Event` `src/lib.rs`issä | A03, A04, A09, automaattiohjaus 01 |
 | ORK-G1-02 | TrackSpec (kirjoitettu + ratkaistu) | kirjoitettu: `motion-script`; ratkaistu: `motion-scene` | A02 (skeema), A04 (semantiikka ja ratkaisu) | `motion-script/src/lib.rs`; uusi `motion-scene/src/tracks.rs` | A05, A06, A08, A10 |
 | ORK-G1-03 | EventLog v1 | `motion-script` | A03 | uusi `motion-script/src/event_log.rs` | A04, A06, A07, A09 |
 | ORK-G1-04 | Näytekello + AudioTimeline v1 | kello: `motion-audio`; AudioTimeline: `motion-lipsync` | A07 | `motion-audio/src/lib.rs` (tai uusi `clock.rs`); uusi `motion-lipsync/src/audio_timeline.rs` | A04, A08, A09, A10, automaattiohjaus 06 |
@@ -224,7 +224,7 @@ lisää uutta cratea. Ainoa sallittu uusi riippuvuusreuna on `motion-scene → m
 
 ### G1:n hyväksyntäehto
 
-G1 hyväksytään vasta, kun (a) PR #102 on rebasettu ja katselmoitu, (b) A03:n EventLog v1 ja
+G1 hyväksytään vasta, kun (a) PR #102:n työ on rebasettu ja katselmoitu (PR #105, yhdistetty `d9db5be`), (b) A03:n EventLog v1 ja
 (c) A07:n AudioTimeline v1 ovat versioituja, sarjallistuvia ja testattuja, (d) A04 on kirjannut
 TrackSpec-sopimuksen ja ajan muunnossäännöt, ja (e) jokaisella on kelvollinen ja virheellinen
 esimerkki. Vasta sen jälkeen G2-tehtävät merkitään `ready`-tilaan.

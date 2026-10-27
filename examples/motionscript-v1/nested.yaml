@@ -1,0 +1,29 @@
+version: 1
+script:
+  characters:
+    EMMA: {asset: emma}
+    ALEX: {asset: alex}
+  scenes:
+    - {id: opening, duration: 8, events: []}
+schedules:
+  opening:
+    op: seq
+    children:
+      - {op: wait, duration: 1}
+      - op: par
+        children:
+          - op: event
+            span: 2
+            event: {type: move, actor: EMMA, at: 0, duration: 2, x: 100, y: 100}
+          - op: stagger
+            delay: 0.5
+            children:
+              - op: event
+                span: 1
+                event: {type: emotion, actor: ALEX, at: 0, value: happy}
+              - op: event
+                span: 1
+                event: {type: emotion, actor: EMMA, at: 0, value: surprised}
+      - op: event
+        span: 1
+        event: {type: emotion, actor: ALEX, at: 0, value: neutral}
