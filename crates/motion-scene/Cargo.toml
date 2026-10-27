@@ -8,6 +8,7 @@ motion-animation = { path = "../motion-animation" }
 motion-rig = { path = "../motion-rig" }
 motion-script = { path = "../motion-script" }
 motion-lipsync = { path = "../motion-lipsync" }
+motion-audio = { path = "../motion-audio" }
 thiserror.workspace = true
 serde.workspace = true
 [dev-dependencies]

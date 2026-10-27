@@ -1,5 +1,5 @@
 //! EventLog v1 and rule expansion with external input (A03).
-use motion_script::event_log::{MAX_EVENT_LOG_SAMPLE_RATE, MAX_LOGGED_EVENTS};
+use motion_script::event_log::{EVENT_LOG_SAMPLE_RATE, MAX_LOGGED_EVENTS};
 use motion_script::{
     parse, to_source, Error, EventLog, EventLogError, EventSource, ExternalEvent, FiringSource,
     LoggedEvent, RuleError, Script,
@@ -209,8 +209,14 @@ fn structural_validation_rejects_non_finite_unbounded_and_mismatched_events() {
         "events[0].scene"
     );
 
-    for rate in [0, MAX_EVENT_LOG_SAMPLE_RATE + 1] {
-        assert_eq!(invalid_path(&EventLog::new(rate)), "sample_rate");
+    // One clock (ORK-G1-03, KS-002f): any rate other than 24 000 Hz is rejected.
+    assert_eq!(EVENT_LOG_SAMPLE_RATE, 24_000);
+    assert!(EventLog::new(EVENT_LOG_SAMPLE_RATE).validate().is_ok());
+    for rate in [0, 1, 23_999, 24_001, 44_100, 48_000, 192_000, u32::MAX] {
+        assert_eq!(
+            EventLog::new(rate).validate(),
+            Err(EventLogError::UnsupportedSampleRate(rate))
+        );
     }
 
     let many = log(vec![key("one", 0.0, "a"); MAX_LOGGED_EVENTS + 1]);
@@ -543,4 +549,10 @@ fn bundled_examples_match_their_documented_result() {
         EventLog::from_json(include_str!("../../../examples/event-log-v1/invalid-order.json")),
         Err(EventLogError::Order { ref path, .. }) if path == "events[1].sample"
     ));
+    let error = EventLog::from_json(include_str!(
+        "../../../examples/event-log-v1/invalid-sample-rate.json"
+    ))
+    .unwrap_err();
+    assert_eq!(error, EventLogError::UnsupportedSampleRate(48_000));
+    assert!(error.to_string().contains("24000 Hz dialogue clock"));
 }
