@@ -23,7 +23,7 @@ orkestroijan kautta eikä kumpikaan sarja luo kilpailevaa jäsennintä, kelloa t
 | A01 | [Arkkitehtuuri ja riippuvuudet](A01-arkkitehtuuri-riippuvuudet.md) | `docs/a01-*`, manifestit | G0 | done (G0; KS-006/KS-007 siirretty G4:ään) |
 | A02 | [DSL ja kääntäjä](A02-dsl-kaantaja.md) | `crates/motion-script` | G1 | review (PR #105 yhdistetty `d9db5be`; ORK:n G1-katselmus) |
 | A03 | [Säännöt ja tapahtumat](A03-saannot-tapahtumat.md) | `motion-script/src/rules.rs`, EventLog | G1 | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
-| A04 | [Aikajana ja determinismi](A04-aikajana-determinismi.md) | `crates/motion-scene` | G1–G2 | review (PR #107 yhdistetty `10135ad`; ORK:n G1-katselmus) |
+| A04 | [Aikajana ja determinismi](A04-aikajana-determinismi.md) | `crates/motion-scene` | G1–G2 | done G1-osalta (PR #107 `10135ad`, ORK-G1-A04); G2 todo |
 | A05 | [Riggaus, IK ja esineet](A05-riggaus-ik-esineet.md) | `crates/motion-rig`, `motion-animation`, käsiesineet | G2 | todo |
 | A06 | [Fysiikka ja vedettävät raajat](A06-fysiikka-vedettavat.md) | `crates/motion-animation` (uusi moduuli) | G2 | todo |
 | A07 | [Suomen ja englannin ääni](A07-aani-fi-en.md) | `motion-audio`, `motion-lipsync`, `motion-tts`, `motion-voice` | G1–G2 | done G1-osuudelta (PR #109 `ae39c4d`, ORK-G1-KS-002d); G2: KS-002e todo |
