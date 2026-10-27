@@ -80,6 +80,10 @@ alustariippuvuuksia, ei 434 toimitettavaa kirjastoa. Suorille riippuvuuksille on
 kirjattu käyttötarkoitus, välillisille riippuvuuden tuovat paketit. Epäselvä
 lisenssi tai jakelutarve pysyy avoimena. Ehdokaskirjastoja ei lisätä tässä työssä.
 
+**ADR-A01-06…09** ovat erillisessä tiedostossa [a01-open-decisions.md](a01-open-decisions.md):
+head-pose/Apple Vision -luokitus, ehdokaskirjastojen hylkäys, 10 vs. 13 viseemiä ja
+tiukan No AI -politiikan rajapintaehdotus sekä macOS aarch64 -riippuvuusgraafi.
+
 ## Todellinen tarkistusnäyttö
 
 - Inventaario tuotettu: `python3 scripts/license_inventory.py --output docs/a01-dependency-inventory.json`.
