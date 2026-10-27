@@ -1,6 +1,6 @@
 # A06 — Fysiikka ja vedettävät raajat
 
-Tila: **todo** · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **ready** (G2, ORK-G1; EventLogin vapautustapahtumat vasta KS-002f:n jälkeen) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

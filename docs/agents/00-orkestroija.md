@@ -1,6 +1,6 @@
 # ORK — Orkestroija
 
-Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G1-KS-002d, 27.10.2026 (`main` `da5d8d7`)
+Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G1 (portti hyväksytty ehdoin), 27.10.2026 (`main` `393c2f1`)
 
 ## Tavoite
 
@@ -27,13 +27,15 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | ID | Omistaja | Riippuu | Tehtävä | Tila |
 | --- | --- | --- | --- | --- |
 | KS-001 | A01 + ORK | – | G0: koodikartoitus, riippuvuudet, No AI -politiikka, UI-linjaus | done (ORK-G0) |
-| KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | running (omistajat päätetty, ORK-G1-01…06) |
-| KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | review (yhdistetty `d9db5be`; ORK:n G1-katselmus) |
-| KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
-| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | review (PR #107 yhdistetty `10135ad`; ORK:n G1-katselmus) |
+| KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | done (ORK-G1: hyväksytty ehdoin KS-002f) |
+| KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | done (PR #105 `d9db5be`, ORK-G1) |
+| KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | done ehdoin (PR #106 `6ddfdcc`, ORK-G1; ehto KS-002f) |
+| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | done (PR #107 `10135ad`, ORK-G1) |
 | KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | done (G1-osuus; PR #109 `ae39c4d`, ORK-G1-KS-002d) |
-| KS-002e | A07 | KS-002d, KS-003 | Ihmisen äänittämät fi/en-WAV-esimerkit ja niitä vasten tarkistettu ajoitus; AudioTimelinen käyttö suun arvioinnissa | todo (G2) |
-| KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | todo |
+| KS-002e | A07 | KS-002d, KS-003 | Ihmisen äänittämät fi/en-WAV-esimerkit ja niitä vasten tarkistettu ajoitus; AudioTimelinen käyttö suun arvioinnissa | ready (G2) |
+| KS-002f | A03 | KS-002b | EventLog: `sample_rate` sallii vain 24 000 Hz (`motion_audio::clock::DIALOGUE_SAMPLE_RATE`); muu taajuus tyypitetty virhe + virheellinen esimerkki | ready (estää EventLogin G2-kuluttajat A06/A09) |
+| KS-002g | A04, A02, A10 | KS-002d | Kellokopiot (`motion_scene::time`, `auto_direction::SAMPLE_RATE`, `motion-export`in testituki) delegoimaan `motion_audio::clock`iin | ready (G2, ei estä) |
+| KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | ready (ORK-G1) |
 | KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |
 | KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | todo |
 | KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto) |
@@ -52,8 +54,8 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 - [x] Määritä jokaiselle sopimukselle omistava crate: SceneSpec/TrackSpec (A02/A04),
       EventLog (A03), AudioTimeline (A07), rig-kiinnitys (A05), renderöintisopimus (A08).
       → ORK-G1-01…06.
-- [ ] Hyväksy yhteinen versio ja esimerkit; kirjaa ne `docs/agents/`-tiedostoihin.
-- [ ] Merkitse G2-tehtävät `ready`-tilaan vasta sopimusten hyväksynnän jälkeen.
+- [x] Hyväksy yhteinen versio ja esimerkit; kirjaa ne `docs/agents/`-tiedostoihin. → ORK-G1 (portti).
+- [x] Merkitse G2-tehtävät `ready`-tilaan vasta sopimusten hyväksynnän jälkeen. → A04–A08 `ready`.
 
 ### G2 — Pienin toimiva kohtaus
 - [ ] Jaa tiedostot ilman päällekkäisiä kirjoittajia (A04 motion-scene, A05 motion-rig,
@@ -263,6 +265,46 @@ mitattu oikeaa puhetta vasten. Ihmisen äänittämät esimerkit ja AudioTimeline
 `motion-export`in tarkistus A10:n; kellokopioiden delegointi A04/A02/A10:n; sekoituksen
 käyttö renderöijässä A08:n. G1 kokonaisuutena odottaa vielä KS-002a/b/c:n ORK-katselmusta.
 
+## ORK-G1 — Sopimusportti: **hyväksytty ehdoin** (27.10.2026)
+
+**Näyttö.** Kaikki neljä G1-sopimusta on yhdistetty `main`iin, ja jokaisen PR:n CI läpäisi
+12/12: PR #105 (A02, `d9db5be`), PR #106 (A03, `6ddfdcc`), PR #107 (A04, `10135ad`) ja
+PR #109 (A07, `ae39c4d`; ks. ORK-G1-KS-002d). ORK:n pistokokeet `main`issa `393c2f1`
+(macOS, paikallisesti): `cargo test -p motion-script` 132 läpäisi, `-p motion-scene` 65,
+`-p motion-export` 143 (8 ohitettu), 0 epäonnistui. Esimerkkikansiot luetaan testeissä:
+`motionscript-v1` (`tests/compiler.rs`), `event-log-v1` (`tests/event_log.rs`),
+`trackspec-v1` (`tests/timeline_determinism.rs`), `audio-timeline-v1`
+(`tests/audio_timeline_examples.rs`).
+
+| Ehto | A02 SceneSpec | A03 EventLog | A04 TrackSpec | A07 AudioTimeline |
+| --- | --- | --- | --- | --- |
+| (a) katselmoitu ja yhdistetty | PR #105 (korvaa #102) | PR #106 | PR #107 | PR #109 |
+| Versio | schedule `version: 1` (`compiler::VERSION`) | `version: 1` (`EVENT_LOG_VERSION`) | ratkaistua muotoa ei sarjallisteta (ORK-G1-02); kirjoitettu muoto = A02:n versio | `format_version: 1` |
+| Sarjallistus ja validointi | YAML, paikannetut tyypitetyt virheet | JSON, `deny_unknown_fields`, rajat | – (arvioitu tila) | JSON, `deny_unknown_fields`, tyypitetyt virheet |
+| Testattu | kääntäjä, primitiivit, virhetyypit | toisto → sama laukaisujärjestys | aikahyppy = ruuduittainen toisto bitilleen | 0 providerikutsua tiukassa polussa |
+| (e) kelvollinen + virheellinen esimerkki | 1 + 3 | 1 + 1 | 1 + 1 | 2 + 4 |
+| Yksi näytekello (yhteinen sääntö 2) | – | **poikkeama**: `sample_rate` 1…192 000 hyväksytään | 24 kHz (`motion_scene::time`) | 24 kHz (`motion_audio::clock`) |
+
+**Poikkeama ja ehto.** ORK-G1-03 ja yhteinen sääntö 2 edellyttävät, että EventLogin
+näytepaikat ovat ORK-G1-04:n kellossa. `EventLog::validate` hyväksyy kuitenkin minkä
+tahansa taajuuden väliltä 1…192 000 Hz (`event_log.rs`, `MAX_EVENT_LOG_SAMPLE_RATE`).
+Nykyinen kuluttaja (`rules.rs`) muuntaa näytteet sekunneiksi lokin omalla taajuudella,
+joten tulos on johdonmukainen eikä virheellinen. Muulla kuin 24 kHz:n taajuudella
+tapahtumat eivät kuitenkaan osu kellon näytteisiin, ja poikkeava loki hyväksytään
+hiljaa. Päätös: G1 hyväksytään, ja korjaus on **KS-002f** (A03): `sample_rate` on
+24 000 Hz, muu taajuus on tyypitetty virhe, ja tästä lisätään virheellinen esimerkki.
+KS-002f on tehtävä ennen kuin EventLogin G2-kuluttajat (A06 raajojen vapautus, A09
+tallennus) käyttävät lokia.
+
+**Muut siirrot (eivät estä G2:ta).** KS-002g: kellokopiot delegoimaan `motion_audio::clock`iin
+(A04/A02/A10). KS-002e (A07): ihmisen äänittämät esimerkit ja AudioTimelinen käyttö suun
+arvioinnissa. PR #102 (A02:n alkuperäinen, korvattu PR #105:llä) on yhä auki: ORK
+suosittaa sen sulkemista käyttäjän luvalla. KS-006 ja KS-007 ovat edelleen G4:n ehtoja.
+
+**G2 avataan.** A04 (G2-osuus), A05, A06, A07 (KS-002e) ja A08 ovat `ready`, ja jokaisella
+on oma tiedostoalueensa (ks. G2-tarkistuslista). Rajapintamuutokset sovitaan edelleen
+orkestroijan kautta.
+
 ## Hyväksymisehdot
 
 - Jokaisella `done`-tehtävällä on linkitetty näyttö (commit, testiajo, CI-ajo, kuva tai raportti).
@@ -302,6 +344,22 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Tekemättä: KS-002a/b/c:n G1-katselmus ja koko G1:n hyväksyntä; G2-tehtävien `ready`.
 - Estot ja riskit: suun ajoitusta ei ole mitattu oikeaa puhetta vasten (KS-002e).
 - Seuraavaksi: ORK katselmoi KS-002a/b/c ja päättää G1:stä; sen jälkeen G2 (A04–A08).
+
+### ORK-G1 (portti) — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: KS-002a/b/c katselmoitu; G1 hyväksytty ehdoin (ORK-G1); KS-002 ja KS-002a/c ovat
+  `done`, KS-002b `done` ehdoin; uudet KS-002f (A03, estää EventLogin G2-kuluttajat) ja
+  KS-002g (kellokopiot); KS-003 ja A04–A08 `ready`. Haara `docs/ork-g1-gate`.
+- Tarkistettu: PR #105/#106/#107/#109 yhdistetty, CI 12/12 jokaisessa; pistokokeet
+  `main`issa `393c2f1` (motion-script 132, motion-scene 65, motion-export 143 läpäisi,
+  0 epäonnistui); `event_log.rs`:n taajuusvalidointi luettu lähdekoodista. Tämä muutos
+  on pelkkää dokumentaatiota.
+- Tekemättä: KS-002f, KS-002g, KS-002e; PR #102:n sulkeminen (käyttäjän lupa); G2:n näyte.
+- Estot ja riskit: EventLogin taajuuspoikkeama, kunnes KS-002f on tehty; suun ajoitusta
+  ei ole mitattu oikeaa puhetta vasten.
+- Seuraavaksi: A03 tekee KS-002f:n; rinnakkain G2: A04, A05, A07 ja A08 omilla
+  tiedostoillaan, A06 A05:n kiinnityssopimuksen mukaan.
 
 ## Kopioitava tehtävänanto
 
