@@ -7,6 +7,22 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A02 — DSL ja kääntäjä, 2026-10-27
+
+Tila: **review-valmistelu**, haara `feat/a02-motionscript-compiler`.
+Lähtö: main `496a8a4`; AGENTS.md ja A01:n päätökset huomioitu.
+
+- Tehty: [v1-sopimus ja A03/A04-rajapinnat](a02-dsl-compiler.md),
+  [JSON Schema](../schemas/motionscript-schedule-v1.schema.json),
+  seq/par/stagger/wait/event-kääntäjä nykyisessä motion-script-cratessa,
+  paikannetut virheet, vakaat tapahtumat ja lähdepolut, kaksi YAML-esimerkkiä,
+  stdin/stdout-muunnin sekä kahdeksan integraatiotestiä.
+- Testaus: julkaistavan työpuun Rust-tarkistukset käynnissä. Aiemman istunnon
+  välituloksia ei käytetä tämän revision lopullisena hyväksyntänä.
+- Tekemättä: katselmointi ja yhdistäminen (ei valtuutettu), editorin suora
+  v1-avaus, A03 EventLog, A04:n uudet ratatyypit sekä A07:n mitattu puheajoitus.
+  Muiden agenttien tiedostot ja hyväksyntätilat säilytettiin. Ei uusia riippuvuuksia.
+
 ## A01 architecture and dependency review — 2026-10-26
 
 Status: **merged** in [PR #101](https://github.com/aleksipii/kilsatstudio/pull/101)

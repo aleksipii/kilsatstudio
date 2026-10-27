@@ -1,0 +1,9 @@
+version: 1
+script:
+  characters: {EMMA: {asset: emma}}
+  scenes: [{id: opening, duration: 3, events: []}]
+schedules:
+  opening:
+    op: event
+    span: 1
+    event: {type: emotion, at: 0, actor: MISSING, value: happy}
