@@ -7,6 +7,19 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Architecture agent task files — 2026-10-27
+
+Status: **merged** to `main` as `ce57c3da14a35a52a95e24a119852d65abae9d5d` from branch `docs/architecture-agents`
+with the user's explicit approval (no pull request: `gh` was not authenticated).
+Documentation only. [docs/agents/](agents/README.md) contains one task file each for
+the orchestrator and agents A01–A10: baseline verified against `496a8a4`, allowed scope,
+dependencies, task checklist, acceptance criteria and outcome section. Thin Claude Code
+subagent definitions are in `.claude/agents/kilsat-*.md`.
+
+Completed: task files, subagent definitions, relative link check (no broken links).
+Not run: Rust checks (no code changed) and CI for this merge. Open: every A02–A10 task
+(`todo`) and the remaining A01 items (`review`); no feature is implemented by this entry.
+
 ## A01 architecture and dependency review — 2026-10-26
 
 Status: **merged** in [PR #101](https://github.com/aleksipii/kilsatstudio/pull/101)
