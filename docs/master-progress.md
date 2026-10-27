@@ -7,6 +7,35 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A06 dangle contract — PR #120 merged; ORK-G2-02 KS-003b review (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval (merge `d9b88ae`, commits
+`b0fa1c4` + `b517c39`). ORK decision ORK-G2-02: KS-003b **accepted** (spring module #115
+`974ef76` plus this dangle contract).
+
+Completed:
+- `motion_animation::spring`: `dangle_joint` accepts only non-root joints that are neither
+  A05 attachment-frame joints (pelvis, torso, the twelve `STICK_LIMBS` joints) nor their
+  ancestors; `apply_dangle` adds a validated angle (`|angle| <= π`) to rotation only;
+  typed `DangleError`. Re-exported from `lib.rs`.
+- 6 new tests in `crates/motion-animation/tests/spring.rs` (25 total), including A05's
+  review condition `dangles_leave_ik_grip_and_held_prop_unchanged` (IK solution, limb
+  joints, grip point and held phone bit-identical with and without springs).
+- Contract in `docs/physics-springs.md`; A05 reviewed it and accepted with that condition.
+
+Checks: A06 locally before merge – fmt, check, clippy (no warnings), test (968 passed,
+0 failed). PR #120 CI 12/12; the first media-encoding run failed with exit 124 on an apt
+download timeout while installing ffmpeg (infrastructure) and passed on rerun
+(`gh run rerun 40551418227 --failed`). ORK spot check on a separate `origin/main` worktree
+(`d9b88ae`, own target dir, macOS): `cargo test -p motion-animation` 49 passed, 0 failed;
+`cargo test -p motion-rig` 32 passed, 0 failed; clippy for motion-animation clean;
+`cargo fmt --all --check` clean.
+
+Open: visual quality of springs/dangles not assessed in rendered frames or motion (tests
+are numerical); EventLog → release initial state, IK target resolution and follow-through
+from parent motion (A04, KS-003d); marking dangle joints in MotionScript or the rig
+(A02/A05); controls (A09); coupled chains (multi-link hair). G2 itself remains open.
+
 ## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
 
 Status: **merged** to `main` with the user's explicit approval, in order: #111

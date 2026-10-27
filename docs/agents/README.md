@@ -1,6 +1,6 @@
 # Kilsat Studio — arkkitehtuuriagentit A01–A10 ja orkestroija
 
-Päivitetty 27.10.2026 (tilat: ORK-G1, ORK-G2-01, `main` `393c2f1`). Lähtö: `main`, commit `496a8a41bb753011222764cec9f19c3f3f2b6e89`.
+Päivitetty 27.10.2026 (tilat: ORK-G1, ORK-G2-01, ORK-G2-02; A06-rivi `main` `d9b88ae`). Lähtö: `main`, commit `496a8a41bb753011222764cec9f19c3f3f2b6e89`.
 Lähde: [arkkitehtuuriraportti](../KILSAT-STUDIO-ARKKITEHTUURI-JA-AGENTIT.md), luvut 6–10,
 sekä [A01-arkkitehtuuripäätökset](../a01-architecture.md). G1-sopimusten omistavat cratet:
 [ORK-G1-01…06](00-orkestroija.md#ork-g1--sopimusten-omistajat-27102026).
@@ -25,7 +25,7 @@ orkestroijan kautta eikä kumpikaan sarja luo kilpailevaa jäsennintä, kelloa t
 | A03 | [Säännöt ja tapahtumat](A03-saannot-tapahtumat.md) | `motion-script/src/rules.rs`, EventLog | G1 | done G1-osalta (PR #106 `6ddfdcc`, ORK-G1); palautus KS-002f ready |
 | A04 | [Aikajana ja determinismi](A04-aikajana-determinismi.md) | `crates/motion-scene` | G1–G2 | done G1-osalta (PR #107 `10135ad`, ORK-G1-A04); palautus KS-002g ready; G2 KS-003d todo |
 | A05 | [Riggaus, IK ja esineet](A05-riggaus-ik-esineet.md) | `crates/motion-rig`, `motion-animation/src/clips.rs`, käsiesineet | G2 | ready (G2 KS-003a, ORK-G2-01) |
-| A06 | [Fysiikka ja vedettävät raajat](A06-fysiikka-vedettavat.md) | `motion-animation/src/spring.rs` | G2 | ready (G2 KS-003b, ORK-G2-01) |
+| A06 | [Fysiikka ja vedettävät raajat](A06-fysiikka-vedettavat.md) | `motion-animation/src/spring.rs` | G2 | done (KS-003b: PR #115 `974ef76` + Dangle PR #120 `d9b88ae`; ORK-G2-02) |
 | A07 | [Suomen ja englannin ääni](A07-aani-fi-en.md) | `motion-audio`, `motion-lipsync`, `motion-tts`, `motion-voice` | G1–G2 | done G1-osuudelta (PR #109 `ae39c4d`, ORK-G1-KS-002d); G2: KS-002e todo |
 | A08 | [Renderöinti, kamera ja taustat](A08-renderointi-kamera.md) | `crates/motion-render`, `motion-art` | G2 | ready (G2 KS-003c, ORK-G2-01; puhelinkohtaus odottaa KS-003a:ta) |
 | A09 | [macOS ja käyttöliittymä](A09-macos-kayttoliittyma.md) | `apps/studio-desktop` | G3 | todo |

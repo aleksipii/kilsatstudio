@@ -1,6 +1,6 @@
 # ORK — Orkestroija
 
-Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G1 (portti hyväksytty ehdoin) ja ORK-G2-01 (tiedostojako), 27.10.2026 (`main` `393c2f1`)
+Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G2-02 (KS-003b katselmus, hyväksytty), 27.10.2026 (`main` `d9b88ae`)
 
 ## Tavoite
 
@@ -38,7 +38,7 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-002h | A02 (+A10) | KS-002d | `motion_script::auto_direction::SAMPLE_RATE` kanonisen kellon aliakseksi; `motion-export`in testituen kellokopio (A10, ORK-G1/PR #112) | todo (ei estä G2:ta) |
 | KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | running (KS-002f/g, KS-003a/b yhdistetty; KS-003c puhelinta lukuun ottamatta; KS-003d ready) |
 | KS-003a | A05 | KS-002 | Kiinnityssopimus, nivelrajat, kahden luun IK, `grip`-sidonta, esineluettelo `motion-rig`iin | done (PR #117 `824c399`) |
-| KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | done (PR #115 `974ef76`; Dangle-ehdotus odottaa A05:n kommenttia) |
+| KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | done (PR #115 `974ef76` + Dangle-sopimus PR #120 `d9b88ae`; ORK-G2-02 hyväksytty) |
 | KS-003c | A08 | KS-002; puhelinkohtaus myös KS-003a | Renderöintisopimus, syvyysjärjestys, rajaussäännöt, testikohtaus ja vertailukuvat | osittain done (PR #116 `9c69902`); puhelinkohtaus ja sen vertailukuvat auki, `grip` nyt mainissa |
 | KS-003d | A04 | KS-002g, KS-003a, KS-003b | `EvaluatedScene`-pyynnöt A05/A08:lta, IK-kohteen ja vapautuksen ratkaisu `motion-scene`ssä | ready (avausehto täyttyi: KS-002g, KS-003a ja KS-003b yhdistetty 27.10.2026) |
 | KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |
@@ -410,6 +410,41 @@ lisäksi, että PR:n `git diff --name-only` pysyy yllä olevalla alueella.
 on A08:n puhelinkohtaus → KS-003a. A04:n (KS-003d) ja A07:n (KS-002e) G2-osuudet avataan
 erillisellä ORK-päätöksellä.
 
+## ORK-G2-02 — KS-003b katselmus: **hyväksytty** (27.10.2026)
+
+**Näyttö.** `spring`-moduuli PR #115 (`974ef76`) ja Dangle-sopimus PR #120 (merge `d9b88ae`,
+commitit `b0fa1c4` + `b517c39`) käyttäjän luvalla `main`issa. PR #120:n CI 12/12 läpi
+viimeisellä commitilla (media-encoding-jobin ensimmäinen ajo kaatui exit 124:ään ffmpegin
+apt-latauksen aikakatkaisuun, infra; `gh run rerun 40551418227 --failed` läpi, attempt 2).
+ORK:n pistokoe erillisessä `origin/main`-worktreessa (`d9b88ae`, oma `CARGO_TARGET_DIR`,
+macOS): `cargo test -p motion-animation` 49 läpi / 0 epäonnistui (yksikkötestit 22,
+`limb_attachment` 2, `spring` 25); `cargo test -p motion-rig` 32 läpi / 0;
+`cargo clippy -p motion-animation --all-targets` ei varoituksia; `cargo fmt --all --check` ok.
+Työtilan neljä tarkistusta ajoi A06 ennen yhdistämistä (968 läpi, 0 epäonnistui) ja CI;
+ORK ei ajanut koko työtilan testejä uudelleen.
+
+| Ehto | Tulos | Näyttö |
+| --- | --- | --- |
+| Tulokset äärellisiä koko parametrialueella | täyttyy (numeerisesti testattu) | `results_stay_finite_over_the_parameter_range`, jäykimmän jousen stabiilius |
+| Liike jatkuva ζ ≈ 1 ympärillä | täyttyy | yksi lauseke + Taylorin sarja, jatkuvuustesti `tests/spring.rs` |
+| `x(t)` riippumaton kyselyjärjestyksestä | täyttyy, bitilleen | kyselyjärjestys- ja aikahyppytestit; `ForcedSpring` välitallennus = askellus nollasta |
+| `cargo test -p motion-animation` ja työtilan tarkistukset | täyttyy | ORK:n pistokoe yllä; A06:n työtilan ajo; CI 12/12 |
+| Tarkistuslista (9 kohtaa) | täyttyy | kaikki rastit vastaavat koodia ja testejä; vapautus tavallisilla arvoilla (`ReleaseSample`) |
+| Dangle-sopimus A05:n kanssa | täyttyy | `dangle_joint`/`apply_dangle`/`DangleError`, `docs/physics-springs.md`; A05 hyväksyi ehdoin, ehto täytetty (`dangles_leave_ik_grip_and_held_prop_unchanged`) |
+| Tiedostoalue (ORK-G2-01) | täyttyy | #120: `spring.rs`, `lib.rs` vain uudelleenviennit, `tests/spring.rs`, `docs/physics-springs.md`, A06-tiedosto |
+| Ei uutta cratea, ei `motion-script`- tai `animato`-riippuvuutta | täyttyy | `lib.rs`/manifesti ennallaan |
+
+**Ei todennettu.** Jousien ja dangle-liikkeen visuaalista laatua ei ole arvioitu
+renderöidyssä kuvassa tai liikkeessä; testit ovat numeerisia ja rakenteellisia. EventLog →
+vapautuksen alkuarvot -kytkentä, IK-kohteen ratkaisu ja vanhemman liikkeestä johdettu
+jälkiliike ovat A04:n KS-003d:tä. Dangle-nivelten merkintätapa MotionScriptissä tai rigissä
+(A02/A05) ja säätimet (A09) puuttuvat. Nivelen tunnistus nimen perusteella on
+tarkoituksella konservatiivinen; rajalla puristettu jousi voi näkyä pysähtymisenä (A05:n
+kirjaama riski).
+
+**Vaikutus porttiin.** KS-003b `done`. G2 (KS-003) pysyy `running`: A08:n puhelinkohtaus,
+KS-003d (A04), KS-002e (A07) ja G2-näyte ovat auki.
+
 ## ORK-G1 (rinnakkainen kirjaus, PR #112) — Sopimusportti: **hyväksytty ehdoin** (27.10.2026)
 
 *Huom. (yhdistetty 27.10.2026):* sama porttipäätös kirjattiin rinnakkain PR:ssä #112 ja
@@ -544,6 +579,22 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Estot ja riskit: yhteinen `CARGO_TARGET_DIR` aiheutti agenttien välisiä ristikkäisiä
   käännösvirheitä; seuraavalla kierroksella raskaat testiajot vuorotellen. Levytila on tiukka.
 - Seuraavaksi: A08 puhelinkohtaus (`grip`), A04 KS-003d.
+
+### ORK-G2-02 — KS-003b katselmus — 27.10.2026
+- Tila: done (KS-003b hyväksytty)
+- Omistaja: ORK
+- Tehty: katselmoitu KS-003b (PR #115 `974ef76` ja Dangle-sopimus PR #120 `d9b88ae`)
+  A06-tiedoston hyväksymisehtoja ja tarkistuslistaa vastaan; päätös ORK-G2-02; rekisteri,
+  README:n A06-rivi ja `master-progress.md` päivitetty (haara `docs/ork-ks003b`, pinottu
+  PR #119:n päälle).
+- Tarkistettu: PR #120:n CI 12/12 (media-encoding uudelleenajon jälkeen); ORK:n pistokoe
+  `origin/main`illa: `cargo test -p motion-animation` 49/0, `cargo test -p motion-rig` 32/0,
+  clippy motion-animation ilman varoituksia, `cargo fmt --all --check` ok.
+- Tekemättä: visuaalinen laatuarvio renderöidyssä kuvassa; EventLog-kytkentä ja jälkiliike
+  (KS-003d); dangle-nivelten merkintä (A02/A05); säätimet (A09). A06-tiedoston tilarivi
+  näyttää yhä `review` (A06:n tiedosto, ei muutettu tässä).
+- Estot ja riskit: PR #119 on yhdistettävä ennen tätä haaraa (samat tiedostot).
+- Seuraavaksi: A04 KS-003d (riippuvuudet KS-003a ja KS-003b nyt hyväksytty), A08 puhelinkohtaus.
 
 ## Kopioitava tehtävänanto
 
