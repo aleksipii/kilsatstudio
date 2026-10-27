@@ -52,6 +52,23 @@ tracks (below), image textures and two-joint skinning (see
 joint/vertex/weight canvas remain separate work. Physical Mac editing and rendering acceptance require actual
 device evidence; source fixtures and CI do not establish that acceptance.
 
+## Joint limits, limb attachment and IK
+
+An optional `joint_limits` map bounds a joint's local rotation (rest rotation plus
+animated offset), in radians:
+
+```yaml
+      joint_limits:
+        forearm_r: {min_rotation: 0.0, max_rotation: 2.4}
+```
+
+Both bounds are finite, within one full turn of zero, ordered, and contain the
+joint's rest rotation; unknown joint IDs fail validation. Evaluation clamps the
+rotation, so preview, export and IK agree. Stick characters follow the attachment
+contract (pelvis `root` → legs, `torso` shoulders → arms) and can be posed with the
+analytic two-bone IK in `motion-rig`; see [rig-attachment-ik.md](rig-attachment-ik.md).
+IK targets are values for now; their timeline track is KS-003d.
+
 ## Joint animation tracks
 
 A scene's `composition.joint_tracks` animates custom-rig joints by actor and joint
