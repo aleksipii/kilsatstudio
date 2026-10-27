@@ -15,6 +15,9 @@ pub struct Request {
     pub piper_config: Option<PathBuf>,
     pub alignments: String,
     pub cancel: CancellationToken,
+    /// Project model policy. `Strict` checks imported WAVs first and never builds
+    /// a speech provider (ADR-A01-09).
+    pub policy: motion_project::ModelPolicy,
 }
 pub struct Ready {
     pub prepared: PreparedScene,
@@ -41,15 +44,19 @@ impl Worker {
                     let alignments = parse_alignment_inputs(&request.alignments)?;
                     let cache =
                         AlignmentCache::new(request.config.cache_directory.join("alignments"));
-                    let mut provider = motion_tts::LocalSpeechProvider::new(request.config.clone());
-                    if let Some(path) = &request.piper_config {
-                        provider = provider.with_piper_config_path(path.clone());
-                    }
+                    let provider = speech_provider(
+                        request.policy,
+                        &request.script,
+                        Some(request.index),
+                        &request.root,
+                        &request.config,
+                        request.piper_config.as_ref(),
+                    )?;
                     let prepared = prepare_scene_with_alignment_inputs(
                         &request.script,
                         request.index,
                         &request.root,
-                        &provider,
+                        provider.as_ref(),
                         &alignments,
                         &cache,
                         &request.cancel,
@@ -94,6 +101,30 @@ impl Worker {
     }
 }
 
+/// The provider for one preparation. On the strict path every line must already name
+/// an existing imported WAV (checked before any work) and the provider is
+/// `DisabledSpeechProvider`, so synthesis cannot run even if a check were missed.
+pub fn speech_provider(
+    policy: motion_project::ModelPolicy,
+    script: &Script,
+    scene_index: Option<usize>,
+    root: &std::path::Path,
+    config: &KokoroConfig,
+    piper_config: Option<&PathBuf>,
+) -> Result<Box<dyn motion_tts::SpeechProvider>, String> {
+    if policy.is_strict() {
+        motion_voice::model_free::require_imported_audio(script, scene_index, root).map_err(
+            |e| format!("No AI -tila: jokaisella repliikillä on oltava tuotu WAV-tiedosto ({e})"),
+        )?;
+        return Ok(Box::new(motion_tts::DisabledSpeechProvider));
+    }
+    let mut provider = motion_tts::LocalSpeechProvider::new(config.clone());
+    if let Some(path) = piper_config {
+        provider = provider.with_piper_config_path(path.clone());
+    }
+    Ok(Box::new(provider))
+}
+
 const MAX_ALIGNMENT_JSON_BYTES: usize = 100_000;
 fn check_json_size(input: &str) -> Result<(), String> {
     if input.len() > MAX_ALIGNMENT_JSON_BYTES {
@@ -124,6 +155,68 @@ fn parse_alignment_inputs(input: &str) -> Result<BTreeMap<u64, AlignmentInput>, 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn strict_policy_requires_imported_wavs_and_never_builds_a_synthesizer() {
+        use motion_project::ModelPolicy;
+        use motion_tts::{SpeechRequest, VoiceSettings};
+        let root = std::env::temp_dir().join(format!("kilsat-a09-strict-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let script = |audio: &str| {
+            motion_script::parse(&format!(
+                "characters: {{EMMA: {{asset: characters/emma, voice: {{provider: kokoro, preset: af_heart, language: en-us, speed: 1.0}}}}}}\nscenes:\n  - {{id: a, duration: 2, events: [{{type: speak, at: 0.0, actor: EMMA, text: Hi{audio}}}]}}\n"
+            ))
+            .unwrap()
+        };
+        let config = KokoroConfig {
+            python: "/never-execute/python".into(),
+            runtime_script: "/never-execute/runtime".into(),
+            model_config: "/never-execute/config".into(),
+            model_weights: "/never-execute/model".into(),
+            voices_directory: "/never-execute/voices".into(),
+            cache_directory: root.join("cache"),
+            model_version: "test".into(),
+            timeout: std::time::Duration::from_secs(1),
+        };
+        let missing = speech_provider(
+            ModelPolicy::Strict,
+            &script(""),
+            Some(0),
+            &root,
+            &config,
+            None,
+        );
+        let error = missing
+            .err()
+            .expect("strict path must reject a line without WAV");
+        assert!(error.contains("No AI"), "{error}");
+        std::fs::write(root.join("line.wav"), b"placeholder").unwrap();
+        let provider = speech_provider(
+            ModelPolicy::Strict,
+            &script(", audio: line.wav"),
+            Some(0),
+            &root,
+            &config,
+            None,
+        )
+        .unwrap();
+        let request = SpeechRequest {
+            text: "Hi".into(),
+            voice: VoiceSettings::default(),
+        };
+        let error = provider.synthesize(request).unwrap_err();
+        assert_eq!(error.0, motion_tts::DisabledSpeechProvider::MESSAGE);
+        // The default policy keeps today's local provider.
+        assert!(speech_provider(
+            ModelPolicy::default(),
+            &script(""),
+            Some(0),
+            &root,
+            &config,
+            None
+        )
+        .is_ok());
+        let _ = std::fs::remove_dir_all(&root);
+    }
     #[test]
     fn blank_alignment_never_invents_timing() {
         assert!(parse_alignment_input(" \n ").unwrap().is_none());

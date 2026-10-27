@@ -163,21 +163,14 @@ fn export_mp4_inner(
         captions,
     )?;
     let result = encode(script, destination, ffmpeg, cancel).map(|()| report);
-    if result.is_err() {
-        fs::remove_dir_all(destination).map_err(|e| {
-            invalid(format!(
-                "video export failed; partial-output cleanup failed: {e}"
-            ))
-        })?;
-    }
-    result
+    discard_partial(destination, result)
 }
 
 pub(super) fn validate_encoder(script: &Script, ffmpeg: &Path) -> Result<(), Error> {
     if !ffmpeg.is_absolute() || !ffmpeg.is_file() {
-        return Err(invalid(
-            "FFmpeg must be an explicit absolute path to a local executable",
-        ));
+        return Err(Error::EncoderUnavailable {
+            path: ffmpeg.to_path_buf(),
+        });
     }
     // H.264 yuv420p needs even dimensions. Reject rather than silently resize poses.
     if !script.project.width.is_multiple_of(2) || !script.project.height.is_multiple_of(2) {
