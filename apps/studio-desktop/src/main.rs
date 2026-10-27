@@ -4962,8 +4962,9 @@ impl Studio {
                     }
                     if level.shows(Tool::PhysicsProfile) {
                         ui.separator();
-                        ui.label("Fysiikkaprofiili");
-                        ui.weak("Ei vielä käytettävissä: odottaa A06:n jousimoduulia (KS-003b). Raahaukset kirjataan jo tapahtumalokiin.");
+                        egui::CollapsingHeader::new("Fysiikkaprofiilit (A06)").show(ui, |ui| {
+                            ui_levels::spring_profiles_ui(ui, level.shows(Tool::SpringParameters))
+                        });
                     }
                     if level.shows(Tool::RuleList) {
                         ui.separator();
@@ -4982,11 +4983,7 @@ impl Studio {
                                 self.live_clip_ui(ui);
                             },
                         );
-                        ui.weak("Kahden luun IK odottaa A05:n rig-rajapintaa (KS-003a).");
-                    }
-                    if level.shows(Tool::SpringParameters) {
-                        ui.label("Jousiparametrit (m, k, c)");
-                        ui.weak("Ei vielä käytettävissä: odottaa A06:n jousimoduulia (KS-003b).");
+                        ui.weak("Kahden luun IK (A05) on olemassa, mutta IK-kohteen aikajanaraita ja ratkaisu kohtausarvioinnissa odottavat A04:ää (KS-003d).");
                     }
                     ui.separator();
                     ui.label(format!(
@@ -9682,5 +9679,55 @@ mod hand_prop_workflow_tests {
         studio.undo_edit(false);
         assert_eq!(studio.snapshot(), before);
         assert!(!studio.history.can_undo());
+    }
+}
+
+#[cfg(test)]
+mod a09_transport_tests {
+    use super::*;
+
+    /// Play, pause and seek all land on the 24 kHz grid and show the same frame
+    /// as evaluating that time directly with `motion_scene::evaluate` (A04).
+    #[test]
+    fn play_pause_and_seek_show_the_same_evaluated_frame() {
+        let mut studio = Studio::default();
+        studio.validate();
+        let script = studio.script.clone().expect("default screenplay is valid");
+        let duration = script.scenes[studio.scene_index].duration;
+        assert!(duration > 1.0);
+
+        // Play for 0.75 s of wall time without scene audio.
+        studio.scene_transport.as_mut().unwrap().play();
+        studio.scene_tick = Instant::now() - Duration::from_millis(750);
+        studio.poll();
+        let played = studio.playhead;
+        assert!((0.75..0.85).contains(&played), "{played}");
+        assert_eq!(
+            (played * 24000.0).fract(),
+            0.0,
+            "playhead off the sample grid"
+        );
+
+        // Pause: time does not move however long we wait.
+        studio.scene_transport.as_mut().unwrap().pause();
+        studio.scene_tick = Instant::now() - Duration::from_secs(2);
+        studio.poll();
+        assert_eq!(studio.playhead, played);
+
+        let from_play =
+            motion_scene::evaluate(&script, studio.scene_index, studio.playhead).unwrap();
+
+        // Seek away and back: identical frame to the one reached by playing.
+        studio.seek_scene(duration);
+        assert_eq!(studio.playhead, quantized_seek(duration, duration));
+        studio.seek_scene(played);
+        assert_eq!(studio.playhead, played);
+        let from_seek =
+            motion_scene::evaluate(&script, studio.scene_index, studio.playhead).unwrap();
+        assert_eq!(from_seek, from_play);
+        assert_eq!(
+            studio.scene_transport.as_ref().unwrap().position_seconds(),
+            played
+        );
     }
 }

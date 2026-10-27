@@ -33,13 +33,13 @@ pub enum Tool {
     VisemeCheck,
     /// Pose/expression keys, head pose, hand props and camera framing.
     PoseControls,
-    /// Physics profile choice (waits for A06).
+    /// Read-only A06 spring profiles (choice waits for KS-003d).
     PhysicsProfile,
     /// Read-only rule list.
     RuleList,
     /// Custom rig, bones, joints, cue rules and clips.
     RigTools,
-    /// Spring mass, stiffness and damping (waits for A06).
+    /// Spring mass, stiffness and damping, read-only (A06).
     SpringParameters,
     /// Technical checks tab (alignment, GPU, metrics, runtime).
     AdvancedTab,
@@ -294,10 +294,54 @@ pub fn drag_joint(script: &motion_script::Script, actor: &str) -> Option<String>
     }
 }
 
+/// One row of the read-only spring profile table (A06 `SpringProfile`).
+pub fn spring_profile_row(profile: motion_animation::spring::SpringProfile) -> String {
+    use motion_animation::spring::DampingRegime;
+    let params = profile.params();
+    let regime = match params.regime() {
+        DampingRegime::Underdamped => "joustaa yli",
+        DampingRegime::Critical => "asettuu ilman ylitystä",
+        DampingRegime::Overdamped => "hidas, ei ylitystä",
+    };
+    let (m, k, c) = profile.coefficients();
+    format!(
+        "{}: m {m}, k {k}, c {c} · ζ {:.2} ({regime})",
+        profile.name(),
+        params.damping_ratio()
+    )
+}
+
+/// Read-only list of A06 spring profiles. `coefficients` adds m, k and c (level 3).
+pub fn spring_profiles_ui(ui: &mut egui::Ui, coefficients: bool) {
+    use motion_animation::spring::SpringProfile;
+    for profile in SpringProfile::ALL {
+        if coefficients {
+            ui.monospace(spring_profile_row(profile));
+        } else {
+            let zeta = profile.params().damping_ratio();
+            ui.label(format!("{} · ζ {zeta:.2}", profile.name()));
+        }
+    }
+    ui.weak(
+        "Vain luettava. Profiilin valinta ja vapautuksen jousi kytketään, kun A04 ratkaisee \
+         vapautuksen kohtausarvioinnissa (KS-003d). Raahaukset kirjataan jo tapahtumalokiin.",
+    );
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     const SOURCE: &str = "characters: {mia: {asset: mia.svg}}\nscenes: [{id: intro, duration: 4, events: []}, {id: outro, duration: 2, events: []}]\n";
+
+    #[test]
+    fn spring_rows_show_a06_coefficients_and_regime() {
+        use motion_animation::spring::SpringProfile;
+        assert_eq!(
+            spring_profile_row(SpringProfile::Snappy),
+            "snappy: m 1, k 400, c 40 · ζ 1.00 (asettuu ilman ylitystä)"
+        );
+        assert!(spring_profile_row(SpringProfile::Wobbly).contains("joustaa yli"));
+    }
 
     #[test]
     fn levels_are_cumulative_and_default_to_script() {

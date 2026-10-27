@@ -38,20 +38,26 @@ raskas työ pois tapahtumasilmukasta.
 
 - [x] Taso 1 — Käsikirjoitus ja esikatselu: YAML-editori, kanvas, Play/Pause/Scrub.
 - [ ] Taso 2 — Visuaaliset ohjaimet: viseemitarkistus ja ilme/asentoavaimet, pää, esineet ja
-      kamera ovat tasolla 2. **Estetty:** fysiikkaprofiilin valinta odottaa A06:n jousimoduulia
-      (KS-003b); paikalla näkyy selite.
-- [ ] Taso 3 — Syväarkkitehtuuri: sääntöluettelo (vain luku), rig-nivelet, luut, vihjesäännöt ja
-      klipit ovat tasolla 3. **Estetty:** kahden luun IK (A05, KS-003a) ja jousiparametrit
-      m, k, c (A06, KS-003b).
+      kamera ovat tasolla 2, ja A06:n fysiikkaprofiilit (ζ) näkyvät vain luettavina.
+      **Estetty:** profiilin valinnalla ei ole vielä kuluttajaa; vapautuksen ratkaisu on A04:n
+      KS-003d.
+- [ ] Taso 3 — Syväarkkitehtuuri: sääntöluettelo (vain luku), rig-nivelet, luut, vihjesäännöt,
+      klipit ja jousiparametrit m, k, c (A06, vain luku) ovat tasolla 3. **Estetty:** IK-kohteen
+      aikajanaraita ja ratkaisu kohtausarvioinnissa (A04, KS-003d); A05:n `solve_limb_ik` on valmis.
 - [x] Tasovalinta tallentuu UI-tilaan, ei dokumenttiin (`Studio.ui_level`; ei `.kilsat`-tiedostossa).
-- [ ] Toisto, pysäytys ja aikahyppy käyttävät A04:n arvioijaa; testi tai tallennettu ajo.
-      Ei muutettu tässä PR:ssä; ei erillistä näyttöä.
+- [x] Toisto, pysäytys ja aikahyppy käyttävät A04:n arvioijaa; testi
+      `a09_transport_tests::play_pause_and_seek_show_the_same_evaluated_frame` (toisto ja aikahyppy
+      osuvat 24 kHz:n ruudukolle ja antavat saman `motion_scene::evaluate`-tuloksen; pysäytys ei
+      etene).
 - [x] No AI -tila valittavissa projektikohtaisesti (`ProjectDocument.model_policy`, työkalupalkki);
       tiukassa tilassa puhesynteesiä, Kokoron asennusta/testiä, Rhubarb-kohdistusta ja kameran
       päänseurantaa ei käynnistetä. Repliikki ilman tuotua WAVia hylätään ennen työn alkua.
 - [ ] Raahaus kirjautuu EventLogiin (A03) — **tehty** (`drag`/`release`, 24 kHz, jokainen ele
       päättyy yhteen vapautukseen, tallentuu `ProjectDocument.event_log`). **Estetty:** vapautus
-      ei käytä A06:n jousta, koska jousimoduulia ei ole.
+      ei käytä A06:n jousta: A06:n `Spring::from_release` on mainissa, mutta EventLog → alkuarvot
+      kuuluu A04:lle (KS-003d, ei avattu). Lisäksi kaikki raahauksen tapahtumat ovat samassa
+      näytepaikassa (pysäytetty toistopää), joten `release_state` tarvitsee eleen oman aikaleiman —
+      päätettävä KS-003d:ssä.
 - [x] Synteesi, suuri lataus tai koodaus ei aja tapahtumasilmukassa (No AI -tarkistus tehdään
       ennen taustatyön käynnistystä; taustatyöt pysyvät workereissa).
 - [x] Käynnistysohje README:ssä (`cargo run -p studio-desktop`); käynnistys kirjattu alla.
@@ -82,15 +88,18 @@ Ajetut tarkistukset (Apple M1, iMac21,2, macOS 27.0.1 / 26A434):
 - `cargo fmt --all --check` — läpi
 - `cargo check --workspace` — läpi
 - `cargo clippy --workspace --all-targets` — läpi, ei varoituksia
-- `cargo test --workspace` — läpi (studio-desktop 277/277, motion-project 24/24)
+- `cargo test --workspace` — läpi (studio-desktop 279/279, motion-project 24/24)
+
+Päivitetty mainin (`9c69902`, A05/A06/A08 G2) yhdistämisen jälkeen; tarkistukset ajettu uudelleen.
 
 macOS-käynnistys: `cargo run -p studio-desktop` -binääri käynnistyi samalla laitteella ja pysyi
 käynnissä ~13 s ilman virhetulostetta, sitten suljettiin. Ikkunaa ei kuvattu (näytön tallennuslupa
 puuttui), eikä tasojen vaihtoa, raahausta tai No AI -valintaa kokeiltu käsin graafisesti; ne on
 testattu vain yksikkötesteillä.
 
-Avoinna: A06-jousi vapautukseen ja fysiikkaprofiili/jousiparametrit, A05-IK, toiston/aikahypyn
-näyttö A04-arvioijalla, graafinen käsikokeilu tasoista.
+Avoinna: vapautuksen jousi ja IK-kohteet kohtausarvioinnissa (A04, KS-003d), sen jälkeen
+profiilin valinta käyttöliittymään; graafinen käsikokeilu tasoista; `motion-project`-muutoksen
+hyväksyntä (A07/orkestroija).
 
 ## Kopioitava tehtävänanto
 
