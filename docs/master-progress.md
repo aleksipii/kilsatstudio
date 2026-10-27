@@ -7,6 +7,26 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G0 approval and G1 contract owners — PR #104 merged (2026-10-27)
+
+Status: **merged** to `main` as `698fd2f` from branch `docs/ork-g1` with the user's
+explicit approval ([PR #104](https://github.com/aleksipii/kilsatstudio/pull/104)).
+Documentation only (orchestrator, `docs/agents/**`).
+
+Completed: G0 approved (ORK-G0: A01 review accepted; report/code differences decided:
+egui stays, 13 visemes canonical, own rule engine instead of a RETE library, head-pose
+classification, No-AI policy location); G1 contract owner crates decided (ORK-G1-01…06:
+SceneSpec `motion-script`, TrackSpec written in `motion-script`/resolved in
+`motion-scene`, EventLog `motion-script`, sample clock `motion-audio` and AudioTimeline
+`motion-lipsync`, rig attachment `motion-rig`, render contract `motion-render`); task
+register KS-001…KS-007 and agent status lines updated, including A02 (PR #105) and
+A03 (PR #106) as `review` awaiting the ORK G1 review.
+
+Checks: PR CI 11/11 passed. No Rust code changed, so cargo checks are not evidence for
+this entry. Open: G1 gate still needs A04 TrackSpec and A07 sample clock + AudioTimeline
+v1 and ORK's G1 review of A02/A03; A04 `ready` is ORK's decision; KS-006 (wheel hash
+lock) and KS-007 (licence texts/NOTICEs) are G4 conditions.
+
 ## A03 rule contract and EventLog v1 — PR #106 merged (2026-10-27)
 
 Status: **merged** to `main` as `6ddfdcc` from branch `feat/a03-rules-eventlog` with the
