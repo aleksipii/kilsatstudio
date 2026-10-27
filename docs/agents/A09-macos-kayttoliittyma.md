@@ -1,6 +1,6 @@
 # A09 — macOS ja käyttöliittymä
 
-Tila: **todo** · Portti: G3 · Tehtävä: KS-004 · Lähtö: commit `496a8a4`
+Tila: **osittain valmis (PR odottaa katselmointia)** · Portti: G3 · Tehtävä: KS-004 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -36,16 +36,25 @@ raskas työ pois tapahtumasilmukasta.
 
 ## Tehtävät — tarkistuslista
 
-- [ ] Taso 1 — Käsikirjoitus ja esikatselu: YAML-editori, kanvas, Play/Pause/Scrub.
-- [ ] Taso 2 — Visuaaliset ohjaimet: viseemitarkistus, ilme/asento-kytkimet, fysiikkaprofiilin valinta.
-- [ ] Taso 3 — Syväarkkitehtuuri: sääntöluettelo/-graafi, rig-nivelet ja IK, jousiparametrit (m, k, c).
-- [ ] Tasovalinta tallentuu UI-tilaan, ei dokumenttiin (dokumentti-, kohtaus- ja UI-tila erillään).
+- [x] Taso 1 — Käsikirjoitus ja esikatselu: YAML-editori, kanvas, Play/Pause/Scrub.
+- [ ] Taso 2 — Visuaaliset ohjaimet: viseemitarkistus ja ilme/asentoavaimet, pää, esineet ja
+      kamera ovat tasolla 2. **Estetty:** fysiikkaprofiilin valinta odottaa A06:n jousimoduulia
+      (KS-003b); paikalla näkyy selite.
+- [ ] Taso 3 — Syväarkkitehtuuri: sääntöluettelo (vain luku), rig-nivelet, luut, vihjesäännöt ja
+      klipit ovat tasolla 3. **Estetty:** kahden luun IK (A05, KS-003a) ja jousiparametrit
+      m, k, c (A06, KS-003b).
+- [x] Tasovalinta tallentuu UI-tilaan, ei dokumenttiin (`Studio.ui_level`; ei `.kilsat`-tiedostossa).
 - [ ] Toisto, pysäytys ja aikahyppy käyttävät A04:n arvioijaa; testi tai tallennettu ajo.
-- [ ] No AI -tila valittavissa projektikohtaisesti; tiukassa tilassa synteesiä ja
-      päänseurantaa ei käynnistetä (A01:n Vision-luokituksen mukaan).
-- [ ] Raahaus kirjautuu EventLogiin (A03) ja vapautus käyttää A06:n jousta.
-- [ ] Varmista, ettei synteesi, suuri lataus tai koodaus aja tapahtumasilmukassa.
-- [ ] Käynnistysohje README:hen; älä väitä sovelluksen avautuneen ilman ajoa Macilla.
+      Ei muutettu tässä PR:ssä; ei erillistä näyttöä.
+- [x] No AI -tila valittavissa projektikohtaisesti (`ProjectDocument.model_policy`, työkalupalkki);
+      tiukassa tilassa puhesynteesiä, Kokoron asennusta/testiä, Rhubarb-kohdistusta ja kameran
+      päänseurantaa ei käynnistetä. Repliikki ilman tuotua WAVia hylätään ennen työn alkua.
+- [ ] Raahaus kirjautuu EventLogiin (A03) — **tehty** (`drag`/`release`, 24 kHz, jokainen ele
+      päättyy yhteen vapautukseen, tallentuu `ProjectDocument.event_log`). **Estetty:** vapautus
+      ei käytä A06:n jousta, koska jousimoduulia ei ole.
+- [x] Synteesi, suuri lataus tai koodaus ei aja tapahtumasilmukassa (No AI -tarkistus tehdään
+      ennen taustatyön käynnistystä; taustatyöt pysyvät workereissa).
+- [x] Käynnistysohje README:ssä (`cargo run -p studio-desktop`); käynnistys kirjattu alla.
 
 ## Hyväksymisehdot
 
@@ -60,7 +69,28 @@ raahausliitos, käynnistysohje ja kirjattu macOS-käynnistysnäyttö.
 
 ### Toteutunut lopputulema
 
-_Ei vielä aloitettu._
+Haara `feat/a09-ui-levels`, pohja `60c7310`.
+
+- Uusi `apps/studio-desktop/src/ui_levels.rs`: `UiLevel` (1–3), `Tool`-rajaus, tasovalitsin ja
+  `DragRecorder` (EventLog v1, 24 kHz, enintään 64 välitapahtumaa elettä kohden).
+- `motion-project`: valinnaiset kentät `model_policy` ja `event_log`; vanhat projektit avautuvat
+  ennallaan. Huom: muutos on A09:n sallitun alueen ulkopuolella (`crates/motion-project`) ja
+  vaatii A07:n/orkestroijan hyväksynnän.
+
+Ajetut tarkistukset (Apple M1, iMac21,2, macOS 27.0.1 / 26A434):
+
+- `cargo fmt --all --check` — läpi
+- `cargo check --workspace` — läpi
+- `cargo clippy --workspace --all-targets` — läpi, ei varoituksia
+- `cargo test --workspace` — läpi (studio-desktop 277/277, motion-project 24/24)
+
+macOS-käynnistys: `cargo run -p studio-desktop` -binääri käynnistyi samalla laitteella ja pysyi
+käynnissä ~13 s ilman virhetulostetta, sitten suljettiin. Ikkunaa ei kuvattu (näytön tallennuslupa
+puuttui), eikä tasojen vaihtoa, raahausta tai No AI -valintaa kokeiltu käsin graafisesti; ne on
+testattu vain yksikkötesteillä.
+
+Avoinna: A06-jousi vapautukseen ja fysiikkaprofiili/jousiparametrit, A05-IK, toiston/aikahypyn
+näyttö A04-arvioijalla, graafinen käsikokeilu tasoista.
 
 ## Kopioitava tehtävänanto
 
