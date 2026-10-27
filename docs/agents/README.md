@@ -1,6 +1,6 @@
 # Kilsat Studio — arkkitehtuuriagentit A01–A10 ja orkestroija
 
-Päivitetty 27.10.2026 (tilat: ORK-G2-02, `main` `d9b88ae`). Lähtö: `main`, commit `496a8a41bb753011222764cec9f19c3f3f2b6e89`.
+Päivitetty 27.10.2026 (tilat: ORK-G4-01, `main` `d9b88ae`). Lähtö: `main`, commit `496a8a41bb753011222764cec9f19c3f3f2b6e89`.
 Lähde: [arkkitehtuuriraportti](../KILSAT-STUDIO-ARKKITEHTUURI-JA-AGENTIT.md), luvut 6–10,
 sekä [A01-arkkitehtuuripäätökset](../a01-architecture.md). G1-sopimusten omistavat cratet:
 [ORK-G1-01…06](00-orkestroija.md#ork-g1--sopimusten-omistajat-27102026).
@@ -19,7 +19,7 @@ orkestroijan kautta eikä kumpikaan sarja luo kilpailevaa jäsennintä, kelloa t
 
 | ID | Tiedosto | Pääalue (crate / polku) | Portti | Tila |
 | --- | --- | --- | --- | --- |
-| ORK | [Orkestroija](00-orkestroija.md) | tehtävärekisteri, `docs/master-progress.md` | G0–G4 | running (G0 ja G1 hyväksytty, G1 ehdoin; G2-näyte palautettu ORK-G2-02) |
+| ORK | [Orkestroija](00-orkestroija.md) | tehtävärekisteri, `docs/master-progress.md` | G0–G4 | running (G0 ja G1 hyväksytty, G1 ehdoin; G2-näyte palautettu ORK-G2-02; G4-kooste ORK-G4-01, G4 ei hyväksytty) |
 | A01 | [Arkkitehtuuri ja riippuvuudet](A01-arkkitehtuuri-riippuvuudet.md) | `docs/a01-*`, manifestit | G0 | done (G0; KS-006/KS-007 siirretty G4:ään) |
 | A02 | [DSL ja kääntäjä](A02-dsl-kaantaja.md) | `crates/motion-script` | G1 | done G1-osalta (PR #105 `d9db5be`, ORK-G1); KS-002h todo |
 | A03 | [Säännöt ja tapahtumat](A03-saannot-tapahtumat.md) | `motion-script/src/rules.rs`, EventLog | G1 | done G1-osalta (PR #106 `6ddfdcc`); KS-002f done (PR #113 `5e93709`) |
@@ -29,7 +29,7 @@ orkestroijan kautta eikä kumpikaan sarja luo kilpailevaa jäsennintä, kelloa t
 | A07 | [Suomen ja englannin ääni](A07-aani-fi-en.md) | `motion-audio`, `motion-lipsync`, `motion-tts`, `motion-voice` | G1–G2 | done G1-osuudelta (PR #109 `ae39c4d`); G2: KS-002e ready (ORK-G2-02, vaatii äänitteen) |
 | A08 | [Renderöinti, kamera ja taustat](A08-renderointi-kamera.md) | `crates/motion-render`, `motion-art` | G2 | ready (palautus ORK-G2-02: puhelin kädessä; PR #116 `9c69902` yhdistetty) |
 | A09 | [macOS ja käyttöliittymä](A09-macos-kayttoliittyma.md) | `apps/studio-desktop` | G3 | ready (KS-004, ORK-G2-02; PR #118) |
-| A10 | [Vienti, CI ja laadunvarmistus](A10-vienti-ci-laatu.md) | `crates/motion-export`, `.github/workflows` | G3–G4 | todo |
+| A10 | [Vienti, CI ja laadunvarmistus](A10-vienti-ci-laatu.md) | `crates/motion-export`, `.github/workflows` | G3–G4 | review (PR #123 vienti-QA, ORK-G4-01: yhdistettävissä luvalla; koko ketju odottaa G2:ta) |
 
 Tilat: `todo`, `ready`, `running`, `review`, `blocked`, `done`. Vain orkestroija muuttaa
 tilan `done`-tilaksi ja vain todennettavan näytön perusteella.

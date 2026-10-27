@@ -1,6 +1,6 @@
 # ORK — Orkestroija
 
-Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G2-02 (G2-näyte palautettu, A09 `ready`), 27.10.2026 (`main` `d9b88ae`)
+Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G4-01 (G4-näyttökooste; G4 ei hyväksytty), 27.10.2026 (`main` `d9b88ae`)
 
 ## Tavoite
 
@@ -41,10 +41,10 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | done (PR #115 `974ef76`; Dangle-sopimus PR #120 `d9b88ae`, A05:n katselmus ja sen ehto täytetty) |
 | KS-003c | A08 | KS-002; puhelinkohtaus myös KS-003a | Renderöintisopimus, syvyysjärjestys, rajaussäännöt, testikohtaus ja vertailukuvat | ready (ORK-G2-02 palautus 1): sopimus, syvyys ja rajaus yhdistetty (PR #116 `9c69902`); puhelin kädessä renderöitynä, sen rajaustesti ja vertailukuvat puuttuvat |
 | KS-003d | A04 | KS-002g, KS-003a, KS-003b | `EvaluatedScene`-pyynnöt A05/A08:lta, IK-kohteen ja vapautuksen ratkaisu `motion-scene`ssä | ready (avausehto täyttyi 27.10.2026; ORK-G2-02 palautus 3: G2-kohtauksen aikahyppy ≡ ruuduittainen toisto, puhelin ja suu mukana) |
-| KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | A09 ready (ORK-G2-02; PR #118 katselmoitavana, hyväksyntä odottaa G2:ta); A10 todo |
-| KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | todo |
-| KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto) |
-| KS-007 | A10 + ORK | KS-001 | Kolmannen osapuolen lisenssitekstit ja NOTICEt (siirretty A01:ltä) | todo (G4-ehto) |
+| KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | A09 ready (ORK-G2-02; PR #118 katselmoitavana, hyväksyntä odottaa G2:ta); A10 review (PR #123: vienti-QA katselmoitu ORK-G4-01, yhdistettävissä käyttäjän luvalla; koko ketju odottaa G2:ta) |
+| KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | running — näyttökooste ORK-G4-01; G4 **ei hyväksytty** (G2 ja G3 auki, KS-006/KS-007 tekemättä) |
+| KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
+| KS-007 | A10 + ORK | KS-001 | Kolmannen osapuolen lisenssitekstit ja NOTICEt (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
 
 ## Tehtävät — tarkistuslista
 
@@ -75,9 +75,11 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 - [ ] Palauta epäonnistunut työ omistajalle kirjatulla syyllä.
 
 ### G4 — Julkaisunäyttö
-- [ ] Kokoa A10:n raportti: testit, vertailukuvat, macOS-käynnistys, vienti, mittaukset.
+- [x] Kokoa A10:n raportti: testit, vertailukuvat, macOS-käynnistys, vienti, mittaukset.
+      → ORK-G4-01 (näyttökooste; PR #123 ja PR #118 katselmoitu, ORK:n omat ajot).
 - [ ] Hyväksy vain osoitetut ominaisuudet; kirjaa rajaukset. KS-006 ja KS-007 ovat G4:n ehtoja.
-- [ ] Päivitä raportin luvun 8 tarkistuslista näytön perusteella.
+      → ORK-G4-01: rajaukset kirjattu, G4 **ei hyväksytty** (G2/G3 auki, KS-006/KS-007 tekemättä).
+- [x] Päivitä raportin luvun 8 tarkistuslista näytön perusteella. → ORK-G4-01: 4/11 rastitettu.
 
 ### Jatkuvat
 - [ ] Rajapintamuutos avaa siitä riippuvat tarkistukset uudelleen.
@@ -519,6 +521,79 @@ vaikka G2 on auki: PR #118 käyttää vain jo yhdistettyjä rajapintoja (EventLo
 - PR:n mukaan sovellus käynnistettiin Macilla, mutta tasojen vaihtoa, raahausta ja No AI
   -kytkintä ei kokeiltu käsin. Niitä ei kirjata tehdyiksi ilman ajoa.
 
+## ORK-G4-01 — G4-näyttökooste: **G4 ei hyväksytty** (27.10.2026)
+
+Pohja: `main` `d9b88ae`; A10:n PR #123 (`feat/a10-export-qa`, head `7c3b916`) ja A09:n PR #118
+(`feat/a09-ui-levels`), molemmat yhdistämättä. G4 edellyttää G3:a, joka edellyttää G2:ta;
+G2 on palautettu (ORK-G2-02). Tämä kooste kirjaa, mikä on jo näytöllä todistettu, jotta
+G4 voidaan päättää heti, kun puuttuvat osat on yhdistetty.
+
+**ORK:n omat ajot** (macOS 27.0.1, iMac21,2 Apple M1; PR #123:n työpuu `d5203c0` =
+`d9b88ae` + A10, `--offline --locked`; `7c3b916` muuttaa vain dokumentteja):
+
+| Ajo | Tulos |
+| --- | --- |
+| `cargo test -p motion-export --test g2_export` | 7 läpi, 0 epäonnistui, 1 ohitettu (täysi levy; vaatii RAM-levyn, CI ajaa) |
+| `cargo test -p motion-export --lib export_preview_parity` | 1 läpi |
+| `cargo test -p motion-render --test g2_minimal_scene` | 6 läpi |
+| `cargo test -p motion-rig --test g2_rig` | 6 läpi |
+| `cargo test -p motion-scene --test timeline_determinism` | 6 läpi |
+| `cargo test -p motion-voice --test model_free` | 3 läpi |
+| Vertailukuvat `docs/evidence/g2-render/g2-wide-f024.png`, `g2-close-f072.png` katsottu | kaksi hahmoa, tausta, laaja/lähi; **ei puhelinta** |
+
+Koko työtilan neljää cargo-tarkistusta ORK ei toistanut: levy täyttyi kesken (166 Mt
+vapaana; vapautettu käyttäjän luvalla poistamalla yhdistetyn A06-työpuun `target`).
+Työtilan ajot ovat A10:n (976/0/9) ja A09:n raporteissa sekä CI:ssä.
+
+**CI.** PR #123: `Export QA` / `g2-export-macos` läpi commitilla `c594cb8`
+([40558399213](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213), mittaus) ja
+`d5203c0` ([40560366530](https://github.com/aleksipii/kilsatstudio/actions/runs/40560366530));
+muut tarkistukset 12/12 läpi. PR #118: 12/12 läpi.
+
+**G4-näyttö vaatimuksittain.**
+
+| G4-vaatimus | Tulos | Näyttö | Puute ja omistaja |
+| --- | --- | --- | --- |
+| Testit | **osittain** | yllä olevat ajot; A10 976/0/9, CI 12/12 | koko ketju puhelimella ja puheella puuttuu (G2) |
+| Vertailukuvat | **osittain** | G2-PNG:t; SVG-sarjan tiiviste ja ruudut 24/72 (kaikki alustat), PNG 24/72 (Apple Silicon) = A08:n kirjaamat | puhelin puuttuu kuvista (A08, KS-003c); PNG-tavuidentiteettiä ei väitetä muilla suorittimilla |
+| macOS-käynnistys | **ei osoitettu** | A09: `cargo run -p studio-desktop` -prosessi pysyi käynnissä ~13 s ilman virhettä | ikkunaa ei kuvattu, tasoja, raahausta ja No AI -kytkintä ei kokeiltu käsin (A09, KS-004) |
+| Vienti | **osoitettu G2-kohtaukselle (äänetön, ilman puhelinta)** | 96 ruutua = `frame_count(4, 24)`, WAV 96 000 näytettä, ruutuaika `motion_audio::clock`, vienti = esikatselu pikseleittäin; MP4 CI:ssä 96 ruutua, video ja ääni 4,000 s; tyypitetyt virheet (FFmpeg puuttuu, peruutus, I/O, siivous, täysi levy) | MP4:ää ei ajettu fyysisellä Macilla (ei FFmpegiä); striimaava MP4 ei palauta `PartialOutput`ia (A10) |
+| Mallivapaa polku | **osoitettu ilman puhetta** | `sandbox-exec` (ei verkkoa, ei aliprosesseja), tyhjä `HOME`, ei mallitiedostoja; `ModelPolicy::Strict` + `DisabledSpeechProvider`; `model_free` 3/3 | tuotua WAV-puhetta ei ole ajettu tiukalla polulla (A07, KS-002e) |
+| Mittaukset | **osoitettu, olosuhteet kirjattu** | M1 8 GiB, macOS 27.0.1, rustc 1.99.1, release, 1920x1080 24 fps 96 ruutua: SVG 30,4 ms, PNG 1531,9 ms (mediaani, 7 ajoa); CI macos-15 virtuaali-M1: SVG 31,9 ms, PNG 3038,0 ms | offline-vientiaika, ei toisto- tai esikatselu-FPS:ää; 60/120 FPS ja 100 000 entiteettiä mittaamatta |
+| KS-006, KS-007 | **tekemättä** | – | A07 + A10 (wheel-lukitus), A10 + ORK (lisenssit, NOTICE) |
+
+**Päätökset.**
+
+1. **G4 (KS-005) ei hyväksytty.** Edeltävät portit G2 ja G3 ovat auki, ja G4:n ehdot KS-006
+   ja KS-007 ovat aloittamatta.
+2. **A10:n vienti-QA (PR #123) hyväksytty yhdistettäväksi.** Muutokset pysyvät A10:n alueella
+   (`motion-export`, työnkulku, `docs/evidence/g2-export`, `docs/frame-export.md`, A10-tiedosto);
+   `Cargo.lock`-muutos on vain `motion-export`in dev-riippuvuus `sha2` (jo lukossa). Rajaukset
+   on kirjattu PR:ään (`7c3b916`). Yhdistäminen odottaa käyttäjän nimenomaista lupaa.
+   KS-004:n A10-osuus (koko ketju puheella ja puhelimella sekä virheet käyttöliittymästä)
+   jää auki G2:n jälkeen.
+3. **Luvun 8 tarkistuslista** päivitetty vain näytöllä todistetuilta osin (4/11). Kohdat, joiden
+   näyttö on vain yhdistämättömässä PR #123:ssa (mallivapaa ydin, CI ja mittausolosuhteet),
+   rastitetaan vasta yhdistämisen jälkeen.
+
+**Avoimet työt ja estot.**
+
+| Työ | Omistaja | Tila | Este / riippuvuus |
+| --- | --- | --- | --- |
+| KS-003c puhelin kädessä G2-kohtauksessa, rajaustesti, vertailukuvat | A08 | ready | – |
+| KS-002e fi/en WAV-puhe ja AudioTimeline G2:een | A07 | **blocked** | käyttäjän äänite ja käyttölupa |
+| KS-003d G2-kohtauksen aikahyppy ≡ toisto; vapautus ja IK-kohde arvioinnissa | A04 | ready | puhelin ja suu mukaan KS-003c/KS-002e:n jälkeen |
+| G2-uudelleentarkistus | ORK | odottaa | edellä olevat kolme |
+| KS-004 käyttöliittymä: tasot 2–3, graafinen käsikokeilu, kuvakaappaus | A09 | ready (PR #118) | KS-003d; näytön tallennuslupa kuvakaappaukseen |
+| KS-004 koko ketju käsikirjoitus → video puheella ja puhelimella | A10 | odottaa | G2 |
+| PR #123 ja PR #118 yhdistäminen | käyttäjä | odottaa lupaa | – |
+| KS-002h kellokopiot (`auto_direction::SAMPLE_RATE`, `motion-export/tests/support`) | A02 + A10 | todo | – |
+| KS-006 wheel-hash-lukitus | A07 + A10 | todo | – |
+| KS-007 lisenssitekstit ja NOTICE | A10 + ORK | todo | – |
+| MP4-vienti fyysisellä Macilla | A10 | todo | FFmpeg puuttuu koneelta (käyttäjän asennus) |
+| Avoimet ORK-dokumentti-PR:t #108, #119, #121, #122 (tämä haara pinottu #122:n päälle) | käyttäjä / ORK | odottaa lupaa | – |
+| Levytila (noin 3 Gt vapaana) | käyttäjä | riski | estää työtilan täydet ajot rinnakkain |
+
 ## Hyväksymisehdot
 
 - Jokaisella `done`-tehtävällä on linkitetty näyttö (commit, testiajo, CI-ajo, kuva tai raportti).
@@ -620,6 +695,18 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Estot ja riskit: KS-002e tarvitsee käyttäjän äänittämän puheen ja käyttöluvan. Levytila on
   tiukka (noin 5 Gt vapaana).
 - Seuraavaksi: A08 ja A07 rinnakkain, A04 heti perään; sen jälkeen ORK:n uusi G2-tarkistus.
+
+### ORK-G4-01 — 27.10.2026
+- Tila: running (G4 ei hyväksytty)
+- Omistaja: ORK
+- Tehty: G4-näyttökooste (ORK-G4-01); A10:n PR #123 katselmoitu ja hyväksytty yhdistettäväksi;
+  raportin luvun 8 tarkistuslista päivitetty (4/11); rekisteri ja README:n tilat. Haara `docs/ork-g4`.
+- Tarkistettu: kuusi testisarjaa PR #123:n työpuussa (29 läpi, 0 epäonnistui, 1 ohitettu),
+  vertailukuvat katsottu, PR #123:n ja #118:n CI. Työtilan koko ajoa ei toistettu (levy täynnä).
+- Tekemättä: G2- ja G3-hyväksyntä; KS-006, KS-007, KS-002h; graafinen macOS-käynnistysnäyttö.
+- Estot ja riskit: KS-002e tarvitsee käyttäjän äänitteen ja luvan; levytila; FFmpeg puuttuu koneelta.
+- Seuraavaksi: käyttäjän lupa PR #123:lle; A08 (puhelin) ja A04 (KS-003d) rinnakkain; A07 kun
+  äänite on saatu; sen jälkeen ORK:n G2-uudelleentarkistus.
 
 ## Kopioitava tehtävänanto
 
