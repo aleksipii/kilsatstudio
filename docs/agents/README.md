@@ -22,8 +22,8 @@ orkestroijan kautta eikä kumpikaan sarja luo kilpailevaa jäsennintä, kelloa t
 | ORK | [Orkestroija](00-orkestroija.md) | tehtävärekisteri, `docs/master-progress.md` | G0–G4 | running (G0 hyväksytty, G1 omistajat päätetty) |
 | A01 | [Arkkitehtuuri ja riippuvuudet](A01-arkkitehtuuri-riippuvuudet.md) | `docs/a01-*`, manifestit | G0 | done (G0; KS-006/KS-007 siirretty G4:ään) |
 | A02 | [DSL ja kääntäjä](A02-dsl-kaantaja.md) | `crates/motion-script` | G1 | review (PR #105 yhdistetty `d9db5be`; ORK:n G1-katselmus) |
-| A03 | [Säännöt ja tapahtumat](A03-saannot-tapahtumat.md) | `motion-script/src/rules.rs`, EventLog | G1 | ready |
-| A04 | [Aikajana ja determinismi](A04-aikajana-determinismi.md) | `crates/motion-scene` | G1–G2 | todo (odottaa A02 + A03) |
+| A03 | [Säännöt ja tapahtumat](A03-saannot-tapahtumat.md) | `motion-script/src/rules.rs`, EventLog | G1 | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
+| A04 | [Aikajana ja determinismi](A04-aikajana-determinismi.md) | `crates/motion-scene` | G1–G2 | todo (A02 ja A03 yhdistetty; `ready` ORK:n päätöksellä) |
 | A05 | [Riggaus, IK ja esineet](A05-riggaus-ik-esineet.md) | `crates/motion-rig`, `motion-animation`, käsiesineet | G2 | todo |
 | A06 | [Fysiikka ja vedettävät raajat](A06-fysiikka-vedettavat.md) | `crates/motion-animation` (uusi moduuli) | G2 | todo |
 | A07 | [Suomen ja englannin ääni](A07-aani-fi-en.md) | `motion-audio`, `motion-lipsync`, `motion-tts`, `motion-voice` | G1–G2 | ready (G1: näytekello + AudioTimeline v1) |

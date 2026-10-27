@@ -29,8 +29,8 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-001 | A01 + ORK | – | G0: koodikartoitus, riippuvuudet, No AI -politiikka, UI-linjaus | done (ORK-G0) |
 | KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | running (omistajat päätetty, ORK-G1-01…06) |
 | KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | review (yhdistetty `d9db5be`; ORK:n G1-katselmus) |
-| KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | ready |
-| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | todo |
+| KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
+| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | todo (KS-002a ja KS-002b yhdistetty; `ready` ORK:n päätöksellä) |
 | KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | ready (vain G1-osuus) |
 | KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | todo |
 | KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |

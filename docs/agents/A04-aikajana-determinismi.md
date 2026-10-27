@@ -1,6 +1,6 @@
 # A04 — Aikajana ja determinismi
 
-Tila: **todo** (odottaa A02 + A03; TrackSpec ORK-G1-02) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **todo** (A02 ja A03 yhdistetty; TrackSpec ORK-G1-02; `ready` ORK:n päätöksellä) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
