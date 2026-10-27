@@ -1,6 +1,7 @@
 //! Persisted scene artwork and bounded raster resources shared by preview/export.
 mod lighting;
 mod resource;
+pub mod style;
 pub use lighting::*;
 pub use resource::{
     decode_image, load_image, ImageResource, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGE_SIDE,
