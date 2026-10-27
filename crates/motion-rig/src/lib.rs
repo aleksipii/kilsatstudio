@@ -1,12 +1,21 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
+pub mod attachment;
 pub mod definition;
+pub mod ik;
+pub mod props;
+pub use attachment::{AttachmentError, LimbChain, LimbJoints, PELVIS, STICK_LIMBS, TORSO};
 pub use definition::{
     round_corners, ActingInput, BlinkDefinition, EllipseDefinition, EvaluatedOutline,
-    EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, MouthShapes,
-    OutlineDefinition, OutlineMode, PartTextureDefinition, PartVariantDefinition, PreparedRig,
-    RigDefinition, RigJointDefinition, RigidPartDefinition, VertexWeight, VisemeMapDefinition,
-    ELLIPSE_SEGMENTS, EMOTION_NAMES, MAX_EVALUATED_POINTS, MAX_OUTLINE_WIDTH, MAX_SMOOTH,
-    VISEME_NAMES,
+    EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, JointLimitDefinition,
+    MouthShapes, OutlineDefinition, OutlineMode, PartTextureDefinition, PartVariantDefinition,
+    PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition, VertexWeight,
+    VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES, MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT,
+    MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
+};
+pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
+pub use props::{
+    attach_hand_prop, detach_hand_prop, grip_parts, hand_availability, GripPlacement,
+    HandPropCatalog, HandPropItem, HandSide, PropError, GRIP_JOINT, MAX_HAND_PROP_CATALOG_BYTES,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {
@@ -114,7 +123,7 @@ pub struct Joint {
 pub struct Rig {
     joints: Vec<Joint>,
 }
-#[derive(Debug, thiserror::Error, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
     #[error("custom rig requires version 1, unique stable IDs, valid parent references, bounded rigid polygon attachments and consistent variant, viseme, expression and eye references")]
     InvalidDefinition,
