@@ -1,6 +1,8 @@
 //! Versioned project documents and explicit, bounded local asset management.
 mod assets;
+pub mod model_policy;
 pub use assets::{import_asset, relink_asset, remove_asset, MAX_IMPORT_BYTES};
+pub use model_policy::{ModelBackedStep, ModelPolicy, PolicyViolation};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeSet,

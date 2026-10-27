@@ -188,3 +188,9 @@ pub mod sequence;
 
 /// Typed non-fatal preparation diagnostics (low-confidence pronunciations, poor fits).
 pub mod diagnostics;
+
+/// Strict model-free preparation: imported audio only, checked before any provider call.
+pub mod model_free;
+
+/// AudioTimeline v1 built from a prepared scene.
+pub mod audio_timeline;
