@@ -95,12 +95,11 @@ impl DialogueClip {
                 return Err(SpeechError("alignment duration differs from audio".into()));
             }
         }
-        if !job.at.is_finite() || job.at < 0.0 || job.at * 24000.0 >= u64::MAX as f64 {
-            return Err(SpeechError("invalid timeline position".into()));
-        }
+        let start_frame = motion_audio::clock::seconds_to_sample(job.at)
+            .map_err(|_| SpeechError("invalid timeline position".into()))?;
         Ok(Self {
             actor: job.actor.clone(),
-            start_frame: (job.at * 24000.0).round() as u64,
+            start_frame,
             audio,
             alignment,
             estimated_alignment: None,
