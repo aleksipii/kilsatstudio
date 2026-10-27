@@ -89,6 +89,8 @@ rajatapaustestit sekä ajan muunnossäännöt A07/A10:lle.
     (julkinen polku `motion_scene::SEQUENCE_SAMPLE_RATE` ennallaan). `sequence.rs` käyttää
     samaa pyöristystä. Uutta kelloa tai arvioijaa ei luotu.
   - Testit: `tests/timeline_determinism.rs` (6), `time.rs` (4), `tracks.rs` (4).
+  - Kelvollinen ja virheellinen esimerkki (G1-ehto e): `examples/trackspec-v1/`
+    (`valid.yaml`, `invalid-overlap.yaml`), joita testit lukevat.
   - Sopimus, kuvaustaulukko, muunnossäännöt ja determinismin tasot:
     [editable-timeline.md](../editable-timeline.md#trackspec-overlap-order-and-time-conversion-a04).
 - Tarkistettu (macOS, paikallisesti): `cargo fmt --all --check` ok; `cargo check --workspace` ok;

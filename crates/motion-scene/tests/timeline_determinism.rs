@@ -5,46 +5,7 @@ use std::sync::Arc;
 
 /// Touching moves, tied emotions, overlapping gestures, background and camera
 /// keys, an actor track, fades and a time-triggered camera rule.
-const SCRIPT: &str = r#"
-project: {title: A04 determinism, fps: 24, width: 1920, height: 1080}
-characters:
-  EMMA: {asset: characters/emma}
-  ALEX: {asset: characters/alex}
-rules:
-  push:
-    on: time
-    at: 0
-    when: {scenes: [one]}
-    then: {type: camera, preset: push_in, offset: 0.5, duration: 2}
-scenes:
-  - id: one
-    duration: 4.0
-    composition:
-      fade_in: 0.5
-      fade_out: 0.5
-      background_color: '#101010'
-      background_keys:
-        - {at: 1, color: '#202020'}
-        - {at: 2.5, color: '#303030'}
-      actor_tracks:
-        ALEX:
-          - {at: 0, x: 0, y: 0, rotation: 0, scale_x: 1, scale_y: 1, easing: smoothstep}
-          - {at: 3, x: 40, y: -10, rotation: 0.3, scale_x: 1.1, scale_y: 1.1}
-    events:
-      - {type: move, at: 0.125, actor: EMMA, x: 500.3, y: 740.7, duration: 1.375}
-      - {type: move, at: 1.5, actor: EMMA, x: 900.1, y: 700.9, duration: 0.625}
-      - {type: move, at: 2.125, actor: EMMA, x: 333.3, y: 777.7, duration: 1.875}
-      - {type: move, at: 0, actor: ALEX, x: 1400, y: 740, duration: 2}
-      - {type: emotion, at: 1, actor: EMMA, value: happy}
-      - {type: emotion, at: 1, actor: EMMA, value: sad}
-      - {type: gesture, at: 1.5, actor: EMMA, value: wave, duration: 1.0}
-      - {type: gesture, at: 2.0, actor: EMMA, value: wave, duration: 1.0}
-      - {type: emotion, at: 2.0, actor: ALEX, value: surprised}
-  - id: two
-    duration: 1.5
-    events:
-      - {type: move, at: 0, actor: ALEX, x: 100, y: 700, duration: 1.5}
-"#;
+const SCRIPT: &str = include_str!("../../../examples/trackspec-v1/valid.yaml");
 
 fn validated() -> ValidatedScript {
     ValidatedScript::new(Arc::new(motion_script::parse(SCRIPT).unwrap())).unwrap()
@@ -261,10 +222,7 @@ fn overlap_order_for_step_and_envelope_properties() {
 
 #[test]
 fn overlapping_moves_for_one_actor_are_rejected() {
-    let overlapping = SCRIPT.replace(
-        "{type: move, at: 1.5, actor: EMMA",
-        "{type: move, at: 1.4, actor: EMMA",
-    );
-    let error = motion_script::parse(&overlapping).unwrap_err().to_string();
+    let overlapping = include_str!("../../../examples/trackspec-v1/invalid-overlap.yaml");
+    let error = motion_script::parse(overlapping).unwrap_err().to_string();
     assert!(error.contains("overlapping move events"), "{error}");
 }
