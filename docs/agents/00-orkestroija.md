@@ -30,7 +30,7 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | running (omistajat päätetty, ORK-G1-01…06) |
 | KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | review (yhdistetty `d9db5be`; ORK:n G1-katselmus) |
 | KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
-| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | todo (KS-002a ja KS-002b yhdistetty; `ready` ORK:n päätöksellä) |
+| KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | done (PR #107 `10135ad`; ORK-G1-A04, ehto A07:n kellolle) |
 | KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | ready (vain G1-osuus) |
 | KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | todo |
 | KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |
@@ -228,6 +228,40 @@ G1 hyväksytään vasta, kun (a) PR #102:n työ on rebasettu ja katselmoitu (PR 
 (c) A07:n AudioTimeline v1 ovat versioituja, sarjallistuvia ja testattuja, (d) A04 on kirjannut
 TrackSpec-sopimuksen ja ajan muunnossäännöt, ja (e) jokaisella on kelvollinen ja virheellinen
 esimerkki. Vasta sen jälkeen G2-tehtävät merkitään `ready`-tilaan.
+
+### ORK-G1-A04 — KS-002c katselmus: **hyväksytty ehdolla** (27.10.2026)
+
+**Näyttö.** PR #107 yhdistetty `main`iin `10135ad`; CI `c95fbd9`:llä 12/12 läpi;
+paikallisesti macOS:llä neljä cargo-tarkistusta ok (884 testiä, 0 epäonnistunutta);
+kirjaus `master-progress.md` (`dc9079e`).
+
+| Ehto | Tulos | Näyttö |
+| --- | --- | --- |
+| G1 (d): TrackSpec-sopimus ja ajan muunnossäännöt | täyttyy | [editable-timeline.md § TrackSpec](../editable-timeline.md#trackspec-overlap-order-and-time-conversion-a04) |
+| G1 (e): kelvollinen ja virheellinen esimerkki | täyttyy (lisätty katselmuksessa) | `examples/trackspec-v1/`, testit lukevat ne |
+| A04: aikahyppy ≡ toisto sovitulla toleranssilla | täyttyy, bitti-identtinen | `motion-scene/tests/timeline_determinism.rs` |
+| A04: Rel/Abs/Revert ja päällekkäisyys dokumentoitu ja testattu | täyttyy | `src/tracks.rs`-testit, vastaavuustaulukko |
+| A04: nykyiset motion-scene- ja motion-export-testit | täyttyy | `cargo test --workspace`, CI |
+| ORK-G1-02: ratkaistu muoto `motion-scene`ssä, ei sarjallisteta | täyttyy | `src/tracks.rs` |
+| Yksi kirjoittaja | täyttyy | muutokset vain `motion-scene`, `docs/editable-timeline.md`, A04-tiedosto, `examples/trackspec-v1/` |
+| Ei toista kelloa tai arvioijaa | täyttyy ehdolla | ks. ehto 1 |
+
+**Ehdot ja poikkeamat.**
+
+1. `motion_scene::time` nimeää nykyisen 24 kHz:n kellon säännöt `motion-scene`ssä, kun
+   ORK-G1-04 sijoittaa kanonisen kellon `motion-audio`on. Hyväksytään väliaikaisena, koska
+   vakio oli jo `motion-scene`ssä eikä uutta kopiota lisätty. Kun A07:n kello yhdistetään,
+   A04 vaihtaa `motion_scene::time`n delegoimaan siihen (reuna `motion-scene → motion-audio`
+   on sallittu); A07:n toteutuksen on käytettävä samoja sääntöjä tai muutos sovitaan ORK:n kautta.
+2. Yhteinen sääntö 2 (ratkaistut raidat kokonaislukunäytteinä): ratkaistut välit kantavat
+   alku- ja loppunäytteen, mutta interpoloivat kirjoitetuilla f64-sekunneilla, jotta nykyiset
+   tulokset säilyvät. Hyväksytty; näytteet ovat kohdistusta varten (EventLog, AudioTimeline).
+3. Vain `Event::Move` käyttää `ResolvedTrack`ia. Muiden ominaisuuksien säännöt on kirjattu ja
+   testattu; siirto ei ole G1-ehto. Kirjoitettu `Rel`/`Revert` on A02:n skeemapyyntö (ei G1-ehto).
+
+**Vaikutus porttiin.** KS-002c `done`. G1 ei vielä avaudu: (c) A07:n AudioTimeline v1
+(KS-002d) puuttuu, ja ORK:n G1-katselmus KS-002a/KS-002b:lle on yhä auki. G2-tehtäviä ei
+merkitä `ready`-tilaan.
 
 ## Hyväksymisehdot
 
