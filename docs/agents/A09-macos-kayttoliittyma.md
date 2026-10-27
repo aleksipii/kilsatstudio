@@ -1,6 +1,6 @@
 # A09 — macOS ja käyttöliittymä
 
-Tila: **osittain valmis (PR odottaa katselmointia)** · Portti: G3 · Tehtävä: KS-004 · Lähtö: commit `496a8a4`
+Tila: **ready** (KS-004, ORK-G2-02; PR #118 yhdistetty `a2ddf7f` käyttäjän luvalla; `done` odottaa G2:ta ja graafista käsikokeilua; `model_policy.rs` A07:n katselmuksella) · Portti: G3 · Tehtävä: KS-004 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

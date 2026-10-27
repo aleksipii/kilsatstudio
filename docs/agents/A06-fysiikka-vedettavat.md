@@ -1,6 +1,6 @@
 # A06 — Fysiikka ja vedettävät raajat
 
-Tila: **review** (G2 KS-003b, haara `feat/a06-springs`, PR #115; tiedostot [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026); EventLogin vapautustapahtumat vasta KS-002f:n jälkeen) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **done** (G2 KS-003b, PR #115 `974ef76` ja Dangle-sopimus PR #120 `d9b88ae`; EventLog-kytkentä KS-003d:ssä) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

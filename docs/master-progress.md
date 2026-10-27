@@ -7,6 +7,64 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G4 evidence summary and merges — PRs #123, #118, #124 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
+`c194e83`), #118 (A09 UI levels, No AI mode, drag logging, `a2ddf7f`) and #124 (ORK-G4-01/02,
+which carries #119 and #122). #121 and #108 are reconciled with `main` and merged next.
+
+Completed:
+- A10: canonical frame clock in `motion-export`, typed `EncoderUnavailable` and
+  `PartialOutput` errors, G2 frame-count/audio-length/preview-parity/regression tests, failed
+  export tests incl. a real full disk, reproducible `g2_export` command, `Export QA` macOS
+  workflow with a sandboxed model-free export and MP4 check, measurements with conditions.
+- A09: three UI levels (UI state only), per-project `ModelPolicy` (No AI), EventLog
+  drag/release logging, transport test on the shared evaluator.
+- ORK: G4 evidence summary (ORK-G4-01), merge record (ORK-G4-02); architecture report
+  chapter 8 checklist 6/11.
+
+Checks: CI 12/12 on #123 and #118, 11/11 on #124. Locally on merged code (macOS 27.0.1,
+Apple M1): `cargo fmt --all --check` ok, `cargo check --workspace --locked` ok,
+`cargo clippy --workspace --all-targets --locked` 0 warnings, `cargo test --workspace
+--locked` 985 passed, 0 failed, 9 ignored. Release `studio-desktop` packaged with
+`scripts/package_macos.py` (ad hoc signed, `codesign --verify --deep --strict` ok),
+installed to `~/Applications` and launched: the process started and stayed running.
+
+Open: the window was not captured and the UI was not exercised by hand (no screen
+recording permission); G2 is still returned (phone A08, KS-003d A04, WAV speech A07 blocked on
+the user's recording); G3 and G4 not approved; KS-002h, KS-006, KS-007; MP4 export on a
+physical Mac (no FFmpeg installed). No notarization or Developer ID signing.
+
+## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval, in order: #111
+(`5f659f0`, ORK-G1 / ORK-G2-01 file areas, reconciled with the parallel #112 record),
+#113 (`5e93709`), #114 (`3551257`), #115 (`974ef76`), #117 (`824c399`), #116 (`9c69902`).
+
+Completed:
+- KS-002f (A03, #113): EventLog v1 accepts only the 24 kHz dialogue clock.
+- KS-002g (A04, #114): `motion_scene::time` delegates to `motion_audio::clock`; equivalence
+  test over seconds, frame rates and sample ranges.
+- KS-003b (A06, #115): `motion_animation::spring` – analytic damped springs, constant and
+  profiled forces at a fixed 1/1200 s step, five profiles, release initial state.
+- KS-003a (A05, #117): limb attachment contract, joint limits, two-bone IK, prop catalogue
+  and `grip` contract moved into `motion-rig`; `examples/g2-rig/`.
+- KS-003c (A08, #116, without the phone): depth bands and paint order, wide/close-up
+  framing rules, background style checks, `examples/g2-minimal-scene/`, two 960x540
+  reference PNGs (CPU/resvg).
+
+Checks: CI 12/12 on each code PR's final commit (#111 11/11). Branches were updated to
+`main` before merging; #117 lockfile verified with `--locked`; #116 re-checked locally
+against the new `main` (`cargo check --workspace --all-targets --locked`; motion-render,
+motion-art and motion-rig tests 99 passed, 0 failed). Agent-local runs used a shared
+target directory that caused intermittent cross-worktree build errors, so CI is the
+authoritative evidence.
+
+Open: phone-in-hand scene and references (A08), KS-003d (A04), KS-002e (A07), KS-002h
+(A02/A10), GPU parity for the G2 scene, visual art review, G2 sample. PR #108 is still
+open although its content reached `main` via #111. No hardware, perceptual or GPU
+acceptance is claimed.
+
 ## ORK G1 gate approved with condition — PR #112 merged (2026-10-27)
 
 Status: **merged** to `main` as `ecfa0de` from branch `docs/ork-g1-gate`

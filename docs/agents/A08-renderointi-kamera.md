@@ -1,6 +1,6 @@
 # A08 — Renderöinti, kamera ja taustat
 
-Tila: **review** (G2 KS-003c, haara `feat/a08-render-camera`, PR #116; renderöintisopimus `motion-render`, ORK-G1-06; tiedostot [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026); puhelinosuus odottaa KS-003a:ta) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **ready** (palautus ORK-G2-02, kohta 1: puhelin kädessä G2-kohtaukseen, rajaustesti ja vertailukuvat; sopimus, syvyys ja rajaus yhdistetty PR #116 `9c69902`; tiedostot [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06-ja-a08-27102026)) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
