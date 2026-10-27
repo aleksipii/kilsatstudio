@@ -1,0 +1,14 @@
+# expect: time $.schedules["opening"].children[2]
+version: 1
+script:
+  characters: {EMMA: {asset: emma}}
+  scenes: [{id: opening, duration: 3, events: []}]
+schedules:
+  opening:
+    op: seq
+    children:
+      - {op: wait, duration: 1}
+      - {op: wait, duration: 1.5}
+      - op: event
+        span: 1
+        event: {type: emotion, actor: EMMA, at: 0, value: happy}
