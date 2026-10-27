@@ -1,6 +1,6 @@
 # A07 — Suomen ja englannin ääni
 
-Tila: **review** (haara `feat/a07-audio-timeline`; näytekello `motion-audio/src/clock.rs`, AudioTimeline v1 `motion-lipsync/src/audio_timeline.rs`, ORK-G1-04) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **done** G1-osuudelta (PR #109 `ae39c4d`, ORK-G1-KS-002d; näytekello `motion-audio/src/clock.rs`, AudioTimeline v1 `motion-lipsync/src/audio_timeline.rs`) · G2: KS-002e **todo** · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
