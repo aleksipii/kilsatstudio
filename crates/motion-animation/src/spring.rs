@@ -601,3 +601,95 @@ pub fn release_state(
     };
     SpringState::new(last.position, velocity)
 }
+
+/// Largest accepted secondary-motion angle offset (half a turn), in radians.
+pub const MAX_DANGLE_ANGLE: f64 = std::f64::consts::PI;
+
+#[derive(Debug, Clone, PartialEq, thiserror::Error)]
+pub enum DangleError {
+    #[error("dangle joint {0} is not in the rig")]
+    UnknownJoint(String),
+    #[error("dangle joint {0} is a hierarchy root; rotating it would move the whole character")]
+    Root(String),
+    #[error("dangle joint {joint} is the {role}; IK, grips and ground contact own it")]
+    Reserved { joint: String, role: &'static str },
+    #[error("dangle joint {joint} is an ancestor of {reserved}; its motion would move that limb")]
+    MovesReserved { joint: String, reserved: String },
+    #[error("dangle angle must be finite with |angle| <= {MAX_DANGLE_ANGLE} rad")]
+    InvalidAngle,
+}
+
+/// Role of a joint in the A05 attachment frame, if it has one.
+fn reserved_role(name: &str) -> Option<&'static str> {
+    if name == motion_rig::PELVIS {
+        return Some("pelvis");
+    }
+    if name == motion_rig::TORSO {
+        return Some("arm anchor (torso)");
+    }
+    motion_rig::STICK_LIMBS.iter().find_map(|limb| {
+        if name == limb.upper || name == limb.lower {
+            Some("two-bone IK chain")
+        } else if name == limb.end && limb.anchor == motion_rig::TORSO {
+            Some("hand (IK end and grip)")
+        } else if name == limb.end {
+            Some("foot (IK end and ground contact)")
+        } else {
+            None
+        }
+    })
+}
+
+/// Index of a joint that may receive secondary (dangle) motion.
+///
+/// The joint must exist, must not be a root, must not be one of A05's
+/// attachment-frame joints (pelvis, torso, the twelve limb joints of
+/// [`motion_rig::STICK_LIMBS`]) and must not be an ancestor of any of them, so
+/// a dangle never moves an IK chain, a held prop or a planted foot. On the
+/// current stick characters this leaves the head and any extra joints such as
+/// hair, ears, scarves or a keychain below a hand. See `docs/physics-springs.md`.
+pub fn dangle_joint(rig: &motion_rig::PreparedRig, joint: &str) -> Result<usize, DangleError> {
+    let index = rig
+        .joint_index(joint)
+        .ok_or_else(|| DangleError::UnknownJoint(joint.into()))?;
+    let joints = rig.rig().joints();
+    if joints[index].parent.is_none() {
+        return Err(DangleError::Root(joint.into()));
+    }
+    if let Some(role) = reserved_role(joint) {
+        return Err(DangleError::Reserved {
+            joint: joint.into(),
+            role,
+        });
+    }
+    for reserved in joints.iter().filter(|j| reserved_role(&j.name).is_some()) {
+        let mut parent = reserved.parent;
+        while let Some(p) = parent {
+            if p == index {
+                return Err(DangleError::MovesReserved {
+                    joint: joint.into(),
+                    reserved: reserved.name.clone(),
+                });
+            }
+            parent = joints[p].parent;
+        }
+    }
+    Ok(index)
+}
+
+/// Adds a spring angle to a joint's animated offset. Only the rotation
+/// changes; the offset's translation and scale are kept. The rig evaluator
+/// clamps `rest + offset` to the joint's limits, so the spring state itself
+/// does not know about limits.
+pub fn apply_dangle(
+    offset: motion_rig::Transform2,
+    angle: f64,
+) -> Result<motion_rig::Transform2, DangleError> {
+    if !angle.is_finite() || angle.abs() > MAX_DANGLE_ANGLE {
+        return Err(DangleError::InvalidAngle);
+    }
+    Ok(motion_rig::Transform2 {
+        rotation: offset.rotation + angle,
+        ..offset
+    })
+}

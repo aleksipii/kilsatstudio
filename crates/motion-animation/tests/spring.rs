@@ -534,3 +534,203 @@ fn forced_spring_rejects_invalid_configuration() {
         );
     }
 }
+
+// --- Dangle contract (A05 attachment frame) ---
+
+use motion_animation::{apply_dangle, dangle_joint, DangleError, Transform2};
+use motion_rig::{
+    JointLimitDefinition, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
+    STICK_LIMBS,
+};
+
+fn joint_def(id: &str, parent: Option<&str>, y: f64) -> RigJointDefinition {
+    RigJointDefinition {
+        id: id.into(),
+        parent: parent.map(Into::into),
+        x: 0.0,
+        y,
+        rotation: 0.0,
+        scale_x: 1.0,
+        scale_y: 1.0,
+    }
+}
+
+/// Stick convention plus extra joints: hair on the head, a scarf on the torso
+/// and a keychain hanging below the right hand.
+fn stick_rig(extra: &[(&str, &str)]) -> RigDefinition {
+    let mut joints = vec![
+        joint_def("root", None, 0.0),
+        joint_def("torso", Some("root"), -85.0),
+        joint_def("head", Some("torso"), -110.0),
+    ];
+    for limb in STICK_LIMBS {
+        joints.push(joint_def(limb.upper, Some(limb.anchor), -10.0));
+        joints.push(joint_def(limb.lower, Some(limb.upper), 58.0));
+        joints.push(joint_def(limb.end, Some(limb.lower), 54.0));
+    }
+    for (id, parent) in extra {
+        joints.push(joint_def(id, Some(parent), 10.0));
+    }
+    RigDefinition {
+        version: 1,
+        id: "dangle_test".into(),
+        parts: vec![RigidPartDefinition {
+            id: "body".into(),
+            joint: "root".into(),
+            points: vec![[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]],
+            color: [0, 0, 0, 255],
+            ..Default::default()
+        }],
+        joints,
+        ..Default::default()
+    }
+}
+
+fn prepare(def: &RigDefinition) -> PreparedRig {
+    def.prepare().unwrap()
+}
+
+const EXTRAS: [(&str, &str); 3] = [("hair", "head"), ("scarf", "torso"), ("keychain", "hand_r")];
+
+#[test]
+fn dangle_allows_head_and_extra_joints_only() {
+    let rig = prepare(&stick_rig(&EXTRAS));
+    for name in ["head", "hair", "scarf", "keychain"] {
+        assert_eq!(dangle_joint(&rig, name), Ok(rig.joint_index(name).unwrap()));
+    }
+    assert_eq!(
+        dangle_joint(&rig, "root"),
+        Err(DangleError::Root("root".into()))
+    );
+    assert!(matches!(
+        dangle_joint(&rig, "torso"),
+        Err(DangleError::Reserved { .. })
+    ));
+    for limb in STICK_LIMBS {
+        for name in [limb.upper, limb.lower, limb.end] {
+            assert!(
+                matches!(dangle_joint(&rig, name), Err(DangleError::Reserved { .. })),
+                "{name}"
+            );
+        }
+    }
+    assert_eq!(
+        dangle_joint(&rig, "tail"),
+        Err(DangleError::UnknownJoint("tail".into()))
+    );
+}
+
+#[test]
+fn dangle_rejects_ancestors_of_limb_joints() {
+    // A custom shoulder joint between torso and the left arm would carry the arm.
+    let mut def = stick_rig(&[]);
+    let shoulder = joint_def("shoulder_l", Some("torso"), -60.0);
+    let at = def
+        .joints
+        .iter()
+        .position(|j| j.id == "upper_arm_l")
+        .unwrap();
+    def.joints.insert(at, shoulder);
+    def.joints[at + 1].parent = Some("shoulder_l".into());
+    let rig = prepare(&def);
+    assert_eq!(
+        dangle_joint(&rig, "shoulder_l"),
+        Err(DangleError::MovesReserved {
+            joint: "shoulder_l".into(),
+            reserved: "upper_arm_l".into(),
+        })
+    );
+    assert!(dangle_joint(&rig, "head").is_ok());
+}
+
+#[test]
+fn dangle_on_a_rig_without_limbs_allows_every_non_root_joint() {
+    let mut def = stick_rig(&[]);
+    def.joints = vec![
+        joint_def("base", None, 0.0),
+        joint_def("tail_1", Some("base"), 20.0),
+        joint_def("tail_2", Some("tail_1"), 20.0),
+    ];
+    def.parts[0].joint = "base".into();
+    let rig = prepare(&def);
+    assert!(matches!(
+        dangle_joint(&rig, "base"),
+        Err(DangleError::Root(_))
+    ));
+    assert_eq!(dangle_joint(&rig, "tail_1"), Ok(1));
+    assert_eq!(dangle_joint(&rig, "tail_2"), Ok(2));
+}
+
+#[test]
+fn apply_dangle_changes_only_rotation_and_validates_the_angle() {
+    let offset = Transform2 {
+        translation: motion_animation::Vec2::new(1.0, -2.0),
+        rotation: 0.25,
+        scale: motion_animation::Vec2::new(1.0, 1.1),
+    };
+    let out = apply_dangle(offset, 0.5).unwrap();
+    assert_eq!(out.translation, offset.translation);
+    assert_eq!(out.scale, offset.scale);
+    assert_eq!(out.rotation, 0.75);
+    assert_eq!(apply_dangle(offset, 0.0).unwrap(), offset);
+    for bad in [f64::NAN, f64::INFINITY, 4.0, -4.0] {
+        assert_eq!(apply_dangle(offset, bad), Err(DangleError::InvalidAngle));
+    }
+}
+
+#[test]
+fn head_dangle_after_release_keeps_limbs_still_and_respects_joint_limits() {
+    let mut def = stick_rig(&EXTRAS);
+    def.joint_limits.insert(
+        "head".into(),
+        JointLimitDefinition {
+            min_rotation: -0.3,
+            max_rotation: 0.3,
+        },
+    );
+    let rig = prepare(&def);
+    let head = dangle_joint(&rig, "head").unwrap();
+    let hair = dangle_joint(&rig, "hair").unwrap();
+    // A head flick released at 4 rad/s, settling with the Wobbly profile; the
+    // release angle (≈ 0.73 rad) is past the ±0.3 rad limit.
+    let drag = linear_drag(0.0, 4.0, 12, 1.0 / 60.0);
+    let spring = Spring::from_release(SpringProfile::Wobbly.params(), 0.0, &drag, 0.1).unwrap();
+    let still = rig.world_transforms(&[]).unwrap();
+    let limb_joints: Vec<usize> = STICK_LIMBS
+        .iter()
+        .flat_map(|l| [l.upper, l.lower, l.end])
+        .chain(["root", "torso", "keychain"])
+        .map(|n| rig.joint_index(n).unwrap())
+        .collect();
+    let mut previous = None;
+    let (mut clamped, mut free) = (0, 0);
+    for frame in 0..=96 {
+        let angle = spring.sample(frame as f64 / 24.0).unwrap().position;
+        let offsets = [
+            (head, apply_dangle(Transform2::default(), angle).unwrap()),
+            (hair, apply_dangle(Transform2::default(), -angle).unwrap()),
+        ];
+        let world = rig.world_transforms(&offsets).unwrap();
+        for &j in &limb_joints {
+            assert_eq!(world[j], still[j], "joint {j} moved at frame {frame}");
+        }
+        // The head's world rotation is the clamped angle (torso has no rotation).
+        let head_angle = world[head].b.atan2(world[head].a);
+        assert!((head_angle - angle.clamp(-0.3, 0.3)).abs() < 1e-12);
+        if angle.abs() > 0.3 {
+            clamped += 1;
+        } else {
+            free += 1;
+        }
+        // Released with zero offset, so frame 0 is the drag's end pose: no jerk.
+        if frame == 0 {
+            assert!((angle - drag.last().unwrap().position).abs() < 1e-12);
+        }
+        previous = Some(angle);
+    }
+    assert!(clamped > 0 && free > 0, "limit exercised: {clamped}/{free}");
+    assert!(
+        previous.unwrap().abs() < 0.05,
+        "spring settles towards rest"
+    );
+}

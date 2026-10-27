@@ -52,8 +52,9 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
 - [x] Vapautus: raahauksen loppuasento ja nopeus (rullaava ikkuna EventLogista) → jousen
       alkuarvot; ei nykäystä vapautushetkellä (testi jatkuvuudesta). Toteutettu tavallisilla
       arvoilla (`ReleaseSample`); EventLog-kytkentä `motion-scene`n kautta KS-002f:n jälkeen.
-- [ ] Dangle-sopimus: mitkä rig-nivelet voivat saada toissijaisen liikkeen (A05:n kanssa).
-      Ehdotus kirjattu `docs/physics-springs.md`:hen; A05:n hyväksyntä puuttuu.
+- [x] Dangle-sopimus: mitkä rig-nivelet voivat saada toissijaisen liikkeen (A05:n kanssa).
+      → `dangle_joint`/`apply_dangle` `spring.rs`:ssä, sopimus `docs/physics-springs.md`:ssä
+      A05:n kiinnityssopimuksen (PR #117) pohjalta; A05:n katselmus kirjattu alle.
 
 ## Hyväksymisehdot
 
@@ -86,8 +87,21 @@ KS-003b (haara `feat/a06-springs`, 2026-10-27):
 - Tarkistettu: `cargo fmt --all --check`, `cargo check --workspace`,
   `cargo clippy --workspace --all-targets` (ei varoituksia), `cargo test --workspace`
   (48 testiajoa, 925 läpäisi, 0 epäonnistui).
-- Avoinna: Dangle-sopimus A05:n kanssa, EventLog-kytkentä (KS-002f), A09:n säätimet;
-  visuaalista laatua ei ole arvioitu renderöidyssä kuvassa.
+- Avoinna: EventLog-kytkentä (KS-002f), A09:n säätimet; visuaalista laatua ei ole
+  arvioitu renderöidyssä kuvassa.
+
+Dangle-sopimus (haara `feat/a06-dangle-contract`, 2026-10-27):
+
+- `spring.rs`: `dangle_joint` (sallii vain nivelet, jotka eivät ole juuria, A05:n
+  kiinnitysrungon niveliä — `root`, `torso`, `STICK_LIMBS`in 12 niveltä — eivätkä niiden
+  esivanhempia), `apply_dangle` (lisää kulman vain kiertoon, `|angle| ≤ π`), `DangleError`.
+  `lib.rs`: uudelleenviennit. Nivelrajat puristaa `PreparedRig`in arviointi.
+- `tests/spring.rs`: 5 uutta testiä (24 yhteensä), mm. pään jousi vapautuksesta 24 fps:llä:
+  raajat, lantio, vartalo ja käden alainen lisänivel pysyvät bitilleen paikallaan ja raja
+  puristaa kierron.
+- `docs/physics-springs.md`: sopimus, sallitut nivelet, jousen lähteet ja avoimet kohdat.
+- Avoinna: dangle-nivelten merkintä MotionScriptiin/rigiin (A02/A05), jälkiliike vanhemman
+  animaatiosta (A04, KS-003d), säätimet (A09).
 
 ## Kopioitava tehtävänanto
 
