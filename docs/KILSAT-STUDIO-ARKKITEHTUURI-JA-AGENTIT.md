@@ -464,17 +464,19 @@ Rajapintojen muuttaminen avaa niistä riippuvat tarkistukset uudelleen. Orkestro
 
 ## 8. Ensimmäisen toteutuskierroksen tarkistuslista
 
-- [ ] Projektin lähdekoodi ja käynnistystapa tunnistettu.
-- [ ] Riippuvuudet ja versiot vahvistettu; vaihtoehdot kirjattu puuttuville kirjastoille.
-- [ ] SceneSpec-, TrackSpec-, EventLog- ja AudioTimeline-sopimukset versioitu.
-- [ ] Kaksi eheää tikku-ukkorigiä; jalat ja kädet kiinni vartalossa.
-- [ ] Puhelin seuraa käden tartuntapistettä myös IK-liikkeessä.
-- [ ] Laajakuva ja lähikuva säilyttävät oikean sommittelun.
-- [ ] Suomen- ja englanninkielinen ääniesimerkki sekä viseemien tarkistus.
-- [ ] Aikahyppy ja tavallinen toisto antavat vastaavan kohtauksen.
-- [ ] Animaation ydin toimii ilman ajonaikaista ML-riippuvuutta.
-- [ ] macOS-käynnistys ja videovienti tarkistettu.
-- [ ] CI-tulokset ja suorituskykymittauksen olosuhteet kirjattu.
+- [x] Projektin lähdekoodi ja käynnistystapa tunnistettu. — ORK-G0; README `cargo run -p studio-desktop`.
+- [ ] Riippuvuudet ja versiot vahvistettu; vaihtoehdot kirjattu puuttuville kirjastoille. — Osittain: A01-inventaario ja ADR-A01-07 (ORK-G0); Python-wheelien lukitus (KS-006) ja lisenssitekstit (KS-007) tekemättä.
+- [x] SceneSpec-, TrackSpec-, EventLog- ja AudioTimeline-sopimukset versioitu. — ORK-G1 (PR:t #105, #106, #107, #109; korjaukset #113, #114).
+- [x] Kaksi eheää tikku-ukkorigiä; jalat ja kädet kiinni vartalossa. — ORK-G2-02; `g2_rig` 6/6 (ORK-G4-01).
+- [ ] Puhelin seuraa käden tartuntapistettä myös IK-liikkeessä. — Vain rig-tasolla (`g2_rig`); renderöidyssä kohtauksessa ei puhelinta (A08, KS-003c).
+- [x] Laajakuva ja lähikuva säilyttävät oikean sommittelun. — ORK-G2-02; `g2_minimal_scene` 6/6 ja vertailukuvat (ORK-G4-01).
+- [ ] Suomen- ja englanninkielinen ääniesimerkki sekä viseemien tarkistus. — Estetty: tarvitsee käyttäjän äänitteen ja käyttöluvan (A07, KS-002e).
+- [ ] Aikahyppy ja tavallinen toisto antavat vastaavan kohtauksen. — Osittain: bitilleen vain `trackspec-v1`-kohtauksella; G2-kohtaus puuttuu (A04, KS-003d).
+- [x] Animaation ydin toimii ilman ajonaikaista ML-riippuvuutta. — PR #123 (`c194e83`): `Export QA` ajaa G2-viennin hiekkalaatikossa ilman verkkoa ja aliprosesseja, `ModelPolicy::Strict`. Rajaus: kohtauksessa ei ole puhetta (KS-002e).
+- [ ] macOS-käynnistys ja videovienti tarkistettu. — Vienti: MP4 CI:ssä mainissa (PR #123). Käynnistys: paketoitu release-`.app` (ad hoc -allekirjoitus) käynnistyi Finderin kautta ja prosessi pysyi käynnissä (ORK-G4-02), mutta ikkunaa ei kuvattu eikä käyttöä kokeiltu käsin (A09).
+- [x] CI-tulokset ja suorituskykymittauksen olosuhteet kirjattu. — [`docs/evidence/g2-export`](evidence/g2-export/README.md) (PR #123): laite, macOS, rustc, resoluutio, fps, ajomäärä; CI-ajot linkitetty. Offline-vientiaika, ei toisto-FPS:ää.
+
+Päivitetty 27.10.2026 näytön perusteella: [ORK-G4-01](agents/00-orkestroija.md#ork-g4-01--g4-näyttökooste-g4-ei-hyväksytty-27102026) ja ORK-G4-02 (6/11). G4 ei ole hyväksytty.
 
 **Tämän toimituksen tila:** lähde on muunnettu Markdowniksi ja agenttien sekä orkestroijan tehtävänannot on laadittu. Ohjelmiston toteutus, yllä oleva tarkistuslista ja suorituskykylupaukset eivät ole tällä perusteella valmiita.
 

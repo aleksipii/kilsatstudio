@@ -7,6 +7,133 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G4 evidence summary and merges — PRs #123, #118, #124 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
+`c194e83`), #118 (A09 UI levels, No AI mode, drag logging, `a2ddf7f`) and #124 (ORK-G4-01/02,
+which carries #119 and #122). #121 and #108 are reconciled with `main` and merged next.
+
+Completed:
+- A10: canonical frame clock in `motion-export`, typed `EncoderUnavailable` and
+  `PartialOutput` errors, G2 frame-count/audio-length/preview-parity/regression tests, failed
+  export tests incl. a real full disk, reproducible `g2_export` command, `Export QA` macOS
+  workflow with a sandboxed model-free export and MP4 check, measurements with conditions.
+- A09: three UI levels (UI state only), per-project `ModelPolicy` (No AI), EventLog
+  drag/release logging, transport test on the shared evaluator.
+- ORK: G4 evidence summary (ORK-G4-01), merge record (ORK-G4-02); architecture report
+  chapter 8 checklist 6/11.
+
+Checks: CI 12/12 on #123 and #118, 11/11 on #124. Locally on merged code (macOS 27.0.1,
+Apple M1): `cargo fmt --all --check` ok, `cargo check --workspace --locked` ok,
+`cargo clippy --workspace --all-targets --locked` 0 warnings, `cargo test --workspace
+--locked` 985 passed, 0 failed, 9 ignored. Release `studio-desktop` packaged with
+`scripts/package_macos.py` (ad hoc signed, `codesign --verify --deep --strict` ok),
+installed to `~/Applications` and launched: the process started and stayed running.
+
+Open: the window was not captured and the UI was not exercised by hand (no screen
+recording permission); G2 is still returned (phone A08, KS-003d A04, WAV speech A07 blocked on
+the user's recording); G3 and G4 not approved; KS-002h, KS-006, KS-007; MP4 export on a
+physical Mac (no FFmpeg installed). No notarization or Developer ID signing.
+
+## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval, in order: #111
+(`5f659f0`, ORK-G1 / ORK-G2-01 file areas, reconciled with the parallel #112 record),
+#113 (`5e93709`), #114 (`3551257`), #115 (`974ef76`), #117 (`824c399`), #116 (`9c69902`).
+
+Completed:
+- KS-002f (A03, #113): EventLog v1 accepts only the 24 kHz dialogue clock.
+- KS-002g (A04, #114): `motion_scene::time` delegates to `motion_audio::clock`; equivalence
+  test over seconds, frame rates and sample ranges.
+- KS-003b (A06, #115): `motion_animation::spring` – analytic damped springs, constant and
+  profiled forces at a fixed 1/1200 s step, five profiles, release initial state.
+- KS-003a (A05, #117): limb attachment contract, joint limits, two-bone IK, prop catalogue
+  and `grip` contract moved into `motion-rig`; `examples/g2-rig/`.
+- KS-003c (A08, #116, without the phone): depth bands and paint order, wide/close-up
+  framing rules, background style checks, `examples/g2-minimal-scene/`, two 960x540
+  reference PNGs (CPU/resvg).
+
+Checks: CI 12/12 on each code PR's final commit (#111 11/11). Branches were updated to
+`main` before merging; #117 lockfile verified with `--locked`; #116 re-checked locally
+against the new `main` (`cargo check --workspace --all-targets --locked`; motion-render,
+motion-art and motion-rig tests 99 passed, 0 failed). Agent-local runs used a shared
+target directory that caused intermittent cross-worktree build errors, so CI is the
+authoritative evidence.
+
+Open: phone-in-hand scene and references (A08), KS-003d (A04), KS-002e (A07), KS-002h
+(A02/A10), GPU parity for the G2 scene, visual art review, G2 sample. PR #108 is still
+open although its content reached `main` via #111. No hardware, perceptual or GPU
+acceptance is claimed.
+
+## ORK G1 gate approved with condition — PR #112 merged (2026-10-27)
+
+Status: **merged** to `main` as `ecfa0de` from branch `docs/ork-g1-gate`
+([PR #112](https://github.com/aleksipii/kilsatstudio/pull/112)) with the user's explicit
+approval. Documentation only (`docs/agents/**`).
+
+Completed: ORK-G1 decision. SceneSpec (A02, PR #105), TrackSpec (A04, PR #107) and
+AudioTimeline (A07, PR #109) `done`; EventLog (A03, PR #106) `done` with condition
+KS-002f, because `EventLog::validate` accepts any `sample_rate` in 1..192 000 Hz instead of
+the single 24 kHz clock (ORK-G1-03, shared rule 2). G2 opened: KS-003 and A04 (G2), A05,
+A06, A07 (KS-002e) and A08 are `ready`. New tasks KS-002f (A03, blocks EventLog consumers
+A06/A09) and KS-002g (A04/A02/A10, clock copies delegate to `motion_audio::clock`).
+
+Checks: ORK spot checks on `main` `393c2f1` (macOS, local): `cargo test -p motion-script`
+132 passed, `-p motion-scene` 65 passed, `-p motion-export` 143 passed / 8 ignored, 0 failed;
+all four contract example folders are read by tests; each contract PR's CI 12/12. PR #112
+CI 11/11 passed.
+
+Open: KS-002f, KS-002g, KS-002e; closing superseded PR #102 (needs user permission); the G2
+minimal scene. KS-006 and KS-007 remain G4 conditions.
+
+## ORK G1 review of A07 KS-002d — PR #110 merged (2026-10-27)
+
+Status: **merged** to `main` as `393c2f1` from branch `docs/ork-a07-merge`
+([PR #110](https://github.com/aleksipii/kilsatstudio/pull/110)) with the user's explicit
+approval. Documentation only: ORK-G1-KS-002d approves A07's G1 part (KS-002d `done`),
+records KS-002c as merged, adds KS-002e (A07, G2: human-recorded fi/en WAV examples and
+AudioTimeline use in mouth evaluation) and updates status lines. Checks: PR CI 11/11
+passed; evidence for the approval is PR #109's CI and local checks (see below). Open: the
+G1 gate as a whole (KS-002a/b/c review).
+
+## A07 AudioTimeline v1, sample clock and strict model-free path — PR #109 merged (2026-10-27)
+
+Status: **merged** to `main` as `ae39c4d` from branch `feat/a07-audio-timeline`
+([PR #109](https://github.com/aleksipii/kilsatstudio/pull/109)) with the user's explicit
+approval. Owner A07, task KS-002d, contract ORK-G1-04.
+
+Completed: `motion_audio::clock` (canonical `DIALOGUE_SAMPLE_RATE` = 24 000 Hz and A04's
+seconds/sample/frame rules with typed `ClockError`; the motion-lipsync and motion-voice
+constants are now aliases). `motion_lipsync::audio_timeline` — AudioTimeline v1:
+`format_version: 1`, strict JSON, imported or synthesized source provenance (provider,
+model revision, voice, cache key, PCM hash), `MixClip`-compatible placement,
+source-local phoneme/viseme intervals with `AlignmentSource`, typed validation errors,
+`viseme_at` and a pure, boundary-tested `blend_at`. Strict model-free path:
+`motion_project::ModelPolicy::permit` (single check point, ADR-A01-09),
+`motion_tts::DisabledSpeechProvider`, `motion_voice::model_free` (missing WAV → typed
+error before any provider call, no fallback) and
+`motion_voice::audio_timeline::scene_audio_timeline`. Finnish estimator v2 (tests for
+ä/ö/y, long vowels, geminates; new rules for n + k/g, š/ž, x, NFD letters) and Finnish IPA
+`y ø ʋ ç x ɦ`. The 13 visemes are unchanged. Contract in
+[audio-timeline.md](audio-timeline.md); examples in `examples/audio-timeline-v1/`.
+
+Checks: local macOS on the branch: `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace` (892 passed,
+0 failed, 8 ignored); the branch merged with `main` after PR #107: fmt ok, clippy 0
+warnings, 906 passed, 0 failed, 8 ignored. `python3 -m unittest discover -s
+services/kokoro-runtime/tests -v`: 55 run, OK, 5 skipped (synthesis-path tests need NumPy,
+not installed). No model was downloaded and no synthesis ran. PR CI on `62f96be` 12/12
+passed. Acceptance test `crates/motion-voice/tests/model_free.rs`: a counting provider
+whose every call fails is called 0 times through preparation, export, project
+save/reopen and remix from the reloaded timeline.
+
+Open: human-recorded Finnish/English WAV examples and timing measured against them (mouth
+timing is structurally validated only); `ProjectDocument.model_policy` and UI/worker check
+points (A09); `motion-export` check before speech preparation (A10); `motion_scene::time`,
+`motion_script::auto_direction::SAMPLE_RATE` and export test support delegating to
+`motion_audio::clock` (A04/A02/A10); viseme blending in the renderer (A08). The Finnish
+estimator version bump invalidates earlier cached Finnish estimates by design.
+
 ## A04 TrackSpec, time conversions and seek equivalence — PR #107 merged (2026-10-27)
 
 Status: **merged** to `main` as `10135ad` from branch `feat/a04-timeline`
@@ -35,7 +162,8 @@ apple-silicon-preview, real-asset-pack).
 Open: authored `Rel`/`Revert` moves in MotionScript (A02 schema request); emotions,
 backgrounds, camera, gestures and clips keep their own evaluators (rules documented and
 tested, not migrated); `motion_scene::time` delegates to A07's `motion-audio` clock once it
-lands (ORK-G1-04); pixel/video determinism (A08/A10). G1 gate still needs A07 AudioTimeline v1.
+lands (ORK-G1-04); pixel/video determinism (A08/A10). G1 gate still needs A07 AudioTimeline v1
+(merged later in PR #109).
 
 ## ORK G0 approval and G1 contract owners — PR #104 merged (2026-10-27)
 

@@ -14,3 +14,6 @@ serde.workspace = true
 serde_json.workspace = true
 
 motion-scene = { path = "../motion-scene" }
+
+[dev-dependencies]
+motion-project = { path = "../motion-project" }

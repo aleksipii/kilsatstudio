@@ -60,3 +60,12 @@ The native composition editor edits these rows in its existing detached draft.
 Apply validates the entire scene atomically and participates in source Undo/Redo.
 Scrubbing and SVG/PNG/MP4 export share the same stateless color evaluation.
 Background images and cross-scene transitions remain separate work.
+
+## Depth order and framing checks
+
+The full back-to-front order (background artwork, actors by `z` then ID, attached
+props, unattached foreground, lights) and its tie rules are specified in the
+[render contract](render-contract.md#depth-order) and reported by
+`motion_render::contract::paint_order`. Wide and close-up framing margins are
+checked on the evaluated camera with `motion_render::framing::check_framing`
+([render contract § Framing](render-contract.md#framing-wide-and-close-shots)).

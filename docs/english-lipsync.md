@@ -89,6 +89,36 @@ the word, else the previous one, else Rest. The table follows the existing IPA t
 unstressed schwa is mapped with AH (stress is discarded). Durations are fixed
 guesses, not fitted to speech data.
 
+## IPA coverage
+
+`motion_lipsync::phoneme_to_viseme` maps IPA labels from imported, manual or forced
+alignments. Stress (`ˈ ˌ`) and length (`ː ˑ`) marks are removed first, so long
+vowels and geminates keep the shape of their short form. Any other label fails with
+an error instead of guessing a mouth shape; this is deliberate and tested.
+
+| IPA | Viseme |
+| --- | --- |
+| `sil sp pau` (and empty) | Rest |
+| `p b m` | Closed |
+| `f v ʋ` | TeethLip |
+| `θ ð` | TongueTeeth |
+| `t d n l ɾ` | TongueUp |
+| `s z` | Sibilant |
+| `ʃ ʒ tʃ dʒ t͡ʃ d͡ʒ` | Sh |
+| `r ɹ ɚ ɝ` | R |
+| `ɑ ɒ a æ ʌ aɪ aʊ` | A |
+| `ɛ e ə ɜ eɪ` | E |
+| `i ɪ j` | I |
+| `o ɔ oʊ əʊ ɔɪ ø` | O |
+| `u ʊ w y` | U |
+| `k ɡ g ŋ h ʔ ç x ɦ` | Rest |
+
+`ʋ`, `ø`, `y` and the /h/ allophones `ç x ɦ` were added for Finnish alignments (A07);
+they were errors before and no existing mapping changed. Not covered (they fail):
+for example `ɐ ɣ ʎ ɲ œ ɯ q c`, tone letters and diacritics other than stress and
+length. The table and the failing examples are pinned by
+`finnish_ipa_vowels_length_and_documented_inventory` in `src/lib.rs`.
+
 ## Data and licence
 
 `crates/motion-lipsync/data/cmudict.txt.gz` is derived from CMUdict

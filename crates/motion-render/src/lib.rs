@@ -1,6 +1,8 @@
 //! Deterministic, self-contained SVG frames from evaluated scenes.
 //! Uses original procedural characters; no fonts, network assets, or video encoder.
 pub mod captions;
+pub mod contract;
+pub mod framing;
 #[cfg(feature = "gpu")]
 pub mod gpu;
 #[cfg(feature = "gpu")]

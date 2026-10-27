@@ -19,7 +19,22 @@ pub struct RigDefinition {
     /// Optional pupil gaze and deterministic blink configuration.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub eyes: Option<EyesDefinition>,
+    /// Optional per-joint rotation limits keyed by joint id. Evaluation clamps the
+    /// joint's local rotation (rest rotation plus animated offset) into the range.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub joint_limits: BTreeMap<String, JointLimitDefinition>,
 }
+/// Inclusive bounds, in radians, for a joint's local rotation (rest + offset).
+/// Both bounds are finite, within one full turn of zero, ordered, and contain
+/// the joint's rest rotation, so the rest pose is always reachable.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct JointLimitDefinition {
+    pub min_rotation: f64,
+    pub max_rotation: f64,
+}
+/// Largest magnitude accepted for a joint limit bound (one full turn).
+pub const MAX_JOINT_LIMIT: f64 = std::f64::consts::TAU;
 /// Viseme names accepted in `visemes.map`; they match `motion_lipsync::Viseme`'s
 /// snake_case serialization (a motion-scene test keeps the two in step).
 pub const VISEME_NAMES: [&str; 13] = [
@@ -560,6 +575,25 @@ fn fit_affine(src: &[[f64; 2]], dst: &[Vec2]) -> Option<Affine2> {
         ty: dy - b * mx - d * my,
     })
 }
+impl JointLimitDefinition {
+    /// Valid bounds that contain `rest`.
+    pub fn contains_rest(self, rest: f64) -> bool {
+        [self.min_rotation, self.max_rotation]
+            .iter()
+            .all(|v| v.is_finite() && v.abs() <= MAX_JOINT_LIMIT)
+            && self.min_rotation <= self.max_rotation
+            && (self.min_rotation..=self.max_rotation).contains(&rest)
+    }
+    /// Clamp a local rotation into the bounds; non-finite input stays non-finite
+    /// so pose validation still rejects it.
+    pub fn clamp(self, rotation: f64) -> f64 {
+        if rotation.is_finite() {
+            rotation.clamp(self.min_rotation, self.max_rotation)
+        } else {
+            rotation
+        }
+    }
+}
 impl RigDefinition {
     fn build(&self) -> Result<(Rig, BTreeMap<&str, usize>), Error> {
         if self.version != 1
@@ -592,6 +626,15 @@ impl RigDefinition {
                     scale: Vec2::new(joint.scale_x, joint.scale_y),
                 },
             });
+        }
+        for (id, limit) in &self.joint_limits {
+            let joint = ids
+                .get(id.as_str())
+                .map(|&i| &joints[i])
+                .ok_or(Error::InvalidDefinition)?;
+            if !limit.contains_rest(joint.rest.rotation) {
+                return Err(Error::InvalidDefinition);
+            }
         }
         let rig = Rig::new(joints).map_err(|_| Error::InvalidDefinition)?;
         let mut parts = BTreeSet::new();
@@ -789,11 +832,17 @@ impl RigDefinition {
             })
             .collect();
         let acting = self.prepare_acting();
+        let limits = rig
+            .joints()
+            .iter()
+            .map(|j| self.joint_limits.get(&j.name).copied())
+            .collect();
         let prepared = PreparedRig {
             rig,
             ids,
             parts,
             acting,
+            limits,
         };
         // Skinning is the identity at rest; still verify the outline stays simple.
         let rest = prepared.evaluate_parts(&[])?;
@@ -923,6 +972,8 @@ pub struct PreparedRig {
     ids: BTreeMap<String, usize>,
     parts: Vec<PreparedPart>,
     acting: PreparedActing,
+    /// Rotation limits per joint index (validated by `build`).
+    limits: Vec<Option<JointLimitDefinition>>,
 }
 #[derive(Debug, Clone)]
 struct PreparedPart {
@@ -934,6 +985,20 @@ struct PreparedPart {
 impl PreparedRig {
     pub fn joint_index(&self, id: &str) -> Option<usize> {
         self.ids.get(id).copied()
+    }
+    /// The validated joint hierarchy (names, parents and rest transforms).
+    pub fn rig(&self) -> &Rig {
+        &self.rig
+    }
+    /// Rotation limits of a joint, if the definition sets any.
+    pub fn joint_limit(&self, joint: usize) -> Option<JointLimitDefinition> {
+        self.limits.get(joint).copied().flatten()
+    }
+    /// World transform of every joint for the given offsets (same rules as
+    /// `evaluate_parts`, including joint limits). Consumers such as IK and grip
+    /// lookups read joint positions from here instead of re-deriving them.
+    pub fn world_transforms(&self, offsets: &[(usize, Transform2)]) -> Result<Vec<Affine2>, Error> {
+        self.world(offsets)
     }
     /// Evaluate parts with `(joint index, offset)` pairs applied to the rest pose:
     /// translations and rotations add, scales multiply. Later pairs for the same
@@ -964,6 +1029,11 @@ impl PreparedRig {
                 rotation: rest.rotation + offset.rotation,
                 scale: Vec2::new(rest.scale.x * offset.scale.x, rest.scale.y * offset.scale.y),
             };
+        }
+        for (local, limit) in pose.iter_mut().zip(&self.limits) {
+            if let Some(limit) = limit {
+                local.rotation = limit.clamp(local.rotation);
+            }
         }
         self.rig.evaluate(&pose)
     }

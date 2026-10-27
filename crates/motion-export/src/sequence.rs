@@ -639,11 +639,7 @@ pub fn export_mp4_sequence_captions(
         "sequence.json",
     )
     .map(|()| report);
-    if result.is_err() {
-        fs::remove_dir_all(destination)
-            .map_err(|e| invalid(format!("partial-output cleanup failed: {e}")))?;
-    }
-    result
+    discard_partial(destination, result)
 }
 /// Blocking sequential PNG/WAV export on the shared sample clock. Complete opaque
 /// images are mixed by channel sums, never by repeated source-over.
@@ -878,11 +874,7 @@ fn export_project_sequence(
             output_directory: destination.to_path_buf(),
         })
     })();
-    if result.is_err() {
-        fs::remove_dir_all(destination)
-            .map_err(|e| invalid(format!("partial-output cleanup failed: {e}")))?;
-    }
-    result
+    discard_partial(destination, result)
 }
 #[cfg(test)]
 mod tests {

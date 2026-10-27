@@ -1,6 +1,6 @@
 # ORK — Orkestroija
 
-Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: G0/G1, 27.10.2026 (`main` `331f9d4`)
+Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G4-02 (PR:t #118, #123 ja ORK-dokumentit yhdistetty; G4 ei hyväksytty), 27.10.2026 (`main` `d9b88ae`)
 
 ## Tavoite
 
@@ -27,16 +27,24 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | ID | Omistaja | Riippuu | Tehtävä | Tila |
 | --- | --- | --- | --- | --- |
 | KS-001 | A01 + ORK | – | G0: koodikartoitus, riippuvuudet, No AI -politiikka, UI-linjaus | done (ORK-G0) |
-| KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | running (omistajat päätetty, ORK-G1-01…06) |
-| KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | review (yhdistetty `d9db5be`; ORK:n G1-katselmus) |
-| KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | review (PR #106 yhdistetty `6ddfdcc`; ORK:n G1-katselmus) |
+| KS-002 | A02, A03, A04, A07 (+A05/A08) | KS-001 | G1: SceneSpec/TrackSpec/EventLog/AudioTimeline-sopimukset | done (ORK-G1, hyväksytty ehdoin; ehdot KS-002f ja KS-002g) |
+| KS-002a | A02 | KS-001 | SceneSpec: versioitu kääntäjä, PR #105 (korvaa #102) | done (PR #105 `d9db5be`; ORK-G1) |
+| KS-002b | A03 | KS-002a | EventLog v1 ja sääntösopimus | done (PR #106 `6ddfdcc`; ORK-G1, korjaus KS-002f) |
 | KS-002c | A04 | KS-002a, KS-002b | TrackSpec-sopimus ja ajan muunnossäännöt | done (PR #107 `10135ad`; ORK-G1-A04, ehto A07:n kellolle) |
-| KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | ready (vain G1-osuus) |
-| KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | todo |
-| KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | todo |
-| KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | todo |
-| KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto) |
-| KS-007 | A10 + ORK | KS-001 | Kolmannen osapuolen lisenssitekstit ja NOTICEt (siirretty A01:ltä) | todo (G4-ehto) |
+| KS-002d | A07 | KS-001 | AudioTimeline v1 ja yhteinen näytekello | done (G1-osuus; PR #109 `ae39c4d`, ORK-G1-KS-002d) |
+| KS-002e | A07 | KS-002d, KS-003 | Ihmisen äänittämät fi/en-WAV-esimerkit ja niitä vasten tarkistettu ajoitus; AudioTimelinen käyttö suun arvioinnissa | ready (ORK-G2-02 palautus 2: puhe G2-kohtaukseen; vaatii käyttäjän äänitteen ja käyttöluvan) |
+| KS-002f | A03 | KS-002b, KS-002d | G1-palautus: EventLog v1 hyväksyy vain kanonisen kellon `sample_rate`n (24 000) | done (PR #113 `5e93709`) |
+| KS-002g | A04 | KS-002c, KS-002d | G1-palautus: `motion_scene::time` delegoi `motion_audio::clock`iin (ORK-G1-A04, ehto 1) | done (PR #114 `3551257`; A02:n ja A10:n kopiot → KS-002h) |
+| KS-002h | A02 (+A10) | KS-002d | `motion_script::auto_direction::SAMPLE_RATE` kanonisen kellon aliakseksi; `motion-export`in testituen kellokopio (A10, ORK-G1/PR #112) | todo (ei estä G2:ta) |
+| KS-003 | A04–A08 | KS-002 | G2: pienin toimiva kohtaus | running — näyte palautettu (ORK-G2-02): puhelin, WAV-puhe ja G2-kohtauksen aikahyppyvertailu puuttuvat |
+| KS-003a | A05 | KS-002 | Kiinnityssopimus, nivelrajat, kahden luun IK, `grip`-sidonta, esineluettelo `motion-rig`iin | done (PR #117 `824c399`) |
+| KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | done (PR #115 `974ef76`; Dangle-sopimus PR #120 `d9b88ae`, A05:n katselmus ja sen ehto täytetty) |
+| KS-003c | A08 | KS-002; puhelinkohtaus myös KS-003a | Renderöintisopimus, syvyysjärjestys, rajaussäännöt, testikohtaus ja vertailukuvat | ready (ORK-G2-02 palautus 1): sopimus, syvyys ja rajaus yhdistetty (PR #116 `9c69902`); puhelin kädessä renderöitynä, sen rajaustesti ja vertailukuvat puuttuvat |
+| KS-003d | A04 | KS-002g, KS-003a, KS-003b | `EvaluatedScene`-pyynnöt A05/A08:lta, IK-kohteen ja vapautuksen ratkaisu `motion-scene`ssä | ready (avausehto täyttyi 27.10.2026; ORK-G2-02 palautus 3: G2-kohtauksen aikahyppy ≡ ruuduittainen toisto, puhelin ja suu mukana) |
+| KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | A09 ready (PR #118 yhdistetty `a2ddf7f`; `done` odottaa G2:ta, KS-003d:tä ja graafista käsikokeilua); A10: vienti-QA yhdistetty (PR #123 `c194e83`), koko ketju puheella ja puhelimella odottaa G2:ta |
+| KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | running — näyttökooste ORK-G4-01; G4 **ei hyväksytty** (G2 ja G3 auki, KS-006/KS-007 tekemättä) |
+| KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
+| KS-007 | A10 + ORK | KS-001 | Kolmannen osapuolen lisenssitekstit ja NOTICEt (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
 
 ## Tehtävät — tarkistuslista
 
@@ -51,23 +59,27 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 - [x] Määritä jokaiselle sopimukselle omistava crate: SceneSpec/TrackSpec (A02/A04),
       EventLog (A03), AudioTimeline (A07), rig-kiinnitys (A05), renderöintisopimus (A08).
       → ORK-G1-01…06.
-- [ ] Hyväksy yhteinen versio ja esimerkit; kirjaa ne `docs/agents/`-tiedostoihin.
-- [ ] Merkitse G2-tehtävät `ready`-tilaan vasta sopimusten hyväksynnän jälkeen.
+- [x] Hyväksy yhteinen versio ja esimerkit; kirjaa ne `docs/agents/`-tiedostoihin. → ORK-G1.
+- [x] Merkitse G2-tehtävät `ready`-tilaan vasta sopimusten hyväksynnän jälkeen. → ORK-G2-01.
 
 ### G2 — Pienin toimiva kohtaus
-- [ ] Jaa tiedostot ilman päällekkäisiä kirjoittajia (A04 motion-scene, A05 motion-rig,
+- [x] Jaa tiedostot ilman päällekkäisiä kirjoittajia (A04 motion-scene, A05 motion-rig,
       A06 motion-animation-fysiikkamoduuli, A07 ääni-cratet, A08 motion-render/motion-art).
-- [ ] Käynnistä rinnakkain vain riippumattomat työt; kirjaa jokaisen haara.
+      → ORK-G2-01 (A05, A06, A08; A04:n ja A07:n G2-osuudet avataan erikseen).
+- [x] Käynnistä rinnakkain vain riippumattomat työt; kirjaa jokaisen haara. → PR:t #113–#117, #120.
 - [ ] Tarkista näyte: kaksi tikku-ukkoa, tausta, puhelin kädessä, kameravaihdos, WAV-puhe.
+      → Tarkistettu 27.10.2026, **palautettu** (ORK-G2-02): puhelin, puhe ja aikahyppyvertailu puuttuvat.
 
 ### G3 — Integrointi
 - [ ] A09 liittää käyttöliittymän; A10 ajaa koko ketjun ja virhe-/peruutustilanteet.
 - [ ] Palauta epäonnistunut työ omistajalle kirjatulla syyllä.
 
 ### G4 — Julkaisunäyttö
-- [ ] Kokoa A10:n raportti: testit, vertailukuvat, macOS-käynnistys, vienti, mittaukset.
+- [x] Kokoa A10:n raportti: testit, vertailukuvat, macOS-käynnistys, vienti, mittaukset.
+      → ORK-G4-01 (näyttökooste; PR #123 ja PR #118 katselmoitu, ORK:n omat ajot).
 - [ ] Hyväksy vain osoitetut ominaisuudet; kirjaa rajaukset. KS-006 ja KS-007 ovat G4:n ehtoja.
-- [ ] Päivitä raportin luvun 8 tarkistuslista näytön perusteella.
+      → ORK-G4-01: rajaukset kirjattu, G4 **ei hyväksytty** (G2/G3 auki, KS-006/KS-007 tekemättä).
+- [x] Päivitä raportin luvun 8 tarkistuslista näytön perusteella. → ORK-G4-01: 4/11; ORK-G4-02: 6/11.
 
 ### Jatkuvat
 - [ ] Rajapintamuutos avaa siitä riippuvat tarkistukset uudelleen.
@@ -225,11 +237,11 @@ lisää uutta cratea. Ainoa sallittu uusi riippuvuusreuna on `motion-scene → m
 ### G1:n hyväksyntäehto
 
 G1 hyväksytään vasta, kun (a) PR #102:n työ on rebasettu ja katselmoitu (PR #105, yhdistetty `d9db5be`), (b) A03:n EventLog v1 ja
-(c) A07:n AudioTimeline v1 ovat versioituja, sarjallistuvia ja testattuja, (d) A04 on kirjannut
+(c) A07:n AudioTimeline v1 (täyttyy: ORK-G1-KS-002d) ovat versioituja, sarjallistuvia ja testattuja, (d) A04 on kirjannut
 TrackSpec-sopimuksen ja ajan muunnossäännöt, ja (e) jokaisella on kelvollinen ja virheellinen
 esimerkki. Vasta sen jälkeen G2-tehtävät merkitään `ready`-tilaan.
 
-### ORK-G1-A04 — KS-002c katselmus: **hyväksytty ehdolla** (27.10.2026)
+## ORK-G1-A04 — KS-002c katselmus: **hyväksytty ehdolla** (27.10.2026)
 
 **Näyttö.** PR #107 yhdistetty `main`iin `10135ad`; CI `c95fbd9`:llä 12/12 läpi;
 paikallisesti macOS:llä neljä cargo-tarkistusta ok (884 testiä, 0 epäonnistunutta);
@@ -263,6 +275,356 @@ kirjaus `master-progress.md` (`dc9079e`).
 (KS-002d) puuttuu, ja ORK:n G1-katselmus KS-002a/KS-002b:lle on yhä auki. G2-tehtäviä ei
 merkitä `ready`-tilaan.
 
+## ORK-G1-KS-002d — A07:n G1-osuuden katselmus: **hyväksytty** (27.10.2026)
+
+**Näyttö.**
+
+- PR #109 yhdistetty `main`iin (`ae39c4d`) käyttäjän nimenomaisella luvalla; kirjattu
+  `master-progress.md`hen (`da5d8d7`). PR:n CI `62f96be`:llä 12/12 läpäisi.
+- Ennen yhdistämistä haara yhdistettiin paikallisesti `main`iin (sis. A04:n PR #107):
+  `cargo fmt --all --check` ok, `cargo clippy --workspace --all-targets` 0 varoitusta,
+  `cargo test --workspace` 906 läpäisi, 0 epäonnistui, 8 ohitettu.
+- ORK:n pistokokeet `main`issa `ae39c4d`: `AUDIO_TIMELINE_FORMAT_VERSION = 1`,
+  `deny_unknown_fields`; `cargo test -p motion-lipsync --test audio_timeline_examples`
+  (2/2), `--lib audio_timeline` (5/5) ja `cargo test -p motion-voice --test model_free`
+  (3/3) läpäisivät; `examples/audio-timeline-v1/` sisältää 2 kelvollista ja 4
+  virheellistä esimerkkiä.
+
+**Arvio G1-ehtoa (c) ja (e) vasten.**
+
+| Ehto | Tulos |
+| --- | --- |
+| Versioitu | `format_version: 1`; muu versio on virhe (testi + esimerkki) |
+| Sarjallistuva | tiukka JSON, edestakainen muunnos identtinen (testit) |
+| Testattu | validointi, sijoittelu = `MixClip`, rajaus, sekoitus rajoilla, mallivapaa polku 0 kutsua |
+| Kelvollinen ja virheellinen esimerkki | fi `manual`, en `estimated`; päällekkäisyys, rajaus, versio, tuntematon IPA |
+| Omistajuus ORK-G1-04 | kello `motion-audio/src/clock.rs`, aikajana `motion-lipsync/src/audio_timeline.rs`; `motion-lipsync` ei riipu `motion-tts`:stä |
+| Uudet riippuvuusreunat | vain dev-riippuvuus `motion-voice → motion-project` (testit); normaali graafi ennallaan |
+
+**Rajaukset ja siirrot.** Hyväksyntä koskee vain G1-sopimusta. Suun ajoitusta ei ole
+mitattu oikeaa puhetta vasten. Ihmisen äänittämät esimerkit ja AudioTimelinen käyttö
+`motion-scene`n suun arvioinnissa siirretään KS-002e:hen (G2). `ModelPolicy`n tallennus
+`ProjectDocument`iin ja käyttöliittymän tarkistuskohdat ovat A09:n (G2/G3);
+`motion-export`in tarkistus A10:n; kellokopioiden delegointi A04/A02/A10:n; sekoituksen
+käyttö renderöijässä A08:n. G1 kokonaisuutena odottaa vielä KS-002a/b/c:n ORK-katselmusta.
+
+## ORK-G1 — Porttipäätös: **hyväksytty ehdoin** (27.10.2026)
+
+**Näyttö.**
+
+- Yhdistetyt PR:t ja CI (kaikki 12/12 läpi PR:n viimeisellä commitilla): #105 A02 (`f2eb102`,
+  yhdistetty `d9db5be`), #106 A03 (`2352022` → `6ddfdcc`), #107 A04 (`c95fbd9` → `10135ad`),
+  #109 A07 (`62f96be` → `ae39c4d`); #110 ORK (11/11).
+- ORK:n paikalliset tarkistukset `main` `393c2f1`:llä (macOS, Apple Silicon):
+  `cargo fmt --all --check` ok; `cargo check --workspace` ok;
+  `cargo clippy --workspace --all-targets` 0 varoitusta; `cargo test --workspace`
+  906 läpäisi, 0 epäonnistui, 8 ohitettu.
+- Lähdekoodin luku: `motion_audio::clock` ja `motion_scene::time` (sama pyöristys, sama
+  ruutu ↔ näyte -sääntö, rivi riviltä), `event_log.rs` (versio, `sample_rate`-validointi),
+  `audio_timeline.rs` (`format_version`, `sample_rate` = 24 000), testien esimerkkiviittaukset.
+
+**Sopimukset G1-ehtoja (a)–(e) vasten.**
+
+| Sopimus | Versio | Sarjallistus | Esimerkit (kelvollinen / virheellinen), testit lukevat | Arvio |
+| --- | --- | --- | --- | --- |
+| SceneSpec (A02, ORK-G1-01) | `version: 1`, JSON Schema `const: 1`; versio 2 → `$.version`-virhe | YAML v1-kuori, vanha versioton `parse` säilyy | `examples/motionscript-v1/`: `nested.yaml` / 3 virheellistä (`tests/compiler.rs`) | hyväksytty |
+| TrackSpec (A04, ORK-G1-02) | kirjoitettu muoto = SceneSpec v1; ratkaistua ei sarjallisteta | – | `examples/trackspec-v1/` 1 / 1 (`tests/timeline_determinism.rs`) | hyväksytty (ORK-G1-A04) |
+| EventLog v1 (A03, ORK-G1-03) | `version: 1`; muu versio tyypitetty virhe | tiukka JSON, edestakainen muunnos | `examples/event-log-v1/` 1 / 1 (`tests/event_log.rs`) | hyväksytty, **puute 1** |
+| Näytekello + AudioTimeline v1 (A07, ORK-G1-04) | `format_version: 1` | tiukka JSON | `examples/audio-timeline-v1/` 2 / 4 | hyväksytty (ORK-G1-KS-002d) |
+
+**Yhtenäisyys.** Kirjoitettu aika on äärellisiä f64-sekunteja (SceneSpec); TrackSpec,
+EventLog ja AudioTimeline kohdistavat kokonaislukunäytteillä. Muunnossäännöt (sekunti →
+lähin näyte, puolikkaat nollasta poispäin; `floor(frame · 24000 / fps)`; näytteen näyttää
+viimeinen ruutu, jonka ensimmäinen näyte ei ole sen jälkeen) ovat samat A04:n ja A07:n
+toteutuksissa. Kaksi puutetta palautetaan omistajille:
+
+1. **EventLog ei ole sidottu kanoniseen kelloon (A03 → KS-002f).** ORK-G1-03 määrää tapahtuman
+   ajan ORK-G1-04:n kellossa, mutta `EventLog::validate` hyväksyy `sample_rate`n 1…192 000 ja
+   dokumentti siirtää vertailun kuluttajille, joita ei ole. AudioTimeline hylkää muun kuin
+   24 000 Hz:n. Korjaus: hylkää muu kuin `DIALOGUE_SAMPLE_RATE` tyypitetyllä virheellä,
+   lisää virheellinen esimerkki (`examples/event-log-v1/invalid-sample-rate.json`) ja testi,
+   päivitä `docs/animation-rules.md` § EventLog v1. Vakio luetaan `motion_lipsync`in
+   uudelleenviennistä (`motion_lipsync::english::DIALOGUE_SAMPLE_RATE`, alias
+   `motion_audio::clock`iin), joten uutta riippuvuusreunaa tai `Cargo.lock`-muutosta ei tarvita.
+   Tiedostot: `crates/motion-script/src/event_log.rs`, `crates/motion-script/tests/event_log.rs`,
+   `examples/event-log-v1/**`, `docs/animation-rules.md`, A03-tiedosto.
+2. **Kaksi kellototeutusta (A04 → KS-002g, ORK-G1-A04 ehto 1).** A07:n kello on yhdistetty,
+   joten ehto on lauennut. Säännöt ovat nyt identtiset, mutta kahdesta kopiosta voi tulla
+   kaksi kelloa. Korjaus: `motion_scene::time` delegoi `motion_audio::clock`iin säilyttäen
+   julkiset polut (`motion_scene::SEQUENCE_SAMPLE_RATE` = alias) ja virhetyypit; lisää reuna
+   `motion-scene → motion-audio` (sallittu ORK-G1:ssä). Tiedostot:
+   `crates/motion-scene/src/time.rs`, `crates/motion-scene/Cargo.toml`, `Cargo.lock`, A04-tiedosto.
+
+`motion_script::auto_direction::SAMPLE_RATE` (A02) ja `motion-export/tests/support`in kopio
+(A10) ovat samaa arvoa kantavia vakioita ilman omia muunnossääntöjä; ne siirretään
+(KS-002h, A10:n G3-työ) eivätkä estä G2:ta.
+
+**Päätös ja poikkeus.** G1 hyväksytään ehdoin. Puutteet koskevat EventLogin ja kellon
+sisäistä yhtenäisyyttä, eivät sopimuksia, joita A05, A06 ja A08 kuluttavat (`motion-rig`,
+`EvaluatedScene`, renderöintisopimus), joten G2:n riippumattomat työt avataan nyt. Kirjattu
+poikkeus säännöstä "portti avautuu vasta edellisen hyväksynnän jälkeen": KS-002f ja KS-002g on
+yhdistettävä ennen kuin (i) mikään G2-työ lukee EventLogin näytteitä tai `motion_scene::time`a
+uusissa kutsupaikoissa ja (ii) ORK hyväksyy G2:n (KS-003). Jos korjaus muuttaa sopimuksen
+muotoa, kuluttajien tarkistukset avataan uudelleen (yhteinen sääntö 3).
+
+## ORK-G2-01 — G2:n tiedostoalueet A05, A06 ja A08 (27.10.2026)
+
+Pohja: `main` `393c2f1` (tai uudempi, kun tämä PR on yhdistetty). Kukin agentti työskentelee
+omassa haarassaan ja tekee oman PR:n. Yksi kirjoittaja tiedostoa kohden; muiden tiedostojen
+tarvitsemat muutokset tehdään pyyntönä omistajalle ORK:n kautta. Taulukko on tyhjentävä:
+mitä siinä ei ole annettu agentille, on sille vain luettavaa.
+
+| Agentti | Tehtävä | Haara | Kirjoittaa (yksinoikeus G2:n ajan) |
+| --- | --- | --- | --- |
+| A05 | KS-003a | `feat/a05-rig-ik` | `crates/motion-rig/**` (sis. `Cargo.toml`, uudet `src/attachment.rs`, `src/ik.rs`, `src/props.rs`, `tests/`); `crates/motion-animation/src/clips.rs`; uusi `crates/motion-animation/tests/limb_attachment.rs`; `apps/studio-desktop/src/hand_props.rs` (ohueksi kääreeksi, julkinen rajapinta `main.rs`:lle ennallaan); `examples/stick-studio/hand-props.json`; uusi `examples/g2-rig/**`; `docs/custom-rigid-characters.md`, `docs/rig-outlines.md`, uusi `docs/rig-attachment-ik.md`; `docs/agents/A05-riggaus-ik-esineet.md` |
+| A06 | KS-003b | `feat/a06-springs` | uusi `crates/motion-animation/src/spring.rs`; `crates/motion-animation/src/lib.rs` vain rivit `pub mod spring;` ja sen uudelleenviennit; uusi `crates/motion-animation/tests/spring.rs`; uusi `docs/physics-springs.md`; `docs/agents/A06-fysiikka-vedettavat.md` |
+| A08 | KS-003c | `feat/a08-render-camera` | `crates/motion-render/**` (sis. `tests/golden/`); `crates/motion-art/**`; `docs/composition.md`, `docs/camera-presets.md`, `docs/art-rendering.md`, uusi `docs/render-contract.md`; uusi `docs/evidence/g2-render/**`; uusi `examples/g2-minimal-scene/**`; `docs/agents/A08-renderointi-kamera.md` |
+
+**Rajat ja rajapinnat.**
+
+- `crates/motion-animation`: A05 kirjoittaa vain `clips.rs`:ää, A06 vain `spring.rs`:ää ja
+  `lib.rs`:n `spring`-rivejä. Muu `lib.rs` (easing, `Track`) jäädytetään G2:n ajaksi;
+  muutostarve pyydetään ORK:lta. `motion-animation/Cargo.toml`ia ei muuteta.
+- `motion-animation` ei saa riippua `motion-script`istä (ORK-G1-03). A06:n vapautusrajapinta
+  ottaa tavallisia arvoja (aika, sijainti, nopeus tai näyteikkuna); EventLog → jousen alkuarvot
+  -muunnos on A04:n `motion-scene`-työtä (KS-003d). Dangle-niveljoukko kirjataan ehdotuksena
+  `docs/physics-springs.md`:hen; rig-kentät sille tekee A05 pyynnöstä.
+- A05:n IK on puhdas funktio (kohde arvona). IK-kohteen aikajanaraita noudattaa ORK-G1-02:ta:
+  kirjoitettu muoto on A02:n skeemapyyntö, ratkaisu A04:n (KS-003d). A05 ei kirjoita
+  `motion-script`iin eikä `motion-scene`en.
+- A08 lukee `EvaluatedScene`ä ja `motion-rig`in rajapintoja; kenttämuutokset pyydetään A04:ltä
+  (KS-003d). Testikohtauksen puhelinosuus käyttää A05:n `grip`-rajapintaa vasta, kun KS-003a:n
+  PR on yhdistetty; sitä ennen A08 tekee sopimuksen, syvyysjärjestyksen, rajaussäännöt ja
+  kuvat ilman puhelinta. A08 ei muuta `examples/stick-studio/**`ia, `motion-export`ia (A10)
+  eikä `apps/studio-desktop/src/camera_framing.rs`:ää (A09).
+- Kaikki: ei uusia crateja eikä ulkoisia riippuvuuksia ilman A01:n/ORK:n päätöstä.
+  `Cargo.lock`ia ei muokata käsin; jos oma manifestimuutos muuttaa sitä, myöhemmin
+  yhdistettävä PR rebasetaan ja `Cargo.lock` tuotetaan uudelleen `cargo check`illä.
+  `docs/master-progress.md`, `docs/agents/README.md` ja `00-orkestroija.md` ovat ORK:n;
+  agentit päivittävät vain oman tiedostonsa tarkistuslistan ja Toteutunut lopputulema -osion.
+- Samaan aikaan käynnissä olevat palautukset eivät mene näiden alueiden päälle: KS-002f (A03)
+  `motion-script`issä, KS-002g (A04) `motion-scene`ssä ja `Cargo.lock`issa.
+
+**Hyväksymisehdot G2-luovutukselle.** Kunkin agentin tiedoston Hyväksymisehdot, neljä
+cargo-tarkistusta työtilan juuresta, CI läpi PR:ssä ja luvun 10.2 yhteenveto. ORK tarkistaa
+lisäksi, että PR:n `git diff --name-only` pysyy yllä olevalla alueella.
+
+**Rinnakkaisuus.** A05, A06 ja A08 voivat alkaa heti ja rinnakkain. Ainoa järjestysriippuvuus
+on A08:n puhelinkohtaus → KS-003a. A04:n (KS-003d) ja A07:n (KS-002e) G2-osuudet avataan
+erillisellä ORK-päätöksellä.
+
+## ORK-G1 (rinnakkainen kirjaus, PR #112) — Sopimusportti: **hyväksytty ehdoin** (27.10.2026)
+
+*Huom. (yhdistetty 27.10.2026):* sama porttipäätös kirjattiin rinnakkain PR:ssä #112 ja
+PR:ssä #111. Päätökset ovat yhtenevät (G1 hyväksytty ehdoin, KS-002f, G2 auki). Rekisteri,
+tilarivit ja G2:n tiedostojako noudattavat yllä olevaa ORK-G1:tä ja ORK-G2-01:tä; tämä
+kirjaus säilytetään näyttönä ja historiana.
+
+**Näyttö.** Kaikki neljä G1-sopimusta on yhdistetty `main`iin, ja jokaisen PR:n CI läpäisi
+12/12: PR #105 (A02, `d9db5be`), PR #106 (A03, `6ddfdcc`), PR #107 (A04, `10135ad`) ja
+PR #109 (A07, `ae39c4d`; ks. ORK-G1-KS-002d). ORK:n pistokokeet `main`issa `393c2f1`
+(macOS, paikallisesti): `cargo test -p motion-script` 132 läpäisi, `-p motion-scene` 65,
+`-p motion-export` 143 (8 ohitettu), 0 epäonnistui. Esimerkkikansiot luetaan testeissä:
+`motionscript-v1` (`tests/compiler.rs`), `event-log-v1` (`tests/event_log.rs`),
+`trackspec-v1` (`tests/timeline_determinism.rs`), `audio-timeline-v1`
+(`tests/audio_timeline_examples.rs`).
+
+| Ehto | A02 SceneSpec | A03 EventLog | A04 TrackSpec | A07 AudioTimeline |
+| --- | --- | --- | --- | --- |
+| (a) katselmoitu ja yhdistetty | PR #105 (korvaa #102) | PR #106 | PR #107 | PR #109 |
+| Versio | schedule `version: 1` (`compiler::VERSION`) | `version: 1` (`EVENT_LOG_VERSION`) | ratkaistua muotoa ei sarjallisteta (ORK-G1-02); kirjoitettu muoto = A02:n versio | `format_version: 1` |
+| Sarjallistus ja validointi | YAML, paikannetut tyypitetyt virheet | JSON, `deny_unknown_fields`, rajat | – (arvioitu tila) | JSON, `deny_unknown_fields`, tyypitetyt virheet |
+| Testattu | kääntäjä, primitiivit, virhetyypit | toisto → sama laukaisujärjestys | aikahyppy = ruuduittainen toisto bitilleen | 0 providerikutsua tiukassa polussa |
+| (e) kelvollinen + virheellinen esimerkki | 1 + 3 | 1 + 1 | 1 + 1 | 2 + 4 |
+| Yksi näytekello (yhteinen sääntö 2) | – | **poikkeama**: `sample_rate` 1…192 000 hyväksytään | 24 kHz (`motion_scene::time`) | 24 kHz (`motion_audio::clock`) |
+
+**Poikkeama ja ehto.** ORK-G1-03 ja yhteinen sääntö 2 edellyttävät, että EventLogin
+näytepaikat ovat ORK-G1-04:n kellossa. `EventLog::validate` hyväksyy kuitenkin minkä
+tahansa taajuuden väliltä 1…192 000 Hz (`event_log.rs`, `MAX_EVENT_LOG_SAMPLE_RATE`).
+Nykyinen kuluttaja (`rules.rs`) muuntaa näytteet sekunneiksi lokin omalla taajuudella,
+joten tulos on johdonmukainen eikä virheellinen. Muulla kuin 24 kHz:n taajuudella
+tapahtumat eivät kuitenkaan osu kellon näytteisiin, ja poikkeava loki hyväksytään
+hiljaa. Päätös: G1 hyväksytään, ja korjaus on **KS-002f** (A03): `sample_rate` on
+24 000 Hz, muu taajuus on tyypitetty virhe, ja tästä lisätään virheellinen esimerkki.
+KS-002f on tehtävä ennen kuin EventLogin G2-kuluttajat (A06 raajojen vapautus, A09
+tallennus) käyttävät lokia.
+
+**Muut siirrot (eivät estä G2:ta).** KS-002g: kellokopiot delegoimaan `motion_audio::clock`iin
+(A04/A02/A10). KS-002e (A07): ihmisen äänittämät esimerkit ja AudioTimelinen käyttö suun
+arvioinnissa. PR #102 (A02:n alkuperäinen, korvattu PR #105:llä) on yhä auki: ORK
+suosittaa sen sulkemista käyttäjän luvalla. KS-006 ja KS-007 ovat edelleen G4:n ehtoja.
+
+**G2 avataan.** A04 (G2-osuus), A05, A06, A07 (KS-002e) ja A08 ovat `ready`, ja jokaisella
+on oma tiedostoalueensa (ks. G2-tarkistuslista). Rajapintamuutokset sovitaan edelleen
+orkestroijan kautta.
+
+## ORK-G2-02 — G2-näytteen tarkistus: **ei hyväksytty, palautettu** (27.10.2026)
+
+Pohja: `main` `d9b88ae` (sis. PR:t #113–#117 ja #120). Tarkistettu G2:n pienin kohtaus:
+kaksi ehjää tikku-ukkoa, tausta, puhelin kädessä, kameravaihto, WAV-puhe ja aikahypyn vertailu.
+
+**ORK:n ajot ja luvut (macOS, Apple Silicon; `main` `d9b88ae` + tämä haara, vain dokumentteja).**
+
+- `cargo test -p motion-render --test g2_minimal_scene`: 6 läpi, 0 epäonnistui.
+- `cargo test -p motion-rig --test g2_rig`: 6 läpi, 0 epäonnistui.
+- `cargo test -p motion-scene --test timeline_determinism`: 6 läpi, 0 epäonnistui.
+- Katsottu `docs/evidence/g2-render/g2-close-f072.png`: VEIKKOn nostettu oikea käsi on tyhjä.
+- Luettu `examples/g2-minimal-scene/README.md` ("4 s, silent", "The phone is not in this
+  scene yet"), `docs/evidence/g2-render/README.md` (syöteääni: generoitu hiljainen WAV ilman
+  dialogia), A05:n, A06:n ja A08:n Toteutunut lopputulema sekä PR:t #115, #116, #117 ja #120
+  (CI 12/12 kussakin).
+
+| Vaatimus | Tulos | Näyttö |
+| --- | --- | --- |
+| Kaksi ehjää tikku-ukkoa | **täyttyy** | `g2_rig`: raajat kiinni kaikilla kuudella hahmolla ja kaikilla stick-studio-raidoilla; `g2_minimal_scene`: molemmat hahmot laajassa kuvassa jalat näkyvissä; kuvat `g2-wide-f024.png`, `g2-close-f072.png` |
+| Tausta | **täyttyy** | pysäkkitausta ja etualan tolppa; `depth_order_is_banded_and_deterministic`, `stick_studio_backgrounds_and_g2_scene_follow_background_style` |
+| Kameravaihto | **täyttyy** | kova leikkaus 2,0 s laajasta lähikuvaan; `camera_cut_has_no_intermediate_frame_at_24_fps` ja rajaustestit kummallekin kuvalle |
+| Puhelin kädessä | **puuttuu** | sidonta on testattu vain rig-tasolla (`g2_rig`: ≤ 0,5 px affiinisella sijaiskameralla, ilman renderöijää). Renderöidyssä G2-kohtauksessa, sen rajaustesteissä ja vertailukuvissa ei ole puhelinta |
+| WAV-puhe | **puuttuu** | kohtaus on äänetön; vienti käytti generoitua hiljaista WAVia ja tyhjää dialogimanifestia, joten suu ei liiku. KS-002e (ihmisen äänittämä WAV) on aloittamatta |
+| Aikahypyn vertailu | **osittain** | `timeline_determinism`: aikahyppy = ruuduittainen toisto bitilleen, mutta vain `examples/trackspec-v1`-kohtauksella. G2-kohtauksesta renderöidään uudelleen vain kaksi aikaa taaksepäin hypäten (`reference_svgs_are_deterministic_and_match_recorded_hashes`); koko kohtausta ei verrata toistoon, eikä puhelin tai suu ole mukana |
+
+**Päätös.** G2:ta (KS-003) **ei hyväksytä**. Rig-, jousi-, renderöinti- ja kamerasopimukset
+ovat kunnossa, mutta näytteessä ei näy puhelinta kädessä eikä puhetta, eikä aikahypyn
+vertailu kata G2-kohtausta. Puutteet palautetaan omistajille:
+
+1. **A08 → KS-003c (puhelin).** Sido `puhelin` (`motion_rig::props`, `grip`) VEIKKOn `hand_r`:ään
+   G2-kohtauksessa. Lisää puhelin `Subject`iksi molempien kuvakulmien rajaustesteihin ja
+   syvyysjärjestystestiin (Props-kaista), päivitä SVG-hashit, PNG-vertailukuvat ja
+   `docs/evidence/g2-render/README.md`. Hyväksyntä: puhelin näkyy kädessä molemmissa
+   vertailukuvissa ja pysyy testin mukaan kuvassa. Tiedostot: ORK-G2-01:n A08-alue.
+2. **A07 → KS-002e (WAV-puhe).** Tuo G2-kohtaukseen ihmisen äänittämä puhe-WAV (24 kHz) ja sen
+   AudioTimeline v1 (`manual`- tai `forced-aligned`-alkuperä, ei mallin tuottamaa puhetta).
+   Osoita testillä, että sama näytekello ohjaa suun tilaa ja vientiä. Äänite ja sen käyttölupa
+   tulevat käyttäjältä; jos niitä ei ole, A07 kirjaa tilaksi `blocked` eikä korvaa niitä
+   synteesillä tai hiljaisuudella. Tiedostot: A07:n cratet ja uusi
+   `examples/g2-minimal-scene/audio/**` (vain A07; muu `examples/g2-minimal-scene/**` pysyy
+   A08:lla). Kohtaustiedoston viittaus ääneen pyydetään A08:lta.
+3. **A04 → KS-003d (aikahyppy).** Lisää `motion-scene`en testi, joka arvioi G2-kohtauksen
+   sekä suoralla aikahypyllä että ruuduittaisella toistolla 24 fps:llä koko keston yli ja vaatii
+   bitilleen saman `EvaluatedScene`n, myös leikkausruuduissa 47/48 sekä puheen alku- ja
+   loppunäytteessä. Puhelin ja suu tulevat mukaan, kun kohdat 1–2 on yhdistetty.
+   Tiedostot: `crates/motion-scene/**`.
+
+Järjestys: 1 ja 2 rinnakkain; 3 voi alkaa heti ja ottaa puhelimen ja äänen mukaan, kun ne on
+yhdistetty. ORK tarkistaa G2:n uudelleen, kun kaikki kolme on yhdistetty ja CI läpäisee.
+
+**A09 `ready` (käyttäjän pyyntö, kirjattu poikkeus).** A09 merkitään `ready`-tilaan KS-004:lle,
+vaikka G2 on auki: PR #118 käyttää vain jo yhdistettyjä rajapintoja (EventLog v1, jouset,
+`motion_scene::evaluate`) eikä riipu puuttuvista G2-osista. Ehdot:
+
+- KS-004:n `done` ja G3:n hyväksyntä odottavat G2:ta.
+- PR #118 kirjoittaa `crates/motion-project/src/model_policy.rs`:ää ja `ProjectDocument`-kenttää.
+  Yhteinen sääntö 5 antoi `ModelPolicy`-tyypin A07:lle. Koska A07 ei ole aloittanut sitä,
+  tyyppi siirretään A09:lle KS-004:n ajaksi, jotta toteutuksia ei synny kahta. A07 katselmoi
+  tyypin ennen yhdistämistä eikä tee rinnakkaista toteutusta.
+- Vapautuksen jousi ja IK-editori odottavat KS-003d:tä; A09 ei ratkaise niitä työpöydällä.
+- PR:n mukaan sovellus käynnistettiin Macilla, mutta tasojen vaihtoa, raahausta ja No AI
+  -kytkintä ei kokeiltu käsin. Niitä ei kirjata tehdyiksi ilman ajoa.
+
+## ORK-G4-01 — G4-näyttökooste: **G4 ei hyväksytty** (27.10.2026)
+
+Pohja: `main` `d9b88ae`; A10:n PR #123 (`feat/a10-export-qa`, head `7c3b916`) ja A09:n PR #118
+(`feat/a09-ui-levels`), molemmat yhdistämättä. G4 edellyttää G3:a, joka edellyttää G2:ta;
+G2 on palautettu (ORK-G2-02). Tämä kooste kirjaa, mikä on jo näytöllä todistettu, jotta
+G4 voidaan päättää heti, kun puuttuvat osat on yhdistetty.
+
+**ORK:n omat ajot** (macOS 27.0.1, iMac21,2 Apple M1; PR #123:n työpuu `d5203c0` =
+`d9b88ae` + A10, `--offline --locked`; `7c3b916` muuttaa vain dokumentteja):
+
+| Ajo | Tulos |
+| --- | --- |
+| `cargo test -p motion-export --test g2_export` | 7 läpi, 0 epäonnistui, 1 ohitettu (täysi levy; vaatii RAM-levyn, CI ajaa) |
+| `cargo test -p motion-export --lib export_preview_parity` | 1 läpi |
+| `cargo test -p motion-render --test g2_minimal_scene` | 6 läpi |
+| `cargo test -p motion-rig --test g2_rig` | 6 läpi |
+| `cargo test -p motion-scene --test timeline_determinism` | 6 läpi |
+| `cargo test -p motion-voice --test model_free` | 3 läpi |
+| Vertailukuvat `docs/evidence/g2-render/g2-wide-f024.png`, `g2-close-f072.png` katsottu | kaksi hahmoa, tausta, laaja/lähi; **ei puhelinta** |
+
+Koko työtilan neljää cargo-tarkistusta ORK ei toistanut: levy täyttyi kesken (166 Mt
+vapaana; vapautettu käyttäjän luvalla poistamalla yhdistetyn A06-työpuun `target`).
+Työtilan ajot ovat A10:n (976/0/9) ja A09:n raporteissa sekä CI:ssä.
+
+**CI.** PR #123: `Export QA` / `g2-export-macos` läpi commitilla `c594cb8`
+([40558399213](https://github.com/aleksipii/kilsatstudio/actions/runs/40558399213), mittaus) ja
+`d5203c0` ([40560366530](https://github.com/aleksipii/kilsatstudio/actions/runs/40560366530));
+muut tarkistukset 12/12 läpi. PR #118: 12/12 läpi.
+
+**G4-näyttö vaatimuksittain.**
+
+| G4-vaatimus | Tulos | Näyttö | Puute ja omistaja |
+| --- | --- | --- | --- |
+| Testit | **osittain** | yllä olevat ajot; A10 976/0/9, CI 12/12 | koko ketju puhelimella ja puheella puuttuu (G2) |
+| Vertailukuvat | **osittain** | G2-PNG:t; SVG-sarjan tiiviste ja ruudut 24/72 (kaikki alustat), PNG 24/72 (Apple Silicon) = A08:n kirjaamat | puhelin puuttuu kuvista (A08, KS-003c); PNG-tavuidentiteettiä ei väitetä muilla suorittimilla |
+| macOS-käynnistys | **ei osoitettu** | A09: `cargo run -p studio-desktop` -prosessi pysyi käynnissä ~13 s ilman virhettä | ikkunaa ei kuvattu, tasoja, raahausta ja No AI -kytkintä ei kokeiltu käsin (A09, KS-004) |
+| Vienti | **osoitettu G2-kohtaukselle (äänetön, ilman puhelinta)** | 96 ruutua = `frame_count(4, 24)`, WAV 96 000 näytettä, ruutuaika `motion_audio::clock`, vienti = esikatselu pikseleittäin; MP4 CI:ssä 96 ruutua, video ja ääni 4,000 s; tyypitetyt virheet (FFmpeg puuttuu, peruutus, I/O, siivous, täysi levy) | MP4:ää ei ajettu fyysisellä Macilla (ei FFmpegiä); striimaava MP4 ei palauta `PartialOutput`ia (A10) |
+| Mallivapaa polku | **osoitettu ilman puhetta** | `sandbox-exec` (ei verkkoa, ei aliprosesseja), tyhjä `HOME`, ei mallitiedostoja; `ModelPolicy::Strict` + `DisabledSpeechProvider`; `model_free` 3/3 | tuotua WAV-puhetta ei ole ajettu tiukalla polulla (A07, KS-002e) |
+| Mittaukset | **osoitettu, olosuhteet kirjattu** | M1 8 GiB, macOS 27.0.1, rustc 1.99.1, release, 1920x1080 24 fps 96 ruutua: SVG 30,4 ms, PNG 1531,9 ms (mediaani, 7 ajoa); CI macos-15 virtuaali-M1: SVG 31,9 ms, PNG 3038,0 ms | offline-vientiaika, ei toisto- tai esikatselu-FPS:ää; 60/120 FPS ja 100 000 entiteettiä mittaamatta |
+| KS-006, KS-007 | **tekemättä** | – | A07 + A10 (wheel-lukitus), A10 + ORK (lisenssit, NOTICE) |
+
+**Päätökset.**
+
+1. **G4 (KS-005) ei hyväksytty.** Edeltävät portit G2 ja G3 ovat auki, ja G4:n ehdot KS-006
+   ja KS-007 ovat aloittamatta.
+2. **A10:n vienti-QA (PR #123) hyväksytty yhdistettäväksi.** Muutokset pysyvät A10:n alueella
+   (`motion-export`, työnkulku, `docs/evidence/g2-export`, `docs/frame-export.md`, A10-tiedosto);
+   `Cargo.lock`-muutos on vain `motion-export`in dev-riippuvuus `sha2` (jo lukossa). Rajaukset
+   on kirjattu PR:ään (`7c3b916`). Yhdistäminen odottaa käyttäjän nimenomaista lupaa.
+   KS-004:n A10-osuus (koko ketju puheella ja puhelimella sekä virheet käyttöliittymästä)
+   jää auki G2:n jälkeen.
+3. **Luvun 8 tarkistuslista** päivitetty vain näytöllä todistetuilta osin (4/11). Kohdat, joiden
+   näyttö on vain yhdistämättömässä PR #123:ssa (mallivapaa ydin, CI ja mittausolosuhteet),
+   rastitetaan vasta yhdistämisen jälkeen.
+
+**Avoimet työt ja estot.**
+
+| Työ | Omistaja | Tila | Este / riippuvuus |
+| --- | --- | --- | --- |
+| KS-003c puhelin kädessä G2-kohtauksessa, rajaustesti, vertailukuvat | A08 | ready | – |
+| KS-002e fi/en WAV-puhe ja AudioTimeline G2:een | A07 | **blocked** | käyttäjän äänite ja käyttölupa |
+| KS-003d G2-kohtauksen aikahyppy ≡ toisto; vapautus ja IK-kohde arvioinnissa | A04 | ready | puhelin ja suu mukaan KS-003c/KS-002e:n jälkeen |
+| G2-uudelleentarkistus | ORK | odottaa | edellä olevat kolme |
+| KS-004 käyttöliittymä: tasot 2–3, graafinen käsikokeilu, kuvakaappaus | A09 | ready (PR #118) | KS-003d; näytön tallennuslupa kuvakaappaukseen |
+| KS-004 koko ketju käsikirjoitus → video puheella ja puhelimella | A10 | odottaa | G2 |
+| PR #123 ja PR #118 yhdistäminen | käyttäjä | odottaa lupaa | – |
+| KS-002h kellokopiot (`auto_direction::SAMPLE_RATE`, `motion-export/tests/support`) | A02 + A10 | todo | – |
+| KS-006 wheel-hash-lukitus | A07 + A10 | todo | – |
+| KS-007 lisenssitekstit ja NOTICE | A10 + ORK | todo | – |
+| MP4-vienti fyysisellä Macilla | A10 | todo | FFmpeg puuttuu koneelta (käyttäjän asennus) |
+| Avoimet ORK-dokumentti-PR:t #108, #119, #121, #122 (tämä haara pinottu #122:n päälle) | käyttäjä / ORK | odottaa lupaa | – |
+| Levytila (noin 3 Gt vapaana) | käyttäjä | riski | estää työtilan täydet ajot rinnakkain |
+
+## ORK-G4-02 — Yhdistämiset ja työpöytäsovelluksen paketointi (27.10.2026)
+
+Käyttäjä antoi luvan yhdistää kaikki avoimet haarat ja tehdä työpöytäsovelluksen käyttövalmiiksi.
+
+**Yhdistetty.** PR #123 A10 vienti-QA (`c194e83`), PR #118 A09 käyttöliittymätasot
+(`a2ddf7f`) ja tämä ORK-dokumenttipino (#124, joka sisältää #119:n ja #122:n). PR:t #121 ja
+#108 sovitetaan mainiin ja yhdistetään tämän jälkeen. A09-tiedoston tilarivin ristiriita
+ratkaistu (`e4428a1`).
+
+**ORK:n tarkistukset yhdistetyllä koodilla** (`main` `a2ddf7f` + tämä haara, vain
+dokumentteja; macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok; `cargo check
+--workspace --locked` ok; `cargo clippy --workspace --all-targets --locked` 0 varoitusta;
+`cargo test --workspace --locked` 985 läpi, 0 epäonnistui, 9 ohitettu.
+
+**Työpöytäsovellus.** `cargo build --release --locked -p studio-desktop`, paketoitu
+`scripts/package_macos.py --profile release --arch arm64` → `Kilsat Studio Preview.app`
+(ad hoc -allekirjoitus, `codesign --verify --deep --strict` ok), asennettu
+`~/Applications`-kansioon ja käynnistetty `open`illa: prosessi käynnistyi ja pysyi käynnissä.
+Ilman GPU-apuohjelmaa ja `head-pose`-apuohjelmaa (valinnaisia; head-pose on mallipohjainen
+syöte, ADR-A01-06). Ei notarisointia eikä Developer ID -allekirjoitusta.
+
+**Ei todennettu.** Ikkunan sisältöä ei kuvattu (näytön tallennus- ja apulaitelupa puuttuvat),
+eikä tasojen vaihtoa, toistoa, raahausta tai No AI -kytkintä kokeiltu käsin. Siksi luvun 8
+kohtaa "macOS-käynnistys ja videovienti tarkistettu" ei rastiteta.
+
+**Luku 8.** PR #123:n yhdistämisen jälkeen rastitettu "ML-vapaa ydin" (rajaus: ei puhetta) ja
+"CI-tulokset ja mittausolosuhteet". Yhteensä 6/11.
+
+**Ennallaan.** G2 palautettu (ORK-G2-02), G3 ja G4 eivät ole hyväksyttyjä. Avoimet työt ja
+estot kuten ORK-G4-01:ssä, paitsi PR #118 ja #123, jotka on nyt yhdistetty.
+
 ## Hyväksymisehdot
 
 - Jokaisella `done`-tehtävällä on linkitetty näyttö (commit, testiajo, CI-ajo, kuva tai raportti).
@@ -289,6 +651,105 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Seuraavaksi: **A03** (EventLog v1, `motion-script/src/event_log.rs`). Rinnakkain
   voivat edetä A02 (PR #102:n rebase) ja A07 (näytekello + AudioTimeline v1), koska tiedostot
   eivät mene päällekkäin. A04 aloittaa, kun A02 on yhdistetty ja EventLog v1 on luonnoksena.
+
+### ORK-G1-KS-002d — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: A07:n KS-002d katselmoitu ja hyväksytty G1-osuudelta (ORK-G1-KS-002d); KS-002c:n
+  tila päivitetty vastaamaan yhdistettyä PR #107:ää; uusi KS-002e (A07, G2). Haara
+  `docs/ork-a07-merge`.
+- Tarkistettu: PR #109 yhdistetty `ae39c4d`, CI 12/12; yhdistetyn tuloksen paikalliset
+  tarkistukset (906/0/8); pistokokeet `main`issa (ks. ORK-G1-KS-002d). Tämä muutos on
+  pelkkää dokumentaatiota.
+- Tekemättä: KS-002a/b/c:n G1-katselmus ja koko G1:n hyväksyntä; G2-tehtävien `ready`.
+- Estot ja riskit: suun ajoitusta ei ole mitattu oikeaa puhetta vasten (KS-002e).
+- Seuraavaksi: ORK katselmoi KS-002a/b/c ja päättää G1:stä; sen jälkeen G2 (A04–A08).
+
+### ORK-G1 (portti, rinnakkainen kirjaus PR #112) — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: KS-002a/b/c katselmoitu; G1 hyväksytty ehdoin (ORK-G1); KS-002 ja KS-002a/c ovat
+  `done`, KS-002b `done` ehdoin; uudet KS-002f (A03, estää EventLogin G2-kuluttajat) ja
+  KS-002g (kellokopiot); KS-003 ja A04–A08 `ready`. Haara `docs/ork-g1-gate`.
+- Tarkistettu: PR #105/#106/#107/#109 yhdistetty, CI 12/12 jokaisessa; pistokokeet
+  `main`issa `393c2f1` (motion-script 132, motion-scene 65, motion-export 143 läpäisi,
+  0 epäonnistui); `event_log.rs`:n taajuusvalidointi luettu lähdekoodista. Tämä muutos
+  on pelkkää dokumentaatiota.
+- Tekemättä: KS-002f, KS-002g, KS-002e; PR #102:n sulkeminen (käyttäjän lupa); G2:n näyte.
+- Estot ja riskit: EventLogin taajuuspoikkeama, kunnes KS-002f on tehty; suun ajoitusta
+  ei ole mitattu oikeaa puhetta vasten.
+- Seuraavaksi: A03 tekee KS-002f:n; rinnakkain G2: A04, A05, A07 ja A08 omilla
+  tiedostoillaan, A06 A05:n kiinnityssopimuksen mukaan.
+
+### ORK-G1 / ORK-G2-01 — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: G1 hyväksytty ehdoin (ORK-G1); kaksi puutetta palautettu omistajille (KS-002f A03,
+  KS-002g A04); KS-002a/b `done`; G2:n tiedostoalueet jaettu A05:lle, A06:lle ja A08:lle
+  (ORK-G2-01) ja KS-003a/b/c merkitty `ready`. Avoimen PR #108:n A04-katselmus
+  (ORK-G1-A04) otettu tähän haaraan. Haara `docs/ork-g2`.
+- Tarkistettu: yhdistettyjen PR:ien CI (#105, #106, #107, #109: 12/12; #110: 11/11); neljä
+  cargo-tarkistusta `main` `393c2f1`:llä (ks. ORK-G1); kellojen, EventLogin ja AudioTimelinen
+  lähdekoodi ja esimerkkien testiviittaukset luettu. Tämä muutos on pelkkää dokumentaatiota.
+- Tekemättä: KS-002f, KS-002g, KS-002h; KS-003d (A04) ja KS-002e (A07) avaamatta; G2-näyte.
+- Estot ja riskit: G2 avattiin ennen G1-puutteiden korjausta (kirjattu poikkeus, ORK-G1).
+  `Cargo.lock` voi konfliktoida A04:n ja A05:n välillä; ratkaisu rebase + uudelleentuotto.
+- Seuraavaksi: A05 (KS-003a), A06 (KS-003b) ja A08 (KS-003c) rinnakkain; A03 (KS-002f) ja
+  A04 (KS-002g) korjaukset rinnakkain niiden kanssa.
+
+### ORK-G2 yhdistämiset — 27.10.2026
+- Tila: running
+- Omistaja: ORK
+- Tehty: käyttäjän luvalla yhdistetty #111 (`5f659f0`, ORK-G1/ORK-G2-01; rinnakkainen #112-kirjaus
+  sovitettu), #113 A03 KS-002f (`5e93709`), #114 A04 KS-002g (`3551257`), #115 A06 KS-003b
+  (`974ef76`), #117 A05 KS-003a (`824c399`) ja #116 A08 KS-003c ilman puhelinta (`9c69902`).
+  KS-003d merkitty `ready`. PR #108 jäi auki: sen sisältö (ORK-G1-A04) tuli mainiin #111:n
+  mukana; sulkeminen odottaa käyttäjän lupaa.
+- Tarkistettu: jokaisen PR:n CI 12/12 (#111 11/11) viimeisellä commitilla; #113, #114, #115,
+  #116 ja #117 päivitettiin mainia vastaan ennen yhdistämistä (agenttitiedostojen tilarivien
+  ristiriidat ratkaistu); #117:n `Cargo.lock` tarkistettu `cargo metadata --locked` ja
+  `cargo check --workspace --locked`; #116 paikallisesti `cargo check --workspace --all-targets
+  --locked` ja motion-render/motion-art/motion-rig-testit 99/0 uutta mainia vastaan.
+- Tekemättä: A08:n puhelinkohtaus; KS-003d (A04); KS-002e (A07); KS-002h; G2-näyte.
+- Estot ja riskit: yhteinen `CARGO_TARGET_DIR` aiheutti agenttien välisiä ristikkäisiä
+  käännösvirheitä; seuraavalla kierroksella raskaat testiajot vuorotellen. Levytila on tiukka.
+- Seuraavaksi: A08 puhelinkohtaus (`grip`), A04 KS-003d.
+
+### ORK-G2-02 — 27.10.2026
+- Tila: running (G2 palautettu)
+- Omistaja: ORK
+- Tehty: G2-näyte tarkistettu, ei hyväksytty. Palautukset: A08 (KS-003c puhelin), A07 (KS-002e
+  WAV-puhe) ja A04 (KS-003d aikahyppy G2-kohtauksessa). A09 `ready` (KS-004). Haara `docs/ork-g3`.
+- Tarkistettu: kolme G2-testisarjaa (18 läpi, 0 epäonnistui), vertailukuva katsottu, PR:ien
+  #115–#117 ja #120 CI 12/12. Työtilan koko testiajoa ei toistettu (vain dokumenttimuutos).
+- Tekemättä: G2-hyväksyntä; KS-002h; GPU-ajo G2-kohtauksesta; taidekatselmointi.
+- Estot ja riskit: KS-002e tarvitsee käyttäjän äänittämän puheen ja käyttöluvan. Levytila on
+  tiukka (noin 5 Gt vapaana).
+- Seuraavaksi: A08 ja A07 rinnakkain, A04 heti perään; sen jälkeen ORK:n uusi G2-tarkistus.
+
+### ORK-G4-01 — 27.10.2026
+- Tila: running (G4 ei hyväksytty)
+- Omistaja: ORK
+- Tehty: G4-näyttökooste (ORK-G4-01); A10:n PR #123 katselmoitu ja hyväksytty yhdistettäväksi;
+  raportin luvun 8 tarkistuslista päivitetty (4/11); rekisteri ja README:n tilat. Haara `docs/ork-g4`.
+- Tarkistettu: kuusi testisarjaa PR #123:n työpuussa (29 läpi, 0 epäonnistui, 1 ohitettu),
+  vertailukuvat katsottu, PR #123:n ja #118:n CI. Työtilan koko ajoa ei toistettu (levy täynnä).
+- Tekemättä: G2- ja G3-hyväksyntä; KS-006, KS-007, KS-002h; graafinen macOS-käynnistysnäyttö.
+- Estot ja riskit: KS-002e tarvitsee käyttäjän äänitteen ja luvan; levytila; FFmpeg puuttuu koneelta.
+- Seuraavaksi: käyttäjän lupa PR #123:lle; A08 (puhelin) ja A04 (KS-003d) rinnakkain; A07 kun
+  äänite on saatu; sen jälkeen ORK:n G2-uudelleentarkistus.
+
+### ORK-G4-02 — 27.10.2026
+- Tila: running (G4 ei hyväksytty)
+- Omistaja: ORK
+- Tehty: PR:t #123, #118 ja ORK-dokumenttipino yhdistetty käyttäjän luvalla; luku 8 6/11;
+  release-`.app` paketoitu ja asennettu `~/Applications`-kansioon.
+- Tarkistettu: neljä cargo-tarkistusta yhdistetyllä koodilla (985/0/9); allekirjoituksen
+  tarkistus; sovelluksen prosessi käynnistyi.
+- Tekemättä: ikkunan graafinen tarkistus; G2-palautukset (A08, A04, A07); KS-002h, KS-006, KS-007.
+- Estot ja riskit: KS-002e odottaa äänitettä ja lupaa; näytön tallennuslupa puuttuu
+  kuvakaappauksista.
+- Seuraavaksi: A08 (puhelin) ja A04 (KS-003d) rinnakkain.
 
 ## Kopioitava tehtävänanto
 

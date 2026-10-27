@@ -1,6 +1,8 @@
 //! Versioned project documents and explicit, bounded local asset management.
 mod assets;
+pub mod model_policy;
 pub use assets::{import_asset, relink_asset, remove_asset, MAX_IMPORT_BYTES};
+pub use model_policy::{ModelBackedStep, ModelPolicy, PolicyViolation};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeSet,
@@ -78,6 +80,14 @@ pub struct ProjectDocument {
     /// screenplay" and is never written, so older projects stay byte-compatible.
     #[serde(default, skip_serializing_if = "motion_script::CaptionMode::is_follow")]
     pub caption_mode: motion_script::CaptionMode,
+    /// Project-level model policy (ADR-A01-09). The default (local preprocessing)
+    /// is never written, so older projects stay byte-compatible.
+    #[serde(default, skip_serializing_if = "ModelPolicy::is_default")]
+    pub model_policy: ModelPolicy,
+    /// Recorded external input (EventLog v1, ORK-G1-03), e.g. canvas drags and
+    /// releases. Absent when nothing was recorded. Validated against the screenplay.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub event_log: Option<motion_script::event_log::EventLog>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -103,6 +113,8 @@ impl ProjectDocument {
             art: motion_art::Document::default(),
             timing: TimingDocument::default(),
             caption_mode: motion_script::CaptionMode::default(),
+            model_policy: ModelPolicy::default(),
+            event_log: None,
         };
         document.validate()?;
         Ok(document)
@@ -119,6 +131,10 @@ impl ProjectDocument {
         }
         self.timing.validate()?;
         let script = motion_script::parse(&self.source)?;
+        if let Some(log) = &self.event_log {
+            log.validate_for(&script)
+                .map_err(|e| Error::Validation(format!("event log: {e}")))?;
+        }
         self.art
             .validate()
             .map_err(|e| Error::Validation(e.to_string()))?;
@@ -279,6 +295,8 @@ pub fn decode(bytes: &[u8]) -> Result<ProjectDocument, Error> {
             art: motion_art::Document::default(),
             timing: TimingDocument::default(),
             caption_mode: motion_script::CaptionMode::default(),
+            model_policy: ModelPolicy::default(),
+            event_log: None,
         }
     } else if version == u64::from(FORMAT_VERSION) {
         serde_json::from_slice(bytes)?
@@ -424,6 +442,66 @@ mod tests {
         let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         value["caption_mode"] = serde_json::json!("sometimes");
         assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    #[test]
+    fn model_policy_is_optional_byte_compatible_and_roundtrips() {
+        let mut doc = ProjectDocument::new(SOURCE).unwrap();
+        let old = encode(&doc).unwrap();
+        assert!(!String::from_utf8(old.clone())
+            .unwrap()
+            .contains("model_policy"));
+        assert_eq!(
+            decode(&old).unwrap().model_policy,
+            ModelPolicy::LocalPreprocessing
+        );
+        doc.model_policy = ModelPolicy::Strict;
+        let bytes = encode(&doc).unwrap();
+        assert!(String::from_utf8(bytes.clone())
+            .unwrap()
+            .contains("\"model_policy\": \"strict\""));
+        assert_eq!(decode(&bytes).unwrap().model_policy, ModelPolicy::Strict);
+        let mut value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        value["model_policy"] = serde_json::json!("cloud");
+        assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    #[test]
+    fn event_log_roundtrips_and_is_validated_against_the_screenplay() {
+        use motion_script::event_log::{EventLog, EventSource, ExternalEvent, LoggedEvent};
+        const ACTOR: &str =
+            "characters: {mia: {asset: mia.svg}}\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        let mut doc = ProjectDocument::new(ACTOR).unwrap();
+        assert!(!String::from_utf8(encode(&doc).unwrap())
+            .unwrap()
+            .contains("event_log"));
+        let event = |value| LoggedEvent {
+            scene: "intro".into(),
+            sample: 12_000,
+            source: EventSource::Pointer,
+            value,
+        };
+        let mut log = EventLog::new(24_000);
+        log.events.push(event(ExternalEvent::Drag {
+            actor: "mia".into(),
+            joint: "hip".into(),
+            x: 1.5,
+            y: -2.0,
+        }));
+        log.events.push(event(ExternalEvent::Release {
+            actor: "mia".into(),
+            joint: "hip".into(),
+        }));
+        doc.event_log = Some(log.clone());
+        let decoded = decode(&encode(&doc).unwrap()).unwrap();
+        assert_eq!(decoded.event_log, Some(log.clone()));
+        // A drag naming an unknown actor is rejected on save and load.
+        log.events[0].value = ExternalEvent::Drag {
+            actor: "nobody".into(),
+            joint: "hip".into(),
+            x: 0.0,
+            y: 0.0,
+        };
+        doc.event_log = Some(log);
+        assert!(encode(&doc).is_err());
     }
     #[test]
     fn roundtrip_preserves_exact_source_and_assets() {

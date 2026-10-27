@@ -1,6 +1,6 @@
 # A03 — Säännöt ja tapahtumat
 
-Tila: **review** (PR #106 yhdistetty `6ddfdcc`; EventLog `motion-script/src/event_log.rs`, ORK-G1-03) · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **done** G1-osalta (PR #106 `6ddfdcc`; ORK-G1) · palautus KS-002f **review** (haara `feat/a03-eventlog-24khz`): EventLogin `sample_rate` vain 24 000 Hz ([ORK-G1, puute 1](00-orkestroija.md#ork-g1--porttipäätös-hyväksytty-ehdoin-27102026)) · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -55,6 +55,8 @@ toistettavaksi tapahtumajäljeksi (EventLog).
       → `same_script_and_log_give_same_firings_and_expansion` (myös JSON-toiston jälkeen).
 - [x] Mittaa sääntölaajennuksen kustannus (säännöt × tapahtumat) ja kirjaa tulos laitetietoineen.
       Älä lupaa O(1)-suorituskykyä. → Apple M1, [§ Expansion cost](../animation-rules.md#expansion-cost-measured).
+- [x] KS-002f (ORK-G1): EventLogin `sample_rate` hyväksyy vain 24 000 Hz:n kanonisen kellon;
+      muu taajuus → `EventLogError::UnsupportedSampleRate`; virheellinen esimerkki lisätty.
 
 ## Hyväksymisehdot
 
@@ -108,6 +110,26 @@ A06/A09:lle luovutettu tapahtumasopimus.
   `match`-lausekkeet (työtilassa vain yksi, korjattu).
 - Seuraavaksi: käyttäjän katselmus ja yhdistämislupa; A04 voi aloittaa TrackSpecin
   (EventLog v1 käytettävissä), A07 näytekellon ja AudioTimeline v1:n.
+
+### A03 / KS-002f — 27.10.2026
+- Tila: review
+- Omistaja: A03
+- Tehty: haara `feat/a03-eventlog-24khz` (`main` `60c7310`:n päällä).
+  - `event_log.rs`: `MAX_EVENT_LOG_SAMPLE_RATE` (1…192 000) korvattu vakiolla
+    `EVENT_LOG_SAMPLE_RATE` = `motion_lipsync::english::DIALOGUE_SAMPLE_RATE`
+    (alias `motion_audio::clock`ille; ei uutta crate-riippuvuutta). Muu taajuus on uusi
+    tyypitetty virhe `EventLogError::UnsupportedSampleRate(u32)`. Muoto ja versio 1 ennallaan.
+  - Testit: hyväksytty 24 000; hylätyt 0, 1, 23 999, 24 001, 44 100, 48 000, 192 000, `u32::MAX`.
+  - Esimerkki `examples/event-log-v1/invalid-sample-rate.json` (48 000 Hz) ja README.
+  - [animation-rules.md](../animation-rules.md#eventlog-v1): kentän sääntö päivitetty.
+- Tarkistettu (macOS, paikallisesti): `cargo fmt --all --check` ok; `cargo check --workspace` ok;
+  `cargo clippy --workspace --all-targets` 0 varoitusta; `cargo test --workspace` 906 läpäisi,
+  0 epäonnistui, 8 ohitettu. CI: ks. PR.
+- Tekemättä: –. (Sovellus ei vielä kirjoita EventLogeja; tallennus on A09:n G3-työtä.)
+- Estot ja riskit: v1-lokit muulla taajuudella hylätään nyt. Repossa tai sovelluksessa ei
+  ole sellaisia; `EventLog::new(rate)`-allekirjoitus säilyi.
+- Seuraavaksi: käyttäjän katselmus ja yhdistämislupa; sen jälkeen ORK poistaa ORK-G1:n
+  ehdon (KS-002b), ja A06/A09 voivat käyttää EventLogia.
 
 ## Kopioitava tehtävänanto
 

@@ -17,8 +17,10 @@ use serde::{Deserialize, Serialize};
 pub const EVENT_LOG_VERSION: u32 = 1;
 /// Maximum events in one log.
 pub const MAX_LOGGED_EVENTS: usize = 4096;
-/// Upper bound for the recorded sample rate (samples per second).
-pub const MAX_EVENT_LOG_SAMPLE_RATE: u32 = 192_000;
+/// The only accepted `sample_rate`: the canonical dialogue clock
+/// (`motion_audio::clock::DIALOGUE_SAMPLE_RATE`, ORK-G1-04), re-exported by
+/// `motion-lipsync` so no new crate dependency is needed (KS-002f).
+pub const EVENT_LOG_SAMPLE_RATE: u32 = motion_lipsync::english::DIALOGUE_SAMPLE_RATE;
 /// Maximum length of a key name.
 pub const MAX_KEY_NAME: usize = 32;
 /// Maximum serialized input accepted by [`EventLog::from_json`].
@@ -32,8 +34,9 @@ pub const MAX_DRAG_COORDINATE: f64 = 100_000.0;
 pub struct EventLog {
     /// Format version; only [`EVENT_LOG_VERSION`] is supported.
     pub version: u32,
-    /// Samples per second of the clock that `sample` positions count. The log
-    /// records it instead of assuming one, so a different rate is detectable.
+    /// Samples per second of the clock that `sample` positions count. Must be
+    /// [`EVENT_LOG_SAMPLE_RATE`]; it is recorded so a log from another clock is
+    /// rejected instead of being silently reinterpreted.
     pub sample_rate: u32,
     #[serde(default)]
     pub events: Vec<LoggedEvent>,
@@ -123,6 +126,8 @@ pub enum EventLogError {
     Syntax(String),
     #[error("event log version {0} is unsupported; supported version is {EVENT_LOG_VERSION}")]
     UnsupportedVersion(u32),
+    #[error("event log sample_rate {0} Hz is unsupported; event positions use the {EVENT_LOG_SAMPLE_RATE} Hz dialogue clock")]
+    UnsupportedSampleRate(u32),
     #[error("event log bound exceeded: {0}")]
     Bound(String),
     #[error("{path}: {message}")]
@@ -211,11 +216,8 @@ impl EventLog {
         if self.version != EVENT_LOG_VERSION {
             return Err(EventLogError::UnsupportedVersion(self.version));
         }
-        if !(1..=MAX_EVENT_LOG_SAMPLE_RATE).contains(&self.sample_rate) {
-            return Err(EventLogError::Invalid {
-                path: "sample_rate".into(),
-                message: format!("must be 1..={MAX_EVENT_LOG_SAMPLE_RATE}"),
-            });
+        if self.sample_rate != EVENT_LOG_SAMPLE_RATE {
+            return Err(EventLogError::UnsupportedSampleRate(self.sample_rate));
         }
         if self.events.len() > MAX_LOGGED_EVENTS {
             return Err(EventLogError::Bound(format!(

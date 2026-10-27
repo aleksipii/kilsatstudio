@@ -43,6 +43,30 @@ WAV-tiivisteeseen sidottu tulos deduplikoidaan muuttumattomaan sisältövälimui
 Malli- ja ohjelmatiedostojen muuttuminen ajon aikana hylkää tuloksen. Korruptoitunut
 oman sisältövälimuistin tiedosto tuotetaan uudelleen; lähdeäänitteitä ei korvata.
 
+## Ortografisen arvion säännöt (versio 2)
+
+`motion_lipsync::finnish` (`kilsat-finnish-orthographic-estimator`, versio 2) arvioi
+suun muodot kirjoitetusta tekstistä. Arvio on aina `Estimated`; sitä ei ole mitattu
+oikeaa puhetta vasten. Säännöt ja testit (`src/finnish.rs`):
+
+| Ilmiö | Sääntö | Esimerkki ja testi |
+| --- | --- | --- |
+| ä, ö, y | ä → A, ö → O, y → U (lähin 13 muodosta; etuvokaali jakaa muodon takavokaalin kanssa) | `yö`, `pöytä` |
+| Pitkät vokaalit | kaksi samaa kirjainta yhdistyy yhdeksi väliksi, joka kestää kaksi kertaa lyhyen | `tuli`/`tuuli`, `tapaa`, `sää`, `tyyny` |
+| Kaksoiskonsonantit | sulku tai muoto kestää kaksi kertaa yksinkertaisen; velaarinen kk on pidempi lepo | `kato`/`katto`, `tapaa`/`tappaa`, `kissa`, `kukka` |
+| n + k/g | /ŋ/ ei näytä kielen kärkeä → Rest | `kenkä`, `kengät`; muualla n → TongueUp (`nenä`, `Anna`) |
+| š, ž | Sh | `šakki`, `Žanna` |
+| x, w, z, c, q | x → /ks/ (Rest + Sibilant), w → TeethLip, z → Sibilant, c/q → Rest | `taxi` = `taksi` |
+| NFD-teksti | a/o/u + U+0308, a + U+030A, s/z + U+030C ja e + U+0301 yhdistetään (macOS:n tiedostonimet ja jotkin syötteet) | `ma\u{0308}a\u{0308}` = `mää` |
+
+Numerot, tuntemattomat merkit ja muut yhdistelmämerkit ovat virheitä: arvio ei
+käytä englannin ääntämystä. Version nosto 1 → 2 muuttaa arvion tunnisteen, joten
+vanhat välimuistiin tallennetut arviot vanhenevat.
+
+Tuotu tai käsin tehty suomen IPA-kohdistus käyttää `phoneme_to_viseme`-taulua:
+`y`, `ø`, `ʋ` ja /h/:n allofonit `ç x ɦ` on lisätty, ja pituusmerkki `ː` ohitetaan
+([english-lipsync.md § IPA coverage](english-lipsync.md#ipa-coverage)).
+
 ## Oikean äänen koesynteesi
 
 ```sh

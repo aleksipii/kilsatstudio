@@ -1,6 +1,6 @@
 # A04 — Aikajana ja determinismi
 
-Tila: **done G1-osalta** (PR #107 yhdistetty `10135ad`; ORK-G1-A04 hyväksytty ehdolla; G2 todo) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
+Tila: **done G1-osalta** (PR #107 `10135ad`) · KS-002g **done** (PR #114 `3551257`) · G2 KS-003d **ready** (ORK-G2-02, kohta 3: G2-kohtauksen aikahyppy ≡ ruuduittainen toisto) · Portit: G1–G2 · Tehtävät: KS-002, KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
@@ -57,6 +57,8 @@ että `scene_at_time` on puhdas ajan funktio.
       → myös `-0.0` (normalisoidaan) ja kohtauksen ulkopuolinen näyte.
 - [x] Erottele determinismin tasot (ADR-A01-04): tila / pikselit / pakattu video.
       → vain tila testattu A04:ssä; pikselit ja video A08/A10.
+- [x] KS-002g (ORK-G1-A04, ehto 1): `motion_scene::time` delegoi `motion_audio::clock`iin;
+      toinen kellototeutus poistettu, julkinen rajapinta ennallaan, yhtäläisyystesti.
 
 ## Hyväksymisehdot
 
@@ -70,6 +72,36 @@ Odotettu: dokumentoitu `scene_at_time`-rajapinta, TrackSpec-sopimus, ekvivalenss
 rajatapaustestit sekä ajan muunnossäännöt A07/A10:lle.
 
 ### Toteutunut lopputulema
+
+### A04 / KS-002g — 27.10.2026
+- Tila: review
+- Omistaja: A04
+- Tehty: haara `fix/a04-scene-clock-delegation` (`origin/main` `60c7310`:n päällä); vain
+  `crates/motion-scene` ja tuotettu `Cargo.lock`-rivi.
+  - `motion-scene` riippuu suoraan `motion-audio`sta (oli jo epäsuorasti `motion-lipsync`in
+    kautta; ei syklejä).
+  - `src/time.rs` ei enää laske itse: jokainen funktio kutsuu `motion_audio::clock`ia ja vain
+    muuntaa `ClockError`in (`InvalidTime` → `Error::InvalidTime`, `InvalidFrameRate` →
+    `Error::InvalidFrameClock`, `Overflow` → `Error::FrameBudget`).
+    `SEQUENCE_SAMPLE_RATE = clock::DIALOGUE_SAMPLE_RATE`. Funktioiden nimet, allekirjoitukset,
+    virhetyypit ja `motion_scene::SEQUENCE_SAMPLE_RATE` ennallaan, joten kuluttajia
+    (`sequence.rs`, `tracks.rs`, `lib.rs`, `motion-export`in testituki) ei tarvinnut muuttaa.
+  - Uusi testi `time::tests::scene_and_audio_clock_paths_are_identical`: molemmat polut
+    antavat samat näytteet, samat `f64`-bitit ja vastaavat virhelajit (sekunnit mm. puolikkaat,
+    `-0.0`, NaN, ±∞, 1e300; fps 0, 1, 7, 24, 25, 29, 30, 60, 24 000, `u32::MAX`; ruudut ja
+    näytteet 0–2 999 sekä `u64::MAX`-rajat). Aiemmat 4 testiä pidetty ja virhelajit tarkennettu.
+- Tarkistettu (macOS, paikallisesti, yhteinen `CARGO_TARGET_DIR`): `cargo fmt --all --check` ok;
+  `cargo check --workspace` ok; `cargo clippy --workspace --all-targets` 0 varoitusta;
+  `cargo test --workspace --no-fail-fast` ok (46 testijoukkoa, 907 läpäisi, 0 epäonnistui,
+  8 ohitettu). Ensimmäinen `cargo test --workspace` -ajo kaatui `motion-export`in doctestiin
+  (E0463, rlib puuttui yhteisestä target-kansiosta muiden agenttien rinnakkaisen käännöksen
+  aikana); uusintaajo läpäisi muutoksitta. CI: ks. PR.
+- Tekemättä: KS-002g:n muut osat eivät kuulu A04:lle: `auto_direction::SAMPLE_RATE`
+  (A02, motion-script) ja `motion-export`in testituen omat kaavat (A10).
+- Estot ja riskit: ei estoja. `Error`illä ei ole `PartialEq`ia, joten testi vertaa virhelajeja
+  `std::mem::discriminant`illa.
+- Seuraavaksi: käyttäjän katselmus ja yhdistämislupa; A02 ja A10 voivat delegoida omat
+  kopionsa samaan `motion_audio::clock`iin.
 
 ### A04 / KS-002c — 27.10.2026
 - Tila: review

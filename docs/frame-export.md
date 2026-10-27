@@ -96,7 +96,14 @@ For visual frame `i`, this path uses sample frame
 `floor(i × 24000 / fps)` and evaluates both the actor pose and mouth state at that
 sample's time. Ordered half-open viseme intervals select mouth shapes; silence,
 gaps and clip ends return the mouth to rest. The sample-clock quantization can
-place a visual frame slightly before its nominal `i / fps` time.
+place a visual frame slightly before its nominal `i / fps` time; when fps divides
+24 000 (12, 24, 25, 30, 60, …) the time is exactly `i / fps`. The sample comes
+from `motion_audio::clock::frame_to_sample` (ORK-G1-04), and the desktop preview
+(`ScenePreview::render`) evaluates the same sample with the same evaluator and
+renderer. The frame count is `motion_scene::frame_count(duration, fps)`; the audio
+track is `round(duration × 24000)` samples and differs from the video length by
+less than one frame. Tests and the G2 reproduction command:
+[evidence/g2-export](evidence/g2-export/README.md).
 
 Input checks include the scene ID, schema version, duration, 24 kHz mono audio,
 known actors, clip bounds, finite gains, non-overlapping dialogue for each actor,
@@ -120,7 +127,10 @@ The blocking `motion_export::export_scene` API accepts a cancellation token and
 reports completed/total frames. Callers must run it off the UI thread. Cancellation
 is checked around validation and between frames and output phases; it does not
 interrupt a single filesystem write. Errors or cancellation attempt to remove
-only the new directory created by that invocation. Cleanup errors are reported.
+only the new directory created by that invocation. A missing or relative FFmpeg
+path is `Error::EncoderUnavailable` before any output exists. If removing the
+partial directory fails, the result is `Error::PartialOutput { path, cause,
+cleanup }`: the original error is kept and the leftover directory is named.
 A completed directory is published with `manifest.json`; no resume function or
 encoded media is provided.
 
