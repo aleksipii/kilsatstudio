@@ -11,7 +11,8 @@ hardware, real-model or perceptual gate with mocked success.
 
 Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
 `c194e83`), #118 (A09 UI levels, No AI mode, drag logging, `a2ddf7f`) and #124 (ORK-G4-01/02,
-which carries #119 and #122). #121 and #108 are reconciled with `main` and merged next.
+which carries #119 and #122). #121 (KS-003b review, renamed ORK-G2-02a) and #108 are merged after it; #108's content
+(ORK-G1-A04) was already in `main` via #111, so it is merged with `main`'s versions and no content change.
 
 Completed:
 - A10: canonical frame clock in `motion-export`, typed `EncoderUnavailable` and

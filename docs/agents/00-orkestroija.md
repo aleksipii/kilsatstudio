@@ -636,8 +636,8 @@ muut tarkistukset 12/12 läpi. PR #118: 12/12 läpi.
 Käyttäjä antoi luvan yhdistää kaikki avoimet haarat ja tehdä työpöytäsovelluksen käyttövalmiiksi.
 
 **Yhdistetty.** PR #123 A10 vienti-QA (`c194e83`), PR #118 A09 käyttöliittymätasot
-(`a2ddf7f`) ja tämä ORK-dokumenttipino (#124, joka sisältää #119:n ja #122:n). PR:t #121 ja
-#108 sovitetaan mainiin ja yhdistetään tämän jälkeen. A09-tiedoston tilarivin ristiriita
+(`a2ddf7f`) ja tämä ORK-dokumenttipino (#124, joka sisältää #119:n ja #122:n). PR #121 (KS-003b-katselmus, nimetty ORK-G2-02a:ksi) ja
+PR #108 yhdistetään tämän jälkeen; #108:n sisältö (ORK-G1-A04) oli jo mainissa #111:n kautta, joten se yhdistetään mainin versioin ilman sisältömuutosta. A09-tiedoston tilarivin ristiriita
 ratkaistu (`e4428a1`).
 
 **ORK:n tarkistukset yhdistetyllä koodilla** (`main` `a2ddf7f` + tämä haara, vain
