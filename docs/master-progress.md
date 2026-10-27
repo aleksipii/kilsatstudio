@@ -7,6 +7,27 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G1 gate approved with condition — PR #112 merged (2026-10-27)
+
+Status: **merged** to `main` as `ecfa0de` from branch `docs/ork-g1-gate`
+([PR #112](https://github.com/aleksipii/kilsatstudio/pull/112)) with the user's explicit
+approval. Documentation only (`docs/agents/**`).
+
+Completed: ORK-G1 decision. SceneSpec (A02, PR #105), TrackSpec (A04, PR #107) and
+AudioTimeline (A07, PR #109) `done`; EventLog (A03, PR #106) `done` with condition
+KS-002f, because `EventLog::validate` accepts any `sample_rate` in 1..192 000 Hz instead of
+the single 24 kHz clock (ORK-G1-03, shared rule 2). G2 opened: KS-003 and A04 (G2), A05,
+A06, A07 (KS-002e) and A08 are `ready`. New tasks KS-002f (A03, blocks EventLog consumers
+A06/A09) and KS-002g (A04/A02/A10, clock copies delegate to `motion_audio::clock`).
+
+Checks: ORK spot checks on `main` `393c2f1` (macOS, local): `cargo test -p motion-script`
+132 passed, `-p motion-scene` 65 passed, `-p motion-export` 143 passed / 8 ignored, 0 failed;
+all four contract example folders are read by tests; each contract PR's CI 12/12. PR #112
+CI 11/11 passed.
+
+Open: KS-002f, KS-002g, KS-002e; closing superseded PR #102 (needs user permission); the G2
+minimal scene. KS-006 and KS-007 remain G4 conditions.
+
 ## ORK G1 review of A07 KS-002d — PR #110 merged (2026-10-27)
 
 Status: **merged** to `main` as `393c2f1` from branch `docs/ork-a07-merge`
