@@ -7,6 +7,34 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## ORK G4 evidence summary and merges — PRs #123, #118, #124 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
+`c194e83`), #118 (A09 UI levels, No AI mode, drag logging, `a2ddf7f`) and #124 (ORK-G4-01/02,
+which carries #119 and #122). #121 and #108 are reconciled with `main` and merged next.
+
+Completed:
+- A10: canonical frame clock in `motion-export`, typed `EncoderUnavailable` and
+  `PartialOutput` errors, G2 frame-count/audio-length/preview-parity/regression tests, failed
+  export tests incl. a real full disk, reproducible `g2_export` command, `Export QA` macOS
+  workflow with a sandboxed model-free export and MP4 check, measurements with conditions.
+- A09: three UI levels (UI state only), per-project `ModelPolicy` (No AI), EventLog
+  drag/release logging, transport test on the shared evaluator.
+- ORK: G4 evidence summary (ORK-G4-01), merge record (ORK-G4-02); architecture report
+  chapter 8 checklist 6/11.
+
+Checks: CI 12/12 on #123 and #118, 11/11 on #124. Locally on merged code (macOS 27.0.1,
+Apple M1): `cargo fmt --all --check` ok, `cargo check --workspace --locked` ok,
+`cargo clippy --workspace --all-targets --locked` 0 warnings, `cargo test --workspace
+--locked` 985 passed, 0 failed, 9 ignored. Release `studio-desktop` packaged with
+`scripts/package_macos.py` (ad hoc signed, `codesign --verify --deep --strict` ok),
+installed to `~/Applications` and launched: the process started and stayed running.
+
+Open: the window was not captured and the UI was not exercised by hand (no screen
+recording permission); G2 is still returned (phone A08, KS-003d A04, WAV speech A07 blocked on
+the user's recording); G3 and G4 not approved; KS-002h, KS-006, KS-007; MP4 export on a
+physical Mac (no FFmpeg installed). No notarization or Developer ID signing.
+
 ## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
 
 Status: **merged** to `main` with the user's explicit approval, in order: #111

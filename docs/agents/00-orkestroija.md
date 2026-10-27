@@ -1,6 +1,6 @@
 # ORK — Orkestroija
 
-Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G4-01 (G4-näyttökooste; G4 ei hyväksytty), 27.10.2026 (`main` `d9b88ae`)
+Tila: **running** · Portit: G0–G4 · Lähtö: commit `496a8a4` · Viimeisin päätös: ORK-G4-02 (PR:t #118, #123 ja ORK-dokumentit yhdistetty; G4 ei hyväksytty), 27.10.2026 (`main` `d9b88ae`)
 
 ## Tavoite
 
@@ -41,7 +41,7 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-003b | A06 | KS-002 | `spring`-moduuli: analyyttiset jouset, voimat, profiilit, vapautuksen alkuarvot | done (PR #115 `974ef76`; Dangle-sopimus PR #120 `d9b88ae`, A05:n katselmus ja sen ehto täytetty) |
 | KS-003c | A08 | KS-002; puhelinkohtaus myös KS-003a | Renderöintisopimus, syvyysjärjestys, rajaussäännöt, testikohtaus ja vertailukuvat | ready (ORK-G2-02 palautus 1): sopimus, syvyys ja rajaus yhdistetty (PR #116 `9c69902`); puhelin kädessä renderöitynä, sen rajaustesti ja vertailukuvat puuttuvat |
 | KS-003d | A04 | KS-002g, KS-003a, KS-003b | `EvaluatedScene`-pyynnöt A05/A08:lta, IK-kohteen ja vapautuksen ratkaisu `motion-scene`ssä | ready (avausehto täyttyi 27.10.2026; ORK-G2-02 palautus 3: G2-kohtauksen aikahyppy ≡ ruuduittainen toisto, puhelin ja suu mukana) |
-| KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | A09 ready (ORK-G2-02; PR #118 katselmoitavana, hyväksyntä odottaa G2:ta); A10 review (PR #123: vienti-QA katselmoitu ORK-G4-01, yhdistettävissä käyttäjän luvalla; koko ketju odottaa G2:ta) |
+| KS-004 | A09, A10 | KS-003 | G3: käyttöliittymä ja koko ketju käsikirjoitus → video | A09 ready (PR #118 yhdistetty `a2ddf7f`; `done` odottaa G2:ta, KS-003d:tä ja graafista käsikokeilua); A10: vienti-QA yhdistetty (PR #123 `c194e83`), koko ketju puheella ja puhelimella odottaa G2:ta |
 | KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | running — näyttökooste ORK-G4-01; G4 **ei hyväksytty** (G2 ja G3 auki, KS-006/KS-007 tekemättä) |
 | KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
 | KS-007 | A10 + ORK | KS-001 | Kolmannen osapuolen lisenssitekstit ja NOTICEt (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
@@ -79,7 +79,7 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
       → ORK-G4-01 (näyttökooste; PR #123 ja PR #118 katselmoitu, ORK:n omat ajot).
 - [ ] Hyväksy vain osoitetut ominaisuudet; kirjaa rajaukset. KS-006 ja KS-007 ovat G4:n ehtoja.
       → ORK-G4-01: rajaukset kirjattu, G4 **ei hyväksytty** (G2/G3 auki, KS-006/KS-007 tekemättä).
-- [x] Päivitä raportin luvun 8 tarkistuslista näytön perusteella. → ORK-G4-01: 4/11 rastitettu.
+- [x] Päivitä raportin luvun 8 tarkistuslista näytön perusteella. → ORK-G4-01: 4/11; ORK-G4-02: 6/11.
 
 ### Jatkuvat
 - [ ] Rajapintamuutos avaa siitä riippuvat tarkistukset uudelleen.
@@ -594,6 +594,37 @@ muut tarkistukset 12/12 läpi. PR #118: 12/12 läpi.
 | Avoimet ORK-dokumentti-PR:t #108, #119, #121, #122 (tämä haara pinottu #122:n päälle) | käyttäjä / ORK | odottaa lupaa | – |
 | Levytila (noin 3 Gt vapaana) | käyttäjä | riski | estää työtilan täydet ajot rinnakkain |
 
+## ORK-G4-02 — Yhdistämiset ja työpöytäsovelluksen paketointi (27.10.2026)
+
+Käyttäjä antoi luvan yhdistää kaikki avoimet haarat ja tehdä työpöytäsovelluksen käyttövalmiiksi.
+
+**Yhdistetty.** PR #123 A10 vienti-QA (`c194e83`), PR #118 A09 käyttöliittymätasot
+(`a2ddf7f`) ja tämä ORK-dokumenttipino (#124, joka sisältää #119:n ja #122:n). PR:t #121 ja
+#108 sovitetaan mainiin ja yhdistetään tämän jälkeen. A09-tiedoston tilarivin ristiriita
+ratkaistu (`e4428a1`).
+
+**ORK:n tarkistukset yhdistetyllä koodilla** (`main` `a2ddf7f` + tämä haara, vain
+dokumentteja; macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok; `cargo check
+--workspace --locked` ok; `cargo clippy --workspace --all-targets --locked` 0 varoitusta;
+`cargo test --workspace --locked` 985 läpi, 0 epäonnistui, 9 ohitettu.
+
+**Työpöytäsovellus.** `cargo build --release --locked -p studio-desktop`, paketoitu
+`scripts/package_macos.py --profile release --arch arm64` → `Kilsat Studio Preview.app`
+(ad hoc -allekirjoitus, `codesign --verify --deep --strict` ok), asennettu
+`~/Applications`-kansioon ja käynnistetty `open`illa: prosessi käynnistyi ja pysyi käynnissä.
+Ilman GPU-apuohjelmaa ja `head-pose`-apuohjelmaa (valinnaisia; head-pose on mallipohjainen
+syöte, ADR-A01-06). Ei notarisointia eikä Developer ID -allekirjoitusta.
+
+**Ei todennettu.** Ikkunan sisältöä ei kuvattu (näytön tallennus- ja apulaitelupa puuttuvat),
+eikä tasojen vaihtoa, toistoa, raahausta tai No AI -kytkintä kokeiltu käsin. Siksi luvun 8
+kohtaa "macOS-käynnistys ja videovienti tarkistettu" ei rastiteta.
+
+**Luku 8.** PR #123:n yhdistämisen jälkeen rastitettu "ML-vapaa ydin" (rajaus: ei puhetta) ja
+"CI-tulokset ja mittausolosuhteet". Yhteensä 6/11.
+
+**Ennallaan.** G2 palautettu (ORK-G2-02), G3 ja G4 eivät ole hyväksyttyjä. Avoimet työt ja
+estot kuten ORK-G4-01:ssä, paitsi PR #118 ja #123, jotka on nyt yhdistetty.
+
 ## Hyväksymisehdot
 
 - Jokaisella `done`-tehtävällä on linkitetty näyttö (commit, testiajo, CI-ajo, kuva tai raportti).
@@ -707,6 +738,18 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Estot ja riskit: KS-002e tarvitsee käyttäjän äänitteen ja luvan; levytila; FFmpeg puuttuu koneelta.
 - Seuraavaksi: käyttäjän lupa PR #123:lle; A08 (puhelin) ja A04 (KS-003d) rinnakkain; A07 kun
   äänite on saatu; sen jälkeen ORK:n G2-uudelleentarkistus.
+
+### ORK-G4-02 — 27.10.2026
+- Tila: running (G4 ei hyväksytty)
+- Omistaja: ORK
+- Tehty: PR:t #123, #118 ja ORK-dokumenttipino yhdistetty käyttäjän luvalla; luku 8 6/11;
+  release-`.app` paketoitu ja asennettu `~/Applications`-kansioon.
+- Tarkistettu: neljä cargo-tarkistusta yhdistetyllä koodilla (985/0/9); allekirjoituksen
+  tarkistus; sovelluksen prosessi käynnistyi.
+- Tekemättä: ikkunan graafinen tarkistus; G2-palautukset (A08, A04, A07); KS-002h, KS-006, KS-007.
+- Estot ja riskit: KS-002e odottaa äänitettä ja lupaa; näytön tallennuslupa puuttuu
+  kuvakaappauksista.
+- Seuraavaksi: A08 (puhelin) ja A04 (KS-003d) rinnakkain.
 
 ## Kopioitava tehtävänanto
 
