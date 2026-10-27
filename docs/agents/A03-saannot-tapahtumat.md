@@ -1,6 +1,6 @@
 # A03 — Säännöt ja tapahtumat
 
-Tila: **done ehdoin** (PR #106 `6ddfdcc`, ORK-G1; EventLog `motion-script/src/event_log.rs`, ORK-G1-03) · KS-002f **ready**: `sample_rate` vain 24 000 Hz · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **done** G1-osalta (PR #106 `6ddfdcc`; ORK-G1) · palautus KS-002f **ready**: EventLogin `sample_rate` kanoniseen kelloon ([ORK-G1, puute 1](00-orkestroija.md#ork-g1--porttipäätös-hyväksytty-ehdoin-27102026)) · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
