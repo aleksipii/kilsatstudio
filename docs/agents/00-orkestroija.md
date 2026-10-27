@@ -413,6 +413,43 @@ lisäksi, että PR:n `git diff --name-only` pysyy yllä olevalla alueella.
 on A08:n puhelinkohtaus → KS-003a. A04:n (KS-003d) ja A07:n (KS-002e) G2-osuudet avataan
 erillisellä ORK-päätöksellä.
 
+## ORK-G2-02a — KS-003b katselmus: **hyväksytty** (27.10.2026)
+
+*Huom.:* kirjattu alun perin PR #121:ssä tunnuksella ORK-G2-02; nimetty ORK-G2-02a:ksi, koska ORK-G2-02 on G2-näytteen tarkistus.
+
+**Näyttö.** `spring`-moduuli PR #115 (`974ef76`) ja Dangle-sopimus PR #120 (merge `d9b88ae`,
+commitit `b0fa1c4` + `b517c39`) käyttäjän luvalla `main`issa. PR #120:n CI 12/12 läpi
+viimeisellä commitilla (media-encoding-jobin ensimmäinen ajo kaatui exit 124:ään ffmpegin
+apt-latauksen aikakatkaisuun, infra; `gh run rerun 40551418227 --failed` läpi, attempt 2).
+ORK:n pistokoe erillisessä `origin/main`-worktreessa (`d9b88ae`, oma `CARGO_TARGET_DIR`,
+macOS): `cargo test -p motion-animation` 49 läpi / 0 epäonnistui (yksikkötestit 22,
+`limb_attachment` 2, `spring` 25); `cargo test -p motion-rig` 32 läpi / 0;
+`cargo clippy -p motion-animation --all-targets` ei varoituksia; `cargo fmt --all --check` ok.
+Työtilan neljä tarkistusta ajoi A06 ennen yhdistämistä (968 läpi, 0 epäonnistui) ja CI;
+ORK ei ajanut koko työtilan testejä uudelleen.
+
+| Ehto | Tulos | Näyttö |
+| --- | --- | --- |
+| Tulokset äärellisiä koko parametrialueella | täyttyy (numeerisesti testattu) | `results_stay_finite_over_the_parameter_range`, jäykimmän jousen stabiilius |
+| Liike jatkuva ζ ≈ 1 ympärillä | täyttyy | yksi lauseke + Taylorin sarja, jatkuvuustesti `tests/spring.rs` |
+| `x(t)` riippumaton kyselyjärjestyksestä | täyttyy, bitilleen | kyselyjärjestys- ja aikahyppytestit; `ForcedSpring` välitallennus = askellus nollasta |
+| `cargo test -p motion-animation` ja työtilan tarkistukset | täyttyy | ORK:n pistokoe yllä; A06:n työtilan ajo; CI 12/12 |
+| Tarkistuslista (9 kohtaa) | täyttyy | kaikki rastit vastaavat koodia ja testejä; vapautus tavallisilla arvoilla (`ReleaseSample`) |
+| Dangle-sopimus A05:n kanssa | täyttyy | `dangle_joint`/`apply_dangle`/`DangleError`, `docs/physics-springs.md`; A05 hyväksyi ehdoin, ehto täytetty (`dangles_leave_ik_grip_and_held_prop_unchanged`) |
+| Tiedostoalue (ORK-G2-01) | täyttyy | #120: `spring.rs`, `lib.rs` vain uudelleenviennit, `tests/spring.rs`, `docs/physics-springs.md`, A06-tiedosto |
+| Ei uutta cratea, ei `motion-script`- tai `animato`-riippuvuutta | täyttyy | `lib.rs`/manifesti ennallaan |
+
+**Ei todennettu.** Jousien ja dangle-liikkeen visuaalista laatua ei ole arvioitu
+renderöidyssä kuvassa tai liikkeessä; testit ovat numeerisia ja rakenteellisia. EventLog →
+vapautuksen alkuarvot -kytkentä, IK-kohteen ratkaisu ja vanhemman liikkeestä johdettu
+jälkiliike ovat A04:n KS-003d:tä. Dangle-nivelten merkintätapa MotionScriptissä tai rigissä
+(A02/A05) ja säätimet (A09) puuttuvat. Nivelen tunnistus nimen perusteella on
+tarkoituksella konservatiivinen; rajalla puristettu jousi voi näkyä pysähtymisenä (A05:n
+kirjaama riski).
+
+**Vaikutus porttiin.** KS-003b `done`. G2 (KS-003) pysyy `running`: A08:n puhelinkohtaus,
+KS-003d (A04), KS-002e (A07) ja G2-näyte ovat auki.
+
 ## ORK-G1 (rinnakkainen kirjaus, PR #112) — Sopimusportti: **hyväksytty ehdoin** (27.10.2026)
 
 *Huom. (yhdistetty 27.10.2026):* sama porttipäätös kirjattiin rinnakkain PR:ssä #112 ja
@@ -599,8 +636,8 @@ muut tarkistukset 12/12 läpi. PR #118: 12/12 läpi.
 Käyttäjä antoi luvan yhdistää kaikki avoimet haarat ja tehdä työpöytäsovelluksen käyttövalmiiksi.
 
 **Yhdistetty.** PR #123 A10 vienti-QA (`c194e83`), PR #118 A09 käyttöliittymätasot
-(`a2ddf7f`) ja tämä ORK-dokumenttipino (#124, joka sisältää #119:n ja #122:n). PR:t #121 ja
-#108 sovitetaan mainiin ja yhdistetään tämän jälkeen. A09-tiedoston tilarivin ristiriita
+(`a2ddf7f`) ja tämä ORK-dokumenttipino (#124, joka sisältää #119:n ja #122:n). PR #121 (KS-003b-katselmus, nimetty ORK-G2-02a:ksi) ja
+PR #108 yhdistetään tämän jälkeen; #108:n sisältö (ORK-G1-A04) oli jo mainissa #111:n kautta, joten se yhdistetään mainin versioin ilman sisältömuutosta. A09-tiedoston tilarivin ristiriita
 ratkaistu (`e4428a1`).
 
 **ORK:n tarkistukset yhdistetyllä koodilla** (`main` `a2ddf7f` + tämä haara, vain
@@ -726,6 +763,22 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 - Estot ja riskit: KS-002e tarvitsee käyttäjän äänittämän puheen ja käyttöluvan. Levytila on
   tiukka (noin 5 Gt vapaana).
 - Seuraavaksi: A08 ja A07 rinnakkain, A04 heti perään; sen jälkeen ORK:n uusi G2-tarkistus.
+
+### ORK-G2-02a — KS-003b katselmus — 27.10.2026
+- Tila: done (KS-003b hyväksytty)
+- Omistaja: ORK
+- Tehty: katselmoitu KS-003b (PR #115 `974ef76` ja Dangle-sopimus PR #120 `d9b88ae`)
+  A06-tiedoston hyväksymisehtoja ja tarkistuslistaa vastaan; päätös ORK-G2-02a; rekisteri,
+  README:n A06-rivi ja `master-progress.md` päivitetty (haara `docs/ork-ks003b`, pinottu
+  PR #119:n päälle).
+- Tarkistettu: PR #120:n CI 12/12 (media-encoding uudelleenajon jälkeen); ORK:n pistokoe
+  `origin/main`illa: `cargo test -p motion-animation` 49/0, `cargo test -p motion-rig` 32/0,
+  clippy motion-animation ilman varoituksia, `cargo fmt --all --check` ok.
+- Tekemättä: visuaalinen laatuarvio renderöidyssä kuvassa; EventLog-kytkentä ja jälkiliike
+  (KS-003d); dangle-nivelten merkintä (A02/A05); säätimet (A09). A06-tiedoston tilarivi
+  näyttää yhä `review` (A06:n tiedosto, ei muutettu tässä).
+- Estot ja riskit: –. (PR #119 yhdistetty ennen tätä.)
+- Seuraavaksi: A04 KS-003d (riippuvuudet KS-003a ja KS-003b nyt hyväksytty), A08 puhelinkohtaus.
 
 ### ORK-G4-01 — 27.10.2026
 - Tila: running (G4 ei hyväksytty)
