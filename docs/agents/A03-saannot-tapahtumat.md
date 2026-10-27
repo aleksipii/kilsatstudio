@@ -1,6 +1,6 @@
 # A03 — Säännöt ja tapahtumat
 
-Tila: **review** (PR #106 yhdistetty `6ddfdcc`; EventLog `motion-script/src/event_log.rs`, ORK-G1-03) · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
+Tila: **done ehdoin** (PR #106 `6ddfdcc`, ORK-G1; EventLog `motion-script/src/event_log.rs`, ORK-G1-03) · KS-002f **ready**: `sample_rate` vain 24 000 Hz · Portti: G1 · Tehtävä: KS-002 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 

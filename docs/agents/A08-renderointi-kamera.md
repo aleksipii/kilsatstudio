@@ -1,6 +1,6 @@
 # A08 — Renderöinti, kamera ja taustat
 
-Tila: **todo** (G2; renderöintisopimus `motion-render`, ORK-G1-06) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
+Tila: **ready** (G2, ORK-G1; renderöintisopimus `motion-render`, ORK-G1-06) · Portti: G2 · Tehtävä: KS-003 · Lähtö: commit `496a8a4`
 
 ## Tavoite
 
