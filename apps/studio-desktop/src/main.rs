@@ -3835,8 +3835,8 @@ impl Studio {
         egui::TopBottomPanel::bottom("studio_timeline")
             .resizable(true)
             .default_height(245.0)
-            .min_height(150.0)
-            .max_height(480.0)
+            .min_height(110.0)
+            .max_height(720.0)
             .show(ctx, |ui| {
                 self.timeline_ui(ui);
             });
@@ -5580,7 +5580,13 @@ impl Studio {
         let mut commit_drag = None;
         let mut pause_drag = false;
         ui.add_space(4.0);
-        egui::ScrollArea::vertical().id_salt("actor_tracks").max_height((ui.available_height() - 26.0).max(60.0)).show(ui, |ui| {
+        // Reserve the audio section's height measured on the previous frame. Content
+        // taller than the panel would otherwise grow the resizable panel every frame.
+        let audio_height_id = ui.id().with("timeline_audio_height");
+        let audio_height = ui
+            .data(|data| data.get_temp::<f32>(audio_height_id))
+            .unwrap_or(26.0);
+        egui::ScrollArea::vertical().id_salt("actor_tracks").max_height((ui.available_height() - audio_height - 4.0).max(48.0)).show(ui, |ui| {
             let width = ui.available_width().max(180.0);
             let label_width = 112.0;
             let track_height = 82.0;
@@ -5700,11 +5706,20 @@ impl Studio {
         if let Some(time) = seek {
             self.seek_scene(time);
         }
+        let audio_top = ui.cursor().top();
+        let audio_max = (ui.available_height() - 24.0).max(40.0);
         egui::CollapsingHeader::new("Kohtauksen ääni ja yhdistetty aaltomuoto").show(ui, |ui| {
-            ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
-                self.scene_audio_ui(ui);
-            });
+            egui::ScrollArea::vertical()
+                .id_salt("timeline_audio_scroll")
+                .max_height(audio_max)
+                .show(ui, |ui| {
+                    ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                        self.scene_audio_ui(ui);
+                    });
+                });
         });
+        let used = (ui.min_rect().bottom() - audio_top).max(0.0);
+        ui.data_mut(|data| data.insert_temp(audio_height_id, used));
     }
 }
 const ACCENT: egui::Color32 = egui::Color32::from_rgb(111, 219, 178);
