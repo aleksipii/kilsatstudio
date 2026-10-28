@@ -7,6 +7,30 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## A10 export follow-ups — PR #126 merged (2026-10-28)
+
+Status: **merged** to `main` (`9342979`) with the user's explicit approval.
+
+Completed:
+- G2 regression hashes and the scene SHA-256 have one source,
+  `crates/motion-export/tests/support/g2.rs`, read by the test, the `g2_export` command
+  and the `Export QA` workflow. A scene change fails first on `G2_SCENE_SHA256`.
+- `g2_export` reports `model_policy_refused` read back from `ModelPolicy::permit`
+  (replaces a fixed field) and `sequence_matches_reference`.
+- Streaming MP4 export returns `Error::PartialOutput` when cleanup after a failure fails;
+  new unix test with a locking fake encoder.
+- Local re-measurement (iMac M1, macOS 27.0.1, loaded machine): SVG median 30.5 ms,
+  PNG median 1964.7 ms, `docs/evidence/g2-export/local-apple-m1-2026-10-28.json`.
+
+Checks: CI 13/13 on #126. Locally (macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok,
+`cargo check --workspace` ok, `cargo clippy --workspace --all-targets` 0 warnings,
+`cargo test --workspace` 986 passed, 0 failed, 9 ignored; sandboxed model-free SVG/PNG
+runs pass.
+
+Open: model-free run with imported WAV speech (A07 KS-002e, needs the user's recording);
+MP4 on a physical Mac (no FFmpeg); A10 status update (ORK); `sha2` row in
+`docs/a01-dependencies.md` (A01).
+
 ## ORK G4 evidence summary and merges — PRs #123, #118, #124 merged (2026-10-27)
 
 Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
