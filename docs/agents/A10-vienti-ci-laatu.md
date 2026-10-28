@@ -53,6 +53,9 @@ CI ja tulosraportti.
       60/120 FPS:stä tai 100 000 entiteetistä ilman mittausta.
 - [ ] Kokoa G4-raportti: testit, vertailukuvat, macOS-käynnistys, vienti, mittaukset.
       (Odottaa G3:a: A09:n käyttöliittymä ja puhelin G2-kohtauksessa, KS-003c.)
+- [x] ORK-LIB-01: asset-kirjaston CI-työnkulku `.github/workflows/asset-library.yml`
+      (kirjoitettu ja YAML/shell-syntaksi tarkistettu paikallisesti).
+- [ ] ORK-LIB-01: työnkulun ensimmäinen vihreä ajo macOS:llä (ajetaan vasta PR:ssä).
 
 ## Hyväksymisehdot
 
@@ -142,6 +145,45 @@ Tila `review`; ORK päättää hyväksynnästä.
   KS-002h:n `tests/support`-kellokopio (`SAMPLE_RATE`-vakio) on yhä erillinen vakio.
   Mallittoman polun ajo tuodulla puheella odottaa A07:n KS-002e:tä (käyttäjän äänite ja
   käyttölupa). Tilan päivitys PR #123:n yhdistämisen jälkeen kuuluu orkestroijalle.
+
+**A10 / ORK-LIB-01 (asset-kirjaston CI) — 28.10.2026**, haara `feat/asset-library`
+(pohja `main` `9342979`). Tila `review`; ORK commitoi ja päättää hyväksynnästä.
+
+- **Työnkulku** `.github/workflows/asset-library.yml` (`Asset library`), malli
+  `export-qa.yml`/`stick-studio-preview.yml`: `runs-on: macos-15`, `timeout-minutes: 30`,
+  `permissions: contents: read`, `concurrency` `asset-library-${{ github.ref }}` +
+  `cancel-in-progress`. Triggerit `pull_request`, `push` (`main`, `feat/asset-library`)
+  polkurajauksella (`crates/motion-library/**`, `crates/motion-art/**`,
+  `examples/stick-studio/library/**`, `examples/stick-studio/props/**`,
+  `scripts/generate_library_props.py`, `docs/asset-library.md`, `Cargo.toml`, `Cargo.lock`,
+  työnkulku itse) ja `workflow_dispatch`. Actionit samat kuin muissa: `actions/checkout@v4`,
+  `actions/setup-python@v5` (3.12), `dtolnay/rust-toolchain@stable` (`rustfmt, clippy`);
+  Rust-välimuistia ei käytetä, kuten muissakaan työnkuluissa.
+- **Vaiheet:** (1) `python3 scripts/generate_library_props.py`, sitten
+  `git status --porcelain --untracked-files=all -- examples/stick-studio/library`; ei-tyhjä
+  tulos (muutettu tai uusi jäljittämätön tiedosto) kaataa ajon ja tulostaa muutokset;
+  (2) `cargo fmt --all --check`; (3) `cargo clippy --locked -p motion-library --all-targets
+  -- -D warnings`; (4) `cargo test --locked -p motion-library`; (5) `cargo run --locked -p
+  motion-library --example validate_library -- examples/stick-studio --distribution`.
+- **Tarkistettu paikallisesti:** PyYAML puuttuu ja `actionlint` ei ole asennettu, joten YAML
+  jäsennettiin `ruby -ryaml` (`YAML.safe_load`): avaimet, haarat ja 8 vaihetta oikein.
+  Vaiheen 1 skripti `bash -n` ok. `git status --porcelain --untracked-files=all` havaitsi
+  worktreessä sekä muutetun (` M`) että jäljittämättömän (`??`) tiedoston.
+- **Jatko (ORK-pyyntö):** vaiheeseen 1 lisättiin props-generaattorin jälkeen A08:n
+  generaattori `cargo run --locked -p motion-library --example generate_stick_library --
+  examples/stick-studio` (kirjoittaa `library/{backgrounds,locations,sets}`); tarkistus
+  kattaa koko `examples/stick-studio/library`. Polkurajaukseen lisättiin
+  `examples/stick-studio/backgrounds/**` (taustat migroidaan niistä);
+  `crates/motion-library/examples/**` kuuluu jo `crates/motion-library/**`:n alle.
+  YAML jäsennetty uudelleen (`ruby -ryaml`), vaiheen 1 skripti `bash -n` ok.
+- **Paikallinen ajo (vaihe 1):** `python3 scripts/generate_library_props.py` (101 esinettä:
+  20 `rig_project`, 81 `art`; 0 vanhentunutta poistettu) ja `generate_stick_library`
+  (valmiiksi rakennettu dev-profiili). Sen jälkeen `git status --porcelain
+  --untracked-files=all -- examples/stick-studio/library` näytti vain 144 ORK:n
+  stagettamaa `A `-riviä, ei muutettuja eikä jäljittämättömiä tiedostoja, joten
+  generoidut tiedostot ovat ajan tasalla.
+- **Ei tarkistettu:** työnkulkua ei ole ajettu GitHubissa. Vaiheita 2–5 (fmt, clippy, test,
+  `validate_library`) ei ajettu paikallisesti, koska raskaat cargo-buildit oli rajattu pois.
 
 ## Tarkistukset
 
