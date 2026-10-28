@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "id": "prop.office.whiteboard_v1",
+  "kind": "prop",
+  "name": "Valkotaulu",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 380,
+    "height": 240
+  },
+  "depth": "mid",
+  "tags": [
+    "valkotaulu",
+    "whiteboard",
+    "taulu",
+    "board",
+    "toimisto",
+    "office",
+    "palaveri",
+    "meeting"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "frame",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 372,
+            "height": 212
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 376,
+              "y": 4
+            },
+            {
+              "x": 376,
+              "y": 216
+            },
+            {
+              "x": 4,
+              "y": 216
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "surface",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 14,
+            "width": 352,
+            "height": 192
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "surface_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 14
+            },
+            {
+              "x": 366,
+              "y": 14
+            },
+            {
+              "x": 366,
+              "y": 206
+            },
+            {
+              "x": 14,
+              "y": 206
+            },
+            {
+              "x": 14,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "chart_axis",
+        "paint": "blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 40
+            },
+            {
+              "x": 40,
+              "y": 170
+            },
+            {
+              "x": 200,
+              "y": 170
+            }
+          ],
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "chart_trend",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 48,
+              "y": 160
+            },
+            {
+              "x": 90,
+              "y": 130
+            },
+            {
+              "x": 130,
+              "y": 140
+            },
+            {
+              "x": 180,
+              "y": 70
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "note_0",
+        "paint": "blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 240,
+              "y": 60
+            },
+            {
+              "x": 330,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "note_1",
+        "paint": "blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 240,
+              "y": 90
+            },
+            {
+              "x": 310,
+              "y": 90
+            }
+          ],
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "note_2",
+        "paint": "blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 240,
+              "y": 120
+            },
+            {
+              "x": 320,
+              "y": 120
+            }
+          ],
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tray",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60,
+            "y": 216,
+            "width": 260,
+            "height": 10
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tray_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 216
+            },
+            {
+              "x": 320,
+              "y": 216
+            },
+            {
+              "x": 320,
+              "y": 226
+            },
+            {
+              "x": 60,
+              "y": 226
+            },
+            {
+              "x": 60,
+              "y": 216
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 14,
+        "y": 14,
+        "width": 352,
+        "height": 192
+      }
+    }
+  ]
+}

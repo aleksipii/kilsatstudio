@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.table_dining_v1",
+  "kind": "prop",
+  "name": "Ruokapöytä",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 280,
+    "height": 118
+  },
+  "depth": "mid",
+  "tags": [
+    "pöytä",
+    "table",
+    "ruokapöytä",
+    "dining_table",
+    "keittiö",
+    "kitchen",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "leg_0",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 28,
+            "width": 12,
+            "height": 88.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 28
+            },
+            {
+              "x": 30,
+              "y": 28
+            },
+            {
+              "x": 30,
+              "y": 116.5
+            },
+            {
+              "x": 18,
+              "y": 116.5
+            },
+            {
+              "x": 18,
+              "y": 28
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "leg_1",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 250,
+            "y": 28,
+            "width": 12,
+            "height": 88.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 250,
+              "y": 28
+            },
+            {
+              "x": 262,
+              "y": 28
+            },
+            {
+              "x": 262,
+              "y": 116.5
+            },
+            {
+              "x": 250,
+              "y": 116.5
+            },
+            {
+              "x": 250,
+              "y": 28
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "apron",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 16,
+            "width": 252,
+            "height": 14
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "apron_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 16
+            },
+            {
+              "x": 266,
+              "y": 16
+            },
+            {
+              "x": 266,
+              "y": 30
+            },
+            {
+              "x": 14,
+              "y": 30
+            },
+            {
+              "x": 14,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "top",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 272,
+            "height": 14
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 276,
+              "y": 4
+            },
+            {
+              "x": 276,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 140,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 118
+      },
+      "width": 280
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "prop.parcel.mystery_box_v1",
+  "kind": "prop",
+  "name": "Salaperäinen paketti",
+  "bounds": {
+    "x": 66.8,
+    "y": 125.466,
+    "width": 378.4,
+    "height": 283.068
+  },
+  "depth": "mid",
+  "tags": [
+    "paketti",
+    "parcel",
+    "laatikko",
+    "box",
+    "posti",
+    "mail"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/paketti.kilsat",
+    "sha256": "32858a10da61ba837704ecae19a9f94fa75e78c1712acdee1b82c5a83815f051"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 256,
+        "y": 267
+      }
+    },
+    {
+      "type": "ground",
+      "id": "base",
+      "at": {
+        "x": 66.8,
+        "y": 408.534
+      },
+      "width": 378.4
+    }
+  ]
+}

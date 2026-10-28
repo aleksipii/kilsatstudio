@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "prop.electronics.laptop_v1",
+  "kind": "prop",
+  "name": "Kannettava tietokone",
+  "bounds": {
+    "x": 55.411,
+    "y": 121.411,
+    "width": 401.178,
+    "height": 269.178
+  },
+  "depth": "mid",
+  "tags": [
+    "kannettava",
+    "laptop",
+    "tietokone",
+    "computer",
+    "näyttö",
+    "screen",
+    "toimisto",
+    "office"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/kannettava.kilsat",
+    "sha256": "c5a971f3b6091954b214248809e3e8c2301495583ff848ec3bea2083d9098e5d"
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 113.647,
+        "y": 144.706,
+        "width": 284.706,
+        "height": 176
+      }
+    },
+    {
+      "type": "ground",
+      "id": "base",
+      "at": {
+        "x": 55.411,
+        "y": 390.589
+      },
+      "width": 401.178
+    }
+  ]
+}

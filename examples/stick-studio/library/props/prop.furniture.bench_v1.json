@@ -1,0 +1,291 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.bench_v1",
+  "kind": "prop",
+  "name": "Penkki",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 240,
+    "height": 80
+  },
+  "depth": "mid",
+  "tags": [
+    "penkki",
+    "bench",
+    "puu",
+    "wood",
+    "huonekalu",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "leg_0",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 22,
+            "y": 16,
+            "width": 14,
+            "height": 62.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22,
+              "y": 16
+            },
+            {
+              "x": 36,
+              "y": 16
+            },
+            {
+              "x": 36,
+              "y": 78.5
+            },
+            {
+              "x": 22,
+              "y": 78.5
+            },
+            {
+              "x": 22,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "leg_1",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 204,
+            "y": 16,
+            "width": 14,
+            "height": 62.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 204,
+              "y": 16
+            },
+            {
+              "x": 218,
+              "y": 16
+            },
+            {
+              "x": 218,
+              "y": 78.5
+            },
+            {
+              "x": 204,
+              "y": 78.5
+            },
+            {
+              "x": 204,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "stretcher",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36,
+            "y": 50,
+            "width": 168,
+            "height": 8
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stretcher_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36,
+              "y": 50
+            },
+            {
+              "x": 204,
+              "y": 50
+            },
+            {
+              "x": 204,
+              "y": 58
+            },
+            {
+              "x": 36,
+              "y": 58
+            },
+            {
+              "x": 36,
+              "y": 50
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "plank",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 232,
+            "height": 14
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "plank_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 236,
+              "y": 4
+            },
+            {
+              "x": 236,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 120,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 80
+      },
+      "width": 240
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "prop.phone.smartphone_back_v1",
+  "kind": "prop",
+  "name": "Puhelin – takaosa",
+  "bounds": {
+    "x": -10,
+    "y": -54,
+    "width": 37.5,
+    "height": 68
+  },
+  "depth": "mid",
+  "tags": [
+    "puhelin",
+    "phone",
+    "älypuhelin",
+    "smartphone",
+    "takaosa",
+    "back",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/puhelin_takana.kilsat",
+    "sha256": "39c398167a79ab73180fa70389373f875f370edd57f4073d6fbf00423a716e39"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

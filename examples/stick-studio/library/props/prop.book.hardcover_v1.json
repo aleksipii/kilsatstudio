@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "prop.book.hardcover_v1",
+  "kind": "prop",
+  "name": "Kirja",
+  "bounds": {
+    "x": -9,
+    "y": -48,
+    "width": 45,
+    "height": 69
+  },
+  "depth": "mid",
+  "tags": [
+    "kirja",
+    "book",
+    "lukeminen",
+    "reading",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/kirja.kilsat",
+    "sha256": "93ac5a9fc1274f7306da8dde08ea857ec5491351be31668e7a14269d875b4e43"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

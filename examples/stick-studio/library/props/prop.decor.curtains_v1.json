@@ -1,0 +1,422 @@
+{
+  "schema_version": 1,
+  "id": "prop.decor.curtains_v1",
+  "kind": "prop",
+  "name": "Verhot",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 240,
+    "height": 300
+  },
+  "depth": "mid",
+  "tags": [
+    "verho",
+    "curtain",
+    "ikkuna",
+    "window",
+    "olohuone",
+    "living_room",
+    "decor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "fabric": {
+      "r": 126,
+      "g": 146,
+      "b": 150,
+      "a": 255
+    },
+    "fabric_dark": {
+      "r": 96,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "rod",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 10
+            },
+            {
+              "x": 236,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "panel_left",
+        "paint": "fabric",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 14,
+            "width": 70,
+            "height": 282
+          },
+          "color": {
+            "r": 126,
+            "g": 146,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 14
+            },
+            {
+              "x": 80,
+              "y": 14
+            },
+            {
+              "x": 80,
+              "y": 296
+            },
+            {
+              "x": 10,
+              "y": 296
+            },
+            {
+              "x": 10,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "fold_left_1",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 27.5,
+              "y": 22
+            },
+            {
+              "x": 27.5,
+              "y": 288
+            }
+          ],
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "fold_left_2",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 45,
+              "y": 22
+            },
+            {
+              "x": 45,
+              "y": 288
+            }
+          ],
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "fold_left_3",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 62.5,
+              "y": 22
+            },
+            {
+              "x": 62.5,
+              "y": 288
+            }
+          ],
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "tie_left",
+        "paint": "accent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 180
+            },
+            {
+              "x": 80,
+              "y": 180
+            }
+          ],
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "panel_right",
+        "paint": "fabric",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160,
+            "y": 14,
+            "width": 70,
+            "height": 282
+          },
+          "color": {
+            "r": 126,
+            "g": 146,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 160,
+              "y": 14
+            },
+            {
+              "x": 230,
+              "y": 14
+            },
+            {
+              "x": 230,
+              "y": 296
+            },
+            {
+              "x": 160,
+              "y": 296
+            },
+            {
+              "x": 160,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "fold_right_1",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 177.5,
+              "y": 22
+            },
+            {
+              "x": 177.5,
+              "y": 288
+            }
+          ],
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "fold_right_2",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 195,
+              "y": 22
+            },
+            {
+              "x": 195,
+              "y": 288
+            }
+          ],
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "fold_right_3",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 212.5,
+              "y": 22
+            },
+            {
+              "x": 212.5,
+              "y": 288
+            }
+          ],
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "tie_right",
+        "paint": "accent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 160,
+              "y": 180
+            },
+            {
+              "x": 230,
+              "y": 180
+            }
+          ],
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          },
+          "width": 6
+        }
+      }
+    ]
+  },
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "accent": {
+          "r": 157,
+          "g": 131,
+          "b": 91,
+          "a": 255
+        },
+        "fabric": {
+          "r": 98,
+          "g": 113,
+          "b": 128,
+          "a": 255
+        },
+        "fabric_dark": {
+          "r": 79,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        },
+        "metal_dark": {
+          "r": 85,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

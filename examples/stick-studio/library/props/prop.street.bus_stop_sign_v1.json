@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "prop.street.bus_stop_sign_v1",
+  "kind": "prop",
+  "name": "Yövuoron pysäkkimerkki",
+  "bounds": {
+    "x": 190,
+    "y": 53.111,
+    "width": 132,
+    "height": 403.334
+  },
+  "depth": "mid",
+  "tags": [
+    "liikennemerkki",
+    "traffic_sign",
+    "pysäkki",
+    "bus_stop",
+    "katu",
+    "street",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/liikennemerkki.kilsat",
+    "sha256": "cb84998db66e760d114d5b9109c1a4c5d96c8b15db62181f7a32e4cf2928acce"
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 190,
+        "y": 456.445
+      },
+      "width": 132
+    }
+  ]
+}

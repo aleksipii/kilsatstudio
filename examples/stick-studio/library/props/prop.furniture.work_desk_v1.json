@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.work_desk_v1",
+  "kind": "prop",
+  "name": "Työpöytä",
+  "bounds": {
+    "x": 47.846,
+    "y": 136.692,
+    "width": 416.308,
+    "height": 249.616
+  },
+  "depth": "mid",
+  "tags": [
+    "työpöytä",
+    "desk",
+    "pöytä",
+    "table",
+    "toimisto",
+    "office",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/tyopoyta.kilsat",
+    "sha256": "c9fab214c2e02180abeb3b093be0db3ae71da2cc232413074b06c32342da0d6d"
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 256,
+        "y": 143.462
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 47.846,
+        "y": 386.308
+      },
+      "width": 416.308
+    }
+  ]
+}

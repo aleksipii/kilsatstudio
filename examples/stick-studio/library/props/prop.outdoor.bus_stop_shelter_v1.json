@@ -1,0 +1,566 @@
+{
+  "schema_version": 1,
+  "id": "prop.outdoor.bus_stop_shelter_v1",
+  "kind": "prop",
+  "name": "Bussikatos",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 480,
+    "height": 420
+  },
+  "depth": "mid",
+  "tags": [
+    "bussikatos",
+    "bus_stop",
+    "pysäkki",
+    "katos",
+    "shelter",
+    "katu",
+    "street",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "glass_clear": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 150
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "back_glass",
+        "paint": "glass_clear",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 50,
+            "width": 420,
+            "height": 300
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "back_glass_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 50
+            },
+            {
+              "x": 450,
+              "y": 50
+            },
+            {
+              "x": 450,
+              "y": 350
+            },
+            {
+              "x": 30,
+              "y": 350
+            },
+            {
+              "x": 30,
+              "y": 50
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "ad_panel",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330,
+            "y": 80,
+            "width": 100,
+            "height": 160
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ad_panel_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 80
+            },
+            {
+              "x": 430,
+              "y": 80
+            },
+            {
+              "x": 430,
+              "y": 240
+            },
+            {
+              "x": 330,
+              "y": 240
+            },
+            {
+              "x": 330,
+              "y": 80
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "ad_picture",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 342,
+            "y": 96,
+            "width": 76,
+            "height": 70
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ad_picture_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 342,
+              "y": 96
+            },
+            {
+              "x": 418,
+              "y": 96
+            },
+            {
+              "x": 418,
+              "y": 166
+            },
+            {
+              "x": 342,
+              "y": 166
+            },
+            {
+              "x": 342,
+              "y": 96
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "post_left",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26,
+              "y": 30
+            },
+            {
+              "x": 26,
+              "y": 416
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "post_right",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 454,
+              "y": 30
+            },
+            {
+              "x": 454,
+              "y": 416
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "roof",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 14,
+            "width": 472,
+            "height": 24
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 14
+            },
+            {
+              "x": 476,
+              "y": 14
+            },
+            {
+              "x": 476,
+              "y": 38
+            },
+            {
+              "x": 4,
+              "y": 38
+            },
+            {
+              "x": 4,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "bench",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 80,
+            "y": 316,
+            "width": 220,
+            "height": 12
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 316
+            },
+            {
+              "x": 300,
+              "y": 316
+            },
+            {
+              "x": 300,
+              "y": 328
+            },
+            {
+              "x": 80,
+              "y": 328
+            },
+            {
+              "x": 80,
+              "y": 316
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "bench_leg_left",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100,
+              "y": 328
+            },
+            {
+              "x": 100,
+              "y": 417
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "bench_leg_right",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 280,
+              "y": 328
+            },
+            {
+              "x": 280,
+              "y": 417
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "sign",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 60,
+            "width": 60,
+            "height": 24
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 60
+            },
+            {
+              "x": 100,
+              "y": 60
+            },
+            {
+              "x": 100,
+              "y": 84
+            },
+            {
+              "x": 40,
+              "y": 84
+            },
+            {
+              "x": 40,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 190,
+        "y": 316
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 420
+      },
+      "width": 480
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "accent": {
+          "r": 157,
+          "g": 131,
+          "b": 91,
+          "a": 255
+        },
+        "blue": {
+          "r": 78,
+          "g": 113,
+          "b": 143,
+          "a": 255
+        },
+        "glass_clear": {
+          "r": 138,
+          "g": 155,
+          "b": 170,
+          "a": 150
+        },
+        "metal_dark": {
+          "r": 85,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        },
+        "paper": {
+          "r": 174,
+          "g": 176,
+          "b": 183,
+          "a": 255
+        },
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

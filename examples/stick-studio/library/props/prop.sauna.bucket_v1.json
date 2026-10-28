@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "id": "prop.sauna.bucket_v1",
+  "kind": "prop",
+  "name": "Kiulu",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 72,
+    "height": 76
+  },
+  "depth": "mid",
+  "tags": [
+    "kiulu",
+    "sauna_bucket",
+    "sauna",
+    "puu",
+    "wood",
+    "suomi",
+    "finland"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "wood": {
+      "r": 206,
+      "g": 168,
+      "b": 120,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "handle",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 34
+            },
+            {
+              "x": 14,
+              "y": 8
+            },
+            {
+              "x": 58,
+              "y": 8
+            },
+            {
+              "x": 58,
+              "y": 34
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "bucket",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 30,
+            "width": 52,
+            "height": 44.5
+          },
+          "color": {
+            "r": 206,
+            "g": 168,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bucket_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 30
+            },
+            {
+              "x": 62,
+              "y": 30
+            },
+            {
+              "x": 62,
+              "y": 74.5
+            },
+            {
+              "x": 10,
+              "y": 74.5
+            },
+            {
+              "x": 10,
+              "y": 30
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "stave_1",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 23,
+              "y": 32
+            },
+            {
+              "x": 23,
+              "y": 72.5
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      },
+      {
+        "id": "stave_2",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36,
+              "y": 32
+            },
+            {
+              "x": 36,
+              "y": 72.5
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      },
+      {
+        "id": "stave_3",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 49,
+              "y": 32
+            },
+            {
+              "x": 49,
+              "y": 72.5
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      },
+      {
+        "id": "band_top",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 40
+            },
+            {
+              "x": 62,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "band_bottom",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 64
+            },
+            {
+              "x": 62,
+              "y": 64
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 36,
+        "y": 8
+      }
+    },
+    {
+      "type": "ground",
+      "id": "base",
+      "at": {
+        "x": 0,
+        "y": 76
+      },
+      "width": 72
+    }
+  ]
+}

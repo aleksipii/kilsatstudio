@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.meeting_chair_v1",
+  "kind": "prop",
+  "name": "Palaverituoli",
+  "bounds": {
+    "x": 130.285,
+    "y": 61.142,
+    "width": 251.43,
+    "height": 399.773
+  },
+  "depth": "mid",
+  "tags": [
+    "tuoli",
+    "chair",
+    "palaveri",
+    "meeting",
+    "toimisto",
+    "office",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/toimistotuoli.kilsat",
+    "sha256": "0fda90e078634faf0c0dedfd1db469502966e413d8636ad5105b08d38f152faf"
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 256,
+        "y": 289.943
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 130.285,
+        "y": 460.915
+      },
+      "width": 251.43
+    }
+  ]
+}

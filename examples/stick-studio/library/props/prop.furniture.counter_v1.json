@@ -1,0 +1,486 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.counter_v1",
+  "kind": "prop",
+  "name": "Keittiötaso",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 280,
+    "height": 145
+  },
+  "depth": "mid",
+  "tags": [
+    "työtaso",
+    "counter",
+    "keittiö",
+    "kitchen",
+    "kaappi",
+    "cabinet",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 18,
+            "width": 264,
+            "height": 112
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 18
+            },
+            {
+              "x": 272,
+              "y": 18
+            },
+            {
+              "x": 272,
+              "y": 130
+            },
+            {
+              "x": 8,
+              "y": 130
+            },
+            {
+              "x": 8,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "door_0",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 26,
+            "width": 78,
+            "height": 98
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 26
+            },
+            {
+              "x": 94,
+              "y": 26
+            },
+            {
+              "x": 94,
+              "y": 124
+            },
+            {
+              "x": 16,
+              "y": 124
+            },
+            {
+              "x": 16,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_0",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 45,
+              "y": 36
+            },
+            {
+              "x": 65,
+              "y": 36
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "door_1",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 102,
+            "y": 26,
+            "width": 78,
+            "height": 98
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 102,
+              "y": 26
+            },
+            {
+              "x": 180,
+              "y": 26
+            },
+            {
+              "x": 180,
+              "y": 124
+            },
+            {
+              "x": 102,
+              "y": 124
+            },
+            {
+              "x": 102,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_1",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 131,
+              "y": 36
+            },
+            {
+              "x": 151,
+              "y": 36
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "door_2",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 188,
+            "y": 26,
+            "width": 78,
+            "height": 98
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 188,
+              "y": 26
+            },
+            {
+              "x": 266,
+              "y": 26
+            },
+            {
+              "x": 266,
+              "y": 124
+            },
+            {
+              "x": 188,
+              "y": 124
+            },
+            {
+              "x": 188,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_2",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 217,
+              "y": 36
+            },
+            {
+              "x": 237,
+              "y": 36
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "kick",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 130,
+            "width": 252,
+            "height": 13.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "kick_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 130
+            },
+            {
+              "x": 266,
+              "y": 130
+            },
+            {
+              "x": 266,
+              "y": 143.5
+            },
+            {
+              "x": 14,
+              "y": 143.5
+            },
+            {
+              "x": 14,
+              "y": 130
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "top",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 2,
+            "y": 4,
+            "width": 276,
+            "height": 14
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 2,
+              "y": 4
+            },
+            {
+              "x": 278,
+              "y": 4
+            },
+            {
+              "x": 278,
+              "y": 18
+            },
+            {
+              "x": 2,
+              "y": 18
+            },
+            {
+              "x": 2,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 140,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 145
+      },
+      "width": 280
+    }
+  ]
+}

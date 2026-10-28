@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "prop.office.pen_v1",
+  "kind": "prop",
+  "name": "Kynä",
+  "bounds": {
+    "x": -2.8,
+    "y": -48.8,
+    "width": 7.8,
+    "height": 81.8
+  },
+  "depth": "mid",
+  "tags": [
+    "kynä",
+    "pen",
+    "kirjoitus",
+    "writing",
+    "toimisto",
+    "office",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/kyna.kilsat",
+    "sha256": "b47c286888369ff7bd0289bbe176cdf9e8f5638b78c41f8615bce80d8817e69c"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

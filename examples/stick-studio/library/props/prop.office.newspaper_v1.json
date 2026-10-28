@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "id": "prop.office.newspaper_v1",
+  "kind": "prop",
+  "name": "Sanomalehti",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 76,
+    "height": 96
+  },
+  "depth": "mid",
+  "tags": [
+    "sanomalehti",
+    "newspaper",
+    "lehti",
+    "paper",
+    "uutiset",
+    "news"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sheet",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 68,
+            "height": 88
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sheet_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 72,
+              "y": 4
+            },
+            {
+              "x": 72,
+              "y": 92
+            },
+            {
+              "x": 4,
+              "y": 92
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "masthead",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 10,
+            "width": 56,
+            "height": 12
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "photo",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 28,
+            "width": 26,
+            "height": 22
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "photo_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 28
+            },
+            {
+              "x": 36,
+              "y": 28
+            },
+            {
+              "x": 36,
+              "y": 50
+            },
+            {
+              "x": 10,
+              "y": 50
+            },
+            {
+              "x": 10,
+              "y": 28
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "col_0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 30
+            },
+            {
+              "x": 66,
+              "y": 30
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "col_1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 39
+            },
+            {
+              "x": 66,
+              "y": 39
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "col_2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 48
+            },
+            {
+              "x": 66,
+              "y": 48
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "col_3",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 57
+            },
+            {
+              "x": 66,
+              "y": 57
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "col_4",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 66
+            },
+            {
+              "x": 66,
+              "y": 66
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "col_5",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 75
+            },
+            {
+              "x": 66,
+              "y": 75
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "body_0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 60
+            },
+            {
+              "x": 66,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "body_1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 69
+            },
+            {
+              "x": 66,
+              "y": 69
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "body_2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 78
+            },
+            {
+              "x": 66,
+              "y": 78
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "fold",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 4
+            },
+            {
+              "x": 38,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 10,
+        "y": 48
+      }
+    }
+  ]
+}

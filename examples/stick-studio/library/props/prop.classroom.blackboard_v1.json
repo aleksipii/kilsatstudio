@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "id": "prop.classroom.blackboard_v1",
+  "kind": "prop",
+  "name": "Liitutaulu",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 420,
+    "height": 280
+  },
+  "depth": "mid",
+  "tags": [
+    "liitutaulu",
+    "blackboard",
+    "taulu",
+    "board",
+    "luokka",
+    "classroom",
+    "koulu",
+    "school"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "board": {
+      "r": 66,
+      "g": 90,
+      "b": 80,
+      "a": 255
+    },
+    "chalk": {
+      "r": 232,
+      "g": 232,
+      "b": 220,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "frame",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 412,
+            "height": 252
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 416,
+              "y": 4
+            },
+            {
+              "x": 416,
+              "y": 256
+            },
+            {
+              "x": 4,
+              "y": 256
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "board",
+        "paint": "board",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 14,
+            "width": 392,
+            "height": 232
+          },
+          "color": {
+            "r": 66,
+            "g": 90,
+            "b": 80,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "board_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 14
+            },
+            {
+              "x": 406,
+              "y": 14
+            },
+            {
+              "x": 406,
+              "y": 246
+            },
+            {
+              "x": 14,
+              "y": 246
+            },
+            {
+              "x": 14,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "chalk_line_0",
+        "paint": "chalk",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 50
+            },
+            {
+              "x": 180,
+              "y": 50
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 232,
+            "b": 220,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "chalk_line_1",
+        "paint": "chalk",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 80
+            },
+            {
+              "x": 150,
+              "y": 80
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 232,
+            "b": 220,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "chalk_sum",
+        "paint": "chalk",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 120
+            },
+            {
+              "x": 60,
+              "y": 140
+            },
+            {
+              "x": 40,
+              "y": 160
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 232,
+            "b": 220,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "chalk_box",
+        "paint": "chalk",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 260,
+              "y": 60
+            },
+            {
+              "x": 360,
+              "y": 60
+            },
+            {
+              "x": 360,
+              "y": 150
+            },
+            {
+              "x": 260,
+              "y": 150
+            },
+            {
+              "x": 260,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 232,
+            "b": 220,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tray",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 256,
+            "width": 340,
+            "height": 10
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tray_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 256
+            },
+            {
+              "x": 380,
+              "y": 256
+            },
+            {
+              "x": 380,
+              "y": 266
+            },
+            {
+              "x": 40,
+              "y": 266
+            },
+            {
+              "x": 40,
+              "y": 256
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "chalk",
+        "paint": "chalk",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300,
+            "y": 250,
+            "width": 20,
+            "height": 6
+          },
+          "color": {
+            "r": 232,
+            "g": 232,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "chalk_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 300,
+              "y": 250
+            },
+            {
+              "x": 320,
+              "y": 250
+            },
+            {
+              "x": 320,
+              "y": 256
+            },
+            {
+              "x": 300,
+              "y": 256
+            },
+            {
+              "x": 300,
+              "y": 250
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 14,
+        "y": 14,
+        "width": 392,
+        "height": 232
+      }
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "board": {
+          "r": 61,
+          "g": 79,
+          "b": 85,
+          "a": 255
+        },
+        "chalk": {
+          "r": 164,
+          "g": 167,
+          "b": 171,
+          "a": 255
+        },
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

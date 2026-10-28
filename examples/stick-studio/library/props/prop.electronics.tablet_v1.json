@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "id": "prop.electronics.tablet_v1",
+  "kind": "prop",
+  "name": "Tabletti",
+  "bounds": {
+    "x": -11,
+    "y": -58,
+    "width": 54,
+    "height": 75
+  },
+  "depth": "mid",
+  "tags": [
+    "tabletti",
+    "tablet",
+    "näyttö",
+    "screen",
+    "käsiesine",
+    "hand_prop",
+    "electronics"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/tabletti.kilsat",
+    "sha256": "b1e72e1fcaa10d23c9ee88f6d941ceedd7b8d46ef7426b372ce1983b5930868f"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": -6,
+        "y": -49,
+        "width": 44,
+        "height": 56
+      }
+    }
+  ]
+}

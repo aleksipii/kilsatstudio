@@ -1,0 +1,366 @@
+{
+  "schema_version": 1,
+  "id": "prop.office.printer_v1",
+  "kind": "prop",
+  "name": "Tulostin",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 150,
+    "height": 90
+  },
+  "depth": "mid",
+  "tags": [
+    "tulostin",
+    "printer",
+    "toimisto",
+    "office",
+    "paperi",
+    "paper"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "paper_out",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 4,
+            "width": 90,
+            "height": 18
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "paper_out_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 4
+            },
+            {
+              "x": 120,
+              "y": 4
+            },
+            {
+              "x": 120,
+              "y": 22
+            },
+            {
+              "x": 30,
+              "y": 22
+            },
+            {
+              "x": 30,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "body",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 18,
+            "width": 138,
+            "height": 56
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 18
+            },
+            {
+              "x": 144,
+              "y": 18
+            },
+            {
+              "x": 144,
+              "y": 74
+            },
+            {
+              "x": 6,
+              "y": 74
+            },
+            {
+              "x": 6,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tray",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 56,
+            "width": 110,
+            "height": 10
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tray_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 56
+            },
+            {
+              "x": 130,
+              "y": 56
+            },
+            {
+              "x": 130,
+              "y": 66
+            },
+            {
+              "x": 20,
+              "y": 66
+            },
+            {
+              "x": 20,
+              "y": 56
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "panel",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 108,
+            "y": 26,
+            "width": 28,
+            "height": 18
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 108,
+              "y": 26
+            },
+            {
+              "x": 136,
+              "y": 26
+            },
+            {
+              "x": 136,
+              "y": 44
+            },
+            {
+              "x": 108,
+              "y": 44
+            },
+            {
+              "x": 108,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "foot",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12,
+            "y": 74,
+            "width": 126,
+            "height": 14.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 74
+            },
+            {
+              "x": 138,
+              "y": 74
+            },
+            {
+              "x": 138,
+              "y": 88.5
+            },
+            {
+              "x": 12,
+              "y": 88.5
+            },
+            {
+              "x": 12,
+              "y": 74
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "panel",
+      "rect": {
+        "x": 108,
+        "y": 26,
+        "width": 28,
+        "height": 18
+      }
+    },
+    {
+      "type": "ground",
+      "id": "base",
+      "at": {
+        "x": 0,
+        "y": 90
+      },
+      "width": 150
+    }
+  ]
+}

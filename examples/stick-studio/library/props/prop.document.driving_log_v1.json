@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "prop.document.driving_log_v1",
+  "kind": "prop",
+  "name": "Ajopäiväkirja",
+  "bounds": {
+    "x": 94.903,
+    "y": 67.225,
+    "width": 307.291,
+    "height": 394.582
+  },
+  "depth": "mid",
+  "tags": [
+    "ajopäiväkirja",
+    "logbook",
+    "kirja",
+    "book",
+    "paperi",
+    "paper",
+    "auto",
+    "car"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/ajopaivakirja.kilsat",
+    "sha256": "224a72d82b1aa7c71d97a54b4467a18ae7759bf194cecfd3e7199f186c9931f2"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 142.452,
+        "y": 256.71
+      }
+    }
+  ]
+}
