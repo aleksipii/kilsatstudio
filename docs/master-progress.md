@@ -7,6 +7,53 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Phone and tablet screen slots — PR #130 merged (2026-10-28)
+
+Status: **merged** to `main` (`2ddd16f`, merged by aleksipii 2026-10-28T09:09:46Z,
+before the orchestrator review). Post-merge ORK review: **changes requested as
+follow-ups** ([comment](https://github.com/aleksipii/kilsatstudio/pull/130#issuecomment-6467734702)).
+The feature is not `done`: two CI jobs fail because of this PR.
+
+Completed (implementation, inspected):
+- `motion-rig` (A05): `RigDefinition.screens` named screen slots (glass part, parallelogram,
+  overlay parts), `TextureFit` cover/contain/stretch on `EvaluatedTexture`, catalog slots
+  `phone`/`tablet`, attach/detach copies or removes the slot, and duplicate slot names are refused.
+- `motion-render` (A08): SVG and GPU texture paths share `EvaluatedTexture::placement`.
+- `motion-script` (A02): `composition.screens` cues (off/image/sequence/video, fit, trim,
+  speed, loop, taps), validation errors, `tap_times()`. The new fields are `serde(default)`,
+  so older projects load unchanged.
+- `motion-scene` (A04): cues are applied as a pure function of scene time on the same joint
+  transforms.
+- `motion-export`/`motion-project` (A10): asset preflight, `screen_video` FFmpeg PNG frame
+  cache (content-addressed, bounded, cancellable, timeout, atomic rename), P3→BT.709 filter,
+  HDR rejected; CI workflow `screen-video.yml` (macOS arm64).
+
+Checks actually seen: on head `cc16d49`, CI had 12 jobs pass (`rust` macOS/Ubuntu,
+`gpu-contracts`, `media-encoding`, `g2-export-macos`, `apple-silicon-preview`) and **2 fail**:
+- `screen-slots-macos`: `real_ffmpeg_screen_video_decodes_proxy_and_converts_p3` fails at
+  `crates/motion-export/src/screen_video.rs:571`. With FFmpeg 9.0.1, the synthetic
+  `smpte432` clip probes as `Bt709`. The P3 conversion is therefore **not yet verified**
+  with real FFmpeg.
+- `real-asset-pack`: `examples/stick-studio/manifest.json:63` `hand_props_sha256` is stale
+  after the `hand-props.json` change. Local regeneration changes it `9b1843d9…` →
+  `d016de0e…`. The missing-zip error is a consequence of this failure.
+
+On `main` from `2ddd16f` onward, both workflows fail or were cancelled. The PR reports local
+fmt, clippy 0 warnings and `cargo test --workspace` 1003/0/10 (ORK did not re-run these).
+
+Open (owner):
+- P3 test clip tagging → CI green (A10, `fix/screen-video-p3-test`).
+- Regenerate stick studio manifest (A10).
+- Desktop: screen-cue editor, video import, background decode scheduling and frame
+  loading by time (A09; cache interface A10).
+- Streaming per-frame loading in export with a memory budget (A10).
+- `tap_times` driving finger motion in auto direction (A02 + A05).
+- Screen brightness and glow in dark scenes (A08).
+- P3 on a real iPhone recording (A10; needs the user's recording).
+- `smpte431` and untagged-source handling (A10).
+- `holds: phone` shorthand (A02; deferred by ORK).
+- Seek and frame-by-frame equivalence with screens in the G2 scene (A04, KS-003d).
+
 ## A10 export follow-ups — PR #126 merged (2026-10-28)
 
 Status: **merged** to `main` (`9342979`) with the user's explicit approval.
