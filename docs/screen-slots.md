@@ -179,7 +179,7 @@ and render with `production_export --retime-dialogue` (see the example README).
 ## Open work
 
 - Desktop (done in `apps/studio-desktop`, `screen_cues.rs` and
-  `screen_video_worker.rs`): screen-cue editor (add/edit/remove, inline
+  `screen_video_worker.rs`): screen-cue editor (add/edit/remove, brightness and glow, inline
   validation, undo), video import into `assets/screens/` with ffprobe, and a
   bounded background proxy decode feeding the preview's
   `ArtContext.screen_videos`. Not exercised by hand in the GUI yet. Still open:

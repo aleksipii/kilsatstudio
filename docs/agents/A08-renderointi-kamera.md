@@ -89,6 +89,19 @@ Odotettu: renderöintisopimus, rajaussäännöt, testikohtaus, vertailukuvat has
 
 ### Toteutunut lopputulema
 
+### Näytön kirkkaus ja hehku + KS-003d (A08/A04) — 29.10.2026, haara `feat/screen-glow-seek`
+- Tehty: `ScreenCue.brightness`/`glow`/`glow_radius` (oletukset, validointi, serde-ohitus),
+  `motion-rig` `ScreenLight` → `EvaluatedTexture::{brightness, glow}`; SVG-renderöijä ja
+  GPU-komentorakentaja piirtävät samat luvut, `off`-näyttö ei hehku. KS-003d:
+  `crates/motion-render/tests/g2_screen_seek.rs` — G2-kohtaus näyttövihjeillä, aikahyppy ≡
+  ruuduittainen toisto sekunti- ja 24 kHz -kellolla.
+- Tarkistettu: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked`,
+  `cargo test --workspace --locked` mainin (#137) kanssa yhdistettynä — luvut PR:ssä.
+  GPU-kattavuusfixture mitattu Metalilla agentin ajossa.
+- Työpöytä: A09:n näyttövihje-editori (#137) muokkaa nyt kirkkautta, hehkua ja hehkun sädettä;
+  `off`-vihjeeltä ne pudotetaan (yksikkötesti `screen_cues.rs`). Ei kokeiltu käsin GUI:ssa.
+- Tekemättä: hehku ei valaise hahmoa (piirretään hahmon taakse); havainnollinen taidekatselmointi.
+
 ### ORK-LIB-01 (A08) — 28.10.2026, haara `feat/asset-library`
 - Tila: review (ei commitoitu; ORK commitoi)
 - Tehty: uusi crate `crates/motion-library` (`manifest`, `library`, `store`, `assemble`,
