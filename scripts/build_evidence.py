@@ -141,15 +141,15 @@ def collect(archive, audit_path, lock_path, desktop_path, helper_path,
     observations = object_value(json.loads(observations_bytes), 'native observations')
     # The package inventory uses a fixed executable boundary. Do not infer
     # additional executables from caller-controlled tool text.
-    required = ['Kilsat Studio Preview.app/Contents/MacOS/studio-desktop',
-                'Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe']
+    required = ['Kilsat Studio.app/Contents/MacOS/studio-desktop',
+                'Kilsat Studio.app/Contents/Resources/bin/gpu_probe']
     rows = object_rows(audit.get('files'), 'audit files', 4096)
     if not all(isinstance(row.get('path'), str) for row in rows):
         raise ValueError('audit file paths must be strings')
     files = {f['path']: f for f in rows}
     if len(files) != len(rows):
         raise ValueError('duplicate audit file path')
-    head_pose = 'Kilsat Studio Preview.app/Contents/Resources/bin/head_pose'
+    head_pose = 'Kilsat Studio.app/Contents/Resources/bin/head_pose'
     if head_pose in files:
         required.append(head_pose)
     if set(observations) != set(required) or not all(p in files for p in required):

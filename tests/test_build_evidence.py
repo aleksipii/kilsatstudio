@@ -35,8 +35,8 @@ checksum = "abc"
 ''')
         self.put('rustc', b'rustc 1.90.0\nhost: aarch64-apple-darwin\n')
         self.put('cargo', b'cargo 1.90.0\n')
-        self.members = ['Kilsat Studio Preview.app/Contents/MacOS/studio-desktop',
-                        'Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe']
+        self.members = ['Kilsat Studio.app/Contents/MacOS/studio-desktop',
+                        'Kilsat Studio.app/Contents/Resources/bin/gpu_probe']
         with zipfile.ZipFile(self.paths['archive'], 'w') as archive:
             for path in self.members:
                 archive.writestr(path, b'fixture final executable')
@@ -97,7 +97,7 @@ checksum = "abc"
             self.collect()
 
     def test_head_helper_requires_separate_hash_bound_observations(self):
-        path = 'Kilsat Studio Preview.app/Contents/Resources/bin/head_pose'
+        path = 'Kilsat Studio.app/Contents/Resources/bin/head_pose'
         data = b'fixture head executable'
         with zipfile.ZipFile(self.paths['archive'], 'a') as archive:
             archive.writestr(path, data)

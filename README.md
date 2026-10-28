@@ -93,6 +93,12 @@ sets the joint, grip, background and framing review criteria. The
 prioritizes an asset browser/recovery, visual animation/contact tools and
 integrated sound editing with measured speech quality.
 
+**Kilsat Studio 1.0** (Apple Silicon, macOS 13+) is built by
+`scripts/build_release_app.sh` and the
+[release app workflow](https://github.com/aleksipii/kilsatstudio/actions/workflows/macos-release-app.yml);
+see [Kilsat Studio 1.0](docs/release-1.0.md). The package is ad-hoc signed;
+Developer ID signing and notarization are a separate explicit step.
+
 Preview builds for Apple Silicon, macOS 13+, are available from the
 [macOS practical preview workflow](https://github.com/aleksipii/kilsatstudio/actions/workflows/macos-preview.yml).
 See the [practical test guide](docs/practical-testing.md) for download and launch
