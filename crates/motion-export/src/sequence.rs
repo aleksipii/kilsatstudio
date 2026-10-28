@@ -60,7 +60,7 @@ fn scene_svg(
             &mouths,
             &script.scenes[index].id,
             &a.document,
-            &a.images,
+            &*a.images_at(&script.scenes[index], time)?,
         ),
         None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
     }
@@ -263,7 +263,7 @@ pub(super) fn preflight(
     for (index, scene) in rendered.iter().enumerate() {
         validate_mode(script, index, scene, export)?;
     }
-    rig_texture_preflight(script, art.map(|a| &a.images))?;
+    art_preflight(script, art)?;
     if let Some(a) = art {
         a.document.validate().map_err(|e| invalid(e.to_string()))?;
         working =
@@ -370,6 +370,9 @@ pub(super) fn preflight(
             // contributions, namespacing replacement and nested group copies.
             // Allocator overhead/vector text remain estimates, not a heap cap.
             .and_then(|n| embedded.checked_mul(6).and_then(|p| n.checked_add(p)))
+            // One streamed frame per screen video: decoded RGBA, its PNG and
+            // the base64 copy embedded in the frame's SVG.
+            .and_then(|n| a.screen_frame_bytes().ok()?.checked_mul(3)?.checked_add(n))
             .ok_or_else(|| invalid("art working-set overflow"))?;
         if working > MAX_BYTES {
             return Err(invalid("sequence artwork working set exceeds 256 MiB"));

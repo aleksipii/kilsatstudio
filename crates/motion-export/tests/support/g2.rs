@@ -97,6 +97,7 @@ pub fn load(path: &Path) -> Result<G2, Box<dyn Error>> {
         art: ArtContext {
             document: project.art,
             images: BTreeMap::new(),
+            screen_videos: Default::default(),
         },
         rendered: prepared.rendered,
         refused_steps,

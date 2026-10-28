@@ -59,6 +59,49 @@ pub use streaming::{
 pub struct ArtContext {
     pub document: motion_art::Document,
     pub images: BTreeMap<String, motion_art::ImageResource>,
+    /// Decoded screen-video frame caches keyed by the cue's asset id. Frames
+    /// are read from disk only for the exported frame that shows them, so a
+    /// long recording never has to fit in memory.
+    pub screen_videos: BTreeMap<String, screen_video::DecodedScreenVideo>,
+}
+
+impl ArtContext {
+    /// The images one frame of `scene` needs at `time`: the shared map plus
+    /// any decoded screen-video frames it shows that are not already loaded.
+    pub fn images_at(
+        &self,
+        scene: &motion_script::Scene,
+        time: f64,
+    ) -> Result<std::borrow::Cow<'_, BTreeMap<String, motion_art::ImageResource>>, Error> {
+        let missing: Vec<_> = scene
+            .composition
+            .video_frames_at(time)
+            .into_iter()
+            .filter(|(asset, index)| {
+                self.screen_videos.contains_key(*asset)
+                    && !self
+                        .images
+                        .contains_key(&motion_script::video_frame_asset(asset, *index))
+            })
+            .collect();
+        if missing.is_empty() {
+            return Ok(std::borrow::Cow::Borrowed(&self.images));
+        }
+        let mut images = self.images.clone();
+        for (asset, index) in missing {
+            let (id, image) = self.screen_videos[asset].load_frame(asset, index)?;
+            images.insert(id, image);
+        }
+        Ok(std::borrow::Cow::Owned(images))
+    }
+
+    /// Largest decoded frame (RGBA bytes) any screen video can add per frame.
+    fn screen_frame_bytes(&self) -> Result<u64, Error> {
+        self.screen_videos.values().try_fold(0u64, |total, video| {
+            let (w, h) = screen_video::png_size(&video.frame_path(0))?;
+            Ok(total.saturating_add(u64::from(w) * u64::from(h) * 4))
+        })
+    }
 }
 
 pub const MAX_FRAMES: u64 = 10_000;
@@ -68,9 +111,28 @@ const MAX_DIALOGUE: usize = 10_000;
 
 /// Every custom-rig texture must have a decoded project image, and their
 /// embedded PNG bytes per frame stay within the shared artwork image limit.
+#[cfg(test)]
 fn rig_texture_preflight(
     script: &Script,
     images: Option<&BTreeMap<String, motion_art::ImageResource>>,
+) -> Result<(), Error> {
+    screen_preflight(script, images, None)
+}
+
+/// Like [`rig_texture_preflight`], but a video frame may also come from a
+/// decoded frame cache that is streamed in during export.
+fn art_preflight(script: &Script, art: Option<&ArtContext>) -> Result<(), Error> {
+    screen_preflight(
+        script,
+        art.map(|a| &a.images),
+        art.map(|a| &a.screen_videos),
+    )
+}
+
+fn screen_preflight(
+    script: &Script,
+    images: Option<&BTreeMap<String, motion_art::ImageResource>>,
+    videos: Option<&BTreeMap<String, screen_video::DecodedScreenVideo>>,
 ) -> Result<(), Error> {
     for rig in script.characters.values().filter_map(|c| c.rig.as_ref()) {
         let mut bytes = 0u64;
@@ -108,7 +170,10 @@ fn rig_texture_preflight(
                 .map_err(|e| invalid(e.to_string()))?;
             for (asset, index) in scene.composition.video_frames_at(time) {
                 let id = motion_script::video_frame_asset(asset, index);
-                if !images.is_some_and(|images| images.contains_key(&id)) {
+                let decoded = videos
+                    .and_then(|videos| videos.get(asset))
+                    .is_some_and(|video| index < video.frames && video.frame_path(index).is_file());
+                if !decoded && !images.is_some_and(|images| images.contains_key(&id)) {
                     return Err(invalid(format!(
                         "screen video {asset} is missing decoded frame {index} (needed by scene {} at {time:.3} s); decode it into the frame cache before export",
                         scene.id
@@ -445,7 +510,17 @@ fn validate_mode(
             return Err(invalid("overlapping dialogue for the same actor"));
         }
     }
-    let first = motion_scene::evaluate(script, index, 0.0).map_err(|e| invalid(e.to_string()))?;
+    let mut first =
+        motion_scene::evaluate(script, index, 0.0).map_err(|e| invalid(e.to_string()))?;
+    // Geometry check only: image textures (rig art, screen frames) are
+    // checked against the loaded images by the art preflight.
+    for part in first
+        .actors
+        .iter_mut()
+        .flat_map(|a| a.rigid_parts.iter_mut())
+    {
+        part.texture = None;
+    }
     motion_render::render_svg(&first, first.width, first.height)
         .map_err(|e| invalid(e.to_string()))?;
     Ok(count)
@@ -662,7 +737,7 @@ impl<'a> PreparedFrames<'a> {
                 &mouths,
                 &script.scenes[scene_index].id,
                 &art.document,
-                &art.images,
+                &*art.images_at(&script.scenes[scene_index], time)?,
             ),
             None => motion_render::render_svg_with_mouths(&pose, pose.width, pose.height, &mouths),
         }
@@ -741,7 +816,7 @@ fn export_sequence(
     let total = validate(script, scene_index, rendered)?;
     captions::preflight(script, scene_index, captions)?;
     let prepared = PreparedFrames::new(script, captions)?;
-    rig_texture_preflight(script, art.map(|a| &a.images))?;
+    art_preflight(script, art)?;
     if let Some(art) = art {
         art.document
             .validate()
@@ -865,7 +940,7 @@ fn export_sequence(
             &[],
             &script.scenes[scene_index].id,
             &art.document,
-            &art.images,
+            &*art.images_at(&script.scenes[scene_index], 0.0)?,
         )
         .map_err(|e| invalid(e.to_string()))?;
     }
@@ -1705,6 +1780,7 @@ mod artwork_tests {
                 "red".into(),
                 ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
             )]),
+            screen_videos: Default::default(),
         };
         let destination = super::tests::destination();
         export_png_scene_with_art(
@@ -1777,6 +1853,7 @@ mod artwork_tests {
                 ..Default::default()
             },
             images: BTreeMap::new(),
+            screen_videos: Default::default(),
         };
         let destination = super::tests::destination();
         let error = export_scene_with_art(
@@ -1852,6 +1929,7 @@ mod artwork_tests {
                 "red".into(),
                 ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
             )]),
+            screen_videos: Default::default(),
         };
         let destination = super::tests::destination();
         export_scene_with_art(
@@ -1910,6 +1988,7 @@ mod artwork_tests {
                 "red".into(),
                 ImageResource::from_rgba(1, 1, vec![255, 0, 0, 255]).unwrap(),
             )]),
+            screen_videos: Default::default(),
         };
         let destination = super::tests::destination();
         let ffmpeg = PathBuf::from(std::env::var_os("KILSAT_TEST_FFMPEG").expect("set FFmpeg"));
@@ -1960,6 +2039,7 @@ mod artwork_tests {
                 ..Default::default()
             },
             images: BTreeMap::new(),
+            screen_videos: Default::default(),
         };
         let destination = super::tests::destination();
         assert!(export_scene_with_art(

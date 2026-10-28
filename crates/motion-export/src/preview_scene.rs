@@ -62,7 +62,7 @@ impl ScenePreview {
         art.document
             .validate()
             .map_err(|e| invalid(e.to_string()))?;
-        rig_texture_preflight(&script, Some(&art.images))?;
+        art_preflight(&script, Some(&art))?;
         let group_bytes = group_work(&art, &script, 1, false)?;
         let mut geometry = 0usize;
         for layer in &art.document.layers {
@@ -278,6 +278,10 @@ impl ScenePreview {
                 .unwrap_or_default(),
         };
         motion_scene::apply_speech(&mut pose, &mouths);
+        let images = self.art.images_at(
+            &self.script.scenes[self.index],
+            sample_frame as f64 / f64::from(SAMPLE_RATE),
+        )?;
         let mut svg = motion_render::render_svg_with_art(
             &pose,
             pose.width,
@@ -285,7 +289,7 @@ impl ScenePreview {
             &mouths,
             &self.script.scenes[self.index].id,
             &self.art.document,
-            &self.art.images,
+            &images,
         )
         .map_err(|e| invalid(e.to_string()))?;
         captions::apply(
@@ -468,6 +472,7 @@ mod tests {
                 ..Default::default()
             },
             images: BTreeMap::new(),
+            screen_videos: Default::default(),
         };
         let preview = ScenePreview::new(
             Arc::new(script.clone()),
