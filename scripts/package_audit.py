@@ -27,7 +27,7 @@ MAX_ENTRIES = 4096
 MAX_REPORT_BYTES = 8 * 1024 * 1024
 MAX_DIRECTORY_BYTES = 4 * 1024 * 1024
 CHUNK = 64 * 1024
-APP = 'Kilsat Studio Preview.app'
+APP = 'Kilsat Studio.app'
 CONTENTS = APP + '/Contents/'
 RESOURCES = CONTENTS + 'Resources/'
 DESKTOP = CONTENTS + 'MacOS/studio-desktop'
@@ -242,9 +242,7 @@ def audit_package(archive, repo, commit, target, profile):
                     final_digest, final_size) != (report['artifact']['sha256'], report['artifact']['size_bytes']):
                 raise ValueError('archive changed during inspection')
         info = small.get(RESOURCES + 'BUILD-INFO.txt')
-        expected_info = (f'Commit: {commit}\nArchitecture: {arch}\nProfile: {profile}\n'
-                         'Preview build; ad-hoc signed, not notarized.\n'
-                         'No model weights, voice assets, Python runtime or Python dependencies included.\n').encode()
+        expected_info = layout.build_info(commit, arch, profile).encode()
         if info is not None and info != expected_info:
             errors.append('BUILD-INFO fields differ from expected commit/target/profile')
         plist = small.get(CONTENTS + 'Info.plist')

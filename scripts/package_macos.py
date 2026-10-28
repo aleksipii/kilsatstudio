@@ -11,7 +11,8 @@ import subprocess
 import sys
 import tempfile
 
-APP_NAME = 'Kilsat Studio Preview.app'
+APP_NAME = 'Kilsat Studio.app'
+VERSION = '1.0.0'
 
 
 
@@ -45,11 +46,11 @@ def app_icon():
 def bundle_info():
     """Expected generated application metadata shared with the offline audit."""
     return {'CFBundleExecutable': 'studio-desktop',
-                      'CFBundleIdentifier': 'studio.kilsat.preview',
-                      'CFBundleName': 'Kilsat Studio Preview',
+                      'CFBundleIdentifier': 'studio.kilsat.studio',
+                      'CFBundleName': 'Kilsat Studio',
                       'CFBundlePackageType': 'APPL',
-                      'CFBundleShortVersionString': '0.1.0',
-                      'CFBundleVersion': '1', 'LSMinimumSystemVersion': '13.0',
+                      'CFBundleShortVersionString': VERSION,
+                      'CFBundleVersion': VERSION, 'LSMinimumSystemVersion': '13.0',
                       'NSHighResolutionCapable': True,
                       'NSCameraUsageDescription': 'Kameraa käytetään pään kallistuksen paikalliseen seurantaan ja liikkeen tallentamiseen animaatioksi. Kuvia tai ääntä ei tallenneta eikä lähetetä.',
                       'CFBundleIconFile': 'KilsatStudio.icns',
@@ -66,6 +67,13 @@ def bundle_info():
                            'UTTypeConformsTo': ['public.json'],
                            'UTTypeTagSpecification':
                                {'public.filename-extension': ['kilsat']}}]}
+
+
+def build_info(commit, arch, profile):
+    """BUILD-INFO.txt contents, shared with the offline audit."""
+    return (f'Commit: {commit}\nArchitecture: {arch}\nProfile: {profile}\n'
+            f'Kilsat Studio {VERSION}; ad-hoc signed, not notarized.\n'
+            'No model weights, voice assets, Python runtime or Python dependencies included.\n')
 
 
 def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None, head_pose=None):
@@ -122,11 +130,7 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
     (resources / 'KilsatStudio.icns').write_bytes(app_icon())
     with (destination / 'Contents/Info.plist').open('wb') as handle:
         plistlib.dump(bundle_info(), handle)
-    (resources / 'BUILD-INFO.txt').write_text(
-        f'Commit: {commit}\nArchitecture: {arch}\nProfile: {profile}\n'
-        'Preview build; ad-hoc signed, not notarized.\n'
-        'No model weights, voice assets, Python runtime or Python dependencies included.\n',
-        encoding='utf-8')
+    (resources / 'BUILD-INFO.txt').write_text(build_info(commit, arch, profile), encoding='utf-8')
     return destination
 
 
