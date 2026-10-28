@@ -2613,6 +2613,7 @@ impl Studio {
                             .map(|p| p.art.clone())
                             .unwrap_or_default(),
                         images: (*self.art_resources.images).clone(),
+                        screen_videos: Default::default(),
                     }),
                     manifest,
                     mouths: None,
@@ -4975,6 +4976,7 @@ impl Studio {
                             .map(|d| d.art.clone())
                             .unwrap_or_default(),
                         images: (*self.art_resources.images).clone(),
+                        screen_videos: Default::default(),
                     },
                     cancel: CancellationToken::new(),
                     policy: self.model_policy,
@@ -5424,6 +5426,7 @@ impl Studio {
                     .map(|d| d.art.clone())
                     .unwrap_or_default(),
                 images: (*self.art_resources.images).clone(),
+                screen_videos: Default::default(),
             },
             format: self.export_format,
             ffmpeg: self.ffmpeg_path.trim().into(),
