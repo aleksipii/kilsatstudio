@@ -30,6 +30,7 @@ fn every_clip_pose() -> Vec<[Vec2; 7]> {
                         walk_seconds,
                         emotion_changes: &changes,
                         gesture,
+                        ..Default::default()
                     }));
                 }
             }

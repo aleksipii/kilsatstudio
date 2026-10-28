@@ -1,9 +1,12 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
 pub mod editable_timeline;
 use motion_animation::HumanoidState;
+use motion_animation::Transform2;
+pub use motion_animation::{Gait, GAITS, GESTURES, POSTURE_BLEND_SECONDS};
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
-pub use motion_animation::{GESTURES, POSTURE_BLEND_SECONDS};
 use motion_lipsync::Viseme;
+pub use motion_rig::FaceView;
+pub use motion_script::FACINGS;
 use motion_script::{Event, Script};
 mod sequence;
 pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline};
@@ -110,6 +113,9 @@ pub struct ActorPose {
     pub rigid_parts: Vec<motion_rig::EvaluatedPart>,
     /// Viseme-selectable mouth shapes for a custom rig with `visemes`.
     pub mouth: Option<MouthVariants>,
+    /// Which side faces the viewer. A left profile is the side view mirrored
+    /// through a negative `scale.x`.
+    pub view: FaceView,
 }
 impl ActorPose {
     /// Transform any local skeleton, facial, or artwork point through the root pose.
@@ -644,6 +650,85 @@ fn apply_gaze(
         rig.apply_gaze(&mut actor.rigid_parts, gaze);
     }
 }
+/// Horizontal placement of the built-in figure's facial features for a view:
+/// `x' = x * scale + shift`, or `None` when the face is hidden (back view).
+/// The side view turns the face toward local +x, like custom-rig features.
+pub fn procedural_face(view: FaceView) -> Option<(f64, f64)> {
+    match view {
+        FaceView::Front => Some((1.0, 0.0)),
+        FaceView::Side => Some((0.55, 11.0)),
+        FaceView::Back => None,
+    }
+}
+
+/// Seconds a change of facing takes: the figure narrows, swaps side at the
+/// midpoint and widens again.
+pub const TURN_SECONDS: f64 = 0.2;
+/// Narrowest width during a turn, as a fraction of the full width.
+const TURN_MIN_WIDTH: f64 = 0.2;
+fn facing(name: &str) -> (FaceView, f64) {
+    match name {
+        "left" => (FaceView::Side, -1.0),
+        "right" => (FaceView::Side, 1.0),
+        "back" => (FaceView::Back, 1.0),
+        _ => (FaceView::Front, 1.0),
+    }
+}
+/// View and horizontal scale factor from the actor's face events up to `time`.
+/// `events` must be sorted by time; a pure function of its inputs.
+fn facing_at(events: &[&Event], actor: &str, time: f64) -> (FaceView, f64) {
+    let (mut previous, mut current, mut since) = ("front", "front", f64::INFINITY);
+    for event in events {
+        if let Event::Face {
+            at,
+            actor: a,
+            value,
+            ..
+        } = event
+        {
+            if a == actor && *at <= time {
+                previous = current;
+                current = value;
+                since = time - at;
+            }
+        }
+    }
+    let (from, to) = (facing(previous), facing(current));
+    if from == to || since >= TURN_SECONDS {
+        return to;
+    }
+    let progress = since / TURN_SECONDS;
+    let width = (std::f64::consts::PI * progress)
+        .cos()
+        .abs()
+        .max(TURN_MIN_WIDTH);
+    let (view, sign) = if progress < 0.5 { from } else { to };
+    (view, sign * width)
+}
+/// Add procedural offsets to the rig joints with standard names, merging with
+/// any authored offset for the same joint (translations and rotations add).
+fn add_rig_motion(
+    rig: &motion_rig::PreparedRig,
+    offsets: &mut Vec<(usize, Transform2)>,
+    motion: &motion_animation::RigMotion,
+) {
+    for (name, delta) in motion_animation::RIG_MOTION_JOINTS.iter().zip(motion) {
+        if *delta == Transform2::default() {
+            continue;
+        }
+        let Some(joint) = rig.joint_index(name) else {
+            continue;
+        };
+        match offsets.iter_mut().find(|(j, _)| *j == joint) {
+            Some((_, offset)) => {
+                offset.translation.x += delta.translation.x;
+                offset.translation.y += delta.translation.y;
+                offset.rotation += delta.rotation;
+            }
+            None => offsets.push((joint, *delta)),
+        }
+    }
+}
 fn evaluate_validated(
     script: &Script,
     prepared: &PreparedAnimation,
@@ -689,8 +774,11 @@ fn evaluate_validated(
                 skeleton: motion_animation::humanoid(None, 0.0),
                 rigid_parts: prepared.rigid_parts.get(id).cloned().unwrap_or_default(),
                 mouth: None,
+                view: FaceView::Front,
             };
             let mut walk_seconds = None;
+            let mut gait = motion_animation::Gait::Walk;
+            let mut world_travel = 0.0;
             let mut emotion_changes = Vec::new();
             let mut gesture = None;
             let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
@@ -725,19 +813,40 @@ fn evaluate_validated(
                                 .map(|g| (g, progress, weight));
                         }
                     }
-                    Event::Speak { .. } => {}
+                    Event::Speak { .. } | Event::Face { .. } => {}
                 }
             }
+            let (view, mirror) = facing_at(&events, id, time_seconds);
+            pose.view = view;
             if let Some(track) = prepared.moves[scene_index].get(id) {
                 // Each move starts where the previous one ended (resolved once);
                 // the actor walks only while the active move is still changing.
                 let position = track.value_at(time_seconds);
                 (pose.x, pose.y) = (position.x, position.y);
-                walk_seconds = track
+                let active = track
                     .active(time_seconds)
-                    .filter(|span| span.progress(time_seconds) < 1.0 && span.from != span.to)
-                    .map(|span| time_seconds - span.at);
+                    .filter(|span| span.progress(time_seconds) < 1.0 && span.from != span.to);
+                if let Some(span) = active {
+                    walk_seconds = Some(time_seconds - span.at);
+                    if let Some(Event::Move {
+                        gait: Some(name), ..
+                    }) = scene.events.get(span.order)
+                    {
+                        // Validation guarantees a known gait.
+                        gait = motion_animation::Gait::parse(name).unwrap_or_default();
+                    }
+                    let dx = span.to.x - span.from.x;
+                    world_travel = if dx > 0.0 {
+                        1.0
+                    } else if dx < 0.0 {
+                        -1.0
+                    } else {
+                        0.0
+                    };
+                }
             }
+            // Gait cycles are authored travelling toward local +x.
+            let travel = world_travel * mirror.signum();
             let emotion_changes: Vec<_> = emotion_changes
                 .iter()
                 .map(|(emotion, since)| (emotion.as_str(), *since))
@@ -748,6 +857,8 @@ fn evaluate_validated(
             pose.skeleton = motion_animation::evaluate_humanoid_with_weights_and_offsets(
                 &HumanoidState {
                     walk_seconds,
+                    gait,
+                    travel,
                     emotion_changes: &emotion_changes,
                     gesture,
                 },
@@ -756,7 +867,7 @@ fn evaluate_validated(
             )?;
             if let Some(rig) = prepared.rigs.get(id) {
                 let tracks = prepared.joint_tracks[scene_index].get(id);
-                let offsets = tracks
+                let mut offsets = tracks
                     .map(|tracks| {
                         tracks
                             .iter()
@@ -765,11 +876,24 @@ fn evaluate_validated(
                     })
                     .transpose()?
                     .unwrap_or_default();
+                // Procedural gait and gesture layers drive the standard limb
+                // joints a rig defines, on top of authored joint keys.
+                if let Some(seconds) = walk_seconds {
+                    let travel = if travel == 0.0 { 1.0 } else { travel };
+                    let motion = motion_animation::rig_gait(gait, seconds, travel, weights.walk);
+                    add_rig_motion(rig, &mut offsets, &motion);
+                }
+                if let Some((gesture, progress, weight)) = gesture {
+                    let motion =
+                        motion_animation::rig_gesture(gesture, progress, weight * weights.gesture);
+                    add_rig_motion(rig, &mut offsets, &motion);
+                }
                 let invalid = |error: motion_rig::Error| Error::InvalidAnimation(error.to_string());
                 if rig.has_acting() {
                     let input = motion_rig::ActingInput {
                         emotion: &pose.emotion,
                         blink: rig.blink_active(id, time_seconds),
+                        view: pose.view,
                     };
                     let (parts, mouth) = rig.evaluate_acting(&offsets, input).map_err(invalid)?;
                     pose.rigid_parts = parts;
@@ -781,7 +905,7 @@ fn evaluate_validated(
                             .filter_map(|(name, part)| Some((viseme_from_name(name)?, part)))
                             .collect(),
                     });
-                } else if tracks.is_some() {
+                } else if !offsets.is_empty() {
                     pose.rigid_parts = rig.evaluate_parts(&offsets).map_err(invalid)?;
                 }
             }
@@ -800,6 +924,7 @@ fn evaluate_validated(
                 pose.rotation = value.rotation;
                 pose.scale = value.scale;
             }
+            pose.scale.x *= mirror;
             Ok(pose)
         })
         .collect::<Result<Vec<_>, Error>>()?;

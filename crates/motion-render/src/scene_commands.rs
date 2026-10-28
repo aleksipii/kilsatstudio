@@ -179,7 +179,7 @@ fn build_inner(
         let origin = [
             ((-d * tx + c * ty) / det) as f32,
             ((b * tx - a * ty) / det) as f32,
-            (0.75 / (actor.scale.x.min(actor.scale.y) * factor)) as f32,
+            (0.75 / (actor.scale.x.abs().min(actor.scale.y) * factor)) as f32,
             0.0,
         ];
         if !actor.rigid_parts.is_empty() {
@@ -295,8 +295,13 @@ fn build_inner(
         let hx = p[HEAD].x as f32;
         let hy = p[HEAD].y as f32;
         push(0.0, [hx, hy, 25.0, 0.0], skin, 0.0);
-        push(0.0, [hx - 8.0, hy - 4.0, 2.5, 0.0], black, 0.0);
-        push(0.0, [hx + 8.0, hy - 4.0, 2.5, 0.0], black, 0.0);
+        let Some((k, shift)) = crate::procedural_face(actor.view) else {
+            continue;
+        };
+        let (k, shift) = (k as f32, shift as f32);
+        let fx = |x: f32| hx + x * k + shift;
+        push(0.0, [fx(-8.0), hy - 4.0, 2.5, 0.0], black, 0.0);
+        push(0.0, [fx(8.0), hy - 4.0, 2.5, 0.0], black, 0.0);
         let viseme = mouths
             .iter()
             .find(|(id, _)| *id == actor.id)
@@ -311,17 +316,17 @@ fn build_inner(
         };
         push(
             1.0,
-            [hx, hy + 10.0, w / 2.0, h / 2.0],
+            [fx(0.0), hy + 10.0, w * k / 2.0, h / 2.0],
             mouth,
-            2.0_f32.min(h / 2.0),
+            2.0_f32.min(h / 2.0).min(w * k / 2.0),
         );
         if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
-            push(3.0, [hx - 8.0, hy + 9.0, hx, hy + 14.0], mouth, 1.0);
-            push(3.0, [hx, hy + 14.0, hx + 8.0, hy + 9.0], mouth, 1.0);
+            push(3.0, [fx(-8.0), hy + 9.0, fx(0.0), hy + 14.0], mouth, 1.0);
+            push(3.0, [fx(0.0), hy + 14.0, fx(8.0), hy + 9.0], mouth, 1.0);
         }
         if actor.emotion == "surprised" {
-            push(3.0, [hx - 12.0, hy - 13.0, hx - 4.0, hy - 15.0], black, 0.5);
-            push(3.0, [hx + 4.0, hy - 13.0, hx + 12.0, hy - 15.0], black, 0.5);
+            push(3.0, [fx(-12.0), hy - 13.0, fx(-4.0), hy - 15.0], black, 0.5);
+            push(3.0, [fx(4.0), hy - 13.0, fx(12.0), hy - 15.0], black, 0.5);
         }
     }
     debug_assert!(result.commands.len() <= upper);
