@@ -154,6 +154,9 @@ fn veikko_with_phone() -> Script {
         speed: 1.0,
         looping: true,
         taps: vec![1.2],
+        brightness: 1.0,
+        glow: 0.0,
+        glow_radius: None,
     }];
     script.validate().unwrap();
     script
@@ -258,4 +261,138 @@ fn phone_video_frame_follows_the_scene_clock_in_preview_and_export() {
         composition.screen_content("VEIKKO", "phone", 0.2),
         ScreenContent::Drawn
     );
+}
+
+/// Grey picture cues on the DEVICE glass, rendered over a black scene.
+fn lit_script(cues: Vec<motion_script::ScreenCue>) -> Script {
+    let mut script = motion_script::parse(DEVICE).unwrap();
+    script.scenes[0].composition.screens = cues;
+    script.validate().unwrap();
+    script
+}
+fn lit_cue(at: f64, asset: &str) -> motion_script::ScreenCue {
+    motion_script::ScreenCue {
+        actor: "DEVICE".into(),
+        slot: "phone".into(),
+        at,
+        source: motion_script::ScreenSource::Image {
+            asset: asset.into(),
+        },
+        fit: TextureFit::Stretch,
+        trim_start: 0.0,
+        trim_end: None,
+        speed: 1.0,
+        looping: false,
+        taps: vec![],
+        brightness: 1.0,
+        glow: 0.0,
+        glow_radius: None,
+    }
+}
+fn dark_raster(script: &Script, time: f64) -> (resvg::tiny_skia::Pixmap, (f64, f64)) {
+    let mut scene = motion_scene::evaluate(script, 0, time).unwrap();
+    scene.background_color = "#000000".into();
+    let images = BTreeMap::from([
+        (
+            "grey".to_string(),
+            motion_art::ImageResource::from_rgba(2, 1, [100, 100, 100, 255].repeat(2)).unwrap(),
+        ),
+        (
+            "black".to_string(),
+            motion_art::ImageResource::from_rgba(2, 1, [0, 0, 0, 255].repeat(2)).unwrap(),
+        ),
+    ]);
+    let svg = motion_render::render_svg_with_art(
+        &scene,
+        256,
+        256,
+        &[],
+        "intro",
+        &motion_art::Document::default(),
+        &images,
+    )
+    .unwrap();
+    let pixels = resvg::tiny_skia::Pixmap::decode_png(&media::rasterize(&svg).unwrap()).unwrap();
+    (pixels, (scene.actors[0].x, scene.actors[0].y))
+}
+
+#[test]
+fn brightness_scales_the_picture_and_glow_lights_a_dark_scene() {
+    let script = lit_script(vec![
+        lit_cue(0.5, "grey"),
+        motion_script::ScreenCue {
+            brightness: 2.0,
+            ..lit_cue(1.0, "grey")
+        },
+        motion_script::ScreenCue {
+            brightness: 0.5,
+            ..lit_cue(1.5, "grey")
+        },
+        motion_script::ScreenCue {
+            glow: 1.0,
+            glow_radius: Some(0.5),
+            ..lit_cue(2.0, "grey")
+        },
+        motion_script::ScreenCue {
+            glow: 1.0,
+            brightness: 2.0,
+            glow_radius: Some(0.5),
+            ..lit_cue(2.5, "grey")
+        },
+        motion_script::ScreenCue {
+            glow: 1.0,
+            ..lit_cue(3.0, "black")
+        },
+        {
+            let mut off = lit_cue(4.0, "grey");
+            off.source = motion_script::ScreenSource::Off;
+            off
+        },
+    ]);
+    let near =
+        |v: [u8; 3], want: u8, tolerance: u8| v.iter().all(|c| c.abs_diff(want) <= tolerance);
+    // Brightness 1: the picture as is, and nothing outside the 40x80 glass.
+    let (p, o) = dark_raster(&script, 0.75);
+    assert_eq!(at(&p, o, 0.0, 0.0), [100, 100, 100]);
+    assert_eq!(at(&p, o, 25.0, 0.0), [0, 0, 0]);
+    // Brightness 2 doubles the picture; 0.5 halves it.
+    let (p, o) = dark_raster(&script, 1.25);
+    let centre = at(&p, o, 0.0, 0.0);
+    assert!(near(centre, 200, 1), "{centre:?}");
+    assert_eq!(
+        at(&p, o, 25.0, 0.0),
+        [0, 0, 0],
+        "brightness alone does not glow"
+    );
+    let (p, o) = dark_raster(&script, 1.75);
+    let centre = at(&p, o, 0.0, 0.0);
+    assert!(near(centre, 50, 1), "{centre:?}");
+    // Glow: a neutral light outside the glass that fades with distance and
+    // ends at the ellipse (half-axes 20 + 40 and 40 + 40); the picture itself
+    // is unchanged because the glow is drawn behind the device.
+    let (p, o) = dark_raster(&script, 2.25);
+    assert_eq!(at(&p, o, 0.0, 0.0), [100, 100, 100]);
+    let close = at(&p, o, 25.0, 0.0);
+    let far = at(&p, o, 45.0, 0.0);
+    assert!(
+        close[0] > 30 && close[0] == close[1] && close[1] == close[2],
+        "{close:?}"
+    );
+    assert!(far[0] > 0 && far[0] < close[0], "{close:?} {far:?}");
+    assert!(at(&p, o, 0.0, -50.0)[0] > 0, "above the glass");
+    assert_eq!(at(&p, o, 65.0, 0.0), [0, 0, 0], "beyond the glow");
+    // A brighter screen glows more.
+    let (p, o) = dark_raster(&script, 2.75);
+    assert!(at(&p, o, 25.0, 0.0)[0] > close[0]);
+    // A black picture and an off screen never glow.
+    let (p, o) = dark_raster(&script, 3.5);
+    assert_eq!(at(&p, o, 25.0, 0.0), [0, 0, 0]);
+    let (p, o) = dark_raster(&script, 4.5);
+    assert_eq!(at(&p, o, 25.0, 0.0), [0, 0, 0]);
+    let off = [
+        SCREEN_OFF_COLOR[0],
+        SCREEN_OFF_COLOR[1],
+        SCREEN_OFF_COLOR[2],
+    ];
+    assert_eq!(at(&p, o, 0.0, 0.0), off);
 }

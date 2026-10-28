@@ -114,11 +114,12 @@ fn build_inner(
         ));
     }
     // Reserve a conservative upper bound before expanding any actor geometry.
+    // Textured parts may add one glow each.
     let upper = scene.actors.iter().try_fold(0usize, |sum, actor| {
         sum.checked_add(if actor.rigid_parts.is_empty() {
             16
         } else {
-            actor.rigid_parts.len() * 3
+            actor.rigid_parts.len() * 4
         })
         .ok_or(Error::Budget)
     })?;
@@ -130,6 +131,7 @@ fn build_inner(
             p.points.len() as u64
                 * (1 + u64::from(p.texture.is_some()) + u64::from(p.outline.is_some()))
                 + 4
+                + u64::from(p.texture.as_ref().is_some_and(|t| t.glow.is_some()))
         })
         .sum();
     if upper > MAX_COMMANDS
@@ -184,6 +186,54 @@ fn build_inner(
         ];
         if !actor.rigid_parts.is_empty() {
             use motion_rig::OutlineMode;
+            // Screen glows first, behind the whole actor, as on the CPU. The
+            // radial light command evaluates its ellipse in the texture's
+            // rest space: pixel -> actor (inv, origin) -> rest (M^-1).
+            let actor_inverse = [d / det, -b / det, -c / det, a / det];
+            let actor_origin = [(-d * tx + c * ty) / det, (b * tx - a * ty) / det];
+            for part in &actor.rigid_parts {
+                let Some(texture) = &part.texture else {
+                    continue;
+                };
+                let images = art.as_ref().map(|(images, _)| *images);
+                let Some((glow, rgb, alpha)) = crate::texture_glow_paint(texture, images)? else {
+                    continue;
+                };
+                let m = texture.transform;
+                let det = m.a * m.d - m.b * m.c;
+                if det.abs() < 1e-12 {
+                    continue;
+                }
+                let (ra, rb, rc, rd) = (m.d / det, -m.b / det, -m.c / det, m.a / det);
+                let rx = -(ra * m.tx + rc * m.ty);
+                let ry = -(rb * m.tx + rd * m.ty);
+                let [i0, i1, i2, i3] = actor_inverse;
+                let [o0, o1] = actor_origin;
+                let [cx, cy, ex, ey] = glow.ellipse(texture.rest_bounds);
+                result.commands.push(Command([
+                    [
+                        (ra * i0 + rc * i1) as f32,
+                        (rb * i0 + rd * i1) as f32,
+                        (ra * i2 + rc * i3) as f32,
+                        (rb * i2 + rd * i3) as f32,
+                    ],
+                    [
+                        (ra * o0 + rc * o1 + rx) as f32,
+                        (rb * o0 + rd * o1 + ry) as f32,
+                        0.0,
+                        0.0,
+                    ],
+                    [cx as f32, cy as f32, ex as f32, ey as f32],
+                    [
+                        f32::from(rgb[0]) / 255.0,
+                        f32::from(rgb[1]) / 255.0,
+                        f32::from(rgb[2]) / 255.0,
+                        alpha as f32,
+                    ],
+                    // Radial light, screen blend, full smoothstep falloff.
+                    [24.0, blend(motion_art::BlendMode::Screen), 1.0, 0.0],
+                ]));
+            }
             let geometries: Vec<[f32; 4]> = actor
                 .rigid_parts
                 .iter()
@@ -241,9 +291,10 @@ fn build_inner(
                     let [u0, v0, u1, v1] = uv;
                     let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
                     let (ix, iy) = (bx - u0 * w, by - v0 * h);
+                    // origin.w carries the picture brightness for this command.
                     result.commands.push(Command([
                         inv,
-                        origin,
+                        [origin[0], origin[1], origin[2], texture.brightness as f32],
                         [
                             geometry[0],
                             geometry[1],
@@ -1075,6 +1126,8 @@ mod tests {
                 ty: 0.0,
             },
             fit: motion_rig::TextureFit::Stretch,
+            brightness: 1.0,
+            glow: None,
         });
         assert!(matches!(
             build(&textured, 256, 256, &[], Labels::OmitAcknowledged),
@@ -1792,6 +1845,8 @@ mod tests {
                         ty: 3.0,
                     },
                     fit: motion_rig::TextureFit::Stretch,
+                    brightness: 1.0,
+                    glow: None,
                 }),
                 skinned,
                 outline: None,
@@ -1867,6 +1922,112 @@ mod tests {
         assert_eq!(relocated.0[2][0], original.0[2][0] + point_offset);
         assert_eq!(relocated.0[4][1], original.0[4][1] + pixel_offset);
         assert_eq!(relocated.0[2][2..], original.0[2][2..]);
+    }
+    #[test]
+    fn screen_brightness_and_glow_match_the_cpu_placement() {
+        // A rotated, scaled glass: rest (x, y) -> actor (5 - 2y, 3 + 2x).
+        let texture = motion_rig::EvaluatedTexture {
+            asset: "t".into(),
+            uv: [0.0, 0.0, 1.0, 1.0],
+            rest_bounds: [0.0, 0.0, 10.0, 20.0],
+            transform: motion_rig::Affine2 {
+                a: 0.0,
+                b: 2.0,
+                c: -2.0,
+                d: 0.0,
+                tx: 5.0,
+                ty: 3.0,
+            },
+            fit: motion_rig::TextureFit::Stretch,
+            brightness: 1.5,
+            glow: Some(motion_rig::TextureGlow {
+                strength: 0.8,
+                radius: 6.0,
+            }),
+        };
+        let mut s = scene();
+        s.actors[0].rigid_parts = vec![motion_rig::EvaluatedPart {
+            id: "glass".into(),
+            points: vec![
+                motion_rig::Vec2::new(5.0, 3.0),
+                motion_rig::Vec2::new(5.0, 23.0),
+                motion_rig::Vec2::new(-35.0, 23.0),
+                motion_rig::Vec2::new(-35.0, 3.0),
+            ],
+            color: [0, 0, 0, 255],
+            texture: Some(texture.clone()),
+            skinned: false,
+            outline: None,
+        }];
+        // 100, 50, 0: mean luma 0.2126 * 100/255 + 0.7152 * 50/255.
+        let images = std::collections::BTreeMap::from([(
+            "t".to_owned(),
+            motion_art::ImageResource::from_rgba(1, 1, vec![100, 50, 0, 255]).unwrap(),
+        )]);
+        let document = motion_art::Document::default();
+        let build = |s: &EvaluatedScene| {
+            build_with_art(
+                s,
+                64,
+                64,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &images,
+            )
+            .unwrap()
+        };
+        let commands = build(&s);
+        let kinds: Vec<f32> = commands.commands.iter().map(|c| c.0[4][0]).collect();
+        // Glow behind the actor, then the glass fill, then the picture.
+        assert_eq!(kinds, [24.0, 7.0, 20.0]);
+        let [glow, fill, picture] = [0, 1, 2].map(|i| commands.commands[i].0);
+        assert_eq!(picture[1][3], 1.5, "brightness rides in origin.w");
+        // Screen blend, full smoothstep softness; colour and alpha exactly as
+        // the SVG path computes them.
+        assert_eq!(glow[4], [24.0, 2.0, 1.0, 0.0]);
+        let (rgb, alpha) = texture
+            .glow
+            .unwrap()
+            .paint(images["t"].average_rgb(), 1.5)
+            .unwrap();
+        assert_eq!(rgb, [255, 128, 0]);
+        assert_eq!(
+            glow[3],
+            [1.0, 128.0 / 255.0, 0.0, alpha as f32],
+            "{:?}",
+            glow[3]
+        );
+        // Ellipse around the 10x20 slot, 6 units beyond it on every side.
+        assert_eq!(glow[2], [5.0, 10.0, 11.0, 16.0]);
+        // Each pixel maps to the same rest point through the actor's own
+        // transform (from the fill command) and the inverse texture transform.
+        let map = |c: &[[f32; 4]; 5], p: [f32; 2]| {
+            let (m, o) = (c[0], c[1]);
+            [
+                m[0] * p[0] + m[2] * p[1] + o[0],
+                m[1] * p[0] + m[3] * p[1] + o[1],
+            ]
+        };
+        for p in [[3.0, 7.0], [40.0, 12.0], [61.0, 58.0]] {
+            let local = map(&fill, p);
+            let rest = [(local[1] - 3.0) / 2.0, (5.0 - local[0]) / 2.0];
+            let got = map(&glow, p);
+            assert!(
+                (got[0] - rest[0]).abs() < 1e-3 && (got[1] - rest[1]).abs() < 1e-3,
+                "{p:?}: {got:?} vs {rest:?}"
+            );
+        }
+        // No glow: no extra command, and unchanged brightness is 1.
+        s.actors[0].rigid_parts[0].texture = Some(motion_rig::EvaluatedTexture {
+            brightness: 1.0,
+            glow: None,
+            ..texture
+        });
+        let plain = build(&s);
+        assert_eq!(plain.command_count(), 2);
+        assert_eq!(plain.commands[1].0[1][3], 1.0);
     }
     #[test]
     fn labels_cannot_silently_disappear() {

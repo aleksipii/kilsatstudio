@@ -115,6 +115,18 @@ produced byte-identical reports.
 Not established: other GPUs/drivers/OS versions, larger frames, perceptual
 equivalence, performance.
 
+### Rig screen brightness and glow (2026-10-28)
+
+`rig-screen-brightness-glow` in `new_coverage_fixtures` (unaccepted
+measurements, `gpu_parity_new_gpu_coverage_measurements`): a tilted 22x40 glass
+showing the 8x8 gradient at brightness 1.4 with glow 0.9 (radius 18) over a
+dark actor scene. Apple M1, Metal, macOS 27.0.1; two runs gave identical
+numbers: max 58,57,37,0, RMS 1.317,1.293,1.204,0, 14.05% changed, edge RMS
+4.37, interior RMS 0.20. The errors sit on the glass edge over the
+high-contrast gradient, as for the other textured rig rows; inside the glow
+ellipse (kind 24, the same smoothstep stops as the SVG gradient) the interior
+RMS stays at 0.20. No tolerance was added from this single measurement.
+
 ### Soft-brush edge fix (2026-10-20)
 
 The ignored hardware test `gpu_scene::tests::painted_pressure_soft_masks_real_gpu_interior_probes`

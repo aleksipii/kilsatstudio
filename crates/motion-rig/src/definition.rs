@@ -290,6 +290,47 @@ pub struct EvaluatedTexture {
     /// How the image's own aspect ratio meets `rest_bounds`; renderers resolve
     /// it with `EvaluatedTexture::placement` once the image size is known.
     pub fit: TextureFit,
+    /// Multiplier on the image's colour channels (clamped to white); 1 draws
+    /// the image unchanged. Screen slots use it for display brightness.
+    pub brightness: f64,
+    /// Soft light around the part, tinted by the image's mean colour; drawn
+    /// behind the actor so it lights what is around it. Screen slots only.
+    pub glow: Option<TextureGlow>,
+}
+/// A soft, screen-blended halo around a textured part: an ellipse centred on
+/// `rest_bounds`, reaching `radius` rest units beyond it on every side, with a
+/// smoothstep falloff from the centre. Its colour is the image's mean colour
+/// normalised to full brightness, its opacity `strength x brightness x mean
+/// luma` (clamped to 1), so dark pictures glow little and black none.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TextureGlow {
+    pub strength: f64,
+    pub radius: f64,
+}
+impl TextureGlow {
+    /// Ellipse `[cx, cy, rx, ry]` in rest coordinates around `rest_bounds`.
+    pub fn ellipse(&self, rest_bounds: [f64; 4]) -> [f64; 4] {
+        let [x, y, w, h] = rest_bounds;
+        [
+            x + w / 2.0,
+            y + h / 2.0,
+            w / 2.0 + self.radius,
+            h / 2.0 + self.radius,
+        ]
+    }
+    /// Straight sRGB colour and opacity of the glow for an image whose mean
+    /// premultiplied colour is `mean` (0..1 per channel), or `None` when it
+    /// would be invisible. Both renderers call this, so they agree exactly.
+    pub fn paint(&self, mean: [f64; 3], brightness: f64) -> Option<([u8; 3], f64)> {
+        let peak = mean.iter().copied().fold(0.0, f64::max);
+        let luma = 0.2126 * mean[0] + 0.7152 * mean[1] + 0.0722 * mean[2];
+        let alpha = (self.strength * brightness * luma).clamp(0.0, 1.0);
+        if peak.is_nan() || peak <= 0.0 || alpha.is_nan() || alpha < 1.0 / 512.0 {
+            return None;
+        }
+        let rgb = mean.map(|c| ((c / peak).clamp(0.0, 1.0) * 255.0).round() as u8);
+        Some((rgb, alpha))
+    }
 }
 /// Fitting of an image into its target rectangle.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -1250,6 +1291,8 @@ impl PreparedRig {
                     rest_bounds: [x0, y0, x1 - x0, y1 - y0],
                     transform: matrix,
                     fit: TextureFit::Stretch,
+                    brightness: 1.0,
+                    glow: None,
                 })
             }
         };

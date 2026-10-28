@@ -6,7 +6,10 @@
 //! The source frame is a pure function of scene time, so preview, seeking and
 //! export pick the same frame on the shared 24 kHz scene clock.
 use crate::{Error, Script};
-use motion_rig::{ScreenContent, TextureFit};
+use motion_rig::{
+    ScreenContent, ScreenLight, TextureFit, DEFAULT_SCREEN_GLOW_RADIUS, MAX_SCREEN_BRIGHTNESS,
+    MAX_SCREEN_GLOW_RADIUS,
+};
 use serde::{Deserialize, Serialize};
 
 /// Maximum screen cues per scene.
@@ -71,6 +74,17 @@ pub struct ScreenCue {
     /// Source-time tap markers ("tap at 3.2 s"); see `ScreenCue::tap_times`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub taps: Vec<f64>,
+    /// Picture brightness multiplier, `0..=MAX_SCREEN_BRIGHTNESS` (default 1).
+    #[serde(default = "one", skip_serializing_if = "is_one")]
+    pub brightness: f64,
+    /// Glow strength `0..=1` (default 0: none): a soft light around the glass
+    /// tinted by the picture's mean colour.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub glow: f64,
+    /// Glow reach beyond the glass in multiples of the slot's longer side;
+    /// omitted: `DEFAULT_SCREEN_GLOW_RADIUS`. Needs `glow > 0`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub glow_radius: Option<f64>,
 }
 fn default_fit() -> TextureFit {
     TextureFit::Cover
@@ -109,6 +123,14 @@ impl ScreenSource {
 }
 
 impl ScreenCue {
+    /// Brightness and glow this cue shows its picture with.
+    pub fn light(&self) -> ScreenLight {
+        ScreenLight {
+            brightness: self.brightness,
+            glow: self.glow,
+            glow_radius: self.glow_radius.unwrap_or(DEFAULT_SCREEN_GLOW_RADIUS),
+        }
+    }
     fn end(&self) -> Option<f64> {
         self.source.length().map(|l| self.trim_end.unwrap_or(l))
     }
@@ -154,6 +176,7 @@ impl ScreenCue {
         let image = |asset: String| ScreenContent::Image {
             asset,
             fit: self.fit,
+            light: self.light(),
         };
         match &self.source {
             ScreenSource::Off => ScreenContent::Off,
@@ -280,6 +303,32 @@ impl ScreenCue {
                     )));
                 }
             }
+        }
+        if !(0.0..=MAX_SCREEN_BRIGHTNESS).contains(&self.brightness) {
+            return Err(fail(format!(
+                "brightness must be within [0, {MAX_SCREEN_BRIGHTNESS}]"
+            )));
+        }
+        if !(0.0..=1.0).contains(&self.glow) {
+            return Err(fail("glow must be within [0, 1]".into()));
+        }
+        if let Some(radius) = self.glow_radius {
+            if radius.is_nan() || radius <= 0.0 || radius > MAX_SCREEN_GLOW_RADIUS {
+                return Err(fail(format!(
+                    "glow_radius must be within (0, {MAX_SCREEN_GLOW_RADIUS}] slot lengths"
+                )));
+            }
+            if self.glow == 0.0 {
+                return Err(fail("glow_radius needs glow above 0".into()));
+            }
+        }
+        if self.source == ScreenSource::Off
+            && (self.brightness != 1.0 || self.glow != 0.0 || self.glow_radius.is_some())
+        {
+            return Err(fail(
+                "brightness and glow apply only to image, sequence and video sources; an off screen is dark"
+                    .into(),
+            ));
         }
         if !self.speed.is_finite() || self.speed <= 0.0 || self.speed > MAX_SCREEN_SPEED {
             return Err(fail(format!(
@@ -481,6 +530,9 @@ scenes:
             speed: 1.0,
             looping: true,
             taps: vec![],
+            brightness: 1.0,
+            glow: 0.0,
+            glow_radius: None,
         };
         let asset = |t: f64| match cue.content_at(t) {
             ScreenContent::Image { asset, .. } => asset,
@@ -533,6 +585,89 @@ scenes:
             .contains("two screen cues"));
         // Unknown fields are syntax errors, not silently ignored.
         assert!(crate::parse(&SCRIPT.replace("speed: 2", "sped: 2")).is_err());
+    }
+
+    #[test]
+    fn brightness_and_glow_default_round_trip_and_validate() {
+        // Older cues without the fields load with defaults and serialize unchanged.
+        let s = script();
+        let cue = &s.scenes[0].composition.screens[0];
+        assert_eq!(
+            (cue.brightness, cue.glow, cue.glow_radius),
+            (1.0, 0.0, None)
+        );
+        let yaml = serde_yaml::to_string(cue).unwrap();
+        assert!(
+            !yaml.contains("brightness") && !yaml.contains("glow"),
+            "{yaml}"
+        );
+        // Set fields round-trip and reach the evaluated content.
+        let lit = crate::parse(&SCRIPT.replace(
+            "speed: 2",
+            "speed: 2\n          brightness: 1.5\n          glow: 0.8\n          glow_radius: 1.25",
+        ))
+        .unwrap();
+        lit.validate().unwrap();
+        let cue = &lit.scenes[0].composition.screens[0];
+        assert_eq!(
+            (cue.brightness, cue.glow, cue.glow_radius),
+            (1.5, 0.8, Some(1.25))
+        );
+        let back: ScreenCue = serde_yaml::from_str(&serde_yaml::to_string(cue).unwrap()).unwrap();
+        assert_eq!(&back, cue);
+        let ScreenContent::Image { light, .. } = cue.content_at(2.5) else {
+            panic!("image content");
+        };
+        assert_eq!(
+            light,
+            ScreenLight {
+                brightness: 1.5,
+                glow: 0.8,
+                glow_radius: 1.25
+            }
+        );
+        // Glow without a radius uses the default reach.
+        let mut default_reach = cue.clone();
+        default_reach.glow_radius = None;
+        assert_eq!(
+            default_reach.light().glow_radius,
+            DEFAULT_SCREEN_GLOW_RADIUS
+        );
+
+        let message = |r: Result<(), Error>| r.unwrap_err().to_string();
+        for bad in [-0.5, 4.5, f64::NAN, f64::INFINITY] {
+            assert!(message(with_cue(|c| c.brightness = bad)).contains("brightness"));
+        }
+        for bad in [-0.1, 1.1, f64::NAN] {
+            assert!(message(with_cue(|c| c.glow = bad)).contains("glow must"));
+        }
+        for bad in [0.0, -1.0, 4.5, f64::NAN] {
+            assert!(message(with_cue(|c| {
+                c.glow = 0.5;
+                c.glow_radius = Some(bad);
+            }))
+            .contains("glow_radius"));
+        }
+        assert!(message(with_cue(|c| c.glow_radius = Some(1.0))).contains("needs glow"));
+        let off = |edit: fn(&mut ScreenCue)| {
+            with_cue(|c| {
+                c.source = ScreenSource::Off;
+                c.trim_start = 0.0;
+                c.trim_end = None;
+                c.speed = 1.0;
+                c.taps.clear();
+                edit(c);
+            })
+        };
+        assert!(off(|_| {}).is_ok());
+        assert!(message(off(|c| c.glow = 0.5)).contains("off screen is dark"));
+        assert!(message(off(|c| c.brightness = 2.0)).contains("off screen is dark"));
+        // Brightness 0 (a black picture) and full glow are valid edges.
+        assert!(with_cue(|c| {
+            c.brightness = 0.0;
+            c.glow = 1.0;
+        })
+        .is_ok());
     }
 
     #[test]

@@ -10,7 +10,7 @@ pub use definition::{
     EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, FaceView,
     JointLimitDefinition, MouthShapes, OutlineDefinition, OutlineMode, PartTextureDefinition,
     PartVariantDefinition, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
-    TextureFit, VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES,
+    TextureFit, TextureGlow, VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES,
     MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
 };
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
@@ -20,7 +20,9 @@ pub use props::{
     MAX_HAND_PROP_CATALOG_BYTES,
 };
 pub use screen::{
-    ScreenContent, ScreenSlotDefinition, MAX_SCREEN_SLOTS, SCREEN_LETTERBOX_COLOR, SCREEN_OFF_COLOR,
+    ScreenContent, ScreenLight, ScreenSlotDefinition, DEFAULT_SCREEN_GLOW_RADIUS,
+    MAX_SCREEN_BRIGHTNESS, MAX_SCREEN_GLOW_RADIUS, MAX_SCREEN_SLOTS, SCREEN_LETTERBOX_COLOR,
+    SCREEN_OFF_COLOR,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {

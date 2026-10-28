@@ -962,13 +962,55 @@ fn new_coverage_fixtures() -> Vec<Fixture> {
             tolerance: TOL_IMAGE,
         });
     }
+    // A rig screen slot in a dark scene: a tilted glass with a brightened
+    // picture and its glow behind the actor.
+    let mut scene = base_scene("#0c1016");
+    let (sin, cos) = 0.3f64.sin_cos();
+    let transform = motion_rig::Affine2 {
+        a: cos,
+        b: sin,
+        c: -sin,
+        d: cos,
+        tx: -12.0,
+        ty: -50.0,
+    };
+    let (w, h) = (22.0, 40.0);
+    scene.actors[0].rigid_parts = vec![motion_rig::EvaluatedPart {
+        id: "glass".into(),
+        points: [[0.0, 0.0], [w, 0.0], [w, h], [0.0, h]]
+            .iter()
+            .map(|[x, y]| transform.point(motion_rig::Vec2::new(*x, *y)))
+            .collect(),
+        color: [0, 0, 0, 255],
+        texture: Some(motion_rig::EvaluatedTexture {
+            asset: "screen".into(),
+            uv: [0.0, 0.0, 1.0, 1.0],
+            rest_bounds: [0.0, 0.0, w, h],
+            transform,
+            fit: motion_rig::TextureFit::Cover,
+            brightness: 1.4,
+            glow: Some(motion_rig::TextureGlow {
+                strength: 0.9,
+                radius: 18.0,
+            }),
+        }),
+        skinned: false,
+        outline: None,
+    }];
+    fixtures.push(Fixture {
+        name: "rig-screen-brightness-glow",
+        scene,
+        document: Document::default(),
+        images: BTreeMap::from([("screen".into(), gradient_image())]),
+        tolerance: TOL_RIG_TEXTURE,
+    });
     fixtures
 }
 
 #[test]
 fn new_gpu_coverage_has_independent_cpu_reference_and_bounded_native_commands() {
     let fixtures = new_coverage_fixtures();
-    assert_eq!(fixtures.len(), 9);
+    assert_eq!(fixtures.len(), 10);
     for fixture in fixtures {
         let reference = cpu_reference(&fixture);
         assert_eq!(reference.len(), (SIZE * SIZE * 4) as usize);

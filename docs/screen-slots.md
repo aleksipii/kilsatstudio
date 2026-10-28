@@ -10,8 +10,8 @@ slot over time.
 | --- | --- | --- |
 | Slot geometry | `motion_rig::ScreenSlotDefinition` (`RigDefinition.screens`) | `id`, the glass `part`, a parallelogram `origin` + `x_axis` + `y_axis` in the glass part's joint space, and `overlays` (drawn UI hidden while content shows) |
 | Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item copies the slot onto the hand; detaching removes it. A second phone in the other hand gets a hand-tagged slot name (`phone_l` / `phone_r`) |
-| Content over time | `motion_script::ScreenCue` (`composition.screens`) | `actor`, `slot`, `at`, `source`, `fit`, `trim_start`, `trim_end`, `speed`, `loop`, `taps` |
-| Evaluation | `motion_scene` → `PreparedRig::apply_screen` | Sets the glass part's texture from the scene time, on the same joint transforms as every other part |
+| Content over time | `motion_script::ScreenCue` (`composition.screens`) | `actor`, `slot`, `at`, `source`, `fit`, `trim_start`, `trim_end`, `speed`, `loop`, `taps`, `brightness`, `glow`, `glow_radius` |
+| Evaluation | `motion_scene` → `PreparedRig::apply_screen` | Sets the glass part's texture from the scene time, on the same joint transforms as every other part; `ScreenLight` becomes `EvaluatedTexture::brightness` and `::glow` |
 | Fitting | `EvaluatedTexture::placement` | `cover` (default for screens), `contain`, `stretch`; one function used by both the SVG and the GPU renderer |
 | Video frames | `motion_export::screen_video` | FFmpeg decode into a content-addressed PNG frame cache, proxy or full size, Display P3 → BT.709 |
 
@@ -38,6 +38,9 @@ scenes:
           trim_start: 0.5        # source seconds
           loop: true
           taps: [3.2]            # "tap at 3.2 s" in the recording
+          brightness: 1.2        # picture multiplier, 0..4 (default 1)
+          glow: 0.6              # light around the glass, 0..1 (default 0)
+          glow_radius: 0.75      # reach in slot lengths, (0, 4] (default 0.75)
         - {actor: liisa, slot: phone, at: 8.0, source: {type: "off"}}
 ```
 
@@ -54,6 +57,31 @@ validation errors; other video containers are `Unsupported`.
 of the schema: props are attached through the rig (desktop prop panel or
 `attach_hand_prop`), and screen cues name the slot explicitly.
 
+## Brightness and glow
+
+`brightness` multiplies the picture's sRGB channels and clamps at white
+(0 is a black picture, 2 doubles a mid grey). `glow` adds a soft light around
+the glass: an ellipse centred on the slot that reaches `glow_radius` × the
+slot's longer side beyond it on every side, screen-blended, with a smoothstep
+falloff from the centre. Its colour is the picture's mean colour (a 16×16
+sample grid of the whole decoded image, `ImageResource::average_rgb`)
+normalised to full brightness; its opacity is `glow × brightness × mean luma`,
+clamped to 1, so dark pictures glow little and a black one not at all. Each
+video frame has its own mean, so the light follows the recording frame by
+frame. `off` never glows, and brightness/glow on an `off` cue are validation
+errors, as are non-finite or out-of-range values and `glow_radius` without
+`glow`.
+
+The glow is drawn behind the actor holding the device, after the background
+and earlier actors, so in a dark scene it lights the surroundings; the device
+itself, the hand and the face are drawn over it. Both renderers use the same
+numbers: `TextureGlow::ellipse` and `TextureGlow::paint` in `motion-rig`. The
+SVG path writes a radial gradient with seven smoothstep stops and an
+`feComponentTransfer` filter for brightness (only when brightness ≠ 1, so older
+scenes keep their bytes); the GPU command list uses the radial light command
+(kind 24, screen blend, softness 1) mapped into the slot's rest space and
+carries brightness on the textured command.
+
 ## Timing
 
 The shown source time is a pure function of scene time:
@@ -61,7 +89,11 @@ The shown source time is a pure function of scene time:
 looping, otherwise clamped to `trim_end`. The frame is
 `floor(source_time * fps)`. Preview evaluates on the 24 kHz sample clock and
 export on frame seconds; both call the same evaluator, and a test checks every
-frame of a 5 s scene is identical both ways. Decoded video frames are keyed
+frame of a 5 s scene is identical both ways. `crates/motion-render/tests/g2_screen_seek.rs`
+(KS-003d) puts the catalog phone with off → still → trimmed looping lit video →
+held video cues into the G2 scene and checks that a scattered, backwards seek
+on a fresh evaluator gives exactly the frame-by-frame playback's evaluated
+scene and SVG for all 96 frames, on both clocks. Decoded video frames are keyed
 `<asset>#frame=<n>` (`motion_script::video_frame_asset`);
 `Composition::video_frames_at(t)` lists exactly the frames a scene time needs.
 
@@ -94,10 +126,21 @@ clutter).
 ## Validation
 
 - `motion-rig`: slot validation, joint following, overlays, fit maths, catalog
-  slot travels with the prop; a second phone gets a hand-tagged slot name.
+  slot travels with the prop; a second phone gets a hand-tagged slot name;
+  brightness/glow reach the texture (never on `off`), range checks, glow paint.
 - `motion-script`: YAML parse/round-trip, trimmed double-speed hold, sequence
-  loop, actionable validation errors, character removal drops its cues.
-- `motion-export`: SVG pixels for drawn/contain/cover/stretch/off, export
+  loop, actionable validation errors, character removal drops its cues;
+  brightness/glow defaults are omitted on save, round-trip and validate.
+- `motion-render`: GPU glow and brightness commands match the CPU placement
+  and paint (`screen_brightness_and_glow_match_the_cpu_placement`, `gpu`
+  feature); G2 seek ≡ frame-by-frame with screen cues.
+- `motion-export`: SVG pixels for brightness 2 and 0.5, glow outside the glass
+  in a black scene that fades and ends at the ellipse, no glow for a black
+  picture or `off`; the `rig-screen-brightness-glow` GPU coverage fixture
+  (measured on Apple M1 / Metal, macOS 27.0.1, twice with identical numbers:
+  max 58,57,37, RMS 1.32,1.29,1.20, 14.1% changed, interior RMS 0.20 — edge
+  errors like the other textured rig fixtures; recorded, not an acceptance
+  threshold). SVG pixels for drawn/contain/cover/stretch/off, export
   preflight for missing stills and undecoded video, Veikko's catalog phone
   playing a looping trimmed recording on the scene clock (preview ≡ export
   for every frame), tap times, decode cache keys, colour tags and FFmpeg
@@ -118,8 +161,10 @@ clutter).
   frames (bounded memory for long recordings) is not implemented. Export
   refuses missing decoded frames with an actionable error.
 - Automatic direction does not yet read `tap_times` to place finger motion.
-- Screen brightness and glow in dark scenes are not implemented (only the
-  drawn reflection over the glass).
+- Glow lights only what is behind the actor: it does not brighten the
+  holder's own face or hand, and it is not cast by art-layer lights onto other
+  layers. Its colour is the whole image's mean, not only the cropped (`cover`)
+  region. Brightness and glow are per cue, not animated within a cue.
 - P3 conversion is verified only by the CI test on synthetic clips, not on a
   real iPhone recording; HDR tone mapping is out of scope.
 - Slots on laptops, TVs and billboards need those items in a catalog or rig;

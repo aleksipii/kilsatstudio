@@ -69,6 +69,14 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
 - [ ] MotionScript-kytkentä (set → kamera-avaimet/merkit) — A02:n alue, avoin.
 - [ ] Taidekatselmointi renderöidyistä kuvista (vain SVG-luonnokset katsottu).
 
+### PR #130 -katselmoinnin jatko — näytön kirkkaus ja hehku (A08) + KS-003d (A04)
+
+- [x] `ScreenCue.brightness` / `glow` / `glow_radius` (serde-oletukset, ohitetaan oletusarvoisina, validointi) → `ScreenLight` → `EvaluatedTexture::{brightness, glow}`.
+- [x] SVG- ja GPU-polku piirtävät samat luvut (`TextureGlow::ellipse`/`paint`); `off` ei hehku.
+- [x] Testit: validointi, serde, SVG-pikselit (kirkkaampi kuva, hehku lasin ulkopuolella pimeässä, ei mitään kun off/musta), GPU-komentojen vastaavuus, GPU-kattavuusfixture (mitattu Metalilla).
+- [x] KS-003d: G2-kohtaus näyttövihjeillä, aikahyppy ≡ ruuduittainen toisto sekunti- ja 24 kHz -kellolla (`crates/motion-render/tests/g2_screen_seek.rs`).
+- [ ] Hehku ei valaise hahmoa itseään (piirretään hahmon taakse); havainnollinen taidekatselmointi.
+
 ## Hyväksymisehdot
 
 - Puhelin pysyy kädessä ja kuvassa molemmissa kuvakulmissa (testi + vertailukuva).
