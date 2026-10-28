@@ -75,7 +75,10 @@ pub enum Subject {
     Head(String),
     /// Custom rig part `hand_l`/`hand_r`; procedural hand joint plus stroke.
     Hand(String, Hand),
-    /// Arbitrary world-space (pre-camera) bounds, e.g. a prop once it is bound.
+    /// Catalog prop held in this hand: every visible rig part attached by
+    /// `motion_rig::props::attach_hand_prop` (ids `heldprop_l_*`/`heldprop_r_*`).
+    HeldProp(String, Hand),
+    /// Arbitrary world-space (pre-camera) bounds.
     World(Bounds),
 }
 
@@ -175,6 +178,15 @@ pub fn subject_world_bounds(
             } else {
                 parts_world(actor, |p| p == part).ok_or_else(missing)
             }
+        }
+        Subject::HeldProp(id, hand) => {
+            let actor = actor_of(id)?;
+            let prefix = match hand {
+                Hand::Left => motion_rig::props::HandSide::Left,
+                Hand::Right => motion_rig::props::HandSide::Right,
+            }
+            .part_prefix();
+            parts_world(actor, |p| p.starts_with(prefix)).ok_or_else(missing)
         }
     }
 }

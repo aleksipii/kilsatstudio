@@ -1,8 +1,8 @@
 # G2 scene export: command, regression and measurements (A10)
 
 Scene: [`examples/g2-minimal-scene/scene.kilsat`](../../../examples/g2-minimal-scene/README.md)
-(A08, SHA-256 `bf58fc78afc7de8fc95d5ab040570b16009986338272ddfae7ed841f0982e175`),
-1920x1080, 24 fps, 4 s, silent, no phone yet (waits for KS-003c).
+(A08, SHA-256 `8ba99dc39ed851d076f69370c83a35237b738aaa6a062ae1bba75366dcbd8f03`),
+1920x1080, 24 fps, 4 s, silent, phone in VEIKKO's right hand (KS-003c).
 
 ## Reproducible export command
 
@@ -48,14 +48,14 @@ the record at the time of writing. A PR that changes the G2 scene fails first on
 
 | Output | Frame 24 | Frame 72 | Sequence | Asserted on |
 | --- | --- | --- | --- | --- |
-| SVG | `e9d24dd4950a2537020c0975f83090e66ee6a517edd578dce310eed510404915` | `5a531245112def209e3e3fad76379ce84702f03a6cc120d26844d6bc1db786a1` | `584232d5dc3afc85d30d2247b29587be2a554e38d3cccf62d6e999d055a67e91` | every platform (CI: macOS, Ubuntu) |
-| PNG | `85e13144c14393c48e5b78e4e7370d49aefbd66ebbb54bb060f51335814ed45c` | `d6d4c9def910e060b46edfd71e76ed6656cead1d4b35902acc3b9263e390dc1c` | `242ebcd2b691405043c33a1ceb22532b984918fe6dc980bdb9cddd0c8a83c2a3` (recorded, not asserted) | Apple Silicon macOS only |
+| SVG | `5f8f2ffc832fa87bca76c7009a432fa9a9770710ae463188cf65c89f47507c8f` | `08394cfaf48232eafa2dc03b9828f4814302f278381c82e897892e77f1efe08e` | `1de95277c7718eb151cbf3ef57043814df2e44dd7f685aea0ba617838fe8e481` | every platform (CI: macOS, Ubuntu) |
+| PNG | `8bee3aa180d1041408a9e04e4d5fe2ef31215f2f47df040db8b7389a52edc658` | `85c0e33ec5cf848f0c21bcf17c245eb929da4623d776b7868eb575a6bece7f23` | `6988655b93873dba7d1b4cfe9654cf69fabef0f61d2d1c035554ee93eced3809` (recorded, not asserted) | Apple Silicon macOS only |
 
 The PNG frame 24 and 72 hashes equal the export
 hashes A08 recorded independently in [`../g2-render/README.md`](../g2-render/README.md).
 PNG rasterization is floating-point work in resvg/tiny-skia; identical PNG bytes on
 other CPUs are not claimed. Not every frame inside a shot is identical: SVG frames
-46–48 and 85–87 differ from their neighbours.
+46, 48, 49, 86 and 89 differ from the frame before them.
 
 ## Failed exports
 
@@ -101,6 +101,9 @@ crates/motion-export/scripts/g2_model_free_run.sh target/release/examples/g2_exp
 ```
 
 ## Measurements
+
+The measurements below were taken on the scene before the phone was added
+(scene SHA-256 `bf58fc78…`, commits `d9b88ae`, `c594cb8` and `71ad594`).
 
 Wall-clock time of the whole export call (evaluation, rendering, PNG encoding,
 writing files, WAV and manifest), release build. This is offline export time. It

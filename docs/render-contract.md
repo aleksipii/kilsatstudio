@@ -62,7 +62,9 @@ shot-size helper (`apps/studio-desktop/src/camera_framing.rs`, A09).
 
 Subjects: `Actor` (all visible parts), `Head` (custom rig part `face`, else `head`;
 procedural head circle r = 25), `Hand` (`hand_l`/`hand_r`; procedural hand joint),
-`World` (any pre-camera rectangle, e.g. a bound prop). Margins are fractions of the
+`HeldProp` (every visible `heldprop_l_*`/`heldprop_r_*` part that
+`motion_rig::props::attach_hand_prop` put on that hand), `World` (any pre-camera
+rectangle). Margins are fractions of the
 frame's shorter side.
 
 | Rule | Margin | Primary subject minimum height | Use |
@@ -72,8 +74,10 @@ frame's shorter side.
 
 Violations: `MissingActor`, `MissingPart` (never silently skipped),
 `OutsideMargin` (with projected bounds and allowed frame) and `TooSmall`.
-The phone (KS-003a `grip`) will be added as a `World` subject from A05's bound
-prop geometry, or as a dedicated subject once that interface exists.
+In the G2 scene the phone is a `HeldProp` subject in both shots, checked on every
+frame. A catalog prop is part of the character's rig, so it paints inside that
+actor's `Characters` item, after the rig parts it is appended to (arm, hand, face);
+the `Props` band is for foreground artwork layers attached to an actor.
 
 ## CPU and GPU
 
