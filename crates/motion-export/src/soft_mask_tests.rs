@@ -74,6 +74,7 @@ fn fixture() -> (Script, RenderedScene, ArtContext) {
             ..Default::default()
         },
         images: BTreeMap::new(),
+        screen_videos: Default::default(),
     };
     (script, rendered, art)
 }

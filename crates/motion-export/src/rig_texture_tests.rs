@@ -81,6 +81,7 @@ fn texture_pixels_follow_the_joint_and_preview_matches_the_svg_png_path() {
     let art = Arc::new(ArtContext {
         document: motion_art::Document::default(),
         images,
+        screen_videos: Default::default(),
     });
     let preview = ScenePreview::new(Arc::new(script.clone()), 0, art.clone(), None).unwrap();
     let cancel = CancellationToken::new();

@@ -14,6 +14,7 @@ fn supplied_studio_demo_reopens_and_shares_normalized_rig_group_preview_pixels()
     let art = Arc::new(ArtContext {
         document: reopened.art,
         images: BTreeMap::new(),
+        screen_videos: Default::default(),
     });
     let preview = ScenePreview::new(Arc::new(script.clone()), 0, art.clone(), None).unwrap();
     let cancel = CancellationToken::new();
@@ -279,6 +280,7 @@ fn grouped_fixture() -> (Script, RenderedScene, ArtContext) {
         ArtContext {
             document,
             images: BTreeMap::new(),
+            screen_videos: Default::default(),
         },
     )
 }

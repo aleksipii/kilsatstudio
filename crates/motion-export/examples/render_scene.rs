@@ -52,6 +52,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             motion_export::ArtContext {
                 document: project.art,
                 images,
+                screen_videos: Default::default(),
             },
         )
     } else {
