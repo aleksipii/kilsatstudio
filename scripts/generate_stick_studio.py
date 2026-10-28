@@ -131,7 +131,8 @@ def held_prop(character, item, hand):
         screen = item['screen']
         x, y, w, h = screen['rect']
         gx, gy = item['grip']
-        screens.append(dict(id=screen['id'], part=f'{prefix}{item["id"]}_{screen["part"]}',
+        taken = any(s['id'] == screen['id'] for s in screens)
+        screens.append(dict(id=f"{screen['id']}_{hand}" if taken else screen['id'], part=f'{prefix}{item["id"]}_{screen["part"]}',
                             origin=[x - gx, y - gy], x_axis=[w, 0], y_axis=[0, h],
                             **({'overlays': [f'{prefix}{item["id"]}_{o}' for o in screen['overlays']]}
                                if screen.get('overlays') else {})))

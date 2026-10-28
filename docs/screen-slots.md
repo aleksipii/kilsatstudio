@@ -9,7 +9,7 @@ slot over time.
 | Layer | Where | What it holds |
 | --- | --- | --- |
 | Slot geometry | `motion_rig::ScreenSlotDefinition` (`RigDefinition.screens`) | `id`, the glass `part`, a parallelogram `origin` + `x_axis` + `y_axis` in the glass part's joint space, and `overlays` (drawn UI hidden while content shows) |
-| Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item copies the slot onto the hand; detaching removes it |
+| Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item copies the slot onto the hand; detaching removes it. A second phone in the other hand gets a hand-tagged slot name (`phone_l` / `phone_r`) |
 | Content over time | `motion_script::ScreenCue` (`composition.screens`) | `actor`, `slot`, `at`, `source`, `fit`, `trim_start`, `trim_end`, `speed`, `loop`, `taps` |
 | Evaluation | `motion_scene` → `PreparedRig::apply_screen` | Sets the glass part's texture from the scene time, on the same joint transforms as every other part |
 | Fitting | `EvaluatedTexture::placement` | `cover` (default for screens), `contain`, `stretch`; one function used by both the SVG and the GPU renderer |
@@ -94,7 +94,7 @@ clutter).
 ## Validation
 
 - `motion-rig`: slot validation, joint following, overlays, fit maths, catalog
-  slot travels with the prop and refuses a second same-named screen.
+  slot travels with the prop; a second phone gets a hand-tagged slot name.
 - `motion-script`: YAML parse/round-trip, trimmed double-speed hold, sequence
   loop, actionable validation errors, character removal drops its cues.
 - `motion-export`: SVG pixels for drawn/contain/cover/stretch/off, export
