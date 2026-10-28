@@ -7,7 +7,7 @@ pub use clips::{
     WALK_CYCLE_SECONDS,
 };
 mod rig_motion;
-pub use rig_motion::{rig_gait, rig_gesture, RigMotion, RIG_MOTION_JOINTS};
+pub use rig_motion::{acting_curve, rig_gait, rig_gesture, RigMotion, RIG_MOTION_JOINTS};
 pub mod spring;
 #[cfg(test)]
 use motion_rig::Joint;

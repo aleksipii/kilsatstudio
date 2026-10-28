@@ -883,9 +883,9 @@ fn evaluate_validated(
                     let motion = motion_animation::rig_gait(gait, seconds, travel, weights.walk);
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
-                if let Some((gesture, progress, weight)) = gesture {
-                    let motion =
-                        motion_animation::rig_gesture(gesture, progress, weight * weights.gesture);
+                if let Some((gesture, progress, _)) = gesture {
+                    // The rig layer shapes its own timing from progress.
+                    let motion = motion_animation::rig_gesture(gesture, progress, weights.gesture);
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
                 let invalid = |error: motion_rig::Error| Error::InvalidAnimation(error.to_string());
