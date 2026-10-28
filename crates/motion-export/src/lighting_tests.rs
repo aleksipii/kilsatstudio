@@ -486,6 +486,7 @@ fn lit_context() -> ArtContext {
             vec![phone],
         ),
         images: images(),
+        screen_videos: Default::default(),
     }
 }
 

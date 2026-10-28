@@ -508,6 +508,7 @@ pub fn art_context(document: &ProjectDocument) -> ArtContext {
     ArtContext {
         document: document.art.clone(),
         images: phone_images(),
+        screen_videos: Default::default(),
     }
 }
 

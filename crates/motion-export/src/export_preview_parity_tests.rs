@@ -28,6 +28,7 @@ fn g2() -> (Script, ArtContext, RenderedScene) {
     let art = ArtContext {
         document: project.art,
         images: BTreeMap::new(),
+        screen_videos: Default::default(),
     };
     (script, art, rendered)
 }

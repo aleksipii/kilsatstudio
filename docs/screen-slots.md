@@ -157,21 +157,42 @@ clutter).
   playing a looping trimmed recording on the scene clock (preview ≡ export
   for every frame), tap times, decode cache keys, colour tags and FFmpeg
   arguments.
+- `export_streams_decoded_video_frames_from_the_cache`: preflight passes with
+  no frame in memory, exactly one frame loads per instant, and a deleted cache
+  file fails preflight.
 - `real_ffmpeg_screen_video_decodes_proxy_and_converts_p3` (ignored locally,
   run by `.github/workflows/screen-video.yml` on macOS with Homebrew FFmpeg)
   decodes synthetic BT.709 and P3-tagged clips and checks the P3 red rises in
   sRGB.
+
+## Export: streamed video frames
+
+`ArtContext.screen_videos` maps a cue's video asset to its decoded frame cache
+(`DecodedScreenVideo`). Export no longer needs every frame in memory:
+`ArtContext::images_at(scene, time)` reads only the frames that one exported
+frame shows from disk and drops them afterwards. The working-set budget counts
+one decoded frame per video. Export preflight checks that every frame an
+exported frame will show exists in the cache (or in the image map), so a
+missing frame fails before rendering starts.
+
+`production_export` decodes each video cue once (ffprobe colour probe, then
+`decode_screen_video` into `screen-video-cache/` beside the output). Review
+renders (`--review-size`) use the 540 px proxy; final export decodes full size.
+
+## Example episode
+
+`examples/screen-demo/live-demo.kilsat` ("The Live Demo", English, Kokoro
+voices): Aino holds a phone with a `phone` slot on her raised arm. A close-up
+plays `assets/kilsat-app-demo.mp4`, an original illustrative mileage-app
+recording marked EXAMPLE, and the later shots hold its last frame. Regenerate
+with `python3 scripts/generate_screen_demo.py --ffmpeg /opt/homebrew/bin/ffmpeg`
+and render with `production_export --retime-dialogue` (see the example README).
 
 ## Open work
 
 - Desktop: no screen-cue editor or video import UI yet, and the preview does
   not yet schedule `decode_screen_video` or load frames per time; video cues
   render only where a caller has put decoded frames into the image map.
-- Export preflight checks every decoded frame each exported frame will show
-  (not only frame 0), so a missing frame fails before rendering starts.
-- Export loads images up front; streaming per-frame loading of decoded video
-  frames (bounded memory for long recordings) is not implemented. Export
-  refuses missing decoded frames with an actionable error.
 - Finger taps: the fingertip is the hand joint (stick hands have no finger
   joints); the press is planar (no depth or press-in of the glass), the
   holding arm does not lift the phone by itself, and the desktop does not

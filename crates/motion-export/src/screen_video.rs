@@ -86,6 +86,33 @@ impl DecodedScreenVideo {
     }
 }
 
+/// Width and height from a PNG header, without decoding the image.
+pub fn png_size(path: &Path) -> Result<(u32, u32), Error> {
+    let mut header = [0u8; 24];
+    fs::File::open(path)
+        .and_then(|mut file| file.read_exact(&mut header))
+        .map_err(|e| invalid(format!("screen video frame {}: {e}", path.display())))?;
+    if &header[..8] != b"\x89PNG\r\n\x1a\n" || &header[12..16] != b"IHDR" {
+        return Err(invalid(format!(
+            "screen video frame {} is not a PNG",
+            path.display()
+        )));
+    }
+    let width = u32::from_be_bytes([header[16], header[17], header[18], header[19]]);
+    let height = u32::from_be_bytes([header[20], header[21], header[22], header[23]]);
+    if width == 0
+        || height == 0
+        || width > MAX_SCREEN_VIDEO_WIDTH
+        || height > MAX_SCREEN_VIDEO_HEIGHT
+    {
+        return Err(invalid(format!(
+            "screen video frame {} has unsupported size {width}x{height}",
+            path.display()
+        )));
+    }
+    Ok((width, height))
+}
+
 fn validate(request: &ScreenVideoRequest) -> Result<u64, Error> {
     let frames = motion_script::ScreenSource::video_frames(request.fps, request.duration);
     if !request.fps.is_finite()
