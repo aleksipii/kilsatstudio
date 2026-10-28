@@ -11,7 +11,7 @@ for the model-free checks below.
 1. Open the successful **macOS practical preview** workflow run linked from the test-build PR.
 2. Download its `Kilsat-Studio-Preview-arm64` artifact while signed into
    GitHub. Extract the artifact, then extract the contained preview ZIP.
-3. Open `Kilsat Studio Preview.app`. Keep its Contents directory together. macOS may
+3. Open `Kilsat Studio.app`. Keep its Contents directory together. macOS may
    identify it as an unnotarized development app. For the specific warning that
    Apple cannot verify the developer, and only for a build you trust, dismiss the
    warning and open **System Settings → Privacy & Security → Open Anyway** for

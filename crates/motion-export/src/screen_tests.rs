@@ -396,3 +396,58 @@ fn brightness_scales_the_picture_and_glow_lights_a_dark_scene() {
     ];
     assert_eq!(at(&p, o, 0.0, 0.0), off);
 }
+
+#[test]
+fn export_streams_decoded_video_frames_from_the_cache() {
+    let script = veikko_with_phone();
+    let asset = "assets/screens/oma-sovellus-demo.mov";
+    let directory = std::env::temp_dir().join(format!(
+        "kilsat-screen-stream-{}-{:?}",
+        std::process::id(),
+        std::thread::current().id()
+    ));
+    let _ = std::fs::remove_dir_all(&directory);
+    std::fs::create_dir_all(&directory).unwrap();
+    // Frame n is a 2x2 image whose red channel encodes n.
+    for frame in 0..60u8 {
+        let image =
+            motion_art::ImageResource::from_rgba(2, 2, [frame, 0, 0, 255].repeat(4)).unwrap();
+        std::fs::write(directory.join(format!("{frame:06}.png")), image.png()).unwrap();
+    }
+    let decoded = screen_video::DecodedScreenVideo {
+        directory: directory.clone(),
+        frames: 60,
+        color: screen_video::ScreenVideoColor::Bt709,
+        source_bytes: 0,
+        recipe: screen_video::SCREEN_VIDEO_RECIPE,
+    };
+    let art = ArtContext {
+        screen_videos: BTreeMap::from([(asset.to_string(), decoded)]),
+        ..Default::default()
+    };
+    // No frame is held in memory up front, yet preflight passes: every frame
+    // the export shows exists in the cache.
+    assert!(art.images.is_empty());
+    art_preflight(&script, Some(&art)).unwrap();
+    assert_eq!(art.screen_frame_bytes().unwrap(), 16);
+    // A frame loads only for the instant that shows it.
+    let scene = &script.scenes[0];
+    assert!(matches!(
+        art.images_at(scene, 0.5).unwrap(),
+        std::borrow::Cow::Borrowed(_)
+    ));
+    let images = art.images_at(scene, 2.6).unwrap();
+    assert_eq!(images.len(), 1);
+    let id = motion_script::video_frame_asset(asset, 18);
+    let decoded_frame =
+        motion_art::ImageResource::from_rgba(2, 2, [18, 0, 0, 255].repeat(4)).unwrap();
+    assert_eq!(images[&id].png(), decoded_frame.png());
+    // A missing cache file fails preflight before any frame is encoded.
+    std::fs::remove_file(directory.join("000030.png")).unwrap();
+    let error = art_preflight(&script, Some(&art)).unwrap_err();
+    assert!(
+        error.to_string().contains("missing decoded frame 30"),
+        "{error}"
+    );
+    std::fs::remove_dir_all(&directory).unwrap();
+}

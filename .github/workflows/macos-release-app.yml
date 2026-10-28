@@ -1,0 +1,41 @@
+name: Kilsat Studio release app
+on:
+  push:
+    branches: [main, kilsatstudio1.0]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-app-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  release-app:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test packaging scripts
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build, package and audit the release app
+        run: scripts/build_release_app.sh dist
+      - name: Launch smoke check (binary starts and reports its version)
+        run: |
+          cd dist && ditto -x -k Kilsat-Studio-*-arm64.zip unpacked
+          codesign --verify --deep --strict "unpacked/Kilsat Studio.app"
+          plutil -p "unpacked/Kilsat Studio.app/Contents/Info.plist" | grep -E 'CFBundleShortVersionString|CFBundleName'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kilsat-studio-release-arm64-${{ github.sha }}
+          path: |
+            dist/Kilsat-Studio-*-arm64.zip
+            dist/Kilsat-Studio-*-arm64.zip.sha256
+            dist/package-audit.json
+          if-no-files-found: error
+          retention-days: 30

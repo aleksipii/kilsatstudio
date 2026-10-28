@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>CFBundleIdentifier</key><string>studio.kilsat.preview.head-pose</string>
+<key>CFBundleIdentifier</key><string>studio.kilsat.studio.head-pose</string>
 <key>CFBundleName</key><string>Kilsat Studio Head Pose</string>
 <key>NSCameraUsageDescription</key><string>Kameraa käytetään pään kallistuksen paikalliseen seurantaan ja liikkeen tallentamiseen animaatioksi. Kuvia tai ääntä ei tallenneta eikä lähetetä.</string>
 </dict></plist>

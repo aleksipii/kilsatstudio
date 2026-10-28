@@ -434,6 +434,7 @@ fn run(started: Instant) -> Result<serde_json::Value, Failure> {
     let mut art = ArtContext {
         document: document.art.clone(),
         images: BTreeMap::new(),
+        screen_videos: Default::default(),
     };
     for asset in &document.assets {
         if asset.kind == motion_project::AssetKind::Image {
@@ -442,6 +443,54 @@ fn run(started: Instant) -> Result<serde_json::Value, Failure> {
             let image = motion_art::load_image(&path)?.reserve_in(motion_jobs::process_budget())?;
             art.images.insert(asset.id.clone(), image);
         }
+    }
+    // Screen-video cues: decode each recording once into the content-addressed
+    // frame cache; export then streams the frames it shows, one at a time.
+    let ffprobe = args.ffmpeg.with_file_name("ffprobe");
+    let video_root = fs::canonicalize(root)?;
+    for cue in script.scenes.iter().flat_map(|s| &s.composition.screens) {
+        let motion_script::ScreenSource::Video {
+            asset,
+            fps,
+            duration,
+        } = &cue.source
+        else {
+            continue;
+        };
+        if art.screen_videos.contains_key(asset) {
+            continue;
+        }
+        check(started, &args, &cancel)?;
+        let source = fs::canonicalize(video_root.join(asset))?;
+        if !source.starts_with(&video_root) || !source.is_file() {
+            return Err(fail(
+                "screen video must be a file inside the project directory",
+            ));
+        }
+        let color =
+            motion_export::screen_video::probe_color(&ffprobe, &source, Duration::from_secs(30))?;
+        let request = motion_export::screen_video::ScreenVideoRequest {
+            source,
+            fps: *fps,
+            duration: *duration,
+            // Review renders use the preview proxy; final export decodes full size.
+            max_width: args
+                .review
+                .map(|_| motion_export::screen_video::SCREEN_PROXY_WIDTH),
+        };
+        let decoded = motion_export::screen_video::decode_screen_video(
+            &args.ffmpeg,
+            color,
+            &request,
+            &parent.join("screen-video-cache"),
+            &cancel,
+            Duration::from_secs(args.deadline),
+        )?;
+        eprintln!(
+            "decoded screen video {asset}: {} frames ({:?})",
+            decoded.frames, decoded.color
+        );
+        art.screen_videos.insert(asset.clone(), decoded);
     }
     let alignments: BTreeMap<u64, motion_lipsync::cache::AlignmentInput> =
         if document.timing.scene.trim().is_empty() {
