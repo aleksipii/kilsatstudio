@@ -350,6 +350,41 @@ retiming, free-form screenplay semantics, gestures, professional artistic
 acceptance and a measured five-minute production SLA remain open. Details and
 agent ownership: [execution-v1](../../docs/automation/execution-v1.md).
 
+## Screen cues: your own image or video on a phone
+
+**Edit → Näyttö: kuva tai video puhelimessa** (level 2) edits the selected
+scene's `composition.screens` (see [docs/screen-slots.md](../../docs/screen-slots.md)).
+It lists every character slot (`actor.slot`, from rig `screens`; the catalog
+phone and tablet add one) and the scene's cues. A cue draft sets the slot, start
+time, source (off / project image / video), fit (cover / contain / stretch),
+and for videos trim start/end, speed, loop and source-time taps. Image sequences
+keep their frames and can be retimed. Apply validates the whole screenplay via
+`motion_script::apply_composition`; errors stay inline in the panel and leave
+the source unchanged. Every add, change and removal is one undo step.
+
+**Import video** takes an absolute `.mp4`/`.mov`/`.m4v` path. On a background
+lane it copies the file into `<project>/assets/screens/` (ASCII name, never
+overwriting; a file already there is reused), probes fps and duration with the
+`ffprobe` beside the configured FFmpeg (30 s timeout, cancellable), removes the
+copy if probing fails, and then adds a video cue at the playhead for the chosen
+slot.
+
+Preview decoding never runs on the event loop. `screen_video_worker::ScreenVideos`
+schedules `decode_screen_video` with `SCREEN_PROXY_WIDTH` (540 px) for the
+selected scene's video cues on a bounded single-thread lane, into
+`<project>/screen-video-cache/preview/`. It reports frames written so far,
+cancels decodes that are no longer wanted (cue removed, scene or project
+changed), and shows a status under the stage when FFmpeg/ffprobe is missing or a
+decode failed (with a retry button). Finished caches go into the compositor's
+`ArtContext.screen_videos`, so the preview loads only the frames each instant
+shows on the same scene clock as export. Until a decode finishes the preview
+reports the missing frames as an error.
+
+Limits: desktop **Export video** and the whole-project sequence do not decode
+screen videos yet (their preflight rejects undecoded video instead of exporting
+proxies); use `production_export`. There is no native file picker: paths are
+typed. The panel was covered by unit tests, not exercised by hand in the GUI.
+
 ## Creating scenes and posing characters
 
 Use **+ New scene** to append a blank ten-second scene using the project's

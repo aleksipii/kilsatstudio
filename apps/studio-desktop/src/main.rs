@@ -35,6 +35,8 @@ mod rig_clip_editor;
 mod runtime_check;
 mod scene_settings;
 mod scene_worker;
+mod screen_cues;
+mod screen_video_worker;
 mod sequence_panel;
 mod sequence_worker;
 mod stick_studio;
@@ -125,6 +127,8 @@ struct NativeCanvas {
     failed: Option<u64>,
     texture: Option<egui::TextureHandle>,
     error: Option<String>,
+    /// `ScreenVideos::revision` the request's decoded proxies came from.
+    screen_video_revision: u64,
 }
 fn same_optional_arc<T>(a: &Option<Arc<T>>, b: &Option<Arc<T>>) -> bool {
     match (a, b) {
@@ -192,6 +196,11 @@ struct Studio {
     joint_draft: Option<(String, bone_editor::Draft)>,
     rig_clips: rig_clip_editor::State,
     hand_props: hand_props::State,
+    screen_cues: screen_cues::Panel,
+    /// Imports and preview decodes for screen videos (background lanes).
+    screen_videos: screen_video_worker::ScreenVideos,
+    /// Where a finished video import becomes a cue: actor, slot and time.
+    screen_import_target: Option<screen_cues::Draft>,
     selected_joint: String,
     custom_rig_draft: Option<(String, custom_rig_editor::Draft)>,
     clip_draft: Option<(String, clip_editor::Draft)>,
@@ -361,6 +370,9 @@ impl Default for Studio {
             joint_draft: None,
             rig_clips: rig_clip_editor::State::default(),
             hand_props: hand_props::State::default(),
+            screen_cues: Default::default(),
+            screen_videos: Default::default(),
+            screen_import_target: None,
             selected_joint: String::new(),
             clip_library_draft: None,
             live_clip_draft: None,
@@ -1196,6 +1208,8 @@ impl Studio {
                 self.project_document = restored_document;
                 self.source = snapshot.source;
                 self.document_changed();
+                // Cue indices may no longer match the restored screenplay.
+                self.screen_cues.draft = None;
                 self.art_editor.reset();
                 self.art_editor.dirty = art_dirty;
                 self.asset_dirty |= inventory_changed;
@@ -2428,6 +2442,166 @@ impl Studio {
             "Kuvakoon avainruutu lisätty toistopään kohdalle. Kumoa peruu rajauksen.",
         );
     }
+    fn screen_cues_ui(&mut self, ui: &mut egui::Ui) {
+        ui.separator();
+        egui::CollapsingHeader::new("Näyttö: kuva tai video puhelimessa").show(ui, |ui| {
+            let Some(script) = self.script.as_ref() else {
+                ui.weak("Korjaa käsikirjoitus ensin.");
+                return;
+            };
+            let images: Vec<String> = self
+                .project_document
+                .as_ref()
+                .map(|d| {
+                    d.assets
+                        .iter()
+                        .filter(|a| a.kind == motion_project::AssetKind::Image)
+                        .map(|a| a.id.clone())
+                        .collect()
+                })
+                .unwrap_or_default();
+            let keys = script
+                .scenes
+                .get(self.scene_index)
+                .map(screen_video_worker::VideoKey::of_scene)
+                .unwrap_or_default();
+            let status = self.screen_videos.status(&keys);
+            let has_failures = self
+                .screen_videos
+                .entries
+                .values()
+                .any(|s| matches!(s, screen_video_worker::DecodeState::Failed(_)));
+            let view = screen_cues::View {
+                script,
+                scene_index: self.scene_index,
+                playhead: self.playhead,
+                images: &images,
+                enabled: self.editing_idle() && !self.setup_busy && !self.scene_playing(),
+                importing: self.screen_videos.import.is_some(),
+                decode_status: &status,
+                has_failures,
+            };
+            if let Some(action) = screen_cues::ui(ui, &mut self.screen_cues, view) {
+                self.screen_cue_action(action);
+            }
+            ui.small("Videon tuonti ja esikatselun purku käyttävät samaa FFmpeg-polkua kuin videon vienti (ffprobe samasta kansiosta).");
+            field(ui, "Paikallinen FFmpeg-ohjelma (koko polku)", &mut self.ffmpeg_path);
+        });
+    }
+    fn screen_cue_action(&mut self, action: screen_cues::Action) {
+        use screen_cues::Action;
+        match action {
+            Action::Apply(draft) => {
+                let result = draft.to_cue().and_then(|cue| match draft.editing {
+                    Some(index) => screen_cues::replace(&self.source, self.scene_index, index, cue),
+                    None => screen_cues::add(&self.source, self.scene_index, cue),
+                });
+                self.apply_screen_cue_source(result, "Näyttömuutos tallennettu. Kumoa peruu sen.");
+            }
+            Action::Remove(index) => {
+                let result = screen_cues::remove(&self.source, self.scene_index, index);
+                if self
+                    .apply_screen_cue_source(result, "Näyttömuutos poistettu. Kumoa palauttaa sen.")
+                {
+                    self.screen_cues.draft = None;
+                }
+            }
+            Action::ImportVideo(path) => {
+                let target = self.screen_cues.draft.clone().or_else(|| {
+                    let slots = screen_cues::slots(self.script.as_ref()?);
+                    let (actor, slot) = slots.get(self.screen_cues.slot_index)?;
+                    Some(screen_cues::Draft::new(actor, slot, self.playhead))
+                });
+                match self.screen_videos.start_import(
+                    Path::new(self.project_root.trim()),
+                    Path::new(&path),
+                    &self.ffmpeg_path,
+                ) {
+                    Ok(_) => {
+                        self.screen_import_target = target;
+                        self.screen_cues.error = None;
+                        self.status = "Tuodaan videota taustalla…".into();
+                    }
+                    Err(error) => self.screen_cues.error = Some(error),
+                }
+            }
+            Action::CancelImport => {
+                self.screen_videos.cancel_import();
+                self.screen_import_target = None;
+                self.status = "Videon tuonti peruttiin.".into();
+            }
+            Action::RetryDecode => self.screen_videos.retry_failed(),
+        }
+    }
+    /// Apply a screen-cue edit on the undoable screenplay path. Errors stay
+    /// inline in the panel. Returns whether the source changed.
+    fn apply_screen_cue_source(&mut self, result: Result<String, String>, success: &str) -> bool {
+        match result {
+            Ok(source) => {
+                let before = self.source.clone();
+                self.apply_artist_source(Ok(source.clone()), success);
+                let applied = self.source == source && self.source != before;
+                if applied {
+                    self.screen_cues.error = None;
+                    let last = self
+                        .script
+                        .as_ref()
+                        .and_then(|s| s.scenes.get(self.scene_index))
+                        .map(|s| s.composition.screens.len().saturating_sub(1));
+                    if let Some(draft) = &mut self.screen_cues.draft {
+                        // A new cue is appended last; keep editing it.
+                        if draft.editing.is_none() {
+                            draft.editing = last;
+                        }
+                    }
+                } else if self.source != source {
+                    self.screen_cues.error = Some(self.status.clone());
+                }
+                applied
+            }
+            Err(error) => {
+                self.screen_cues.error = Some(error);
+                false
+            }
+        }
+    }
+    fn poll_screen_videos(&mut self) {
+        let Some(result) = self.screen_videos.poll() else {
+            return;
+        };
+        match result {
+            Ok(imported) => {
+                let mut draft = self
+                    .screen_import_target
+                    .take()
+                    .unwrap_or_else(|| screen_cues::Draft::new("", "", self.playhead));
+                draft.editing = None;
+                draft.set_video(&imported.asset, imported.fps, imported.duration);
+                let message = format!(
+                    "Video tuotu: {} ({} fps, {:.3} s).",
+                    imported.asset, imported.fps, imported.duration
+                );
+                self.screen_cues.draft = Some(draft.clone());
+                if !self.editing_idle() || self.setup_busy || self.scene_playing() {
+                    self.screen_cues.error = Some(format!(
+                        "{message} Pysäytä toisto ja lisää näyttömuutos painikkeella."
+                    ));
+                    return;
+                }
+                let result = draft
+                    .to_cue()
+                    .and_then(|cue| screen_cues::add(&self.source, self.scene_index, cue));
+                self.apply_screen_cue_source(
+                    result,
+                    &format!("{message} Videomuutos lisätty; Kumoa peruu sen."),
+                );
+            }
+            Err(error) => {
+                self.screen_import_target = None;
+                self.screen_cues.error = Some(format!("Videon tuonti epäonnistui: {error}"));
+            }
+        }
+    }
     fn camera_framing_ui(&mut self, ui: &mut egui::Ui) {
         ui.separator();
         ui.label(egui::RichText::new("Kamera ja kuvakoko").strong());
@@ -2569,8 +2743,16 @@ impl Studio {
             .as_ref()
             .filter(|p| p.scene == scene.id)
             .map(|p| p.playback_audio.clone());
+        let screen_keys = screen_video_worker::VideoKey::of_scene(scene);
+        self.screen_videos.sync(
+            &screen_keys,
+            Path::new(self.project_root.trim()),
+            &self.ffmpeg_path,
+        );
+        let screen_video_revision = self.screen_videos.revision;
         let changed = self.native_canvas.as_ref().is_none_or(|canvas| {
             canvas.revision != self.sequence_revision
+                || canvas.screen_video_revision != screen_video_revision
                 || (canvas.head_preview != head_preview
                     && (canvas.last_requested == canvas.shown || canvas.failed.is_some()))
                 || canvas.request.scene_index != self.scene_index
@@ -2613,7 +2795,8 @@ impl Studio {
                             .map(|p| p.art.clone())
                             .unwrap_or_default(),
                         images: (*self.art_resources.images).clone(),
-                        screen_videos: Default::default(),
+                        // Proxies decoded off the UI thread; frames load per instant.
+                        screen_videos: self.screen_videos.decoded(&screen_keys),
                     }),
                     manifest,
                     mouths: None,
@@ -2625,6 +2808,7 @@ impl Studio {
                 failed: None,
                 texture: previous_texture,
                 error: None,
+                screen_video_revision,
             });
         }
         let playing = self
@@ -2703,6 +2887,9 @@ impl Studio {
             ui.spinner();
             None
         };
+        for line in self.screen_videos.status(&screen_keys) {
+            ui.colored_label(egui::Color32::from_rgb(220, 180, 90), line);
+        }
         if let Some(error) = &canvas.error {
             ui.colored_label(egui::Color32::LIGHT_RED, format!("Virhe: {error}"));
             if ui.button("Yritä esikatselua uudelleen").clicked() {
@@ -3167,6 +3354,7 @@ impl Studio {
         }
     }
     fn poll(&mut self) {
+        self.poll_screen_videos();
         self.poll_direction();
         self.poll_kokoro_setup();
         if let Some(result) = self.asset_worker.poll() {
@@ -4976,6 +5164,9 @@ impl Studio {
                             .map(|d| d.art.clone())
                             .unwrap_or_default(),
                         images: (*self.art_resources.images).clone(),
+                        // Not the 540 px preview proxies: this context also feeds
+                        // sequence export, whose preflight must reject undecoded
+                        // video rather than silently export proxies.
                         screen_videos: Default::default(),
                     },
                     cancel: CancellationToken::new(),
@@ -5037,6 +5228,7 @@ impl Studio {
                 if self.character_mode {
                     if level.shows(Tool::PoseControls) {
                         self.hand_props_ui(ui);
+                        self.screen_cues_ui(ui);
                         self.camera_framing_ui(ui);
                         self.head_controls_ui(ui);
                         self.keyframe_inspector_ui(ui);
@@ -6162,6 +6354,7 @@ impl eframe::App for Studio {
         }
         if self.busy
             || self.diagnostics_busy
+            || self.screen_videos.busy()
             || self.test_player.is_some()
             || self.playback.is_some()
             || self
@@ -9973,5 +10166,100 @@ mod a09_transport_tests {
             studio.scene_transport.as_ref().unwrap().position_seconds(),
             played
         );
+    }
+}
+
+#[cfg(test)]
+mod screen_cue_history_tests {
+    use super::*;
+
+    #[test]
+    fn screen_cue_add_edit_remove_are_single_undo_steps_with_inline_errors() {
+        let (source, slot) = screen_cues::tests::phone_source();
+        let mut studio = Studio::default();
+        studio.source = source.clone();
+        studio.validate();
+        studio.history.reset(&studio.source);
+        studio.scene_index = 0;
+
+        let mut draft = screen_cues::Draft::new("VEIKKO", &slot, 0.0);
+        draft.kind = screen_cues::Kind::Off;
+        studio.screen_cue_action(screen_cues::Action::Apply(Box::new(draft.clone())));
+        assert!(
+            studio.screen_cues.error.is_none(),
+            "{:?}",
+            studio.screen_cues.error
+        );
+        let added = studio.source.clone();
+        assert_ne!(added, source);
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0]
+                .composition
+                .screens
+                .len(),
+            1
+        );
+
+        // An invalid edit stays inline and leaves the screenplay untouched.
+        let mut bad = draft.clone();
+        bad.editing = Some(0);
+        bad.kind = screen_cues::Kind::Video;
+        bad.video = "../outside.mov".into();
+        studio.screen_cue_action(screen_cues::Action::Apply(Box::new(bad)));
+        assert!(studio
+            .screen_cues
+            .error
+            .as_deref()
+            .unwrap()
+            .contains("project-relative"));
+        assert_eq!(studio.source, added);
+
+        let mut edit = draft.clone();
+        edit.editing = Some(0);
+        edit.at = 1.0;
+        studio.screen_cue_action(screen_cues::Action::Apply(Box::new(edit)));
+        assert!(studio.screen_cues.error.is_none());
+        let edited = studio.source.clone();
+        assert_eq!(
+            studio.script.as_ref().unwrap().scenes[0]
+                .composition
+                .screens[0]
+                .at,
+            1.0
+        );
+
+        studio.screen_cue_action(screen_cues::Action::Remove(0));
+        assert!(studio.script.as_ref().unwrap().scenes[0]
+            .composition
+            .screens
+            .is_empty());
+
+        studio.undo_edit(false);
+        assert_eq!(studio.source, edited);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, added);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, source);
+        assert!(!studio.history.can_undo());
+        studio.undo_edit(true);
+        assert_eq!(studio.source, added);
+    }
+
+    #[test]
+    fn video_import_without_ffmpeg_reports_inline_and_starts_nothing() {
+        let (source, _) = screen_cues::tests::phone_source();
+        let mut studio = Studio::default();
+        studio.source = source.clone();
+        studio.validate();
+        studio.ffmpeg_path.clear();
+        studio.screen_cue_action(screen_cues::Action::ImportVideo("/tmp/demo.mov".into()));
+        assert!(studio
+            .screen_cues
+            .error
+            .as_deref()
+            .unwrap()
+            .contains("FFmpeg puuttuu"));
+        assert!(studio.screen_videos.import.is_none());
+        assert_eq!(studio.source, source);
     }
 }
