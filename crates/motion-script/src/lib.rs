@@ -55,6 +55,9 @@ pub enum Event {
         x: f64,
         y: f64,
         duration: f64,
+        /// `walk` (default), `jog` or `run`; see `motion_animation::GAITS`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        gait: Option<String>,
     },
     Emotion {
         at: f64,
@@ -74,7 +77,16 @@ pub enum Event {
         emotion: Option<String>,
         audio: Option<String>,
     },
+    /// Turn the character to face the viewer (`front`), away (`back`), or in
+    /// profile toward screen `left` or `right`. Holds until the next face event.
+    Face {
+        at: f64,
+        actor: String,
+        value: String,
+    },
 }
+/// MotionScript facing names, in the order editors should present them.
+pub const FACINGS: [&str; 4] = ["front", "left", "right", "back"];
 /// Scene-local composition; camera coordinates are offsets from the canvas center.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -677,8 +689,8 @@ pub fn parse(source: &str) -> Result<Script, Error> {
             if let Some(events) = scene.get("events").and_then(serde_yaml::Value::as_sequence) {
                 for event in events {
                     if let Some(kind) = event.get("type").and_then(serde_yaml::Value::as_str) {
-                        if !["speak", "move", "emotion", "gesture"].contains(&kind) {
-                            return Err(Error::Unsupported(format!("event {kind}: supported commands are speak, move, emotion, gesture")));
+                        if !["speak", "move", "emotion", "gesture", "face"].contains(&kind) {
+                            return Err(Error::Unsupported(format!("event {kind}: supported commands are speak, move, emotion, gesture, face")));
                         }
                     }
                 }
@@ -2033,7 +2045,21 @@ impl Script {
                             validate_emotion(value)?;
                         }
                     }
-                    Event::Move { x, y, duration, .. } => {
+                    Event::Move {
+                        x,
+                        y,
+                        duration,
+                        gait,
+                        ..
+                    } => {
+                        if let Some(gait) = gait {
+                            if motion_animation::Gait::parse(gait).is_none() {
+                                return Err(Error::Unsupported(format!(
+                                    "gait {gait}: supported gaits are {}",
+                                    motion_animation::GAITS.join(", ")
+                                )));
+                            }
+                        }
                         if !x.is_finite()
                             || !y.is_finite()
                             || *x < 0.0
@@ -2052,16 +2078,27 @@ impl Script {
                     Event::Gesture {
                         value, duration, ..
                     } => {
-                        if c.rig.is_some() {
-                            return Err(Error::Unsupported(format!("gesture for custom-rig actor {actor}: custom rigid characters currently support root motion, not original-rig gestures")));
-                        }
-                        if motion_animation::Gesture::parse(value).is_none() {
+                        let Some(gesture) = motion_animation::Gesture::parse(value) else {
                             return Err(Error::Unsupported(format!(
                                 "gesture {value}: supported gestures are {}",
                                 motion_animation::GESTURES.join(", ")
                             )));
+                        };
+                        if let Some(rig) = &c.rig {
+                            let joint = gesture_joint(gesture);
+                            if !rig.joints.iter().any(|j| j.id == joint) {
+                                return Err(Error::Unsupported(format!("gesture {value} for custom-rig actor {actor}: the rig needs a joint named {joint}")));
+                            }
                         }
                         validate_duration(*duration, at, s.duration)?;
+                    }
+                    Event::Face { value, .. } => {
+                        if !FACINGS.contains(&value.as_str()) {
+                            return Err(Error::Unsupported(format!(
+                                "facing {value}: supported values are {}",
+                                FACINGS.join(", ")
+                            )));
+                        }
                     }
                 }
             }
@@ -2131,8 +2168,18 @@ impl Event {
             Self::Speak { at, actor, .. }
             | Self::Move { at, actor, .. }
             | Self::Emotion { at, actor, .. }
-            | Self::Gesture { at, actor, .. } => (*at, actor),
+            | Self::Gesture { at, actor, .. }
+            | Self::Face { at, actor, .. } => (*at, actor),
         }
+    }
+}
+/// The standard joint a custom rig needs before a gesture can drive it.
+fn gesture_joint(gesture: motion_animation::Gesture) -> &'static str {
+    use motion_animation::Gesture;
+    match gesture {
+        Gesture::Wave | Gesture::Point => "upper_arm_r",
+        Gesture::Nod => "head",
+        Gesture::Shrug => "upper_arm_l",
     }
 }
 fn validate_emotion(value: &str) -> Result<(), Error> {
@@ -2192,7 +2239,47 @@ mod edit_tests {
             x: 200.0,
             y: 100.0,
             duration: 1.0,
+            gait: None,
         }
+    }
+    #[test]
+    fn gait_and_facing_parse_validate_and_roundtrip() {
+        let script = |events: &str| {
+            format!("characters:\n  EMMA:\n    asset: characters/emma\nscenes:\n  - id: intro\n    duration: 5\n    events:\n{events}")
+        };
+        let run = script("      - {type: move, actor: EMMA, at: 0, x: 10, y: 20, duration: 1, gait: run}\n      - {type: face, actor: EMMA, at: 1, value: left}\n");
+        let parsed = parse(&run).unwrap();
+        assert!(
+            matches!(&parsed.scenes[0].events[0], Event::Move { gait: Some(g), .. } if g == "run")
+        );
+        assert!(
+            matches!(&parsed.scenes[0].events[1], Event::Face { value, .. } if value == "left")
+        );
+        // A legacy move omits the field when written back.
+        let moved = apply_event(SOURCE, 0, 0, movement("EMMA", 2.0)).unwrap();
+        assert!(!moved.contains("gait"));
+        let bad_gait = script(
+            "      - {type: move, actor: EMMA, at: 0, x: 10, y: 20, duration: 1, gait: sprint}\n",
+        );
+        assert!(
+            matches!(parse(&bad_gait), Err(Error::Unsupported(m)) if m.contains("walk, jog, run"))
+        );
+        let bad_face = script("      - {type: face, actor: EMMA, at: 0, value: up}\n");
+        assert!(
+            matches!(parse(&bad_face), Err(Error::Unsupported(m)) if m.contains("front, left, right, back"))
+        );
+        let late_face = script("      - {type: face, actor: EMMA, at: 5, value: back}\n");
+        assert!(parse(&late_face).is_err());
+    }
+    #[test]
+    fn custom_rig_gestures_need_the_driving_joint() {
+        let source = |joint: &str| {
+            format!("characters:\n  R:\n    asset: characters/r\n    rig:\n      version: 1\n      id: r\n      joints:\n        - {{id: root, parent: null}}\n        - {{id: {joint}, parent: root, y: -20}}\n      parts:\n        - {{id: body, joint: root, points: [[-5, 0], [5, 0], [0, -10]], color: [1, 2, 3, 255]}}\nscenes:\n  - id: s\n    duration: 2\n    events:\n      - {{type: gesture, actor: R, at: 0, value: wave, duration: 1}}\n")
+        };
+        assert!(parse(&source("upper_arm_r")).is_ok());
+        assert!(
+            matches!(parse(&source("arm")), Err(Error::Unsupported(m)) if m.contains("upper_arm_r"))
+        );
     }
     #[test]
     fn valid_move_and_imported_dialogue_roundtrip() {

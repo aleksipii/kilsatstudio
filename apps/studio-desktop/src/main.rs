@@ -26,6 +26,7 @@ mod kokoro_setup;
 mod live_clip_editor;
 mod local_speech_ui;
 mod managed_license_evidence;
+mod motion_blocks;
 mod native_compositor;
 mod playback;
 mod project_history;
@@ -988,6 +989,89 @@ impl Studio {
             Err(error) => self.status = format!("Tapahtuman poisto: {error}"),
         }
     }
+    /// Turn a palette block dropped on `actor`'s track at `time` into one
+    /// validated, undoable source edit.
+    fn apply_block_drop(&mut self, block: &motion_blocks::Block, actor: &str, time: f64) {
+        if self.busy || self.diagnostics_busy || self.export_busy {
+            return;
+        }
+        self.flush_text_edit();
+        let Some(script) = &self.script else {
+            return;
+        };
+        let scene_index = self.scene_index;
+        let Some(scene) = script.scenes.get(scene_index) else {
+            return;
+        };
+        let first = scene.events.len();
+        let result = match block {
+            motion_blocks::Block::Clip(name) => {
+                let at =
+                    (time * f64::from(script.project.fps)).round() / f64::from(script.project.fps);
+                let remaining = scene.duration - at;
+                let custom = script
+                    .characters
+                    .get(actor)
+                    .is_some_and(|c| c.rig.is_some());
+                let result = if custom {
+                    let length = script.rig_clips.get(name).map_or(1.0, |c| c.duration);
+                    motion_script::apply_rig_clip(
+                        &self.source,
+                        scene_index,
+                        actor,
+                        name,
+                        &motion_script::RigClipPlacement {
+                            interval: Some((at, length.min(remaining))),
+                            ..Default::default()
+                        },
+                    )
+                } else {
+                    let length = script.animation_clips.get(name).map_or(1.0, |c| c.duration);
+                    motion_script::apply_animation_clip_retimed(
+                        &self.source,
+                        scene_index,
+                        actor,
+                        name,
+                        at,
+                        length.min(remaining),
+                    )
+                };
+                result
+                    .map(|source| (source, Vec::new()))
+                    .map_err(|e| e.to_string())
+            }
+            _ => motion_blocks::events(script, scene_index, actor, time, block)
+                .and_then(|events| motion_blocks::insert(&self.source, scene_index, first, events)),
+        };
+        match result {
+            Ok((source, _)) if source.len() > MAX_SOURCE_BYTES => {
+                self.status = "Muutos ylittää käsikirjoituksen 256 KiB:n kokorajan.".into();
+            }
+            Ok((source, inserted)) => {
+                self.stop_playback();
+                self.inserting_event = false;
+                self.event_draft_source = None;
+                self.pending_event_delete = None;
+                self.record_source_edit(&self.source.clone(), &source);
+                self.source = source;
+                self.document_changed();
+                self.validate();
+                self.selected_actor = Some(actor.to_owned());
+                self.selected_event = inserted.last().copied();
+                self.event_draft = match (&self.script, self.selected_event) {
+                    (Some(script), Some(event)) => {
+                        event_editor::Draft::new(script, scene_index, event)
+                    }
+                    _ => None,
+                };
+                self.status = format!(
+                    "{} lisätty hahmolle {actor}. Kumoa peruu lisäyksen.",
+                    block.label()
+                );
+            }
+            Err(error) => self.status = format!("Palikkaa ei voitu lisätä: {error}"),
+        }
+    }
     fn cancel_timeline_drag(&mut self) {
         self.timeline_drag = None;
         self.timeline_drag_source = None;
@@ -1000,9 +1084,6 @@ impl Studio {
             || self.diagnostics_busy
             || original_source.as_deref() != Some(self.source.as_str())
         {
-            return;
-        }
-        if drag.proposed_at == drag.original_at {
             return;
         }
         let Some(script) = &self.script else {
@@ -1018,13 +1099,17 @@ impl Studio {
         else {
             return;
         };
+        let replacement = drag.replacement(event);
+        if &replacement == event {
+            return;
+        }
         self.inserting_event = false;
         self.event_draft_source = None;
         self.pending_event_delete = None;
         self.event_draft = Some(event_editor::Draft {
             scene_index: drag.scene_index,
             event_index: drag.event_index,
-            event: drag.replacement(event),
+            event: replacement,
         });
         self.apply_event_draft();
         if let Some(error) = &self.event_edit_error {
@@ -5178,6 +5263,7 @@ impl Studio {
                             ("Liike", event_factory::Kind::Move),
                             ("Ilme", event_factory::Kind::Emotion),
                             ("Ele", event_factory::Kind::Gesture),
+                            ("Suunta", event_factory::Kind::Face),
                             ("Repliikki", event_factory::Kind::Speak),
                         ] {
                             if ui.button(label).clicked() {
@@ -5492,6 +5578,7 @@ impl Studio {
                 ));
                 for (name, color) in [
                     ("Puhe", SPEAK),
+                    ("Suunta", FACE),
                     ("Ele", GESTURE),
                     ("Ilme", EMOTION),
                     ("Liike", MOVE),
@@ -5516,8 +5603,14 @@ impl Studio {
         for (index, event) in scene.events.iter().enumerate() {
             let (at, actor) = event.actor_time();
             let (lane, label, color, duration) = match event {
-                motion_script::Event::Move { duration, .. } => {
-                    (0usize, "Liike".to_string(), MOVE, *duration)
+                motion_script::Event::Move { duration, gait, .. } => (
+                    0usize,
+                    event_editor::gait_label(gait.as_deref().unwrap_or("walk")).to_owned(),
+                    MOVE,
+                    *duration,
+                ),
+                motion_script::Event::Face { value, .. } => {
+                    (1, event_editor::facing_label(value).to_owned(), FACE, 0.0)
                 }
                 motion_script::Event::Emotion { value, .. } => (
                     1,
@@ -5579,6 +5672,40 @@ impl Studio {
         let mut selection = None;
         let mut commit_drag = None;
         let mut pause_drag = false;
+        let mut drop = None;
+        let editable = !self.busy && !self.diagnostics_busy && !self.export_busy;
+        let saved_blocks = motion_blocks::saved(script, self.selected_actor.as_deref());
+        egui::SidePanel::left("motion_block_palette")
+            .resizable(true)
+            .default_width(150.0)
+            .width_range(120.0..=280.0)
+            .show_inside(ui, |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("motion_block_scroll")
+                    .show(ui, |ui| {
+                        ui.label(egui::RichText::new("PALIKAT").strong());
+                        ui.weak("Vedä palikka hahmon raidalle.");
+                        for (heading, blocks) in motion_blocks::builtin() {
+                            ui.add_space(4.0);
+                            ui.small(heading);
+                            ui.horizontal_wrapped(|ui| {
+                                for block in blocks {
+                                    block_chip(ui, block, editable);
+                                }
+                            });
+                        }
+                        ui.add_space(4.0);
+                        ui.small("Omat liikkeet");
+                        if saved_blocks.is_empty() {
+                            ui.weak("Tallenna liike Muokkaa-välilehden liikekirjastoon, niin se näkyy tässä.");
+                        }
+                        ui.horizontal_wrapped(|ui| {
+                            for block in saved_blocks {
+                                block_chip(ui, block, editable);
+                            }
+                        });
+                    });
+            });
         ui.add_space(4.0);
         // Reserve the audio section's height measured on the previous frame. Content
         // taller than the panel would otherwise grow the resizable panel every frame.
@@ -5621,10 +5748,56 @@ impl Studio {
             let cursor = x_at(self.playhead);
             painter.line_segment([egui::pos2(cursor,rect.top()+20.0), egui::pos2(cursor,rect.bottom())], egui::Stroke::new(2.0_f32, ACCENT));
             painter.circle_filled(egui::pos2(cursor,rect.top()+20.0), 3.5, ACCENT);
+            // Palette drops: the pointer picks the character track and the time.
+            let drop_target = |position: egui::Pos2| -> Option<(String, f64, f32)> {
+                if position.x < track_left || position.y < rect.top() + 26.0 {
+                    return None;
+                }
+                let track = ((position.y - rect.top() - 26.0) / track_height) as usize;
+                let actor = actor_ids.get(track)?;
+                let time = timeline_seek(position.x, track_left, track_width, duration);
+                Some((actor.clone(), time, rect.top() + 26.0 + track as f32 * track_height))
+            };
+            if let (Some(block), Some(position)) = (
+                response.dnd_hover_payload::<motion_blocks::Block>(),
+                ui.input(|input| input.pointer.latest_pos()),
+            ) {
+                if let Some((actor, time, top)) = drop_target(position) {
+                    let row = egui::Rect::from_min_max(egui::pos2(track_left, top), egui::pos2(track_left + track_width, top + track_height));
+                    painter.rect_filled(row, 0.0, ACCENT.gamma_multiply(0.08));
+                    let x = x_at(time);
+                    painter.line_segment([egui::pos2(x, top), egui::pos2(x, top + track_height)], egui::Stroke::new(2.0_f32, ACCENT));
+                    painter.text(egui::pos2(x + 4.0, top + 2.0), egui::Align2::LEFT_TOP, format!("{} → {actor} · {time:.2} s", block.label()), egui::FontId::proportional(11.0), ACCENT);
+                }
+            }
+            if let (Some(block), Some(position)) = (
+                response.dnd_release_payload::<motion_blocks::Block>(),
+                ui.input(|input| input.pointer.latest_pos()),
+            ) {
+                match drop_target(position) {
+                    Some((actor, time, _)) => drop = Some(((*block).clone(), actor, time)),
+                    None => self.status = "Pudota palikka jonkin hahmon raidalle.".into(),
+                }
+            }
+            // The last few pixels of a bar resize it; the rest moves it.
+            let edge_at = |position: egui::Pos2| {
+                hit_boxes.iter().rev().find(|(_, bar)| {
+                    (position.x - bar.right()).abs() <= 5.0 && position.y >= bar.top() && position.y <= bar.bottom() && bar.width() > 10.0
+                }).map(|(index, _)| *index)
+            };
             if !self.busy && !self.diagnostics_busy {
                 if response.drag_started_by(egui::PointerButton::Primary) {
                     if let Some(origin) = ui.input(|input| input.pointer.press_origin()) {
-                        if let Some(index) = timeline_event_at(origin, &hit_boxes) {
+                        let resize = edge_at(origin).and_then(|index| {
+                            timeline_edit::Drag::resize(self.scene_index, index, &scene.events[index], origin.x).map(|drag| (index, drag))
+                        });
+                        if let Some((index, drag)) = resize {
+                            self.timeline_drag = Some(drag);
+                            self.timeline_drag_source = Some(self.source.clone());
+                            self.timeline_seek_drag = false;
+                            selection = Some(index);
+                            pause_drag = true;
+                        } else if let Some(index) = timeline_event_at(origin, &hit_boxes) {
                             self.timeline_drag = timeline_edit::Drag::new(self.scene_index, index, &scene.events[index], origin.x);
                             self.timeline_drag_source = self.timeline_drag.as_ref().map(|_| self.source.clone());
                             self.timeline_seek_drag = false;
@@ -5651,12 +5824,14 @@ impl Studio {
                 if let Some(drag) = &self.timeline_drag {
                     if let Some((_,track,_,_,length,lane,_,_)) = events.iter().find(|(index,..)|*index==drag.event_index) {
                         let y=rect.top()+26.0+*track as f32*track_height+*lane as f32*18.0+3.0;
+                        let length = if drag.resize { drag.proposed_duration } else { *length };
                         let start=x_at(drag.proposed_at);
-                        let end=x_at(drag.proposed_at+*length).max(start+8.0).min(track_left+track_width);
+                        let end=x_at(drag.proposed_at+length).max(start+8.0).min(track_left+track_width);
                         let ghost=egui::Rect::from_min_max(egui::pos2(start.min(end-2.0),y),egui::pos2(end,y+15.0));
                         painter.rect_filled(ghost,3.0,ACCENT.gamma_multiply(0.25));
                         painter.rect_stroke(ghost,3.0,egui::Stroke::new(2.0_f32,ACCENT),egui::StrokeKind::Inside);
-                        painter.text(egui::pos2(start,rect.top()+2.0),egui::Align2::LEFT_TOP,format!("{:.3} s · käytä vapauttamalla hiiri",drag.proposed_at),egui::FontId::monospace(11.0),ACCENT);
+                        let text = if drag.resize { format!("kesto {length:.3} s · käytä vapauttamalla hiiri") } else { format!("{:.3} s · käytä vapauttamalla hiiri",drag.proposed_at) };
+                        painter.text(egui::pos2(start,rect.top()+2.0),egui::Align2::LEFT_TOP,text,egui::FontId::monospace(11.0),ACCENT);
                     }
                 }
                 if response.drag_stopped_by(egui::PointerButton::Primary) {
@@ -5676,9 +5851,12 @@ impl Studio {
                 }
             }
             if let Some(position) = response.hover_pos() {
+                if self.timeline_drag.as_ref().is_some_and(|d| d.resize) || edge_at(position).is_some_and(|index| matches!(scene.events.get(index), Some(motion_script::Event::Move { .. } | motion_script::Event::Gesture { .. }))) {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
+                }
                 if let Some((index,_)) = hit_boxes.iter().rev().find(|(_,bar)|bar.contains(position)) {
                     if let Some((_,_,actor,at,length,_,label,_)) = events.iter().find(|(i,..)|i==index) {
-                        response.on_hover_text(format!("{actor} · {label}\n{at:.3} s{}\nMuokkaa napsauttamalla. Siirrä aikaa vetämällä; Esc peruu.", if *length > 0.0 { format!(" · kesto {length:.3} s") } else { " · pistemerkki / kesto valmistelematta".into() }));
+                        response.on_hover_text(format!("{actor} · {label}\n{at:.3} s{}\nMuokkaa napsauttamalla. Siirrä aikaa vetämällä, muuta kestoa oikeasta reunasta; Esc peruu.", if *length > 0.0 { format!(" · kesto {length:.3} s") } else { " · pistemerkki / kesto valmistelematta".into() }));
                     }
                 }
             }
@@ -5706,19 +5884,31 @@ impl Studio {
         if let Some(time) = seek {
             self.seek_scene(time);
         }
+        if let Some((block, actor, time)) = drop {
+            self.apply_block_drop(&block, &actor, time);
+        }
         let audio_top = ui.cursor().top();
         let audio_max = (ui.available_height() - 24.0).max(40.0);
-        egui::CollapsingHeader::new("Kohtauksen ääni ja yhdistetty aaltomuoto").show(ui, |ui| {
-            egui::ScrollArea::vertical()
-                .id_salt("timeline_audio_scroll")
-                .max_height(audio_max)
-                .show(ui, |ui| {
-                    ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
-                        self.scene_audio_ui(ui);
+        let audio = egui::CollapsingHeader::new("Kohtauksen ääni ja yhdistetty aaltomuoto").show(
+            ui,
+            |ui| {
+                egui::ScrollArea::vertical()
+                    .id_salt("timeline_audio_scroll")
+                    .max_height(audio_max)
+                    .show(ui, |ui| {
+                        ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
+                            self.scene_audio_ui(ui);
+                        });
                     });
-                });
-        });
-        let used = (ui.min_rect().bottom() - audio_top).max(0.0);
+            },
+        );
+        // Measure the section itself: the palette beside it spans the full height.
+        let bottom = audio
+            .body_response
+            .map_or(audio.header_response.rect.bottom(), |body| {
+                body.rect.bottom()
+            });
+        let used = (bottom - audio_top).max(0.0);
         ui.data_mut(|data| data.insert_temp(audio_height_id, used));
     }
 }
@@ -5731,6 +5921,7 @@ const MOVE: egui::Color32 = egui::Color32::from_rgb(91, 158, 226);
 const EMOTION: egui::Color32 = egui::Color32::from_rgb(208, 151, 93);
 const GESTURE: egui::Color32 = egui::Color32::from_rgb(162, 132, 216);
 const SPEAK: egui::Color32 = egui::Color32::from_rgb(71, 172, 152);
+const FACE: egui::Color32 = egui::Color32::from_rgb(222, 112, 150);
 
 fn section_label(ui: &mut egui::Ui, text: &str) {
     ui.label(
@@ -5780,6 +5971,32 @@ fn timeline_event_at(position: egui::Pos2, boxes: &[(usize, egui::Rect)]) -> Opt
         .rev()
         .find(|(_, rect)| rect.contains(position))
         .map(|(index, _)| *index)
+}
+/// A draggable palette block. Disabled blocks still show what is available.
+fn block_chip(ui: &mut egui::Ui, block: motion_blocks::Block, enabled: bool) {
+    let color = match block {
+        motion_blocks::Block::Gait(_) => MOVE,
+        motion_blocks::Block::Gesture(_) => GESTURE,
+        motion_blocks::Block::Face(_) => FACE,
+        motion_blocks::Block::Clip(_) => ACCENT,
+    };
+    let label = block.label();
+    let hint = block.hint();
+    if !enabled {
+        ui.add_enabled(false, egui::Button::new(label));
+        return;
+    }
+    let id = egui::Id::new(("motion_block", format!("{block:?}")));
+    ui.dnd_drag_source(id, block, |ui| {
+        egui::Frame::new()
+            .fill(color.gamma_multiply(0.3))
+            .stroke(egui::Stroke::new(1.0_f32, color))
+            .corner_radius(4.0)
+            .inner_margin(egui::Margin::symmetric(8, 3))
+            .show(ui, |ui| ui.label(label));
+    })
+    .response
+    .on_hover_text(hint);
 }
 fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
     if !pointer_x.is_finite() || !left.is_finite() || !width.is_finite() || width <= 0.0 {
@@ -6100,6 +6317,15 @@ fn draw_scene(
             ));
         };
         ellipse(0.0, 0.0, 25.0, 25.0, egui::Color32::from_rgb(245, 200, 162));
+        // The back view shows no face; the side view turns it toward local +x.
+        let Some((k, shift)) = motion_scene::procedural_face(actor.view) else {
+            continue;
+        };
+        let (k, shift) = (k as f32, shift as f32);
+        let face = |dx: f32, dy: f32| face(dx * k + shift, dy);
+        let ellipse = |cx: f32, cy: f32, rx: f32, ry: f32, color: egui::Color32| {
+            ellipse(cx * k + shift, cy, rx, ry, color)
+        };
         for x in [-8.0, 8.0] {
             ellipse(x, -4.0, 2.5, 2.5, egui::Color32::BLACK);
         }

@@ -27,7 +27,8 @@ impl Draft {
             Event::Move { at, actor, .. }
             | Event::Speak { at, actor, .. }
             | Event::Emotion { at, actor, .. }
-            | Event::Gesture { at, actor, .. } => (at, actor),
+            | Event::Gesture { at, actor, .. }
+            | Event::Face { at, actor, .. } => (at, actor),
         };
         egui::ComboBox::from_id_salt("event_actor")
             .selected_text(actor.as_str())
@@ -38,10 +39,39 @@ impl Draft {
             });
         number(ui, "Alku (s)", at);
         match &mut self.event {
-            Event::Move { x, y, duration, .. } => {
+            Event::Move {
+                x,
+                y,
+                duration,
+                gait,
+                ..
+            } => {
                 number(ui, "X", x);
                 number(ui, "Y", y);
                 number(ui, "Kesto (s)", duration);
+                let current = gait.as_deref().unwrap_or("walk").to_owned();
+                egui::ComboBox::from_label("Askellaji")
+                    .selected_text(gait_label(&current))
+                    .show_ui(ui, |ui| {
+                        for name in motion_scene::GAITS {
+                            if ui
+                                .selectable_label(current == name, gait_label(name))
+                                .clicked()
+                            {
+                                // Walking is the default and stays implicit in the source.
+                                *gait = (name != "walk").then(|| name.into());
+                            }
+                        }
+                    });
+            }
+            Event::Face { value, .. } => {
+                egui::ComboBox::from_label("Suunta")
+                    .selected_text(facing_label(value))
+                    .show_ui(ui, |ui| {
+                        for name in motion_scene::FACINGS {
+                            ui.selectable_value(value, name.into(), facing_label(name));
+                        }
+                    });
             }
             Event::Emotion { value, .. } => emotion(ui, "Ilme", value),
             Event::Gesture {
@@ -126,6 +156,25 @@ pub(crate) fn gesture_label(value: &str) -> &str {
         "point" => "Osoitus",
         "nod" => "Nyökkäys",
         "shrug" => "Olankohautus",
+        _ => value,
+    }
+}
+
+pub(crate) fn gait_label(value: &str) -> &str {
+    match value {
+        "walk" => "Kävely",
+        "jog" => "Hölkkä",
+        "run" => "Juoksu",
+        _ => value,
+    }
+}
+
+pub(crate) fn facing_label(value: &str) -> &str {
+    match value {
+        "front" => "Edestä",
+        "left" => "Profiili vasemmalle",
+        "right" => "Profiili oikealle",
+        "back" => "Selkä katsojaan",
         _ => value,
     }
 }

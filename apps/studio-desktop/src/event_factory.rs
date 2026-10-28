@@ -7,6 +7,7 @@ pub enum Kind {
     Emotion,
     Gesture,
     Speak,
+    Face,
 }
 
 fn snapped_time(script: &Script, scene_index: usize, at: f64) -> Result<f64, String> {
@@ -53,6 +54,7 @@ pub fn create(
                 x: pose.x,
                 y: pose.y,
                 duration,
+                gait: None,
             }
         }
         Kind::Emotion => Event::Emotion {
@@ -65,6 +67,11 @@ pub fn create(
             actor,
             value: "wave".into(),
             duration,
+        },
+        Kind::Face => Event::Face {
+            at,
+            actor,
+            value: "front".into(),
         },
         Kind::Speak => Event::Speak {
             at,
@@ -94,7 +101,8 @@ pub fn duplicate_at(
         Event::Move { at: start, .. }
         | Event::Emotion { at: start, .. }
         | Event::Gesture { at: start, .. }
-        | Event::Speak { at: start, .. } => *start = at,
+        | Event::Speak { at: start, .. }
+        | Event::Face { at: start, .. } => *start = at,
     }
     Ok(event)
 }
@@ -111,7 +119,13 @@ mod tests {
     fn creates_bounded_defaults_without_touching_source() {
         let script = script();
         let before = format!("{script:?}");
-        for kind in [Kind::Move, Kind::Emotion, Kind::Gesture, Kind::Speak] {
+        for kind in [
+            Kind::Move,
+            Kind::Emotion,
+            Kind::Gesture,
+            Kind::Speak,
+            Kind::Face,
+        ] {
             let event = create(&script, 0, "EMMA", 100.0, kind).unwrap();
             assert_eq!(event.actor_time(), (287.0 / 24.0, "EMMA"));
             match event {
@@ -127,6 +141,7 @@ mod tests {
                     assert_eq!(value, "wave");
                 }
                 Event::Emotion { value, .. } => assert_eq!(value, "neutral"),
+                Event::Face { value, .. } => assert_eq!(value, "front"),
                 Event::Speak { text, audio, .. } => {
                     assert_eq!(text, "New dialogue.");
                     assert!(audio.is_none());
@@ -217,6 +232,7 @@ mod tests {
             x: 100.0,
             y: 200.0,
             duration: 2.0,
+            gait: None,
         });
         let event = create(&script, 0, "EMMA", 1.0, Kind::Move).unwrap();
         match event {

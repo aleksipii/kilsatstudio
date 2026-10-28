@@ -889,7 +889,21 @@ impl RigDefinition {
                 }
             })
             .collect();
-        let acting = self.prepare_acting();
+        let mut acting = self.prepare_acting();
+        let joints: Vec<_> = acting.features.iter().map(|i| parts[*i].joint).collect();
+        if joints
+            .first()
+            .is_some_and(|j| joints.iter().all(|k| k == j))
+        {
+            let xs = acting
+                .features
+                .iter()
+                .flat_map(|i| parts[*i].definition.points.iter().map(|p| p[0]));
+            let (lo, hi) = xs.fold((f64::MAX, f64::MIN), |(lo, hi), x| (lo.min(x), hi.max(x)));
+            if hi > lo {
+                acting.side = Some(((lo + hi) / 2.0, (hi - lo) / 2.0));
+            }
+        }
         let limits = rig
             .joints()
             .iter()
@@ -946,7 +960,7 @@ impl RigDefinition {
             }
             (self.part_index(&v.part), table)
         });
-        let expressions = self
+        let expressions: BTreeMap<String, Vec<(usize, usize)>> = self
             .expressions
             .iter()
             .map(|(emotion, entries)| {
@@ -978,12 +992,27 @@ impl RigDefinition {
                 }),
             ),
         };
+        let mut features: Vec<usize> = mouth
+            .iter()
+            .map(|(part, _)| *part)
+            .chain(expressions.values().flatten().map(|(part, _)| *part))
+            .chain(pupils.iter().copied())
+            .chain(
+                blink
+                    .iter()
+                    .flat_map(|b| b.picks.iter().map(|(part, _)| *part)),
+            )
+            .collect();
+        features.sort_unstable();
+        features.dedup();
         PreparedActing {
             mouth,
             expressions,
             pupils,
             travel,
             blink,
+            features,
+            side: None,
         }
     }
 }
@@ -995,6 +1024,11 @@ struct PreparedActing {
     pupils: Vec<usize>,
     travel: f64,
     blink: Option<PreparedBlink>,
+    /// Facial feature parts: the mouth, expression, pupil and blink parts.
+    features: Vec<usize>,
+    /// Joint-local `(center x, half width)` of the features at rest, when they
+    /// share one joint; used to turn the face toward +x in the side view.
+    side: Option<(f64, f64)>,
 }
 #[derive(Debug, Clone)]
 struct PreparedBlink {
@@ -1008,7 +1042,21 @@ struct PreparedBlink {
 pub struct ActingInput<'a> {
     pub emotion: &'a str,
     pub blink: bool,
+    /// Which side of the head faces the viewer.
+    pub view: FaceView,
 }
+/// Which side of a character faces the viewer. The side view turns toward +x;
+/// a mirrored actor (negative x scale) therefore faces -x.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
+pub enum FaceView {
+    #[default]
+    Front,
+    Side,
+    Back,
+}
+/// Fraction of the feature spread kept in the side view; the rest becomes the
+/// shift toward the facing side.
+const SIDE_SQUASH: f64 = 0.55;
 /// Evaluated mouth alternatives for this pose: `(viseme name, part)` for each
 /// mapped viseme, replacing `parts[part]` when that viseme is spoken.
 #[derive(Debug, Clone, PartialEq)]
@@ -1073,7 +1121,7 @@ impl PreparedRig {
     ) -> Result<Vec<EvaluatedPart>, Error> {
         let world = self.world(offsets)?;
         (0..self.parts.len())
-            .map(|index| self.evaluate_part(index, &world, None))
+            .map(|index| self.evaluate_part(index, &world, None, FaceView::Front))
             .collect()
     }
     fn world(&self, offsets: &[(usize, Transform2)]) -> Result<Vec<Affine2>, Error> {
@@ -1108,6 +1156,7 @@ impl PreparedRig {
         index: usize,
         world: &[Affine2],
         variant: Option<usize>,
+        view: FaceView,
     ) -> Result<EvaluatedPart, Error> {
         let prepared = &self.parts[index];
         let part = &prepared.definition;
@@ -1123,10 +1172,29 @@ impl PreparedRig {
         let rest_points = variant
             .and_then(|v| v.points.as_ref())
             .unwrap_or(&part.points);
-        let color = variant.and_then(|v| v.color).unwrap_or(part.color);
-        let texture_definition = variant
+        let mut color = variant.and_then(|v| v.color).unwrap_or(part.color);
+        let mut texture_definition = variant
             .and_then(|v| v.texture.as_ref())
             .or(part.texture.as_ref());
+        let feature = view != FaceView::Front && self.acting.features.binary_search(&index).is_ok();
+        let turned: Vec<[f64; 2]>;
+        let rest_points = match (feature, view, self.acting.side) {
+            (true, FaceView::Back, _) => {
+                // The back of the head shows no face.
+                color[3] = 0;
+                texture_definition = None;
+                rest_points
+            }
+            (true, FaceView::Side, Some((center, half))) => {
+                let shift = (1.0 - SIDE_SQUASH) * half;
+                turned = rest_points
+                    .iter()
+                    .map(|p| [center + (p[0] - center) * SIDE_SQUASH + shift, p[1]])
+                    .collect();
+                &turned
+            }
+            _ => rest_points,
+        };
         let transform = world[prepared.joint];
         let skinned = !prepared.skin.is_empty();
         let points: Vec<_> = if skinned {
@@ -1255,7 +1323,7 @@ impl PreparedRig {
             }
         }
         let parts = (0..self.parts.len())
-            .map(|index| self.evaluate_part(index, &world, picks[index]))
+            .map(|index| self.evaluate_part(index, &world, picks[index], input.view))
             .collect::<Result<Vec<_>, _>>()?;
         let mouth = match &self.acting.mouth {
             None => None,
@@ -1265,7 +1333,7 @@ impl PreparedRig {
                     if let Some(variant) = variant {
                         shapes.push((
                             VISEME_NAMES[slot],
-                            self.evaluate_part(*part, &world, Some(*variant))?,
+                            self.evaluate_part(*part, &world, Some(*variant), input.view)?,
                         ));
                     }
                 }
@@ -1762,7 +1830,9 @@ mod tests {
         let world = prepared.world(&[]).unwrap();
         let variant = |name: &str| {
             let index = d.parts[0].variants.keys().position(|k| k == name).unwrap();
-            prepared.evaluate_part(0, &world, Some(index)).unwrap()
+            prepared
+                .evaluate_part(0, &world, Some(index), FaceView::Front)
+                .unwrap()
         };
         let thin = variant("thin").outline.unwrap();
         assert_eq!((thin.width, thin.mode), (0.5, OutlineMode::Over));
@@ -1772,9 +1842,25 @@ mod tests {
         let input = ActingInput {
             emotion: "happy",
             blink: false,
+            view: FaceView::Front,
         };
         let (acting, _) = prepared.evaluate_acting(&[], input).unwrap();
         assert_eq!(acting[0].outline.unwrap().width, 0.5);
+        // The expression part is a facial feature: the side view turns it toward
+        // +x without widening it, and the back view hides it.
+        let view = |view| {
+            prepared
+                .evaluate_acting(&[], ActingInput { view, ..input })
+                .unwrap()
+                .0
+        };
+        // The joint may be rotated, so compare whole shapes, not world x extents.
+        assert_ne!(view(FaceView::Side)[0].points, acting[0].points);
+        assert_eq!(view(FaceView::Front)[0].points, acting[0].points);
+        let back = &view(FaceView::Back)[0];
+        assert_eq!(back.color[3], 0);
+        assert_eq!(back.outline, None);
+        assert_eq!(view(FaceView::Back)[0].points, acting[0].points);
     }
     #[test]
     #[allow(clippy::type_complexity)]

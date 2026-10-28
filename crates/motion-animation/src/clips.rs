@@ -61,6 +61,43 @@ pub fn valid_humanoid_offset(value: Transform2) -> bool {
 pub const POSTURE_BLEND_SECONDS: f64 = 0.25;
 /// Seconds per full walk cycle (two steps).
 pub const WALK_CYCLE_SECONDS: f64 = 2.0 / 3.0;
+/// Seconds per full jog cycle (two steps).
+pub const JOG_CYCLE_SECONDS: f64 = 0.5;
+/// Seconds per full run cycle (two steps).
+pub const RUN_CYCLE_SECONDS: f64 = 0.4;
+/// MotionScript gait names, in the order editors should present them.
+pub const GAITS: [&str; 3] = ["walk", "jog", "run"];
+
+/// How a character travels while a move is active.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
+pub enum Gait {
+    #[default]
+    Walk,
+    Jog,
+    Run,
+}
+impl Gait {
+    pub fn parse(name: &str) -> Option<Self> {
+        Some(match name {
+            "walk" => Self::Walk,
+            "jog" => Self::Jog,
+            "run" => Self::Run,
+            _ => return None,
+        })
+    }
+    pub fn name(self) -> &'static str {
+        GAITS[self as usize]
+    }
+    /// Seconds per full cycle (two steps).
+    pub fn cycle_seconds(self) -> f64 {
+        match self {
+            Self::Walk => WALK_CYCLE_SECONDS,
+            Self::Jog => JOG_CYCLE_SECONDS,
+            Self::Run => RUN_CYCLE_SECONDS,
+        }
+    }
+}
+
 /// MotionScript gesture names, in the order editors should present them.
 pub const GESTURES: [&str; 4] = ["wave", "point", "nod", "shrug"];
 
@@ -81,7 +118,7 @@ impl Gesture {
             _ => return None,
         })
     }
-    fn index(self) -> usize {
+    pub(crate) fn index(self) -> usize {
         self as usize
     }
 }
@@ -100,6 +137,11 @@ pub fn gesture_envelope(progress: f64) -> f64 {
 pub struct HumanoidState<'a> {
     /// Seconds since the active move began, or `None` when standing.
     pub walk_seconds: Option<f64>,
+    /// Cycle used while `walk_seconds` is set.
+    pub gait: Gait,
+    /// Local horizontal travel direction: `1` forward (+x), `-1` backward, `0`
+    /// unknown. Only jog and run lean with it; the walk stays upright.
+    pub travel: f64,
     /// Emotion changes oldest first, each with the seconds since it took effect.
     /// Posture starts neutral; each change blends from the posture in flight at
     /// that moment, so closely spaced changes ease continuously.
@@ -111,6 +153,8 @@ pub struct HumanoidState<'a> {
 struct Library {
     rig: Rig,
     walk: Vec<Option<Track>>,
+    jog: Vec<Option<Track>>,
+    run: Vec<Option<Track>>,
     gestures: [Vec<Option<Track>>; 4],
 }
 
@@ -189,6 +233,35 @@ fn library() -> &'static Library {
             (LEFT_HAND, &stride(-7.0)),
             (RIGHT_HAND, &stride(7.0)),
         ]);
+        // Jog and run: longer strides, bent arms carried higher, a bigger bob.
+        let cycle = |seconds: f64, feet: f64, hands: f64, lift: f64, bob: f64| {
+            let q = seconds / 4.0;
+            let stride = |a: f64, y: f64| -> [(f64, f64, f64); 5] {
+                [
+                    (0.0, 0.0, y),
+                    (q, a, y),
+                    (2.0 * q, 0.0, y),
+                    (3.0 * q, -a, y),
+                    (4.0 * q, 0.0, y),
+                ]
+            };
+            let bob = [
+                (0.0, 0.0, 0.0),
+                (q, 0.0, -bob),
+                (2.0 * q, 0.0, 0.0),
+                (3.0 * q, 0.0, -bob),
+                (4.0 * q, 0.0, 0.0),
+            ];
+            clip(&[
+                (HIP, &bob),
+                (LEFT_FOOT, &stride(feet, 0.0)),
+                (RIGHT_FOOT, &stride(-feet, 0.0)),
+                (LEFT_HAND, &stride(-hands, -lift)),
+                (RIGHT_HAND, &stride(hands, -lift)),
+            ])
+        };
+        let jog = cycle(JOG_CYCLE_SECONDS, 18.0, 10.0, 10.0, 4.0);
+        let run = cycle(RUN_CYCLE_SECONDS, 26.0, 14.0, 16.0, 7.0);
         let wave = clip(&[(
             RIGHT_HAND,
             &[
@@ -219,6 +292,8 @@ fn library() -> &'static Library {
         Library {
             rig,
             walk,
+            jog,
+            run,
             gestures: [wave, point, nod, shrug],
         }
     })
@@ -324,12 +399,27 @@ pub fn evaluate_humanoid_with_weights_and_offsets(
             .expect("bounded posture intensity");
     }
     if let Some(t) = state.walk_seconds.filter(|t| t.is_finite() && *t >= 0.0) {
+        let clip = match state.gait {
+            Gait::Walk => &lib.walk,
+            Gait::Jog => &lib.jog,
+            Gait::Run => &lib.run,
+        };
         add(
             &mut pose,
-            &lib.walk,
-            t.rem_euclid(WALK_CYCLE_SECONDS),
+            clip,
+            t.rem_euclid(state.gait.cycle_seconds()),
             weights.walk,
         );
+        let lean = match state.gait {
+            Gait::Walk => 0.0,
+            Gait::Jog => 3.0,
+            Gait::Run => 6.0,
+        };
+        if lean != 0.0 && state.travel.is_finite() {
+            let lean = lean * state.travel.clamp(-1.0, 1.0) * weights.walk;
+            pose[CHEST].translation.x += lean;
+            pose[HEAD].translation.x += lean;
+        }
     }
     if let Some((gesture, progress, weight)) = state.gesture {
         if progress.is_finite() && weight.is_finite() && weight > 0.0 {
@@ -370,6 +460,48 @@ mod tests {
             gesture: Some((gesture, progress, gesture_envelope(progress))),
             ..Default::default()
         })
+    }
+
+    #[test]
+    fn gaits_round_trip_and_differ_while_moving() {
+        for name in GAITS {
+            assert_eq!(Gait::parse(name).unwrap().name(), name);
+        }
+        assert_eq!(Gait::parse("sprint"), None);
+        let pose = |gait, travel| {
+            evaluate_humanoid(&HumanoidState {
+                walk_seconds: Some(0.1),
+                gait,
+                travel,
+                ..Default::default()
+            })
+        };
+        let walk = pose(Gait::Walk, 1.0);
+        let legacy = evaluate_humanoid(&HumanoidState {
+            walk_seconds: Some(0.1),
+            ..Default::default()
+        });
+        assert_eq!(walk, legacy, "walk ignores travel and keeps legacy output");
+        let (jog, run) = (pose(Gait::Jog, 1.0), pose(Gait::Run, 1.0));
+        assert_ne!(jog, walk);
+        let idle = evaluate_humanoid(&HumanoidState::default());
+        let stride = |pose: [Vec2; 7]| (pose[LEFT_FOOT].x - idle[LEFT_FOOT].x).abs();
+        assert!(stride(run) > stride(walk), "run strides further");
+        assert!(
+            run[HEAD].x > pose(Gait::Run, -1.0)[HEAD].x,
+            "run leans toward travel"
+        );
+        // Cycles repeat exactly.
+        let at = |t| {
+            evaluate_humanoid(&HumanoidState {
+                walk_seconds: Some(t),
+                gait: Gait::Run,
+                ..Default::default()
+            })
+        };
+        for (a, b) in at(0.05).iter().zip(at(0.05 + 2.0 * RUN_CYCLE_SECONDS)) {
+            assert!((a.x - b.x).abs() < 1e-9 && (a.y - b.y).abs() < 1e-9);
+        }
     }
 
     #[test]
@@ -580,6 +712,7 @@ mod intensity_tests {
                 walk_seconds: Some(seconds),
                 emotion_changes: &[("happy", seconds + 0.05), ("sad", seconds)],
                 gesture: Some((Gesture::Wave, 0.4, 0.8)),
+                ..Default::default()
             };
             let before = evaluate_humanoid_with_offsets(&state, &offsets).unwrap();
             let after = evaluate_humanoid_with_weights_and_offsets(
@@ -649,6 +782,7 @@ mod intensity_tests {
             emotion_changes: &[("sad", 1.0)],
             walk_seconds: Some(0.3),
             gesture: Some((Gesture::Wave, 0.5, 1.0)),
+            ..Default::default()
         };
         let offsets = [(
             RIGHT_HAND,

@@ -349,7 +349,14 @@ fn fit_camera(
                     .unwrap_or("neutral");
                 for blink in [false, true] {
                     let (mut parts, mouth) = rig
-                        .evaluate_acting(&offsets, motion_rig::ActingInput { emotion, blink })
+                        .evaluate_acting(
+                            &offsets,
+                            motion_rig::ActingInput {
+                                emotion,
+                                blink,
+                                view: motion_rig::FaceView::Front,
+                            },
+                        )
                         .map_err(|e| e.to_string())?;
                     if let Some(mouth) = mouth {
                         parts.extend(mouth.shapes.into_iter().map(|(_, part)| part));

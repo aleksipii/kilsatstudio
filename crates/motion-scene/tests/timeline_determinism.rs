@@ -183,6 +183,7 @@ fn touching_moves_hand_over_exact_endpoints() {
                 x: tx,
                 y: ty,
                 duration,
+                ..
             } = event
             {
                 if actor == "EMMA" && *at <= t {
