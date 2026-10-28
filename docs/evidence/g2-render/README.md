@@ -1,8 +1,11 @@
 # G2 reference images (A08, KS-003c)
 
 Scene: [`examples/g2-minimal-scene/scene.kilsat`](../../../examples/g2-minimal-scene/README.md)
-(SHA-256 `bf58fc78afc7de8fc95d5ab040570b16009986338272ddfae7ed841f0982e175`).
-Base commit `60c7310` plus this branch. No phone yet (waits for KS-003a `grip`).
+(SHA-256 `8ba99dc39ed851d076f69370c83a35237b738aaa6a062ae1bba75366dcbd8f03`).
+Base commit `9342979` plus branch `feat/a08-g2-phone`. VEIKKO holds the catalog phone
+(`puhelin`, `examples/stick-studio/hand-props.json`) in the right hand, attached with
+A05's `motion_rig::props` grip contract at placement x 0, y 0, rotation 180°,
+scale 1.
 
 | File | Frame | Shot |
 | --- | --- | --- |
@@ -16,41 +19,45 @@ SVG, asserted by `reference_svgs_are_deterministic_and_match_recorded_hashes`
 
 | Shot | SHA-256 |
 | --- | --- |
-| wide (1.0 s) | `02bf7cab570d725a4ada591d8c6c20b73cb210b2c43ba96a38a0ca35b05f2004` |
-| close (3.0 s) | `64bddae7203a1b062959678091f865e1733223a090832e8d59f940371f258449` |
+| wide (1.0 s) | `6f6b2cd6ca918ac5c8969a25ba19f7de76d58952876bea58c154b561a7e4dde7` |
+| close (3.0 s) | `5de41ad65eee7b6c9c5a690173b0984edc696605526097bd640c9bfac742c0f6` |
 
-PNG (export pipeline, informational; not asserted by a test):
+PNG (export pipeline). The two export frames are asserted on Apple Silicon macOS by
+`crates/motion-export/tests/g2_export.rs` (values in `tests/support/g2.rs`); the
+downscaled committed files are informational:
 
 | File | Size | SHA-256 |
 | --- | --- | --- |
-| export `frame_000024.png` | 1920x1080 | `85e13144c14393c48e5b78e4e7370d49aefbd66ebbb54bb060f51335814ed45c` |
-| export `frame_000072.png` | 1920x1080 | `d6d4c9def910e060b46edfd71e76ed6656cead1d4b35902acc3b9263e390dc1c` |
-| `g2-wide-f024.png` (committed) | 960x540 | `3c03a238fe88d0a93c0d97237fc9090f0d272cbdb13bd5b3893e0a2a57f8f66e` |
-| `g2-close-f072.png` (committed) | 960x540 | `c9d09435e83128bf833355cc4ccc874feb4fe35ebf2be53785bd0127ed27a8ed` |
+| export `frame_000024.png` | 1920x1080 | `8bee3aa180d1041408a9e04e4d5fe2ef31215f2f47df040db8b7389a52edc658` |
+| export `frame_000072.png` | 1920x1080 | `85c0e33ec5cf848f0c21bcf17c245eb929da4623d776b7868eb575a6bece7f23` |
+| `g2-wide-f024.png` (committed) | 960x540 | `847911ed619328a88566a212308d2632d2bd5a6a415ef2d82e110df5e191d1c6` |
+| `g2-close-f072.png` (committed) | 960x540 | `85cd6082a11bbe31036756871773f7f48dbf2ae0f8d8facfbcfad150415e7ec2` |
 
 ## Renderer and platform
 
-- Renderer: CPU only. `motion-export` example `render_scene` (PNG mode):
-  shared evaluator → `render_svg_with_art` → resvg 0.45.1 / tiny-skia 0.11.4.
+- Renderer: CPU only. `motion-export` example `g2_export` (PNG mode, strict
+  model-free audio): shared evaluator → `render_svg_with_art` → resvg 0.45.1 /
+  tiny-skia 0.11.4. The earlier `render_scene` command produced the same frame bytes
+  for the scene without the phone.
   The committed PNGs are those frames downscaled to 960x540 with macOS `sips -Z 960`.
 - No GPU render of this scene was made; no CPU/GPU parity is claimed
   (see [render-contract.md § CPU and GPU](../../render-contract.md#cpu-and-gpu)).
 - Machine: Apple Silicon (arm64), macOS 27.0.1 (26A434), rustc 1.99.1.
-- Input audio: a generated 4 s silent 24 kHz mono WAV and a manifest with no
-  dialogue (export requires both; the scene has no speech).
+- Input audio: 4 s of silence on the 24 kHz scene clock from
+  `motion_voice::model_free::prepare_scene_model_free` (the scene has no speech).
 
 Reproduce:
 
 ```sh
-python3 -I -c "import wave; w=wave.open('silence.wav','wb'); w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(b'\0\0'*96000); w.close()"
-echo '{"schema_version":1,"scene_id":"g2_min","sample_rate":24000,"channels":1,"total_frames":96000,"dialogue":[]}' > manifest.json
-cargo run -p motion-export --example render_scene -- \
-  examples/g2-minimal-scene/scene.kilsat 0 silence.wav manifest.json OUT_DIR png
+python3 -I examples/g2-minimal-scene/build_scene.py .   # byte-identical scene.kilsat
+cargo run --locked --release -p motion-export --example g2_export -- OUT_DIR png
 sips -Z 960 OUT_DIR/frame_000024.png --out g2-wide-f024.png
 sips -Z 960 OUT_DIR/frame_000072.png --out g2-close-f072.png
 ```
 
 What the images show (by eye, not a perceptual review): both figures stand on the
 pavement with feet visible in the wide shot; the foreground pole draws over the
-background shelter; the close-up keeps VEIKKO's face and raised right hand inside
-the frame. The framing and depth claims rest on the tests, not on these images.
+background shelter; VEIKKO holds the phone upright at the side of the head in both
+shots, the forearm runs into the hand and the fingers wrap the lower part of the
+phone; the close-up keeps the face, the hand and the whole phone inside the frame.
+The phone overlaps the right edge of the cap brim. The framing and depth claims rest on the tests, not on these images.
