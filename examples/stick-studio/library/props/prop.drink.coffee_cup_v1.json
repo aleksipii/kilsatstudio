@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "prop.drink.coffee_cup_v1",
+  "kind": "prop",
+  "name": "Kahvikuppi",
+  "bounds": {
+    "x": -35.4,
+    "y": -26.5,
+    "width": 45.8,
+    "height": 41.2
+  },
+  "depth": "mid",
+  "tags": [
+    "kahvikuppi",
+    "coffee_cup",
+    "kahvi",
+    "coffee",
+    "kuppi",
+    "cup",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/kahvikuppi.kilsat",
+    "sha256": "0840ee644da0c50c1b3f0fa5cc06a2b85530b0647072eb2c3bf898ab0b3d4176"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

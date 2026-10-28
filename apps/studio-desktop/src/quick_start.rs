@@ -66,6 +66,7 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
             x: f64::from(script.project.width) * (index + 1) as f64 / (speakers.len() + 1) as f64,
             y: f64::from(script.project.height) * 0.70,
             duration: 0.5,
+            gait: None,
         });
         events.push(Event::Emotion {
             at: 0.0,

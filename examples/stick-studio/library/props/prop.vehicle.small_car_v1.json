@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.small_car_v1",
+  "kind": "prop",
+  "name": "Veikon pieni auto",
+  "bounds": {
+    "x": 60.369,
+    "y": 172.738,
+    "width": 391.262,
+    "height": 184.124
+  },
+  "depth": "mid",
+  "tags": [
+    "auto",
+    "car",
+    "ajoneuvo",
+    "vehicle",
+    "katu",
+    "street",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/auto.kilsat",
+    "sha256": "257520fae05da322a661b7b984617d1aaa84ca7bc37521860098ac6548baf307"
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 60.369,
+        "y": 356.862
+      },
+      "width": 391.262
+    }
+  ]
+}

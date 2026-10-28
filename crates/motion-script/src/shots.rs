@@ -306,6 +306,7 @@ impl Stage<'_> {
                     x,
                     y,
                     duration,
+                    ..
                 } if a == actor && *at <= time => Some((*at, *x, *y, *duration)),
                 _ => None,
             })

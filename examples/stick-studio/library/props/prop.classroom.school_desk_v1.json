@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "id": "prop.classroom.school_desk_v1",
+  "kind": "prop",
+  "name": "Koulupulpetti",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 160,
+    "height": 124
+  },
+  "depth": "mid",
+  "tags": [
+    "pulpetti",
+    "school_desk",
+    "pöytä",
+    "desk",
+    "luokka",
+    "classroom",
+    "koulu",
+    "school"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "leg_left",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26,
+              "y": 20
+            },
+            {
+              "x": 26,
+              "y": 121
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "leg_right",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 134,
+              "y": 20
+            },
+            {
+              "x": 134,
+              "y": 121
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "book_tray",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 22,
+            "y": 30,
+            "width": 116,
+            "height": 18
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_tray_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22,
+              "y": 30
+            },
+            {
+              "x": 138,
+              "y": 30
+            },
+            {
+              "x": 138,
+              "y": 48
+            },
+            {
+              "x": 22,
+              "y": 48
+            },
+            {
+              "x": 22,
+              "y": 30
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "top",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 6,
+            "width": 152,
+            "height": 14
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 6
+            },
+            {
+              "x": 156,
+              "y": 6
+            },
+            {
+              "x": 156,
+              "y": 20
+            },
+            {
+              "x": 4,
+              "y": 20
+            },
+            {
+              "x": 4,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 80,
+        "y": 6
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 124
+      },
+      "width": 160
+    }
+  ]
+}

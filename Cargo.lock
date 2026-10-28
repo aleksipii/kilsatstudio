@@ -1684,6 +1684,17 @@ name = "motion-jobs"
 version = "0.1.0"
 
 [[package]]
+name = "motion-library"
+version = "0.1.0"
+dependencies = [
+ "motion-art",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+]
+
+[[package]]
 name = "motion-lipsync"
 version = "0.1.0"
 dependencies = [
@@ -1757,6 +1768,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "sha2",
  "thiserror 2.0.21",
 ]
 

@@ -1,0 +1,388 @@
+{
+  "schema_version": 1,
+  "id": "prop.architecture.window_v1",
+  "kind": "prop",
+  "name": "Ikkuna",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 200,
+    "height": 236
+  },
+  "depth": "mid",
+  "tags": [
+    "ikkuna",
+    "window",
+    "lasi",
+    "glass",
+    "seinä",
+    "wall",
+    "architecture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "glass": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "frame",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 4,
+            "width": 184,
+            "height": 210
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 4
+            },
+            {
+              "x": 192,
+              "y": 4
+            },
+            {
+              "x": 192,
+              "y": 214
+            },
+            {
+              "x": 8,
+              "y": 214
+            },
+            {
+              "x": 8,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "pane_left",
+        "paint": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 16,
+            "width": 74,
+            "height": 186
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pane_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 16
+            },
+            {
+              "x": 94,
+              "y": 16
+            },
+            {
+              "x": 94,
+              "y": 202
+            },
+            {
+              "x": 20,
+              "y": 202
+            },
+            {
+              "x": 20,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "pane_right",
+        "paint": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 106,
+            "y": 16,
+            "width": 74,
+            "height": 186
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pane_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 106,
+              "y": 16
+            },
+            {
+              "x": 180,
+              "y": 16
+            },
+            {
+              "x": 180,
+              "y": 202
+            },
+            {
+              "x": 106,
+              "y": 202
+            },
+            {
+              "x": 106,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "crossbar_left",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 92
+            },
+            {
+              "x": 94,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "crossbar_right",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 106,
+              "y": 92
+            },
+            {
+              "x": 180,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "glint",
+        "paint": "paper",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 32,
+              "y": 40
+            },
+            {
+              "x": 52,
+              "y": 30
+            }
+          ],
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "sill",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 2,
+            "y": 214,
+            "width": 196,
+            "height": 14
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sill_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 2,
+              "y": 214
+            },
+            {
+              "x": 198,
+              "y": 214
+            },
+            {
+              "x": 198,
+              "y": 228
+            },
+            {
+              "x": 2,
+              "y": 228
+            },
+            {
+              "x": 2,
+              "y": 214
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "glass": {
+          "r": 138,
+          "g": 155,
+          "b": 170,
+          "a": 255
+        },
+        "paper": {
+          "r": 174,
+          "g": 176,
+          "b": 183,
+          "a": 255
+        },
+        "white": {
+          "r": 165,
+          "g": 167,
+          "b": 174,
+          "a": 255
+        },
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

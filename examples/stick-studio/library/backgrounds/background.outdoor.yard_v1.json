@@ -1,0 +1,553 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.yard_v1",
+  "kind": "background",
+  "name": "Piha",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "yard",
+    "piha",
+    "garden"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 176,
+            "g": 200,
+            "b": 206,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "treeline_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": -80.0,
+            "y": 600.0,
+            "width": 520.0,
+            "height": 220.0
+          },
+          "color": {
+            "r": 128,
+            "g": 156,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "treeline_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 360.0,
+            "y": 620.0,
+            "width": 460.0,
+            "height": 190.0
+          },
+          "color": {
+            "r": 140,
+            "g": 166,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "treeline_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 760.0,
+            "y": 610.0,
+            "width": 420.0,
+            "height": 200.0
+          },
+          "color": {
+            "r": 128,
+            "g": 156,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "grass",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 760.0,
+            "width": 1920.0,
+            "height": 320.0
+          },
+          "color": {
+            "r": 166,
+            "g": 186,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "path",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1320.0,
+            "y": 760.0,
+            "width": 220.0,
+            "height": 320.0
+          },
+          "color": {
+            "r": 206,
+            "g": 198,
+            "b": 178,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "house",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180.0,
+            "y": 380.0,
+            "width": 560.0,
+            "height": 390.0
+          },
+          "color": {
+            "r": 214,
+            "g": 200,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1150.0,
+              "y": 395.0
+            },
+            {
+              "x": 1460.0,
+              "y": 230.0
+            },
+            {
+              "x": 1770.0,
+              "y": 395.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "house_door_frame",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1370.0,
+            "y": 560.0,
+            "width": 140.0,
+            "height": 210.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "house_door",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1380.0,
+            "y": 570.0,
+            "width": 120.0,
+            "height": 200.0
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "house_window_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1220.0,
+            "y": 470.0,
+            "width": 110.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 176,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "house_window_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1590.0,
+            "y": 470.0,
+            "width": 110.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 176,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fence_post_0",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40.0,
+              "y": 690.0
+            },
+            {
+              "x": 40.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 160.0,
+              "y": 690.0
+            },
+            {
+              "x": 160.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_2",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 280.0,
+              "y": 690.0
+            },
+            {
+              "x": 280.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_3",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 400.0,
+              "y": 690.0
+            },
+            {
+              "x": 400.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_4",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 520.0,
+              "y": 690.0
+            },
+            {
+              "x": 520.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_5",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 640.0,
+              "y": 690.0
+            },
+            {
+              "x": 640.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_6",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 760.0,
+              "y": 690.0
+            },
+            {
+              "x": 760.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_7",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880.0,
+              "y": 690.0
+            },
+            {
+              "x": 880.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_post_8",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000.0,
+              "y": 690.0
+            },
+            {
+              "x": 1000.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "fence_rail_top",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20.0,
+              "y": 715.0
+            },
+            {
+              "x": 1020.0,
+              "y": 715.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "fence_rail_low",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20.0,
+              "y": 765.0
+            },
+            {
+              "x": 1020.0,
+              "y": 765.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 130,
+            "b": 110,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 945.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "doorway",
+      "id": "house_door",
+      "rect": {
+        "x": 1380.0,
+        "y": 570.0,
+        "width": 120.0,
+        "height": 200.0
+      }
+    }
+  ]
+}

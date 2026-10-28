@@ -77,7 +77,10 @@ ei yksin todista koko prosessin kattavuutta tai viiden minuutin suorituskykyä.
 
 ## Riippuvuuksien mukainen toteutusjono
 
-Kaikki alla olevat uuden automaation tehtävät ovat avoinna. Suunnitteludokumentti
+Kaikki alla olevat uuden automaation tehtävät ovat avoinna. Poikkeus: INT-01:n
+ensimmäinen osa (rajatun tekstin `ScriptIntent v1` -tuonti kirjastossa ja
+CLI-esimerkissä, [script-intent](../../script-intent.md)) on toteutettu; editorin
+tuonti ja muut INT-01:n osat ovat avoinna. Suunnitteludokumentti
 tai sen CI-tarkistuksen onnistuminen ei merkitse vastaavaa tuoteominaisuutta valmiiksi.
 
 | Järjestys | Konkreettinen muutos ja paikka | Riippuvuus ja hyväksyntä |

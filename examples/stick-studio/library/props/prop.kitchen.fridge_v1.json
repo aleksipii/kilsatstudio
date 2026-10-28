@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "id": "prop.kitchen.fridge_v1",
+  "kind": "prop",
+  "name": "Jääkaappi",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 280
+  },
+  "depth": "mid",
+  "tags": [
+    "jääkaappi",
+    "fridge",
+    "keittiö",
+    "kitchen",
+    "kodinkone",
+    "appliance"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 4,
+            "width": 108,
+            "height": 264
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 4
+            },
+            {
+              "x": 114,
+              "y": 4
+            },
+            {
+              "x": 114,
+              "y": 268
+            },
+            {
+              "x": 6,
+              "y": 268
+            },
+            {
+              "x": 6,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "split",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 92
+            },
+            {
+              "x": 114,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "handle_top",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 98,
+              "y": 30
+            },
+            {
+              "x": 98,
+              "y": 76
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "handle_bottom",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 98,
+              "y": 106
+            },
+            {
+              "x": 98,
+              "y": 170
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "note",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 24,
+            "y": 120,
+            "width": 26,
+            "height": 30
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "note_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 24,
+              "y": 120
+            },
+            {
+              "x": 50,
+              "y": 120
+            },
+            {
+              "x": 50,
+              "y": 150
+            },
+            {
+              "x": 24,
+              "y": 150
+            },
+            {
+              "x": 24,
+              "y": 120
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "foot_left",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 268,
+            "width": 14,
+            "height": 10.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 268
+            },
+            {
+              "x": 28,
+              "y": 268
+            },
+            {
+              "x": 28,
+              "y": 278.5
+            },
+            {
+              "x": 14,
+              "y": 278.5
+            },
+            {
+              "x": 14,
+              "y": 268
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "foot_right",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 92,
+            "y": 268,
+            "width": 14,
+            "height": 10.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 92,
+              "y": 268
+            },
+            {
+              "x": 106,
+              "y": 268
+            },
+            {
+              "x": 106,
+              "y": 278.5
+            },
+            {
+              "x": 92,
+              "y": 278.5
+            },
+            {
+              "x": 92,
+              "y": 268
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 280
+      },
+      "width": 120
+    }
+  ]
+}

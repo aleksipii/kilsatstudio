@@ -1661,6 +1661,7 @@ mod tests {
             skeleton: [motion_scene::Vec2::new(0.0, 0.0); 7],
             rigid_parts: Vec::new(),
             mouth: None,
+            view: motion_scene::FaceView::Front,
         });
         mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
         mask_frame(

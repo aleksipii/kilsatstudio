@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "id": "prop.office.water_cooler_v1",
+  "kind": "prop",
+  "name": "Vesiautomaatti",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 90,
+    "height": 260
+  },
+  "depth": "mid",
+  "tags": [
+    "vesiautomaatti",
+    "water_cooler",
+    "vesi",
+    "water",
+    "toimisto",
+    "office"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "glass": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 255
+    },
+    "glass_clear": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 150
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "bottle",
+        "paint": "glass_clear",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 22,
+            "y": 6,
+            "width": 46,
+            "height": 76
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "bottle_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22,
+              "y": 6
+            },
+            {
+              "x": 68,
+              "y": 6
+            },
+            {
+              "x": 68,
+              "y": 82
+            },
+            {
+              "x": 22,
+              "y": 82
+            },
+            {
+              "x": 22,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "water",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 26,
+            "y": 30,
+            "width": 38,
+            "height": 48
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "neck",
+        "paint": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36,
+            "y": 82,
+            "width": 18,
+            "height": 10
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "neck_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36,
+              "y": 82
+            },
+            {
+              "x": 54,
+              "y": 82
+            },
+            {
+              "x": 54,
+              "y": 92
+            },
+            {
+              "x": 36,
+              "y": 92
+            },
+            {
+              "x": 36,
+              "y": 82
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "body",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 92,
+            "width": 70,
+            "height": 166.5
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 92
+            },
+            {
+              "x": 80,
+              "y": 92
+            },
+            {
+              "x": 80,
+              "y": 258.5
+            },
+            {
+              "x": 10,
+              "y": 258.5
+            },
+            {
+              "x": 10,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tap_panel",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 110,
+            "width": 54,
+            "height": 30
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tap_panel_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 110
+            },
+            {
+              "x": 72,
+              "y": 110
+            },
+            {
+              "x": 72,
+              "y": 140
+            },
+            {
+              "x": 18,
+              "y": 140
+            },
+            {
+              "x": 18,
+              "y": 110
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "tap_cold",
+        "paint": "blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 32,
+              "y": 140
+            },
+            {
+              "x": 32,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "tap_hot",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58,
+              "y": 140
+            },
+            {
+              "x": 58,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "drip_tray",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 160,
+            "width": 54,
+            "height": 8
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drip_tray_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 160
+            },
+            {
+              "x": 72,
+              "y": 160
+            },
+            {
+              "x": 72,
+              "y": 168
+            },
+            {
+              "x": 18,
+              "y": 168
+            },
+            {
+              "x": 18,
+              "y": 160
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 260
+      },
+      "width": 90
+    }
+  ]
+}

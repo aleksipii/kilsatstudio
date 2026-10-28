@@ -186,6 +186,7 @@ pub fn resolve_moves(
                 x,
                 y,
                 duration,
+                ..
             } if id == actor => Some(AuthoredSpan {
                 order,
                 at: *at,

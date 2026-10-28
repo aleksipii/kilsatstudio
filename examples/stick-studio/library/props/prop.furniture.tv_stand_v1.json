@@ -1,0 +1,377 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.tv_stand_v1",
+  "kind": "prop",
+  "name": "TV-taso",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 250,
+    "height": 76
+  },
+  "depth": "mid",
+  "tags": [
+    "tv_taso",
+    "tv_stand",
+    "taso",
+    "sideboard",
+    "olohuone",
+    "living_room",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 4,
+            "width": 238,
+            "height": 60
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 4
+            },
+            {
+              "x": 244,
+              "y": 4
+            },
+            {
+              "x": 244,
+              "y": 64
+            },
+            {
+              "x": 6,
+              "y": 64
+            },
+            {
+              "x": 6,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "drawer_left",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 12,
+            "width": 106,
+            "height": 44
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 12
+            },
+            {
+              "x": 120,
+              "y": 12
+            },
+            {
+              "x": 120,
+              "y": 56
+            },
+            {
+              "x": 14,
+              "y": 56
+            },
+            {
+              "x": 14,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "open_shelf",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 130,
+            "y": 12,
+            "width": 106,
+            "height": 44
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "open_shelf_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 130,
+              "y": 12
+            },
+            {
+              "x": 236,
+              "y": 12
+            },
+            {
+              "x": 236,
+              "y": 56
+            },
+            {
+              "x": 130,
+              "y": 56
+            },
+            {
+              "x": 130,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "pull",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 56,
+              "y": 34
+            },
+            {
+              "x": 78,
+              "y": 34
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "foot_left",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 64,
+            "width": 12,
+            "height": 10.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 64
+            },
+            {
+              "x": 28,
+              "y": 64
+            },
+            {
+              "x": 28,
+              "y": 74.5
+            },
+            {
+              "x": 16,
+              "y": 74.5
+            },
+            {
+              "x": 16,
+              "y": 64
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "foot_right",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 222,
+            "y": 64,
+            "width": 12,
+            "height": 10.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 222,
+              "y": 64
+            },
+            {
+              "x": 234,
+              "y": 64
+            },
+            {
+              "x": 234,
+              "y": 74.5
+            },
+            {
+              "x": 222,
+              "y": 74.5
+            },
+            {
+              "x": 222,
+              "y": 64
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 125,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 76
+      },
+      "width": 250
+    }
+  ]
+}

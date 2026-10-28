@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "id": "prop.kitchen.sink_v1",
+  "kind": "prop",
+  "name": "Tiskiallas",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 160,
+    "height": 145
+  },
+  "depth": "mid",
+  "tags": [
+    "tiskiallas",
+    "sink",
+    "hana",
+    "tap",
+    "keittiö",
+    "kitchen"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "faucet",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 40
+            },
+            {
+              "x": 80,
+              "y": 8
+            },
+            {
+              "x": 104,
+              "y": 8
+            },
+            {
+              "x": 104,
+              "y": 20
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "body",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 52,
+            "width": 144,
+            "height": 80
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 52
+            },
+            {
+              "x": 152,
+              "y": 52
+            },
+            {
+              "x": 152,
+              "y": 132
+            },
+            {
+              "x": 8,
+              "y": 132
+            },
+            {
+              "x": 8,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "door_left",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 60,
+            "width": 62,
+            "height": 64
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 60
+            },
+            {
+              "x": 78,
+              "y": 60
+            },
+            {
+              "x": 78,
+              "y": 124
+            },
+            {
+              "x": 16,
+              "y": 124
+            },
+            {
+              "x": 16,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "door_right",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82,
+            "y": 60,
+            "width": 62,
+            "height": 64
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 82,
+              "y": 60
+            },
+            {
+              "x": 144,
+              "y": 60
+            },
+            {
+              "x": 144,
+              "y": 124
+            },
+            {
+              "x": 82,
+              "y": 124
+            },
+            {
+              "x": 82,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "top",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 2,
+            "y": 40,
+            "width": 156,
+            "height": 14
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 2,
+              "y": 40
+            },
+            {
+              "x": 158,
+              "y": 40
+            },
+            {
+              "x": 158,
+              "y": 54
+            },
+            {
+              "x": 2,
+              "y": 54
+            },
+            {
+              "x": 2,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "basin",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 42,
+            "width": 80,
+            "height": 6
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "basin_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 42
+            },
+            {
+              "x": 120,
+              "y": 42
+            },
+            {
+              "x": 120,
+              "y": 48
+            },
+            {
+              "x": 40,
+              "y": 48
+            },
+            {
+              "x": 40,
+              "y": 42
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "kick",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 132,
+            "width": 132,
+            "height": 11.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "kick_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 132
+            },
+            {
+              "x": 146,
+              "y": 132
+            },
+            {
+              "x": 146,
+              "y": 143.5
+            },
+            {
+              "x": 14,
+              "y": 143.5
+            },
+            {
+              "x": 14,
+              "y": 132
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 145
+      },
+      "width": 160
+    }
+  ]
+}

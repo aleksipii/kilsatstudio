@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "id": "prop.sauna.ladle_v1",
+  "kind": "prop",
+  "name": "Löylykauha",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 40,
+    "height": 120
+  },
+  "depth": "mid",
+  "tags": [
+    "löylykauha",
+    "sauna_ladle",
+    "kauha",
+    "ladle",
+    "sauna",
+    "suomi",
+    "finland"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 206,
+      "g": 168,
+      "b": 120,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "handle",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 6
+            },
+            {
+              "x": 20,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "cup",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 90,
+            "width": 28,
+            "height": 26
+          },
+          "color": {
+            "r": 206,
+            "g": 168,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cup_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 90
+            },
+            {
+              "x": 34,
+              "y": 90
+            },
+            {
+              "x": 34,
+              "y": 116
+            },
+            {
+              "x": 6,
+              "y": 116
+            },
+            {
+              "x": 6,
+              "y": 90
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 20,
+        "y": 30
+      }
+    }
+  ]
+}

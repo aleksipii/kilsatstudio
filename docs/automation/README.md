@@ -2,7 +2,9 @@
 
 Tila 2026-10-20: kymmenen agentin **suunnitelma** ja koneellisesti tarkistettava
 pilottisopimus. Automaattiohjausta tai uutta animaatiorenderöijää ei tässä PR:ssä
-toteuteta. Edistyminen suhteutetaan [master-progressiin](../master-progress.md).
+toteuteta. Päivitys 2026-10-21: INT-01:n ensimmäinen osa, rajatun tekstin
+`ScriptIntent v1` -tuonti, on toteutettu kirjastona ja CLI-esimerkkinä
+([script-intent](../script-intent.md)); editoriin sitä ei ole vielä kytketty. Edistyminen suhteutetaan [master-progressiin](../master-progress.md).
 Nykykoodin tarkastuksen pohja: `7bb5e21331a672b15be5b2227c93ccc8171e8fa7`.
 
 Tavoitteena on alkuperäinen, visuaalisesti yhtenäinen, ilmeikäs tyylitelty
@@ -124,7 +126,9 @@ palautettu kopio. Aino ja Rane väittelevät siitä, kenen kustannuksia oma auto
 säästää. Kilsat näkyy viiden sekunnin insertissä.
 
 [Esimerkki-intentti](../../examples/automation/pilot-intent.json) on käsin tehty,
-lähteeseen sidottu suunnittelufixtuuri. Studio ei vielä lue tätä formaattia.
+lähteeseen sidottu suunnittelufixtuuri. `motion_script::intent` tuottaa pilottitekstistä
+samat intentin kentät (testattu kenttä kentältä); `shot_proposal` ja `app_insert`
+ovat ohjauksen kenttiä, joita tuonti ei tuota. Editori ei vielä lue formaattia.
 Mukana on myös [englanninkielinen pilotti](../../examples/automation/pilot-en.txt)
 ja sen [intent-fixtuuri](../../examples/automation/pilot-en-intent.json).
 Ne ovat erikseen kirjoitettua esimerkkiaineistoa, eivät automaattisen käännöksen
@@ -151,7 +155,11 @@ video renderöitiin tai nopeus/laatu hyväksyttiin.
 - [x] Yhteiset sopimukset, sääntöjen etusijat ja vaihebudjetit.
 - [x] Suomenkielinen pilotti sekä lähde-/aikafixtuuri.
 - [x] Suunnittelusopimuksen tarkistin, negatiiviset testit ja CI-määritys.
-- [ ] Rust-tuontiadapteri, täydellinen versioitu skeema ja lähdeviitteiden tallennus.
+- [x] Rajatun suomen-/englanninkielisen tekstin tuonti `ScriptIntent v1`:ksi (ING-002,
+  ING-004:n rajattu sanasto, ING-005), lähdevälit, SHA-256, tyypitetyt virheet ja
+  CLI-esimerkki: [script-intent](../script-intent.md).
+- [ ] Editorin tuonti, täydellinen JSON Schema, lähdeviitteiden pysyvä tallennus,
+  vapaa proosa (ING-003), monikohtauksiset tiedostot ja intentti → MotionScript (ING-006).
 - [ ] Ohjaus-, näyttely- ja kameraratkaisin nykyisiin aikajanoihin.
 - [ ] Aino/Rane-hahmopaketit, propit, miljöö ja oikea Kilsat-kaappaus.
 - [ ] Suomenkielinen puhepolku, mitattu suunliikelaatu ja äänen viimeistely.

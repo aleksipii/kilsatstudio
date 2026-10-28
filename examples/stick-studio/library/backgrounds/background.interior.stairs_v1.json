@@ -1,0 +1,427 @@
+{
+  "schema_version": 1,
+  "id": "background.interior.stairs_v1",
+  "kind": "background",
+  "name": "Portaat",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 600.0,
+    "height": 420.0
+  },
+  "depth": "mid",
+  "tags": [
+    "interior",
+    "stairs",
+    "portaat",
+    "architecture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "step_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 350.0,
+            "width": 600.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "step_0_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 350.0
+            },
+            {
+              "x": 600.0,
+              "y": 350.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 128,
+            "b": 112,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "step_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 100.0,
+            "y": 280.0,
+            "width": 500.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "step_1_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100.0,
+              "y": 280.0
+            },
+            {
+              "x": 600.0,
+              "y": 280.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 128,
+            "b": 112,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "step_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 200.0,
+            "y": 210.0,
+            "width": 400.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "step_2_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 200.0,
+              "y": 210.0
+            },
+            {
+              "x": 600.0,
+              "y": 210.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 128,
+            "b": 112,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "step_3",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 140.0,
+            "width": 300.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "step_3_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 300.0,
+              "y": 140.0
+            },
+            {
+              "x": 600.0,
+              "y": 140.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 128,
+            "b": 112,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "step_4",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 400.0,
+            "y": 70.0,
+            "width": 200.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "step_4_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 400.0,
+              "y": 70.0
+            },
+            {
+              "x": 600.0,
+              "y": 70.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 128,
+            "b": 112,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "step_5",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 500.0,
+            "y": 0.0,
+            "width": 100.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "step_5_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 500.0,
+              "y": 0.0
+            },
+            {
+              "x": 600.0,
+              "y": 0.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 128,
+            "b": 112,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "handrail",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10.0,
+              "y": 260.0
+            },
+            {
+              "x": 590.0,
+              "y": 10.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "baluster_0",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40.0,
+              "y": 247.06896551724137
+            },
+            {
+              "x": 40.0,
+              "y": 350.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "baluster_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 190.0,
+              "y": 182.41379310344826
+            },
+            {
+              "x": 190.0,
+              "y": 280.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "baluster_2",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 340.0,
+              "y": 117.75862068965517
+            },
+            {
+              "x": 340.0,
+              "y": 140.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "baluster_3",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 490.0,
+              "y": 53.103448275862064
+            },
+            {
+              "x": 490.0,
+              "y": 70.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 420.0
+      },
+      "width": 600.0
+    },
+    {
+      "type": "stand",
+      "id": "top_step",
+      "at": {
+        "x": 550.0,
+        "y": 70.0
+      }
+    }
+  ]
+}

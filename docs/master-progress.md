@@ -7,6 +7,26 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Anchored asset library — `feat/asset-library` (2026-10-28, PR open, not merged)
+
+Status: **review**, pull request open; not merged. Contract ORK-LIB-01.
+
+Implemented: new crate `motion-library` (manifest schema v1 with typed validation,
+licence/distribution gate incl. AI-generated and unknown licences, deterministic search,
+SHA-256 content-addressed store rejecting corrupt objects, kit-bash assembler into
+`motion_art` planes with world-space anchors, deterministic parametric room generator with
+day/evening/rain/messy variants). Content in `examples/stick-studio/library/`: 7
+backgrounds, 101 props (20 migrated, 81 new original art props), 18 locations, 18 ready
+sets with camera positions and stand/sit marks; 182 anchors. CI workflow
+`asset-library.yml` (macos-15). Docs: `docs/asset-library.md`.
+
+Checks (local, macOS Apple M1): fmt ok, check ok, clippy 0 warnings, `cargo test
+--workspace --locked` 1002 passed / 0 failed / 9 ignored, `validate_library --distribution`
+exit 0. Every location × variant passes `motion_art::style::check_background`.
+
+Open: no MotionScript reference to sets yet; parallax not rendered; 11 migrated props are in
+thumbnail coordinates and `rig_project` props cannot be kit-bashed; no rendered art review.
+
 ## Phone and tablet screen slots — PR #130 merged (2026-10-28)
 
 Status: **merged** to `main` (`2ddd16f`, merged by aleksipii 2026-10-28T09:09:46Z,

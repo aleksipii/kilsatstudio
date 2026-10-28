@@ -1,0 +1,69 @@
+name: Asset library
+on:
+  pull_request:
+    paths:
+      - .github/workflows/asset-library.yml
+      - crates/motion-library/**
+      - crates/motion-art/**
+      - examples/stick-studio/library/**
+      - examples/stick-studio/props/**
+      - examples/stick-studio/backgrounds/**
+      - scripts/generate_library_props.py
+      - docs/asset-library.md
+      - Cargo.toml
+      - Cargo.lock
+  push:
+    branches: [main, feat/asset-library]
+    paths:
+      - .github/workflows/asset-library.yml
+      - crates/motion-library/**
+      - crates/motion-art/**
+      - examples/stick-studio/library/**
+      - examples/stick-studio/props/**
+      - examples/stick-studio/backgrounds/**
+      - scripts/generate_library_props.py
+      - docs/asset-library.md
+      - Cargo.toml
+      - Cargo.lock
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: asset-library-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  library-macos:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Generated library (props, backgrounds, locations, sets) is up to date
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/generate_library_props.py
+          cargo run --locked -p motion-library --example generate_stick_library -- examples/stick-studio
+          # Catches both modified tracked files and new untracked ones.
+          changes=$(git status --porcelain --untracked-files=all -- examples/stick-studio/library)
+          if [ -n "$changes" ]; then
+            echo "Generated library differs from the committed files:" >&2
+            echo "$changes" >&2
+            git --no-pager diff --stat -- examples/stick-studio/library >&2
+            echo "Run 'python3 scripts/generate_library_props.py' and" >&2
+            echo "'cargo run -p motion-library --example generate_stick_library -- examples/stick-studio', then commit the result." >&2
+            exit 1
+          fi
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Clippy (motion-library)
+        run: cargo clippy --locked -p motion-library --all-targets -- -D warnings
+      - name: Tests (motion-library)
+        run: cargo test --locked -p motion-library
+      - name: Validate the whole library for distribution
+        run: cargo run --locked -p motion-library --example validate_library -- examples/stick-studio --distribution

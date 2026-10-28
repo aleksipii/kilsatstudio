@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "location.outdoor.yard_v1",
+  "kind": "location",
+  "name": "Piha",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "yard",
+    "piha"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.outdoor.yard_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "tree",
+      "asset": "prop.outdoor.tree_v1",
+      "at": {
+        "x": 110.0,
+        "y": 325.0
+      }
+    },
+    {
+      "instance": "bench",
+      "asset": "prop.furniture.bench_v1",
+      "at": {
+        "x": 640.0,
+        "y": 865.0
+      }
+    },
+    {
+      "instance": "lamp",
+      "asset": "prop.outdoor.street_lamp_v1",
+      "at": {
+        "x": 1035.0,
+        "y": 385.0
+      }
+    }
+  ]
+}

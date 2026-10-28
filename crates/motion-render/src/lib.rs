@@ -44,6 +44,8 @@ pub enum Error {
     Caption(String),
 }
 
+pub use motion_scene::procedural_face;
+
 pub fn render_svg(scene: &EvaluatedScene, width: u32, height: u32) -> Result<String, Error> {
     render_svg_with_mouths(scene, width, height, &[])
 }
@@ -202,7 +204,8 @@ pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) ->
             || actor.rotation.abs() > 360_000.0
             || !actor.scale.x.is_finite()
             || !actor.scale.y.is_finite()
-            || !(0.001..=100.0).contains(&actor.scale.x)
+            // A negative x scale mirrors the actor (left profile).
+            || !(0.001..=100.0).contains(&actor.scale.x.abs())
             || !(0.001..=100.0).contains(&actor.scale.y)
             || !actor.wave.is_finite()
             || !(0.0..=1.0).contains(&actor.wave)
@@ -356,33 +359,55 @@ fn render_scene(
             svg.push_str(
                 "\" fill=\"none\" stroke=\"#7eb9e2\" stroke-width=\"5\" stroke-linecap=\"round\"/>",
             );
-            write!(svg,"<g transform=\"translate({:.6} {:.6})\"><circle r=\"25\" fill=\"#f5c8a2\"/><g fill=\"black\"><circle cx=\"-8\" cy=\"-4\" r=\"2.5\"/><circle cx=\"8\" cy=\"-4\" r=\"2.5\"/></g>",p[HEAD].x,p[HEAD].y).unwrap();
-            let viseme = mouths
-                .iter()
-                .find(|(id, _)| *id == actor.id)
-                .map(|(_, v)| *v)
-                .unwrap_or(Viseme::Rest);
-            let (w, h) = match viseme {
-                Viseme::A => (14.0, 14.0),
-                Viseme::O | Viseme::U => (8.0, 11.0),
-                Viseme::E | Viseme::I => (18.0, 6.0),
-                Viseme::Rest | Viseme::Closed => (13.0, 2.0),
-                _ => (12.0, 5.0),
-            };
             write!(
                 svg,
-                "<rect x=\"{}\" y=\"{}\" width=\"{w}\" height=\"{h}\" rx=\"2\" fill=\"#7d2d39\"/>",
-                -w / 2.0,
-                10.0 - h / 2.0
+                "<g transform=\"translate({:.6} {:.6})\"><circle r=\"25\" fill=\"#f5c8a2\"/>",
+                p[HEAD].x, p[HEAD].y
             )
             .unwrap();
-            if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
-                svg.push_str(
-                "<path d=\"M-8 9L0 14L8 9\" fill=\"none\" stroke=\"#7d2d39\" stroke-width=\"2\"/>",
-            );
-            }
-            if actor.emotion == "surprised" {
-                svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
+            if let Some((k, shift)) = procedural_face(actor.view) {
+                let fx = |x: f64| x * k + shift;
+                if (k, shift) == (1.0, 0.0) {
+                    svg.push_str("<g fill=\"black\"><circle cx=\"-8\" cy=\"-4\" r=\"2.5\"/><circle cx=\"8\" cy=\"-4\" r=\"2.5\"/></g>");
+                } else {
+                    write!(svg, "<g fill=\"black\"><circle cx=\"{:.6}\" cy=\"-4\" r=\"2.5\"/><circle cx=\"{:.6}\" cy=\"-4\" r=\"2.5\"/></g>", fx(-8.0), fx(8.0)).unwrap();
+                }
+                let viseme = mouths
+                    .iter()
+                    .find(|(id, _)| *id == actor.id)
+                    .map(|(_, v)| *v)
+                    .unwrap_or(Viseme::Rest);
+                let (w, h) = match viseme {
+                    Viseme::A => (14.0, 14.0),
+                    Viseme::O | Viseme::U => (8.0, 11.0),
+                    Viseme::E | Viseme::I => (18.0, 6.0),
+                    Viseme::Rest | Viseme::Closed => (13.0, 2.0),
+                    _ => (12.0, 5.0),
+                };
+                let w = w * k;
+                write!(
+                    svg,
+                    "<rect x=\"{}\" y=\"{}\" width=\"{w}\" height=\"{h}\" rx=\"2\" fill=\"#7d2d39\"/>",
+                    shift - w / 2.0,
+                    10.0 - h / 2.0
+                )
+                .unwrap();
+                if actor.emotion == "happy" && matches!(viseme, Viseme::Rest | Viseme::Closed) {
+                    if k == 1.0 {
+                        svg.push_str(
+                        "<path d=\"M-8 9L0 14L8 9\" fill=\"none\" stroke=\"#7d2d39\" stroke-width=\"2\"/>",
+                    );
+                    } else {
+                        write!(svg, "<path d=\"M{:.6} 9L{:.6} 14L{:.6} 9\" fill=\"none\" stroke=\"#7d2d39\" stroke-width=\"2\"/>", fx(-8.0), fx(0.0), fx(8.0)).unwrap();
+                    }
+                }
+                if actor.emotion == "surprised" {
+                    if k == 1.0 {
+                        svg.push_str("<path d=\"M-12 -13L-4 -15M4 -13L12 -15\" stroke=\"black\"/>");
+                    } else {
+                        write!(svg, "<path d=\"M{:.6} -13L{:.6} -15M{:.6} -13L{:.6} -15\" stroke=\"black\"/>", fx(-12.0), fx(-4.0), fx(4.0), fx(12.0)).unwrap();
+                    }
+                }
             }
             svg.push_str("</g>");
         }
@@ -1033,6 +1058,7 @@ mod tests {
                 skeleton: motion_animation::humanoid(None, 1.0),
                 rigid_parts: Vec::new(),
                 mouth: None,
+                view: motion_scene::FaceView::Front,
             }],
         }
     }
@@ -1107,6 +1133,33 @@ mod tests {
         assert!(svg.contains("rotate(90.000000) scale(2.000000 0.500000)"));
         assert!(svg.find("rotate(90.").unwrap() < svg.find("<circle r=\"25\"").unwrap());
         s.actors[0].scale.x = f64::NAN;
+        assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidActor(0)));
+    }
+    #[test]
+    fn views_mirror_turn_and_hide_the_procedural_face() {
+        let mut s = scene();
+        let front = render_svg(&s, 640, 360).unwrap();
+        assert!(front.contains("<circle cx=\"-8\" cy=\"-4\""));
+        s.actors[0].scale.x = -1.0;
+        s.actors[0].view = motion_scene::FaceView::Side;
+        let side = render_svg(&s, 640, 360).unwrap();
+        assert!(
+            side.contains("scale(-1.000000 1.000000)"),
+            "left profile mirrors"
+        );
+        assert!(
+            side.contains("<circle cx=\"6.600000\" cy=\"-4\""),
+            "eyes turn toward +x"
+        );
+        s.actors[0].scale.x = 1.0;
+        s.actors[0].view = motion_scene::FaceView::Back;
+        let back = render_svg(&s, 640, 360).unwrap();
+        assert!(back.contains("<circle r=\"25\""), "the head is drawn");
+        assert!(
+            !back.contains("cy=\"-4\"") && !back.contains("#7d2d39"),
+            "no face"
+        );
+        s.actors[0].scale.x = -0.0001;
         assert_eq!(render_svg(&s, 640, 360), Err(Error::InvalidActor(0)));
     }
     #[test]

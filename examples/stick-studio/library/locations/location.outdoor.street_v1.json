@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "location.outdoor.street_v1",
+  "kind": "location",
+  "name": "Katu",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "street",
+    "katu"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.outdoor.street_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "lamp_a",
+      "asset": "prop.outdoor.street_lamp_v1",
+      "at": {
+        "x": 135.0,
+        "y": 370.0
+      }
+    },
+    {
+      "instance": "shelter",
+      "asset": "prop.outdoor.bus_stop_shelter_v1",
+      "at": {
+        "x": 520.0,
+        "y": 480.0
+      }
+    },
+    {
+      "instance": "tree",
+      "asset": "prop.outdoor.tree_v1",
+      "at": {
+        "x": 1230.0,
+        "y": 320.0
+      }
+    },
+    {
+      "instance": "bin",
+      "asset": "prop.decor.trash_bin_v1",
+      "at": {
+        "x": 1088.0,
+        "y": 862.0
+      }
+    },
+    {
+      "instance": "lamp_b",
+      "asset": "prop.outdoor.street_lamp_v1",
+      "at": {
+        "x": 1695.0,
+        "y": 370.0
+      }
+    }
+  ]
+}

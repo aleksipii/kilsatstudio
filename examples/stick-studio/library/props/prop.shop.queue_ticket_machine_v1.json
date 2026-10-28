@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "prop.shop.queue_ticket_machine_v1",
+  "kind": "prop",
+  "name": "Ikuisen jonon vuoronumerolaite",
+  "bounds": {
+    "x": 158.736,
+    "y": 64.947,
+    "width": 194.528,
+    "height": 375.159
+  },
+  "depth": "mid",
+  "tags": [
+    "vuoronumero",
+    "queue_ticket",
+    "jono",
+    "queue",
+    "kauppa",
+    "shop",
+    "näyttö",
+    "screen"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/vuoronumerolaite.kilsat",
+    "sha256": "f8381fd4e3bbf423f6165aba94c92b6858d4cf9935fd77573e041124d9db6e3a"
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 187.684,
+        "y": 97.368,
+        "width": 136.632,
+        "height": 63.684
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 158.736,
+        "y": 440.106
+      },
+      "width": 194.528
+    }
+  ]
+}

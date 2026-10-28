@@ -1,0 +1,1604 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.bookshelf_v1",
+  "kind": "prop",
+  "name": "Kirjahylly",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 150,
+    "height": 310
+  },
+  "depth": "mid",
+  "tags": [
+    "kirjahylly",
+    "bookshelf",
+    "hylly",
+    "shelf",
+    "kirja",
+    "book",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "cushion": {
+      "r": 196,
+      "g": 180,
+      "b": 152,
+      "a": 255
+    },
+    "leaf": {
+      "r": 118,
+      "g": 150,
+      "b": 106,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "case",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 142,
+            "height": 304.5
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "case_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 146,
+              "y": 4
+            },
+            {
+              "x": 146,
+              "y": 308.5
+            },
+            {
+              "x": 4,
+              "y": 308.5
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "back",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 14,
+            "width": 122,
+            "height": 270
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_0",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 76,
+            "width": 130,
+            "height": 8
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 76
+            },
+            {
+              "x": 140,
+              "y": 76
+            },
+            {
+              "x": 140,
+              "y": 84
+            },
+            {
+              "x": 10,
+              "y": 84
+            },
+            {
+              "x": 10,
+              "y": 76
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_0_0",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 36,
+            "width": 14,
+            "height": 40
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_0_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 36
+            },
+            {
+              "x": 30,
+              "y": 36
+            },
+            {
+              "x": 30,
+              "y": 76
+            },
+            {
+              "x": 16,
+              "y": 76
+            },
+            {
+              "x": 16,
+              "y": 36
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_0_1",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 34,
+            "y": 25,
+            "width": 21,
+            "height": 51
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_0_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 34,
+              "y": 25
+            },
+            {
+              "x": 55,
+              "y": 25
+            },
+            {
+              "x": 55,
+              "y": 76
+            },
+            {
+              "x": 34,
+              "y": 76
+            },
+            {
+              "x": 34,
+              "y": 25
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_0_2",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59,
+            "y": 32,
+            "width": 18,
+            "height": 44
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_0_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 59,
+              "y": 32
+            },
+            {
+              "x": 77,
+              "y": 32
+            },
+            {
+              "x": 77,
+              "y": 76
+            },
+            {
+              "x": 59,
+              "y": 76
+            },
+            {
+              "x": 59,
+              "y": 32
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_0_3",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 81,
+            "y": 21,
+            "width": 15,
+            "height": 55
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_0_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 81,
+              "y": 21
+            },
+            {
+              "x": 96,
+              "y": 21
+            },
+            {
+              "x": 96,
+              "y": 76
+            },
+            {
+              "x": 81,
+              "y": 76
+            },
+            {
+              "x": 81,
+              "y": 21
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_0_4",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 100,
+            "y": 28,
+            "width": 22,
+            "height": 48
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_0_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100,
+              "y": 28
+            },
+            {
+              "x": 122,
+              "y": 28
+            },
+            {
+              "x": 122,
+              "y": 76
+            },
+            {
+              "x": 100,
+              "y": 76
+            },
+            {
+              "x": 100,
+              "y": 28
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "shelf_1",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 146,
+            "width": 130,
+            "height": 8
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 146
+            },
+            {
+              "x": 140,
+              "y": 146
+            },
+            {
+              "x": 140,
+              "y": 154
+            },
+            {
+              "x": 10,
+              "y": 154
+            },
+            {
+              "x": 10,
+              "y": 146
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_1_0",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 91,
+            "width": 19,
+            "height": 55
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_1_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 91
+            },
+            {
+              "x": 35,
+              "y": 91
+            },
+            {
+              "x": 35,
+              "y": 146
+            },
+            {
+              "x": 16,
+              "y": 146
+            },
+            {
+              "x": 16,
+              "y": 91
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_1_1",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 39,
+            "y": 98,
+            "width": 16,
+            "height": 48
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_1_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 39,
+              "y": 98
+            },
+            {
+              "x": 55,
+              "y": 98
+            },
+            {
+              "x": 55,
+              "y": 146
+            },
+            {
+              "x": 39,
+              "y": 146
+            },
+            {
+              "x": 39,
+              "y": 98
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_1_2",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59,
+            "y": 105,
+            "width": 23,
+            "height": 41
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_1_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 59,
+              "y": 105
+            },
+            {
+              "x": 82,
+              "y": 105
+            },
+            {
+              "x": 82,
+              "y": 146
+            },
+            {
+              "x": 59,
+              "y": 146
+            },
+            {
+              "x": 59,
+              "y": 105
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_1_3",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 86,
+            "y": 94,
+            "width": 20,
+            "height": 52
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_1_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 86,
+              "y": 94
+            },
+            {
+              "x": 106,
+              "y": 94
+            },
+            {
+              "x": 106,
+              "y": 146
+            },
+            {
+              "x": 86,
+              "y": 146
+            },
+            {
+              "x": 86,
+              "y": 94
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_1_4",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 110,
+            "y": 101,
+            "width": 17,
+            "height": 45
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_1_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 110,
+              "y": 101
+            },
+            {
+              "x": 127,
+              "y": 101
+            },
+            {
+              "x": 127,
+              "y": 146
+            },
+            {
+              "x": 110,
+              "y": 146
+            },
+            {
+              "x": 110,
+              "y": 101
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "shelf_2",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 216,
+            "width": 130,
+            "height": 8
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 216
+            },
+            {
+              "x": 140,
+              "y": 216
+            },
+            {
+              "x": 140,
+              "y": 224
+            },
+            {
+              "x": 10,
+              "y": 224
+            },
+            {
+              "x": 10,
+              "y": 216
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_2_0",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 164,
+            "width": 14,
+            "height": 52
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_2_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 164
+            },
+            {
+              "x": 30,
+              "y": 164
+            },
+            {
+              "x": 30,
+              "y": 216
+            },
+            {
+              "x": 16,
+              "y": 216
+            },
+            {
+              "x": 16,
+              "y": 164
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_2_1",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 34,
+            "y": 171,
+            "width": 21,
+            "height": 45
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_2_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 34,
+              "y": 171
+            },
+            {
+              "x": 55,
+              "y": 171
+            },
+            {
+              "x": 55,
+              "y": 216
+            },
+            {
+              "x": 34,
+              "y": 216
+            },
+            {
+              "x": 34,
+              "y": 171
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_2_2",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59,
+            "y": 160,
+            "width": 18,
+            "height": 56
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_2_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 59,
+              "y": 160
+            },
+            {
+              "x": 77,
+              "y": 160
+            },
+            {
+              "x": 77,
+              "y": 216
+            },
+            {
+              "x": 59,
+              "y": 216
+            },
+            {
+              "x": 59,
+              "y": 160
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_2_3",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 81,
+            "y": 167,
+            "width": 15,
+            "height": 49
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_2_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 81,
+              "y": 167
+            },
+            {
+              "x": 96,
+              "y": 167
+            },
+            {
+              "x": 96,
+              "y": 216
+            },
+            {
+              "x": 81,
+              "y": 216
+            },
+            {
+              "x": 81,
+              "y": 167
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_2_4",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 100,
+            "y": 174,
+            "width": 22,
+            "height": 42
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_2_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100,
+              "y": 174
+            },
+            {
+              "x": 122,
+              "y": 174
+            },
+            {
+              "x": 122,
+              "y": 216
+            },
+            {
+              "x": 100,
+              "y": 216
+            },
+            {
+              "x": 100,
+              "y": 174
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "shelf_3",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 286,
+            "width": 130,
+            "height": 8
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 286
+            },
+            {
+              "x": 140,
+              "y": 286
+            },
+            {
+              "x": 140,
+              "y": 294
+            },
+            {
+              "x": 10,
+              "y": 294
+            },
+            {
+              "x": 10,
+              "y": 286
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_3_0",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 237,
+            "width": 19,
+            "height": 49
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_3_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 237
+            },
+            {
+              "x": 35,
+              "y": 237
+            },
+            {
+              "x": 35,
+              "y": 286
+            },
+            {
+              "x": 16,
+              "y": 286
+            },
+            {
+              "x": 16,
+              "y": 237
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_3_1",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 39,
+            "y": 244,
+            "width": 16,
+            "height": 42
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_3_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 39,
+              "y": 244
+            },
+            {
+              "x": 55,
+              "y": 244
+            },
+            {
+              "x": 55,
+              "y": 286
+            },
+            {
+              "x": 39,
+              "y": 286
+            },
+            {
+              "x": 39,
+              "y": 244
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_3_2",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59,
+            "y": 233,
+            "width": 23,
+            "height": 53
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_3_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 59,
+              "y": 233
+            },
+            {
+              "x": 82,
+              "y": 233
+            },
+            {
+              "x": 82,
+              "y": 286
+            },
+            {
+              "x": 59,
+              "y": 286
+            },
+            {
+              "x": 59,
+              "y": 233
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_3_3",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 86,
+            "y": 240,
+            "width": 20,
+            "height": 46
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_3_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 86,
+              "y": 240
+            },
+            {
+              "x": 106,
+              "y": 240
+            },
+            {
+              "x": 106,
+              "y": 286
+            },
+            {
+              "x": 86,
+              "y": 286
+            },
+            {
+              "x": 86,
+              "y": 240
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "book_3_4",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 110,
+            "y": 229,
+            "width": 17,
+            "height": 57
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "book_3_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 110,
+              "y": 229
+            },
+            {
+              "x": 127,
+              "y": 229
+            },
+            {
+              "x": 127,
+              "y": 286
+            },
+            {
+              "x": 110,
+              "y": 286
+            },
+            {
+              "x": 110,
+              "y": 229
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "plinth",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 298,
+            "width": 142,
+            "height": 10.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "plinth_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 298
+            },
+            {
+              "x": 146,
+              "y": 298
+            },
+            {
+              "x": 146,
+              "y": 308.5
+            },
+            {
+              "x": 4,
+              "y": 308.5
+            },
+            {
+              "x": 4,
+              "y": 298
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 310
+      },
+      "width": 150
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "accent": {
+          "r": 157,
+          "g": 131,
+          "b": 91,
+          "a": 255
+        },
+        "accent_red": {
+          "r": 133,
+          "g": 84,
+          "b": 89,
+          "a": 255
+        },
+        "blue": {
+          "r": 78,
+          "g": 113,
+          "b": 143,
+          "a": 255
+        },
+        "cushion": {
+          "r": 141,
+          "g": 134,
+          "b": 129,
+          "a": 255
+        },
+        "leaf": {
+          "r": 93,
+          "g": 116,
+          "b": 101,
+          "a": 255
+        },
+        "paper": {
+          "r": 174,
+          "g": 176,
+          "b": 183,
+          "a": 255
+        },
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

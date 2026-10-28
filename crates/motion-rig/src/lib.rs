@@ -7,11 +7,11 @@ pub mod screen;
 pub use attachment::{AttachmentError, LimbChain, LimbJoints, PELVIS, STICK_LIMBS, TORSO};
 pub use definition::{
     round_corners, ActingInput, BlinkDefinition, EllipseDefinition, EvaluatedOutline,
-    EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, JointLimitDefinition,
-    MouthShapes, OutlineDefinition, OutlineMode, PartTextureDefinition, PartVariantDefinition,
-    PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition, TextureFit, VertexWeight,
-    VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES, MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT,
-    MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
+    EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, FaceView,
+    JointLimitDefinition, MouthShapes, OutlineDefinition, OutlineMode, PartTextureDefinition,
+    PartVariantDefinition, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
+    TextureFit, VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES,
+    MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
 };
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
 pub use props::{

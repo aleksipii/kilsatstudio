@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "set.outdoor.yard_v1",
+  "kind": "set",
+  "name": "Piha (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "yard",
+    "piha",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.outdoor.yard_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": -100.0,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": -200.0,
+      "y": 185.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": -200.0,
+      "y": 105.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "sit_bench",
+      "kind": "sit",
+      "anchor": "bench/seat"
+    },
+    {
+      "id": "house_door",
+      "kind": "stand",
+      "anchor": "backdrop/house_door"
+    },
+    {
+      "id": "lawn",
+      "kind": "stand",
+      "at": {
+        "x": 1700.0,
+        "y": 945.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "id": "prop.decor.picture_frame_v1",
+  "kind": "prop",
+  "name": "Taulu",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 110,
+    "height": 86
+  },
+  "depth": "mid",
+  "tags": [
+    "taulu",
+    "picture",
+    "kehys",
+    "frame",
+    "seinä",
+    "wall",
+    "decor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "glass": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 255
+    },
+    "leaf": {
+      "r": 118,
+      "g": 150,
+      "b": 106,
+      "a": 255
+    },
+    "leaf_dark": {
+      "r": 78,
+      "g": 108,
+      "b": 84,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "frame",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 102,
+            "height": 78
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 106,
+              "y": 4
+            },
+            {
+              "x": 106,
+              "y": 82
+            },
+            {
+              "x": 4,
+              "y": 82
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "mat",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12,
+            "y": 12,
+            "width": 86,
+            "height": 62
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "mat_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 12
+            },
+            {
+              "x": 98,
+              "y": 12
+            },
+            {
+              "x": 98,
+              "y": 74
+            },
+            {
+              "x": 12,
+              "y": 74
+            },
+            {
+              "x": 12,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "sky",
+        "paint": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 20,
+            "width": 70,
+            "height": 46
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sun",
+        "paint": "accent",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 65,
+            "y": 25,
+            "width": 14,
+            "height": 14
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hill",
+        "paint": "leaf",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 20,
+            "y": 47,
+            "width": 48,
+            "height": 18
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ground_band",
+        "paint": "leaf_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 56,
+            "width": 70,
+            "height": 10
+          },
+          "color": {
+            "r": 78,
+            "g": 108,
+            "b": 84,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

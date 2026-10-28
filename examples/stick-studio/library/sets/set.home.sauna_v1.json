@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "set.home.sauna_v1",
+  "kind": "set",
+  "name": "Sauna (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "home",
+    "sauna",
+    "suomi",
+    "finland",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.home.sauna_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": -20.0,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": 220.0,
+      "y": 185.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": 220.0,
+      "y": 105.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "sit_bench",
+      "kind": "sit",
+      "anchor": "bench/seat"
+    },
+    {
+      "id": "stove",
+      "kind": "stand",
+      "at": {
+        "x": 700.0,
+        "y": 945.0
+      }
+    },
+    {
+      "id": "door",
+      "kind": "stand",
+      "anchor": "room/doorway"
+    }
+  ]
+}

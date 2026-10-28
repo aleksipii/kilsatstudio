@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "id": "set.work.meeting_room_v1",
+  "kind": "set",
+  "name": "Neuvotteluhuone (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "work",
+    "office",
+    "meeting_room",
+    "neuvotteluhuone",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.work.meeting_room_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": -274.3,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": -426.7,
+      "y": 185.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": -440.0,
+      "y": 105.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "presenter",
+      "kind": "stand",
+      "at": {
+        "x": 520.0,
+        "y": 945.0
+      }
+    },
+    {
+      "id": "sit_a",
+      "kind": "sit",
+      "anchor": "chair_a/seat"
+    },
+    {
+      "id": "sit_b",
+      "kind": "sit",
+      "anchor": "chair_b/seat"
+    },
+    {
+      "id": "door",
+      "kind": "stand",
+      "anchor": "room/doorway"
+    }
+  ]
+}
