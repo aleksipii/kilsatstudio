@@ -178,9 +178,14 @@ and render with `production_export --retime-dialogue` (see the example README).
 
 ## Open work
 
-- Desktop: no screen-cue editor or video import UI yet, and the preview does
-  not yet schedule `decode_screen_video` or load frames per time; video cues
-  render only where a caller has put decoded frames into the image map.
+- Desktop (done in `apps/studio-desktop`, `screen_cues.rs` and
+  `screen_video_worker.rs`): screen-cue editor (add/edit/remove, inline
+  validation, undo), video import into `assets/screens/` with ffprobe, and a
+  bounded background proxy decode feeding the preview's
+  `ArtContext.screen_videos`. Not exercised by hand in the GUI yet. Still open:
+  desktop **Export video** and sequence export do not decode full-size video
+  (preflight rejects it; use `production_export`); the preview shows a
+  missing-frame error until the proxy decode finishes; no native file picker.
 - Automatic direction does not yet read `tap_times` to place finger motion.
 - Glow lights only what is behind the actor: it does not brighten the
   holder's own face or hand, and it is not cast by art-layer lights onto other
