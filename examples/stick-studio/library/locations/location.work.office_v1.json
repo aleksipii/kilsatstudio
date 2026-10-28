@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "location.work.office_v1",
+  "kind": "location",
+  "name": "Toimisto",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "work",
+    "office",
+    "toimisto"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.interior.office_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    }
+  ]
+}

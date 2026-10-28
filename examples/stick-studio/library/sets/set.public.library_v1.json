@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "set.public.library_v1",
+  "kind": "set",
+  "name": "Kirjasto (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "public",
+    "library",
+    "kirjasto",
+    "books",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.public.library_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": -260.0,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": 140.0,
+      "y": 185.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": 140.0,
+      "y": 105.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "reader",
+      "kind": "sit",
+      "anchor": "chair/seat"
+    },
+    {
+      "id": "browse",
+      "kind": "stand",
+      "at": {
+        "x": 300.0,
+        "y": 945.0
+      }
+    },
+    {
+      "id": "door",
+      "kind": "stand",
+      "anchor": "room/doorway"
+    }
+  ]
+}

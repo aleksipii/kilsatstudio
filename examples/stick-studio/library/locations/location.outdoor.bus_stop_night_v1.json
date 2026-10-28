@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "location.outdoor.bus_stop_night_v1",
+  "kind": "location",
+  "name": "Yövuoron pysäkki",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "night",
+    "bus_stop",
+    "pysäkki"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.outdoor.bus_stop_night_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    }
+  ]
+}
