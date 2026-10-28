@@ -77,6 +77,20 @@ Alue: `examples/stick-studio/library/props/**`, `scripts/generate_library_props.
       viivat ≤ 8 px, lattialla seisovan alareuna = ground).
 - [x] `validate_library --distribution` -ajo (ks. Toteutunut lopputulema).
 
+### PR #130 -katselmoinnin avoimet (28.10.2026, haara `feat/screen-taps-finger`)
+
+Alue: `motion-rig/src/{tap,props,screen,definition,lib}.rs`, `motion-script/src/{holds,screens,lib}.rs`
+(A02:n `holds:`-osuus), `motion-scene/src/{taps,lib}.rs`, `motion-scene/tests/screen_taps.rs`,
+`docs/screen-slots.md`, `docs/motionscript.md`; `apps/studio-desktop/src/main.rs` vain uuden kentän lisäys.
+
+- [x] Näytön napautukset ohjaavat vapaan käden painallusta (lähestyminen, kosketus tasan
+      napautushetkellä, pito, vapautus) kahden luun IK:lla; puhdas ajan funktio.
+- [x] Kirjoitetut nivelavaimet napauttavassa kädessä voittavat; vapaan käden puute ja
+      ohitetut napautukset raportoidaan tyypitettyinä `TapDiagnostic`-diagnostiikkoina.
+- [x] `holds: {item, hand}` -lyhenne liittää stick-studio-luettelon esineen validoinnissa ja
+      arvioinnissa (ei riippuvuussykliä: `motion-script` riippui jo `motion-rig`istä).
+- [x] Testit ja dokumentaatio (ks. Toteutunut lopputulema).
+
 ## Hyväksymisehdot
 
 - Raajat ja esine pysyvät kiinni hahmon liikkuessa ja kameran vaihtuessa (testit).

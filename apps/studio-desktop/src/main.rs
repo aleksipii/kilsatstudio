@@ -592,7 +592,7 @@ impl Studio {
                     }
                 }
                 if ui.button("Lisää hahmo").clicked() {
-                    self.apply_structure(motion_script::add_character(&self.source, &id, motion_script::Character { asset: self.lifecycle_asset.trim().into(), default_pose: None, voice: None, rig: None }));
+                    self.apply_structure(motion_script::add_character(&self.source, &id, motion_script::Character { asset: self.lifecycle_asset.trim().into(), default_pose: None, voice: None, rig: None, holds: None }));
                 }
                 if ui.button("Kopioi valittu hahmo").clicked() {
                     if let Some(character) = self.selected_actor.as_ref().and_then(|actor| self.script.as_ref()?.characters.get(actor)).cloned() {

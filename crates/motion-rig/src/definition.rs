@@ -1095,6 +1095,13 @@ impl PreparedRig {
     pub(crate) fn screens(&self) -> &[crate::screen::PreparedScreen] {
         &self.screens
     }
+    /// Ids of the parts drawn on joint `joint`.
+    pub(crate) fn part_ids_on(&self, joint: usize) -> impl Iterator<Item = &str> {
+        self.parts
+            .iter()
+            .filter(move |p| p.joint == joint)
+            .map(|p| p.definition.id.as_str())
+    }
     pub fn joint_index(&self, id: &str) -> Option<usize> {
         self.ids.get(id).copied()
     }

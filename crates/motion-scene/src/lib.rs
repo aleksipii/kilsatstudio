@@ -12,7 +12,9 @@ mod sequence;
 pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline};
 pub mod time;
 pub use time::SEQUENCE_SAMPLE_RATE;
+mod taps;
 pub mod tracks;
+pub use taps::{TapDiagnostic, TapSkip};
 
 /// Head dip, in local skeleton units, at a fully open mouth.
 pub const SPEECH_HEAD_DIP: f64 = 3.0;
@@ -251,6 +253,9 @@ struct PreparedAnimation {
     scenes: Vec<std::collections::BTreeMap<String, BoneTracks>>,
     /// Per scene and actor: `Event::Move` resolved once into `{from, to}` spans.
     moves: Vec<std::collections::BTreeMap<String, tracks::ResolvedTrack>>,
+    /// Per scene and actor: screen taps the free hand presses.
+    taps: Vec<std::collections::BTreeMap<String, Vec<taps::PreparedTaps>>>,
+    tap_diagnostics: Vec<TapDiagnostic>,
 }
 /// Where every actor stands before its first move.
 fn actor_base(script: &Script) -> Vec2 {
@@ -318,7 +323,7 @@ impl PreparedAnimation {
                 rigs.insert(id.clone(), prepared);
             }
         }
-        let joint_tracks = script
+        let joint_tracks: Vec<_> = script
             .scenes
             .iter()
             .map(|scene| {
@@ -371,6 +376,7 @@ impl PreparedAnimation {
                     .collect::<Result<_, Error>>()
             })
             .collect::<Result<_, Error>>()?;
+        let (taps, tap_diagnostics) = taps::prepare(script, &rigs, &joint_tracks);
         Ok(Self {
             rigid_parts,
             rigs,
@@ -378,6 +384,8 @@ impl PreparedAnimation {
             library,
             scenes,
             moves,
+            taps,
+            tap_diagnostics,
         })
     }
     fn instance_tracks<'a>(
@@ -538,13 +546,21 @@ impl ValidatedScript {
     pub fn new(script: std::sync::Arc<Script>) -> Result<Self, Error> {
         script.validate()?;
         // Animation rules expand once, so preview, seek and export share one script.
-        let script = if script.rules.is_empty() {
+        let mut script = if script.rules.is_empty() {
             script
         } else {
             std::sync::Arc::new(script.expand_rules().map_err(motion_script::Error::from)?)
         };
+        // `holds:` props are attached once to the rigs every frame evaluates.
+        if script.has_held_props() {
+            std::sync::Arc::make_mut(&mut script).resolve_held_props()?;
+        }
         let prepared = std::sync::Arc::new(PreparedAnimation::new(&script)?);
         Ok(Self { script, prepared })
+    }
+    /// Screen cues whose taps are not animated as finger presses, and why.
+    pub fn tap_diagnostics(&self) -> &[TapDiagnostic] {
+        &self.prepared.tap_diagnostics
     }
     /// `scene_at_time`: the evaluated scene at scene-local `time_seconds`, in
     /// `[0, duration]`. A pure function of its arguments: no playback history,
@@ -568,10 +584,16 @@ pub fn evaluate(
 ) -> Result<EvaluatedScene, Error> {
     script.validate()?;
     let expanded;
-    let script = if script.rules.is_empty() {
+    let script = if script.rules.is_empty() && !script.has_held_props() {
         script
     } else {
-        expanded = script.expand_rules().map_err(motion_script::Error::from)?;
+        let mut copy = if script.rules.is_empty() {
+            script.clone()
+        } else {
+            script.expand_rules().map_err(motion_script::Error::from)?
+        };
+        copy.resolve_held_props()?;
+        expanded = copy;
         &expanded
     };
     let prepared = PreparedAnimation::new(script)?;
@@ -887,6 +909,12 @@ fn evaluate_validated(
                     // The rig layer shapes its own timing from progress.
                     let motion = motion_animation::rig_gesture(gesture, progress, weights.gesture);
                     add_rig_motion(rig, &mut offsets, &motion);
+                }
+                // Screen taps: the free hand presses the glass, last so it
+                // reaches the screen wherever the pose above put it.
+                if let Some(presses) = prepared.taps[scene_index].get(id) {
+                    taps::apply(rig, presses, time_seconds, &mut offsets)
+                        .map_err(|error| Error::InvalidAnimation(error.to_string()))?;
                 }
                 let invalid = |error: motion_rig::Error| Error::InvalidAnimation(error.to_string());
                 if rig.has_acting() {
