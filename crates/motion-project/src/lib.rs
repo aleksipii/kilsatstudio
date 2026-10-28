@@ -226,7 +226,8 @@ impl ProjectDocument {
 fn invalid<T>(message: &str) -> Result<T, Error> {
     Err(Error::Validation(message.into()))
 }
-/// First custom-rig texture asset that is not an image asset in `assets`.
+/// First custom-rig texture or screen image asset that is not an image asset
+/// in `assets`.
 pub fn missing_rig_texture_asset<'a>(
     script: &'a motion_script::Script,
     assets: &[AssetReference],
@@ -236,6 +237,7 @@ pub fn missing_rig_texture_asset<'a>(
         .values()
         .filter_map(|character| character.rig.as_ref())
         .flat_map(|rig| rig.image_assets())
+        .chain(script.screen_image_assets())
         .find(|id| {
             !assets
                 .iter()

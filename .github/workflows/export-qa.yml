@@ -14,7 +14,6 @@ jobs:
     timeout-minutes: 40
     env:
       KILSAT_COMMIT: ${{ github.sha }}
-      G2_SVG_SEQUENCE_SHA256: 584232d5dc3afc85d30d2247b29587be2a554e38d3cccf62d6e999d055a67e91
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -58,15 +57,16 @@ jobs:
           "$script" target/release/examples/g2_export out/g2-svg svg > out/g2-svg.json
           "$script" target/release/examples/g2_export out/g2-png png > out/g2-png.json
           python3 -I - <<'PY'
-          import json, os
+          import json
           for fmt in ("svg", "png"):
               s = json.load(open(f"out/g2-{fmt}.json"))
-              assert s["model_policy"] == "strict", s
+              assert s["model_policy_refused"] == ["SpeechSynthesis", "RecognizerAlignment", "ModelDownload"], s
               assert s["frame_count"] == s["expected_frame_count"] == 96, s
               assert s["audio_samples"] == 96000 and s["audio_sample_rate"] == 24000, s
               print(fmt, s["frame_count"], "frames", s["audio_seconds"], "s audio", s["sequence_sha256"])
+          # The reference hash lives only in crates/motion-export/tests/support/g2.rs.
           svg = json.load(open("out/g2-svg.json"))
-          assert svg["sequence_sha256"] == os.environ["G2_SVG_SEQUENCE_SHA256"], svg["sequence_sha256"]
+          assert svg["sequence_matches_reference"] is True, svg
           PY
       - name: Install FFmpeg (outside the sandbox)
         timeout-minutes: 15

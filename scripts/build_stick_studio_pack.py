@@ -88,7 +88,8 @@ def hand_prop_catalog(path: Path) -> dict:
         return isinstance(value, list) and len(value) == 4 and all(type(v) is int and 0 <= v <= 255 for v in value)
     for expected, item in zip(HAND_PROP_IDS, catalog['items']):
         if (not isinstance(item, dict)
-                or set(item) != {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts'}
+                or not {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts'} <= set(item)
+                or not set(item) <= {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts', 'screen'}
                 or item.get('id') != expected or not isinstance(item.get('name'), str)
                 or not 1 <= len(item['name']) <= 128 or any(ord(c) < 32 for c in item['name'])
                 or not all(number(item.get(key), 512) and item[key] > 0 for key in ('width', 'height'))
@@ -97,6 +98,20 @@ def hand_prop_catalog(path: Path) -> dict:
                 or not isinstance(item.get('grip_parts'), list) or not item['grip_parts']
                 or len(item['parts']) + len(item['grip_parts']) > 32):
             raise ValueError('hand-prop catalog IDs, grip, dimensions or native parts differ')
+        if 'screen' in item:
+            # Optional display slot: names its own glass and overlay parts.
+            screen, own = item['screen'], {p.get('id') for p in item['parts'] if isinstance(p, dict)}
+            if (not isinstance(screen, dict)
+                    or not {'id', 'part', 'rect'} <= set(screen)
+                    or not set(screen) <= {'id', 'part', 'rect', 'overlays'}
+                    or not isinstance(screen['id'], str) or not re.fullmatch(r'[A-Za-z0-9_]{1,64}', screen['id'])
+                    or screen['part'] not in own
+                    or not isinstance(screen['rect'], list) or len(screen['rect']) != 4
+                    or not all(number(v, 512) for v in screen['rect'])
+                    or screen['rect'][2] <= 0 or screen['rect'][3] <= 0
+                    or not isinstance(screen.get('overlays', []), list)
+                    or any(o not in own or o == screen['part'] for o in screen.get('overlays', []))):
+                raise ValueError(f'hand-prop {expected} screen slot is invalid')
         seen = set()
         for part in item['parts'] + item['grip_parts']:
             if (not isinstance(part, dict) or not {'id', 'joint', 'color'} <= set(part)

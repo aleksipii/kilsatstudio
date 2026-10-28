@@ -218,10 +218,6 @@ fn build_inner(
                     };
                     // Same placement as the CPU: the sub-rectangle `uv` is stretched
                     // over `rest_bounds`, carried to actor space by `transform`.
-                    let [bx, by, bw, bh] = texture.rest_bounds;
-                    let [u0, v0, u1, v1] = texture.uv;
-                    let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
-                    let (ix, iy) = (bx - u0 * w, by - v0 * h);
                     let m = texture.transform;
                     let det = m.a * m.d - m.b * m.c;
                     if det.abs() < 1e-12 {
@@ -239,6 +235,12 @@ fn build_inner(
                     let ry = -(rb * m.tx + rd * m.ty);
                     let (offset, iw, ih) =
                         image_resource(&mut result, images, resources, &texture.asset)?;
+                    // Fit (cover/contain) resolves against the image size, as on the CPU.
+                    let (rest_bounds, uv) = texture.placement(iw, ih);
+                    let [bx, by, bw, bh] = rest_bounds;
+                    let [u0, v0, u1, v1] = uv;
+                    let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
+                    let (ix, iy) = (bx - u0 * w, by - v0 * h);
                     result.commands.push(Command([
                         inv,
                         origin,
@@ -1072,6 +1074,7 @@ mod tests {
                 tx: 0.0,
                 ty: 0.0,
             },
+            fit: motion_rig::TextureFit::Stretch,
         });
         assert!(matches!(
             build(&textured, 256, 256, &[], Labels::OmitAcknowledged),
@@ -1788,6 +1791,7 @@ mod tests {
                         tx: 5.0,
                         ty: 3.0,
                     },
+                    fit: motion_rig::TextureFit::Stretch,
                 }),
                 skinned,
                 outline: None,

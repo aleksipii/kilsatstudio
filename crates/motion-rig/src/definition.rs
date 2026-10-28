@@ -23,6 +23,10 @@ pub struct RigDefinition {
     /// joint's local rotation (rest rotation plus animated offset) into the range.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub joint_limits: BTreeMap<String, JointLimitDefinition>,
+    /// Named display slots (phone, tablet, laptop, TV, billboard screens); see
+    /// `crate::screen`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub screens: Vec<crate::screen::ScreenSlotDefinition>,
 }
 /// Inclusive bounds, in radians, for a joint's local rotation (rest + offset).
 /// Both bounds are finite, within one full turn of zero, ordered, and contain
@@ -283,8 +287,61 @@ pub struct EvaluatedTexture {
     pub uv: [f64; 4],
     pub rest_bounds: [f64; 4],
     pub transform: Affine2,
+    /// How the image's own aspect ratio meets `rest_bounds`; renderers resolve
+    /// it with `EvaluatedTexture::placement` once the image size is known.
+    pub fit: TextureFit,
 }
-fn valid_id(id: &str) -> bool {
+/// Fitting of an image into its target rectangle.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TextureFit {
+    /// Fill the rectangle exactly, distorting the image if aspects differ.
+    #[default]
+    Stretch,
+    /// Fill the rectangle and crop the overflowing sides (centred).
+    Cover,
+    /// Show the whole image centred; uncovered bands show the part's fill.
+    Contain,
+}
+impl EvaluatedTexture {
+    /// `(rest_bounds, uv)` actually drawn for an image of `width` x `height`
+    /// pixels. Both the SVG and the GPU renderer call this, so preview and
+    /// export place images identically. Cover crops through `uv`; contain
+    /// shrinks the rectangle.
+    pub fn placement(&self, width: u32, height: u32) -> ([f64; 4], [f64; 4]) {
+        let [x, y, w, h] = self.rest_bounds;
+        let [u0, v0, u1, v1] = self.uv;
+        // Aspect of the selected image region versus the target rectangle.
+        let source = (f64::from(width.max(1)) * (u1 - u0)) / (f64::from(height.max(1)) * (v1 - v0));
+        let target = w / h;
+        if self.fit == TextureFit::Stretch || !source.is_finite() || !target.is_finite() {
+            return (self.rest_bounds, self.uv);
+        }
+        let wider = source > target;
+        match self.fit {
+            TextureFit::Cover if wider => {
+                let keep = (u1 - u0) * target / source;
+                let u = u0 + (u1 - u0 - keep) / 2.0;
+                (self.rest_bounds, [u, v0, u + keep, v1])
+            }
+            TextureFit::Cover => {
+                let keep = (v1 - v0) * source / target;
+                let v = v0 + (v1 - v0 - keep) / 2.0;
+                (self.rest_bounds, [u0, v, u1, v + keep])
+            }
+            TextureFit::Contain if wider => {
+                let height = w / source;
+                ([x, y + (h - height) / 2.0, w, height], self.uv)
+            }
+            TextureFit::Contain => {
+                let width = h * source;
+                ([x + (w - width) / 2.0, y, width, h], self.uv)
+            }
+            TextureFit::Stretch => unreachable!("handled above"),
+        }
+    }
+}
+pub(crate) fn valid_id(id: &str) -> bool {
     !id.is_empty()
         && id.len() <= 128
         && id
@@ -692,6 +749,7 @@ impl RigDefinition {
             return Err(Error::InvalidDefinition);
         }
         self.validate_acting()?;
+        crate::screen::validate_slots(self, &ids)?;
         Ok((rig, ids))
     }
     fn part(&self, id: &str) -> Result<&RigidPartDefinition, Error> {
@@ -851,12 +909,14 @@ impl RigDefinition {
             .iter()
             .map(|j| self.joint_limits.get(&j.name).copied())
             .collect();
+        let screens = crate::screen::prepare_slots(self);
         let prepared = PreparedRig {
             rig,
             ids,
             parts,
             acting,
             limits,
+            screens,
         };
         // Skinning is the identity at rest; still verify the outline stays simple.
         let rest = prepared.evaluate_parts(&[])?;
@@ -1022,6 +1082,7 @@ pub struct PreparedRig {
     acting: PreparedActing,
     /// Rotation limits per joint index (validated by `build`).
     limits: Vec<Option<JointLimitDefinition>>,
+    screens: Vec<crate::screen::PreparedScreen>,
 }
 #[derive(Debug, Clone)]
 struct PreparedPart {
@@ -1031,6 +1092,9 @@ struct PreparedPart {
     skin: Vec<Vec<(usize, f64, Affine2)>>,
 }
 impl PreparedRig {
+    pub(crate) fn screens(&self) -> &[crate::screen::PreparedScreen] {
+        &self.screens
+    }
     pub fn joint_index(&self, id: &str) -> Option<usize> {
         self.ids.get(id).copied()
     }
@@ -1185,6 +1249,7 @@ impl PreparedRig {
                     uv: t.uv,
                     rest_bounds: [x0, y0, x1 - x0, y1 - y0],
                     transform: matrix,
+                    fit: TextureFit::Stretch,
                 })
             }
         };

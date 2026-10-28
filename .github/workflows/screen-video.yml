@@ -1,0 +1,48 @@
+name: Screen slots (phone video)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "crates/motion-rig/**"
+      - "crates/motion-script/**"
+      - "crates/motion-scene/**"
+      - "crates/motion-render/**"
+      - "crates/motion-export/**"
+      - "examples/stick-studio/hand-props.json"
+      - ".github/workflows/screen-video.yml"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  screen-slots-macos:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Verify Apple Silicon runner
+        run: |
+          test "$(uname -m)" = arm64
+          sw_vers
+      - name: Format and lint
+        run: |
+          cargo fmt --all --check
+          cargo clippy --locked -p motion-rig -p motion-script -p motion-scene -p motion-render -p motion-export --all-targets -- -D warnings
+      - name: Slot, cue, fit and scene-clock tests
+        run: |
+          cargo test --locked -p motion-rig
+          cargo test --locked -p motion-script --lib screens
+          cargo test --locked -p motion-render
+          cargo test --locked -p motion-export --lib screen
+      - name: Install FFmpeg
+        run: command -v ffmpeg && command -v ffprobe || brew install ffmpeg
+      - name: Real FFmpeg decode, proxy and Display P3 conversion
+        run: |
+          KILSAT_TEST_FFMPEG="$(command -v ffmpeg)" \
+          KILSAT_TEST_FFPROBE="$(command -v ffprobe)" \
+            cargo test --locked -p motion-export --lib real_ffmpeg_screen_video -- --ignored --nocapture

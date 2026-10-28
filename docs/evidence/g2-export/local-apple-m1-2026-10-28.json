@@ -1,0 +1,46 @@
+{
+  "what": "G2 minimal scene export wall-clock time, release build, local SSD, strict model-free audio (silent)",
+  "command": "cargo run --locked --release -p motion-export --example g2_export -- OUT_DIR {svg|png} --runs 7",
+  "conditions": {
+    "machine": "iMac21,2 (iMac 24-inch, 2021)",
+    "cpu": "Apple M1, 8 cores (4 performance + 4 efficiency)",
+    "memory_gib": 8,
+    "macos": "27.0.1 (26A434)",
+    "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "power": "AC power",
+    "commit": "71ad594 (main 10b012a + feat/a10-export-followups; the SVG/PNG export code is unchanged from 10b012a)",
+    "export_workers": 4,
+    "date": "2026-10-28",
+    "other_load": "interactive desktop session, not isolated; load average about 10 (1 min) and 24 (5 min) right after the runs, under 4 GiB free disk"
+  },
+  "results": [
+    {
+      "format": "svg",
+      "width": 1920,
+      "height": 1080,
+      "fps": 24,
+      "frames": 96,
+      "measured_runs": 7,
+      "warmup_runs_discarded": 1,
+      "run_ms_median": 30.5,
+      "run_ms_min": 30.4,
+      "run_ms_max": 31.8,
+      "median_ms_per_frame": 0.32,
+      "sequence_sha256": "584232d5dc3afc85d30d2247b29587be2a554e38d3cccf62d6e999d055a67e91"
+    },
+    {
+      "format": "png",
+      "width": 1920,
+      "height": 1080,
+      "fps": 24,
+      "frames": 96,
+      "measured_runs": 7,
+      "warmup_runs_discarded": 1,
+      "run_ms_median": 1964.7,
+      "run_ms_min": 1879.1,
+      "run_ms_max": 2194.3,
+      "median_ms_per_frame": 20.47,
+      "sequence_sha256": "242ebcd2b691405043c33a1ceb22532b984918fe6dc980bdb9cddd0c8a83c2a3"
+    }
+  ]
+}

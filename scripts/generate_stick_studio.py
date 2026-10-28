@@ -124,6 +124,22 @@ def held_prop(character, item, hand):
         part['id'] = f'{prefix}{item["id"]}_{part["id"]}'
         part['joint'] = f'hand_{hand}'
         parts.append(part)
+    # A catalog screen slot travels with the prop (identity grip placement),
+    # matching motion_rig::attach_hand_prop.
+    screens = [s for s in character['rig'].get('screens', []) if not s['part'].startswith(prefix)]
+    if 'screen' in item:
+        screen = item['screen']
+        x, y, w, h = screen['rect']
+        gx, gy = item['grip']
+        taken = any(s['id'] == screen['id'] for s in screens)
+        screens.append(dict(id=f"{screen['id']}_{hand}" if taken else screen['id'], part=f'{prefix}{item["id"]}_{screen["part"]}',
+                            origin=[x - gx, y - gy], x_axis=[w, 0], y_axis=[0, h],
+                            **({'overlays': [f'{prefix}{item["id"]}_{o}' for o in screen['overlays']]}
+                               if screen.get('overlays') else {})))
+    if screens:
+        character['rig']['screens'] = screens
+    else:
+        character['rig'].pop('screens', None)
 
 
 def prop_project(item):

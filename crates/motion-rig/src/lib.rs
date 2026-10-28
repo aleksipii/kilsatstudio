@@ -3,19 +3,24 @@ pub mod attachment;
 pub mod definition;
 pub mod ik;
 pub mod props;
+pub mod screen;
 pub use attachment::{AttachmentError, LimbChain, LimbJoints, PELVIS, STICK_LIMBS, TORSO};
 pub use definition::{
     round_corners, ActingInput, BlinkDefinition, EllipseDefinition, EvaluatedOutline,
     EvaluatedPart, EvaluatedTexture, ExpressionVariant, EyesDefinition, FaceView,
     JointLimitDefinition, MouthShapes, OutlineDefinition, OutlineMode, PartTextureDefinition,
     PartVariantDefinition, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
-    VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES, MAX_EVALUATED_POINTS,
-    MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
+    TextureFit, VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES,
+    MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
 };
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
 pub use props::{
-    attach_hand_prop, detach_hand_prop, grip_parts, hand_availability, GripPlacement,
-    HandPropCatalog, HandPropItem, HandSide, PropError, GRIP_JOINT, MAX_HAND_PROP_CATALOG_BYTES,
+    attach_hand_prop, detach_hand_prop, grip_parts, grip_screen, hand_availability, GripPlacement,
+    HandPropCatalog, HandPropItem, HandPropScreen, HandSide, PropError, GRIP_JOINT,
+    MAX_HAND_PROP_CATALOG_BYTES,
+};
+pub use screen::{
+    ScreenContent, ScreenSlotDefinition, MAX_SCREEN_SLOTS, SCREEN_LETTERBOX_COLOR, SCREEN_OFF_COLOR,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {

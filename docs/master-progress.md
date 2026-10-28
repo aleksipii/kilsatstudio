@@ -7,11 +7,83 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Phone and tablet screen slots — PR #130 merged (2026-10-28)
+
+Status: **merged** to `main` (`2ddd16f`, merged by aleksipii 2026-10-28T09:09:46Z,
+before the orchestrator review). Post-merge ORK review: **changes requested as
+follow-ups** ([comment](https://github.com/aleksipii/kilsatstudio/pull/130#issuecomment-6467734702)).
+The feature is not `done`: two CI jobs fail because of this PR.
+
+Completed (implementation, inspected):
+- `motion-rig` (A05): `RigDefinition.screens` named screen slots (glass part, parallelogram,
+  overlay parts), `TextureFit` cover/contain/stretch on `EvaluatedTexture`, catalog slots
+  `phone`/`tablet`, attach/detach copies or removes the slot, and duplicate slot names are refused.
+- `motion-render` (A08): SVG and GPU texture paths share `EvaluatedTexture::placement`.
+- `motion-script` (A02): `composition.screens` cues (off/image/sequence/video, fit, trim,
+  speed, loop, taps), validation errors, `tap_times()`. The new fields are `serde(default)`,
+  so older projects load unchanged.
+- `motion-scene` (A04): cues are applied as a pure function of scene time on the same joint
+  transforms.
+- `motion-export`/`motion-project` (A10): asset preflight, `screen_video` FFmpeg PNG frame
+  cache (content-addressed, bounded, cancellable, timeout, atomic rename), P3→BT.709 filter,
+  HDR rejected; CI workflow `screen-video.yml` (macOS arm64).
+
+Checks actually seen: on head `cc16d49`, CI had 12 jobs pass (`rust` macOS/Ubuntu,
+`gpu-contracts`, `media-encoding`, `g2-export-macos`, `apple-silicon-preview`) and **2 fail**:
+- `screen-slots-macos`: `real_ffmpeg_screen_video_decodes_proxy_and_converts_p3` fails at
+  `crates/motion-export/src/screen_video.rs:571`. With FFmpeg 9.0.1, the synthetic
+  `smpte432` clip probes as `Bt709`. The P3 conversion is therefore **not yet verified**
+  with real FFmpeg.
+- `real-asset-pack`: `examples/stick-studio/manifest.json:63` `hand_props_sha256` is stale
+  after the `hand-props.json` change. Local regeneration changes it `9b1843d9…` →
+  `d016de0e…`. The missing-zip error is a consequence of this failure.
+
+On `main` from `2ddd16f` onward, both workflows fail or were cancelled. The PR reports local
+fmt, clippy 0 warnings and `cargo test --workspace` 1003/0/10 (ORK did not re-run these).
+
+Open (owner):
+- P3 test clip tagging → CI green (A10, `fix/screen-video-p3-test`).
+- Regenerate stick studio manifest (A10).
+- Desktop: screen-cue editor, video import, background decode scheduling and frame
+  loading by time (A09; cache interface A10).
+- Streaming per-frame loading in export with a memory budget (A10).
+- `tap_times` driving finger motion in auto direction (A02 + A05).
+- Screen brightness and glow in dark scenes (A08).
+- P3 on a real iPhone recording (A10; needs the user's recording).
+- `smpte431` and untagged-source handling (A10).
+- `holds: phone` shorthand (A02; deferred by ORK).
+- Seek and frame-by-frame equivalence with screens in the G2 scene (A04, KS-003d).
+
+## A10 export follow-ups — PR #126 merged (2026-10-28)
+
+Status: **merged** to `main` (`9342979`) with the user's explicit approval.
+
+Completed:
+- G2 regression hashes and the scene SHA-256 have one source,
+  `crates/motion-export/tests/support/g2.rs`, read by the test, the `g2_export` command
+  and the `Export QA` workflow. A scene change fails first on `G2_SCENE_SHA256`.
+- `g2_export` reports `model_policy_refused` read back from `ModelPolicy::permit`
+  (replaces a fixed field) and `sequence_matches_reference`.
+- Streaming MP4 export returns `Error::PartialOutput` when cleanup after a failure fails;
+  new unix test with a locking fake encoder.
+- Local re-measurement (iMac M1, macOS 27.0.1, loaded machine): SVG median 30.5 ms,
+  PNG median 1964.7 ms, `docs/evidence/g2-export/local-apple-m1-2026-10-28.json`.
+
+Checks: CI 13/13 on #126. Locally (macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok,
+`cargo check --workspace` ok, `cargo clippy --workspace --all-targets` 0 warnings,
+`cargo test --workspace` 986 passed, 0 failed, 9 ignored; sandboxed model-free SVG/PNG
+runs pass.
+
+Open: model-free run with imported WAV speech (A07 KS-002e, needs the user's recording);
+MP4 on a physical Mac (no FFmpeg); A10 status update (ORK); `sha2` row in
+`docs/a01-dependencies.md` (A01).
+
 ## ORK G4 evidence summary and merges — PRs #123, #118, #124 merged (2026-10-27)
 
 Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
 `c194e83`), #118 (A09 UI levels, No AI mode, drag logging, `a2ddf7f`) and #124 (ORK-G4-01/02,
-which carries #119 and #122). #121 and #108 are reconciled with `main` and merged next.
+which carries #119 and #122). #121 (KS-003b review, renamed ORK-G2-02a) and #108 are merged after it; #108's content
+(ORK-G1-A04) was already in `main` via #111, so it is merged with `main`'s versions and no content change.
 
 Completed:
 - A10: canonical frame clock in `motion-export`, typed `EncoderUnavailable` and
@@ -34,6 +106,35 @@ Open: the window was not captured and the UI was not exercised by hand (no scree
 recording permission); G2 is still returned (phone A08, KS-003d A04, WAV speech A07 blocked on
 the user's recording); G3 and G4 not approved; KS-002h, KS-006, KS-007; MP4 export on a
 physical Mac (no FFmpeg installed). No notarization or Developer ID signing.
+
+## A06 dangle contract — PR #120 merged; ORK-G2-02a KS-003b review (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval (merge `d9b88ae`, commits
+`b0fa1c4` + `b517c39`). ORK decision ORK-G2-02a (recorded in PR #121, merged after #124): KS-003b **accepted** (spring module #115
+`974ef76` plus this dangle contract).
+
+Completed:
+- `motion_animation::spring`: `dangle_joint` accepts only non-root joints that are neither
+  A05 attachment-frame joints (pelvis, torso, the twelve `STICK_LIMBS` joints) nor their
+  ancestors; `apply_dangle` adds a validated angle (`|angle| <= π`) to rotation only;
+  typed `DangleError`. Re-exported from `lib.rs`.
+- 6 new tests in `crates/motion-animation/tests/spring.rs` (25 total), including A05's
+  review condition `dangles_leave_ik_grip_and_held_prop_unchanged` (IK solution, limb
+  joints, grip point and held phone bit-identical with and without springs).
+- Contract in `docs/physics-springs.md`; A05 reviewed it and accepted with that condition.
+
+Checks: A06 locally before merge – fmt, check, clippy (no warnings), test (968 passed,
+0 failed). PR #120 CI 12/12; the first media-encoding run failed with exit 124 on an apt
+download timeout while installing ffmpeg (infrastructure) and passed on rerun
+(`gh run rerun 40551418227 --failed`). ORK spot check on a separate `origin/main` worktree
+(`d9b88ae`, own target dir, macOS): `cargo test -p motion-animation` 49 passed, 0 failed;
+`cargo test -p motion-rig` 32 passed, 0 failed; clippy for motion-animation clean;
+`cargo fmt --all --check` clean.
+
+Open: visual quality of springs/dangles not assessed in rendered frames or motion (tests
+are numerical); EventLog → release initial state, IK target resolution and follow-through
+from parent motion (A04, KS-003d); marking dangle joints in MotionScript or the rig
+(A02/A05); controls (A09); coupled chains (multi-link hair). G2 itself remains open.
 
 ## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
 

@@ -908,6 +908,13 @@ fn evaluate_validated(
                 } else if !offsets.is_empty() {
                     pose.rigid_parts = rig.evaluate_parts(&offsets).map_err(invalid)?;
                 }
+                // Screen content is a pure function of scene time on the same
+                // joint transforms, so preview, seek and export show one frame.
+                for slot in rig.screen_ids() {
+                    let content = scene.composition.screen_content(id, slot, time_seconds);
+                    rig.apply_screen(&mut pose.rigid_parts, &offsets, slot, &content)
+                        .map_err(invalid)?;
+                }
             }
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
