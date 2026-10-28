@@ -225,7 +225,35 @@ fn phone_video_frame_follows_the_scene_clock_in_preview_and_export() {
     assert_eq!(taps.len(), 3);
     // Export without decoded frames explains what is missing.
     let error = rig_texture_preflight(&script, Some(&BTreeMap::new())).unwrap_err();
-    assert!(error.to_string().contains("has no decoded frames"));
+    assert!(
+        error.to_string().contains("missing decoded frame 15"),
+        "{error}"
+    );
+    // The first frames alone are not enough: the first later frame the
+    // export shows is named.
+    let mut partial = BTreeMap::new();
+    let image = motion_art::ImageResource::from_rgba(1, 1, vec![0, 0, 0, 255]).unwrap();
+    let asset = "assets/screens/oma-sovellus-demo.mov";
+    for frame in 0..30 {
+        partial.insert(
+            motion_script::video_frame_asset(asset, frame),
+            image.clone(),
+        );
+    }
+    let error = rig_texture_preflight(&script, Some(&partial)).unwrap_err();
+    assert!(
+        error.to_string().contains("missing decoded frame 30"),
+        "{error}"
+    );
+    // With every frame the export needs, preflight passes.
+    let mut complete = BTreeMap::new();
+    for frame in 0..60 {
+        complete.insert(
+            motion_script::video_frame_asset(asset, frame),
+            image.clone(),
+        );
+    }
+    assert!(rig_texture_preflight(&script, Some(&complete)).is_ok());
     assert_eq!(
         composition.screen_content("VEIKKO", "phone", 0.2),
         ScreenContent::Drawn

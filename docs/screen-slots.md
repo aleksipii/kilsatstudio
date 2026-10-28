@@ -77,12 +77,15 @@ when complete. The key hashes the recipe version, source bytes, fps,
 duration and proxy width, so preview proxies (`SCREEN_PROXY_WIDTH` = 540 px)
 and full-size export frames are separate entries with identical frame
 numbers. Stale (recipe or size changed) or incomplete entries are ignored.
-It is a blocking call for a background job, not the UI thread.
+It is a blocking call for a background job, not the UI thread. Decoded
+frames are always bounded to 4096×4096 (aspect kept), and decoding is
+stopped if an entry would exceed 4 GiB on disk.
 
 `probe_color` reads the recording's tags with ffprobe: Display P3
-(`smpte432`/`smpte431`) is converted to BT.709 primaries with FFmpeg's
-`colorspace` filter; HDR (BT.2020, HLG, PQ) is rejected with an explanation
-instead of shown with wrong colours.
+(`smpte432`) is converted to BT.709 primaries with FFmpeg's `colorspace`
+filter. DCI-P3 (`smpte431`, another white point) and HDR (BT.2020, HLG, PQ)
+are rejected with an explanation instead of shown with wrong colours.
+Untagged recordings are treated as BT.709.
 
 Clean recordings of your own app come straight from the iOS simulator:
 `xcrun simctl io booted recordVideo demo.mov` (no notifications or status
@@ -109,9 +112,11 @@ clutter).
 - Desktop: no screen-cue editor or video import UI yet, and the preview does
   not yet schedule `decode_screen_video` or load frames per time; video cues
   render only where a caller has put decoded frames into the image map.
+- Export preflight checks every decoded frame each exported frame will show
+  (not only frame 0), so a missing frame fails before rendering starts.
 - Export loads images up front; streaming per-frame loading of decoded video
   frames (bounded memory for long recordings) is not implemented. Export
-  refuses undecoded video with an actionable error.
+  refuses missing decoded frames with an actionable error.
 - Automatic direction does not yet read `tap_times` to place finger motion.
 - Screen brightness and glow in dark scenes are not implemented (only the
   drawn reflection over the glass).

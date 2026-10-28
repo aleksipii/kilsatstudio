@@ -93,13 +93,27 @@ fn rig_texture_preflight(
             )));
         }
     }
-    for cue in script.scenes.iter().flat_map(|s| &s.composition.screens) {
-        if let motion_script::ScreenSource::Video { asset, .. } = &cue.source {
-            let first = motion_script::video_frame_asset(asset, 0);
-            if !images.is_some_and(|images| images.contains_key(&first)) {
-                return Err(invalid(format!(
-                    "screen video {asset} has no decoded frames; decode it into the frame cache before export"
-                )));
+    // Every decoded video frame an exported frame will show must be present,
+    // so a missing frame fails here rather than mid-export.
+    let fps = script.project.fps;
+    for scene in script
+        .scenes
+        .iter()
+        .filter(|s| !s.composition.screens.is_empty())
+    {
+        let frames = motion_scene::frame_count(scene.duration, fps, MAX_FRAMES)
+            .map_err(|e| invalid(e.to_string()))?;
+        for frame in 0..frames {
+            let time = motion_scene::time::frame_to_seconds(frame, fps)
+                .map_err(|e| invalid(e.to_string()))?;
+            for (asset, index) in scene.composition.video_frames_at(time) {
+                let id = motion_script::video_frame_asset(asset, index);
+                if !images.is_some_and(|images| images.contains_key(&id)) {
+                    return Err(invalid(format!(
+                        "screen video {asset} is missing decoded frame {index} (needed by scene {} at {time:.3} s); decode it into the frame cache before export",
+                        scene.id
+                    )));
+                }
             }
         }
     }
