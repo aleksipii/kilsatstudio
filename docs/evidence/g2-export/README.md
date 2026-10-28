@@ -2,7 +2,7 @@
 
 Scene: [`examples/g2-minimal-scene/scene.kilsat`](../../../examples/g2-minimal-scene/README.md)
 (A08, SHA-256 `bf58fc78afc7de8fc95d5ab040570b16009986338272ddfae7ed841f0982e175`),
-1920x1080, 24 fps, 4 s, silent, no phone yet (waits for KS-003a).
+1920x1080, 24 fps, 4 s, silent, no phone yet (waits for KS-003c).
 
 ## Reproducible export command
 
@@ -19,8 +19,11 @@ The command loads the scene, prepares audio with `ModelPolicy::Strict`
 the scene has no dialogue, so the result is 96 000 samples of silence) and exports
 with the same evaluator and renderer as the desktop preview. It prints a JSON
 summary: frame count and `frame_count(duration, fps)`, audio samples and seconds,
-video seconds, per-frame SHA-256 digest and timings. It exits with an error if the
-frame count does not match. `--runs N` adds N timed runs after one discarded
+video seconds, per-frame SHA-256 digest, the model-backed steps the strict policy
+refused (`model_policy_refused`, read back from `ModelPolicy::permit`) and timings.
+It exits with an error if the frame count does not match, or if an SVG export of
+the recorded G2 scene differs from `G2_SVG_SEQUENCE_SHA256`
+(`sequence_matches_reference`). `--runs N` adds N timed runs after one discarded
 warm-up. Source: [`crates/motion-export/examples/g2_export.rs`](../../../crates/motion-export/examples/g2_export.rs).
 
 ## Frame clock
@@ -35,8 +38,13 @@ preview size, for frames 0, 1, 23, 47, 48, 72 and 95).
 
 ## Regression hashes
 
-Asserted by `crates/motion-export/tests/g2_export.rs`. `sequence` is SHA-256 of the
-96 per-frame SHA-256 hex strings joined with `\n` (trailing `\n`).
+The values live only in [`crates/motion-export/tests/support/g2.rs`](../../../crates/motion-export/tests/support/g2.rs)
+(`G2_SCENE_SHA256`, `G2_SVG_*`, `G2_PNG_*`). The test `tests/g2_export.rs`, the
+`g2_export` command and the `Export QA` workflow read that file; the table below is
+the record at the time of writing. A PR that changes the G2 scene fails first on
+`G2_SCENE_SHA256` with a message to re-record the hashes in the same PR.
+`sequence` is SHA-256 of the 96 per-frame SHA-256 hex strings joined with `\n`
+(trailing `\n`).
 
 | Output | Frame 24 | Frame 72 | Sequence | Asserted on |
 | --- | --- | --- | --- | --- |
@@ -57,6 +65,7 @@ other CPUs are not claimed. Not every frame inside a shot is identical: SVG fram
 | Cancellation after 10 frames | `Error::Cancelled`, directory removed | `cancellation_during_export_is_typed_and_removes_partial_output` |
 | Write fails mid-sequence (frame path taken) | `Error::Io`, directory removed | `io_failure_mid_export_is_typed_and_removes_partial_output` |
 | Cleanup itself fails | `Error::PartialOutput { path, cause, cleanup }`: original error kept, leftover directory named | `failed_cleanup_reports_the_cause_and_the_leftover_directory` (unix, non-root) |
+| Streaming MP4: encoder blocks past the deadline and cleanup fails | `Error::PartialOutput` naming the staging directory, cause = deadline | `streaming::tests::failed_streaming_cleanup_reports_the_cause_and_the_leftover_directory` (unix, non-root) |
 | Real full disk (2 MiB RAM disk) | `Error::Io` with `StorageFull` (ENOSPC), directory removed | `full_disk_is_typed_and_removes_partial_output` (ignored; CI macOS runs it) |
 
 Full-disk test locally (macOS, no sudo needed):
@@ -82,10 +91,9 @@ runners and on macOS 27 locally.
 Limits: the sandbox shows that no network connection and no other process was
 started. It does not by itself prove that no model file was read in-process
 (`allow default` permits file reads); that guarantee comes from `ModelPolicy::Strict`
-and `DisabledSpeechProvider`. The summary field `model_policy` is fixed by the
-command, not read back from the run. The G2 scene has no dialogue, so the strict
-path has not yet been run with imported WAV speech. Streaming MP4 export
-(`streaming.rs`) does not yet report `Error::PartialOutput`.
+and `DisabledSpeechProvider`. The summary field `model_policy_refused` lists the
+steps `ModelPolicy::Strict` refused in that run. The G2 scene has no dialogue, so the
+strict path has not yet been run with imported WAV speech (waits for A07, KS-002e).
 
 ```sh
 cargo build --locked --release -p motion-export --example g2_export
@@ -99,7 +107,22 @@ writing files, WAV and manifest), release build. This is offline export time. It
 is **not** a playback, preview or display frame rate, and nothing here measures
 60/120 FPS playback or 100 000 entities. The G2 scene has 2 characters.
 
-Local, [`local-apple-m1.json`](local-apple-m1.json):
+Local, 28.10.2026, [`local-apple-m1-2026-10-28.json`](local-apple-m1-2026-10-28.json):
+commit `71ad594` (main `10b012a` + this follow-up; the SVG/PNG export code is the
+same as in `10b012a`), same machine, macOS and rustc as below, AC power, 1 warm-up
++ 7 measured runs. The machine was busy: load average about 10 (1 min) and 24
+(5 min) right after the runs, under 4 GiB free disk.
+
+| Format | Median | Min | Max | Median per frame |
+| --- | --- | --- | --- | --- |
+| SVG | 30.5 ms | 30.4 ms | 31.8 ms | 0.32 ms |
+| PNG | 1964.7 ms | 1879.1 ms | 2194.3 ms | 20.47 ms |
+
+PNG was 28 % slower than on 27.10. with the same code paths; the two runs differ in
+background load, so the difference is not attributed to the code. Neither run is
+an isolated benchmark.
+
+Local, 27.10.2026, [`local-apple-m1.json`](local-apple-m1.json):
 
 | Conditions | |
 | --- | --- |

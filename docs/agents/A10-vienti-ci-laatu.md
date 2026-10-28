@@ -115,11 +115,33 @@ Tila `review`; ORK päättää hyväksynnästä.
   Lisäksi `Audio foundation` (`rust` macOS + Ubuntu) ajaa uudet testit `--workspace`-ajossa.
 - **Rajaus (ORK-katselmus).** Hiekkalaatikko todistaa, ettei verkkoyhteyksiä eikä
   aliprosesseja ole; mallittomuuden takaavat `ModelPolicy::Strict` ja `DisabledSpeechProvider`.
-  G2:ssa ei ole puhetta, joten tuotua WAVia ei ole vielä ajettu tiukalla polulla. Striimaava
-  MP4 (`streaming.rs`) ei vielä palauta `PartialOutput`ia.
+  G2:ssa ei ole puhetta, joten tuotua WAVia ei ole vielä ajettu tiukalla polulla.
+- **Jatkotyö 28.10.2026 (`feat/a10-export-followups`, PR #123:n jälkeen).**
+  - Tiivisteillä on yksi lähde: `crates/motion-export/tests/support/g2.rs`
+    (`G2_SCENE_SHA256`, `G2_SVG_*`, `G2_PNG_*`). Testi, `g2_export`-komento ja `Export QA`
+    lukevat sen; työnkulun ympäristömuuttujakopio poistettiin. Kohtauksen muutos kaatuu
+    ensin `G2_SCENE_SHA256`-tarkistukseen ohjeella päivittää tiivisteet samassa PR:ssä.
+    Komento raportoi `sequence_matches_reference` ja päättyy virheeseen SVG-poikkeamasta.
+  - Kiinteä `model_policy`-kenttä korvattiin kentällä `model_policy_refused`, joka luetaan
+    ajon aikana `ModelPolicy::permit`-kutsuista.
+  - Striimaava MP4 siivoaa epäonnistumisen jälkeen eksplisiittisesti ja palauttaa
+    `Error::PartialOutput`in, jos siivous epäonnistuu (aiemmin virhe hukkui `Drop`iin).
+    Testi `failed_streaming_cleanup_reports_the_cause_and_the_leftover_directory` (unix,
+    ei root): vale-enkooderi lukitsee väliaikaishakemiston ja jumiutuu aikarajan yli.
+  - Paikallinen mittaus uudelleen commitista `71ad594` (main `10b012a` + jatkotyö; SVG/PNG-
+    vientikoodi sama kuin `10b012a`:ssa): SVG mediaani 30,5 ms, PNG 1964,7 ms (7 ajoa +
+    lämmittely), [local-apple-m1-2026-10-28.json](../evidence/g2-export/local-apple-m1-2026-10-28.json).
+    Kone oli kuormitettu (kuormitus noin 10/24), joten PNG:n 28 %:n ero 27.10. ajoon ei
+    ole koodin ansiota tai syytä; kumpikaan ei ole eristetty vertailuajo.
+  - Tarkistukset (macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok; `cargo check
+    --workspace` ok; `cargo clippy --workspace --all-targets` 0 varoitusta; `cargo test
+    --workspace` 986 läpäisi, 0 epäonnistui, 9 ohitettu. Hiekkalaatikossa ajetut mallittomat
+    SVG- ja PNG-viennit läpi (96 ruutua, SVG = viite).
 - **Tekemättä.** G4-raportti (odottaa G3:a). MP4-vientiä ei ajettu paikallisesti (koneella ei
   FFmpegiä); se ajetaan CI:ssä. Fyysisen Macin GUI-esikatselun FPS:ää ei mitattu.
   KS-002h:n `tests/support`-kellokopio (`SAMPLE_RATE`-vakio) on yhä erillinen vakio.
+  Mallittoman polun ajo tuodulla puheella odottaa A07:n KS-002e:tä (käyttäjän äänite ja
+  käyttölupa). Tilan päivitys PR #123:n yhdistämisen jälkeen kuuluu orkestroijalle.
 
 ## Tarkistukset
 
