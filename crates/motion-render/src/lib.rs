@@ -103,8 +103,9 @@ fn append_rig_texture(
             "embedded rig texture bytes exceed the image budget".into(),
         ));
     }
-    let [bx, by, bw, bh] = texture.rest_bounds;
-    let [u0, v0, u1, v1] = texture.uv;
+    let (rest_bounds, uv) = texture.placement(image.width(), image.height());
+    let [bx, by, bw, bh] = rest_bounds;
+    let [u0, v0, u1, v1] = uv;
     let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
     let m = texture.transform;
     write!(svg, "<defs><clipPath id=\"{clip_id}\"><polygon points=\"").unwrap();

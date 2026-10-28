@@ -60,9 +60,9 @@
   ],
   "starter_project": "stick-studio.kilsat",
   "hand_props_catalog": "hand-props.json",
-  "hand_props_sha256": "9b1843d9faabad140e1ee079b786d59d3d0177ef520548eaf387fca52f697546",
-  "starter_sha256": "ddd0bf30cbb5016545afb5ab9286a913e1c86b086995bfc8e53b95cd65a8f536",
-  "starter_source_bytes": 76050,
+  "hand_props_sha256": "d016de0e0ebe7d1db10c76817260fbc3c77487e97d2c9028ec24ba13198bfefa",
+  "starter_sha256": "6f33bdb199a287f646d94c939530f579dadf0c4d1b579bb0918f460ad223fb35",
+  "starter_source_bytes": 76257,
   "artistic_review": false,
   "physical_mac_review": false,
   "items": [

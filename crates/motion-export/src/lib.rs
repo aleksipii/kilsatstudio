@@ -26,8 +26,11 @@ mod rig_outline_tests;
 #[cfg(test)]
 mod rig_texture_tests;
 #[cfg(test)]
+mod screen_tests;
+#[cfg(test)]
 mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
+pub mod screen_video;
 mod sequence;
 mod streaming;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art, export_mp4_scene_with_art_captions};
@@ -80,6 +83,37 @@ fn rig_texture_preflight(
             bytes += image.png().len() as u64;
             if bytes > motion_art::MAX_IMAGE_BYTES {
                 return Err(invalid("rig texture embedded image budget exceeded"));
+            }
+        }
+    }
+    for asset_id in script.screen_image_assets() {
+        if !images.is_some_and(|images| images.contains_key(asset_id)) {
+            return Err(invalid(format!(
+                "missing screen image resource: {asset_id}"
+            )));
+        }
+    }
+    // Every decoded video frame an exported frame will show must be present,
+    // so a missing frame fails here rather than mid-export.
+    let fps = script.project.fps;
+    for scene in script
+        .scenes
+        .iter()
+        .filter(|s| !s.composition.screens.is_empty())
+    {
+        let frames = motion_scene::frame_count(scene.duration, fps, MAX_FRAMES)
+            .map_err(|e| invalid(e.to_string()))?;
+        for frame in 0..frames {
+            let time = motion_scene::time::frame_to_seconds(frame, fps)
+                .map_err(|e| invalid(e.to_string()))?;
+            for (asset, index) in scene.composition.video_frames_at(time) {
+                let id = motion_script::video_frame_asset(asset, index);
+                if !images.is_some_and(|images| images.contains_key(&id)) {
+                    return Err(invalid(format!(
+                        "screen video {asset} is missing decoded frame {index} (needed by scene {} at {time:.3} s); decode it into the frame cache before export",
+                        scene.id
+                    )));
+                }
             }
         }
     }
