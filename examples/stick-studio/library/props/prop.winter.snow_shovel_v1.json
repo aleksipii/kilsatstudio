@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "id": "prop.winter.snow_shovel_v1",
+  "kind": "prop",
+  "name": "Lumikola",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 110,
+    "height": 280
+  },
+  "depth": "mid",
+  "tags": [
+    "lumikola",
+    "snow_shovel",
+    "lapio",
+    "shovel",
+    "lumi",
+    "snow",
+    "talvi",
+    "winter",
+    "suomi",
+    "finland"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "shaft",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 55,
+              "y": 20
+            },
+            {
+              "x": 55,
+              "y": 210
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "handle",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 14
+            },
+            {
+              "x": 70,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "blade",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 208,
+            "width": 94,
+            "height": 70.5
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "blade_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 208
+            },
+            {
+              "x": 102,
+              "y": 208
+            },
+            {
+              "x": 102,
+              "y": 278.5
+            },
+            {
+              "x": 8,
+              "y": 278.5
+            },
+            {
+              "x": 8,
+              "y": 208
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "blade_rib",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 222
+            },
+            {
+              "x": 90,
+              "y": 222
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 55,
+        "y": 14
+      }
+    },
+    {
+      "type": "grip",
+      "id": "grip_low",
+      "at": {
+        "x": 55,
+        "y": 140
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 280
+      },
+      "width": 110
+    }
+  ]
+}

@@ -1,0 +1,579 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.sofa_v1",
+  "kind": "prop",
+  "name": "Sohva",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 340,
+    "height": 160
+  },
+  "depth": "mid",
+  "tags": [
+    "sohva",
+    "sofa",
+    "olohuone",
+    "living_room",
+    "huonekalu",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "cushion": {
+      "r": 196,
+      "g": 180,
+      "b": 152,
+      "a": 255
+    },
+    "fabric": {
+      "r": 126,
+      "g": 146,
+      "b": 150,
+      "a": 255
+    },
+    "fabric_dark": {
+      "r": 96,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "foot_left",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 24,
+            "y": 140,
+            "width": 12,
+            "height": 18.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 24,
+              "y": 140
+            },
+            {
+              "x": 36,
+              "y": 140
+            },
+            {
+              "x": 36,
+              "y": 158.5
+            },
+            {
+              "x": 24,
+              "y": 158.5
+            },
+            {
+              "x": 24,
+              "y": 140
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "foot_right",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 304,
+            "y": 140,
+            "width": 12,
+            "height": 18.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 304,
+              "y": 140
+            },
+            {
+              "x": 316,
+              "y": 140
+            },
+            {
+              "x": 316,
+              "y": 158.5
+            },
+            {
+              "x": 304,
+              "y": 158.5
+            },
+            {
+              "x": 304,
+              "y": 140
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "back",
+        "paint": "fabric",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 22,
+            "y": 12,
+            "width": 296,
+            "height": 80
+          },
+          "color": {
+            "r": 126,
+            "g": 146,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "back_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22,
+              "y": 12
+            },
+            {
+              "x": 318,
+              "y": 12
+            },
+            {
+              "x": 318,
+              "y": 92
+            },
+            {
+              "x": 22,
+              "y": 92
+            },
+            {
+              "x": 22,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "frame",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 96,
+            "width": 324,
+            "height": 44
+          },
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 96
+            },
+            {
+              "x": 332,
+              "y": 96
+            },
+            {
+              "x": 332,
+              "y": 140
+            },
+            {
+              "x": 8,
+              "y": 140
+            },
+            {
+              "x": 8,
+              "y": 96
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "cushion_left",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 78,
+            "width": 124,
+            "height": 26
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cushion_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 78
+            },
+            {
+              "x": 168,
+              "y": 78
+            },
+            {
+              "x": 168,
+              "y": 104
+            },
+            {
+              "x": 44,
+              "y": 104
+            },
+            {
+              "x": 44,
+              "y": 78
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "cushion_right",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 172,
+            "y": 78,
+            "width": 124,
+            "height": 26
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cushion_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 172,
+              "y": 78
+            },
+            {
+              "x": 296,
+              "y": 78
+            },
+            {
+              "x": 296,
+              "y": 104
+            },
+            {
+              "x": 172,
+              "y": 104
+            },
+            {
+              "x": 172,
+              "y": 78
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "arm_left",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 52,
+            "width": 40,
+            "height": 88
+          },
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "arm_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 52
+            },
+            {
+              "x": 44,
+              "y": 52
+            },
+            {
+              "x": 44,
+              "y": 140
+            },
+            {
+              "x": 4,
+              "y": 140
+            },
+            {
+              "x": 4,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "arm_right",
+        "paint": "fabric_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 296,
+            "y": 52,
+            "width": 40,
+            "height": 88
+          },
+          "color": {
+            "r": 96,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "arm_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 296,
+              "y": 52
+            },
+            {
+              "x": 336,
+              "y": 52
+            },
+            {
+              "x": 336,
+              "y": 140
+            },
+            {
+              "x": 296,
+              "y": 140
+            },
+            {
+              "x": 296,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat_left",
+      "at": {
+        "x": 106,
+        "y": 78
+      }
+    },
+    {
+      "type": "seat",
+      "id": "seat_right",
+      "at": {
+        "x": 234,
+        "y": 78
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 160
+      },
+      "width": 340
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "cushion": {
+          "r": 141,
+          "g": 134,
+          "b": 129,
+          "a": 255
+        },
+        "fabric": {
+          "r": 98,
+          "g": 113,
+          "b": 128,
+          "a": 255
+        },
+        "fabric_dark": {
+          "r": 79,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "mustard",
+      "palette": {
+        "fabric": {
+          "r": 204,
+          "g": 172,
+          "b": 112,
+          "a": 255
+        },
+        "fabric_dark": {
+          "r": 160,
+          "g": 130,
+          "b": 82,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

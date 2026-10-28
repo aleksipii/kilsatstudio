@@ -57,6 +57,18 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
 - [x] Taustojen yhtenäinen tyyli: värit ja viivanpaksuus tikku-ukkotyylin ohjeen mukaan.
       → `motion_art::style::check_background`; neljä taustaa + G2-kohtaus läpäisevät.
 
+### ORK-LIB-01 — ankkuroitu asset-kirjasto (A08:n osuus)
+
+- [x] `crates/motion-library`: manifesti v1 (`deny_unknown_fields`), `AssetId`, validointi typed-virheinä.
+- [x] `Library::load` (järjestys, tiedostonimi/hakemisto, viittaukset, rajat, symlinkit), `Policy`, `search`.
+- [x] Levitettävyysportti transitiivisesti (Authoring → varoitus, Distribution → virhe).
+- [x] CAS `ContentStore` (atominen kirjoitus, korruptoitunut poistetaan, Missing, kokoraja).
+- [x] Kokoaja `assemble_location`/`assemble_set` (far/mid/near, deterministiset id:t, paletit, ankkuri- ja merkkimuunnokset); `rig_project`/`blob` → `UnsupportedGeometry`.
+- [x] Huonegeneraattori + `day/evening/rain/messy`; jokainen location × variantti läpäisee `check_background` (scale 1.0).
+- [x] Sisältö: 4 taustaa migroitu + 3 uutta, 18 locationia, 18 setiä; `validate_library`- ja `generate_stick_library`-esimerkit; `docs/asset-library.md`.
+- [ ] MotionScript-kytkentä (set → kamera-avaimet/merkit) — A02:n alue, avoin.
+- [ ] Taidekatselmointi renderöidyistä kuvista (vain SVG-luonnokset katsottu).
+
 ## Hyväksymisehdot
 
 - Puhelin pysyy kädessä ja kuvassa molemmissa kuvakulmissa (testi + vertailukuva).
@@ -68,6 +80,25 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
 Odotettu: renderöintisopimus, rajaussäännöt, testikohtaus, vertailukuvat hasheineen.
 
 ### Toteutunut lopputulema
+
+### ORK-LIB-01 (A08) — 28.10.2026, haara `feat/asset-library`
+- Tila: review (ei commitoitu; ORK commitoi)
+- Tehty: uusi crate `crates/motion-library` (`manifest`, `library`, `store`, `assemble`,
+  `room`), esimerkit `validate_library` (myös `--preview-svg`) ja `generate_stick_library`,
+  testit `tests/library.rs` + `store`-yksikkötestit; juuren `Cargo.toml` members, `Cargo.lock`;
+  sisältö `examples/stick-studio/library/{backgrounds,locations,sets}/`; `docs/asset-library.md`.
+  Migraatiossa hautausmaan puunrungon viiva 28 → 18 px (tyyliportti actor scale 1).
+- Tarkistettu: `cargo fmt --all --check` ok; `cargo clippy -p motion-library --all-targets --locked`
+  0 varoitusta; `cargo test -p motion-library --locked` 16 läpi / 0 epäonnistui;
+  `cargo check --workspace --locked` ok; `validate_library examples/stick-studio --distribution`
+  exit 0: backgrounds 7, props 101 (A05), locations 18, sets 18, ankkurit 182 (159 ilmoitettu +
+  23 huonegeneroitua), 84 kokoonpanoa, 0 varoitusta. Generaattori tuottaa tavulleen saman
+  tuloksen kahdesti. SVG-luonnokset katsottu silmämääräisesti (qlmanage), ei tuotantorenderöijää.
+- Tekemättä: MotionScript-kytkentä (A02); parallaksin renderöinti; taidekatselmointi; koko
+  työtilan `cargo test --workspace` ajamatta tässä tehtävässä.
+- Estot ja riskit: sijoittelu lukee A05:n props-manifestit — props-muutosten jälkeen
+  generaattori ajettava uudelleen; `rig_project`-esineitä ei voi kitbashata.
+- Seuraavaksi: ORK integroi ja commitoi; A02 päättää set-viittauksesta MotionScriptissä.
 
 ### KS-003c (A08) — 27.10.2026, haara `feat/a08-render-camera`
 - Tila: review (puhelinosuus avoinna, odottaa KS-003a)

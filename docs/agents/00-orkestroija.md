@@ -45,6 +45,7 @@ toteutusta, rinnakkaiset työt eivät kirjoita samoihin tiedostoihin ja jokainen
 | KS-005 | A10 + ORK | KS-004 | G4: CI, macOS-käynnistys, vienti, mittaukset | running — näyttökooste ORK-G4-01; G4 **ei hyväksytty** (G2 ja G3 auki, KS-006/KS-007 tekemättä) |
 | KS-006 | A07 + A10 | KS-001 | `services/kokoro-runtime` Python-wheelien hash-lukitus (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
 | KS-007 | A10 + ORK | KS-001 | Kolmannen osapuolen lisenssitekstit ja NOTICEt (siirretty A01:ltä) | todo (G4-ehto; ei aloitettu, ORK-G4-01) |
+| KS-LIB-01 | A08 (+A05, A10) | – | Ankkuroitu asset-kirjasto `motion-library`: manifesti v1, validointi, haku, CAS, kit-bash, huonegeneraattori, sisältö, CI (ORK-LIB-01) | review (haara `feat/asset-library`, PR auki; ei yhdistetty) |
 
 ## Tehtävät — tarkistuslista
 
@@ -662,6 +663,68 @@ kohtaa "macOS-käynnistys ja videovienti tarkistettu" ei rastiteta.
 **Ennallaan.** G2 palautettu (ORK-G2-02), G3 ja G4 eivät ole hyväksyttyjä. Avoimet työt ja
 estot kuten ORK-G4-01:ssä, paitsi PR #118 ja #123, jotka on nyt yhdistetty.
 
+## ORK-LIB-01 — Ankkuroitu asset-kirjasto: rajapinta, omistus ja hyväksymisehdot (28.10.2026)
+
+Käyttäjän tehtävä: ankkuroitu asset-kirjasto (taustat, esineet, paikat, valmiit lavasteet),
+CI ja PR haarasta `feat/asset-library` (lähtö `origin/main` `9342979`). Ei G-porttityö; ei
+muuta G2–G4-tiloja.
+
+**Omistava crate: uusi `crates/motion-library`.** Konkreettinen vastuu: manifestiskeema ja
+validointi, haku, sisältötiivisteellä osoitettu varasto (CAS), kit-bash-kokoaja ja
+parametrinen huonegeneraattori. Riippuvuudet: `motion-art` (Document/Layer/Content/Plane,
+`style::check_background`), `serde`, `serde_json`, `thiserror`, `sha2 0.10` (jo lukossa).
+Ei riipu `motion-render`istä, `motion-project`ista eikä `motion-script`istä, eikä mikään
+olemassa oleva crate riipu siitä tässä PR:ssä → graafi pysyy syklittömänä. Perusteet:
+`motion-art` on dokumenttimuoto eikä sen kuulu omistaa kirjastohakua tai lisenssiportteja;
+`motion-project` on projektin inventaario ja riippuu `motion-script`istä, mikä tekisi
+kirjastosta raskaan. `motion-script`iä ei muuteta (A02:n alue); kytkentä MotionScriptiin
+jää avoimeksi ellei se ole datana triviaali.
+
+**Kirjaston sijainti.** Paketin juuri `examples/stick-studio/`; manifestit
+`examples/stick-studio/library/{backgrounds,props,locations,sets}/<id>.json`, yksi manifesti
+per tiedosto, tiedostonimi = tunniste. Polut ovat paketin juuren suhteellisia (ei `..`,
+ei absoluuttisia). Isot tiedostot vain CAS:iin, eivät Gitiin.
+
+**Manifesti v1** (`schema_version: 1`, kaikki rakenteet `deny_unknown_fields`):
+
+| Kenttä | Sisältö |
+| --- | --- |
+| `id` | `<kind>.<kategoria>.<nimi>_v<N>`, osat `[a-z0-9]+(_[a-z0-9]+)*`, N ≥ 1; esim. `prop.phone.smartphone_v2`. Versio luetaan päätteestä. |
+| `kind` | `background` \| `prop` \| `location` \| `set`; oltava sama kuin tunnisteen etuliite |
+| `name` | näyttönimi (ei tyhjä) |
+| `bounds` | `motion_art::Rect` paikallisissa koordinaateissa (y alas); art-esineillä `x=y=0` |
+| `depth` | oletussyvyys `far` \| `mid` \| `near`. Kartoitus: far, mid → `Plane::Background` (far ensin), near → `Plane::Foreground`. Parallaksikerroin on metatietoa (renderöinti ei vielä käytä) |
+| `tags` | ≥ 1, pienet kirjaimet (myös ä/ö), numerot, `_`; uniikit |
+| `license` | `{license, author, origin, source_url?, redistribution, notice?}`; `license` SPDX-tunniste, `LicenseRef-*` tai `unknown`; `origin` `original` \| `third_party` \| `ai_generated`; `redistribution` `allowed` \| `forbidden` \| `unknown`; `third_party` vaatii `source_url`:n |
+| `palette` | valinnainen `{slot: Color}` |
+| `geometry` | `{"type":"art","layers":[{"id","depth"?,"paint"?,"content": motion_art::Content}]}` \| `{"type":"rig_project","path","sha256"}` (olemassa olevat rig-esineet) \| `{"type":"blob","sha256","bytes","media_type"}` (CAS) \| `{"type":"composite"}` (location/set) |
+| `anchors` | `{"type":"grip"\|"seat"\|"stand","id","at":Point}`, `{"type":"ground","id","at","width"}`, `{"type":"doorway"\|"screen","id","rect":Rect}`; äärelliset ja `bounds`-alueen sisällä; id:t uniikit |
+| `variants` | `[{"name","palette"?: {slot: Color},"layers"?: [art-kerros]}]`; nimi `[a-z0-9_]+` |
+| `room` | vain location: parametrinen huone `{width,height,floor_y,wall,floor,windows,time_of_day,door}` |
+| `parts` | location/set: `[{"instance","asset","at":Point,"scale"?,"flip_x"?,"depth"?,"variant"?}]`; maailma = `at + scale·paikallinen` (flip `bounds`-keskiön ympäri) |
+| `location`, `cameras`, `marks` | vain set: viittaus location-tunnisteeseen; `cameras: [{"id","x","y","zoom"}]` MotionScriptin `CameraKey`-semantiikalla (siirtymä kankaan keskeltä); `marks: [{"id","kind":"stand"\|"sit","at"? \| "anchor": "<instance>/<anchor>"}]` |
+
+**Levitettävyys.** `distributable = origin ≠ ai_generated ∧ license ≠ unknown ∧
+redistribution = allowed`, ja location/set perii kaikkien viittaamiensa assetien tuloksen.
+`Policy::Authoring` varoittaa, `Policy::Distribution` hylkää.
+
+**Tiedostojako (yksi kirjoittaja per tiedosto; ali-agentit eivät commitoi, ORK commitoi).**
+
+| Agentti | Kirjoittaa |
+| --- | --- |
+| A08 | `crates/motion-library/**`, juuren `Cargo.toml`in `members`-rivi, `Cargo.lock`, `examples/stick-studio/library/{backgrounds,locations,sets}/**`, `docs/asset-library.md`, oma tehtävätiedosto |
+| A05 | `examples/stick-studio/library/props/**`, `scripts/generate_library_props.py`, oma tehtävätiedosto |
+| A10 | `.github/workflows/asset-library.yml`, oma tehtävätiedosto |
+| ORK | `docs/agents/00-orkestroija.md`, `docs/agents/README.md`, `docs/master-progress.md` |
+
+**Hyväksymisehdot.** Kaikki skeemasäännöt typed-virheinä ja testattuina (validit/invalidit);
+deterministinen haku ja kokoaminen; ankkurimuunnosten testit; CAS hylkää ja poistaa
+korruptoituneen tiedoston; lisenssiportit testattu; jokainen location × variantti läpäisee
+`check_background`-tarkistuksen; koko kirjaston validointi testinä ja CI:ssä
+(`cargo run --locked -p motion-library --example validate_library -- examples/stick-studio --distribution`);
+todelliset assettimäärät raportoidaan, tavoitetta (15–20 paikkaa, ~100 esinettä) ei väitetä
+saavutetuksi ilman laskentaa.
+
 ## Hyväksymisehdot
 
 - Jokaisella `done`-tehtävällä on linkitetty näyttö (commit, testiajo, CI-ajo, kuva tai raportti).
@@ -674,6 +737,32 @@ Odotettu: ajan tasalla oleva tehtävärekisteri, portti kerrallaan hyväksytyt s
 toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty / seuraavaksi).
 
 ### Toteutunut lopputulema
+
+### ORK-LIB-01 — 28.10.2026
+- Tila: review (PR auki, ei yhdistetty)
+- Omistaja: ORK; toteutus A08 (`motion-library`, taustat, paikat, lavasteet, dokumentti),
+  A05 (esinemanifestit, `scripts/generate_library_props.py`), A10 (`asset-library.yml`).
+- Tehty: sopimus ja tiedostojako ORK-LIB-01; uusi crate `crates/motion-library` (manifesti v1,
+  validointi, haku, CAS, kit-bash-kokoaja, huonegeneraattori + day/evening/rain/messy);
+  sisältö `examples/stick-studio/library/`: 7 taustaa (4 migroitu), 101 esinettä (20 migroitua
+  `rig_project`, 81 uutta art-esinettä), 18 paikkaa (12 huonegeneraattorilla, 6 kit-bash
+  taustan päälle), 18 lavastetta (72 kameraa, 56 paikkamerkkiä); ankkureita 182
+  (159 ilmoitettua, 23 generaattorin). CI `asset-library.yml` (macos-15, `--locked`).
+- Tarkistettu (ORK, macOS, Apple M1, haara `feat/asset-library`): `cargo fmt --all --check` ok;
+  `cargo check --workspace --locked` ok; `cargo clippy --workspace --all-targets --locked`
+  0 varoitusta; `cargo clippy --locked -p motion-library --all-targets -- -D warnings` ok;
+  `cargo test --workspace --locked` 1002 läpi, 0 epäonnistui, 9 ohitettu;
+  `validate_library examples/stick-studio --distribution` exit 0, 0 varoitusta; molemmat
+  generaattorit ajettu uudelleen → ei eroja.
+- Tekemättä: tavoite ~100 esinettä täyttyy määrältään (101), mutta 11 migroitua `.kilsat`-esinettä
+  on art-kerroksia 512×512-pikkukuvakoordinaatistossa eikä näyttelijämittakaavassa, ja
+  `rig_project`-esineitä ei voi kitbashata (`UnsupportedGeometry`); paikkoja 18 (tavoite 15–20),
+  mutta taidekatselmointi tuotantorenderöijällä puuttuu. Parallaksia ei renderöidä.
+  MotionScript-kytkentä (set → kamerat/paikkamerkit) avoin, A02:n alue. Hautausmaan
+  puunrungon viiva ohennettu 28 → 18 px tyylitarkistuksen (actor scale 1.0) vuoksi.
+- Estot ja riskit: CI:n polkurajaus ei kata `motion-jobs`ia (`motion-art`in riippuvuus).
+- Seuraavaksi: CI-ajo PR:ssä; A02 päättää MotionScript-viittauksen lavasteeseen; A08
+  renderöidyt vertailukuvat paikoista; mittakaavapäätös 11 pikkukuvaesineelle (ORK).
 
 ### ORK G0/G1 — 27.10.2026
 - Tila: running

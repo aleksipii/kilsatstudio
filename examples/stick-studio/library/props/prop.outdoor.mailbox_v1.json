@@ -1,0 +1,327 @@
+{
+  "schema_version": 1,
+  "id": "prop.outdoor.mailbox_v1",
+  "kind": "prop",
+  "name": "Postilaatikko",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 100,
+    "height": 180
+  },
+  "depth": "mid",
+  "tags": [
+    "postilaatikko",
+    "mailbox",
+    "posti",
+    "mail",
+    "piha",
+    "yard",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 204,
+      "g": 168,
+      "b": 96,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "post",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 70,
+            "width": 12,
+            "height": 108.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "post_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 70
+            },
+            {
+              "x": 56,
+              "y": 70
+            },
+            {
+              "x": 56,
+              "y": 178.5
+            },
+            {
+              "x": 44,
+              "y": 178.5
+            },
+            {
+              "x": 44,
+              "y": 70
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "box",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 10,
+            "width": 84,
+            "height": 60
+          },
+          "color": {
+            "r": 204,
+            "g": 168,
+            "b": 96,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "box_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 10
+            },
+            {
+              "x": 92,
+              "y": 10
+            },
+            {
+              "x": 92,
+              "y": 70
+            },
+            {
+              "x": 8,
+              "y": 70
+            },
+            {
+              "x": 8,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "slot",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 22,
+            "y": 22,
+            "width": 56,
+            "height": 8
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slot_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22,
+              "y": 22
+            },
+            {
+              "x": 78,
+              "y": 22
+            },
+            {
+              "x": 78,
+              "y": 30
+            },
+            {
+              "x": 22,
+              "y": 30
+            },
+            {
+              "x": 22,
+              "y": 22
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "name_plate",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 42,
+            "width": 40,
+            "height": 14
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "name_plate_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 42
+            },
+            {
+              "x": 70,
+              "y": 42
+            },
+            {
+              "x": 70,
+              "y": 56
+            },
+            {
+              "x": 30,
+              "y": 56
+            },
+            {
+              "x": 30,
+              "y": 42
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 180
+      },
+      "width": 100
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "accent": {
+          "r": 146,
+          "g": 127,
+          "b": 94,
+          "a": 255
+        },
+        "paper": {
+          "r": 174,
+          "g": 176,
+          "b": 183,
+          "a": 255
+        },
+        "screen": {
+          "r": 56,
+          "g": 64,
+          "b": 81,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

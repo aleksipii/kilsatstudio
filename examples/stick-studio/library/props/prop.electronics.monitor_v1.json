@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "id": "prop.electronics.monitor_v1",
+  "kind": "prop",
+  "name": "Tietokoneen näyttö",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 112
+  },
+  "depth": "mid",
+  "tags": [
+    "näyttö",
+    "monitor",
+    "tietokone",
+    "computer",
+    "toimisto",
+    "office",
+    "electronics"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "neck",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 54,
+            "y": 76,
+            "width": 12,
+            "height": 22
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "neck_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 54,
+              "y": 76
+            },
+            {
+              "x": 66,
+              "y": 76
+            },
+            {
+              "x": 66,
+              "y": 98
+            },
+            {
+              "x": 54,
+              "y": 98
+            },
+            {
+              "x": 54,
+              "y": 76
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "foot",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 28,
+            "y": 98,
+            "width": 64,
+            "height": 12.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 28,
+              "y": 98
+            },
+            {
+              "x": 92,
+              "y": 98
+            },
+            {
+              "x": 92,
+              "y": 110.5
+            },
+            {
+              "x": 28,
+              "y": 110.5
+            },
+            {
+              "x": 28,
+              "y": 98
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "body",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 112,
+            "height": 72
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 116,
+              "y": 4
+            },
+            {
+              "x": 116,
+              "y": 76
+            },
+            {
+              "x": 4,
+              "y": 76
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "panel",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 10,
+            "width": 100,
+            "height": 60
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 10
+            },
+            {
+              "x": 110,
+              "y": 10
+            },
+            {
+              "x": 110,
+              "y": 70
+            },
+            {
+              "x": 10,
+              "y": 70
+            },
+            {
+              "x": 10,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "window",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 18,
+            "width": 48,
+            "height": 30
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 18
+            },
+            {
+              "x": 66,
+              "y": 18
+            },
+            {
+              "x": 66,
+              "y": 48
+            },
+            {
+              "x": 18,
+              "y": 48
+            },
+            {
+              "x": 18,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 10,
+        "y": 10,
+        "width": 100,
+        "height": 60
+      }
+    },
+    {
+      "type": "ground",
+      "id": "base",
+      "at": {
+        "x": 0,
+        "y": 112
+      },
+      "width": 120
+    }
+  ],
+  "variants": [
+    {
+      "name": "on",
+      "palette": {
+        "screen": {
+          "r": 174,
+          "g": 207,
+          "b": 210,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

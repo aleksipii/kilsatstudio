@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "id": "prop.outdoor.street_lamp_v1",
+  "kind": "prop",
+  "name": "Katuvalo",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 130,
+    "height": 520
+  },
+  "depth": "mid",
+  "tags": [
+    "katuvalo",
+    "street_lamp",
+    "valo",
+    "light",
+    "katu",
+    "street",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "light": {
+      "r": 246,
+      "g": 228,
+      "b": 168,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "pole",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 30
+            },
+            {
+              "x": 40,
+              "y": 500
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "arm",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 30
+            },
+            {
+              "x": 40,
+              "y": 16
+            },
+            {
+              "x": 100,
+              "y": 16
+            },
+            {
+              "x": 100,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "glow",
+        "paint": "light",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 78,
+            "y": 31,
+            "width": 44,
+            "height": 18
+          },
+          "color": {
+            "r": 246,
+            "g": 228,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "head",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 22,
+            "width": 44,
+            "height": 14
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "head_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 78,
+              "y": 22
+            },
+            {
+              "x": 122,
+              "y": 22
+            },
+            {
+              "x": 122,
+              "y": 36
+            },
+            {
+              "x": 78,
+              "y": 36
+            },
+            {
+              "x": 78,
+              "y": 22
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "base",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 26,
+            "y": 494,
+            "width": 28,
+            "height": 24.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26,
+              "y": 494
+            },
+            {
+              "x": 54,
+              "y": 494
+            },
+            {
+              "x": 54,
+              "y": 518.5
+            },
+            {
+              "x": 26,
+              "y": 518.5
+            },
+            {
+              "x": 26,
+              "y": 494
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 520
+      },
+      "width": 130
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "light": {
+          "r": 250,
+          "g": 212,
+          "b": 138,
+          "a": 255
+        },
+        "metal_dark": {
+          "r": 85,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

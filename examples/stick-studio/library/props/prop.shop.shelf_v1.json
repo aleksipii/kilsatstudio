@@ -1,0 +1,1749 @@
+{
+  "schema_version": 1,
+  "id": "prop.shop.shelf_v1",
+  "kind": "prop",
+  "name": "Kaupan hylly",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 210,
+    "height": 270
+  },
+  "depth": "mid",
+  "tags": [
+    "hylly",
+    "shelf",
+    "kauppa",
+    "shop",
+    "myymälä",
+    "store"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "cushion": {
+      "r": 196,
+      "g": 180,
+      "b": 152,
+      "a": 255
+    },
+    "leaf": {
+      "r": 118,
+      "g": 150,
+      "b": 106,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "back",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 4,
+            "width": 190,
+            "height": 250
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "back_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 4
+            },
+            {
+              "x": 200,
+              "y": 4
+            },
+            {
+              "x": 200,
+              "y": 254
+            },
+            {
+              "x": 10,
+              "y": 254
+            },
+            {
+              "x": 10,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "shelf_0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 64,
+            "width": 202,
+            "height": 8
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 64
+            },
+            {
+              "x": 206,
+              "y": 64
+            },
+            {
+              "x": 206,
+              "y": 72
+            },
+            {
+              "x": 4,
+              "y": 72
+            },
+            {
+              "x": 4,
+              "y": 64
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_0_0",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 40,
+            "width": 18,
+            "height": 24
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_0_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 40
+            },
+            {
+              "x": 36,
+              "y": 40
+            },
+            {
+              "x": 36,
+              "y": 64
+            },
+            {
+              "x": 18,
+              "y": 64
+            },
+            {
+              "x": 18,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_0_1",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 32,
+            "width": 30,
+            "height": 32
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_0_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 32
+            },
+            {
+              "x": 74,
+              "y": 32
+            },
+            {
+              "x": 74,
+              "y": 64
+            },
+            {
+              "x": 44,
+              "y": 64
+            },
+            {
+              "x": 44,
+              "y": 32
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_0_2",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82,
+            "y": 24,
+            "width": 24,
+            "height": 40
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_0_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 82,
+              "y": 24
+            },
+            {
+              "x": 106,
+              "y": 24
+            },
+            {
+              "x": 106,
+              "y": 64
+            },
+            {
+              "x": 82,
+              "y": 64
+            },
+            {
+              "x": 82,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_0_3",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 114,
+            "y": 40,
+            "width": 18,
+            "height": 24
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_0_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 114,
+              "y": 40
+            },
+            {
+              "x": 132,
+              "y": 40
+            },
+            {
+              "x": 132,
+              "y": 64
+            },
+            {
+              "x": 114,
+              "y": 64
+            },
+            {
+              "x": 114,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_0_4",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 140,
+            "y": 32,
+            "width": 30,
+            "height": 32
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_0_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 140,
+              "y": 32
+            },
+            {
+              "x": 170,
+              "y": 32
+            },
+            {
+              "x": 170,
+              "y": 64
+            },
+            {
+              "x": 140,
+              "y": 64
+            },
+            {
+              "x": 140,
+              "y": 32
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_0_5",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 178,
+            "y": 24,
+            "width": 24,
+            "height": 40
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_0_5_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 178,
+              "y": 24
+            },
+            {
+              "x": 202,
+              "y": 24
+            },
+            {
+              "x": 202,
+              "y": 64
+            },
+            {
+              "x": 178,
+              "y": 64
+            },
+            {
+              "x": 178,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "shelf_1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 124,
+            "width": 202,
+            "height": 8
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 124
+            },
+            {
+              "x": 206,
+              "y": 124
+            },
+            {
+              "x": 206,
+              "y": 132
+            },
+            {
+              "x": 4,
+              "y": 132
+            },
+            {
+              "x": 4,
+              "y": 124
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_1_0",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 92,
+            "width": 24,
+            "height": 32
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_1_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 92
+            },
+            {
+              "x": 42,
+              "y": 92
+            },
+            {
+              "x": 42,
+              "y": 124
+            },
+            {
+              "x": 18,
+              "y": 124
+            },
+            {
+              "x": 18,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_1_1",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 50,
+            "y": 84,
+            "width": 18,
+            "height": 40
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_1_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 50,
+              "y": 84
+            },
+            {
+              "x": 68,
+              "y": 84
+            },
+            {
+              "x": 68,
+              "y": 124
+            },
+            {
+              "x": 50,
+              "y": 124
+            },
+            {
+              "x": 50,
+              "y": 84
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_1_2",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 76,
+            "y": 100,
+            "width": 30,
+            "height": 24
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_1_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 76,
+              "y": 100
+            },
+            {
+              "x": 106,
+              "y": 100
+            },
+            {
+              "x": 106,
+              "y": 124
+            },
+            {
+              "x": 76,
+              "y": 124
+            },
+            {
+              "x": 76,
+              "y": 100
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_1_3",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 114,
+            "y": 92,
+            "width": 24,
+            "height": 32
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_1_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 114,
+              "y": 92
+            },
+            {
+              "x": 138,
+              "y": 92
+            },
+            {
+              "x": 138,
+              "y": 124
+            },
+            {
+              "x": 114,
+              "y": 124
+            },
+            {
+              "x": 114,
+              "y": 92
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_1_4",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146,
+            "y": 84,
+            "width": 18,
+            "height": 40
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_1_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 146,
+              "y": 84
+            },
+            {
+              "x": 164,
+              "y": 84
+            },
+            {
+              "x": 164,
+              "y": 124
+            },
+            {
+              "x": 146,
+              "y": 124
+            },
+            {
+              "x": 146,
+              "y": 84
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_1_5",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 172,
+            "y": 100,
+            "width": 30,
+            "height": 24
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_1_5_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 172,
+              "y": 100
+            },
+            {
+              "x": 202,
+              "y": 100
+            },
+            {
+              "x": 202,
+              "y": 124
+            },
+            {
+              "x": 172,
+              "y": 124
+            },
+            {
+              "x": 172,
+              "y": 100
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "shelf_2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 184,
+            "width": 202,
+            "height": 8
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 184
+            },
+            {
+              "x": 206,
+              "y": 184
+            },
+            {
+              "x": 206,
+              "y": 192
+            },
+            {
+              "x": 4,
+              "y": 192
+            },
+            {
+              "x": 4,
+              "y": 184
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_2_0",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 144,
+            "width": 30,
+            "height": 40
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_2_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 144
+            },
+            {
+              "x": 48,
+              "y": 144
+            },
+            {
+              "x": 48,
+              "y": 184
+            },
+            {
+              "x": 18,
+              "y": 184
+            },
+            {
+              "x": 18,
+              "y": 144
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_2_1",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 56,
+            "y": 160,
+            "width": 24,
+            "height": 24
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_2_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 56,
+              "y": 160
+            },
+            {
+              "x": 80,
+              "y": 160
+            },
+            {
+              "x": 80,
+              "y": 184
+            },
+            {
+              "x": 56,
+              "y": 184
+            },
+            {
+              "x": 56,
+              "y": 160
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_2_2",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 88,
+            "y": 152,
+            "width": 18,
+            "height": 32
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_2_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 88,
+              "y": 152
+            },
+            {
+              "x": 106,
+              "y": 152
+            },
+            {
+              "x": 106,
+              "y": 184
+            },
+            {
+              "x": 88,
+              "y": 184
+            },
+            {
+              "x": 88,
+              "y": 152
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_2_3",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 114,
+            "y": 144,
+            "width": 30,
+            "height": 40
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_2_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 114,
+              "y": 144
+            },
+            {
+              "x": 144,
+              "y": 144
+            },
+            {
+              "x": 144,
+              "y": 184
+            },
+            {
+              "x": 114,
+              "y": 184
+            },
+            {
+              "x": 114,
+              "y": 144
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_2_4",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 152,
+            "y": 160,
+            "width": 24,
+            "height": 24
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_2_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 152,
+              "y": 160
+            },
+            {
+              "x": 176,
+              "y": 160
+            },
+            {
+              "x": 176,
+              "y": 184
+            },
+            {
+              "x": 152,
+              "y": 184
+            },
+            {
+              "x": 152,
+              "y": 160
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "shelf_3",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 244,
+            "width": 202,
+            "height": 8
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 244
+            },
+            {
+              "x": 206,
+              "y": 244
+            },
+            {
+              "x": 206,
+              "y": 252
+            },
+            {
+              "x": 4,
+              "y": 252
+            },
+            {
+              "x": 4,
+              "y": 244
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_3_0",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 220,
+            "width": 18,
+            "height": 24
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_3_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 220
+            },
+            {
+              "x": 36,
+              "y": 220
+            },
+            {
+              "x": 36,
+              "y": 244
+            },
+            {
+              "x": 18,
+              "y": 244
+            },
+            {
+              "x": 18,
+              "y": 220
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_3_1",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 212,
+            "width": 30,
+            "height": 32
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_3_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 212
+            },
+            {
+              "x": 74,
+              "y": 212
+            },
+            {
+              "x": 74,
+              "y": 244
+            },
+            {
+              "x": 44,
+              "y": 244
+            },
+            {
+              "x": 44,
+              "y": 212
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_3_2",
+        "paint": "cushion",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82,
+            "y": 204,
+            "width": 24,
+            "height": 40
+          },
+          "color": {
+            "r": 196,
+            "g": 180,
+            "b": 152,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_3_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 82,
+              "y": 204
+            },
+            {
+              "x": 106,
+              "y": 204
+            },
+            {
+              "x": 106,
+              "y": 244
+            },
+            {
+              "x": 82,
+              "y": 244
+            },
+            {
+              "x": 82,
+              "y": 204
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_3_3",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 114,
+            "y": 220,
+            "width": 18,
+            "height": 24
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_3_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 114,
+              "y": 220
+            },
+            {
+              "x": 132,
+              "y": 220
+            },
+            {
+              "x": 132,
+              "y": 244
+            },
+            {
+              "x": 114,
+              "y": 244
+            },
+            {
+              "x": 114,
+              "y": 220
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_3_4",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 140,
+            "y": 212,
+            "width": 30,
+            "height": 32
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_3_4_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 140,
+              "y": 212
+            },
+            {
+              "x": 170,
+              "y": 212
+            },
+            {
+              "x": 170,
+              "y": 244
+            },
+            {
+              "x": 140,
+              "y": 244
+            },
+            {
+              "x": 140,
+              "y": 212
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "item_3_5",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 178,
+            "y": 204,
+            "width": 24,
+            "height": 40
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "item_3_5_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 178,
+              "y": 204
+            },
+            {
+              "x": 202,
+              "y": 204
+            },
+            {
+              "x": 202,
+              "y": 244
+            },
+            {
+              "x": 178,
+              "y": 244
+            },
+            {
+              "x": 178,
+              "y": 204
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "plinth",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 254,
+            "width": 190,
+            "height": 14.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "plinth_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 254
+            },
+            {
+              "x": 200,
+              "y": 254
+            },
+            {
+              "x": 200,
+              "y": 268.5
+            },
+            {
+              "x": 10,
+              "y": 268.5
+            },
+            {
+              "x": 10,
+              "y": 254
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 270
+      },
+      "width": 210
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "accent": {
+          "r": 157,
+          "g": 131,
+          "b": 91,
+          "a": 255
+        },
+        "accent_red": {
+          "r": 133,
+          "g": 84,
+          "b": 89,
+          "a": 255
+        },
+        "blue": {
+          "r": 78,
+          "g": 113,
+          "b": 143,
+          "a": 255
+        },
+        "cushion": {
+          "r": 141,
+          "g": 134,
+          "b": 129,
+          "a": 255
+        },
+        "leaf": {
+          "r": 93,
+          "g": 116,
+          "b": 101,
+          "a": 255
+        },
+        "metal": {
+          "r": 125,
+          "g": 133,
+          "b": 148,
+          "a": 255
+        },
+        "metal_dark": {
+          "r": 85,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        },
+        "paper": {
+          "r": 174,
+          "g": 176,
+          "b": 183,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

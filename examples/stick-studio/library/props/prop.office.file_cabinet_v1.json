@@ -1,0 +1,666 @@
+{
+  "schema_version": 1,
+  "id": "prop.office.file_cabinet_v1",
+  "kind": "prop",
+  "name": "Arkistokaappi",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 96,
+    "height": 210
+  },
+  "depth": "mid",
+  "tags": [
+    "arkistokaappi",
+    "file_cabinet",
+    "kaappi",
+    "cabinet",
+    "toimisto",
+    "office"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 4,
+            "width": 84,
+            "height": 204.5
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 4
+            },
+            {
+              "x": 90,
+              "y": 4
+            },
+            {
+              "x": 90,
+              "y": 208.5
+            },
+            {
+              "x": 6,
+              "y": 208.5
+            },
+            {
+              "x": 6,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "drawer_0",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 12,
+            "width": 68,
+            "height": 42
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 12
+            },
+            {
+              "x": 82,
+              "y": 12
+            },
+            {
+              "x": 82,
+              "y": 54
+            },
+            {
+              "x": 14,
+              "y": 54
+            },
+            {
+              "x": 14,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 26
+            },
+            {
+              "x": 58,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "label_0",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 38,
+            "y": 34,
+            "width": 20,
+            "height": 8
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "label_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 34
+            },
+            {
+              "x": 58,
+              "y": 34
+            },
+            {
+              "x": 58,
+              "y": 42
+            },
+            {
+              "x": 38,
+              "y": 42
+            },
+            {
+              "x": 38,
+              "y": 34
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      },
+      {
+        "id": "drawer_1",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 60,
+            "width": 68,
+            "height": 42
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 60
+            },
+            {
+              "x": 82,
+              "y": 60
+            },
+            {
+              "x": 82,
+              "y": 102
+            },
+            {
+              "x": 14,
+              "y": 102
+            },
+            {
+              "x": 14,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 74
+            },
+            {
+              "x": 58,
+              "y": 74
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "label_1",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 38,
+            "y": 82,
+            "width": 20,
+            "height": 8
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "label_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 82
+            },
+            {
+              "x": 58,
+              "y": 82
+            },
+            {
+              "x": 58,
+              "y": 90
+            },
+            {
+              "x": 38,
+              "y": 90
+            },
+            {
+              "x": 38,
+              "y": 82
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      },
+      {
+        "id": "drawer_2",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 108,
+            "width": 68,
+            "height": 42
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 108
+            },
+            {
+              "x": 82,
+              "y": 108
+            },
+            {
+              "x": 82,
+              "y": 150
+            },
+            {
+              "x": 14,
+              "y": 150
+            },
+            {
+              "x": 14,
+              "y": 108
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 122
+            },
+            {
+              "x": 58,
+              "y": 122
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "label_2",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 38,
+            "y": 130,
+            "width": 20,
+            "height": 8
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "label_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 130
+            },
+            {
+              "x": 58,
+              "y": 130
+            },
+            {
+              "x": 58,
+              "y": 138
+            },
+            {
+              "x": 38,
+              "y": 138
+            },
+            {
+              "x": 38,
+              "y": 130
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      },
+      {
+        "id": "drawer_3",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 156,
+            "width": 68,
+            "height": 42
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 156
+            },
+            {
+              "x": 82,
+              "y": 156
+            },
+            {
+              "x": 82,
+              "y": 198
+            },
+            {
+              "x": 14,
+              "y": 198
+            },
+            {
+              "x": 14,
+              "y": 156
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_3",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 170
+            },
+            {
+              "x": 58,
+              "y": 170
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "label_3",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 38,
+            "y": 178,
+            "width": 20,
+            "height": 8
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "label_3_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 178
+            },
+            {
+              "x": 58,
+              "y": 178
+            },
+            {
+              "x": 58,
+              "y": 186
+            },
+            {
+              "x": 38,
+              "y": 186
+            },
+            {
+              "x": 38,
+              "y": 178
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 1.5
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 210
+      },
+      "width": 96
+    }
+  ]
+}

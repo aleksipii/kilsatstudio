@@ -1,0 +1,614 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.chair_wood_v1",
+  "kind": "prop",
+  "name": "Puutuoli",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 90,
+    "height": 200
+  },
+  "depth": "mid",
+  "tags": [
+    "tuoli",
+    "chair",
+    "puu",
+    "wood",
+    "huonekalu",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "leg_0",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 130,
+            "width": 8,
+            "height": 68.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 130
+            },
+            {
+              "x": 18,
+              "y": 130
+            },
+            {
+              "x": 18,
+              "y": 198.5
+            },
+            {
+              "x": 10,
+              "y": 198.5
+            },
+            {
+              "x": 10,
+              "y": 130
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "leg_1",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72,
+            "y": 130,
+            "width": 8,
+            "height": 68.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 72,
+              "y": 130
+            },
+            {
+              "x": 80,
+              "y": 130
+            },
+            {
+              "x": 80,
+              "y": 198.5
+            },
+            {
+              "x": 72,
+              "y": 198.5
+            },
+            {
+              "x": 72,
+              "y": 130
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "post_left",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 6,
+            "width": 8,
+            "height": 120
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "post_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 6
+            },
+            {
+              "x": 18,
+              "y": 6
+            },
+            {
+              "x": 18,
+              "y": 126
+            },
+            {
+              "x": 10,
+              "y": 126
+            },
+            {
+              "x": 10,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "post_right",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72,
+            "y": 6,
+            "width": 8,
+            "height": 120
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "post_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 72,
+              "y": 6
+            },
+            {
+              "x": 80,
+              "y": 6
+            },
+            {
+              "x": 80,
+              "y": 126
+            },
+            {
+              "x": 72,
+              "y": 126
+            },
+            {
+              "x": 72,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "top_rail",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 6,
+            "width": 78,
+            "height": 18
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_rail_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 6
+            },
+            {
+              "x": 84,
+              "y": 6
+            },
+            {
+              "x": 84,
+              "y": 24
+            },
+            {
+              "x": 6,
+              "y": 24
+            },
+            {
+              "x": 6,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "slat_0",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 26,
+            "y": 24,
+            "width": 6,
+            "height": 80
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slat_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26,
+              "y": 24
+            },
+            {
+              "x": 32,
+              "y": 24
+            },
+            {
+              "x": 32,
+              "y": 104
+            },
+            {
+              "x": 26,
+              "y": 104
+            },
+            {
+              "x": 26,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "slat_1",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42,
+            "y": 24,
+            "width": 6,
+            "height": 80
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slat_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42,
+              "y": 24
+            },
+            {
+              "x": 48,
+              "y": 24
+            },
+            {
+              "x": 48,
+              "y": 104
+            },
+            {
+              "x": 42,
+              "y": 104
+            },
+            {
+              "x": 42,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "slat_2",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 58,
+            "y": 24,
+            "width": 6,
+            "height": 80
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slat_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58,
+              "y": 24
+            },
+            {
+              "x": 64,
+              "y": 24
+            },
+            {
+              "x": 64,
+              "y": 104
+            },
+            {
+              "x": 58,
+              "y": 104
+            },
+            {
+              "x": 58,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "seat_board",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 122,
+            "width": 82,
+            "height": 12
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "seat_board_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 122
+            },
+            {
+              "x": 86,
+              "y": 122
+            },
+            {
+              "x": 86,
+              "y": 134
+            },
+            {
+              "x": 4,
+              "y": 134
+            },
+            {
+              "x": 4,
+              "y": 122
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 45,
+        "y": 122
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 200
+      },
+      "width": 90
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        },
+        "wood_light": {
+          "r": 151,
+          "g": 137,
+          "b": 124,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "painted",
+      "palette": {
+        "wood": {
+          "r": 174,
+          "g": 196,
+          "b": 196,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 110,
+          "g": 136,
+          "b": 140,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

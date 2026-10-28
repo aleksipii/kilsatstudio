@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/motion-audio", "crates/motion-tts", "crates/motion-lipsync", "crates/motion-voice", "crates/motion-script", "apps/studio-desktop", "crates/motion-scene", "crates/motion-render", "crates/motion-export", "crates/motion-project", "crates/motion-rig", "crates/motion-animation", "crates/motion-jobs", "crates/motion-art"]
+members = ["crates/motion-audio", "crates/motion-tts", "crates/motion-lipsync", "crates/motion-voice", "crates/motion-script", "apps/studio-desktop", "crates/motion-scene", "crates/motion-render", "crates/motion-export", "crates/motion-project", "crates/motion-rig", "crates/motion-animation", "crates/motion-jobs", "crates/motion-art", "crates/motion-library"]
 
 [workspace.package]
 license = "MIT"

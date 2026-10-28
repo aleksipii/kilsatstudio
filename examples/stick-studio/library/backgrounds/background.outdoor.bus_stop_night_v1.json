@@ -1,0 +1,866 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.bus_stop_night_v1",
+  "kind": "background",
+  "name": "Yövuoron pysäkki",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "night",
+    "bus_stop",
+    "street",
+    "pysäkki"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "night",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 131,
+            "g": 153,
+            "b": 164,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pavement",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 810.0,
+            "width": 1920.0,
+            "height": 270.0
+          },
+          "color": {
+            "r": 150,
+            "g": 167,
+            "b": 167,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "curb",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 1020.0,
+            "width": 1920.0,
+            "height": 10.0
+          },
+          "color": {
+            "r": 94,
+            "g": 117,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "road_mark",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 870.0,
+            "y": 1037.0,
+            "width": 490.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 203,
+            "g": 194,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "distant_roof",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 402.0,
+            "width": 370.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 35,
+            "g": 57,
+            "b": 63,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "distant_house",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36.0,
+            "y": 474.0,
+            "width": 280.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 35,
+            "g": 57,
+            "b": 63,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "distant_window",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 92.0,
+            "y": 517.0,
+            "width": 49.0,
+            "height": 61.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "distant_window_two",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 207.0,
+            "y": 517.0,
+            "width": 49.0,
+            "height": 61.0
+          },
+          "color": {
+            "r": 146,
+            "g": 137,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lamp_glow",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 47.0,
+            "y": 111.0,
+            "width": 347.0,
+            "height": 480.0
+          },
+          "color": {
+            "r": 238,
+            "g": 211,
+            "b": 134,
+            "a": 24
+          }
+        }
+      },
+      {
+        "id": "lamp_post",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 185.0,
+              "y": 942.0
+            },
+            {
+              "x": 185.0,
+              "y": 141.0
+            },
+            {
+              "x": 303.0,
+              "y": 141.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 15.0
+        }
+      },
+      {
+        "id": "lamp_shade",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 266.0,
+            "y": 130.0,
+            "width": 90.0,
+            "height": 23.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lamp_light",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 274.0,
+            "y": 149.0,
+            "width": 74.0,
+            "height": 17.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_back",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59.0,
+            "y": 723.0,
+            "width": 324.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_back_lower",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59.0,
+            "y": 765.0,
+            "width": 324.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_seat",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 48.0,
+            "y": 826.0,
+            "width": 346.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_legs",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 86.0,
+              "y": 938.0
+            },
+            {
+              "x": 105.0,
+              "y": 848.0
+            },
+            {
+              "x": 340.0,
+              "y": 848.0
+            },
+            {
+              "x": 359.0,
+              "y": 938.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "sign_post",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1736.0,
+              "y": 938.0
+            },
+            {
+              "x": 1736.0,
+              "y": 387.0
+            }
+          ],
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "sign_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1656.0,
+            "y": 278.0,
+            "width": 160.0,
+            "height": 184.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1665.0,
+            "y": 287.0,
+            "width": 142.0,
+            "height": 166.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bus_icon",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1686.0,
+            "y": 309.0,
+            "width": 100.0,
+            "height": 91.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bus_windshield",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1695.0,
+            "y": 322.0,
+            "width": 82.0,
+            "height": 37.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bus_wheel_left",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1697.0,
+            "y": 389.0,
+            "width": 19.0,
+            "height": 27.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bus_wheel_right",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1757.0,
+            "y": 389.0,
+            "width": 19.0,
+            "height": 27.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_left",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 731.0,
+            "y": 177.0,
+            "width": 7.0,
+            "height": 7.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_right",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1315.0,
+            "y": 116.0,
+            "width": 9.0,
+            "height": 9.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "rear_curb",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 811.0
+            },
+            {
+              "x": 1920.0,
+              "y": 811.0
+            }
+          ],
+          "color": {
+            "r": 114,
+            "g": 138,
+            "b": 141,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "paving_seam_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420.0,
+              "y": 812.0
+            },
+            {
+              "x": 100.0,
+              "y": 1018.0
+            }
+          ],
+          "color": {
+            "r": 129,
+            "g": 149,
+            "b": 151,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "paving_seam_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1420.0,
+              "y": 812.0
+            },
+            {
+              "x": 1840.0,
+              "y": 1018.0
+            }
+          ],
+          "color": {
+            "r": 129,
+            "g": 149,
+            "b": 151,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "paving_cross",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 900.0
+            },
+            {
+              "x": 1920.0,
+              "y": 900.0
+            }
+          ],
+          "color": {
+            "r": 129,
+            "g": 149,
+            "b": 151,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "road",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 1030.0,
+            "width": 1920.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 104,
+            "g": 126,
+            "b": 132,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "road_dash_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 150.0,
+            "y": 1057.0,
+            "width": 220.0,
+            "height": 7.0
+          },
+          "color": {
+            "r": 218,
+            "g": 220,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "road_dash_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 1057.0,
+            "width": 220.0,
+            "height": 7.0
+          },
+          "color": {
+            "r": 218,
+            "g": 220,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "road_dash_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1410.0,
+            "y": 1057.0,
+            "width": 220.0,
+            "height": 7.0
+          },
+          "color": {
+            "r": 218,
+            "g": 220,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "timetable_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1662.0,
+            "y": 530.0,
+            "width": 150.0,
+            "height": 170.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "timetable_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1667.0,
+            "y": 535.0,
+            "width": 140.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 226,
+            "g": 228,
+            "b": 211,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "timetable_rule_0",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 564.0
+            },
+            {
+              "x": 1789.0,
+              "y": 564.0
+            }
+          ],
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "timetable_rule_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 594.0
+            },
+            {
+              "x": 1773.0,
+              "y": 594.0
+            }
+          ],
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          },
+          "width": 3.0
+        }
+      },
+      {
+        "id": "timetable_rule_2",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 621.0
+            },
+            {
+              "x": 1789.0,
+              "y": 621.0
+            }
+          ],
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          },
+          "width": 3.0
+        }
+      },
+      {
+        "id": "timetable_rule_3",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 648.0
+            },
+            {
+              "x": 1773.0,
+              "y": 648.0
+            }
+          ],
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          },
+          "width": 3.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "seat",
+      "id": "bench",
+      "at": {
+        "x": 221.0,
+        "y": 826.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "sign",
+      "at": {
+        "x": 1560.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

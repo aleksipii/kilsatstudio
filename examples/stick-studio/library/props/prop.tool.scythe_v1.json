@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "prop.tool.scythe_v1",
+  "kind": "prop",
+  "name": "Noutajan viikate",
+  "bounds": {
+    "x": 194.468,
+    "y": 54.218,
+    "width": 156.751,
+    "height": 408.032
+  },
+  "depth": "mid",
+  "tags": [
+    "viikate",
+    "scythe",
+    "työkalu",
+    "tool",
+    "noutaja",
+    "reaper"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/viikate.kilsat",
+    "sha256": "b81da93fb4cd5f84c43b1070ee759d38309be358c25085422d820465c0b0f162"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 204.438,
+        "y": 328.325
+      }
+    }
+  ]
+}

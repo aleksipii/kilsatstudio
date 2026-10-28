@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "set.outdoor.cemetery_night_v1",
+  "kind": "set",
+  "name": "Hautausmaa (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "night",
+    "cemetery",
+    "hautausmaa",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.outdoor.cemetery_night_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": 70.0,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": 0.0,
+      "y": 190.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": 0.0,
+      "y": 110.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "grave",
+      "kind": "stand",
+      "anchor": "backdrop/grave"
+    },
+    {
+      "id": "path",
+      "kind": "stand",
+      "at": {
+        "x": 1100.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

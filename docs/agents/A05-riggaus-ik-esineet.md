@@ -62,6 +62,21 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
       → Kamera on testissä affiininen sijainen; renderöijän kuvat ovat A08:n (KS-003c).
 - [x] Säilytä tikku-ukkotyyli; ei uutta piirtotyyliä ilman taiteellista päätöstä.
 
+### ORK-LIB-01 — esinemanifestit (28.10.2026, haara `feat/asset-library`)
+
+Alue: `examples/stick-studio/library/props/**`, `scripts/generate_library_props.py`, tämä tiedosto.
+
+- [x] Generaattori `scripts/generate_library_props.py` (Python 3 stdlib, ei verkkoa): kirjoittaa
+      `library/props/<id>.json` (indent 2, kiinteä avainjärjestys, rivinvaihto lopussa), poistaa vain
+      vanhentuneet `prop.*.json`-tiedostot, `--check` vertaa levyyn.
+- [x] Kaikki 20 `examples/stick-studio/props/*.kilsat`-esinettä migroitu `rig_project`-manifesteiksi
+      (polku + sha256), bounds geometriasta, ankkurit (grip/ground/seat/screen/stand).
+- [x] Kaikki 34 ORK:n pakollista art-esinettä tarkoilla tunnisteilla ankkureineen.
+- [x] Lisää alkuperäisiä art-esineitä (keittiö, olohuone, toimisto, ulko, Suomi/talvi, kauppa, luokka).
+- [x] Skriptin oma itsetarkistus (id, tagit, ankkurit ja geometria boundsissa, paint-slotit, sha256,
+      viivat ≤ 8 px, lattialla seisovan alareuna = ground).
+- [x] `validate_library --distribution` -ajo (ks. Toteutunut lopputulema).
+
 ## Hyväksymisehdot
 
 - Raajat ja esine pysyvät kiinni hahmon liikkuessa ja kameran vaihtuessa (testit).
@@ -104,6 +119,31 @@ KS-003a, haara `feat/a05-rig-ik-props` (27.10.2026). Sopimus: [rig-attachment-ik
   `motion-render`in käännöksen yhteisestä kansiosta; korjattu `cargo clean -p motion-render` ja uusi ajo.
 - Rajaukset: IK-aikajanaraita ja kohtausarviointi (KS-003d) puuttuvat; ei IK-editoria; kamera on testissä
   affiininen sijainen, ei renderöijän kuvaa; ei graafista tai Mac-laitetarkistusta.
+
+#### ORK-LIB-01 — esinemanifestit (28.10.2026)
+
+- **Määrät** (generaattorin laskema): 101 esinemanifestia = 20 migroitua `rig_project`-esinettä
+  + 81 alkuperäistä art-esinettä (sis. kaikki 34 pakollista). Ankkurit: ground 75, grip 32, seat 13,
+  screen 12, stand 10, doorway 1 (yht. 143). Seitsemällä seinäesineellä (ikkuna, kellot, verhot,
+  peili, taulu, ryijy) ei ole ankkureita (kenttä jätetty pois).
+- **Migraatio**: 9 `.kilsat`-tiedostoa on rigejä (puhelin ×3, kahvikuppi, kirja, avain, tabletti, kynä,
+  kiintoavain): bounds rig-osista paikallisissa koordinaateissa, outline `behind` +leveys / `over`
+  +leveys/2; grip (0, 0). 11 tiedostoa (auto, kannettava, kello, liikennemerkki, paketti, sateenvarjo,
+  toimistotuoli, työpöytä, viikate, vuoronumerolaite, ajopäiväkirja) **ei sisällä rigiä** vaan
+  art-kerroksia 512×512-pikkukuvan koordinaatistossa; bounds näistä kerroksista, ankkurit kerrosten
+  nimien perusteella (esim. näyttö, istuin, varsi). Näiden mittakaava ei ole näyttelijämittakaava 1.
+- **hand-props.json**: kaikkien 9 käsiesineen osat ovat täsmälleen samat kuin `.kilsat`-rigin osat
+  (`grip`-nivel ↔ `root`, `grip: [0,0]`), joten koordinaatisto on sama: muunnos on identiteetti.
+  Sen `width/height` on ääriviivaton laajuus; manifestien bounds sisältää ääriviivat.
+- **Mittakaava**: hahmot 379–422 px pää–jalkapohja (scale 1), lantio 142 px, polvi ≈ 72 px, lepokäsi
+  ≈ 181 px lattiasta. Istuimet 72–86 px, pöydät 118 px, työtasot 145 px, ovi 440 px.
+- **Tarkistettu**: generaattori ajettu kahdesti ja `PYTHONHASHSEED=123`:lla → sama koostetiiviste;
+  `python3 scripts/generate_library_props.py --check` → `ok: 101`; oma itsetarkistus ilman virheitä;
+  `cargo run --locked -p motion-library --example validate_library -- examples/stick-studio
+  --distribution` → exit 0, props 101, warnings 0. Art-esineet katsottu omalla SVG→PNG-kontaktiarkilla
+  (perus- ja evening-paletti); ei sovelluksen renderöijän kuvaa.
+- Rajaukset: ei taidekatselmointia renderöijällä; art-esineiden paletit eivät ole `check_background`-
+  tarkistuksessa erikseen (sijainnit ovat A08:n).
 
 ## Kopioitava tehtävänanto
 

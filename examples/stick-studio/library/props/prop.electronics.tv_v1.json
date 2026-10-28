@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "id": "prop.electronics.tv_v1",
+  "kind": "prop",
+  "name": "Televisio",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 220,
+    "height": 150
+  },
+  "depth": "mid",
+  "tags": [
+    "televisio",
+    "tv",
+    "näyttö",
+    "screen",
+    "olohuone",
+    "living_room",
+    "electronics"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "stand_left",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 130
+            },
+            {
+              "x": 44,
+              "y": 147
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "stand_right",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 160,
+              "y": 130
+            },
+            {
+              "x": 176,
+              "y": 147
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "body",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 212,
+            "height": 128
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 216,
+              "y": 4
+            },
+            {
+              "x": 216,
+              "y": 132
+            },
+            {
+              "x": 4,
+              "y": 132
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "panel",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12,
+            "y": 12,
+            "width": 196,
+            "height": 108
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 12
+            },
+            {
+              "x": 208,
+              "y": 12
+            },
+            {
+              "x": 208,
+              "y": 120
+            },
+            {
+              "x": 12,
+              "y": 120
+            },
+            {
+              "x": 12,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "led",
+        "paint": "accent_red",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 107.5,
+            "y": 123.5,
+            "width": 5,
+            "height": 5
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 12,
+        "y": 12,
+        "width": 196,
+        "height": 108
+      }
+    },
+    {
+      "type": "ground",
+      "id": "base",
+      "at": {
+        "x": 0,
+        "y": 150
+      },
+      "width": 220
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "accent_red": {
+          "r": 133,
+          "g": 84,
+          "b": 89,
+          "a": 255
+        },
+        "metal_dark": {
+          "r": 85,
+          "g": 93,
+          "b": 109,
+          "a": 255
+        },
+        "screen": {
+          "r": 56,
+          "g": 64,
+          "b": 81,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "on",
+      "palette": {
+        "screen": {
+          "r": 174,
+          "g": 207,
+          "b": 210,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

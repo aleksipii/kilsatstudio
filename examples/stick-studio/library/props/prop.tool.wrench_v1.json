@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "prop.tool.wrench_v1",
+  "kind": "prop",
+  "name": "Kiintoavain",
+  "bounds": {
+    "x": -17.2,
+    "y": -51.2,
+    "width": 34.4,
+    "height": 79.4
+  },
+  "depth": "mid",
+  "tags": [
+    "kiintoavain",
+    "wrench",
+    "työkalu",
+    "tool",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/tyokaluavain.kilsat",
+    "sha256": "f237faf7643c3c7733db2438fabb95b997a065c97ac6e2ba7bd636ac1713ea77"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

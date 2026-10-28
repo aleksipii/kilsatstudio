@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "id": "prop.furniture.desk_v1",
+  "kind": "prop",
+  "name": "Kirjoituspöytä",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 250,
+    "height": 118
+  },
+  "depth": "mid",
+  "tags": [
+    "pöytä",
+    "desk",
+    "kirjoituspöytä",
+    "toimisto",
+    "office",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "leg_left",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 18,
+            "width": 12,
+            "height": 98.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 18
+            },
+            {
+              "x": 26,
+              "y": 18
+            },
+            {
+              "x": 26,
+              "y": 116.5
+            },
+            {
+              "x": 14,
+              "y": 116.5
+            },
+            {
+              "x": 14,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "drawers",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 150,
+            "y": 18,
+            "width": 88,
+            "height": 98.5
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawers_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 18
+            },
+            {
+              "x": 238,
+              "y": 18
+            },
+            {
+              "x": 238,
+              "y": 116.5
+            },
+            {
+              "x": 150,
+              "y": 116.5
+            },
+            {
+              "x": 150,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "drawer_0",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 158,
+            "y": 26,
+            "width": 72,
+            "height": 24
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_0_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 158,
+              "y": 26
+            },
+            {
+              "x": 230,
+              "y": 26
+            },
+            {
+              "x": 230,
+              "y": 50
+            },
+            {
+              "x": 158,
+              "y": 50
+            },
+            {
+              "x": 158,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_0",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 184,
+              "y": 38
+            },
+            {
+              "x": 204,
+              "y": 38
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "drawer_1",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 158,
+            "y": 56,
+            "width": 72,
+            "height": 24
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_1_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 158,
+              "y": 56
+            },
+            {
+              "x": 230,
+              "y": 56
+            },
+            {
+              "x": 230,
+              "y": 80
+            },
+            {
+              "x": 158,
+              "y": 80
+            },
+            {
+              "x": 158,
+              "y": 56
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_1",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 184,
+              "y": 68
+            },
+            {
+              "x": 204,
+              "y": 68
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "drawer_2",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 158,
+            "y": 86,
+            "width": 72,
+            "height": 24
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "drawer_2_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 158,
+              "y": 86
+            },
+            {
+              "x": 230,
+              "y": 86
+            },
+            {
+              "x": 230,
+              "y": 110
+            },
+            {
+              "x": 158,
+              "y": 110
+            },
+            {
+              "x": 158,
+              "y": 86
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_2",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 184,
+              "y": 98
+            },
+            {
+              "x": 204,
+              "y": 98
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "top",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 242,
+            "height": 14
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 246,
+              "y": 4
+            },
+            {
+              "x": 246,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 80,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 118
+      },
+      "width": 250
+    }
+  ],
+  "variants": [
+    {
+      "name": "evening",
+      "palette": {
+        "wood": {
+          "r": 130,
+          "g": 110,
+          "b": 97,
+          "a": 255
+        },
+        "wood_dark": {
+          "r": 99,
+          "g": 81,
+          "b": 76,
+          "a": 255
+        },
+        "wood_light": {
+          "r": 151,
+          "g": 137,
+          "b": 124,
+          "a": 255
+        }
+      }
+    }
+  ]
+}

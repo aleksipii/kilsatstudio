@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "id": "prop.umbrella.night_umbrella_v1",
+  "kind": "prop",
+  "name": "Yövuoron sateenvarjo",
+  "bounds": {
+    "x": 88.8,
+    "y": 56.044,
+    "width": 334.4,
+    "height": 388.668
+  },
+  "depth": "mid",
+  "tags": [
+    "sateenvarjo",
+    "umbrella",
+    "sade",
+    "rain",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/sateenvarjo.kilsat",
+    "sha256": "2e9115502cf7aff1155458f6ba470048e84b0176a8378edd1d6e220935220aa7"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 293.156,
+        "y": 437.867
+      }
+    }
+  ]
+}

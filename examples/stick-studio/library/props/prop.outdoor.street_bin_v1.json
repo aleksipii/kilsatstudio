@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "id": "prop.outdoor.street_bin_v1",
+  "kind": "prop",
+  "name": "Roska-astia",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 84,
+    "height": 124
+  },
+  "depth": "mid",
+  "tags": [
+    "roska_astia",
+    "street_bin",
+    "roska",
+    "trash",
+    "katu",
+    "street",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "leaf_dark": {
+      "r": 78,
+      "g": 108,
+      "b": 84,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "post",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36,
+            "y": 80,
+            "width": 12,
+            "height": 42.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "post_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36,
+              "y": 80
+            },
+            {
+              "x": 48,
+              "y": 80
+            },
+            {
+              "x": 48,
+              "y": 122.5
+            },
+            {
+              "x": 36,
+              "y": 122.5
+            },
+            {
+              "x": 36,
+              "y": 80
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "bin",
+        "paint": "leaf_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 14,
+            "width": 68,
+            "height": 70
+          },
+          "color": {
+            "r": 78,
+            "g": 108,
+            "b": 84,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bin_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 14
+            },
+            {
+              "x": 76,
+              "y": 14
+            },
+            {
+              "x": 76,
+              "y": 84
+            },
+            {
+              "x": 8,
+              "y": 84
+            },
+            {
+              "x": 8,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "lid",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 6,
+            "width": 76,
+            "height": 12
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lid_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 6
+            },
+            {
+              "x": 80,
+              "y": 6
+            },
+            {
+              "x": 80,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 18
+            },
+            {
+              "x": 4,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "mouth",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 22,
+            "width": 44,
+            "height": 10
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "mouth_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 22
+            },
+            {
+              "x": 64,
+              "y": 22
+            },
+            {
+              "x": 64,
+              "y": 32
+            },
+            {
+              "x": 20,
+              "y": 32
+            },
+            {
+              "x": 20,
+              "y": 22
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 124
+      },
+      "width": 84
+    }
+  ]
+}

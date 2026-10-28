@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "prop.phone.smartphone_front_v1",
+  "kind": "prop",
+  "name": "Puhelin – näyttö",
+  "bounds": {
+    "x": -10,
+    "y": -54,
+    "width": 37.5,
+    "height": 68
+  },
+  "depth": "mid",
+  "tags": [
+    "puhelin",
+    "phone",
+    "älypuhelin",
+    "smartphone",
+    "näyttö",
+    "screen",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "props/puhelin.kilsat",
+    "sha256": "932d02ce41ab617aa374b5f9654e025a673944a2e360280c21fe5b8847220e6a"
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": -6,
+        "y": -45,
+        "width": 28,
+        "height": 51
+      }
+    }
+  ]
+}
