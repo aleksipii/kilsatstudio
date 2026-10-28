@@ -26,8 +26,11 @@ mod rig_outline_tests;
 #[cfg(test)]
 mod rig_texture_tests;
 #[cfg(test)]
+mod screen_tests;
+#[cfg(test)]
 mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
+pub mod screen_video;
 mod sequence;
 mod streaming;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art, export_mp4_scene_with_art_captions};
@@ -80,6 +83,23 @@ fn rig_texture_preflight(
             bytes += image.png().len() as u64;
             if bytes > motion_art::MAX_IMAGE_BYTES {
                 return Err(invalid("rig texture embedded image budget exceeded"));
+            }
+        }
+    }
+    for asset_id in script.screen_image_assets() {
+        if !images.is_some_and(|images| images.contains_key(asset_id)) {
+            return Err(invalid(format!(
+                "missing screen image resource: {asset_id}"
+            )));
+        }
+    }
+    for cue in script.scenes.iter().flat_map(|s| &s.composition.screens) {
+        if let motion_script::ScreenSource::Video { asset, .. } = &cue.source {
+            let first = motion_script::video_frame_asset(asset, 0);
+            if !images.is_some_and(|images| images.contains_key(&first)) {
+                return Err(invalid(format!(
+                    "screen video {asset} has no decoded frames; decode it into the frame cache before export"
+                )));
             }
         }
     }
