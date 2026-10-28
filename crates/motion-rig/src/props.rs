@@ -33,6 +33,13 @@ impl HandSide {
             Self::Right => "hand_r",
         }
     }
+    /// Short hand tag (`l` or `r`), used to keep slot names unique.
+    pub fn suffix(self) -> &'static str {
+        match self {
+            Self::Left => "l",
+            Self::Right => "r",
+        }
+    }
     /// Prefix of part ids added by `attach_hand_prop` for this hand.
     pub fn part_prefix(self) -> &'static str {
         match self {
@@ -138,8 +145,6 @@ pub enum PropError {
     Part,
     #[error("hand prop {0}: screen must name its own glass and overlay parts and have a positive bounded rectangle")]
     Screen(String),
-    #[error("the other hand already holds a screen named {0}")]
-    ScreenTaken(String),
     #[error("hand prop {item}: {source}")]
     Geometry { item: String, source: crate::Error },
     #[error("grip offset must be within ±100, rotation ±180° and scale 0.25..=3")]
@@ -355,9 +360,10 @@ pub fn attach_hand_prop(
     next.screens
         .retain(|s| !s.part.starts_with(hand.part_prefix()));
     next.parts.extend(grip_parts(item, hand, placement));
-    if let Some(screen) = grip_screen(item, hand, placement) {
+    if let Some(mut screen) = grip_screen(item, hand, placement) {
+        // Two phones, one per hand: the second slot is named by its hand.
         if next.screens.iter().any(|s| s.id == screen.id) {
-            return Err(PropError::ScreenTaken(screen.id));
+            screen.id = format!("{}_{}", screen.id, hand.suffix());
         }
         next.screens.push(screen);
     }
@@ -510,12 +516,12 @@ mod tests {
         // Scaled by the placement, aspect preserved.
         let [w, h] = slot.size();
         assert!((w - 14.0).abs() < 1e-9 && (h - 25.5).abs() < 1e-9);
-        // A second phone in the other hand would reuse the slot name.
+        // A second phone in the other hand gets a hand-tagged slot name.
         let mut both = definition.clone();
-        assert_eq!(
-            attach_hand_prop(&mut both, HandSide::Left, phone, placement),
-            Err(PropError::ScreenTaken("phone".into()))
-        );
+        attach_hand_prop(&mut both, HandSide::Left, phone, placement).unwrap();
+        let ids: Vec<_> = both.screens.iter().map(|s| s.id.as_str()).collect();
+        assert_eq!(ids, ["phone", "phone_l"]);
+        detach_hand_prop(&mut both, HandSide::Left).unwrap();
         assert_eq!(both, definition);
         // Re-attaching replaces the slot; detaching removes it.
         attach_hand_prop(&mut definition, HandSide::Right, phone, placement).unwrap();

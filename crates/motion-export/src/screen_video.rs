@@ -29,6 +29,10 @@ pub const MAX_SCREEN_VIDEO_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 pub const MAX_SCREEN_VIDEO_FRAMES: u64 = 20_000;
 /// Widest decoded frame.
 pub const MAX_SCREEN_VIDEO_WIDTH: u32 = 4096;
+/// Tallest decoded frame.
+pub const MAX_SCREEN_VIDEO_HEIGHT: u32 = 4096;
+/// Most bytes one decoded cache entry may write; decoding stops beyond it.
+pub const MAX_SCREEN_CACHE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 /// Width of preview proxies.
 pub const SCREEN_PROXY_WIDTH: u32 = 540;
 const MANIFEST: &str = "manifest.json";
@@ -153,6 +157,7 @@ pub fn probe_color(
             ])
             .arg(source),
         None,
+        None,
         timeout,
         true,
     )?;
@@ -176,7 +181,14 @@ pub fn color_from_tags(
         ));
     }
     Ok(match primaries {
-        Some("smpte432") | Some("smpte431") => ScreenVideoColor::DisplayP3,
+        Some("smpte432") => ScreenVideoColor::DisplayP3,
+        // DCI-P3 has another white point and transfer; converting it as
+        // Display P3 would shift colours.
+        Some("smpte431") => {
+            return Err(Error::Invalid(
+                "DCI-P3 (SMPTE 431) screen recordings are not supported; convert to Display P3 or BT.709 first".into(),
+            ))
+        }
         _ => ScreenVideoColor::Bt709,
     })
 }
@@ -196,9 +208,11 @@ pub fn decode_args(
         );
     }
     filters.push(format!("fps={}", request.fps));
-    if let Some(width) = request.max_width {
-        filters.push(format!("scale='min({width},iw)':-2:flags=lanczos"));
-    }
+    // Always bound both dimensions (aspect kept, even sizes for chroma).
+    let width = request.max_width.unwrap_or(MAX_SCREEN_VIDEO_WIDTH);
+    filters.push(format!(
+        "scale='min({width},iw)':'min({MAX_SCREEN_VIDEO_HEIGHT},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos"
+    ));
     filters.push("format=rgb24".into());
     let mut args: Vec<OsString> = [
         "-nostdin",
@@ -260,6 +274,7 @@ pub fn decode_screen_video(
         run(
             Command::new(ffmpeg).args(decode_args(request, color, expected, &partial)),
             Some(cancel),
+            Some((&partial, MAX_SCREEN_CACHE_BYTES)),
             timeout,
             false,
         )?;
@@ -310,11 +325,24 @@ fn executable(path: &Path) -> Result<(), Error> {
     Ok(())
 }
 
-/// Run a child with closed stdin, killing it on cancel or timeout. Returns
-/// stdout when `capture` is set (bounded to 1 MiB).
+/// Bytes of the regular files directly inside `directory`.
+fn directory_bytes(directory: &Path) -> u64 {
+    fs::read_dir(directory)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter_map(|e| e.metadata().ok())
+        .map(|m| m.len())
+        .fold(0, u64::saturating_add)
+}
+
+/// Run a child with closed stdin, killing it on cancel, timeout or when
+/// `budget` (a directory and its byte limit) is exceeded. Returns stdout when
+/// `capture` is set (bounded to 1 MiB).
 fn run(
     command: &mut Command,
     cancel: Option<&CancellationToken>,
+    budget: Option<(&Path, u64)>,
     timeout: Duration,
     capture: bool,
 ) -> Result<Vec<u8>, Error> {
@@ -335,11 +363,19 @@ fn run(
         })
     });
     let started = Instant::now();
+    let mut polls = 0u32;
     let status = loop {
+        polls = polls.wrapping_add(1);
+        let over_budget =
+            || budget.is_some_and(|(directory, limit)| directory_bytes(directory) > limit);
         let stop = if cancel.is_some_and(CancellationToken::is_cancelled) {
             Some(Error::Cancelled)
         } else if started.elapsed() > timeout {
             Some(invalid("screen video tool exceeded its timeout"))
+        } else if polls.is_multiple_of(10) && over_budget() {
+            Some(invalid(
+                "screen video decode exceeded its 4 GiB cache budget",
+            ))
         } else {
             None
         };
@@ -359,6 +395,11 @@ fn run(
         }
     };
     let output = reader.and_then(|r| r.join().ok()).unwrap_or_default();
+    if budget.is_some_and(|(directory, limit)| directory_bytes(directory) > limit) {
+        return Err(invalid(
+            "screen video decode exceeded its 4 GiB cache budget",
+        ));
+    }
     if !status.success() {
         return Err(invalid(format!("screen video tool failed ({status})")));
     }
@@ -421,6 +462,10 @@ mod tests {
         );
         assert!(color_from_tags(Some("bt2020"), Some("arib-std-b67")).is_err());
         assert!(color_from_tags(Some("bt709"), Some("smpte2084")).is_err());
+        assert!(
+            color_from_tags(Some("smpte431"), Some("bt709")).is_err(),
+            "DCI-P3"
+        );
     }
 
     #[test]
@@ -447,9 +492,10 @@ mod tests {
             .into_iter()
             .map(|a| a.into_string().unwrap())
             .collect();
-        assert!(!args
+        assert!(!args.iter().any(|a| a.contains("colorspace")));
+        assert!(args
             .iter()
-            .any(|a| a.contains("colorspace") || a.contains("scale")));
+            .any(|a| a.contains("min(4096,iw)") && a.contains("min(4096,ih)")));
         let _ = fs::remove_dir_all(dir);
     }
 
@@ -475,6 +521,22 @@ mod tests {
         r.fps = 30.0;
         r.max_width = Some(8);
         assert!(validate(&r).is_err());
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn decoding_stops_when_the_cache_budget_is_exceeded() {
+        let dir = temp("budget");
+        fs::write(dir.join("000000.png"), vec![0u8; 2048]).unwrap();
+        let error = run(
+            Command::new("/bin/sleep").arg("5"),
+            None,
+            Some((&dir, 1024)),
+            Duration::from_secs(10),
+            false,
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("cache budget"), "{error}");
         let _ = fs::remove_dir_all(dir);
     }
 
@@ -517,6 +579,12 @@ mod tests {
             let status = Command::new(&ffmpeg)
                 .args(["-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i"])
                 .arg("color=c=0xC86464:s=320x640:r=30:d=1")
+                // Tag the frames themselves; recent FFmpeg takes encoder
+                // colour metadata from the frames, not only from flags.
+                .arg("-vf")
+                .arg(format!(
+                    "setparams=color_primaries={primaries}:color_trc=bt709:colorspace=bt709:range=tv"
+                ))
                 .args(["-c:v", "libx264", "-pix_fmt", "yuv444p", "-qp", "0"])
                 .args([
                     "-color_primaries",
@@ -525,7 +593,17 @@ mod tests {
                     "bt709",
                     "-colorspace",
                     "bt709",
+                    "-movflags",
+                    "+write_colr",
                 ])
+                // Write the primaries into the H.264 VUI itself (12 = SMPTE
+                // 432 / Display P3, 1 = BT.709): encoder flags alone are not
+                // reliably carried into the stream.
+                .args(["-bsf:v"])
+                .arg(format!(
+                    "h264_metadata=colour_primaries={}:transfer_characteristics=1:matrix_coefficients=1",
+                    if primaries == "smpte432" { 12 } else { 1 }
+                ))
                 .arg(&path)
                 .status()
                 .unwrap();
@@ -533,6 +611,19 @@ mod tests {
             path
         };
         let red_of = |source: PathBuf, max_width| {
+            // Show the raw tags in the log, so a detection failure is diagnosable.
+            let raw = Command::new(&ffprobe)
+                .args(["-v", "error", "-select_streams", "v:0", "-show_entries"])
+                .arg("stream=codec_name,color_primaries,color_transfer,color_space,color_range")
+                .args(["-of", "json"])
+                .arg(&source)
+                .output()
+                .unwrap();
+            eprintln!(
+                "{}: {}",
+                source.display(),
+                String::from_utf8_lossy(&raw.stdout)
+            );
             let color = probe_color(&ffprobe, &source, Duration::from_secs(30)).unwrap();
             let r = ScreenVideoRequest {
                 source,
@@ -565,9 +656,9 @@ mod tests {
             assert_eq!(again, decoded);
             (color, image.width(), image.rgba()[0])
         };
-        let (color, width, srgb_red) = red_of(make("srgb.mp4", "bt709"), None);
+        let (color, width, srgb_red) = red_of(make("srgb.mov", "bt709"), None);
         assert_eq!((color, width), (ScreenVideoColor::Bt709, 320));
-        let (color, width, p3_red) = red_of(make("p3.mp4", "smpte432"), Some(160));
+        let (color, width, p3_red) = red_of(make("p3.mov", "smpte432"), Some(160));
         assert_eq!((color, width), (ScreenVideoColor::DisplayP3, 160));
         // The same code values mean a more saturated red in P3: in sRGB the
         // red channel must rise.

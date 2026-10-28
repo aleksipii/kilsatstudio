@@ -9,7 +9,7 @@ slot over time.
 | Layer | Where | What it holds |
 | --- | --- | --- |
 | Slot geometry | `motion_rig::ScreenSlotDefinition` (`RigDefinition.screens`) | `id`, the glass `part`, a parallelogram `origin` + `x_axis` + `y_axis` in the glass part's joint space, and `overlays` (drawn UI hidden while content shows) |
-| Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item copies the slot onto the hand; detaching removes it |
+| Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item copies the slot onto the hand; detaching removes it. A second phone in the other hand gets a hand-tagged slot name (`phone_l` / `phone_r`) |
 | Content over time | `motion_script::ScreenCue` (`composition.screens`) | `actor`, `slot`, `at`, `source`, `fit`, `trim_start`, `trim_end`, `speed`, `loop`, `taps` |
 | Evaluation | `motion_scene` → `PreparedRig::apply_screen` | Sets the glass part's texture from the scene time, on the same joint transforms as every other part |
 | Fitting | `EvaluatedTexture::placement` | `cover` (default for screens), `contain`, `stretch`; one function used by both the SVG and the GPU renderer |
@@ -77,12 +77,15 @@ when complete. The key hashes the recipe version, source bytes, fps,
 duration and proxy width, so preview proxies (`SCREEN_PROXY_WIDTH` = 540 px)
 and full-size export frames are separate entries with identical frame
 numbers. Stale (recipe or size changed) or incomplete entries are ignored.
-It is a blocking call for a background job, not the UI thread.
+It is a blocking call for a background job, not the UI thread. Decoded
+frames are always bounded to 4096×4096 (aspect kept), and decoding is
+stopped if an entry would exceed 4 GiB on disk.
 
 `probe_color` reads the recording's tags with ffprobe: Display P3
-(`smpte432`/`smpte431`) is converted to BT.709 primaries with FFmpeg's
-`colorspace` filter; HDR (BT.2020, HLG, PQ) is rejected with an explanation
-instead of shown with wrong colours.
+(`smpte432`) is converted to BT.709 primaries with FFmpeg's `colorspace`
+filter. DCI-P3 (`smpte431`, another white point) and HDR (BT.2020, HLG, PQ)
+are rejected with an explanation instead of shown with wrong colours.
+Untagged recordings are treated as BT.709.
 
 Clean recordings of your own app come straight from the iOS simulator:
 `xcrun simctl io booted recordVideo demo.mov` (no notifications or status
@@ -91,7 +94,7 @@ clutter).
 ## Validation
 
 - `motion-rig`: slot validation, joint following, overlays, fit maths, catalog
-  slot travels with the prop and refuses a second same-named screen.
+  slot travels with the prop; a second phone gets a hand-tagged slot name.
 - `motion-script`: YAML parse/round-trip, trimmed double-speed hold, sequence
   loop, actionable validation errors, character removal drops its cues.
 - `motion-export`: SVG pixels for drawn/contain/cover/stretch/off, export
@@ -109,9 +112,11 @@ clutter).
 - Desktop: no screen-cue editor or video import UI yet, and the preview does
   not yet schedule `decode_screen_video` or load frames per time; video cues
   render only where a caller has put decoded frames into the image map.
+- Export preflight checks every decoded frame each exported frame will show
+  (not only frame 0), so a missing frame fails before rendering starts.
 - Export loads images up front; streaming per-frame loading of decoded video
   frames (bounded memory for long recordings) is not implemented. Export
-  refuses undecoded video with an actionable error.
+  refuses missing decoded frames with an actionable error.
 - Automatic direction does not yet read `tap_times` to place finger motion.
 - Screen brightness and glow in dark scenes are not implemented (only the
   drawn reflection over the glass).
