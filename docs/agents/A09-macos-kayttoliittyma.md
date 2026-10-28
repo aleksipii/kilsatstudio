@@ -61,6 +61,13 @@ raskas työ pois tapahtumasilmukasta.
 - [x] Synteesi, suuri lataus tai koodaus ei aja tapahtumasilmukassa (No AI -tarkistus tehdään
       ennen taustatyön käynnistystä; taustatyöt pysyvät workereissa).
 - [x] Käynnistysohje README:ssä (`cargo run -p studio-desktop`); käynnistys kirjattu alla.
+- [x] Näyttömuutosten editori (PR #130 katselmus): `composition.screens` lisäys, muokkaus ja
+      poisto (off/kuva/video, sovitus, at, rajaus, nopeus, silmukka, napautukset), virheet
+      paneelissa, jokainen muutos yksi Kumoa-askel (`screen_cues.rs`, yksikkö- ja historiatestit).
+- [x] Videon tuonti `assets/screens/`-kansioon ja ffprobe-luenta taustalla; esikatselun
+      proxy-purku rajatulla taustajonolla, eteneminen, peruutus ja puuttuvan FFmpegin tila
+      (`screen_video_worker.rs`; testit väärennetyillä työkaluilla, oikea FFmpeg `#[ignore]`).
+      Graafista käsikokeilua ei ole tehty. Työpöydän Vie video ei vielä pura täysikokoista videota.
 
 ## Hyväksymisehdot
 
@@ -96,6 +103,13 @@ macOS-käynnistys: `cargo run -p studio-desktop` -binääri käynnistyi samalla 
 käynnissä ~13 s ilman virhetulostetta, sitten suljettiin. Ikkunaa ei kuvattu (näytön tallennuslupa
 puuttui), eikä tasojen vaihtoa, raahausta tai No AI -valintaa kokeiltu käsin graafisesti; ne on
 testattu vain yksikkötesteillä.
+
+Näyttömuutokset ja videon tuonti (haara `feat/desktop-screen-cues`, pohja PR #135
+`feat/screen-video-export-episode`): uudet `apps/studio-desktop/src/screen_cues.rs` ja
+`screen_video_worker.rs`, liitos `main.rs`:ään (Muokkaa-välilehti, taso 2; esikatselun
+`ArtContext.screen_videos`). Tarkistukset ja niiden tulokset on kirjattu PR:n kuvaukseen.
+`real_ffmpeg_import_and_preview_decode` ajettiin paikallisesti Homebrew FFmpeg 9.0.2:lla (läpi).
+Käyttöliittymää ei kokeiltu käsin.
 
 Avoinna: vapautuksen jousi ja IK-kohteet kohtausarvioinnissa (A04, KS-003d), sen jälkeen
 profiilin valinta käyttöliittymään; graafinen käsikokeilu tasoista; `motion-project`-muutoksen

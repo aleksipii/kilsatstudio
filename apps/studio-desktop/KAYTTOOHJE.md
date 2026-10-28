@@ -86,6 +86,45 @@ Ote muuttaa tämän hahmon rakennetta **kaikissa kohtauksissa**. Se ei tee
 esineen poimimiselle tai irrottamiselle ajastettua tapahtumaa. Pysäytä toisto
 ennen muokkausta. Yksi Kumoa peruu koko kiinnityksen, vaihdon tai poiston.
 
+Puhelimen näyttö: oma kuva tai video:
+
+Puhelimessa ja tabletissa on näyttöpaikka. **Muokkaa → Näyttö: kuva tai video
+puhelimessa** luettelee valitun kohtauksen näyttömuutokset (aika, hahmo.paikka,
+sisältö). Valitse näyttöpaikka ja paina **+ Uusi näyttömuutos toistopäähän**, tai
+napsauta olemassa olevaa muutosta muokataksesi sitä.
+
+- **Sisältö**: *Sammutettu*, *Kuva* (projektin kuvaresurssi) tai *Video*.
+- **Täytä / Sovita kokonaan / Venytä** määrää, miten kuva asettuu näyttöön.
+- Videolle: **Rajaus alku/loppu** (videon sekunteina), **Nopeus**, **Toista
+  silmukkana** ja **Napautukset** (videon sekunnit pilkulla erotettuina, esim.
+  `1.2, 3.5`).
+- **Lisää näyttömuutos / Tallenna muutos** tarkistaa koko käsikirjoituksen. Virhe
+  näkyy punaisena paneelissa eikä käsikirjoitus muutu. **Poista** poistaa
+  muutoksen. Jokainen lisäys, muutos ja poisto on yksi Kumoa-askel.
+
+Muutos alkaa annetusta ajasta ja kestää saman näytön seuraavaan muutokseen asti.
+Ennen ensimmäistä muutosta näytössä näkyy puhelimen oma piirros.
+
+**Tuo video**: kirjoita .mp4-, .mov- tai .m4v-tiedoston koko polku ja paina
+**Tuo video**. Tallenna projekti ensin projektikansioon. Video kopioidaan
+kansioon `assets/screens/` (olemassa olevaa tiedostoa ei koskaan korvata), sen
+kuvanopeus ja kesto luetaan ffprobella taustalla, ja valittuun näyttöpaikkaan
+lisätään videomuutos toistopään kohdalle. Tuonnin voi perua.
+
+Video tarvitsee paikallisen FFmpegin: anna `ffmpeg`-ohjelman koko polku (sama
+kenttä kuin videon viennissä); `ffprobe` haetaan samasta kansiosta. Esikatselua
+varten video puretaan taustalla 540 px leveiksi kuviksi kansioon
+`screen-video-cache/preview/`. Näyttämön alla näkyy purun eteneminen
+(ruutuja valmiina), puuttuva FFmpeg tai purkuvirhe; **Yritä videon purkua
+uudelleen** yrittää epäonnistunutta purkua uudestaan. Sovellus ei jäädy purun
+aikana, ja esikatselu näyttää videon samalla kohtauskellolla kuin vienti.
+
+Huom: video näkyy toistaiseksi vain valitun kohtauksen esikatselussa.
+Työpöytäsovelluksen **Vie video** ja koko projektin kooste eivät vielä pura videoita
+täysikokoisina; videomuutoksen sisältävä vienti pysähtyy esitarkistukseen
+selkeään virheeseen eikä vie pienennettyjä esikatselukuvia.
+Käytä toistaiseksi `production_export`-esimerkkiä (ks. `docs/screen-slots.md`).
+
 Kamera ja kuvakoko:
 
 **Muokkaa → Kamera ja kuvakoko** tarjoaa **Yleiskuva**, **Hahmot samaan kuvaan**,
