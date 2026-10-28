@@ -3,6 +3,7 @@ pub mod auto_direction;
 mod camera_presets;
 pub mod compiler;
 pub mod event_log;
+pub mod intent;
 mod rules;
 mod screens;
 mod shots;
