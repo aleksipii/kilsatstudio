@@ -200,6 +200,26 @@ impl Directory {
         Ok(())
     }
 }
+impl Directory {
+    /// Remove the staging directory and any half-published destination. Returns the
+    /// first path that could not be removed.
+    fn discard(&mut self) -> Result<(), (PathBuf, std::io::Error)> {
+        let mut failed = None;
+        if self.reserved && !self.complete {
+            if let Err(e) = fs::remove_dir_all(&self.destination) {
+                failed = Some((self.destination.clone(), e));
+            }
+        }
+        self.reserved = false;
+        match fs::remove_dir_all(&self.stage) {
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => {
+                failed.get_or_insert((self.stage.clone(), e));
+            }
+            _ => {}
+        }
+        failed.map_or(Ok(()), Err)
+    }
+}
 impl Drop for Directory {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.stage);
@@ -331,212 +351,227 @@ pub fn export_mp4_sequence_streaming(
         .map_err(|e| invalid(e.to_string()))?;
     enforce(cancel, started, profile, &reason)?;
     let mut directory = Directory::new(destination)?;
-    let audio_path = directory.stage.join("audio.wav");
-    motion_audio::write_wav(&audio_path, &audio).map_err(|e| invalid(e.to_string()))?;
-    drop(audio);
-    enforce(cancel, started, profile, &reason)?;
-    let video = directory.stage.join("sequence.mp4");
-    let errors = directory.stage.join("encoder.stderr");
-    let progress_file = directory.stage.join("encoder.progress");
-    let mut command = Command::new(ffmpeg);
-    command
-        .args([
-            "-nostdin",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-nostats",
-            "-f",
-            "rawvideo",
-            "-pixel_format",
-            "rgba",
-            "-video_size",
-        ])
-        .arg(format!("{width}x{height}"))
-        .args([
-            "-framerate",
-            &script.project.fps.to_string(),
-            "-i",
-            "pipe:0",
-            "-i",
-        ])
-        .arg(&audio_path)
-        .args([
-            "-map",
-            "0:v:0",
-            "-map",
-            "1:a:0",
-            "-frames:v",
-            &total.to_string(),
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-crf",
-            "18",
-            "-pix_fmt",
-            "yuv420p",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "128k",
-            "-movflags",
-            "+faststart",
-            "-fs",
-        ])
-        .arg((profile.max_output_bytes - 16 * 1024 * 1024).to_string())
-        .arg("-progress")
-        .arg(&progress_file)
-        .arg("-n")
-        .arg(&video)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::null())
-        .stderr(Stdio::from(File::create(&errors)?));
-    let mut child = command
-        .spawn()
-        .map_err(|e| invalid(format!("start streaming FFmpeg: {e}")))?;
-    let mut input = child
-        .stdin
-        .take()
-        .ok_or_else(|| invalid("encoder stdin unavailable"))?;
-    let child = Arc::new(Mutex::new(child));
-    let stop = Arc::new(AtomicBool::new(false));
-    let watch_child = Arc::clone(&child);
-    let watch_stop = Arc::clone(&stop);
-    let watch_reason = Arc::clone(&reason);
-    let watch_cancel = cancel.clone();
-    let watch_profile = profile.clone();
-    let watch_dir = directory.stage.clone();
-    let watch = thread::spawn(move || {
-        while !watch_stop.load(Ordering::Acquire) {
-            let failure = if watch_cancel.is_cancelled() {
-                Some("streaming export cancelled".to_string())
-            } else if started.elapsed() >= watch_profile.deadline {
-                Some("streaming export deadline exceeded".into())
-            } else if directory_bytes(&watch_dir)
-                .map_or(true, |n| n > watch_profile.max_output_bytes)
-                || fs::metadata(watch_dir.join("encoder.stderr"))
-                    .is_ok_and(|m| m.len() > 1024 * 1024)
-                || fs::metadata(watch_dir.join("encoder.progress"))
-                    .is_ok_and(|m| m.len() > 1024 * 1024)
-            {
-                Some("streaming output/log byte budget exceeded".into())
-            } else {
-                None
-            };
-            if let Some(failure) = failure {
-                *watch_reason.lock().unwrap_or_else(|e| e.into_inner()) = Some(failure);
-                let mut child = watch_child.lock().unwrap_or_else(|e| e.into_inner());
-                let _ = child.kill();
-                let _ = child.wait();
-                break;
+    // Run the staged work in one scope so the encoder is stopped before cleanup,
+    // and a failed cleanup is reported instead of being lost in `Drop`.
+    let result = (|| -> Result<StreamingReport, Error> {
+        let audio_path = directory.stage.join("audio.wav");
+        motion_audio::write_wav(&audio_path, &audio).map_err(|e| invalid(e.to_string()))?;
+        drop(audio);
+        enforce(cancel, started, profile, &reason)?;
+        let video = directory.stage.join("sequence.mp4");
+        let errors = directory.stage.join("encoder.stderr");
+        let progress_file = directory.stage.join("encoder.progress");
+        let mut command = Command::new(ffmpeg);
+        command
+            .args([
+                "-nostdin",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-nostats",
+                "-f",
+                "rawvideo",
+                "-pixel_format",
+                "rgba",
+                "-video_size",
+            ])
+            .arg(format!("{width}x{height}"))
+            .args([
+                "-framerate",
+                &script.project.fps.to_string(),
+                "-i",
+                "pipe:0",
+                "-i",
+            ])
+            .arg(&audio_path)
+            .args([
+                "-map",
+                "0:v:0",
+                "-map",
+                "1:a:0",
+                "-frames:v",
+                &total.to_string(),
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-crf",
+                "18",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "128k",
+                "-movflags",
+                "+faststart",
+                "-fs",
+            ])
+            .arg((profile.max_output_bytes - 16 * 1024 * 1024).to_string())
+            .arg("-progress")
+            .arg(&progress_file)
+            .arg("-n")
+            .arg(&video)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::from(File::create(&errors)?));
+        let mut child = command
+            .spawn()
+            .map_err(|e| invalid(format!("start streaming FFmpeg: {e}")))?;
+        let mut input = child
+            .stdin
+            .take()
+            .ok_or_else(|| invalid("encoder stdin unavailable"))?;
+        let child = Arc::new(Mutex::new(child));
+        let stop = Arc::new(AtomicBool::new(false));
+        let watch_child = Arc::clone(&child);
+        let watch_stop = Arc::clone(&stop);
+        let watch_reason = Arc::clone(&reason);
+        let watch_cancel = cancel.clone();
+        let watch_profile = profile.clone();
+        let watch_dir = directory.stage.clone();
+        let watch = thread::spawn(move || {
+            while !watch_stop.load(Ordering::Acquire) {
+                let failure = if watch_cancel.is_cancelled() {
+                    Some("streaming export cancelled".to_string())
+                } else if started.elapsed() >= watch_profile.deadline {
+                    Some("streaming export deadline exceeded".into())
+                } else if directory_bytes(&watch_dir)
+                    .map_or(true, |n| n > watch_profile.max_output_bytes)
+                    || fs::metadata(watch_dir.join("encoder.stderr"))
+                        .is_ok_and(|m| m.len() > 1024 * 1024)
+                    || fs::metadata(watch_dir.join("encoder.progress"))
+                        .is_ok_and(|m| m.len() > 1024 * 1024)
+                {
+                    Some("streaming output/log byte budget exceeded".into())
+                } else {
+                    None
+                };
+                if let Some(failure) = failure {
+                    *watch_reason.lock().unwrap_or_else(|e| e.into_inner()) = Some(failure);
+                    let mut child = watch_child.lock().unwrap_or_else(|e| e.into_inner());
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    break;
+                }
+                thread::sleep(Duration::from_millis(10));
+            }
+        });
+        let encoder = Encoder {
+            child,
+            stop,
+            thread: Some(watch),
+        };
+        for frame in 0..total {
+            enforce(cancel, started, profile, &reason)?;
+            let sample = frame * u64::from(SAMPLE_RATE) / u64::from(script.project.fps);
+            let (image, _) = sequence::compose(
+                script,
+                rendered,
+                art,
+                &timeline,
+                sample,
+                profile.review_size.map(|(w, h)| w.max(h)),
+                cancel,
+                Some(&validated),
+                captions,
+            )?;
+            if image.width() != width || image.height() != height {
+                return Err(invalid(
+                    "raster dimensions differ from explicit output profile",
+                ));
+            }
+            enforce(cancel, started, profile, &reason)?;
+            if let Err(error) = input.write_all(image.data()) {
+                enforce(cancel, started, profile, &reason)?;
+                return Err(invalid(format!(
+                    "streaming encoder write: {error}; {}",
+                    bounded_text(&errors)
+                )));
+            }
+            progress(Progress {
+                completed_frames: frame + 1,
+                total_frames: total,
+            });
+        }
+        drop(input);
+        let status = loop {
+            enforce(cancel, started, profile, &reason)?;
+            let status = encoder
+                .child
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .try_wait()?;
+            if let Some(status) = status {
+                break status;
             }
             thread::sleep(Duration::from_millis(10));
-        }
-    });
-    let encoder = Encoder {
-        child,
-        stop,
-        thread: Some(watch),
-    };
-    for frame in 0..total {
+        };
         enforce(cancel, started, profile, &reason)?;
-        let sample = frame * u64::from(SAMPLE_RATE) / u64::from(script.project.fps);
-        let (image, _) = sequence::compose(
-            script,
-            rendered,
-            art,
-            &timeline,
-            sample,
-            profile.review_size.map(|(w, h)| w.max(h)),
-            cancel,
-            Some(&validated),
-            captions,
-        )?;
-        if image.width() != width || image.height() != height {
-            return Err(invalid(
-                "raster dimensions differ from explicit output profile",
-            ));
-        }
-        enforce(cancel, started, profile, &reason)?;
-        if let Err(error) = input.write_all(image.data()) {
-            enforce(cancel, started, profile, &reason)?;
+        if !status.success() {
             return Err(invalid(format!(
-                "streaming encoder write: {error}; {}",
+                "streaming encoder failed: {status}; {}",
                 bounded_text(&errors)
             )));
         }
-        progress(Progress {
-            completed_frames: frame + 1,
-            total_frames: total,
-        });
-    }
-    drop(input);
-    let status = loop {
-        enforce(cancel, started, profile, &reason)?;
-        let status = encoder
-            .child
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .try_wait()?;
-        if let Some(status) = status {
-            break status;
-        }
-        thread::sleep(Duration::from_millis(10));
-    };
-    enforce(cancel, started, profile, &reason)?;
-    if !status.success() {
-        return Err(invalid(format!(
-            "streaming encoder failed: {status}; {}",
-            bounded_text(&errors)
-        )));
-    }
-    encoder.stop.store(true, Ordering::Release);
-    let progress_text = fs::read_to_string(&progress_file)?;
-    let encoded_frames = progress_text
-        .lines()
-        .filter_map(|l| l.strip_prefix("frame="))
-        .filter_map(|v| v.trim().parse::<u64>().ok())
-        .next_back();
-    if !progress_text.lines().any(|l| l == "progress=end") || encoded_frames != Some(total) {
-        return Err(invalid(
+        encoder.stop.store(true, Ordering::Release);
+        let progress_text = fs::read_to_string(&progress_file)?;
+        let encoded_frames = progress_text
+            .lines()
+            .filter_map(|l| l.strip_prefix("frame="))
+            .filter_map(|v| v.trim().parse::<u64>().ok())
+            .next_back();
+        if !progress_text.lines().any(|l| l == "progress=end") || encoded_frames != Some(total) {
+            return Err(invalid(
             "encoder did not confirm every requested frame; output may have reached its size limit",
         ));
-    }
-    let video_bytes = fs::metadata(&video)?.len();
-    if video_bytes == 0 || directory_bytes(&directory.stage)? > profile.max_output_bytes {
-        return Err(invalid("empty or oversized streaming output"));
-    }
-    drop(encoder);
-    fs::remove_file(errors)?;
-    fs::remove_file(progress_file)?;
-    let manifest = serde_json::json!({"schema_version":1,"mode":"bounded-streaming-rgba","sample_rate":SAMPLE_RATE,
+        }
+        let video_bytes = fs::metadata(&video)?.len();
+        if video_bytes == 0 || directory_bytes(&directory.stage)? > profile.max_output_bytes {
+            return Err(invalid("empty or oversized streaming output"));
+        }
+        drop(encoder);
+        fs::remove_file(errors)?;
+        fs::remove_file(progress_file)?;
+        let manifest = serde_json::json!({"schema_version":1,"mode":"bounded-streaming-rgba","sample_rate":SAMPLE_RATE,
         "fps":script.project.fps,"width":width,"height":height,"source_width":script.project.width,"source_height":script.project.height,"review":profile.review_size.is_some(),
         "total_samples":timeline.total_samples(),"frame_count":total,"audio_file":"audio.wav","video_file":"sequence.mp4",
         "captions":captions,"scenes":timeline.spans().iter().map(|s|serde_json::json!({"scene_index":s.scene_index,"scene_id":script.scenes[s.scene_index].id,
             "start_sample":s.start_sample,"duration_samples":s.duration_samples,"outgoing_overlap":s.outgoing_overlap})).collect::<Vec<_>>()});
-    fs::write(
-        directory.stage.join("sequence.json"),
-        bounded_json(&manifest, 1024 * 1024)?,
-    )?;
-    enforce(cancel, started, profile, &reason)?;
-    if directory_bytes(&directory.stage)? > profile.max_output_bytes {
-        return Err(invalid("streaming final byte budget exceeded"));
+        fs::write(
+            directory.stage.join("sequence.json"),
+            bounded_json(&manifest, 1024 * 1024)?,
+        )?;
+        enforce(cancel, started, profile, &reason)?;
+        if directory_bytes(&directory.stage)? > profile.max_output_bytes {
+            return Err(invalid("streaming final byte budget exceeded"));
+        }
+        directory.publish()?;
+        Ok(StreamingReport {
+            frame_count: total,
+            output_directory: destination.to_path_buf(),
+            total_samples: timeline.total_samples(),
+            width,
+            height,
+            fps: script.project.fps,
+            source_width: script.project.width,
+            source_height: script.project.height,
+            review: profile.review_size.is_some(),
+            elapsed_seconds: started.elapsed().as_secs_f64(),
+            video_bytes,
+        })
+    })();
+    match result {
+        Ok(report) => Ok(report),
+        Err(cause) => match directory.discard() {
+            Ok(()) => Err(cause),
+            Err((path, cleanup)) => Err(Error::PartialOutput {
+                path,
+                cause: Box::new(cause),
+                cleanup,
+            }),
+        },
     }
-    directory.publish()?;
-    Ok(StreamingReport {
-        frame_count: total,
-        output_directory: destination.to_path_buf(),
-        total_samples: timeline.total_samples(),
-        width,
-        height,
-        fps: script.project.fps,
-        source_width: script.project.width,
-        source_height: script.project.height,
-        review: profile.review_size.is_some(),
-        elapsed_seconds: started.elapsed().as_secs_f64(),
-        video_bytes,
-    })
 }
 
 #[cfg(test)]
@@ -632,6 +667,75 @@ mod tests {
         assert!(started.elapsed() < Duration::from_secs(3));
         assert!(!out.exists());
         assert_eq!(fs::read_dir(&root).unwrap().count(), 1);
+        fs::remove_dir_all(root).unwrap();
+    }
+    #[cfg(unix)]
+    #[test]
+    fn failed_streaming_cleanup_reports_the_cause_and_the_leftover_directory() {
+        use std::os::unix::fs::PermissionsExt;
+        if Command::new("id")
+            .arg("-u")
+            .output()
+            .is_ok_and(|o| o.stdout.starts_with(b"0"))
+        {
+            eprintln!("skipped: root ignores directory permissions");
+            return;
+        }
+        let root = destination();
+        fs::create_dir(&root).unwrap();
+        // The export reports canonical paths (`/var` is `/private/var` on macOS).
+        let root = fs::canonicalize(root).unwrap();
+        // The fake encoder locks the staging directory (parent of its last argument,
+        // the video path) and blocks, so the deadline fails the export and the
+        // cleanup cannot remove the staged files.
+        let encoder = root.join("locking-encoder");
+        fs::write(
+            &encoder,
+            "#!/bin/sh\nfor a; do last=$a; done\nchmod 555 \"$(dirname \"$last\")\"\nexec sleep 20\n",
+        )
+        .unwrap();
+        fs::set_permissions(&encoder, fs::Permissions::from_mode(0o755)).unwrap();
+        let out = root.join("out");
+        let (script, rendered) = fixture(1.0, 640, 360, 24);
+        let mut profile = StreamingProfile::full_hd_24();
+        profile.deadline = Duration::from_secs(1);
+        let result = export_mp4_sequence_streaming(
+            &script,
+            &rendered,
+            None,
+            &out,
+            &encoder,
+            &profile,
+            &CancellationToken::new(),
+            |_| {},
+            CaptionMode::Follow,
+        );
+        let stages: Vec<PathBuf> = fs::read_dir(&root)
+            .unwrap()
+            .map(|e| e.unwrap().path())
+            .filter(|p| {
+                p.file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .starts_with(".kilsat-stream-")
+            })
+            .collect();
+        for stage in &stages {
+            fs::set_permissions(stage, fs::Permissions::from_mode(0o755)).unwrap();
+        }
+        match result {
+            Err(Error::PartialOutput {
+                path,
+                cause,
+                cleanup,
+            }) => {
+                assert_eq!(stages, vec![path]);
+                assert!(cause.to_string().contains("deadline"), "{cause}");
+                assert_eq!(cleanup.kind(), std::io::ErrorKind::PermissionDenied);
+            }
+            other => panic!("expected PartialOutput, got {other:?}"),
+        }
+        assert!(!out.exists());
         fs::remove_dir_all(root).unwrap();
     }
     #[test]
