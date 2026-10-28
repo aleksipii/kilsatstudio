@@ -272,6 +272,15 @@ fn every_shot_renders_non_blank_frames_with_expected_flat_colours() {
     // 3 father close-up: hall wall and skin.
     assert_color(at(3, (200.0, 100.0)), [28, 70, 64], "hall wall");
     assert_color(at(3, (320.0, 149.0)), [154, 119, 109], "father skin");
+    // Bold black outlines (`behind` mode, 1.8 units outside the round heads): boy
+    // head ellipse centre (320, 219) rx 28; father centre (320, 144) rx 31.
+    let outline = |p: [u8; 3], what: &str| {
+        assert!(p.iter().all(|c| *c < 24), "{what} outline: {p:?}");
+    };
+    outline(at(0, (348.9, 219.0)), "boy head");
+    outline(at(0, (291.1, 219.0)), "boy head");
+    outline(at(3, (351.9, 144.0)), "father head");
+    outline(at(3, (288.1, 144.0)), "father head");
     // The father must be absent from the bed shots and the boy from the others.
     assert!(!seen_first_frames[0]
         .as_chunks::<4>()
@@ -1007,4 +1016,36 @@ fn real_speech_rebuilds_the_sequence_and_renders_everything() {
     for scene in &rendered[1..] {
         assert!(scene.audio.samples.iter().any(|s| s.abs() > 0.05));
     }
+}
+
+/// Comic-timing measurements on the generated placeholder tones (which start at
+/// full level, so the detected first word is the speak event itself). Arithmetic and
+/// plumbing only; whether the timing works on screen is a human review question.
+#[test]
+fn comic_timing_measures_cut_gaps_holds_and_reading_speed() {
+    let (expansion, rendered) = support::build(None);
+    let dir = support::audio_source_dir(None);
+    let timings = support::comic_timing(&expansion, &rendered, &dir);
+    assert_eq!(timings.len(), 4);
+    assert!(timings[0].line.is_none());
+    assert!((timings[0].cut_out - 2.4).abs() < 1e-9, "bed_closeup hold");
+    for pair in timings.windows(2) {
+        assert!((pair[0].cut_out - pair[1].cut_in).abs() < 1e-9);
+    }
+    for t in &timings[1..] {
+        let l = t.line.as_ref().unwrap();
+        // lead_in 0.15 s; the centred RMS window may spread one 10 ms hop earlier.
+        assert!((l.cut_to_first_word - 0.15).abs() <= 0.0101, "{t:?}");
+        assert!(l.leading_silence <= 0.0101);
+        // tail 0.6 s after the clip; captions last exactly as long as the audio.
+        assert!((l.hold_after_audio - 0.6).abs() < 1e-6, "{t:?}");
+        assert!((l.caption_seconds() - l.audio).abs() < 1e-6);
+        assert!((l.pause_after_line - l.trailing_silence - l.hold_after_audio).abs() < 1e-6);
+        assert!((l.leading_silence + l.speech + l.trailing_silence - l.audio).abs() < 1e-6);
+        assert_eq!(l.caption_chars, l.text.chars().count());
+        assert!((l.cps() - l.caption_chars as f64 / l.audio).abs() < 1e-9);
+    }
+    let report = support::comic_timing_report(&timings);
+    assert!(report.contains("guidance, not a quality verdict"));
+    assert_eq!(report.lines().filter(|l| l.contains("cps:")).count(), 3);
 }

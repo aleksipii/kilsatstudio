@@ -47,8 +47,8 @@ impl State {
             self.context = Some(context);
         }
         let scene = script.scenes.get(scene_index)?;
-        ui.small("Live references combine in saved row order, without normalized weights. Additive then Override can differ from Override then Additive. Windows include their start and exclude their end; fades soften these edges.");
-        ui.small("Editing a library clip changes every live reference. Apply and removal are explicit source edits with Undo; YAML formatting is normalized and comments are removed.");
+        ui.small("Suorat viittaukset yhdistetään tallennetussa rivijärjestyksessä. Ryhmättömien viittausten painoja ei normalisoida. Lisäävän ja korvaavan tilan järjestys vaikuttaa tulokseen. Aikaväli sisältää alun mutta ei loppuhetkeä. Häivytykset pehmentävät rajoja.");
+        ui.small("Kirjaston katkelman muokkaus vaikuttaa jokaiseen suoraan viittaukseen. Käyttäminen ja poistaminen muuttavat käsikirjoitusta, ja ne voi kumota. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let mut action = None;
         for (index, instance) in scene.composition.clip_instances.iter().enumerate() {
             ui.horizontal(|ui| {
@@ -57,12 +57,15 @@ impl State {
                     instance.id, instance.actor, instance.clip
                 ));
                 if instance.actor == actor {
-                    if ui.button("Edit").clicked() {
+                    if ui.button("Muokkaa").clicked() {
                         self.draft = Some(instance.clone());
                         self.editing = true;
                         self.confirm_delete = false;
                     }
-                    if ui.add_enabled(index > 0, egui::Button::new("Up")).clicked() {
+                    if ui
+                        .add_enabled(index > 0, egui::Button::new("Ylös"))
+                        .clicked()
+                    {
                         action = Some(Action::Reorder {
                             id: instance.id.clone(),
                             new_index: index - 1,
@@ -71,7 +74,7 @@ impl State {
                     if ui
                         .add_enabled(
                             index + 1 < scene.composition.clip_instances.len(),
-                            egui::Button::new("Down"),
+                            egui::Button::new("Alas"),
                         )
                         .clicked()
                     {
@@ -100,7 +103,7 @@ impl State {
             && actor_count < 32
             && total < 1024;
         if ui
-            .add_enabled(can_add, egui::Button::new("New live clip instance"))
+            .add_enabled(can_add, egui::Button::new("Uusi suora katkelmaviittaus"))
             .clicked()
         {
             if let Some((name, clip)) = script.animation_clips.iter().next() {
@@ -127,12 +130,12 @@ impl State {
             return action;
         };
         if self.editing {
-            ui.label(format!("Instance ID: {}", draft.id));
+            ui.label(format!("Viittauksen tunnus: {}", draft.id));
         } else if ui.text_edit_singleline(&mut draft.id).changed() {
             self.confirm_delete = false;
         }
         ui.small(
-            "ID: 1–64 ASCII letters, digits, underscores or hyphens; immutable while editing.",
+            "Tunnus: 1–64 ASCII-kirjainta, numeroa, alaviivaa tai yhdysmerkkiä. Tunnusta ei voi muuttaa viittausta muokatessa.",
         );
         let previous = draft.clip.clone();
         egui::ComboBox::from_id_salt("live_clip_reference")
@@ -162,7 +165,7 @@ impl State {
             });
         let mut grouped = draft.normalized_group.is_some();
         if ui
-            .checkbox(&mut grouped, "Normalize an override group")
+            .checkbox(&mut grouped, "Normalisoi korvaavien liikkeiden ryhmä")
             .changed()
         {
             draft.normalized_group = grouped.then(|| "group".into());
@@ -173,27 +176,30 @@ impl State {
         }
         if let Some(group) = &mut draft.normalized_group {
             ui.horizontal(|ui| {
-                ui.label("Group ID");
+                ui.label("Ryhmän tunnus");
                 if ui.text_edit_singleline(group).changed() {
                     self.confirm_delete = false;
                 }
             });
-            ui.small("Use the same ID on consecutive override rows for one actor. Per joint, positive active selected clips normalize above total weight 1; below 1, the earlier pose fills the remainder. Group position preserves surrounding stack order.");
+            ui.small("Käytä samaa tunnusta yhden hahmon peräkkäisillä korvaavilla riveillä. Nivelen aktiivisten liikkeiden positiiviset painot normalisoidaan, kun summa ylittää yhden. Alle yhden jäävän osuuden täyttää aiempi asento. Ryhmän paikka säilyttää ympäröivien liikkeiden järjestyksen.");
         }
         ui.small(match draft.blend_mode {
-            ClipBlendMode::Override => "Override interpolates earlier authored offsets toward this clip on shared joints, using shortest-arc rotation.",
-            ClipBlendMode::Additive => "Additive adds effective weight × signed translation and rotation deltas (radians) to earlier offsets; rotation is not shortened or wrapped. Scale multiplies by 1 + effective weight × (clip scale − 1); identity scale is neutral. Combined offsets must remain within supported bounds.",
+            ClipBlendMode::Override => "Korvaava tila siirtää yhteisten nivelten aiempia siirtymiä kohti tätä katkelmaa. Kierto kulkee lyhintä kaarta.",
+            ClipBlendMode::Additive => "Lisäävä tila lisää aiempiin siirtymiin painotetun siirtymän ja kierron muutoksen radiaaneina. Kierron suunta ja kierrosten määrä säilyvät. Mittakaava kerrotaan arvolla 1 + vaikutuspaino × (katkelman mittakaava − 1); mittakaava 1 on neutraali. Yhdistettyjen arvojen tulee pysyä sallituissa rajoissa.",
         });
         if ui
-            .checkbox(&mut draft.looping, "Loop at original clip speed")
+            .checkbox(
+                &mut draft.looping,
+                "Toista katkelma alkuperäisellä nopeudella",
+            )
             .changed()
         {
             self.confirm_delete = false;
         }
-        ui.small("Looping repeats the library clip in seconds; fades and weight keys span the whole instance. Otherwise the clip stretches once to fit.");
+        ui.small("Toisto käyttää kirjastokatkelman alkuperäistä kestoa. Häivytykset ja painojen avainruudut kattavat koko viittauksen. Ilman toistoa katkelma venytetään kerran viittauksen kestoon.");
         let mut masked = !draft.joint_mask.is_empty();
         if ui
-            .checkbox(&mut masked, "Select individual joints")
+            .checkbox(&mut masked, "Valitse yksittäiset nivelet")
             .changed()
         {
             draft.joint_mask = if masked {
@@ -218,14 +224,14 @@ impl State {
                     self.confirm_delete = false;
                 }
             }
-            ui.small("Choose at least one joint. Selection affects these offsets only, without descendant expansion. Disable selection to use all clip joints.");
+            ui.small("Valitse ainakin yksi nivel. Valinta vaikuttaa vain näiden nivelten siirtymiin, eikä laajene alaniveliin. Poista valintarajaus käyttääksesi katkelman kaikkia niveliä.");
         }
         for (label, value) in [
-            ("Start (seconds)", &mut draft.at),
-            ("Duration (seconds)", &mut draft.duration),
+            ("Alku (sekuntia)", &mut draft.at),
+            ("Kesto (sekuntia)", &mut draft.duration),
             (weight_label(draft.blend_mode), &mut draft.weight),
-            ("Fade in (seconds)", &mut draft.fade_in),
-            ("Fade out (seconds)", &mut draft.fade_out),
+            ("Alkuhäivytys (sekuntia)", &mut draft.fade_in),
+            ("Loppuhäivytys (sekuntia)", &mut draft.fade_out),
         ] {
             ui.horizontal(|ui| {
                 ui.label(label);
@@ -234,14 +240,14 @@ impl State {
                 }
             });
         }
-        ui.small("Weight key times are relative to this instance, not the library clip or scene. The keyed scalar multiplies the selected mode’s weight factor and linear fades; endpoint values are held and easing follows each key. Duration edits do not rescale keys or fades.");
+        ui.small("Painojen avainruutujen ajat ovat suhteessa tämän viittauksen alkuun. Avainruudun arvo kerrotaan valitun tilan painokertoimella ja lineaarisilla häivytyksillä. Päätearvot säilyvät aikavälin ulkopuolella, ja siirtymätapa vaikuttaa avainruudun jälkeen. Keston muokkaus ei skaalaa avainruutujen tai häivytysten aikoja.");
         let mut remove = None;
         for (index, key) in draft.weight_keys.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
                 ui.horizontal(|ui| {
-                    ui.label("Time");
+                    ui.label("Aika");
                     let time_changed = number_field(ui, &mut key.time);
-                    ui.label("Weight (0–1)");
+                    ui.label("Paino (0–1)");
                     let weight_changed = number_field(ui, &mut key.weight);
                     if time_changed || weight_changed {
                         self.confirm_delete = false;
@@ -262,7 +268,7 @@ impl State {
                                 }
                             }
                         });
-                    if ui.button("Remove key").clicked() {
+                    if ui.button("Poista avainruutu").clicked() {
                         remove = Some(index);
                     }
                 });
@@ -279,7 +285,7 @@ impl State {
                     && envelope_valid(draft)
                     && mask_valid(draft)
                     && envelope_budget(script, scene_index, draft, self.editing, 1),
-                egui::Button::new("Add weight key"),
+                egui::Button::new("Lisää painon avainruutu"),
             )
             .clicked()
         {
@@ -293,7 +299,7 @@ impl State {
             }
         }
         if ui
-            .button("Reset timing, weight, fades and clear weight keys")
+            .button("Palauta ajoitus, paino ja häivytykset; tyhjennä painon avainruudut")
             .clicked()
         {
             reset_envelope(draft, script);
@@ -327,10 +333,10 @@ impl State {
                         .iter()
                         .any(|instance| instance.id == draft.id)));
         if !valid {
-            ui.colored_label(egui::Color32::LIGHT_RED, "Choose an existing clip, a unique valid ID, finite timing inside this scene, weights between 0 and 1, non-overlapping fades and strictly increasing instance-local keys (256 per instance, 8192 per scene, 65536 per project). Normalized groups require one contiguous same-actor override block with a valid group ID.");
+            ui.colored_label(egui::Color32::LIGHT_RED, "Valitse olemassa oleva katkelma ja yksilöllinen tunnus. Ajoituksen tulee olla äärellinen ja kohtauksen sisällä. Painojen tulee olla väliltä 0–1, eivätkä häivytykset saa mennä päällekkäin. Avainruutujen aikojen tulee kasvaa viittauksen sisällä. Avainruutuja saa olla enintään 256 viittausta kohden, 8192 kohtausta kohden ja 65536 projektia kohden. Normalisoitu ryhmä koostuu yhden hahmon peräkkäisistä korvaavista riveistä ja tarvitsee kelvollisen ryhmätunnuksen.");
         }
         if ui
-            .add_enabled(valid, egui::Button::new("Apply live clip instance"))
+            .add_enabled(valid, egui::Button::new("Käytä suora katkelmaviittaus"))
             .clicked()
         {
             action = Some(Action::Upsert {
@@ -341,12 +347,12 @@ impl State {
         if self.editing {
             ui.checkbox(
                 &mut self.confirm_delete,
-                "Confirm removal of this live instance",
+                "Vahvista tämän suoran viittauksen poistaminen",
             );
             if ui
                 .add_enabled(
                     self.confirm_delete,
-                    egui::Button::new("Remove live instance"),
+                    egui::Button::new("Poista suora katkelmaviittaus"),
                 )
                 .clicked()
             {
@@ -479,23 +485,23 @@ fn envelope_budget(
 
 fn blend_mode_label(mode: ClipBlendMode) -> &'static str {
     match mode {
-        ClipBlendMode::Override => "Override",
-        ClipBlendMode::Additive => "Additive",
+        ClipBlendMode::Override => "Korvaava",
+        ClipBlendMode::Additive => "Lisäävä",
     }
 }
 
 fn weight_label(mode: ClipBlendMode) -> &'static str {
     match mode {
-        ClipBlendMode::Override => "Override weight (0–1)",
-        ClipBlendMode::Additive => "Additive weight factor (0–1)",
+        ClipBlendMode::Override => "Korvaavan liikkeen paino (0–1)",
+        ClipBlendMode::Additive => "Lisäävän liikkeen painokerroin (0–1)",
     }
 }
 
 fn easing_label(easing: ActorEasing) -> &'static str {
     match easing {
-        ActorEasing::Linear => "Linear",
-        ActorEasing::Smoothstep => "Smoothstep",
-        ActorEasing::Hold => "Hold",
+        ActorEasing::Linear => "Lineaarinen",
+        ActorEasing::Smoothstep => "Pehmeä",
+        ActorEasing::Hold => "Pidä arvo",
     }
 }
 

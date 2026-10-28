@@ -12,3 +12,4 @@ thiserror.workspace = true
 motion-animation = { path = "../motion-animation" }
 motion-rig = { path = "../motion-rig" }
 motion-lipsync = { path = "../motion-lipsync" }
+[dev-dependencies]

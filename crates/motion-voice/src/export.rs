@@ -6,7 +6,8 @@ use motion_lipsync::{AlignmentSource, Viseme};
 use motion_tts::SpeechError;
 use serde::{Deserialize, Serialize};
 
-pub const SAMPLE_RATE: u32 = 24_000;
+/// Alias of the canonical clock in `motion_audio::clock`.
+pub const SAMPLE_RATE: u32 = motion_audio::clock::DIALOGUE_SAMPLE_RATE;
 pub const MAX_SCENE_SECONDS: f64 = 3600.0;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -217,7 +218,7 @@ pub fn render_scene_with_cues(
 
 /// First source sample at or after a boundary, clipped to audio EOF. Correct the
 /// floating multiplication estimate using exactly the division used by mouth_at.
-fn sample_boundary(seconds: f64, audio_frames: u64) -> u64 {
+pub(crate) fn sample_boundary(seconds: f64, audio_frames: u64) -> u64 {
     let mut sample = ((seconds * SAMPLE_RATE as f64).ceil() as u64).min(audio_frames);
     while sample > 0 && (sample - 1) as f64 / SAMPLE_RATE as f64 >= seconds {
         sample -= 1;

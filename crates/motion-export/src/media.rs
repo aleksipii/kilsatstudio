@@ -31,6 +31,14 @@ pub(super) fn rasterize(svg: &str) -> Result<Vec<u8>, Error> {
     rasterize_scaled(svg, None)
 }
 pub(super) fn rasterize_scaled(svg: &str, max_side: Option<u32>) -> Result<Vec<u8>, Error> {
+    rasterize_scaled_pixmap(svg, max_side)?
+        .encode_png()
+        .map_err(|e| invalid(format!("PNG encoding: {e}")))
+}
+pub(super) fn rasterize_scaled_pixmap(
+    svg: &str,
+    max_side: Option<u32>,
+) -> Result<resvg::tiny_skia::Pixmap, Error> {
     let tree = resvg::usvg::Tree::from_str(svg, options())
         .map_err(|e| invalid(format!("SVG rasterization: {e}")))?;
     let size = tree.size().to_int_size();
@@ -52,9 +60,7 @@ pub(super) fn rasterize_scaled(svg: &str, max_side: Option<u32>) -> Result<Vec<u
         ),
         &mut pixmap.as_mut(),
     );
-    pixmap
-        .encode_png()
-        .map_err(|e| invalid(format!("PNG encoding: {e}")))
+    Ok(pixmap)
 }
 
 /// Encode retained PNG/WAV interchange files using a caller-selected local FFmpeg.
@@ -157,21 +163,14 @@ fn export_mp4_inner(
         captions,
     )?;
     let result = encode(script, destination, ffmpeg, cancel).map(|()| report);
-    if result.is_err() {
-        fs::remove_dir_all(destination).map_err(|e| {
-            invalid(format!(
-                "video export failed; partial-output cleanup failed: {e}"
-            ))
-        })?;
-    }
-    result
+    discard_partial(destination, result)
 }
 
 pub(super) fn validate_encoder(script: &Script, ffmpeg: &Path) -> Result<(), Error> {
     if !ffmpeg.is_absolute() || !ffmpeg.is_file() {
-        return Err(invalid(
-            "FFmpeg must be an explicit absolute path to a local executable",
-        ));
+        return Err(Error::EncoderUnavailable {
+            path: ffmpeg.to_path_buf(),
+        });
     }
     // H.264 yuv420p needs even dimensions. Reject rather than silently resize poses.
     if !script.project.width.is_multiple_of(2) || !script.project.height.is_multiple_of(2) {

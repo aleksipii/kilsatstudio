@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "source_sha": "8d68d021937dce8f0961e42a5d233b6b7d418e2f",
+  "ci_run": 40178484861,
+  "artifact_id": 12593905647,
+  "artifact_sha256": "50c6cd38814fd39ce9efa8be4d18bb1ed9f04008a0ff2ffded14f645d603148b",
+  "archive_hash_verified": true,
+  "all_episode_hashes_verified": true,
+  "language": "en-us",
+  "voices": {
+    "AINO": "af_heart",
+    "RANE": "am_michael"
+  },
+  "episodes": [
+    {
+      "episode": 1,
+      "title": "The Free Commute",
+      "file": "01-The-Free-Commute.mp4",
+      "observed": {
+        "frame_count": 1059,
+        "duration_seconds": 44.125,
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "audio_sample_rate": 24000
+      },
+      "video_sha256": "3ecdebf4b4fc89b9fcc2bdee9c032ebb93c1a9d919e5a0d5335dc4293d727234",
+      "audio_sha256": "50dc903d42d614bcca5902a30b08c1bbdc5b199e835e6acbd5f64f42b8f1998f",
+      "pipeline_sha256": "f6259e7457ff0a28e2e51661027dbceed519b1862391752ab1952b9342c59c42",
+      "elapsed_seconds": 206.33614179099993,
+      "actual_audio_samples": 1059000
+    },
+    {
+      "episode": 2,
+      "title": "The No-Travel Meeting",
+      "file": "02-The-No-Travel-Meeting.mp4",
+      "observed": {
+        "frame_count": 1085,
+        "duration_seconds": 45.208333,
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "audio_sample_rate": 24000
+      },
+      "video_sha256": "515750ea2d509613af67d3219257b600f11309244233c0060801222a76abd3a8",
+      "audio_sha256": "cae9c76691483e7917e936e7cfad9bcc3dfd405b0e36fc5aa0846b811745021f",
+      "pipeline_sha256": "07573d8c9464a6f2fbd8285da90e035881718e5bb7e6366acfceb55d4ff3871d",
+      "elapsed_seconds": 158.701355584,
+      "actual_audio_samples": 1084200
+    },
+    {
+      "episode": 3,
+      "title": "The Savings Bonus",
+      "file": "03-The-Savings-Bonus.mp4",
+      "observed": {
+        "frame_count": 1119,
+        "duration_seconds": 46.625,
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "audio_sample_rate": 24000
+      },
+      "video_sha256": "22aab6fa84ec697c4233d8d42f8002798813eda950e53e31bb191dd383337d69",
+      "audio_sha256": "50e1c26bc128207bd98c78734ce11ad1e8e8223aa0970d2fd8b15117176351ed",
+      "pipeline_sha256": "31d105b375c1fa7a6627c42bd0b636bb44b0c9d75c77aece55788197c3832005",
+      "elapsed_seconds": 194.81350470799987,
+      "actual_audio_samples": 1118400
+    }
+  ],
+  "acceptance": {
+    "artistic_review": false,
+    "audio_rights_reviewed": false,
+    "real_audio_lipsync_review": false,
+    "actual_kilsat_capture": false,
+    "physical_mac_300s": false
+  },
+  "publication_approved": false,
+  "date": "2026-10-25",
+  "merged_pr": 97,
+  "merge_sha": "ef97286d2bae44e42f50d962406a6e2c6edac92e",
+  "ci_url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861",
+  "artifact_url": "https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861/artifacts/12593905647",
+  "batch_elapsed_seconds": 567.2482909159999,
+  "measurement_scope": "Per-episode project-to-real-speech-to-Full-HD-MP4 and independent probe; model/environment installation and compilation are outside these timers. CI VM, not physical Mac acceptance.",
+  "hardware": {
+    "os": "Darwin",
+    "release": "24.6.0",
+    "machine": "arm64",
+    "logical_cpus": 3,
+    "ci": true,
+    "virtualized": 1,
+    "mac_model": "VirtualMac2,1",
+    "memory_bytes": 7516192768
+  },
+  "local_decoded_probe": [
+    {
+      "episode": 1,
+      "frames": 1059,
+      "audio_peak_pcm16": 17182,
+      "nonzero_audio_samples": 702791,
+      "total_audio_samples": 1059000
+    },
+    {
+      "episode": 2,
+      "frames": 1085,
+      "audio_peak_pcm16": 17515,
+      "nonzero_audio_samples": 727323,
+      "total_audio_samples": 1084200
+    },
+    {
+      "episode": 3,
+      "frames": 1119,
+      "audio_peak_pcm16": 21307,
+      "nonzero_audio_samples": 760821,
+      "total_audio_samples": 1118400
+    }
+  ],
+  "visual_check": "Integrator viewed the actual opening/later frames for each episode, confirming visible characters, English captions and the EXAMPLE prop; no artistic or lip-sync quality acceptance.",
+  "inference_regression": {
+    "failed_run": 40178025461,
+    "failed_preshed": "3.0.14",
+    "working_preshed": "3.0.13",
+    "upstream_issue": "https://github.com/explosion/spaCy/issues/14058"
+  },
+  "main_verification": {
+    "merge_sha": "ef97286d2bae44e42f50d962406a6e2c6edac92e",
+    "rust_gpu_media_run": 40179515217,
+    "mac_package_run": 40179515247,
+    "voice_selection_run": 40179515204,
+    "english_render_run": 40179515230,
+    "all_completed_successfully": true,
+    "english_artifact_id": 12593402307,
+    "english_artifact_archive_digest": "sha256:b07f49ab426a0c76130a727ec3d22075a47d1a29e1a7d46d8d1358ad1067019a",
+    "english_artifact_downloaded_by_integrator": false,
+    "episode_frame_counts_from_completed_job_log": [
+      1059,
+      1085,
+      1119
+    ]
+  }
+}

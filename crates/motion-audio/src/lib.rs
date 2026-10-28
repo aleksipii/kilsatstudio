@@ -1,4 +1,5 @@
 //! Sample-frame based audio primitives shared by preview and export.
+pub mod clock;
 pub mod transport;
 use serde::{Deserialize, Serialize};
 use std::{fmt, path::Path};

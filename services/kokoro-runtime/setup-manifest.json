@@ -33,7 +33,8 @@
     "misaki[en]==0.9.4",
     "torch==2.6.0",
     "numpy==1.26.4",
-    "spacy==3.7.5"
+    "spacy==3.7.5",
+    "preshed==3.0.13"
   ],
   "english_model_url": "https://huggingface.co/spacy/en_core_web_sm/resolve/8fb6f8155286360bf5486fe399e2738d1df7ded2/en_core_web_sm-any-py3-none-any.whl",
   "english_model_sha256": "86cc141f63942d4b2c5fcee06630fd6f904788d2f0ab005cce45aadb8fb73889",
@@ -43,6 +44,7 @@
     "Official repository metadata verified 2026-10-16; no weights, voices or language wheels downloaded during development.",
     "Direct package pins only; transitive wheels resolved by pip and actual environment recorded, not a complete reproducible lock or redistribution audit.",
     "Host Python 3.10\u20133.12 required; metadata confirms cp312 macOS11 arm64 wheels for Torch, NumPy and spaCy but actual Mac installation/inference remains unverified.",
-    "English model3.7.1 requires spaCy>=3.7.2,<3.8; this deliberately selects matching spaCy3.7.5."
+    "English model3.7.1 requires spaCy>=3.7.2,<3.8; this deliberately selects matching spaCy3.7.5.",
+    "Preshed3.0.13 is pinned after an actual macOS arm64 English render with3.0.14 failed in spaCy tokenizer cache initialization (2026-10-25, CI40178025461). Upstream cross-platform regression: https://github.com/explosion/spaCy/issues/14058. The manifest hash invalidates the previous CI environment cache."
   ]
 }

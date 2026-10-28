@@ -1,0 +1,227 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kannettava tietokone\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_kannettava_lid_outline",
+        "name": "kannettava lid outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 91.64705882352942,
+            "y": 121.41176470588235,
+            "width": 328.7058823529412,
+            "height": 221.29411764705884
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_lid_fill",
+        "name": "kannettava lid fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 103.29411764705883,
+            "y": 133.05882352941177,
+            "width": 305.4117647058824,
+            "height": 198.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_screen",
+        "name": "kannettava screen",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 113.64705882352942,
+            "y": 144.70588235294116,
+            "width": 284.7058823529412,
+            "height": 176.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_screen_line",
+        "name": "kannettava screen line",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 144.7058823529412,
+              "y": 195.1764705882353
+            },
+            {
+              "x": 223.64705882352942,
+              "y": 195.1764705882353
+            },
+            {
+              "x": 223.64705882352942,
+              "y": 217.1764705882353
+            },
+            {
+              "x": 309.05882352941177,
+              "y": 217.1764705882353
+            }
+          ],
+          "width": 9.058823529411764,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_camera",
+        "name": "kannettava camera",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 250.82352941176472,
+            "y": 127.88235294117646,
+            "width": 10.352941176470589,
+            "height": 10.352941176470589
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_keyboard_outline",
+        "name": "kannettava keyboard outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 55.411764705882355,
+            "y": 340.11764705882354,
+            "width": 401.1764705882353,
+            "height": 50.47058823529412
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_keyboard_fill",
+        "name": "kannettava keyboard fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 64.47058823529412,
+            "y": 349.1764705882353,
+            "width": 383.05882352941177,
+            "height": 32.35294117647059
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kannettava_trackpad",
+        "name": "kannettava trackpad",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 206.82352941176472,
+              "y": 364.7058823529412
+            },
+            {
+              "x": 303.88235294117646,
+              "y": 364.7058823529412
+            }
+          ],
+          "width": 7.764705882352942,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1675,6 +1675,7 @@ dependencies = [
  "resvg",
  "serde",
  "serde_json",
+ "sha2",
  "thiserror 2.0.21",
 ]
 
@@ -1715,6 +1716,7 @@ dependencies = [
  "motion-rig",
  "motion-scene",
  "motion-script",
+ "rustybuzz",
  "serde_json",
  "sha2",
  "thiserror 2.0.21",
@@ -1727,6 +1729,7 @@ name = "motion-rig"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "serde_json",
  "thiserror 2.0.21",
 ]
 
@@ -1735,6 +1738,7 @@ name = "motion-scene"
 version = "0.1.0"
 dependencies = [
  "motion-animation",
+ "motion-audio",
  "motion-lipsync",
  "motion-rig",
  "motion-script",
@@ -1775,6 +1779,7 @@ dependencies = [
  "motion-audio",
  "motion-jobs",
  "motion-lipsync",
+ "motion-project",
  "motion-scene",
  "motion-script",
  "motion-tts",
@@ -2935,6 +2940,8 @@ name = "studio-desktop"
 version = "0.1.0"
 dependencies = [
  "eframe",
+ "hound",
+ "motion-animation",
  "motion-art",
  "motion-audio",
  "motion-export",
@@ -2947,6 +2954,7 @@ dependencies = [
  "motion-tts",
  "motion-voice",
  "rodio",
+ "serde",
  "serde_json",
  "serde_yaml",
  "sha2",

@@ -1,11 +1,649 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-21. A checked item identifies integrated, inspected implementation, not a
+2026-10-25. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
+
+## Phone and tablet screen slots — PR #130 merged (2026-10-28)
+
+Status: **merged** to `main` (`2ddd16f`, merged by aleksipii 2026-10-28T09:09:46Z,
+before the orchestrator review). Post-merge ORK review: **changes requested as
+follow-ups** ([comment](https://github.com/aleksipii/kilsatstudio/pull/130#issuecomment-6467734702)).
+The feature is not `done`: two CI jobs fail because of this PR.
+
+Completed (implementation, inspected):
+- `motion-rig` (A05): `RigDefinition.screens` named screen slots (glass part, parallelogram,
+  overlay parts), `TextureFit` cover/contain/stretch on `EvaluatedTexture`, catalog slots
+  `phone`/`tablet`, attach/detach copies or removes the slot, and duplicate slot names are refused.
+- `motion-render` (A08): SVG and GPU texture paths share `EvaluatedTexture::placement`.
+- `motion-script` (A02): `composition.screens` cues (off/image/sequence/video, fit, trim,
+  speed, loop, taps), validation errors, `tap_times()`. The new fields are `serde(default)`,
+  so older projects load unchanged.
+- `motion-scene` (A04): cues are applied as a pure function of scene time on the same joint
+  transforms.
+- `motion-export`/`motion-project` (A10): asset preflight, `screen_video` FFmpeg PNG frame
+  cache (content-addressed, bounded, cancellable, timeout, atomic rename), P3→BT.709 filter,
+  HDR rejected; CI workflow `screen-video.yml` (macOS arm64).
+
+Checks actually seen: on head `cc16d49`, CI had 12 jobs pass (`rust` macOS/Ubuntu,
+`gpu-contracts`, `media-encoding`, `g2-export-macos`, `apple-silicon-preview`) and **2 fail**:
+- `screen-slots-macos`: `real_ffmpeg_screen_video_decodes_proxy_and_converts_p3` fails at
+  `crates/motion-export/src/screen_video.rs:571`. With FFmpeg 9.0.1, the synthetic
+  `smpte432` clip probes as `Bt709`. The P3 conversion is therefore **not yet verified**
+  with real FFmpeg.
+- `real-asset-pack`: `examples/stick-studio/manifest.json:63` `hand_props_sha256` is stale
+  after the `hand-props.json` change. Local regeneration changes it `9b1843d9…` →
+  `d016de0e…`. The missing-zip error is a consequence of this failure.
+
+On `main` from `2ddd16f` onward, both workflows fail or were cancelled. The PR reports local
+fmt, clippy 0 warnings and `cargo test --workspace` 1003/0/10 (ORK did not re-run these).
+
+Open (owner):
+- P3 test clip tagging → CI green (A10, `fix/screen-video-p3-test`).
+- Regenerate stick studio manifest (A10).
+- Desktop: screen-cue editor, video import, background decode scheduling and frame
+  loading by time (A09; cache interface A10).
+- Streaming per-frame loading in export with a memory budget (A10).
+- `tap_times` driving finger motion in auto direction (A02 + A05).
+- Screen brightness and glow in dark scenes (A08).
+- P3 on a real iPhone recording (A10; needs the user's recording).
+- `smpte431` and untagged-source handling (A10).
+- `holds: phone` shorthand (A02; deferred by ORK).
+- Seek and frame-by-frame equivalence with screens in the G2 scene (A04, KS-003d).
+
+## A10 export follow-ups — PR #126 merged (2026-10-28)
+
+Status: **merged** to `main` (`9342979`) with the user's explicit approval.
+
+Completed:
+- G2 regression hashes and the scene SHA-256 have one source,
+  `crates/motion-export/tests/support/g2.rs`, read by the test, the `g2_export` command
+  and the `Export QA` workflow. A scene change fails first on `G2_SCENE_SHA256`.
+- `g2_export` reports `model_policy_refused` read back from `ModelPolicy::permit`
+  (replaces a fixed field) and `sequence_matches_reference`.
+- Streaming MP4 export returns `Error::PartialOutput` when cleanup after a failure fails;
+  new unix test with a locking fake encoder.
+- Local re-measurement (iMac M1, macOS 27.0.1, loaded machine): SVG median 30.5 ms,
+  PNG median 1964.7 ms, `docs/evidence/g2-export/local-apple-m1-2026-10-28.json`.
+
+Checks: CI 13/13 on #126. Locally (macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok,
+`cargo check --workspace` ok, `cargo clippy --workspace --all-targets` 0 warnings,
+`cargo test --workspace` 986 passed, 0 failed, 9 ignored; sandboxed model-free SVG/PNG
+runs pass.
+
+Open: model-free run with imported WAV speech (A07 KS-002e, needs the user's recording);
+MP4 on a physical Mac (no FFmpeg); A10 status update (ORK); `sha2` row in
+`docs/a01-dependencies.md` (A01).
+
+## ORK G4 evidence summary and merges — PRs #123, #118, #124 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval: #123 (A10 export QA,
+`c194e83`), #118 (A09 UI levels, No AI mode, drag logging, `a2ddf7f`) and #124 (ORK-G4-01/02,
+which carries #119 and #122). #121 (KS-003b review, renamed ORK-G2-02a) and #108 are merged after it; #108's content
+(ORK-G1-A04) was already in `main` via #111, so it is merged with `main`'s versions and no content change.
+
+Completed:
+- A10: canonical frame clock in `motion-export`, typed `EncoderUnavailable` and
+  `PartialOutput` errors, G2 frame-count/audio-length/preview-parity/regression tests, failed
+  export tests incl. a real full disk, reproducible `g2_export` command, `Export QA` macOS
+  workflow with a sandboxed model-free export and MP4 check, measurements with conditions.
+- A09: three UI levels (UI state only), per-project `ModelPolicy` (No AI), EventLog
+  drag/release logging, transport test on the shared evaluator.
+- ORK: G4 evidence summary (ORK-G4-01), merge record (ORK-G4-02); architecture report
+  chapter 8 checklist 6/11.
+
+Checks: CI 12/12 on #123 and #118, 11/11 on #124. Locally on merged code (macOS 27.0.1,
+Apple M1): `cargo fmt --all --check` ok, `cargo check --workspace --locked` ok,
+`cargo clippy --workspace --all-targets --locked` 0 warnings, `cargo test --workspace
+--locked` 985 passed, 0 failed, 9 ignored. Release `studio-desktop` packaged with
+`scripts/package_macos.py` (ad hoc signed, `codesign --verify --deep --strict` ok),
+installed to `~/Applications` and launched: the process started and stayed running.
+
+Open: the window was not captured and the UI was not exercised by hand (no screen
+recording permission); G2 is still returned (phone A08, KS-003d A04, WAV speech A07 blocked on
+the user's recording); G3 and G4 not approved; KS-002h, KS-006, KS-007; MP4 export on a
+physical Mac (no FFmpeg installed). No notarization or Developer ID signing.
+
+## A06 dangle contract — PR #120 merged; ORK-G2-02a KS-003b review (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval (merge `d9b88ae`, commits
+`b0fa1c4` + `b517c39`). ORK decision ORK-G2-02a (recorded in PR #121, merged after #124): KS-003b **accepted** (spring module #115
+`974ef76` plus this dangle contract).
+
+Completed:
+- `motion_animation::spring`: `dangle_joint` accepts only non-root joints that are neither
+  A05 attachment-frame joints (pelvis, torso, the twelve `STICK_LIMBS` joints) nor their
+  ancestors; `apply_dangle` adds a validated angle (`|angle| <= π`) to rotation only;
+  typed `DangleError`. Re-exported from `lib.rs`.
+- 6 new tests in `crates/motion-animation/tests/spring.rs` (25 total), including A05's
+  review condition `dangles_leave_ik_grip_and_held_prop_unchanged` (IK solution, limb
+  joints, grip point and held phone bit-identical with and without springs).
+- Contract in `docs/physics-springs.md`; A05 reviewed it and accepted with that condition.
+
+Checks: A06 locally before merge – fmt, check, clippy (no warnings), test (968 passed,
+0 failed). PR #120 CI 12/12; the first media-encoding run failed with exit 124 on an apt
+download timeout while installing ffmpeg (infrastructure) and passed on rerun
+(`gh run rerun 40551418227 --failed`). ORK spot check on a separate `origin/main` worktree
+(`d9b88ae`, own target dir, macOS): `cargo test -p motion-animation` 49 passed, 0 failed;
+`cargo test -p motion-rig` 32 passed, 0 failed; clippy for motion-animation clean;
+`cargo fmt --all --check` clean.
+
+Open: visual quality of springs/dangles not assessed in rendered frames or motion (tests
+are numerical); EventLog → release initial state, IK target resolution and follow-through
+from parent motion (A04, KS-003d); marking dangle joints in MotionScript or the rig
+(A02/A05); controls (A09); coupled chains (multi-link hair). G2 itself remains open.
+
+## ORK G2 first implementation round — PRs #111, #113–#117 merged (2026-10-27)
+
+Status: **merged** to `main` with the user's explicit approval, in order: #111
+(`5f659f0`, ORK-G1 / ORK-G2-01 file areas, reconciled with the parallel #112 record),
+#113 (`5e93709`), #114 (`3551257`), #115 (`974ef76`), #117 (`824c399`), #116 (`9c69902`).
+
+Completed:
+- KS-002f (A03, #113): EventLog v1 accepts only the 24 kHz dialogue clock.
+- KS-002g (A04, #114): `motion_scene::time` delegates to `motion_audio::clock`; equivalence
+  test over seconds, frame rates and sample ranges.
+- KS-003b (A06, #115): `motion_animation::spring` – analytic damped springs, constant and
+  profiled forces at a fixed 1/1200 s step, five profiles, release initial state.
+- KS-003a (A05, #117): limb attachment contract, joint limits, two-bone IK, prop catalogue
+  and `grip` contract moved into `motion-rig`; `examples/g2-rig/`.
+- KS-003c (A08, #116, without the phone): depth bands and paint order, wide/close-up
+  framing rules, background style checks, `examples/g2-minimal-scene/`, two 960x540
+  reference PNGs (CPU/resvg).
+
+Checks: CI 12/12 on each code PR's final commit (#111 11/11). Branches were updated to
+`main` before merging; #117 lockfile verified with `--locked`; #116 re-checked locally
+against the new `main` (`cargo check --workspace --all-targets --locked`; motion-render,
+motion-art and motion-rig tests 99 passed, 0 failed). Agent-local runs used a shared
+target directory that caused intermittent cross-worktree build errors, so CI is the
+authoritative evidence.
+
+Open: phone-in-hand scene and references (A08), KS-003d (A04), KS-002e (A07), KS-002h
+(A02/A10), GPU parity for the G2 scene, visual art review, G2 sample. PR #108 is still
+open although its content reached `main` via #111. No hardware, perceptual or GPU
+acceptance is claimed.
+
+## ORK G1 gate approved with condition — PR #112 merged (2026-10-27)
+
+Status: **merged** to `main` as `ecfa0de` from branch `docs/ork-g1-gate`
+([PR #112](https://github.com/aleksipii/kilsatstudio/pull/112)) with the user's explicit
+approval. Documentation only (`docs/agents/**`).
+
+Completed: ORK-G1 decision. SceneSpec (A02, PR #105), TrackSpec (A04, PR #107) and
+AudioTimeline (A07, PR #109) `done`; EventLog (A03, PR #106) `done` with condition
+KS-002f, because `EventLog::validate` accepts any `sample_rate` in 1..192 000 Hz instead of
+the single 24 kHz clock (ORK-G1-03, shared rule 2). G2 opened: KS-003 and A04 (G2), A05,
+A06, A07 (KS-002e) and A08 are `ready`. New tasks KS-002f (A03, blocks EventLog consumers
+A06/A09) and KS-002g (A04/A02/A10, clock copies delegate to `motion_audio::clock`).
+
+Checks: ORK spot checks on `main` `393c2f1` (macOS, local): `cargo test -p motion-script`
+132 passed, `-p motion-scene` 65 passed, `-p motion-export` 143 passed / 8 ignored, 0 failed;
+all four contract example folders are read by tests; each contract PR's CI 12/12. PR #112
+CI 11/11 passed.
+
+Open: KS-002f, KS-002g, KS-002e; closing superseded PR #102 (needs user permission); the G2
+minimal scene. KS-006 and KS-007 remain G4 conditions.
+
+## ORK G1 review of A07 KS-002d — PR #110 merged (2026-10-27)
+
+Status: **merged** to `main` as `393c2f1` from branch `docs/ork-a07-merge`
+([PR #110](https://github.com/aleksipii/kilsatstudio/pull/110)) with the user's explicit
+approval. Documentation only: ORK-G1-KS-002d approves A07's G1 part (KS-002d `done`),
+records KS-002c as merged, adds KS-002e (A07, G2: human-recorded fi/en WAV examples and
+AudioTimeline use in mouth evaluation) and updates status lines. Checks: PR CI 11/11
+passed; evidence for the approval is PR #109's CI and local checks (see below). Open: the
+G1 gate as a whole (KS-002a/b/c review).
+
+## A07 AudioTimeline v1, sample clock and strict model-free path — PR #109 merged (2026-10-27)
+
+Status: **merged** to `main` as `ae39c4d` from branch `feat/a07-audio-timeline`
+([PR #109](https://github.com/aleksipii/kilsatstudio/pull/109)) with the user's explicit
+approval. Owner A07, task KS-002d, contract ORK-G1-04.
+
+Completed: `motion_audio::clock` (canonical `DIALOGUE_SAMPLE_RATE` = 24 000 Hz and A04's
+seconds/sample/frame rules with typed `ClockError`; the motion-lipsync and motion-voice
+constants are now aliases). `motion_lipsync::audio_timeline` — AudioTimeline v1:
+`format_version: 1`, strict JSON, imported or synthesized source provenance (provider,
+model revision, voice, cache key, PCM hash), `MixClip`-compatible placement,
+source-local phoneme/viseme intervals with `AlignmentSource`, typed validation errors,
+`viseme_at` and a pure, boundary-tested `blend_at`. Strict model-free path:
+`motion_project::ModelPolicy::permit` (single check point, ADR-A01-09),
+`motion_tts::DisabledSpeechProvider`, `motion_voice::model_free` (missing WAV → typed
+error before any provider call, no fallback) and
+`motion_voice::audio_timeline::scene_audio_timeline`. Finnish estimator v2 (tests for
+ä/ö/y, long vowels, geminates; new rules for n + k/g, š/ž, x, NFD letters) and Finnish IPA
+`y ø ʋ ç x ɦ`. The 13 visemes are unchanged. Contract in
+[audio-timeline.md](audio-timeline.md); examples in `examples/audio-timeline-v1/`.
+
+Checks: local macOS on the branch: `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace` (892 passed,
+0 failed, 8 ignored); the branch merged with `main` after PR #107: fmt ok, clippy 0
+warnings, 906 passed, 0 failed, 8 ignored. `python3 -m unittest discover -s
+services/kokoro-runtime/tests -v`: 55 run, OK, 5 skipped (synthesis-path tests need NumPy,
+not installed). No model was downloaded and no synthesis ran. PR CI on `62f96be` 12/12
+passed. Acceptance test `crates/motion-voice/tests/model_free.rs`: a counting provider
+whose every call fails is called 0 times through preparation, export, project
+save/reopen and remix from the reloaded timeline.
+
+Open: human-recorded Finnish/English WAV examples and timing measured against them (mouth
+timing is structurally validated only); `ProjectDocument.model_policy` and UI/worker check
+points (A09); `motion-export` check before speech preparation (A10); `motion_scene::time`,
+`motion_script::auto_direction::SAMPLE_RATE` and export test support delegating to
+`motion_audio::clock` (A04/A02/A10); viseme blending in the renderer (A08). The Finnish
+estimator version bump invalidates earlier cached Finnish estimates by design.
+
+## A04 TrackSpec, time conversions and seek equivalence — PR #107 merged (2026-10-27)
+
+Status: **merged** to `main` as `10135ad` from branch `feat/a04-timeline`
+([PR #107](https://github.com/aleksipii/kilsatstudio/pull/107)). The user delegated the
+review and merge decision to A04 after the first CI pass; the review added the missing
+G1 examples before merging. Owner A04, task KS-002c, contract ORK-G1-02 (resolved TrackSpec).
+
+Completed: `motion_scene::tracks` (`TrackTarget::{Abs, Rel, Revert}` resolved once into
+`{from, to}` spans with start/end samples; later start wins and interrupts, equal starts
+→ later written wins, finished spans hold exact `to`; `MAX_TRACK_SPANS`); `Event::Move`
+positions now come from resolved tracks in `PreparedAnimation` (endpoints exact; at most
+rounding difference from the old per-call chain, tested ≤ 1e-9); `-0.0` normalized;
+`ValidatedScript::evaluate_sample`. `motion_scene::time` names the existing 24 kHz rules
+(seconds → nearest sample, `floor(frame·24000/fps)` as in `motion-export`, sample → frame);
+`SEQUENCE_SAMPLE_RATE` moved there with the same public path. Contract, mapping of current
+authored data, conversion rules and determinism levels in
+[editable-timeline.md](editable-timeline.md#trackspec-overlap-order-and-time-conversion-a04);
+examples in `examples/trackspec-v1/`. No new clock or evaluator.
+
+Checks: local macOS `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace`
+(884 passed, 0 failed, 8 ignored). Direct seek is bit-identical to frame-by-frame playback
+(test). PR CI on `c95fbd9` 12/12 passed (rust macOS/Ubuntu, gpu-contracts, media-encoding,
+apple-silicon-preview, real-asset-pack).
+
+Open: authored `Rel`/`Revert` moves in MotionScript (A02 schema request); emotions,
+backgrounds, camera, gestures and clips keep their own evaluators (rules documented and
+tested, not migrated); `motion_scene::time` delegates to A07's `motion-audio` clock once it
+lands (ORK-G1-04); pixel/video determinism (A08/A10). G1 gate still needs A07 AudioTimeline v1
+(merged later in PR #109).
+
+## ORK G0 approval and G1 contract owners — PR #104 merged (2026-10-27)
+
+Status: **merged** to `main` as `698fd2f` from branch `docs/ork-g1` with the user's
+explicit approval ([PR #104](https://github.com/aleksipii/kilsatstudio/pull/104)).
+Documentation only (orchestrator, `docs/agents/**`).
+
+Completed: G0 approved (ORK-G0: A01 review accepted; report/code differences decided:
+egui stays, 13 visemes canonical, own rule engine instead of a RETE library, head-pose
+classification, No-AI policy location); G1 contract owner crates decided (ORK-G1-01…06:
+SceneSpec `motion-script`, TrackSpec written in `motion-script`/resolved in
+`motion-scene`, EventLog `motion-script`, sample clock `motion-audio` and AudioTimeline
+`motion-lipsync`, rig attachment `motion-rig`, render contract `motion-render`); task
+register KS-001…KS-007 and agent status lines updated, including A02 (PR #105) and
+A03 (PR #106) as `review` awaiting the ORK G1 review.
+
+Checks: PR CI 11/11 passed. No Rust code changed, so cargo checks are not evidence for
+this entry. Open: G1 gate still needs A04 TrackSpec and A07 sample clock + AudioTimeline
+v1 and ORK's G1 review of A02/A03; A04 `ready` is ORK's decision; KS-006 (wheel hash
+lock) and KS-007 (licence texts/NOTICEs) are G4 conditions.
+
+## A03 rule contract and EventLog v1 — PR #106 merged (2026-10-27)
+
+Status: **merged** to `main` as `6ddfdcc` from branch `feat/a03-rules-eventlog` with the
+user's explicit approval ([PR #106](https://github.com/aleksipii/kilsatstudio/pull/106)).
+Owner A03, task KS-002b, contract ORK-G1-03 (EventLog).
+
+Completed: `motion_script::event_log` (EventLog v1: versioned JSON log of `key`, `drag`,
+`camera_pose` and `release` events with integer scene-local sample positions, recorded
+`sample_rate`, source/type compatibility, per-scene order, bounds and script-reference
+validation with typed `EventLogError` paths); `key` rule trigger and
+`Script::expand_rules_with_events` returning the expanded script plus an ordered firing
+trace; `expand_rules()` order, IDs and messages unchanged (`rules_tests.rs` byte-identical).
+Emotion conditions use a per-scene history with binary search (same results). Decisions
+A03-D1 (rule name is the priority, no priority field) and A03-D2 (no chaining), rule
+contract, EventLog format and cost measurement in [animation-rules.md](animation-rules.md);
+valid/invalid examples in `examples/event-log-v1/`. One label line added to the desktop
+rule editor for the new trigger (A09 file; no menu entry). No RETE library added.
+
+Measurement (`rule_expansion_cost` example, Apple M1, 8 GB, macOS 27.0.1, rustc 1.99.1,
+release, single machine): 64 rules × 1024 events with a false emotion condition
+213 ms → 1.5 ms; 64 key rules × 1024 logged presses 0.25 ms. Not a constant-time claim.
+
+Checks: local macOS `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace`
+(870 passed, 0 failed, 8 ignored; 12 new EventLog tests). PR CI 12/12 passed (rust
+macOS/Ubuntu, gpu-contracts, media-encoding, apple-silicon-preview, real-asset-pack).
+
+Open: storing/recording the log in the project file and UI (A09, G3); consuming drag,
+release and camera-pose events in timeline and physics (A04/A06); `key` in the rule
+editor menu (A09); comparing the log's sample rate with the canonical clock once A07
+adds it (ORK-G1-04). G1 gate still needs A04 TrackSpec and A07 AudioTimeline v1.
+
+## A02 versioned MotionScript compiler — PR #105 merged (2026-10-27)
+
+Status: **merged** to `main` as `d9db5be` from branch `feat/a02-dsl` with the user's
+explicit approval ([PR #105](https://github.com/aleksipii/kilsatstudio/pull/105); replaces
+conflicting PR #102). Owner A02, task KS-002a, contract ORK-G1-01 (SceneSpec).
+
+Completed: decision A02-D1…D3 recorded before implementation (seq/par/stagger are
+compiler sugar in a `version: 1` envelope, lowered to absolute `Event` times before
+`Script::validate`; half-open intervals); `motion_script::compiler::{compile,
+compile_with_origins, Compilation}`; typed `DiagnosticCode` with YAML paths and
+line/column for syntax errors; envelope JSON Schema in `crates/motion-script/schema/`;
+specification and SceneSpec handoff in [motionscript.md](motionscript.md); valid and
+invalid examples in `examples/motionscript-v1/`. Legacy versionless `parse` unchanged;
+all five legacy `examples/*.yaml` parse and wrap identically. `rules.rs` untouched.
+
+Checks: local macOS `cargo fmt --all --check`, `cargo check --workspace`,
+`cargo clippy --workspace --all-targets` (0 warnings), `cargo test --workspace`
+(0 failures; compiler suite 18/18). PR CI 12/12 passed (rust macOS/Ubuntu,
+gpu-contracts, media-encoding, apple-silicon-preview, real-asset-pack).
+
+Open: direct v1 opening in the desktop editor (A09); line/column for semantic errors
+(path only); G1 gate still needs A03 EventLog v1, A04 TrackSpec and A07 AudioTimeline v1.
+
+## Architecture agent task files — 2026-10-27
+
+Status: **merged** to `main` as `ce57c3da14a35a52a95e24a119852d65abae9d5d` from branch `docs/architecture-agents`
+with the user's explicit approval (no pull request: `gh` was not authenticated).
+Documentation only. [docs/agents/](agents/README.md) contains one task file each for
+the orchestrator and agents A01–A10: baseline verified against `496a8a4`, allowed scope,
+dependencies, task checklist, acceptance criteria and outcome section. Thin Claude Code
+subagent definitions are in `.claude/agents/kilsat-*.md`.
+
+Completed: task files, subagent definitions, relative link check (no broken links).
+Not run: Rust checks (no code changed) and CI for this merge. Open: every A02–A10 task
+(`todo`) and the remaining A01 items (`review`); no feature is implemented by this entry.
+
+## A01 architecture and dependency review — 2026-10-26
+
+Status: **merged** in [PR #101](https://github.com/aleksipii/kilsatstudio/pull/101)
+on 2026-10-26 as `cdff71dae61d1e4a861215a61158225ee9b9f54d`; not release-approved. Source checkpoint:
+`773ac9417ee000668fd4f92750e25797a9f57e34`. See the
+[A01 architecture decisions](a01-architecture.md),
+[dependency rationale and status](a01-dependencies.md), and
+[machine-readable inventory](a01-dependency-inventory.json).
+
+Completed: source/manifest review, 14-module normal dependency DAG check,
+15 direct external dependency rationales and 434 lock-package entries.
+Inventory tests: 16/16 passed. No production code or interfaces changed.
+Open: enforced model-free policy, exact-artifact licensing and distribution
+review, target-specific graph, Python wheel lock and physical-device acceptance.
+Cargo is unavailable in the local review environment; local Rust checks were not run.
+Before merge, GitHub Actions passed for head `b60c023dc0286b9f7006d589e91aaf9eb2d83822`:
+[Audio foundation #653](https://github.com/aleksipii/kilsatstudio/actions/runs/40395163758)
+(Rust fmt/check/Clippy/workspace tests and Python tests on macOS and Ubuntu,
+GPU contracts on both platforms, and media encoding), plus
+[macOS practical preview #356](https://github.com/aleksipii/kilsatstudio/actions/runs/40395163508).
+Codex review completed without findings. CI does not replace physical-device,
+real-model, licensing or model-free-policy acceptance.
+
+## Editable stick studio asset pack — PR #98 merged (2026-10-25)
+
+[PR #98](https://github.com/aleksipii/kilsatstudio/pull/98) merged as
+`bc81fd21dd6dfc2627ad35ce633c38b22eff5223` from final source
+`16dc6f8e83254019ef2a339276f0a935237ff281` after all final-source checks passed.
+
+The [starter pack](../examples/stick-studio/README.md) adds six original custom
+rigs: Noutaja the Grim Reaper, Veikko the commuter, Päsmä the boss, Kipinä the
+inventor, Kiire the courier and Sisu the grandmother. They share 15 joints,
+13 configured visemes, expressions, gaze/blink and five reusable joint clips.
+Four editable sets and 14 props accompany 24 individual native projects and a
+self-contained six-shot, 30-second 1920x1080/24fps starter. The Finnish
+**Tikku-ukkostudio** button loads it through the existing source/artwork history.
+Undo/Redo preserves the preceding work; loading clears the save path.
+
+Normal editing serializes the compact 54,099-byte starter above the old 100 KB
+editor limit. The shared screenplay limit is now 256 KiB, including the desktop,
+history, opening/saving, direction workers and all three core director entry points.
+Individual-rig, timing, 64-entry
+and eight-MiB history limits are unchanged. An actual head-edit regression tests
+normalization above 100 KB, Undo/Redo and save/reopen; oversized input is rejected.
+
+The shared SVG renderer now optionally omits only its two default canvas fills.
+The native asset exporter reuses project decode, scene evaluation and rendering
+to produce six transparent character PNG/SVG pairs, four opaque background pairs
+and 14 transparent prop pairs. Legacy opaque SVG output is regression-tested.
+Packaging verifies source/tool hashes, alpha reports, all image dimensions and
+independently probes/fully decodes the real H.264/AAC showcase. The actual local
+video has **720 frames / 30.000 seconds**, with exactly 720,000 zero PCM samples;
+it is deliberately silent, with no synthesized speech or model downloads.
+The final local asset/video/probe/package stage took **38.855 seconds**; this is not a
+physical-Mac or cold-start production benchmark. All six review frames and the
+24-asset contact sheet were visually inspected for framing and readability.
+
+Local validation passed format, workspace/all-target/all-feature strict Clippy,
+141 repository Python and 55 runtime tests, 259 desktop tests and all four native
+asset-export tests (including changed pixels confined to each configured mouth).
+The first broad local Rust run hit two existing recognizer-enrollment tests that
+need unavailable host `/proc` data. Remaining crate/target tests passed with
+those two and the existing desktop exact-cache enrollment test excluded locally;
+all three passed unfiltered in normal CI.
+
+Final review caught the core directors retaining their own 100 KB guards; the
+shared core/editor constant fixes that second boundary too. All three director
+entry points now accept the actual normalized six-rig starter and reject one
+byte above the bound before parsing. Six targeted starter tests, 16 core direction
+tests and refreshed workspace/all-target/all-feature strict Clippy passed after
+that fix. The asset guide also uses the actual Hahmot/Kuvitus workspace labels.
+
+Final-source [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40215469157),
+[Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40215469059)
+and [native asset/video export](https://github.com/aleksipii/kilsatstudio/actions/runs/40215469193)
+all passed: **839 Linux / 838 macOS Rust** tests with eight default-ignored tests
+per OS, **55 runtime Python** tests and **140 passed / one skipped repository
+Python** tests per OS, **52 GPU library +
+two probe tests** per OS (four physical GPU tests ignored), and **four actual
+FFmpeg tests**. Core director limits, all six configured mouths and normal
+normalized-source editing were exercised on the final source.
+
+Merged main [Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189692),
+[native asset/video export](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189597)
+and [broad verification](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189665)
+all passed with the same Rust, Python, GPU and real-media counts. The skipped
+Python test needs FFmpeg/ffprobe, absent from the general test jobs; the separate
+media job executed all four actual Rust FFmpeg tests successfully. The integrator downloaded main
+[asset artifact 12608190948](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189597/artifacts/12608190948),
+verified its outer archive digest and all declared project/image/video hashes,
+then independently probed and fully decoded its 720-frame / 30-second Full HD
+H.264/AAC video. All 48 native images and six review PNGs are byte-identical to
+the visually inspected local exports. The main CI asset/video/probe/package
+stage took **39.047 seconds**, excluding compilation. This is an Ubuntu CI
+observation, not a physical Mac benchmark. [Exact evidence](evidence/stick-studio-ci.json)
+records the source, merge and artifact identities separately from acceptance.
+
+The [new main Apple Silicon app](https://github.com/aleksipii/kilsatstudio/actions/runs/40216189692/artifacts/12608086135)
+includes the embedded starter and corrected source budget. Unzip the GitHub
+artifact and its contained app ZIP, open the app in Finder, and choose
+**Tikku-ukkostudio** in the left project panel. Packaging, helper compilation,
+ad-hoc signing, inventory and executable linkage checks passed; no physical GUI,
+camera, audio-device or production notarization acceptance is inferred.
+This final documentation/evidence record changes no checked application source.
+
+The [professional studio roadmap](professional-studio-next.md) prioritizes a
+thumbnail/search library and recovery, visual IK/contact/curve/shot tools and
+integrated multitrack sound with measured FI/EN speech quality. The assets and
+silent demo do not complete those features. Physical Mac/device/Metal acceptance,
+human artistic and real-speech review, exact rights review and Developer ID /
+notarization remain open. ArtCraft marketing was used only as a high-level
+workflow reference; no Storytold source, dependency or adapter was introduced.
+
+## Three English episodes — PR #97 merged (2026-10-25)
+
+[PR #97](https://github.com/aleksipii/kilsatstudio/pull/97) merged as
+`ef97286d2bae44e42f50d962406a6e2c6edac92e`, from final source
+`8d68d021937dce8f0961e42a5d233b6b7d418e2f`. Three original English
+Aino/Rane adaptations now have actual 1920x1080/24fps H.264/AAC videos,
+English captions and an English EXAMPLE mileage-log prop, using the existing
+original rigs/sets. The 31 Finnish projects and Finnish prop bytes are unchanged.
+[Scripts, project files and downloads](kilsat-english.md) describe the pack.
+Actual speech is local Kokoro af_heart (Aino) / am_michael (Rane), en-us:
+24 measured dialogue WAV records, with no placeholder or system-voice substitution.
+
+The [successful render](https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861)
+produced The Free Commute (**44.125 s / 1059 frames**), The No-Travel Meeting
+(**45.208333 s / 1085 frames**) and The Savings Bonus (**46.625 s / 1119 frames**).
+The integrator downloaded [artifact 12593905647](https://github.com/aleksipii/kilsatstudio/actions/runs/40178484861/artifacts/12593905647),
+verified its archive SHA-256 and all MP4/WAV/pipeline hashes, independently
+decoded/probed the videos and inspected opening/later frames from each episode.
+[Exact evidence](evidence/kilsat-english-ci.json) remains bound to that source/run.
+Source manifests retain source-only not-rendered state; actual receipts record
+what the run completed.
+
+Observed per-episode project/speech/render/probe times were **206.336 / 158.701 /
+194.814 seconds** on VirtualMac2,1 Apple Silicon CI. Model/environment installation
+and compilation are outside these timers; the entire three-episode batch took
+**567.248 seconds**. No physical Mac or full-production timing gate is granted.
+The bounded runner reuses the production exporter/sample clock and independent
+media checks, binds source/model/voice/tool hashes and validates actual English
+dialogue PCM provenance. Initial real inference exposed Preshed 3.0.14 breaking
+spaCy tokenizer cache initialization; managed/development setup now pins 3.0.13,
+rebuilds the manifest-keyed environment and retains fresh freeze/evidence.
+The actual tokenizer load and all 24 real spoken lines passed with that pin.
+
+Final-source [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40178487305),
+[Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40178487300),
+[voice selection](https://github.com/aleksipii/kilsatstudio/actions/runs/40178487303)
+and the real English render passed before merge: **825 Linux / 824 macOS Rust**
+tests, eight default-ignored tests each, **55 runtime + 132 repository Python**
+tests per platform, **49 GPU library + 2 probe tests** per platform (four physical
+GPU tests ignored), and **four real FFmpeg tests**. Format/check/strict Clippy
+and the local 132 repository + 55 runtime Python tests passed.
+
+All merged-source main verification passed on
+`ef97286d2bae44e42f50d962406a6e2c6edac92e`:
+[Rust/GPU/media](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515217),
+[Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515247),
+[English render](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515230),
+[voice selection](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515204).
+Main passed the same **825/824 Rust**, **55 runtime + 132 repository Python**
+tests per platform, **49 GPU library + 2 probe tests** per platform (four physical
+GPU tests ignored) and **four real FFmpeg tests**. Eight default Rust tests remain
+ignored per platform. All three English episodes completed again with the same
+decoded frame counts and durations; [main video artifact 12593402307](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515230/artifacts/12593402307)
+is a separate repeat run. The downloaded/hash-verified media evidence above
+continues to describe the original successful source run.
+[Current main Mac preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40179515247/artifacts/12593781644)
+includes the corrected English setup pin; it is ad-hoc signed and not Developer
+ID notarized. Unzip both the artifact and its contained app ZIP and open the app
+in Finder; no physical GUI or audio-device run is inferred from packaging.
+These status-only documentation changes preserve the checked source bytes.
+Still open: human listening/annotated lip-sync and artistic/comic-timing review,
+approved real Kilsat capture, exact model/voice/dependency/asset rights, physical
+Mac/device/GPU acceptance and production Developer ID/notarization.
+
+## Finnish desktop completion — PR #96 merged (2026-10-25)
+
+[PR #96](https://github.com/aleksipii/kilsatstudio/pull/96) was normally merged as
+`3a33b6f11e2b0ba611ea7a1f8e94d2ec3b43b70b`, from final source
+`111f13c911805df07dabefda0d089fa236ce5028`. It completes Finnish controls,
+guidance, status/error context and enum display names across the desktop's scene,
+speech, timing, rig/clip, artwork, sequence, export, GPU and performance panels.
+The camera helper's purpose/usage/errors and bundled permission description are
+also Finnish. Protocol/serialization keys, stored IDs, source examples and exact
+backend error details are preserved. Six agents owned separate modules; the
+parent integrated the main workspace, truthful mouth-source display, user guide
+and checks.
+
+An absent imported alignment no longer falsely reports a resting mouth when a
+text estimate is actually prepared. The UI uses `DialogueClip::mouth_source()`;
+legacy tool estimates are labelled generically, without attributing them all to
+Rhubarb or claiming measured quality. A regression test checks estimated versus
+absent mouth data in the rendered UI while preserving the document and history.
+
+Local verification: 254 desktop tests passed (one existing host-information test
+excluded locally), 121 repository Python tests passed, and strict all-target,
+all-feature workspace checking passed. Actual egui meshes were captured and
+visually inspected at 1440x900; existing minimum-window checks remain. Serde
+attributes and raw fixture literals were compared unchanged; the camera's
+non-string code is unchanged.
+
+Final-source [Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40136324331)
+and [Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40136324321)
+passed before merge. Merged-source main
+[Rust/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527148)
+and [Mac packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149)
+also passed. Both source and main runs passed **825 Linux / 824 macOS Rust
+tests**, with **eight default-ignored tests** each, **55 runtime + 121 repository
+Python tests** per platform, **49 GPU library + 2 probe tests** per platform
+(four physical GPU tests ignored) and **four explicitly executed real FFmpeg
+tests**. Format, workspace check and strict Clippy passed. The native Swift
+camera helper was built and its no-camera help/invalid-argument checks passed;
+the packaged archive and build/linkage evidence were checked.
+
+[Download the current main Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149/artifacts/12592070238).
+GitHub artifact `12592070238` has archive digest
+`sha256:f9e12e11c3eee8daa9549b9d0b8f175a2fb1ca249523502ea6099a49f537abad` and expires on 2026-11-08.
+Unzip the outer artifact and its contained application ZIP, then open
+**Kilsat Studio Preview.app** in Finder. Downloading does not launch it.
+The [twelve-topic Finnish guide](../apps/studio-desktop/KAYTTOOHJE.md) is embedded
+under **Ohjeet**. Finnish synthesis requires a configured local Piper profile or
+explicit WAVs. The preview is ad-hoc signed; Developer ID/notarization remain
+open. This status-only documentation update preserves the checked source bytes.
+
+Still open: physical Mac GUI/audio/camera and signing acceptance, manual
+real-speech lip-sync annotations/listening, artistic/comic-timing review, an
+approved real Kilsat screen capture, final upstream/asset/dependency rights and
+production GPU/device acceptance. M1–M6 whole-product acceptance is not granted.
+
+## Production integration — PR #95 baseline (2026-10-24)
+
+Main now integrates the outlined,
+rounded rigs from PR #89 and implements measured-audio direction with reaction
+shots, local Finnish speech, continuous reviewed head-tilt recording, bounded
+streaming Full HD export, expanded GPU commands, release tooling and 31 original
+Finnish episode sources. See [the integration record](production-integration.md)
+and [Finnish season instructions](kilsat-season.md). Older dated sections below
+are historical snapshots; their statements about missing Finnish speech,
+streaming Full HD or GPU captions are superseded by this integration.
+
+An actual Finnish 1920x1080/24fps, 42.708333-second episode completed the entire
+pipeline and independent media checks in 77.197seconds on Apple Silicon CI
+(VirtualMac2,1; CI/VM observed). The physical-Mac gate remains false. The exact
+source, host and artifact are recorded in the integration document. A separate
+[Full HD CI run](https://github.com/aleksipii/kilsatstudio/actions/runs/40127342644)
+completed all 31 Finnish episode videos and seven compilations (1920x1080/24fps,
+22min8.4s total episode runtime). All seven downloaded artifact archives and their
+MP4/WAV/pipeline hashes match the recorded [evidence](evidence/kilsat-season-fullhd-ci.json).
+The final desktop correction invalidates prepared/pending audio on Piper profile
+changes; 253 local desktop tests pass with one existing host-information test
+excluded. All final-source checks passed before the authorized merge.
+
+PR #95 was normally merged as `048ea9c87577fd46f18a4ee250552ee7c6cc21f6`,
+preserving PR #89's ancestry; GitHub also marks PR #89 merged. Final source
+`e31c6b60f2ee97f06847daab8e6ebd7ff4133e42` passed
+[Linux/macOS/GPU/media CI](https://github.com/aleksipii/kilsatstudio/actions/runs/40128482356)
+and [Apple Silicon packaging](https://github.com/aleksipii/kilsatstudio/actions/runs/40128482272).
+Linux/macOS passed **824/823 Rust tests**, with **eight default-ignored tests**
+each, **55 runtime and 121 repository Python tests** each. Both GPU jobs passed;
+the media job explicitly executed all **four real FFmpeg tests**, including the
+new streaming frame-completeness check. Ad-hoc signed packaging passed the
+camera helper's no-camera help/invalid-argument checks, archive audit and native
+linkage/build-evidence checks. No physical camera or GUI session is inferred.
+
+All merged-code main runs passed:
+[Rust/GPU/media](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209964),
+[Mac package](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209962),
+[Full HD season](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209986).
+Main verification on `048ea9c87577fd46f18a4ee250552ee7c6cc21f6` passed the
+same **824/823 Rust**, **55 runtime + 121 repository Python tests** per platform,
+**49 GPU library + 2 probe tests** per platform (four physical GPU tests remain
+ignored) and **four real FFmpeg tests**. All seven Full HD groups completed again:
+31 actual episode MP4s and seven compilations. The independent main Apple Silicon
+CI measurement completed in **88.205seconds**; this is CI timing, not physical
+Mac acceptance.
+
+[Download the main Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209962/artifacts/12575020684).
+The build is ad-hoc signed, not Developer ID notarized. Unzip the outer artifact
+and its contained application ZIP, then open Kilsat Studio Preview.app in Finder.
+Finnish speech requires a configured local Piper profile or explicit WAVs.
+Documentation-only status commits preserve the checked source bytes; no new
+Rust test claim is inferred from their text edits.
+
+Still open: physical Mac GUI/audio/camera and signing acceptance, manual
+real-speech lip-sync annotations/listening, artistic/comic-timing review, an
+approved real Kilsat screen capture, final upstream/asset/dependency rights,
+production GPU/device acceptance and authorized Developer ID/notarization.
+M1–M6 whole-product acceptance is not granted by code or CI alone.
 
 ## Script-to-animation automation design (2026-10-20)
 
@@ -376,7 +1014,10 @@ maintained by the parent; shared files are changed only by their assigned owner.
 - [x] SVG sequence compositing (PR #33).
 - [ ] Audio cue commands distinct from dialogue import.
 - [ ] Reusable/conditional rules and extensible animation presets.
+- [x] Versioned, validated EventLog of external input replayed deterministically through rule expansion (PR #106).
 - [x] Versioned editable scene-order/duration document compiled through the shared sequence clock (PR #43).
+- [x] Versioned seq/par/stagger schedules compiled to editable events with located, typed diagnostics (PR #105).
+- [x] Resolved Abs/Rel/Revert tracks with defined overlap order, shared s ↔ sample ↔ frame rules and bit-identical seek vs playback (PR #107).
 - [ ] General versioned editable compiled event/animation tracks.
 
 ## 3. Character rigging and animation
@@ -1734,3 +2375,263 @@ outer artifact digest
 Package validation passed with `distribution_approved=false`. No physical Mac,
 GPU device, recognizer quality, rights clearance or complete milestone acceptance
 was newly executed/granted. Main and `kilsatstudio1.0` include this delivery record.
+
+## Guided desktop animation start
+
+- Implemented a Project-tab dialogue entry workflow (`CHARACTER: dialogue`) that
+  appends/selects an editable scene through existing validation and Undo/Redo.
+  It preserves existing scenes, lays speakers across the stage and exposes scene
+  audio preparation, project folder/save and existing video export controls.
+- Explicit input budgets, actionable line errors, no partial mutation, no invented
+  speech/timestamps, no new dependencies. English Kokoro and imported Finnish WAV
+  paths are explained in the UI and desktop guide. Fixed speech slots need artist
+  adjustment against real audio; this is not automatic professional direction.
+- Local formatting, workspace compilation and strict all-target Clippy passed
+  using a direct stable toolchain, explicit sysroot and GNU linker to accommodate
+  the sandbox without `/proc/self/exe`. Packaging tests: 13 passed. Desktop tests:
+  222 passed, one existing package-enrollment test blocked by absent
+  `/proc/sys/kernel/osrelease`; all four new tests passed. Full workspace testing
+  and exact Linux/macOS CI results are tracked in PR #90.
+- Initial Apple Silicon package build succeeded for `e1c1df7`; final follow-up
+  explicitly hides non-speaking actors in newly created scenes. Download the
+  final-head package via PR #90 rather than assuming the initial artifact is current.
+- This increment does not complete the broader product backlog or establish real
+  Mac interaction, speech quality, physical device acceptance or release approval.
+
+## Automatic direction — orchestrator and parallel implementation
+
+Six task agents (one orchestrator, five workstreams) implemented a bounded
+`motion_script::auto_direction` pipeline: dialogue parsing, shared 24 kHz timing,
+existing ShotList generation, conservative acting and independent acceptance.
+The desktop exposes Auto-direct beside the existing simple scene importer.
+
+This first increment preserves authored scenes, exposes source/timing diagnostics,
+uses normal editable MotionScript/Undo and rejects excess speakers, text, shot
+counts, durations and source size. Estimated speech remains explicitly a draft.
+Existing ten-agent design documents remain broader plans, not completed gates.
+
+Local validation: 92 motion-script unit tests and 4 independent acceptance tests
+passed; crate documentation checks passed. Workspace/all-target strict Clippy
+passed through the direct driver with explicit sysroot/GNU linker. The desktop
+Auto-direct append/selection/Undo/Redo/busy-state test passed. Final CI evidence
+is recorded in the delivery PR. Physical Mac,
+rendered artistic review, real-speech retiming, general intent/action recognition,
+rig-bound framing and five-minute production acceptance remain unverified/open.
+
+
+## PR #90 and #91 merged into main — 2026-10-23
+
+Both merges were explicitly authorized by the user:
+
+- PR #90 (guided desktop creation), merge `8aef5a448383565ea407aba9029d5ca3e0414c13`.
+- PR #91 (automatic direction orchestrator), merge `fdd5ae060f96726a37e3f7036ec4a312631eecc5`.
+
+The resulting main tree is `eeed7af21a3f7dcc924d04f1979c88f37cc1de0d`, identical
+to tested/built source `e6fb2cc082adaf619278a40242c7df441f941211`.
+Full Rust formatting, workspace compilation, strict Clippy/all-target tests and
+Python suites passed on Linux/macOS for that source: 766/765 Rust tests passed,
+7 intentionally ignored per platform, plus 55 runtime and 82 repository Python
+tests each. GPU-contract jobs passed on both platforms. The separate real-MP4
+job was still in progress at merge and is not recorded as passed.
+
+Apple Silicon app/package build passed:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39936876796
+Download: https://github.com/aleksipii/kilsatstudio/actions/runs/39936876796/artifacts/12493459931
+The main push triggers fresh CI/package jobs; their status must be read from
+Actions rather than inferred from prior evidence. Physical Mac interaction,
+real-speech automatic retiming, professional artistic acceptance and the measured
+five-minute production target remain open. No kilsatstudio1.0 synchronization was
+requested in this merge action.
+
+
+## Main CI and real-MP4 recovery
+
+The encoder CI job was observed waiting over 25 minutes in its unbounded apt
+installation step before reaching tests. The workflow now reuses the runner's
+existing absolute FFmpeg/FFprobe paths, bounds fallback installation to five
+minutes with noninteractive package operations/network timeouts, and bounds the
+media job to 20 minutes. New runs cancel obsolete runs for the same workflow/ref.
+
+All three actual FFmpeg tests passed locally: H.264/AAC scene encoding, embedded
+art retained in MP4, and sequence duration/crossfade decoded-color assertions.
+The exact workflow setup shell passed syntax/execution checks against installed
+FFmpeg/FFprobe. No application/media-export implementation was changed. Final CI
+results and main integration are recorded in the delivery PR; old queued/running
+jobs are not treated as passed.
+
+The first bounded CI attempt exposed a slow Azure Ubuntu mirror download of
+libcodec2 and correctly failed on the installation time limit before encoding.
+The follow-up selects the official Ubuntu archive/security mirror lists on the
+ephemeral runner and omits recommended packages; the same real media tests and
+strict time limits remain in place. No failed setup is counted as a media pass.
+
+## Direct desktop editing follow-up (PR #93)
+
+Adds visible scene/episode creation, character picking and root dragging with a
+single key/Undo transaction, frame-snapped head drafts, and explicit local
+one-shot head tilt capture for articulated custom head joints. New episode Undo
+retains the preceding project and artwork. CPU drag preview moves the actor;
+native compositor preview moves its bounds until release. Default procedural
+heads support X/Y, not camera-driven rotation.
+
+Camera helper uses AVFoundation/Vision, explicit macOS permission and bounded
+capture. Package inventory and build evidence include its executable/hash/native
+links. Python packaging checks: 36 passed; build evidence checks: 11 passed.
+Desktop Rust check passed locally. Further Rust/CI results belong in PR #93;
+physical Mac/camera interaction, continuous mocap and artistic acceptance remain
+open. This follow-up was merged in PR #93; see the integration record below.
+
+## Finnish desktop workspace and user guide
+
+The desktop inspector now separates Edit, Speech, Video export and Advanced
+settings instead of showing every tool in one long list. Scene/character lists
+precede optional creation forms; primary actions, gesture guidance and camera
+controls have Finnish labels. The toolbar wraps and body/button text is larger.
+The offline Ohjeet window embeds the same ten-topic Finnish guide maintained at
+apps/studio-desktop/KAYTTOOHJE.md. It covers project paths and overwrite behavior,
+scene/episode creation, mouse keyframes/Undo, head/camera limits, dialogue,
+English Kokoro versus imported Finnish WAV, artwork and selected/whole-project
+export. Some advanced tools/errors remain in English.
+
+Headless workspace/tab and all-ten-topic help rendering tests pass. Switching
+away from head controls cancels pending camera capture. Earlier PR #93 CI for
+1f424fd0a5a4b7a51035d2461edb67bd513e7c4b passed the full Audio foundation and
+Apple Silicon package workflows. Final application source was verified by those same
+workflows on main after the user-authorized merge; results are recorded below. Physical Mac GUI,
+camera permission/calibration and continuous mocap acceptance remain open.
+
+
+## PR #93 main integration (2026-10-23)
+
+User-authorized PR #93 was squash-merged to main as
+622d68afa9daea6c802e11c850c3e5b9631ec9bc. This includes direct character editing,
+scene/episode creation, one-shot local camera head tilt, the focused Finnish UI
+and the offline ten-topic Finnish guide.
+
+Local final-source validation: cargo fmt, workspace/all-target Clippy with warnings
+denied, and 233 desktop tests passed. One existing recognizer-enrollment test
+requires /proc/sys/kernel/osrelease unavailable in the container; normal CI runs
+that test without exclusions. Headless UI navigation does not change project
+contents and all ten help topics render.
+
+Fresh main Audio foundation CI:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39972447151
+Fresh main Apple Silicon package build:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39972447150
+Both fresh main workflows passed. Linux: 776 Rust tests passed, 7 intentionally
+ignored. macOS: 775 Rust tests passed, 7 intentionally ignored. Each platform
+also passed 55 Kokoro-runtime tests and 86 repository Python tests. The
+container-blocked recognizer-enrollment test passed unfiltered on both CI hosts.
+Both GPU-contract jobs passed. All three actual FFmpeg tests passed, and the
+280-frame night-room reference MP4 exported in 238.2 seconds (placeholder tones,
+not measured speech or artistic acceptance).
+
+The Apple Silicon app passed compilation, Swift helper compilation, ad-hoc
+signing, diagnostic checks, strict package inventory and executable linkage/build
+evidence. Main application artifact:
+https://github.com/aleksipii/kilsatstudio/actions/runs/39972447150/artifacts/12509887781
+Artifact SHA-256: a32a449565f1913069610abc027c4128f087c9dd2efe0d0e56206744de07261f
+
+The documentation follow-up corrects the guide's dialogue example to use ALEX,
+the actual starter character, and records these post-merge observations. Its
+embedded-guide rendering test passed. It changes no editor behavior. Further
+workflow runs are recorded in the documentation PR rather than inferred from
+these earlier results. Physical Mac GUI/camera, calibration, continuous mocap
+and artistic acceptance remain open.
+
+
+## 2026-10-25 — Tikku-ukkostudio 2: nivelet, käsiotteet ja kuvakoot
+
+Käyttäjän kuvissa näkyneet lantion ja hartioiden aukot korjataan tasapaksuilla,
+nivelen keskelle päättyvillä pyöristetyillä raajoilla, lantio-/hartiaviivoilla
+ja nivelen mukaan jaetulla selkärangalla. Hahmot säilyvät tikkuhahmoina.
+Esine käteen -työkalu kiinnittää yhdeksän vaihtoehtoa olemassa oleviin käden
+niveliin; puhelimesta on näyttö-, taka- ja vinonäkymä. Kiinnitys koskee hahmoa
+kaikissa kohtauksissa, säilyttää tunnusesineet ja tukee kumoa/toista-historiaa.
+Viisi 2D-kuvakokoa kirjoittaa tavallisen kameran avainruudun. Neljän taustan
+syvyyttä ja kontrastia on parannettu, suuri harmaa soikio ja pienet irralliset
+reunarekvisiitat poistettu.
+
+Sisältöversio 2 sisältää 30 erillistä projektia, 60 PNG/SVG-kuvaa, yhdeksän
+käsiotteen luettelon ja kuuden kohtauksen 30 sekunnin äänettömän Full HD -demon.
+Kuvallinen suunnitelma ja hyväksyntäehdot ovat
+[stick-studio-art-direction.md](stick-studio-art-direction.md).
+
+Paikallisesti läpäisivät seitsemän natiivivientitestiä (42 taivutussiluettia
+ja puhelimen FK-/rasterivastaavuus), 272 työpöytätestiä, 146 Python-testiä,
+55 runtime-testiä, rustfmt ja tiukka kaikkien targettien/featureiden Clippy.
+Yksi desktop-testi rajattiin paikallisesti puuttuvan /proc-tiedoston vuoksi;
+CI ajetaan rajaamatta. Koko workspacen 850 yksittäistä Rust-testiä läpäisivät;
+kolme /proc-riippuvaista testiä rajattiin paikallisesti. Yksi viallinen
+käännösvälimuistin suoritettava tiedosto rakennettiin uudelleen ja loput
+paketit ajettiin erikseen. PR #99 ja mainin kaikki CI-ajot läpäisivät; tarkat ajot ja artifactit ovat alla. Todellinen MP4 tarkistettiin: 1920×1080, 24 fps,
+720 ruutua / 30 s, täysi dekoodaus ja 720 000 nollasamplea. Natiivit sisältökuvat,
+kuusi taivutuskuvaa ja kuusi lopullista kohtausta tarkastettiin kuvallisesti.
+Tarkat paikalliset tiedot: [stick-studio-v2-local.json](evidence/stick-studio-v2-local.json).
+
+Fyysisen Macin UI-/ääni-/kamera-/Metal-käyttötestit, ajastetut esinekontaktit,
+visuaalinen IK ja jalkalukitus sekä taiteellinen/puheen laadun hyväksyntä jäävät
+erikseen tehtäviksi. Developer ID, notarisointi ja lopullinen oikeustarkistus
+eivät seuraa teknisten testien läpäisystä.
+
+Paketin arkistointi rajattiin valmiisiin toimituskansioihin ja tiedostoihin.
+Renderöinnin väliaikaiset työpuut eivät päädy jaettavaan ZIPiin; tuntematon
+toimituksen juuritiedosto tai väärä tiedostolaji estää arkistoinnin.
+Kaksi lisäregressiota tarkistaa nämä rajat.
+
+
+### PR #99 ja mainin tarkistettu toimitus
+
+[PR #99](https://github.com/aleksipii/kilsatstudio/pull/99) yhdistettiin mainiin
+commitilla `43e92a6cfb5287a562838269bfd9e5a494569ce7`. Sen tree vastaa
+paikallisesti tarkistettua lähdepuuta. PR:n kaikki viisi push/PR-ajoa ja
+mainin kaikki kolme työnkulkua valmistuivat onnistuneesti:
+
+- [Audio foundation](https://github.com/aleksipii/kilsatstudio/actions/runs/40239796240):
+  Linux 853 ja macOS 852 Rust-testiä läpäisi; kummallakin kahdeksan oletuksena
+  ohitettua testiä. Runtime-testit 55/55 kummallakin. Repositorion Python-testejä
+  ajettiin 146: 145 läpäisi, yksi FFmpeg/ffprobea tarvitseva testi ohitettiin
+  yleisessä testityössä. Erillinen oikean median työ läpäisi kaikki neljä
+  Rust/FFmpeg-testiä. GPU-työssä 52 kirjastotestiä ja kaksi probe-testiä
+  läpäisi kummallakin käyttöjärjestelmällä; neljä fyysisen GPU:n testiä jäi
+  oletuksena ohitetuksi. Rustfmt, check ja tiukka Clippy läpäisivät.
+- [Apple Silicon -paketointi](https://github.com/aleksipii/kilsatstudio/actions/runs/40239796225):
+  valmis arm64/macOS 13+ -sovellus, artifact `12616766597`. Ladatun ulomman
+  ZIPin tiiviste tarkistettiin. Sisempi sovellus-ZIP on
+  `1c3b57f9317b64f84042e223edbf81416b3b38527d63b353d47f6115eee26964`.
+  Alkuperäiset ZIP-tavut, suoritusoikeudet ja allekirjoitusmetadata säilyivät.
+  Mach-O/arm64, build-commit ja lisenssi tarkistettiin. Sovelluksen binäärissä
+  olevat malliprojekti ja käsiesineluettelo vastaavat täsmälleen mainin tavuja.
+  Paikallinen pakettiauditointi läpäisi; tämä ei ole notarisointi tai
+  fyysisen Macin käyttökokeen hyväksyntä.
+- [Sisältö- ja videopaketti](https://github.com/aleksipii/kilsatstudio/actions/runs/40239796213):
+  artifact `12616582079` ladattiin ja sen ulompi ZIP tarkistettiin. Kaikki
+  34 kanonista lähdetiivistettä ja 60 PNG/SVG-tiivistettä vastaavat paikallisesti
+  katsottuja lähteitä ja kuvia. Jaettavassa ZIPissä on yksi valmis MP4,
+  ei renderöinnin väliaikaisia työpuita. Oikean main-MP4:n erillinen tarkistus
+  vahvisti 720 ruutua, 30 s, 1920×1080, 24 fps, täyden dekoodauksen ja
+  720 000 nollasamplea. Main-videon SHA-256 on
+  `9993c3df6b47793eeed06d6ba744b4dbdae3fae50c1bc19b08e2c9b51cb8663d`.
+
+Paikallisen jaettavan sisältö-ZIPin tiiviste on
+`38eb6ca8d34be2c503419afcbaa45a0ed6f3b2c5f590f2d3d5f3e9969109a634`;
+se sisältää lisäksi natiiveista kuvista kootun kuvaston. Sen lähteet ja
+60 sisältökuvaa vastaavat tarkistettua main-artifactia. Kuuden kohtauksen
+äänetön esittely ja muokattavat projektit ovat mukana.
+Koneelliset havainnot: [stick-studio-v2-ci.json](evidence/stick-studio-v2-ci.json).
+
+Tämä loppukirjaus muuttaa vain dokumentaatiota ja testitodisteita.
+Tarkistetun sovelluksen ja sisältöprojektien tavut säilyvät samoina.
+Fyysisen Macin käyttö-, ääni-, kamera- ja Metal-hyväksyntä, ajastetut kontaktit,
+IK/jalkalukitus, taiteellinen/puheen laatukatselmus sekä tuotantoallekirjoitus,
+notarisointi ja lopullinen oikeustarkistus jäävät avoimiksi.
+
+
+## 2026-10-26 — Arkkitehtuuri ja agenttisuunnitelma, PR #100 yhdistetty
+
+[PR #100](https://github.com/aleksipii/kilsatstudio/pull/100) yhdistettiin käyttäjän luvalla päähaaraan commitilla `ec442c25e84c705f0dbcf54d080f32758c7caf92`.
+
+- Tehty: [arkkitehtuuridokumentti](KILSAT-STUDIO-ARKKITEHTUURI-JA-AGENTIT.md), kymmenen agentin tehtävänannot, orkestroijan ohje, G0–G4-suunnitelma, tiivistelmä ja vaihekohtainen tehty/tekemättä-seuranta ovat päähaarassa.
+- Tarkistettu: GitHub vahvisti yhdistämisen; ennen yhdistämistä tallennettu dokumentti luettiin takaisin ja vastasi toimitusta täsmälleen. Sovellustestejä ei ajettu tässä dokumentointitoimituksessa eikä uusia CI-tuloksia oleteta.
+- Tekemättä: tämän suunnitelman toteutustyö ja sen validointi odottavat erillistä jatkotehtävää. Agenttimäärittelyt eivät tarkoita käynnistettyjä agenttiprosesseja. Nykyisen sovelluksen aiempi toteutus ja hyväksymisnäyttö säilyvät yllä olevissa merkinnöissä.
+- Rajaus: sovelluskoodia ei muutettu. Raportin SwiftUI-ehdotuksen suhde nykyiseen egui/eframe-linjaukseen ratkaistaan G0-vaiheessa.

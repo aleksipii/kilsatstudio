@@ -1,4 +1,9 @@
 //! Blocking provider boundary. Call on a worker, never on the desktop event loop.
+mod local;
+pub use local::{
+    installed_system_voices, LocalSpeechProvider, PiperConfig, PiperProvenance, PiperProvider,
+    SystemSpeechProvider, SystemVoice,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
@@ -40,7 +45,7 @@ pub struct SpeechRequest {
 }
 impl SpeechRequest {
     pub fn validate(&self) -> Result<(), SpeechError> {
-        if self.text.trim().is_empty() || self.text.len() > 16000 {
+        if self.text.trim().is_empty() || self.text.len() > 16000 || self.text.contains('\0') {
             return Err(SpeechError("text must contain 1..16000 bytes".into()));
         }
         if !self.voice.speed.is_finite() || !(0.5..=2.0).contains(&self.voice.speed) {
@@ -48,8 +53,10 @@ impl SpeechRequest {
                 "speed must be finite and between 0.5 and 2".into(),
             ));
         }
-        if !["en-us", "en-gb"].contains(&self.voice.language.as_str()) {
-            return Err(SpeechError("only en-us and en-gb are supported".into()));
+        if !["en-us", "en-gb", "fi-fi"].contains(&self.voice.language.as_str()) {
+            return Err(SpeechError(
+                "supported local languages are en-us, en-gb and fi-fi".into(),
+            ));
         }
         if self.voice.preset.is_empty()
             || !self
@@ -132,6 +139,29 @@ pub trait SpeechProvider: Send + Sync {
     }
 }
 
+/// Provider for the strict model-free path (ADR-A01-09): every call fails with a
+/// `SpeechError` and nothing is started, installed or downloaded. Callers should
+/// still check for missing imported audio before preparation, so this is the
+/// last line of defence rather than the user-facing error.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct DisabledSpeechProvider;
+impl DisabledSpeechProvider {
+    pub const MESSAGE: &'static str =
+        "speech synthesis is disabled by the strict model-free policy; import a 24 kHz mono WAV for this line";
+}
+impl SpeechProvider for DisabledSpeechProvider {
+    fn synthesize(&self, _: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+        Err(SpeechError(Self::MESSAGE.into()))
+    }
+    fn synthesize_cancellable(
+        &self,
+        _: SpeechRequest,
+        _: &CancellationToken,
+    ) -> Result<SpeechResult, SpeechError> {
+        Err(SpeechError(Self::MESSAGE.into()))
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct KokoroConfig {
     pub python: PathBuf,
@@ -210,6 +240,12 @@ impl SpeechProvider for KokoroProvider {
     ) -> Result<SpeechResult, SpeechError> {
         cancel.check()?;
         request.validate()?;
+        if !["en-us", "en-gb"].contains(&request.voice.language.as_str()) {
+            return Err(SpeechError(
+                "Kokoro supports only en-us and en-gb; use a Finnish provider or imported WAV"
+                    .into(),
+            ));
+        }
         let c = &self.config;
         if c.timeout.is_zero() || c.model_version.trim().is_empty() {
             return Err(SpeechError(
@@ -359,6 +395,20 @@ impl SpeechProvider for KokoroProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn disabled_provider_fails_every_call_without_side_effects() {
+        let provider = DisabledSpeechProvider;
+        for _ in 0..3 {
+            let request = SpeechRequest {
+                text: "Hei".into(),
+                voice: VoiceSettings::default(),
+            };
+            let error = provider.synthesize(request.clone()).unwrap_err();
+            assert_eq!(error.0, DisabledSpeechProvider::MESSAGE);
+            let cancel = CancellationToken::new();
+            assert!(provider.synthesize_cancellable(request, &cancel).is_err());
+        }
+    }
     #[test]
     fn rejects_invalid_requests() {
         let mut r = SpeechRequest {

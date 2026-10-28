@@ -1,0 +1,189 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Yövuoron pysäkkimerkki\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_liikennemerkki_post",
+        "name": "liikennemerkki post",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 449.9259259259259
+            },
+            {
+              "x": 256.0,
+              "y": 169.62962962962962
+            }
+          ],
+          "width": 13.037037037037036,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennemerkki_sign_outline",
+        "name": "liikennemerkki sign outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 190.0,
+            "y": 53.111111111111114,
+            "width": 132.0,
+            "height": 149.11111111111111
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennemerkki_sign_fill",
+        "name": "liikennemerkki sign fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 197.33333333333334,
+            "y": 60.44444444444444,
+            "width": 117.33333333333333,
+            "height": 134.44444444444443
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennemerkki_bus",
+        "name": "liikennemerkki bus",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 212.81481481481484,
+            "y": 77.55555555555554,
+            "width": 86.37037037037037,
+            "height": 78.22222222222221
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennemerkki_window",
+        "name": "liikennemerkki window",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 220.96296296296296,
+            "y": 88.14814814814815,
+            "width": 70.07407407407408,
+            "height": 30.962962962962962
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennemerkki_wheel_left",
+        "name": "liikennemerkki wheel left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 221.77777777777777,
+            "y": 148.44444444444446,
+            "width": 17.925925925925924,
+            "height": 23.62962962962963
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennemerkki_wheel_right",
+        "name": "liikennemerkki wheel right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 273.1111111111111,
+            "y": 148.44444444444446,
+            "width": 17.925925925925924,
+            "height": 23.62962962962963
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

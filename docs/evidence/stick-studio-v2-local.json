@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "task": "Connected stick figures, hand props, framing and backgrounds",
+  "base_commit": "e5ae12549529167a76356f2773db2dc145750d1e",
+  "pack_revision": 2,
+  "deterministic_regeneration": true,
+  "source_bytes": 76050,
+  "normalized_source_bytes": 247603,
+  "shared_source_limit_bytes": 262144,
+  "item_counts": {
+    "character": 6,
+    "background": 4,
+    "prop": 20
+  },
+  "png_svg_count": 60,
+  "native_asset_tests": {
+    "passed": 7,
+    "failed": 0,
+    "bent_pose_checks": 42,
+    "alpha_threshold": 32,
+    "connectivity": 8,
+    "maximum_dust_component_pixels": 4,
+    "maximum_total_dust_pixels": 16,
+    "dilation_used": false,
+    "phone_fk_and_preview_export_rgba_parity": true
+  },
+  "desktop_tests": {
+    "passed": 272,
+    "failed": 0,
+    "filtered_out": 1,
+    "host_blocked_test": "enrolled_exact_hit_needs_neither_an_executable_process_nor_the_wav_path",
+    "reason": "sandbox lacks /proc/sys/kernel/osrelease; unfiltered CI required"
+  },
+  "python_repository_tests": {
+    "ran": 146,
+    "passed": 146,
+    "skipped": 0
+  },
+  "runtime_tests": {
+    "passed": 55
+  },
+  "rustfmt_passed": true,
+  "strict_clippy_all_targets_all_features_passed": true,
+  "workspace_tests": {
+    "unique_passed": 850,
+    "failed_tests": 0,
+    "default_ignored": 8,
+    "host_filtered": 3,
+    "two_commands": "first completed through motion-script unit tests; remaining packages resumed after rebuilding one zero-header cached executable",
+    "host_cache_corruption_recovered": true
+  },
+  "native_video": {
+    "profile": {
+      "width": 1920,
+      "height": 1080,
+      "fps": 24,
+      "seconds": 30,
+      "frames": 720,
+      "audio_samples": 720000,
+      "speech": false
+    },
+    "observed": {
+      "frame_count": 720,
+      "duration_seconds": 30.0,
+      "width": 1920,
+      "height": 1080,
+      "fps": 24,
+      "audio_sample_rate": 24000
+    },
+    "full_decode_passed": true,
+    "silent_pcm_confirmed": true,
+    "sha256": "8e6ad74ba1111cc5ef5f982a36ff1daaec9ab1a41c94c851641c86d57578690a",
+    "local_linux_elapsed_seconds": 65.458184699,
+    "physical_mac_performance_measured": false
+  },
+  "local_bundle": {
+    "sha256": "38eb6ca8d34be2c503419afcbaa45a0ed6f3b2c5f590f2d3d5f3e9969109a634",
+    "size_bytes": 3501594,
+    "only_completed_outputs_archived": true
+  },
+  "visual_review": {
+    "native_30_asset_contact_sheet_inspected": true,
+    "six_additional_bent_poses_inspected": true,
+    "six_final_scene_review_frames_inspected": true,
+    "fixes_after_first_render": [
+      "kept both clipboard and phone inside two-person frame",
+      "isolated close-up subjects to remove cropped scythe/second face",
+      "centered final cup close-up"
+    ],
+    "professional_artistic_approval": false
+  },
+  "remaining": [
+    "Physical Mac graphical workflow/audio/camera/Metal acceptance",
+    "Timed pickup/release and visual IK/floor locking",
+    "Perceptual speech/lipsync and comedy direction assessment",
+    "Developer ID, notarization and final rights audit"
+  ],
+  "archive_boundary_tests": {
+    "passed": 14,
+    "failed": 0
+  }
+}

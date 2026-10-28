@@ -14,6 +14,7 @@ pub enum Format {
     Svg,
     Png,
     Mp4,
+    StreamingMp4,
 }
 
 pub struct Request {
@@ -79,6 +80,22 @@ impl Worker {
                     progress,
                     request.captions,
                 ),
+                Format::StreamingMp4 => motion_export::export_mp4_scene_streaming(
+                    &request.script,
+                    request.scene_index,
+                    &rendered,
+                    Some(&request.art),
+                    &request.destination,
+                    &request.ffmpeg,
+                    &motion_export::StreamingProfile::full_hd_24(),
+                    &request.cancel,
+                    progress,
+                    request.captions,
+                )
+                .map(|r| Report {
+                    frame_count: r.frame_count,
+                    output_directory: r.output_directory,
+                }),
                 Format::Mp4 => motion_export::export_mp4_scene_with_art_captions(
                     &request.script,
                     request.scene_index,
@@ -112,7 +129,9 @@ impl Worker {
                         }
                     })
                 }))
-                .unwrap_or_else(|_| Err("Export worker panicked; check inputs and retry".into()));
+                .unwrap_or_else(|_| {
+                    Err("Vientityöntekijä kaatui; tarkista syötteet ja yritä uudelleen".into())
+                });
                 // Only one accepted job can be outstanding. Never block shutdown
                 // on a UI that has stopped polling, even if that invariant changes.
                 if finished.try_send(result).is_err() {
@@ -128,18 +147,21 @@ impl Worker {
     }
 
     pub fn submit(&self, request: Request) -> Result<(), String> {
-        let mut state = self.state.lock().map_err(|_| "Export state unavailable")?;
+        let mut state = self
+            .state
+            .lock()
+            .map_err(|_| "Viennin tila ei ole saatavilla")?;
         if state.active.is_some() {
-            return Err("An export is already pending; wait for its result".into());
+            return Err("Vienti on jo kesken; odota sen tulosta".into());
         }
         state.active = Some(request.cancel.clone());
         state.progress = None;
         let result = self
             .tx
             .as_ref()
-            .ok_or_else(|| "Export worker stopped".to_string())?
+            .ok_or_else(|| "Vientityöntekijä pysähtyi".to_string())?
             .try_send(request)
-            .map_err(|error| format!("Export queue: {error}"));
+            .map_err(|error| format!("Vientijono: {error}"));
         if result.is_err() {
             state.active = None;
         }
@@ -167,7 +189,7 @@ impl Worker {
                 state.progress = None;
                 state.active.take().map(|_| {
                     Update::Finished(Err(
-                        "Export worker stopped unexpectedly; reopen the app".into()
+                        "Vientityöntekijä pysähtyi odottamatta; avaa sovellus uudelleen".into(),
                     ))
                 })
             }
@@ -375,7 +397,7 @@ mod tests {
             })
         });
         worker.submit(request()).unwrap();
-        assert!(finished(&worker).err().unwrap().contains("panicked"));
+        assert!(finished(&worker).err().unwrap().contains("kaatui"));
         worker.submit(request()).unwrap();
         assert_eq!(finished(&worker).unwrap().frame_count, 2);
     }

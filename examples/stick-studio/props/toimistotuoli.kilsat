@@ -1,0 +1,316 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Palaverituoli\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_toimistotuoli_back_outline",
+        "name": "toimistotuoli back outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 164.22857142857143,
+            "y": 61.14285714285714,
+            "width": 183.54285714285714,
+            "height": 201.14285714285714
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_back_fill",
+        "name": "toimistotuoli back fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 175.54285714285714,
+            "y": 72.45714285714286,
+            "width": 160.9142857142857,
+            "height": 178.5142857142857
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_back_inset",
+        "name": "toimistotuoli back inset",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 189.37142857142857,
+            "y": 85.02857142857142,
+            "width": 133.25714285714287,
+            "height": 149.6
+          },
+          "color": {
+            "r": 81,
+            "g": 133,
+            "b": 127,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_support",
+        "name": "toimistotuoli support",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 253.4857142857143
+            },
+            {
+              "x": 256.0,
+              "y": 419.42857142857144
+            }
+          ],
+          "width": 18.857142857142858,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_seat_outline",
+        "name": "toimistotuoli seat outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 130.28571428571428,
+            "y": 279.88571428571424,
+            "width": 251.42857142857142,
+            "height": 49.028571428571425
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_seat_fill",
+        "name": "toimistotuoli seat fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 140.34285714285716,
+            "y": 289.9428571428572,
+            "width": 231.31428571428572,
+            "height": 28.914285714285715
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_arm_left",
+        "name": "toimistotuoli arm left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 139.0857142857143,
+              "y": 283.65714285714284
+            },
+            {
+              "x": 139.0857142857143,
+              "y": 242.17142857142858
+            },
+            {
+              "x": 174.28571428571428,
+              "y": 242.17142857142858
+            }
+          ],
+          "width": 13.82857142857143,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_arm_right",
+        "name": "toimistotuoli arm right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 372.9142857142857,
+              "y": 283.65714285714284
+            },
+            {
+              "x": 372.9142857142857,
+              "y": 242.17142857142858
+            },
+            {
+              "x": 337.7142857142857,
+              "y": 242.17142857142858
+            }
+          ],
+          "width": 13.82857142857143,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_base",
+        "name": "toimistotuoli base",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150.4,
+              "y": 435.77142857142854
+            },
+            {
+              "x": 256.0,
+              "y": 409.37142857142857
+            },
+            {
+              "x": 360.34285714285716,
+              "y": 435.77142857142854
+            }
+          ],
+          "width": 15.085714285714285,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_wheel_left",
+        "name": "toimistotuoli wheel left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 131.54285714285714,
+            "y": 433.25714285714287,
+            "width": 37.714285714285715,
+            "height": 27.65714285714286
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_toimistotuoli_wheel_right",
+        "name": "toimistotuoli wheel right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 341.48571428571427,
+            "y": 433.25714285714287,
+            "width": 37.714285714285715,
+            "height": 27.65714285714286
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

@@ -45,64 +45,64 @@ impl Panel {
     pub fn ui(&mut self, ui: &mut egui::Ui, can_run: bool) -> bool {
         let mut run = false;
         let mut settings_changed = false;
-        ui.collapsing("Local estimated mouth timing (Rhubarb)", |ui| {
-            ui.label("Estimation reads the prepared line's WAV; saved timing binds to its exact PCM and text. Mouth shapes are estimated, not forced-aligned phonemes. No downloads or synthesis.");
+        ui.collapsing("Paikallinen suun ajoitusarvio (Rhubarb)", |ui| {
+            ui.label("Arviointi lukee valmistellun repliikin WAV-äänen. Tallennettu ajoitus sidotaan täsmälliseen ääneen ja tekstiin. Suumuodot ovat arvioita, eivät mitattuja äännekohdistuksia. Tiedostoja ei ladata eikä puhetta tuoteta.");
             ui.add_enabled_ui(!self.busy(), |ui| {
-                ui.horizontal(|ui| { ui.label("Executable"); settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.executable).char_limit(4096).hint_text("/absolute/path/to/rhubarb")).changed(); });
-                egui::ComboBox::from_id_salt("native-rhubarb-recognizer").selected_text(match self.recognizer { Recognizer::PocketSphinx=>"PocketSphinx (English)", Recognizer::Phonetic=>"Phonetic" }).show_ui(ui, |ui| {
-                    settings_changed |= ui.selectable_value(&mut self.recognizer,Recognizer::PocketSphinx,"PocketSphinx (English)").changed();
-                    settings_changed |= ui.selectable_value(&mut self.recognizer,Recognizer::Phonetic,"Phonetic").changed();
+                ui.horizontal(|ui| { ui.label("Ohjelmatiedosto"); settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.executable).char_limit(4096).hint_text("/absolute/path/to/rhubarb")).changed(); });
+                egui::ComboBox::from_id_salt("native-rhubarb-recognizer").selected_text(match self.recognizer { Recognizer::PocketSphinx=>"PocketSphinx (englanti)", Recognizer::Phonetic=>"Phonetic (äännepohjainen)" }).show_ui(ui, |ui| {
+                    settings_changed |= ui.selectable_value(&mut self.recognizer,Recognizer::PocketSphinx,"PocketSphinx (englanti)").changed();
+                    settings_changed |= ui.selectable_value(&mut self.recognizer,Recognizer::Phonetic,"Phonetic (äännepohjainen)").changed();
                 });
             });
             ui.add_enabled_ui(!self.busy(), |ui| {
                 ui.horizontal(|ui| {
-                    ui.label("Saved timing key");
-                    settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.cache_key).char_limit(64).hint_text("64-character cache key")).changed();
+                    ui.label("Tallennetun ajoituksen tunnus");
+                    settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.cache_key).char_limit(64).hint_text("64 merkin välimuistitunnus")).changed();
                 });
             });
             ui.add_enabled_ui(!self.busy(), |ui| {
-                ui.label("Optional local package enrollment pins every file. Only use a trusted self-contained Phonetic package: enrollment is not a license/quality audit or filesystem sandbox.");
-                settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.package_version).char_limit(1024).hint_text("Exact expected --version output for enrollment")).changed();
-                if ui.add_enabled(can_run && self.recognizer == Recognizer::Phonetic && !self.package_version.trim().is_empty(), egui::Button::new("Trust, enroll and estimate package")).clicked() {
+                ui.label("Valinnainen paketin rekisteröinti sitoo jokaisen tiedoston tiivisteen. Käytä vain luotettua, itsenäistä Phonetic-pakettia. Rekisteröinti ei tarkista lisenssejä tai laatua eikä eristä tiedostojärjestelmää.");
+                settings_changed |= ui.add(egui::TextEdit::singleline(&mut self.package_version).char_limit(1024).hint_text("Paketin odotettu --version-tuloste täsmälleen")).changed();
+                if ui.add_enabled(can_run && self.recognizer == Recognizer::Phonetic && !self.package_version.trim().is_empty(), egui::Button::new("Luota, rekisteröi ja arvioi paketti")).clicked() {
                     self.pending_action = Some(Action::EnrollAndEstimate { expected_version: self.package_version.clone() });
                     run = true;
                 }
             });
-            ui.horizontal(|ui| {
-                if ui.add_enabled(can_run && !self.busy(), egui::Button::new("Run fresh (bypass reuse)")).clicked() {
+            ui.horizontal_wrapped(|ui| {
+                if ui.add_enabled(can_run && !self.busy(), egui::Button::new("Tee uusi arvio")).on_hover_text("Käynnistä tunnistin uudelleen käyttämättä aiempaa ajoitusarviota.").clicked() {
                     self.pending_action = Some(Action::EstimateFresh); run = true;
                 }
-                if ui.add_enabled(can_run && !self.busy(),egui::Button::new("Estimate prepared line")).clicked() {
+                if ui.add_enabled(can_run && !self.busy(),egui::Button::new("Arvioi valmis repliikki")).clicked() {
                     self.pending_action = Some(Action::Estimate); run = true;
                 }
-                if ui.add_enabled(can_run && !self.busy() && self.cache_key.len() == 64, egui::Button::new("Load cached timing")).clicked() {
+                if ui.add_enabled(can_run && !self.busy() && self.cache_key.len() == 64, egui::Button::new("Lataa tallennettu ajoitus")).clicked() {
                     self.pending_action = Some(Action::Load { key: self.cache_key.trim().to_owned() });
                     run = true;
                 }
-                if ui.add_enabled(self.busy(),egui::Button::new("Cancel alignment")).clicked() { self.cancel(); }
+                if ui.add_enabled(self.busy(),egui::Button::new("Peru kohdistus")).clicked() { self.cancel(); }
             });
-            if !can_run { ui.label("Prepare the selected dialogue line first."); }
+            if !can_run { ui.label("Valmistele ensin valitun repliikin ääni."); }
             if self.busy() { ui.spinner(); ui.ctx().request_repaint_after(std::time::Duration::from_millis(40)); }
             if !self.status.is_empty() { ui.label(&self.status); }
             let draft_changed = self.timing_draft.as_ref().is_some_and(|draft| draft.cues != draft.original.cues);
             if let Some(candidate)=&self.candidate {
                 ui.label(match candidate.cache.origin {
-                    crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad => "Saved estimated result; no recognizer was executed.",
-                    crate::alignment_worker::ResultOrigin::AutomaticReuse => "Automatically reused exact estimated result; no recognizer or version process was executed.",
-                    crate::alignment_worker::ResultOrigin::Fresh => "Fresh local estimate.",
-                    crate::alignment_worker::ResultOrigin::Manual => "Explicit manual mouth-shape edits; no recognizer was executed.",
+                    crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad => "Tallennettu ajoitusarvio. Tunnistinta ei suoritettu.",
+                    crate::alignment_worker::ResultOrigin::AutomaticReuse => "Täsmälleen vastaava ajoitusarvio käytettiin uudelleen. Tunnistinta tai versiokyselyä ei käynnistetty.",
+                    crate::alignment_worker::ResultOrigin::Fresh => "Uusi paikallinen ajoitusarvio.",
+                    crate::alignment_worker::ResultOrigin::Manual => "Käsin muokatut suumuodot. Tunnistinta ei suoritettu.",
                 });
                 if let Some(key) = &candidate.cache.key {
                     ui.horizontal(|ui| {
-                        ui.label(format!("Cache key: {key}"));
-                        if ui.button("Copy key").clicked() { ui.ctx().copy_text(key.clone()); }
+                        ui.label(format!("Välimuisti: {key}"));
+                        if ui.button("Kopioi tunnus").clicked() { ui.ctx().copy_text(key.clone()); }
                     });
                 }
-                if !candidate.cache.message.is_empty() { ui.label(&candidate.cache.message); }
-                ui.label(&candidate.cache.provenance);
-                ui.label(format!("Timing ready for line {} ({} bytes). Apply to reprepare the same audio.",candidate.identity.line_id,candidate.json.len()));
-                if draft_changed { ui.label("Review manual edits below before applying the changed draft."); }
-                if ui.add_enabled(can_run && !self.busy() && !draft_changed,egui::Button::new("Apply reviewed timing")).clicked() { self.ready=self.candidate.take(); self.timing_draft=None; }
+                if !candidate.cache.message.is_empty() { ui.label(format!("Välimuistin tekniset tiedot: {}", candidate.cache.message)); }
+                ui.label(format!("Ajoituksen alkuperä: {}", candidate.cache.provenance));
+                ui.label(format!("Ajoitus valmis repliikille {} ({} tavua). Käytä ajoitusta saman äänen valmisteluun uudelleen.",candidate.identity.line_id,candidate.json.len()));
+                if draft_changed { ui.label("Tarkista alla olevat käsin tehdyt muutokset ennen niiden käyttöönottoa."); }
+                if ui.add_enabled(can_run && !self.busy() && !draft_changed,egui::Button::new("Käytä tarkistettua ajoitusta")).clicked() { self.ready=self.candidate.take(); self.timing_draft=None; }
             }
             run |= self.timing_editor(ui, can_run);
         });
@@ -124,9 +124,9 @@ impl Panel {
         };
         let mut submit = false;
         let mut action = None;
-        ui.collapsing("Edit mouth timing in audio samples", |ui| {
+        ui.collapsing("Muokkaa suun ajoitusta ääninäytteinä", |ui| {
             ui.label(format!(
-                "{} Hz; {} samples. Intervals are [start, end); gaps are rest. Shapes A–H/X describe mouths, not measured phonemes.",
+                "{} Hz; {} näytettä. Välit ovat [alku, loppu); välien aukot ovat lepoa. Muodot A–H/X kuvaavat suuta, eivät mitattuja äänteitä.",
                 draft.original.sample_rate, draft.original.frame_count
             ));
             ui.add_enabled_ui(!busy, |ui| {
@@ -141,8 +141,8 @@ impl Panel {
                             ui.push_id(index, |ui| {
                                 ui.horizontal(|ui| {
                                     ui.label(format!("{}", index + 1));
-                                    ui.add(egui::DragValue::new(&mut cue.start_sample).range(0.0..=draft.original.frame_count as f64).prefix("Start "));
-                                    ui.add(egui::DragValue::new(&mut cue.end_sample).range(0.0..=draft.original.frame_count as f64).prefix("End "));
+                                    ui.add(egui::DragValue::new(&mut cue.start_sample).range(0.0..=draft.original.frame_count as f64).prefix("Alku "));
+                                    ui.add(egui::DragValue::new(&mut cue.end_sample).range(0.0..=draft.original.frame_count as f64).prefix("Loppu "));
                                     egui::ComboBox::from_id_salt("shape")
                                         .selected_text(cue.shape.to_string())
                                         .show_ui(ui, |ui| {
@@ -150,8 +150,8 @@ impl Panel {
                                                 ui.selectable_value(&mut cue.shape, shape, shape.to_string());
                                             }
                                         });
-                                    if ui.button("Split").clicked() { split = Some(index); }
-                                    if ui.button("Delete").clicked() { remove = Some(index); }
+                                    if ui.button("Jaa").clicked() { split = Some(index); }
+                                    if ui.button("Poista").clicked() { remove = Some(index); }
                                 });
                             });
                         }
@@ -175,20 +175,20 @@ impl Panel {
                 }
                 ui.horizontal(|ui| {
                     let start = draft.cues.last().map_or(0, |cue| cue.end_sample);
-                    if ui.add_enabled(draft.cues.len() < motion_lipsync::manual::MAX_EDIT_CUES && start < draft.original.frame_count, egui::Button::new("Append rest cue")).clicked() {
+                    if ui.add_enabled(draft.cues.len() < motion_lipsync::manual::MAX_EDIT_CUES && start < draft.original.frame_count, egui::Button::new("Lisää lepojakso")).clicked() {
                         draft.cues.push(motion_lipsync::rhubarb::MouthCue {
                             start_sample: start,
                             end_sample: draft.original.frame_count,
                             shape: 'X',
                         });
                     }
-                    if ui.button("Reset to estimate").clicked() {
+                    if ui.button("Palauta arvio").clicked() {
                         draft.cues.clone_from(&draft.original.cues);
                     }
                 });
                 let valid = motion_lipsync::manual::validate_cues(&draft.cues, draft.original.frame_count);
-                if let Err(error) = &valid { ui.colored_label(egui::Color32::YELLOW, error.to_string()); }
-                if ui.add_enabled(can_run && valid.is_ok(), egui::Button::new("Review manual edits")).clicked() {
+                if let Err(error) = &valid { ui.colored_label(egui::Color32::YELLOW, format!("Ajoitusta ei voi käyttää: {error}")); }
+                if ui.add_enabled(can_run && valid.is_ok(), egui::Button::new("Tarkista käsin tehdyt muutokset")).clicked() {
                     action = Some(Action::Manual {
                         original: Box::new(draft.original.clone()),
                         cues: draft.cues.clone(),
@@ -212,7 +212,7 @@ impl Panel {
         let action = self
             .pending_action
             .take()
-            .ok_or("Choose Estimate or Load cached timing explicitly")?;
+            .ok_or("Valitse ensin arviointi tai tallennetun ajoituksen lataus.")?;
         let loading = matches!(action, Action::Load { .. });
         let manual = matches!(action, Action::Manual { .. });
         let request = Request {
@@ -232,17 +232,17 @@ impl Panel {
                 self.timing_draft = None;
                 self.ready = None;
                 self.status = if loading {
-                    "Loading saved estimated timing…"
+                    "Ladataan tallennettua ajoitusarviota…"
                 } else if manual {
-                    "Validating manual mouth timing against prepared audio…"
+                    "Tarkistetaan käsin tehtyä suun ajoitusta valmisteltua ääntä vasten…"
                 } else {
-                    "Estimating prepared audio locally…"
+                    "Arvioidaan valmistellun äänen ajoitusta paikallisesti…"
                 }
                 .into();
                 Ok(())
             }
             Err(e) => {
-                self.status = e.clone();
+                self.status = format!("Kohdistuksen käynnistys epäonnistui: {e}");
                 Err(e)
             }
         }
@@ -283,18 +283,18 @@ impl Panel {
                         self.cache_key = key.clone();
                     }
                     self.status = if ready.cache.origin == crate::alignment_worker::ResultOrigin::Manual {
-                        "Manual timing validated against exact audio and text. Apply explicitly; perceptual quality was not measured."
+                        "Käsin tehty ajoitus on tarkistettu täsmällistä ääntä ja tekstiä vasten. Ota se käyttöön erikseen. Huulisynkan laatua ei ole mitattu."
                     } else if ready.cache.origin
                         == crate::alignment_worker::ResultOrigin::ExplicitArchiveLoad
                     {
-                        "Saved estimated timing loaded. Review and apply explicitly."
+                        "Tallennettu ajoitusarvio ladattu. Tarkista se ja ota käyttöön erikseen."
                     } else {
-                        "Estimation complete. Review and apply explicitly."
+                        "Arviointi valmis. Tarkista ajoitus ja ota se käyttöön erikseen."
                     }
                     .into();
                     self.candidate = Some(ready);
                 }
-                Err(e) => self.status = e,
+                Err(e) => self.status = format!("Suun ajoituksen käsittely epäonnistui: {e}"),
             }
         }
     }
@@ -314,7 +314,7 @@ impl Panel {
         self.ready = None;
         self.pending_action = None;
         self.timing_draft = None;
-        self.status = "Alignment cancelled; waiting for the local process to stop.".into();
+        self.status = "Kohdistus peruttu. Odotetaan paikallisen ohjelman pysähtymistä.".into();
     }
     pub fn invalidate(&mut self) {
         self.worker.cancel();
@@ -324,7 +324,8 @@ impl Panel {
         self.pending_action = None;
         self.timing_draft = None;
         self.status =
-            "Prepared line or timing settings changed; previous estimated timing discarded.".into();
+            "Valmisteltu repliikki tai ajoitusasetukset muuttuivat. Aiempi ajoitusarvio hylättiin."
+                .into();
     }
 }
 #[cfg(test)]
@@ -393,7 +394,7 @@ mod tests {
                 PathBuf::from("/not-accessed")
             )
             .unwrap_err()
-            .contains("explicitly"));
+            .contains("Valitse ensin arviointi"));
         assert!(!p.busy());
         p.pending_action = Some(Action::Load {
             key: "a".repeat(64),

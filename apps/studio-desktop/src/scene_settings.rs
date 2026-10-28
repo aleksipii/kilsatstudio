@@ -28,37 +28,39 @@ impl Draft {
 
     /// Request application; document validation and history belong to the caller.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.heading("Project settings");
-        ui.small("Project settings affect every scene.");
-        ui.label("Project title");
+        ui.heading("Projektin asetukset");
+        ui.small("Projektin asetukset vaikuttavat kaikkiin kohtauksiin.");
+        ui.label("Projektin nimi");
         ui.add(egui::TextEdit::singleline(&mut self.project.title).char_limit(512));
         ui.horizontal(|ui| {
-            ui.label("Frames per second");
+            ui.label("Kuvanopeus (fps)");
             ui.add(egui::DragValue::new(&mut self.project.fps).range(1..=240));
         });
-        ui.small("Changing frame rate keeps event times and durations in seconds.");
+        ui.small("Kuvanopeuden muutos säilyttää tapahtumien ajat ja kestot sekunteina.");
         ui.horizontal(|ui| {
-            ui.label("Width");
+            ui.label("Leveys");
             ui.add(egui::DragValue::new(&mut self.project.width).range(1..=16_384));
-            ui.label("Height");
+            ui.label("Korkeus");
             ui.add(egui::DragValue::new(&mut self.project.height).range(1..=16_384));
         });
-        ui.small("The screenplay permits dimensions up to 16384; SVG export currently supports at most 8192 per side.");
+        ui.small("Käsikirjoituksen kuvakoko voi olla enintään 16384 × 16384. SVG-vienti tukee enintään 8192 kuvapistettä kummallakin sivulla.");
         ui.separator();
-        ui.heading("Scene settings");
-        ui.label("Scene ID");
+        ui.heading("Kohtauksen asetukset");
+        ui.label("Kohtauksen tunnus");
         ui.add(egui::TextEdit::singleline(&mut self.scene_id).char_limit(256));
         ui.horizontal(|ui| {
-            ui.label("Duration (seconds)");
+            ui.label("Kesto (s)");
             // The schema has no duration ceiling. Apply rejects nonfinite or
             // nonpositive input rather than silently truncating a long scene.
             ui.add(egui::DragValue::new(&mut self.duration_seconds).speed(0.1));
         });
-        ui.small("Duration must be finite and positive. Audio export supports up to one hour.");
-        ui.small("Shortening a scene is rejected if an event extends beyond its end.");
-        ui.small("Apply validates the entire screenplay. YAML formatting is normalized and comments are removed. Undo restores the previous source.");
+        ui.small(
+            "Anna äärellinen, nollaa suurempi kesto. Äänen viennin enimmäiskesto on yksi tunti.",
+        );
+        ui.small("Kohtausta ei voi lyhentää, jos tapahtuma jatkuisi sen lopun yli.");
+        ui.small("Käytä tarkistaa koko käsikirjoituksen. YAML-muotoilu yhtenäistetään ja kommentit poistuvat. Kumoa palauttaa aiemman käsikirjoituksen.");
         ui.separator();
-        egui::CollapsingHeader::new("Background, camera, layers, fades and transitions").show(
+        egui::CollapsingHeader::new("Tausta, kamera, tasot, häivytykset ja siirtymät").show(
             ui,
             |ui| {
                 crate::composition_editor::ui(
@@ -70,7 +72,7 @@ impl Draft {
                 );
             },
         );
-        ui.button("Apply settings").clicked()
+        ui.button("Käytä asetuksia").clicked()
     }
 }
 

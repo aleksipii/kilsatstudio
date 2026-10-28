@@ -1,0 +1,8 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kynä\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{\"ESINE\":{\"asset\":\"props/kyna-original\",\"rig\":{\"version\":1,\"id\":\"kyna_original\",\"joints\":[{\"id\":\"root\",\"parent\":null}],\"parts\":[{\"id\":\"body\",\"joint\":\"root\",\"points\":[[-2,-41],[3,-41],[3,23],[-2,23]],\"color\":[221,175,91,255],\"outline\":{\"color\":[36,40,45,255],\"width\":0.8,\"mode\":\"behind\"}},{\"id\":\"shade\",\"joint\":\"root\",\"points\":[[1,-40],[3,-40],[3,21],[1,21]],\"color\":[183,98,87,255]},{\"id\":\"cap\",\"joint\":\"root\",\"points\":[[-2,-48],[3,-48],[3,-40],[-2,-40]],\"color\":[94,145,174,255],\"outline\":{\"color\":[36,40,45,255],\"width\":0.8,\"mode\":\"behind\"}},{\"id\":\"tip\",\"joint\":\"root\",\"points\":[[-2,23],[3,23],[0.5,33]],\"color\":[161,125,86,255]},{\"id\":\"lead\",\"joint\":\"root\",\"points\":[[-0.5,30],[1.5,30],[0.5,33]],\"color\":[36,40,45,255]},{\"id\":\"clip\",\"joint\":\"root\",\"points\":[[3,-43],[5,-43],[5,-28],[3,-28]],\"color\":[36,40,45,255]}]}}},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"events\":[],\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"actor_tracks\":{\"ESINE\":[{\"at\":0,\"easing\":\"smoothstep\",\"x\":-7.777777777777778,\"y\":-63.51111111111109,\"scale_x\":5.185185185185185,\"scale_y\":5.185185185185185}]}}}]}",
+  "assets": [],
+  "art": {
+    "layers": []
+  }
+}

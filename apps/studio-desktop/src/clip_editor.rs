@@ -48,20 +48,20 @@ impl Draft {
     /// Paints detached controls without normalizing or clamping existing values.
     /// Returns true only for an explicit, locally valid Apply request.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.heading(format!("{} · rule clip intensities", self.actor));
+        ui.heading(format!("{} · sääntöliikkeiden voimakkuudet", self.actor));
         if self.animated {
-            ui.label("An animated strength track overrides these static values until that track is removed.");
+            ui.label("Animoitu voimakkuusrata korvaa nämä vakioarvot, kunnes rata poistetaan.");
         }
-        ui.small("Independent additive intensities, not a normalized mix. 0 disables a clip contribution; 1 keeps its full strength.");
-        ui.small("These controls affect skeleton rule clips only. Root paths, facial emotion, speech head motion and authored bone offsets remain unchanged.");
+        ui.small("Voimakkuudet ovat riippumattomia ja ne summataan. Arvo 0 poistaa liikekatkelman vaikutuksen, arvo 1 säilyttää täyden voimakkuuden.");
+        ui.small("Säädöt vaikuttavat luurangon sääntöliikkeisiin. Hahmon kulkureitti, kasvojen tunne, puheen päänliike ja käsin asetetut luusiirtymät säilyvät.");
         for (label, weight) in [
-            ("Posture", &mut self.weights.posture),
-            ("Walk", &mut self.weights.walk),
-            ("Gesture", &mut self.weights.gesture),
+            ("Ryhti", &mut self.weights.posture),
+            ("Kävely", &mut self.weights.walk),
+            ("Eleet", &mut self.weights.gesture),
         ] {
             if !weight.is_finite() {
                 ui.label(format!(
-                    "{label}: invalid value; reset the draft to recover"
+                    "{label}: virheellinen arvo. Palauta luonnos jatkaaksesi."
                 ));
                 continue;
             }
@@ -79,19 +79,19 @@ impl Draft {
         if !valid {
             ui.colored_label(
                 egui::Color32::LIGHT_RED,
-                "Every intensity must be finite and between 0 and 1 before Apply.",
+                "Jokaisen voimakkuuden tulee olla äärellinen luku väliltä 0–1 ennen käyttämistä.",
             );
         }
-        ui.small("Apply validates the whole screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Käytä tarkistaa koko käsikirjoituksen. Muutoksen voi kumota. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let mut apply = false;
         ui.horizontal(|ui| {
             apply = ui
-                .add_enabled(valid, egui::Button::new("Apply clip intensities"))
+                .add_enabled(valid, egui::Button::new("Käytä liikevoimakkuudet"))
                 .clicked();
-            if ui.button("Reset draft").clicked() {
+            if ui.button("Palauta luonnos").clicked() {
                 self.reset();
             }
-            if ui.button("Restore full strength").clicked() {
+            if ui.button("Palauta täysi voimakkuus").clicked() {
                 self.weights = ClipWeights::default();
             }
         });
@@ -170,17 +170,17 @@ impl TrackDraft {
 
     /// Never sorts, clamps or writes source while controls are painted.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.heading(format!("{} · animated clip strengths", self.actor));
-        ui.small("This track overrides static strengths. The first/last values are held outside the key range; easing controls the segment after a key.");
-        ui.small("Times must increase inside the scene; each independent strength is 0..1. Removing all keys and applying restores static strengths.");
+        ui.heading(format!("{} · animoidut liikevoimakkuudet", self.actor));
+        ui.small("Tämä rata korvaa vakiovoimakkuudet. Ensimmäinen ja viimeinen arvo säilyvät avainruutujen ulkopuolella. Siirtymätapa vaikuttaa avainruudun jälkeiseen väliin.");
+        ui.small("Aikojen tulee kasvaa kohtauksen sisällä. Jokainen voimakkuus on 0–1. Poista kaikki avainruudut ja käytä muutos palauttaaksesi vakiovoimakkuudet.");
         let mut remove = None;
         for (index, key) in self.keys.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
-                egui::CollapsingHeader::new(format!("Strength key {}", index + 1))
+                egui::CollapsingHeader::new(format!("Voimakkuuden avainruutu {}", index + 1))
                     .default_open(true)
                     .show(ui, |ui| {
                         ui.horizontal(|ui| {
-                            ui.label("Time (seconds)");
+                            ui.label("Aika (sekuntia)");
                             if key.time.is_finite() {
                                 let mut edited = key.time;
                                 if ui
@@ -190,13 +190,13 @@ impl TrackDraft {
                                     key.time = edited;
                                 }
                             } else {
-                                ui.label("Invalid time; reset or remove this key");
+                                ui.label("Virheellinen aika. Palauta tai poista tämä avainruutu.");
                             }
                         });
                         for (label, weight) in [
-                            ("Posture", &mut key.weights.posture),
-                            ("Walk", &mut key.weights.walk),
-                            ("Gesture", &mut key.weights.gesture),
+                            ("Ryhti", &mut key.weights.posture),
+                            ("Kävely", &mut key.weights.walk),
+                            ("Eleet", &mut key.weights.gesture),
                         ] {
                             if weight.is_finite() {
                                 let mut edited = *weight;
@@ -212,7 +212,7 @@ impl TrackDraft {
                                 }
                             } else {
                                 ui.label(format!(
-                                    "{label}: invalid value; reset or remove this key"
+                                    "{label}: virheellinen arvo. Palauta tai poista tämä avainruutu."
                                 ));
                             }
                         }
@@ -231,7 +231,7 @@ impl TrackDraft {
                                     );
                                 }
                             });
-                        if ui.button("Remove strength key").clicked() {
+                        if ui.button("Poista voimakkuuden avainruutu").clicked() {
                             remove = Some(index);
                         }
                     });
@@ -242,7 +242,10 @@ impl TrackDraft {
         }
         let next_time = self.next_key_time();
         if ui
-            .add_enabled(next_time.is_some(), egui::Button::new("Add strength key"))
+            .add_enabled(
+                next_time.is_some(),
+                egui::Button::new("Lisää voimakkuuden avainruutu"),
+            )
             .clicked()
         {
             self.keys.push(ClipWeightKeyframe {
@@ -258,19 +261,19 @@ impl TrackDraft {
         if !valid {
             ui.colored_label(
                 egui::Color32::LIGHT_RED,
-                "Fix key times and strengths before Apply (maximum 256 keys).",
+                "Korjaa avainruutujen ajat ja voimakkuudet ennen käyttämistä. Avainruutuja saa olla enintään 256.",
             );
         }
-        ui.small("Apply validates the whole screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Käytä tarkistaa koko käsikirjoituksen. Muutoksen voi kumota. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let mut apply = false;
         ui.horizontal(|ui| {
             apply = ui
-                .add_enabled(valid, egui::Button::new("Apply animated strengths"))
+                .add_enabled(valid, egui::Button::new("Käytä animoidut voimakkuudet"))
                 .clicked();
-            if ui.button("Reset strength track draft").clicked() {
+            if ui.button("Palauta voimakkuusradan luonnos").clicked() {
                 self.reset();
             }
-            if ui.button("Remove strength track draft").clicked() {
+            if ui.button("Tyhjennä voimakkuusradan luonnos").clicked() {
                 self.keys.clear();
             }
         });
@@ -280,9 +283,9 @@ impl TrackDraft {
 
 fn easing_label(easing: ActorEasing) -> &'static str {
     match easing {
-        ActorEasing::Linear => "Linear",
-        ActorEasing::Smoothstep => "Smoothstep",
-        ActorEasing::Hold => "Hold",
+        ActorEasing::Linear => "Lineaarinen",
+        ActorEasing::Smoothstep => "Pehmeä",
+        ActorEasing::Hold => "Pidä arvo",
     }
 }
 

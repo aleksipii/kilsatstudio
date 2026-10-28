@@ -1,0 +1,344 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Ikuisen jonon vuoronumerolaite\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_vuoronumerolaite_stand_outline",
+        "name": "vuoronumerolaite stand outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 227.05263157894737,
+            "y": 287.2631578947369,
+            "width": 57.89473684210527,
+            "height": 136.63157894736844
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_stand_fill",
+        "name": "vuoronumerolaite stand fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 236.31578947368422,
+            "y": 296.5263157894737,
+            "width": 39.36842105263158,
+            "height": 118.10526315789474
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_foot",
+        "name": "vuoronumerolaite foot",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 173.78947368421052,
+            "y": 414.63157894736844,
+            "width": 164.42105263157896,
+            "height": 25.473684210526315
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_body_outline",
+        "name": "vuoronumerolaite body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 158.73684210526318,
+            "y": 64.94736842105263,
+            "width": 194.5263157894737,
+            "height": 252.42105263157896
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_body_fill",
+        "name": "vuoronumerolaite body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 170.31578947368422,
+            "y": 76.52631578947368,
+            "width": 171.3684210526316,
+            "height": 229.26315789473685
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_display",
+        "name": "vuoronumerolaite display",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 187.68421052631578,
+            "y": 97.36842105263159,
+            "width": 136.63157894736844,
+            "height": 63.684210526315795
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_display_digit",
+        "name": "vuoronumerolaite display digit",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 222.42105263157896,
+              "y": 113.57894736842105
+            },
+            {
+              "x": 222.42105263157896,
+              "y": 144.84210526315792
+            },
+            {
+              "x": 238.63157894736844,
+              "y": 144.84210526315792
+            },
+            {
+              "x": 238.63157894736844,
+              "y": 113.57894736842105
+            },
+            {
+              "x": 222.42105263157896,
+              "y": 113.57894736842105
+            }
+          ],
+          "width": 5.7894736842105265,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_display_second",
+        "name": "vuoronumerolaite display second",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 269.89473684210526,
+              "y": 113.57894736842105
+            },
+            {
+              "x": 287.2631578947369,
+              "y": 113.57894736842105
+            },
+            {
+              "x": 287.2631578947369,
+              "y": 128.63157894736844
+            },
+            {
+              "x": 269.89473684210526,
+              "y": 144.84210526315792
+            }
+          ],
+          "width": 5.7894736842105265,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_button",
+        "name": "vuoronumerolaite button",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 237.47368421052633,
+            "y": 183.05263157894737,
+            "width": 37.05263157894737,
+            "height": 37.05263157894737
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_slot",
+        "name": "vuoronumerolaite slot",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 192.31578947368422,
+            "y": 249.05263157894737,
+            "width": 128.5263157894737,
+            "height": 19.68421052631579
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_ticket",
+        "name": "vuoronumerolaite ticket",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 222.42105263157896,
+            "y": 256.0,
+            "width": 66.0,
+            "height": 88.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_vuoronumerolaite_ticket_mark",
+        "name": "vuoronumerolaite ticket mark",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 238.63157894736844,
+              "y": 284.9473684210526
+            },
+            {
+              "x": 271.0526315789474,
+              "y": 284.9473684210526
+            }
+          ],
+          "width": 6.947368421052632,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

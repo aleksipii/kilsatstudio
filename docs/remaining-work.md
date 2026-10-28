@@ -1,10 +1,80 @@
 # Remaining studio work and active agents
 
-Updated 2026-10-19. The first packages below merged in PR #55 after PR #54.
+Updated 2026-10-25. The first packages below merged in PR #55 after PR #54.
 The authoritative requirements, completion marks and acceptance evidence remain
 in [master-progress.md](master-progress.md), based on the
 [master build prompt](master-build-prompt.md). Historical unchecked rows are not
 automatically current missing features. Integration is owned by the parent agent.
+
+## Current English episodes — PR #97 merged
+
+Three actual English Aino/Rane episode videos are complete at 1920x1080/24fps,
+with real Kokoro speech and English captions: 44.125, 45.208333 and 46.625 seconds.
+[Scripts/downloads](kilsat-english.md) and [hash-bound evidence](evidence/kilsat-english-ci.json)
+record the exact source, media and observed times. PR #97 merged as
+`ef97286d2bae44e42f50d962406a6e2c6edac92e` after all source checks passed.
+Main Rust/GPU/media, packaging, voice selection and the repeated renders of all
+three English episodes also passed. Source and main CI passed 825/824 Rust,
+55 runtime + 132 repository Python per OS,
+49 GPU library + 2 probe per OS and 4 real FFmpeg tests. The Preshed 3.0.14 English
+tokenizer regression is fixed by a 3.0.13 managed/development pin and actual
+inference was rerun successfully. Eight default Rust tests and four physical GPU
+tests per OS remain ignored. The 31 Finnish projects are preserved.
+Human voice/art/lip-sync, real Kilsat capture, physical devices, rights and
+production signing acceptance remain open.
+
+## Finnish desktop baseline — PR #96 merged
+
+PR #96 merged into main as `3a33b6f11e2b0ba611ea7a1f8e94d2ec3b43b70b`.
+Finnish controls, guidance and display names now cover the advanced desktop tools
+and camera helper, with a corrected prepared-mouth provenance display and an
+updated embedded guide. Main Linux/macOS, GPU/media and Mac packaging CI passed:
+**825/824 Rust**, **55 runtime + 121 repository Python** per platform,
+**49 GPU library + 2 probe tests** per platform and **four real FFmpeg tests**.
+Eight default Rust tests and four physical GPU tests per platform remain ignored.
+Exact source identities and check links are in [master-progress](master-progress.md).
+
+[Download the current Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149/artifacts/12592070238).
+Unzip both the artifact and its contained app ZIP, then open Kilsat Studio
+Preview.app in Finder. The application does not launch from the download button.
+Use **Ohjeet** for the [Finnish guide](../apps/studio-desktop/KAYTTOOHJE.md).
+The app is ad-hoc signed; physical Mac and production release acceptance remain
+open. Backend technical details, MotionScript keys and user data retain their
+canonical identifiers.
+
+## Production baseline (PR #95 merged into main)
+
+[Production integration](production-integration.md) now includes measured-audio
+directing/acting/camera, real local Finnish speech, reviewed continuous head-tilt
+recording, bounded Full HD streaming, GPU outlines/captions/lights/animated props,
+31 original Finnish source projects and a checked batch/compilation runner.
+All 31 actual Full HD episode MP4s and seven Full HD compilations have now been
+rendered and verified; download links and exact evidence are in the
+[Finnish season guide](kilsat-season.md). Human review and publication remain open.
+Final-source and post-merge main CI passed, including every Full HD season group.
+Exact checks, source hashes and downloads are tracked in master-progress.
+An actual 42.7second Full HD/24fps Finnish episode completed in 77.2seconds on
+Apple Silicon CI; this does not accept a physical Mac or speech/artistic quality.
+
+Remaining acceptance work is concrete:
+
+- Run the newest signed-by-developer candidate on a physical Mac: Finder launch,
+  offline audio, camera permissions, continuous tracking/recording, export and
+  the entire 300-second workflow. CI is a virtual machine.
+- Annotate actual Finnish speech and measure mouth boundaries, then listen and
+  review image/audio together. The Finnish text estimator remains an estimate.
+- Review character art, acting, composition, comic timing and all 31 episodes;
+  replace the clearly marked illustrative Kilsat screen with an approved capture.
+- Complete the exact upstream dependency/model/asset/NOTICE rights review and
+  run the explicit Developer ID/notarization workflow in an authorized Apple
+  environment. Tooling and CI never grant these rights.
+- Review GPU fixtures and device performance on actual Metal hardware before
+  treating GPU preview/export as production accepted.
+- Review Finnish wording, discoverability and accessibility with a user on a
+  physical Mac. Controls and the twelve-topic offline guide are now Finnish;
+  original backend technical diagnostics retain their canonical details.
+
+The tables and dated increments below preserve the earlier audit history.
 
 `[x]` means integrated and checked; `[ ]` means still open. The table's concrete
 packages are integrated; its final column remains open. Code tests cannot grant
@@ -12,7 +82,7 @@ physical-device or rights approval. Delivery evidence is below and in the master
 
 | Area / agent | Current concrete package | Further work left open |
 | --- | --- | --- |
-| Characters — `remaining_character` | Versioned bounded original-rig clip clipboard exchange between projects, explicit replacement and shared source history | Live (non-copy) custom-rig clip instancing, mirroring, multi-clip mixing and rest-orientation correction, a visual (canvas) weight/UV editor (numeric part texture/UV/two-joint weight controls: branch feat/rig-weight-uv-editor), idle and physical motion review (acting layer with part variants, viseme/emotion sprite swap, gaze and seeded blink: branch feat/rig-acting-layer, see custom-rigid-characters.md; CPU-rendered texture binding and two-joint skinning for custom rigs: branch feat/rig-textures-deformation; copy-based custom-rig clip library with joint mapping, translation scale and retiming: PR #57) |
+| Characters — `remaining_character` | Versioned bounded original-rig clip clipboard exchange between projects, explicit replacement and shared source history | Live (non-copy) custom-rig clip instancing, mirroring, multi-clip mixing and rest-orientation correction, a visual (canvas) weight/UV editor (numeric part texture/UV/two-joint weight controls: branch feat/rig-weight-uv-editor), idle and physical motion review (acting layer with part variants, viseme/emotion sprite swap, gaze and seeded blink: branch feat/rig-acting-layer, see custom-rigid-characters.md; CPU-rendered texture binding and two-joint skinning for custom rigs: branch feat/rig-textures-deformation; copy-based custom-rig clip library with joint mapping, translation scale and retiming: PR #57; per-part black outlines (over/behind/silhouette), ellipse parts and bounded corner rounding, CPU/SVG only, with the night-room rigs redesigned round and outlined: branch feat/rig-outlines-rounded, see [rig-outlines](rig-outlines.md); GPU outline commands and human art review remain open) |
 | Artist tools — `remaining_artist` | Scene-local animated image-mask rectangles, native key editing, shared preview/export and seek tests | Animated polygon vertices/painted strokes, non-uniform mask scale, retouch/image processing and physical stylus acceptance (rigid polygon/painted mask motion: PR #56) |
 | Speech — `remaining_speech` | Exact-audio sample-boundary mouth-shape editing, explicit manual provenance and Apply through existing history | Real forced-alignment integration, audited recognizer environment, annotated corpus and measured/perceptual quality |
 | Script intent — automation INT-01 (first slice) | [ScriptIntent v1 intake](script-intent.md): bounded Finnish/English screenplay text → intent JSON with exact dialogue, UTF-8 spans, source SHA-256, typed located errors, needs-review items; matches the pilot fixtures field for field (CLI example, headless tests only) | Editor import/review UI, JSON Schema, persisted spans, free prose (ING-003), multi-scene files, intent → MotionScript (ING-006, blocked on assets), ingest budget measured on a Mac |
@@ -106,6 +176,11 @@ are unchanged and need external evidence.
 - [x] Text-estimated visemes reach scene preparation, preview and export with
   precedence manual > forced > Rhubarb > text, pronunciation-aware identity and typed
   diagnostics (`docs/estimated-visemes-pipeline.md`). Structural and pixel tests only.
+- [x] Offline consistency measurements on the three real night-room Kokoro WAVs
+  (energy envelope, Rhubarb PocketSphinx/Phonetic, agreement, onset/offset, mouth in
+  silence) and a comic-timing report; the text estimate now rests over detected
+  leading/trailing silence (mouth had moved over 0.6-1.0 s of silence per line)
+  (`docs/lipsync-timing-evaluation.md`). Consistency between estimates only.
 - [ ] Open: perceptual lip-sync quality is unmeasured (no annotated audio), a real
   forced aligner would replace these estimates, and the sequence panel does not list
   the new diagnostics.

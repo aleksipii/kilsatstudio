@@ -5,10 +5,16 @@ pub use clips::{
     gesture_envelope, valid_humanoid_offset, ClipWeights, Gesture, HumanoidState, GESTURES,
     HUMANOID_BONES, POSTURE_BLEND_SECONDS, WALK_CYCLE_SECONDS,
 };
+pub mod spring;
 #[cfg(test)]
 use motion_rig::Joint;
 use motion_rig::Rig;
 pub use motion_rig::{Transform2, Vec2};
+pub use spring::{
+    apply_dangle, dangle_joint, release_state, DampingRegime, DangleError, ForceProfile,
+    ForcedSpring, Gust, ReleaseSample, Spring, SpringError, SpringParams, SpringProfile,
+    SpringState, Turbulence,
+};
 pub const HIP: usize = 0;
 pub const CHEST: usize = 1;
 pub const HEAD: usize = 2;

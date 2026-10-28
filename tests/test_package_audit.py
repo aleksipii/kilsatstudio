@@ -114,6 +114,18 @@ class PackageAuditTests(unittest.TestCase):
         self.write_zip()
         self.assert_invalid(self.collect())
 
+    def test_optional_head_helper_must_be_executable(self):
+        package.stage_distribution(REPO, self.binary, self.distribution,
+                                   COMMIT, 'arm64', 'debug', head_pose=self.binary)
+        self.write_zip()
+        report = self.collect()
+        self.assertTrue(report['package_valid'], report['errors'])
+        row = next(r for r in report['files'] if r['path'] == RESOURCES + 'bin/head_pose')
+        self.assertEqual(row['classification'], 'executable')
+        (self.distribution / (RESOURCES + 'bin/head_pose')).chmod(0o644)
+        self.write_zip()
+        self.assert_invalid(self.collect())
+
     def test_missing_desktop_or_executable_bit_is_invalid(self):
         self.stage()
         executable = self.distribution / APP / 'Contents/MacOS/studio-desktop'

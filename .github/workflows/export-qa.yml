@@ -1,0 +1,128 @@
+name: Export QA (G2 scene, model-free)
+on:
+  push:
+    branches: [main]
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  g2-export-macos:
+    runs-on: macos-15
+    timeout-minutes: 40
+    env:
+      KILSAT_COMMIT: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Verify Apple Silicon runner
+        run: |
+          test "$(uname -m)" = arm64
+          sw_vers
+      - name: Frame count, audio length, clock, regression hashes and failed exports
+        run: |
+          cargo test --locked -p motion-export --test g2_export
+          cargo test --locked -p motion-export --lib export_preview_parity
+      - name: Full disk on a 2 MiB RAM disk
+        shell: bash
+        run: |
+          set -euo pipefail
+          device=$(hdiutil attach -nomount ram://4096 | awk '{print $1}')
+          trap 'diskutil eject "$device" >/dev/null || true' EXIT
+          diskutil erasevolume HFS+ KILSATFULL "$device"
+          KILSAT_TEST_FULL_VOLUME=/Volumes/KILSATFULL \
+            cargo test --locked -p motion-export --test g2_export full_disk -- --ignored
+      - name: Build the G2 export command
+        run: cargo build --locked --release -p motion-export --example g2_export
+      - name: Sandbox control (network and process starts are denied)
+        shell: bash
+        run: |
+          set -uo pipefail
+          if /usr/bin/sandbox-exec -p '(version 1)(allow default)(deny network*)' \
+              /usr/bin/curl -sS -m 10 -o /dev/null https://github.com; then
+            echo "network was reachable inside the sandbox" >&2; exit 1
+          fi
+          if /usr/bin/sandbox-exec -p '(version 1)(allow default)(deny process-exec)' /bin/echo x; then
+            echo "process start was allowed inside the sandbox" >&2; exit 1
+          fi
+          echo "sandbox denies network and process starts"
+      - name: Model-free G2 export (SVG, PNG) without network, models or subprocesses
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          script=crates/motion-export/scripts/g2_model_free_run.sh
+          "$script" target/release/examples/g2_export out/g2-svg svg > out/g2-svg.json
+          "$script" target/release/examples/g2_export out/g2-png png > out/g2-png.json
+          python3 -I - <<'PY'
+          import json
+          for fmt in ("svg", "png"):
+              s = json.load(open(f"out/g2-{fmt}.json"))
+              assert s["model_policy_refused"] == ["SpeechSynthesis", "RecognizerAlignment", "ModelDownload"], s
+              assert s["frame_count"] == s["expected_frame_count"] == 96, s
+              assert s["audio_samples"] == 96000 and s["audio_sample_rate"] == 24000, s
+              print(fmt, s["frame_count"], "frames", s["audio_seconds"], "s audio", s["sequence_sha256"])
+          # The reference hash lives only in crates/motion-export/tests/support/g2.rs.
+          svg = json.load(open("out/g2-svg.json"))
+          assert svg["sequence_matches_reference"] is True, svg
+          PY
+      - name: Install FFmpeg (outside the sandbox)
+        timeout-minutes: 15
+        run: command -v ffmpeg && command -v ffprobe || brew install ffmpeg
+      - name: Model-free G2 MP4 (sandbox allows only the export binary and FFmpeg)
+        shell: bash
+        run: |
+          set -euo pipefail
+          crates/motion-export/scripts/g2_model_free_run.sh \
+            target/release/examples/g2_export out/g2-mp4 mp4 "$(command -v ffmpeg)" > out/g2-mp4.json
+          frames=$(ffprobe -v error -count_frames -select_streams v:0 \
+            -show_entries stream=nb_read_frames -of csv=p=0 out/g2-mp4/scene.mp4)
+          video=$(ffprobe -v error -select_streams v:0 -show_entries stream=duration -of csv=p=0 out/g2-mp4/scene.mp4)
+          audio=$(ffprobe -v error -select_streams a:0 -show_entries stream=duration -of csv=p=0 out/g2-mp4/scene.mp4)
+          echo "decoded video frames=$frames video=${video}s audio=${audio}s"
+          python3 -I -c "
+          import sys
+          frames, video, audio = int('$frames'), float('$video'), float('$audio')
+          assert frames == 96, frames
+          # Agreed tolerance: audio and video differ by less than one frame (1/24 s).
+          assert abs(video - 4.0) < 1 / 24 and abs(audio - video) < 1 / 24, (video, audio)
+          "
+      - name: Measure export time (this runner only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin=target/release/examples/g2_export
+          "$bin" out/bench-svg svg --runs 5 > out/bench-svg.json
+          "$bin" out/bench-png png --runs 5 > out/bench-png.json
+          {
+            echo "machine: $(sysctl -n hw.model) / $(sysctl -n machdep.cpu.brand_string) / $(sysctl -n hw.ncpu) CPUs / $(( $(sysctl -n hw.memsize) / 1073741824 )) GiB"
+            echo "macOS: $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
+            echo "rustc: $(rustc -V)"
+            echo "commit: $GITHUB_SHA"
+          } > out/conditions.txt
+          cat out/conditions.txt
+          python3 -I - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json
+          print("### G2 export timing (GitHub macOS runner, shared VM)")
+          print(open("out/conditions.txt").read().replace("\n", "  \n"))
+          print("| format | resolution | fps | frames | median ms | min ms | max ms | runs |")
+          print("| --- | --- | --- | --- | --- | --- | --- | --- |")
+          for fmt in ("svg", "png"):
+              s = json.load(open(f"out/bench-{fmt}.json")); t = s["timing"]
+              print(f"| {fmt} | {s['width']}x{s['height']} | {s['fps']} | {s['frame_count']} | "
+                    f"{t['run_ms_median']:.1f} | {t['run_ms_min']:.1f} | {t['run_ms_max']:.1f} | {t['measured_runs']} |")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: g2-export-qa-${{ github.sha }}
+          path: |
+            out/*.json
+            out/conditions.txt
+            out/g2-mp4/scene.mp4
+            out/g2-png/frame_000024.png
+            out/g2-png/frame_000072.png
+          if-no-files-found: warn
+          retention-days: 14

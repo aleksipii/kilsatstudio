@@ -1,0 +1,702 @@
+{
+  "schema_version": 1,
+  "source_commit": "3e847b7348479f2ec6cacc9e690bb209003f2393",
+  "ci_run": 40127342644,
+  "profile": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 24
+  },
+  "episode_count": 31,
+  "compilation_count": 7,
+  "speech_language": "fi-fi",
+  "publication_approved": false,
+  "artistic_review": false,
+  "lipsync_quality": "unmeasured",
+  "physical_mac_accepted": false,
+  "dependency_closure_verified": false,
+  "verification": "Downloaded every group artifact, matched published archive SHA-256 and all episode/compilation MP4, WAV and pipeline receipt hashes. Media counts and clock observations were checked by the real FFprobe runner in CI.",
+  "groups": [
+    {
+      "group": 1,
+      "artifact_id": 12573639619,
+      "artifact_sha256": "2cc97bd1d7b96740af848849b06a62fa75a4d7ce94089329914b4add248799af",
+      "elapsed_seconds": 437.57706185100005,
+      "episodes": [
+        {
+          "number": 1,
+          "title": "Ilmainen työmatka",
+          "observed": {
+            "frame_count": 1037,
+            "duration_seconds": 43.208333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1036743,
+          "pipeline_elapsed_seconds": 75.984085081,
+          "video_sha256": "d890d161bec78aa080898904e192c12f435fd48b8f14c5604c8f53e571b8d6d8",
+          "project_sha256": "935c951a04e2d22ce0283847b52daf891d67ece58b05b4b807fba2a8121479d4"
+        },
+        {
+          "number": 2,
+          "title": "Oikoreitin mestari",
+          "observed": {
+            "frame_count": 997,
+            "duration_seconds": 41.541667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 996124,
+          "pipeline_elapsed_seconds": 73.620607398,
+          "video_sha256": "1f1a043aa4cb849a58c0b1eabb4e4bb118ef92eeea9803d64c618c41d82a7504",
+          "project_sha256": "6fc86eb95e9ac3840d540f50fbdfe08643c2b67b5078ca03821a537a0e660c0e"
+        },
+        {
+          "number": 3,
+          "title": "Parkkipaikan status",
+          "observed": {
+            "frame_count": 1062,
+            "duration_seconds": 44.25,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1061305,
+          "pipeline_elapsed_seconds": 77.750799296,
+          "video_sha256": "9a7f3964de11ec61ce5668fe65cd280b675fe16b974d7e5d9b3005ca8165c462",
+          "project_sha256": "587bcf2db821ad499f0d4e5b31e4b6f0694529dce1e737869a0e7a1a9c3a098f"
+        },
+        {
+          "number": 4,
+          "title": "Tankillinen optimismia",
+          "observed": {
+            "frame_count": 1034,
+            "duration_seconds": 43.083333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1033354,
+          "pipeline_elapsed_seconds": 76.092027195,
+          "video_sha256": "05b53301627dbd3757dd0ec2bc444a06afec32da435e160a77d4a893756f1870",
+          "project_sha256": "67f487805f7483dd4bdc39ba00b5e065ff7c7da84a7f4691b224a41e132cb656"
+        },
+        {
+          "number": 5,
+          "title": "Kävelyn kilometrikorvaus",
+          "observed": {
+            "frame_count": 1033,
+            "duration_seconds": 43.041667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1032583,
+          "pipeline_elapsed_seconds": 76.268406149,
+          "video_sha256": "e9c1f91f88e66fe3500bc992e5e2f13ea3eccf1d57ebf7882af703df28937e6a",
+          "project_sha256": "5138daffab7bf8ae9069d3f8490ff4cf8978b8fa4c2ba5928ad8c516394fb42b"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 5163,
+          "duration_seconds": 215.125,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "88b5ed26559bca2b21aad9cff9167a93551669822e084243b192c23f281a0f2b",
+        "audio_samples": 5163000,
+        "tail_padding_samples": [
+          257,
+          876,
+          695,
+          646,
+          417
+        ]
+      }
+    },
+    {
+      "group": 2,
+      "artifact_id": 12573074289,
+      "artifact_sha256": "b69bcd849dc4eef4716a0b3b8c98547e36ad51fb7e8388ee83f112c48c7c9d2f",
+      "elapsed_seconds": 434.7922275179999,
+      "episodes": [
+        {
+          "number": 6,
+          "title": "Budjetin ulkopuolella",
+          "observed": {
+            "frame_count": 1084,
+            "duration_seconds": 45.166667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1083059,
+          "pipeline_elapsed_seconds": 79.309401369,
+          "video_sha256": "6e746f6a040291754689d5989346857f6c9fdf538410e2e78522480c49947e73",
+          "project_sha256": "1bfd18825ec7f2bca1dbe2e4a01a95141c98599ff68edb542dd5919fc0c00e62"
+        },
+        {
+          "number": 7,
+          "title": "Palaveri ajamisesta",
+          "observed": {
+            "frame_count": 1062,
+            "duration_seconds": 44.25,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1061113,
+          "pipeline_elapsed_seconds": 77.266611613,
+          "video_sha256": "590f3d7f7dc5ec3c9cd7e607383d06113a3c0a387ab434f79d503251a3928e25",
+          "project_sha256": "638ee652bd91e8ce5e29628fab358e626e23c891890d5c9b3fdd8112f0f1a2fe"
+        },
+        {
+          "number": 8,
+          "title": "Kuitti vai muisto",
+          "observed": {
+            "frame_count": 992,
+            "duration_seconds": 41.333333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 991022,
+          "pipeline_elapsed_seconds": 72.810745235,
+          "video_sha256": "48f487ca696c91dec7f20f6323010dcb576d4bd7b6085f79bedb8a5c3224caee",
+          "project_sha256": "074619b91e61133c127877296389189374ce337560c2ad44e6c3160e0220d588"
+        },
+        {
+          "number": 9,
+          "title": "Tehokkuuskilpailu",
+          "observed": {
+            "frame_count": 978,
+            "duration_seconds": 40.75,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 977521,
+          "pipeline_elapsed_seconds": 72.35941868,
+          "video_sha256": "483b3b2e8468b511e7440ed8803dbabc1b47827a6597891eee120d7fc61a88d5",
+          "project_sha256": "67f3daa814e7fd10ea7b955eb0f10fcafad36f4a42afb60be532b1cb55d273af"
+        },
+        {
+          "number": 10,
+          "title": "Säästöbonuksen kulut",
+          "observed": {
+            "frame_count": 1054,
+            "duration_seconds": 43.916667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1053589,
+          "pipeline_elapsed_seconds": 76.547680681,
+          "video_sha256": "bfdda12f7b4e35705b8bbf913284de54705b06965c390b7db87fef3f47b2482a",
+          "project_sha256": "46cd4d04a4895b65985598422da0ba28b112d49070b71a89c26dbcd52c0de444"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 5170,
+          "duration_seconds": 215.417,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "478eda6cc5c9b3cd577fcbbcd733f9c87bfda759144cce5ccda7504cf94cafe6",
+        "audio_samples": 5170000,
+        "tail_padding_samples": [
+          941,
+          887,
+          978,
+          479,
+          411
+        ]
+      }
+    },
+    {
+      "group": 3,
+      "artifact_id": 12573354929,
+      "artifact_sha256": "2a66d06177822a0aa4e6134a90df3b03e031d8fa0ca19d7d20f92a4fb7d8592b",
+      "elapsed_seconds": 432.83413786999995,
+      "episodes": [
+        {
+          "number": 11,
+          "title": "Vihreä tunnustus",
+          "observed": {
+            "frame_count": 1088,
+            "duration_seconds": 45.333333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1087475,
+          "pipeline_elapsed_seconds": 79.770290529,
+          "video_sha256": "18393f80648de5678abf2debf093eafc0a1f0db363f1a606ddbca22fdc5603a8",
+          "project_sha256": "38474ade42e2e5cc450a1350eb13b8f4244b3b4faa563df728701069f70b3cdb"
+        },
+        {
+          "number": 12,
+          "title": "Ekologista näyttämistä",
+          "observed": {
+            "frame_count": 975,
+            "duration_seconds": 40.625,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 974886,
+          "pipeline_elapsed_seconds": 72.243101042,
+          "video_sha256": "705ec17a3dbc31745c270560191e9793999277484769304a2e9c7aee79e6504f",
+          "project_sha256": "ecb27c68bd2b64e6b62add705874bd8a43371625f8114b93e61363a8903714c2"
+        },
+        {
+          "number": 13,
+          "title": "Latauksen lataus",
+          "observed": {
+            "frame_count": 1024,
+            "duration_seconds": 42.666667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1023454,
+          "pipeline_elapsed_seconds": 75.399053546,
+          "video_sha256": "8e339381aceb156b42f37c2a0143614dce0dc2ce6f87279848ae9229929d3eda",
+          "project_sha256": "c15fa6de73c110b2abb0be08a1331eeb6621a90cda8ac3e687b3bdfa3914792e"
+        },
+        {
+          "number": 14,
+          "title": "Autoton päivä autolla",
+          "observed": {
+            "frame_count": 953,
+            "duration_seconds": 39.708333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 952573,
+          "pipeline_elapsed_seconds": 71.639567244,
+          "video_sha256": "9284f2b0b2ed41982842a568ea031d6a315aaa6a1a0dfa7957459e8c94008ac3",
+          "project_sha256": "71f56d01e28f73b6dae4b98560ae75f9845ed708edb3807193de44adf50c4acd"
+        },
+        {
+          "number": 15,
+          "title": "Omantunnon huolto",
+          "observed": {
+            "frame_count": 1042,
+            "duration_seconds": 43.416667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1041480,
+          "pipeline_elapsed_seconds": 76.929583746,
+          "video_sha256": "32b29d52b4c0166335e19d7a5cabbb9a910966164c8737d0a7298d4bd509310d",
+          "project_sha256": "5a1b10419e6e3effd33af19297681c62bbc34a24475fd4813eb595b6a41090d5"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 5082,
+          "duration_seconds": 211.75,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "3c6c2a8231412b605f5e57c54a40f844471b42d1bc2d7481f940322067d6dffd",
+        "audio_samples": 5082000,
+        "tail_padding_samples": [
+          525,
+          114,
+          546,
+          427,
+          520
+        ]
+      }
+    },
+    {
+      "group": 4,
+      "artifact_id": 12573519599,
+      "artifact_sha256": "929021418aa8b206bdd15c789708ede00e6670367ffc333043c86f6b6ddd5105",
+      "elapsed_seconds": 319.697301605,
+      "episodes": [
+        {
+          "number": 16,
+          "title": "Menestyjän aamuruuhka",
+          "observed": {
+            "frame_count": 974,
+            "duration_seconds": 40.583333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 973682,
+          "pipeline_elapsed_seconds": 54.090269625,
+          "video_sha256": "d17135709a61be044dd40d09af76cdc6a9e0f5ef0b2e63f2aca226534ee7d21a",
+          "project_sha256": "75add91876bdd1ac1c4ea5ebe62d3086ce89c822403d5487fd40af4d5200292d"
+        },
+        {
+          "number": 17,
+          "title": "Passiivinen ajopäiväkirja",
+          "observed": {
+            "frame_count": 1000,
+            "duration_seconds": 41.666667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 999124,
+          "pipeline_elapsed_seconds": 54.579611947,
+          "video_sha256": "fbdf11d2d282837cecdf62b16fdcc5e5488066f292c9e82ea20a9d6cbeda149c",
+          "project_sha256": "e051c6fc875f1c9c5513f6584060c45bac2687135b054881071dfd451bb2ede2"
+        },
+        {
+          "number": 18,
+          "title": "Kilometrien mentorointi",
+          "observed": {
+            "frame_count": 1070,
+            "duration_seconds": 44.583333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1069019,
+          "pipeline_elapsed_seconds": 57.40809087,
+          "video_sha256": "4efd7f7ea4a70d2b71c03234ce16b383951ce2b3697b3f859e2db132184ca81f",
+          "project_sha256": "6b199ae0279ba4b43f8866927a12a478fa65238de0bfe4d99dd2861e01ac9b78"
+        },
+        {
+          "number": 19,
+          "title": "Ajatusjohtajan kartta",
+          "observed": {
+            "frame_count": 1018,
+            "duration_seconds": 42.416667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1017796,
+          "pipeline_elapsed_seconds": 54.727882091,
+          "video_sha256": "96be063092a053130a3bf9d3d7ad6d8301ca6c90939331d4ce0fd2e50a597330",
+          "project_sha256": "b876e9561220db6949a491c4a7eb8db9477d92cc98df3bce21a9b6aee65e3b51"
+        },
+        {
+          "number": 20,
+          "title": "Maksuton webinaari",
+          "observed": {
+            "frame_count": 1085,
+            "duration_seconds": 45.208333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1084689,
+          "pipeline_elapsed_seconds": 57.821489381,
+          "video_sha256": "68da691ae2e34b61f20d6c8569b3d2d622ab199886767d0292cc10f4bb208a37",
+          "project_sha256": "d48274abf0e1547c2d9bd25c34dea3aad9a72e0ae0a77f541c86eca31bc6f457"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 5147,
+          "duration_seconds": 214.458333,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "c805f6d29f616b17fad2f9d1208ae70fdff2c2025a8a4f83359714a462a077c6",
+        "audio_samples": 5147000,
+        "tail_padding_samples": [
+          318,
+          876,
+          981,
+          204,
+          311
+        ]
+      }
+    },
+    {
+      "group": 5,
+      "artifact_id": 12572994378,
+      "artifact_sha256": "2ffdb833fe7a5890bb2f458fac4f555836e6e9dd54c49ecb669b8030ccdd6f49",
+      "elapsed_seconds": 430.859563969,
+      "episodes": [
+        {
+          "number": 21,
+          "title": "Luottamuksen seuranta",
+          "observed": {
+            "frame_count": 1032,
+            "duration_seconds": 43.0,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1031855,
+          "pipeline_elapsed_seconds": 76.115911251,
+          "video_sha256": "e810fa019eb8548147da20fc8f7a81e1e111f0eb965128e8ee3d4b80407468d2",
+          "project_sha256": "b70056ed54dcfc5e5cf2b36dd0a30909eb99fbe4949d3d5d6252edee59006498"
+        },
+        {
+          "number": 22,
+          "title": "Työrauha liikenteessä",
+          "observed": {
+            "frame_count": 1036,
+            "duration_seconds": 43.166667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1035629,
+          "pipeline_elapsed_seconds": 75.463984798,
+          "video_sha256": "8161e941f45e115203bb5fd78a8e6c1df06421e260115c5f5d0cda66f6a76e62",
+          "project_sha256": "bb061bdb58d37bdc19dc41ad919cef2f6d2e76c8e7c4ea4f0c2fcd32fdb192cd"
+        },
+        {
+          "number": 23,
+          "title": "Joustotyön jousto",
+          "observed": {
+            "frame_count": 944,
+            "duration_seconds": 39.333333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 943678,
+          "pipeline_elapsed_seconds": 69.822258535,
+          "video_sha256": "cf68414a9cf125402f04feca1d2831406c7b40e45308d34445b065506a8e2e3d",
+          "project_sha256": "1b9bdc51f7c46d7253ee4010e3b74ce71033bc9880ca497f59aeabfb43395393"
+        },
+        {
+          "number": 24,
+          "title": "Näkymätön suoritus",
+          "observed": {
+            "frame_count": 1064,
+            "duration_seconds": 44.333333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1063746,
+          "pipeline_elapsed_seconds": 77.851054732,
+          "video_sha256": "2d6f91dcf2dae09efe53bac506bdc0c5123a836dc9c1711de01166c6b547cfac",
+          "project_sha256": "93785170a5f6e2c3a971c7036ea80fe846e52c14f96e0db1a0fa6108435b9e78"
+        },
+        {
+          "number": 25,
+          "title": "Hyvinvoinnin lisämatka",
+          "observed": {
+            "frame_count": 1012,
+            "duration_seconds": 42.166667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1011215,
+          "pipeline_elapsed_seconds": 74.82786709,
+          "video_sha256": "42c2f152c711de2cc5ae06a79e7a234918e0161e8148992d275ade8de877000f",
+          "project_sha256": "524d3f94a2d1cb82d821367390d7d567449bc49c63e78e9ed31617ae5c3096a7"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 5088,
+          "duration_seconds": 212.0,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "0ec378b54fce0c163250748ac51ebb9880fda1888a710f915fd1917fe90ecfae",
+        "audio_samples": 5088000,
+        "tail_padding_samples": [
+          145,
+          371,
+          322,
+          254,
+          785
+        ]
+      }
+    },
+    {
+      "group": 6,
+      "artifact_id": 12572624460,
+      "artifact_sha256": "908c6f7bab5ed363743964f69957bb23e90f3397750b957f73acff8f83d6ffd5",
+      "elapsed_seconds": 278.39522480999995,
+      "episodes": [
+        {
+          "number": 26,
+          "title": "Digitaalinen paperi",
+          "observed": {
+            "frame_count": 1014,
+            "duration_seconds": 42.25,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1013657,
+          "pipeline_elapsed_seconds": 46.45741616,
+          "video_sha256": "38d6bf8b81263a395356dffe94a4ea944d24a58b328d89bbce44c3edf4da5742",
+          "project_sha256": "f7f6a5b5cfb48e409c20fd7a603f2d785cc45c01c10b71b9161440f0d5bb94d1"
+        },
+        {
+          "number": 27,
+          "title": "Päivittämisen päivitys",
+          "observed": {
+            "frame_count": 1023,
+            "duration_seconds": 42.625,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1022229,
+          "pipeline_elapsed_seconds": 46.678773259,
+          "video_sha256": "31a5ef208f11ad0c54a88a261b0fe6252acee81acfed9ef6953027fbbd36f9e6",
+          "project_sha256": "0df76f29a36b6226331c1a2c46e9dd152aa044eb29aafd2d2146476dbd22b86f"
+        },
+        {
+          "number": 28,
+          "title": "Varma varmuuskopio",
+          "observed": {
+            "frame_count": 1024,
+            "duration_seconds": 42.666667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1023497,
+          "pipeline_elapsed_seconds": 47.092393104,
+          "video_sha256": "fe30b3c613c6dc35573d59186c8a246417b7c6ba163591b5ca6694a0cd007ed0",
+          "project_sha256": "2eb86840369e05992efdf30e0be7be1866e2cf8100e164f5a2b640153419f41a"
+        },
+        {
+          "number": 29,
+          "title": "Muistin ulkoistus",
+          "observed": {
+            "frame_count": 1072,
+            "duration_seconds": 44.666667,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1071850,
+          "pipeline_elapsed_seconds": 49.524546193,
+          "video_sha256": "e44f213d4cff6dc56d109c499c5a70a3d7519c8b9ea02178e067822c21d2e256",
+          "project_sha256": "7dcd89fcfb567e81953c9b659557c840bd5a858d0565e2dc746b17b467f8959d"
+        },
+        {
+          "number": 30,
+          "title": "Ajopäiväkirjan päiväkirja",
+          "observed": {
+            "frame_count": 1050,
+            "duration_seconds": 43.75,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1049817,
+          "pipeline_elapsed_seconds": 49.596093383,
+          "video_sha256": "54dceaa5f6d979ad10fcf63653c62610f20c66004f48bed07aa6f8160aad9255",
+          "project_sha256": "f224b9c08debf38390de9818fab14aa7deb9f568efa088e51c159efc8dba65ee"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 5183,
+          "duration_seconds": 215.958333,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "4e5d6c0f2d916ab18765773f67c33a7d2ffb8d3ea792344dc578218ddf439ac3",
+        "audio_samples": 5183000,
+        "tail_padding_samples": [
+          343,
+          771,
+          503,
+          150,
+          183
+        ]
+      }
+    },
+    {
+      "group": 7,
+      "artifact_id": 12572629344,
+      "artifact_sha256": "19aa2b5ad7f4d02733b135d7a8f61d45c19fd1ebae7ae1b94897d8b6cef6ad0f",
+      "elapsed_seconds": 89.819326808,
+      "episodes": [
+        {
+          "number": 31,
+          "title": "Viimeinen ylimääräinen kierros",
+          "observed": {
+            "frame_count": 1049,
+            "duration_seconds": 43.708333,
+            "width": 1920,
+            "height": 1080,
+            "fps": 24,
+            "audio_sample_rate": 24000
+          },
+          "audio_samples": 1048294,
+          "pipeline_elapsed_seconds": 77.142853306,
+          "video_sha256": "a90f2f2397ce252eb02e21cf626591a805d7110ac64dee416d8cebebd3438cb9",
+          "project_sha256": "c38fb5fafa17efa675ed3319800099d70f18911350494947b1d0a169d1354b09"
+        }
+      ],
+      "compilation": {
+        "observed": {
+          "frame_count": 1049,
+          "duration_seconds": 43.708333,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "video_sha256": "902aa2a03c80ce2b838137e906a7f10a576970655e613e77e5082e486e0f3b1f",
+        "audio_samples": 1049000,
+        "tail_padding_samples": [
+          706
+        ]
+      }
+    }
+  ]
+}

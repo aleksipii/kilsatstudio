@@ -56,3 +56,97 @@ The command refuses to replace an existing output and caps frame/actor counts.
 ## Captions
 
 `project.captions` (optional) turns speak events into speaker-coloured captions; see [captions](captions.md).
+
+## Versions
+
+A document without a `version` key is a **legacy script** (implicit version 0) and is
+read by `motion_script::parse` exactly as described above. Every existing example
+remains a legacy script; nothing about that format changed.
+
+A document with `version: 1` is a **schedule document** read by
+`motion_script::compiler::compile`. It wraps an unchanged legacy script and adds
+structural timing. Other versions are rejected. The envelope schema is
+[`crates/motion-script/schema/motionscript-schedule-v1.schema.json`](../crates/motion-script/schema/motionscript-schedule-v1.schema.json);
+the inner `script` is defined by the Rust types in `motion-script` and checked by
+`Script::validate`. A breaking change requires a new version and a migration.
+
+```yaml
+version: 1
+script: {characters: {EMMA: {asset: emma}}, scenes: [{id: opening, duration: 8, events: []}]}
+schedules:
+  opening:                     # scene id → one root node
+    op: seq
+    children:
+      - {op: wait, duration: 1}
+      - op: stagger
+        delay: 0.5
+        children:
+          - {op: event, span: 1, event: {type: emotion, actor: EMMA, at: 0, value: happy}}
+          - {op: event, span: 1, event: {type: emotion, actor: EMMA, at: 0, value: sad}}
+```
+
+### Schedule semantics
+
+`seq`, `par` and `stagger` are compiler sugar: they are lowered to absolute event
+times in the existing `Script` before `Script::validate` runs. No new event type,
+clock or timeline is introduced. Times are finite seconds from scene start and
+intervals are half-open `[start, end)`. With node start `S` and child duration `Dᵢ`:
+
+| Node | Start of child `i` | Node duration |
+| --- | --- | --- |
+| `seq` | `S + Σ_{j<i} Dⱼ` | `Σ Dᵢ` |
+| `par` | `S` | `max Dᵢ` |
+| `stagger`, `delay` | `S + i·delay` | `max(i·delay + Dᵢ)` |
+| `wait`, `duration` | – (no event) | `duration` |
+| `event`, `span`, `event` | event at `S + event.at` | `span` |
+
+- `children` is nonempty; `delay ≥ 0`; `duration` and `span` are positive and finite.
+- `event.at` is a local offset in `[0, span)`; a move/gesture `duration` must fit the span.
+- Every node must end at or before the scene duration; the scene is never extended.
+  Overflow and precision collapse (a positive interval rounding to zero) are rejected.
+- `speak` needs an author-supplied `span`. The compiler does not measure audio or
+  guess speech length; the span reserves structural time only.
+- Output events are stably sorted by start time. Ties keep the `script` section's own
+  events first, then schedule events in depth-first source order. This order is part
+  of version 1.
+
+### Diagnostics
+
+Compilation is atomic: it returns a complete `Script` or one `Diagnostic` with a typed
+`DiagnosticCode`, a YAML path and, for YAML syntax errors, a 1-based line and column.
+
+| Code | Meaning |
+| --- | --- |
+| `syntax` | Malformed YAML, including duplicate keys |
+| `schema` | Missing/unknown field or wrong value shape |
+| `version` | `version` is not 1 |
+| `reference` | Unknown scene id or actor |
+| `time` | Non-finite, negative or zero time; interval outside span or scene; precision loss |
+| `unsupported` | Unknown `op` or event `type` (reported, never skipped) |
+| `validation` | Rejected by the existing `Script::validate` (e.g. overlapping moves) |
+| `limit` | Source > 1 MiB, > 1024 schedule nodes or depth > 32 |
+
+Paths use zero-based indexes, e.g. `$.schedules["opening"].children[1].event.actor`.
+Errors raised by the legacy validator inside `script` are reported at `$.script`.
+
+Examples: [`nested.yaml`](../examples/motionscript-v1/nested.yaml) (valid) and the
+`invalid-*.yaml` files beside it, each of which states its expected diagnostic in an
+`# expect:` header that the test suite checks.
+
+```sh
+cargo run -p motion-script --example compile_script < examples/motionscript-v1/nested.yaml
+```
+
+### SceneSpec handed to A04
+
+The compiler output is `motion_script::compiler::Compilation`:
+
+- `script: Script` — the same `Script`/`Scene`/`Event` types and scene-relative
+  seconds every other consumer already uses, already accepted by `Script::validate`
+  and by legacy `parse` when re-serialized.
+- `origins: Vec<Vec<String>>` — `origins[scene][event]` is the source path of each
+  output event after sorting. It is tied to that source revision, not a persistent ID.
+
+The compiler does not call `expand_rules` (A03 runs rules afterwards and owns any
+reordering provenance), does not quantize to frames or samples, and does not resolve
+tracks (A04, `motion-scene`).

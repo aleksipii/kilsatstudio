@@ -1,8 +1,12 @@
 //! Deterministic, self-contained SVG frames from evaluated scenes.
 //! Uses original procedural characters; no fonts, network assets, or video encoder.
 pub mod captions;
+pub mod contract;
+pub mod framing;
 #[cfg(feature = "gpu")]
 pub mod gpu;
+#[cfg(feature = "gpu")]
+mod gpu_captions;
 #[cfg(feature = "gpu")]
 pub mod gpu_scene;
 #[cfg(feature = "gpu")]
@@ -52,7 +56,7 @@ pub fn render_svg_with_mouths(
     height: u32,
     mouths: &[(&str, Viseme)],
 ) -> Result<String, Error> {
-    render_scene(scene, width, height, mouths, None)
+    render_scene(scene, width, height, mouths, None, true)
 }
 
 type Artwork<'a> = (
@@ -99,8 +103,9 @@ fn append_rig_texture(
             "embedded rig texture bytes exceed the image budget".into(),
         ));
     }
-    let [bx, by, bw, bh] = texture.rest_bounds;
-    let [u0, v0, u1, v1] = texture.uv;
+    let (rest_bounds, uv) = texture.placement(image.width(), image.height());
+    let [bx, by, bw, bh] = rest_bounds;
+    let [u0, v0, u1, v1] = uv;
     let (w, h) = (bw / (u1 - u0), bh / (v1 - v0));
     let m = texture.transform;
     write!(svg, "<defs><clipPath id=\"{clip_id}\"><polygon points=\"").unwrap();
@@ -114,6 +119,30 @@ fn append_rig_texture(
     )
     .unwrap();
     Ok(())
+}
+
+/// One closed outline stroke with round joins (no miter spikes on sharp or
+/// finely rounded corners). `stroke_width` is the full SVG stroke width; modes
+/// drawn beneath a fill pass twice the visible band.
+fn append_outline(
+    svg: &mut String,
+    part: &motion_rig::EvaluatedPart,
+    color: [u8; 4],
+    stroke_width: f64,
+) {
+    svg.push_str("<polygon points=\"");
+    for point in &part.points {
+        write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
+    }
+    write!(
+        svg,
+        "\" fill=\"none\" stroke=\"#{:02x}{:02x}{:02x}\" stroke-opacity=\"{:.6}\" stroke-width=\"{stroke_width:.6}\" stroke-linejoin=\"round\"/>",
+        color[0],
+        color[1],
+        color[2],
+        f64::from(color[3]) / 255.0
+    )
+    .unwrap();
 }
 
 pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) -> Result<(), Error> {
@@ -156,8 +185,12 @@ pub(crate) fn validate_scene(scene: &EvaluatedScene, width: u32, height: u32) ->
             })
             || actor.rigid_parts.len() > 256
             || actor.rigid_parts.iter().any(|part| {
-                !(3..=64).contains(&part.points.len())
+                !(3..=motion_rig::MAX_EVALUATED_POINTS).contains(&part.points.len())
                     || bad_texture(part)
+                    || part.outline.is_some_and(|o| {
+                        !o.width.is_finite()
+                            || !(0.0..=motion_rig::MAX_OUTLINE_WIDTH).contains(&o.width)
+                    })
                     || part.points.iter().any(|p| {
                         !p.x.is_finite()
                             || !p.y.is_finite()
@@ -193,6 +226,7 @@ fn render_scene(
     height: u32,
     mouths: &[(&str, Viseme)],
     artwork: Option<Artwork<'_>>,
+    paint_canvas_background: bool,
 ) -> Result<String, Error> {
     validate_scene(scene, width, height)?;
     let scale = (width as f64 / scene.width as f64).min(height as f64 / scene.height as f64);
@@ -200,9 +234,27 @@ fn render_scene(
     let oy = (height as f64 - scene.height as f64 * scale) * 0.5;
     let (camera_x, camera_y) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
     let mut svg = format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\"><defs><clipPath id=\"canvas\"><rect width=\"{}\" height=\"{}\"/></clipPath></defs><rect width=\"100%\" height=\"100%\" fill=\"black\"/><g transform=\"translate({ox:.6} {oy:.6}) scale({scale:.6})\" clip-path=\"url(#canvas)\" opacity=\"{:.6}\"><rect width=\"{}\" height=\"{}\" fill=\"{}\"/><g transform=\"translate({camera_x:.6} {camera_y:.6}) scale({:.6})\">",
-        scene.width, scene.height, scene.opacity, scene.width, scene.height, scene.background_color, scene.camera.zoom
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\"><defs><clipPath id=\"canvas\"><rect width=\"{}\" height=\"{}\"/></clipPath></defs>",
+        scene.width, scene.height
     );
+    if paint_canvas_background {
+        svg.push_str("<rect width=\"100%\" height=\"100%\" fill=\"black\"/>");
+    }
+    write!(svg, "<g transform=\"translate({ox:.6} {oy:.6}) scale({scale:.6})\" clip-path=\"url(#canvas)\" opacity=\"{:.6}\">", scene.opacity).unwrap();
+    if paint_canvas_background {
+        write!(
+            svg,
+            "<rect width=\"{}\" height=\"{}\" fill=\"{}\"/>",
+            scene.width, scene.height, scene.background_color
+        )
+        .unwrap();
+    }
+    write!(
+        svg,
+        "<g transform=\"translate({camera_x:.6} {camera_y:.6}) scale({:.6})\">",
+        scene.camera.zoom
+    )
+    .unwrap();
     if let Some((scene_id, document, images)) = artwork {
         append_art(
             &mut svg,
@@ -248,7 +300,17 @@ fn render_scene(
             .unwrap();
         }
         if !actor.rigid_parts.is_empty() {
+            use motion_rig::OutlineMode;
+            // Silhouette outlines first, beneath every fill of this actor.
+            for part in &actor.rigid_parts {
+                if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Silhouette) {
+                    append_outline(&mut svg, part, o.color, o.width * 2.0);
+                }
+            }
             for (part_index, part) in actor.rigid_parts.iter().enumerate() {
+                if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Behind) {
+                    append_outline(&mut svg, part, o.color, o.width * 2.0);
+                }
                 svg.push_str("<polygon points=\"");
                 for point in &part.points {
                     write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
@@ -269,6 +331,9 @@ fn render_scene(
                     rig_images,
                     &mut embedded_rig_bytes,
                 )?;
+                if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Over) {
+                    append_outline(&mut svg, part, o.color, o.width);
+                }
             }
         } else {
             let p = &actor.skeleton;
@@ -369,6 +434,33 @@ pub fn render_svg_with_art(
         height,
         mouths,
         Some((scene_id, document, images)),
+        true,
+    )
+}
+
+/// Render reusable cutouts through the normal scene pipeline, leaving unpainted
+/// canvas pixels transparent. Artwork, actor opacity, lights and clipping retain
+/// their normal behavior; only the default canvas and letterbox fills are omitted.
+#[allow(clippy::too_many_arguments)]
+pub fn render_svg_with_art_transparent(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+) -> Result<String, Error> {
+    document
+        .validate()
+        .map_err(|e| Error::InvalidArtwork(e.to_string()))?;
+    render_scene(
+        scene,
+        width,
+        height,
+        mouths,
+        Some((scene_id, document, images)),
+        false,
     )
 }
 
@@ -714,6 +806,91 @@ fn hex(color: &motion_art::Color) -> String {
     format!("#{:02x}{:02x}{:02x}", color.r, color.g, color.b)
 }
 
+pub(crate) struct SampledRadialLight {
+    pub position: motion_art::Point,
+    pub rgb: [f64; 3],
+    pub alpha: f64,
+}
+
+pub(crate) fn sample_radial_light(
+    scene: &EvaluatedScene,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    light: &motion_art::Light,
+) -> Result<Option<SampledRadialLight>, Error> {
+    let motion_art::LightSource::Radial {
+        color,
+        intensity,
+        attachment,
+        screen_glow,
+        ..
+    } = &light.source
+    else {
+        return Ok(None);
+    };
+    let mut position = light.sample_position(scene.time).expect("radial light");
+    let mut rgb = [
+        f64::from(color.r) / 255.0,
+        f64::from(color.g) / 255.0,
+        f64::from(color.b) / 255.0,
+    ];
+    let mut alpha = intensity * light.flicker_factor(scene.time);
+    if let Some(id) = attachment {
+        match scene.actors.iter().find(|a| &a.id == id) {
+            Some(a) => {
+                position.x += a.x;
+                position.y += a.y;
+            }
+            None => return Ok(None),
+        }
+    }
+    if let Some(glow) = screen_glow {
+        let Some(prop) = document
+            .layers
+            .iter()
+            .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
+        else {
+            return Ok(None);
+        };
+        let (asset_id, rect) = match &prop.content {
+            motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
+            motion_art::Content::AnimatedImage { rect, .. } => {
+                (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
+            }
+            _ => return Ok(None),
+        };
+        let image = images
+            .get(asset_id)
+            .ok_or_else(|| Error::InvalidArtwork(format!("missing decoded image {asset_id}")))?;
+        let avg = image.average_rgb();
+        let peak = avg.iter().cloned().fold(0.0, f64::max);
+        if peak <= 0.0 {
+            return Ok(None);
+        }
+        let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
+        for (channel, value) in rgb.iter_mut().enumerate() {
+            *value += (avg[channel] / peak - *value) * glow.tint;
+        }
+        alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
+        position.x += rect.x + rect.width / 2.0;
+        position.y += rect.y + rect.height / 2.0;
+        if let Some(owner) = &prop.attachment {
+            match scene.actors.iter().find(|a| &a.id == owner) {
+                Some(a) => {
+                    position.x += a.x;
+                    position.y += a.y;
+                }
+                None => return Ok(None),
+            }
+        }
+    }
+    Ok(Some(SampledRadialLight {
+        position,
+        rgb,
+        alpha,
+    }))
+}
+
 /// Lights on the selected side of the actors. Ambient tint and vignette are canvas-space
 /// (outside the camera); radial lights live in scene space under `camera`.
 /// Ambient/vignette come first so glows stay bright over a darkened room.
@@ -757,72 +934,20 @@ fn append_lights(
             radius,
             aspect,
             softness,
-            color,
-            intensity,
             blend,
-            attachment,
-            screen_glow,
             ..
         } = &light.source
         else {
             continue;
         };
-        let mut position = light.sample_position(scene.time).expect("radial light");
-        let mut rgb = [
-            f64::from(color.r) / 255.0,
-            f64::from(color.g) / 255.0,
-            f64::from(color.b) / 255.0,
-        ];
-        let mut alpha = intensity * light.flicker_factor(scene.time);
-        if let Some(id) = attachment {
-            match scene.actors.iter().find(|a| &a.id == id) {
-                Some(a) => {
-                    position.x += a.x;
-                    position.y += a.y;
-                }
-                None => continue,
-            }
-        }
-        if let Some(glow) = screen_glow {
-            let Some(prop) = document
-                .layers
-                .iter()
-                .find(|l| l.id == glow.layer_id && l.is_active(scene.time))
-            else {
-                continue;
-            };
-            let (asset_id, rect) = match &prop.content {
-                motion_art::Content::Image { asset_id, rect } => (asset_id.as_str(), *rect),
-                motion_art::Content::AnimatedImage { rect, .. } => {
-                    (prop.animated_asset(scene.time).unwrap_or_default(), *rect)
-                }
-                _ => continue,
-            };
-            let image = images.get(asset_id).ok_or_else(|| {
-                Error::InvalidArtwork(format!("missing decoded image {asset_id}"))
-            })?;
-            let avg = image.average_rgb();
-            let peak = avg.iter().cloned().fold(0.0, f64::max);
-            if peak <= 0.0 {
-                continue;
-            }
-            let luma = 0.2126 * avg[0] + 0.7152 * avg[1] + 0.0722 * avg[2];
-            for (channel, value) in rgb.iter_mut().enumerate() {
-                *value += (avg[channel] / peak - *value) * glow.tint;
-            }
-            alpha = (alpha * glow.gain * luma).clamp(0.0, 1.0);
-            position.x += rect.x + rect.width / 2.0;
-            position.y += rect.y + rect.height / 2.0;
-            if let Some(owner) = &prop.attachment {
-                match scene.actors.iter().find(|a| &a.id == owner) {
-                    Some(a) => {
-                        position.x += a.x;
-                        position.y += a.y;
-                    }
-                    None => continue,
-                }
-            }
-        }
+        let Some(sample) = sample_radial_light(scene, document, images, light)? else {
+            continue;
+        };
+        let SampledRadialLight {
+            position,
+            rgb,
+            alpha,
+        } = sample;
         if !opened {
             write!(svg, "<g transform=\"{camera}\">").unwrap();
             opened = true;
@@ -924,11 +1049,41 @@ mod tests {
         assert!(svg.contains("fill=\"#142850\" fill-opacity=\"0.501961\""));
         assert!(svg.contains("rotate(90.000000)"));
         assert!(!svg.contains("<circle r=\"25\""));
+        // Legacy rigs: no outline strokes and no new serialized fields.
+        assert!(!svg.contains("stroke-linejoin"));
+        let rig = serde_json::to_value(script.characters["PUPPET"].rig.as_ref().unwrap()).unwrap();
+        let keys =
+            |v: &serde_json::Value| v.as_object().unwrap().keys().cloned().collect::<Vec<_>>();
+        assert_eq!(keys(&rig), ["id", "joints", "parts", "version"]);
+        assert_eq!(keys(&rig["parts"][0]), ["color", "id", "joint", "points"]);
         evaluated.actors[0].rigid_parts[0].points[0].x = f64::NAN;
         assert_eq!(
             render_svg(&evaluated, 640, 360),
             Err(Error::InvalidActor(0))
         );
+    }
+    #[test]
+    fn outline_modes_order_strokes_around_fills() {
+        let source = "characters:\n  PUPPET:\n    asset: custom\n    rig:\n      version: 1\n      id: puppet\n      joints: [{id: root, parent: null}]\n      parts:\n        - {id: a, joint: root, points: [[0,0],[10,0],[0,10]], color: [1,1,1,255], outline: {width: 2, mode: behind}}\n        - {id: b, joint: root, ellipse: {rx: 5, ry: 4}, color: [2,2,2,255], outline: {width: 1, color: [9,8,7,128]}}\n        - {id: c, joint: root, points: [[0,0],[10,0],[10,10],[0,10]], smooth: 2, color: [3,3,3,255], outline: {width: 3, mode: silhouette}}\nscenes: [{id: intro, duration: 2, events: []}]\n";
+        let script = motion_script::parse(source).unwrap();
+        let evaluated = motion_scene::evaluate(&script, 0, 0.5).unwrap();
+        let svg = render_svg(&evaluated, 640, 360).unwrap();
+        let at = |needle: &str| svg.find(needle).unwrap_or_else(|| panic!("{needle}"));
+        let silhouette = at("stroke-width=\"6.000000\"");
+        let behind = at("stroke-width=\"4.000000\"");
+        let fill_a = at("fill=\"#010101\"");
+        let fill_b = at("fill=\"#020202\"");
+        let over = at("stroke=\"#090807\" stroke-opacity=\"0.501961\" stroke-width=\"1.000000\"");
+        let fill_c = at("fill=\"#030303\"");
+        assert!(silhouette < behind && behind < fill_a && fill_a < fill_b);
+        assert!(fill_b < over && over < fill_c);
+        assert_eq!(svg.matches("stroke-linejoin=\"round\"").count(), 3);
+        // Ellipse and rounded parts are dense polygons.
+        let parts = &evaluated.actors[0].rigid_parts;
+        assert_eq!((parts[1].points.len(), parts[2].points.len()), (48, 8));
+        let mut bad = evaluated.clone();
+        bad.actors[0].rigid_parts[0].outline.as_mut().unwrap().width = f64::INFINITY;
+        assert_eq!(render_svg(&bad, 640, 360), Err(Error::InvalidActor(0)));
     }
     #[test]
     fn deterministic_geometry_and_letterbox() {
@@ -1004,6 +1159,110 @@ mod tests {
         s = scene();
         s.actors = vec![s.actors[0].clone(); MAX_ACTORS + 1];
         assert_eq!(render_svg(&s, 640, 360), Err(Error::TooManyActors));
+    }
+}
+
+#[cfg(test)]
+mod transparent_art_tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn opaque_art_entry_point_retains_legacy_golden_bytes() {
+        let scene = EvaluatedScene {
+            time: 0.0,
+            width: 640,
+            height: 360,
+            actors: vec![],
+            camera: motion_scene::CameraPose {
+                x: 50.0,
+                y: 20.0,
+                zoom: 2.0,
+            },
+            background_color: "#12abef".into(),
+            opacity: 0.5,
+        };
+        assert_eq!(
+            render_svg_with_art(
+                &scene,
+                640,
+                360,
+                &[],
+                "s",
+                &motion_art::Document::default(),
+                &BTreeMap::new()
+            )
+            .unwrap(),
+            include_str!("../tests/golden/composition.svg")
+        );
+    }
+
+    #[test]
+    fn transparent_art_omits_only_default_fills() {
+        let mut scene = super::tests::scene();
+        scene.camera = motion_scene::CameraPose {
+            x: 20.0,
+            y: 15.0,
+            zoom: 1.25,
+        };
+        scene.opacity = 0.4;
+        let document: motion_art::Document = serde_json::from_value(serde_json::json!({
+            "layers": [{"id":"shape", "scene_id":"s", "name":"Shape", "visible":true,
+                "opacity":0.7, "attachment":null, "clip":{"x":1.0,"y":2.0,"width":30.0,"height":40.0},
+                "content":{"type":"rectangle", "rect":{"x":1.0,"y":2.0,"width":30.0,"height":40.0},
+                    "color":{"r":180,"g":30,"b":50,"a":150}}}],
+            "lights": [
+                {"id":"backlight", "scene_id":"s", "behind_actors":true,
+                    "source":{"type":"ambient", "color":{"r":210,"g":190,"b":170,"a":255}, "strength":0.2}},
+                {"id":"glow", "scene_id":"s",
+                    "source":{"type":"radial", "position":{"x":120.0,"y":200.0}, "radius":60.0,
+                        "color":{"r":100,"g":200,"b":240,"a":255}, "intensity":0.4}}
+            ]
+        })).unwrap();
+        let images = BTreeMap::new();
+        let mouths = [("EMMA", Viseme::O)];
+        let opaque =
+            render_svg_with_art(&scene, 800, 360, &mouths, "s", &document, &images).unwrap();
+        let transparent =
+            render_svg_with_art_transparent(&scene, 800, 360, &mouths, "s", &document, &images)
+                .unwrap();
+        let expected = opaque
+            .replacen(
+                "<rect width=\"100%\" height=\"100%\" fill=\"black\"/>",
+                "",
+                1,
+            )
+            .replacen(
+                "<rect width=\"640\" height=\"360\" fill=\"#181f2c\"/>",
+                "",
+                1,
+            );
+        assert_eq!(transparent, expected);
+        assert!(transparent.contains("clip-path=\"url(#art0)\""));
+        assert!(transparent.contains("opacity=\"0.400000\""));
+        assert!(transparent.contains("fill=\"#b41e32\""));
+        assert!(transparent.contains("EMMA · happy"));
+    }
+
+    #[test]
+    fn empty_cutout_and_invalid_inputs_use_shared_validation() {
+        let mut scene = super::tests::scene();
+        scene.actors.clear();
+        let document = motion_art::Document::default();
+        let images = BTreeMap::new();
+        let svg = render_svg_with_art_transparent(&scene, 640, 360, &[], "s", &document, &images)
+            .unwrap();
+        assert!(!svg.contains("fill="));
+        assert!(svg.contains("<clipPath"));
+        assert_eq!(
+            render_svg_with_art_transparent(&scene, 0, 360, &[], "s", &document, &images),
+            Err(Error::InvalidDimensions)
+        );
+        scene.camera.zoom = f64::NAN;
+        assert_eq!(
+            render_svg_with_art_transparent(&scene, 640, 360, &[], "s", &document, &images),
+            Err(Error::InvalidComposition)
+        );
     }
 }
 

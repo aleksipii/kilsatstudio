@@ -60,12 +60,12 @@ impl CueDraft {
 
     /// Returns true only when Apply is requested.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.small("Sound effects from project-relative 24 kHz mono PCM16 .wav files, placed on the scene's sample clock. Files are read when audio is prepared, not here.");
+        ui.small("Äänitehosteet käyttävät projektin suhteellisia 24 kHz mono PCM16 -WAV-tiedostoja ja kohtauksen näytekelloa. Tiedostot luetaan äänen valmistelussa.");
         let mut remove = None;
         for (index, cue) in self.cues.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
                 egui::CollapsingHeader::new(format!(
-                    "Cue {} · {} · {:.3}s",
+                    "Äänitehoste {} · {} · {:.3} s",
                     index + 1,
                     cue.id,
                     cue.at
@@ -73,25 +73,29 @@ impl CueDraft {
                 .default_open(true)
                 .show(ui, |ui| {
                     egui::Grid::new("cue_fields").num_columns(2).show(ui, |ui| {
-                        ui.label("Id");
+                        ui.label("Tunnus");
                         text(ui, &mut cue.id, ID_LIMIT);
                         ui.end_row();
-                        ui.label("Asset (.wav)");
+                        ui.label("Tiedosto (.wav)");
                         text(ui, &mut cue.asset, ASSET_LIMIT);
                         ui.end_row();
                         for (label, value, speed) in [
-                            ("Start (scene seconds)", &mut cue.at, 0.05),
-                            ("Gain (0..4)", &mut cue.gain, 0.01),
-                            ("Trim start (source seconds)", &mut cue.trim_start, 0.05),
+                            ("Alku (kohtauksen sekuntia)", &mut cue.at, 0.05),
+                            ("Voimakkuus (0–4)", &mut cue.gain, 0.01),
+                            (
+                                "Leikkaus alusta (lähteen sekuntia)",
+                                &mut cue.trim_start,
+                                0.05,
+                            ),
                         ] {
                             ui.label(label);
                             ui.add(egui::DragValue::new(value).speed(speed));
                             ui.end_row();
                         }
-                        ui.label("Duration");
+                        ui.label("Kesto");
                         ui.horizontal(|ui| {
                             let mut limited = cue.duration.is_some();
-                            if ui.checkbox(&mut limited, "Limit").changed() {
+                            if ui.checkbox(&mut limited, "Rajaa").changed() {
                                 cue.duration = limited.then_some(1.0);
                             }
                             if let Some(duration) = &mut cue.duration {
@@ -100,7 +104,7 @@ impl CueDraft {
                         });
                         ui.end_row();
                     });
-                    if ui.button("Remove cue").clicked() {
+                    if ui.button("Poista äänitehoste").clicked() {
                         remove = Some(index);
                     }
                 });
@@ -111,19 +115,19 @@ impl CueDraft {
         }
         let can_add = self.cues.len() < MAX_AUDIO_CUES;
         if ui
-            .add_enabled(can_add, egui::Button::new("Add cue"))
+            .add_enabled(can_add, egui::Button::new("Lisää äänitehoste"))
             .clicked()
         {
             self.add_cue();
         }
         if self.cues.is_empty() {
-            ui.small("Applying an empty list removes this scene's cues.");
+            ui.small("Tyhjän luettelon käyttäminen poistaa kohtauksen äänitehosteet.");
         }
-        ui.small("Apply validates the screenplay and supports Undo. A missing or unsupported file is reported when audio is prepared.");
+        ui.small("Käytä tarkistaa käsikirjoituksen ja tallentaa kumottavan muokkauksen. Puuttuva tai sopimaton äänitiedosto ilmoitetaan äänen valmistelussa.");
         let mut apply = false;
         ui.horizontal(|ui| {
-            apply = ui.button("Apply audio cues").clicked();
-            if ui.button("Reset cue draft").clicked() {
+            apply = ui.button("Käytä äänitehosteita").clicked();
+            if ui.button("Palauta äänitehosteluonnos").clicked() {
                 self.reset();
             }
         });
@@ -218,7 +222,7 @@ impl RuleDraft {
         for row in &self.rows {
             if rules.insert(row.name.clone(), row.build()).is_some() {
                 return Err(motion_script::Error::Validation(format!(
-                    "duplicate rule name {}",
+                    "säännön nimi {} esiintyy useasti",
                     row.name
                 )));
             }
@@ -246,20 +250,20 @@ impl RuleDraft {
 
     /// Returns true only when Apply is requested.
     pub fn ui(&mut self, ui: &mut egui::Ui) -> bool {
-        ui.small("Declarative rules fire on authored events and add a clip instance or camera move. Rules apply to the whole screenplay; validation covers clip/actor/scene references, overlaps and bounds.");
+        ui.small("Säännöt käynnistyvät käsikirjoituksen tapahtumista ja lisäävät liikekatkelman tai kameraliikkeen. Ne koskevat koko käsikirjoitusta. Tarkistus kattaa katkelma-, hahmo- ja kohtausviittaukset, päällekkäisyydet ja rajat.");
         let mut remove = None;
         for (index, row) in self.rows.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
-                egui::CollapsingHeader::new(format!("Rule {}", row.name))
+                egui::CollapsingHeader::new(format!("Sääntö {}", row.name))
                     .default_open(true)
                     .show(ui, |ui| {
                         egui::Grid::new("rule_fields")
                             .num_columns(2)
                             .show(ui, |ui| {
-                                ui.label("Name");
+                                ui.label("Nimi");
                                 text(ui, &mut row.name, MAX_RULE_NAME);
                                 ui.end_row();
-                                ui.label("Trigger");
+                                ui.label("Käynnistävä tapahtuma");
                                 egui::ComboBox::from_id_salt("trigger")
                                     .selected_text(trigger_label(row.rule.on))
                                     .show_ui(ui, |ui| {
@@ -278,32 +282,32 @@ impl RuleDraft {
                                         }
                                     });
                                 ui.end_row();
-                                ui.label("Match value");
+                                ui.label("Ehdon arvo");
                                 text(ui, &mut row.value, ID_LIMIT);
                                 ui.end_row();
                                 if row.rule.on == RuleTrigger::Time {
-                                    ui.label("At (scene seconds)");
+                                    ui.label("Hetki (kohtauksen sekuntia)");
                                     opt_drag(ui, &mut row.rule.at, 0.0);
                                     ui.end_row();
                                 }
-                                ui.label("Only scenes (comma list)");
+                                ui.label("Vain kohtaukset (pilkuilla erotettu)");
                                 text(ui, &mut row.scenes, ASSET_LIMIT);
                                 ui.end_row();
-                                ui.label("Subject actor");
+                                ui.label("Ehdon hahmo");
                                 text(ui, &mut row.when_actor, ID_LIMIT);
                                 ui.end_row();
-                                ui.label("Subject emotion");
+                                ui.label("Ehdon tunne");
                                 text(ui, &mut row.when_emotion, ID_LIMIT);
                                 ui.end_row();
-                                ui.label("From (seconds)");
+                                ui.label("Alkaen (sekuntia)");
                                 opt_drag(ui, &mut row.rule.condition.from, 0.0);
                                 ui.end_row();
-                                ui.label("Until (seconds)");
+                                ui.label("Päättyen (sekuntia)");
                                 opt_drag(ui, &mut row.rule.condition.until, 1.0);
                                 ui.end_row();
                                 effect_ui(ui, row);
                             });
-                        if ui.button("Remove rule").clicked() {
+                        if ui.button("Poista sääntö").clicked() {
                             remove = Some(index);
                         }
                     });
@@ -313,19 +317,22 @@ impl RuleDraft {
             self.rows.remove(index);
         }
         if ui
-            .add_enabled(self.rows.len() < MAX_RULES, egui::Button::new("Add rule"))
+            .add_enabled(
+                self.rows.len() < MAX_RULES,
+                egui::Button::new("Lisää sääntö"),
+            )
             .clicked()
         {
             self.add_rule();
         }
         if self.rows.is_empty() {
-            ui.small("Applying an empty list removes all rules.");
+            ui.small("Tyhjän luettelon käyttäminen poistaa kaikki säännöt.");
         }
-        ui.small("Apply validates the expanded screenplay and supports Undo. YAML formatting is normalized and comments are removed.");
+        ui.small("Käytä tarkistaa sääntöjen laajentaman käsikirjoituksen ja tallentaa kumottavan muokkauksen. YAML-muotoilu yhtenäistetään ja kommentit poistetaan.");
         let mut apply = false;
         ui.horizontal(|ui| {
-            apply = ui.button("Apply rules").clicked();
-            if ui.button("Reset rule draft").clicked() {
+            apply = ui.button("Käytä sääntöjä").clicked();
+            if ui.button("Palauta sääntöluonnos").clicked() {
                 self.reset();
             }
         });
@@ -336,7 +343,7 @@ impl RuleDraft {
 fn opt_drag(ui: &mut egui::Ui, value: &mut Option<f64>, default: f64) {
     ui.horizontal(|ui| {
         let mut on = value.is_some();
-        if ui.checkbox(&mut on, "Set").changed() {
+        if ui.checkbox(&mut on, "Aseta").changed() {
             *value = on.then_some(default);
         }
         if let Some(v) = value {
@@ -347,19 +354,23 @@ fn opt_drag(ui: &mut egui::Ui, value: &mut Option<f64>, default: f64) {
 
 fn effect_ui(ui: &mut egui::Ui, row: &mut RuleRow) {
     let is_clip = matches!(row.rule.effect, RuleEffect::Clip { .. });
-    ui.label("Effect");
+    ui.label("Vaikutus");
     let mut choose = None;
     egui::ComboBox::from_id_salt("effect")
         .selected_text(if is_clip {
-            "Clip instance"
+            "Liikekatkelman esiintymä"
         } else {
-            "Camera move"
+            "Kameraliike"
         })
         .show_ui(ui, |ui| {
-            if ui.selectable_label(is_clip, "Clip instance").clicked() && !is_clip {
+            if ui
+                .selectable_label(is_clip, "Liikekatkelman esiintymä")
+                .clicked()
+                && !is_clip
+            {
                 choose = Some(true);
             }
-            if ui.selectable_label(!is_clip, "Camera move").clicked() && is_clip {
+            if ui.selectable_label(!is_clip, "Kameraliike").clicked() && is_clip {
                 choose = Some(false);
             }
         });
@@ -398,29 +409,29 @@ fn effect_ui(ui: &mut egui::Ui, row: &mut RuleRow) {
             fade_out,
             ..
         } => {
-            ui.label("Clip");
+            ui.label("Liikekatkelma");
             text(ui, clip, ID_LIMIT);
             ui.end_row();
-            ui.label("Target actor");
+            ui.label("Kohdehahmo");
             text(ui, &mut row.effect_actor, ID_LIMIT);
             ui.end_row();
             for (label, value) in [
-                ("Offset (seconds)", offset),
-                ("Duration", duration),
-                ("Weight (0..1)", weight),
-                ("Fade in", fade_in),
-                ("Fade out", fade_out),
+                ("Aikasiirto (sekuntia)", offset),
+                ("Kesto", duration),
+                ("Paino (0–1)", weight),
+                ("Häivytys sisään", fade_in),
+                ("Häivytys ulos", fade_out),
             ] {
                 ui.label(label);
                 ui.add(egui::DragValue::new(value).speed(0.05));
                 ui.end_row();
             }
-            ui.label("Blend");
+            ui.label("Yhdistämistapa");
             egui::ComboBox::from_id_salt("blend")
-                .selected_text(format!("{blend_mode:?}"))
+                .selected_text(clip_blend_label(*blend_mode))
                 .show_ui(ui, |ui| {
                     for b in [ClipBlendMode::Override, ClipBlendMode::Additive] {
-                        ui.selectable_value(blend_mode, b, format!("{b:?}"));
+                        ui.selectable_value(blend_mode, b, clip_blend_label(b));
                     }
                 });
             ui.end_row();
@@ -430,9 +441,9 @@ fn effect_ui(ui: &mut egui::Ui, row: &mut RuleRow) {
             offset,
             duration,
         } => {
-            ui.label("Preset");
+            ui.label("Esiasetus");
             egui::ComboBox::from_id_salt("preset")
-                .selected_text(format!("{preset:?}"))
+                .selected_text(camera_label(*preset))
                 .show_ui(ui, |ui| {
                     for p in [
                         RuleCameraPreset::PushIn,
@@ -440,11 +451,11 @@ fn effect_ui(ui: &mut egui::Ui, row: &mut RuleRow) {
                         RuleCameraPreset::PanLeft,
                         RuleCameraPreset::PanRight,
                     ] {
-                        ui.selectable_value(preset, p, format!("{p:?}"));
+                        ui.selectable_value(preset, p, camera_label(p));
                     }
                 });
             ui.end_row();
-            for (label, value) in [("Offset (seconds)", offset), ("Duration", duration)] {
+            for (label, value) in [("Aikasiirto (sekuntia)", offset), ("Kesto", duration)] {
                 ui.label(label);
                 ui.add(egui::DragValue::new(value).speed(0.05));
                 ui.end_row();
@@ -453,13 +464,30 @@ fn effect_ui(ui: &mut egui::Ui, row: &mut RuleRow) {
     }
 }
 
+fn clip_blend_label(mode: ClipBlendMode) -> &'static str {
+    match mode {
+        ClipBlendMode::Override => "Korvaava",
+        ClipBlendMode::Additive => "Lisäävä",
+    }
+}
+
+fn camera_label(preset: RuleCameraPreset) -> &'static str {
+    match preset {
+        RuleCameraPreset::PushIn => "Lähennä",
+        RuleCameraPreset::PullOut => "Loitonna",
+        RuleCameraPreset::PanLeft => "Siirrä vasemmalle",
+        RuleCameraPreset::PanRight => "Siirrä oikealle",
+    }
+}
+
 fn trigger_label(t: RuleTrigger) -> &'static str {
     match t {
-        RuleTrigger::Emotion => "Emotion event",
-        RuleTrigger::Speak => "Speak event",
-        RuleTrigger::Gesture => "Gesture event",
-        RuleTrigger::Move => "Move event",
-        RuleTrigger::Time => "Fixed time",
+        RuleTrigger::Emotion => "Tunnetapahtuma",
+        RuleTrigger::Speak => "Puhetapahtuma",
+        RuleTrigger::Gesture => "Eletapahtuma",
+        RuleTrigger::Move => "Liiketapahtuma",
+        RuleTrigger::Time => "Määrätty aika",
+        RuleTrigger::Key => "Näppäintapahtuma (tapahtumaloki)",
     }
 }
 

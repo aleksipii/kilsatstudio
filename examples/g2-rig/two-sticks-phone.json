@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "description": "Two stick characters, a phone in Veikko's right hand, an IK reach, a walk and a camera change. Read by crates/motion-rig/tests/g2_rig.rs; A08 may render the same data.",
+  "viewport": [1280, 720],
+  "catalog": "../stick-studio/hand-props.json",
+  "characters": [
+    { "id": "VEIKKO", "source": "../stick-studio/characters/veikko.kilsat", "x": -160, "y": 0 },
+    { "id": "KIPINA", "source": "../stick-studio/characters/kipina.kilsat", "x": 160, "y": 0 }
+  ],
+  "prop": {
+    "character": "VEIKKO",
+    "hand": "right",
+    "item": "puhelin",
+    "placement": { "x": 0, "y": 4, "rotation_degrees": -10, "scale": 0.8 }
+  },
+  "ik": {
+    "character": "VEIKKO",
+    "limb": "arm_r",
+    "bend": "positive",
+    "targets": [[40, -150], [55, -175], [30, -195], [70, -120], [400, -160], [22, -150]]
+  },
+  "walk": { "character": "VEIKKO", "from_x": -160, "to_x": 40, "steps": 8 },
+  "cameras": [
+    { "name": "wide", "center": [0, -120], "zoom": 1.0 },
+    { "name": "close_on_phone", "center": [-100, -170], "zoom": 2.5 }
+  ],
+  "tolerance_px": 0.5
+}

@@ -1,3 +1,5 @@
+Suomenkielinen [käyttöohje](KAYTTOOHJE.md) neuvoo työtilan, animoinnin, puheen ja viennin. Sama ohje on sovelluksen Ohjeet-painikkeessa.
+
 # Native studio workspace
 
 Run from the repository root:
@@ -294,3 +296,80 @@ The [GPU fixture](../../docs/gpu-offscreen.md) is default-disabled and separate
 from the CPU production renderer. Compilation is not evidence of a Metal device
 run or full-scene parity. See [dependency audit](../../docs/dependency-audit.md)
 for license inventory and the still-open distribution clearance.
+
+## Create your own animation without writing YAML
+
+In the **Project** tab, open **Luo animaatio / Create animation**. Enter one
+`CHARACTER: dialogue` line per turn, using the character IDs shown above the
+editor (initially `EMMA` and `ALEX`). Blank lines are ignored. Choose the seconds
+reserved for each line and press **Create new scene**. This appends and selects
+an editable scene, positions the speaking characters across the stage and adds
+an initial happy expression. Existing scenes and artwork remain in the project;
+Undo restores the previous screenplay. This is a deterministic starting layout,
+not automatic cinematic direction. The timeline/Inspector can refine every event.
+
+Each line starts after a one-second lead-in with a fixed slot. If actual speech
+exceeds its slot, adjust event times and scene duration before preparing again.
+No speech, alignment or audio is fabricated by the text importer. It accepts up
+to 60 turns and 16 KB of text; invalid lines reject the whole addition.
+
+Use **Kokoro · local speech setup** for English synthesis, then **Prepare scene
+audio**. Finnish text is preserved, but Finnish Kokoro synthesis is unsupported:
+import your own 24 kHz mono PCM16 WAV in each Speak event's audio field. Prepared
+audio is required for the existing export pipeline. Mouth timing still requires
+reviewed manual or estimated alignment through the existing Inspector tools.
+
+Set an existing absolute project folder and a `.kilsat` path inside that folder,
+then **Save project**. Open **Export video**, select **MP4**, provide your local
+FFmpeg executable and a new absolute output directory, then **Export scene
+bundle**. Playback is in the Inspector. Neither Kokoro nor FFmpeg is bundled.
+
+### Automatic direction draft
+
+**Automaattiohjaa / Auto-direct** in the same Project panel invokes the bounded
+local director: up to two speakers, 16 turns and 60 seconds including lead-in
+and pauses. Use `EMMA[happy]: Hello!` for an explicit supported emotion. Plain
+lines remain neutral; this parser does not infer irony, actions or gestures.
+
+The orchestrator appends an establishing shot, speaker shots and a final close-up
+for a multi-line scene. Speakers keep their left/right stage positions; other
+project actors are hidden in generated shots. Explicit expressions and
+capability-gated custom-rig gaze use existing scene structures. Proportional
+framing still needs visual review for each rig.
+
+All shots remain normal editable MotionScript scenes and share project
+Undo/Redo. Existing scenes remain in the project, so full sequence preview/export
+includes them too; remove unwanted earlier scenes explicitly. **Prepare scene
+audio** is for the selected shot; use the existing **Sequence** controls to
+prepare/play/export the complete project.
+
+Desktop timing is always an estimate until checked against actual generated or
+imported speech. The library also accepts caller-supplied sample lengths, which
+it does not independently verify against WAV files. Automatic speech-based
+retiming, free-form screenplay semantics, gestures, professional artistic
+acceptance and a measured five-minute production SLA remain open. Details and
+agent ownership: [execution-v1](../../docs/automation/execution-v1.md).
+
+## Creating scenes and posing characters
+
+Use **+ New scene** to append a blank ten-second scene using the project's
+characters. **+ New episode** asks for a title and confirmation, opens a fresh
+starter project, and clears the save path. Undo restores the previous project,
+including imported artwork; save the new episode to a new file.
+
+Choose **Characters** in the stage toolbar, select a visible character, and drag
+inside the stage. Release writes one actor key at the snapped playhead; Undo
+reverts the whole move. Move the playhead and drag again to animate. Camera zoom
+and letterboxing are accounted for. Escape, dropping outside the stage, or a
+changed scene/time/camera cancels the move. The CPU preview moves the character
+while dragging; the native compositor moves the selection outline and refreshes
+the rendered character on release. **Artwork** retains the existing art tools.
+
+Selected characters expose head X/Y keys. Articulated custom rigs with a joint
+named `head` also support tilt in degrees. In the packaged Mac app, **Capture
+tilt** explicitly requests one camera measurement, then **Copy tilt to head
+draft** stages it; **Apply head key** commits it. Default procedural characters
+do not render head rotation, so camera tilt is offered only for articulated
+heads. Capture is local, stores no images/audio, and stops after one measurement
+or a timeout. This is not continuous motion capture. Camera permissions, physical
+Mac interaction and perceived pose quality still require hardware acceptance.

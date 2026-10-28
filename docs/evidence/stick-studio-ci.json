@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "pr": 98,
+  "source_commit": "16dc6f8e83254019ef2a339276f0a935237ff281",
+  "source_tree": "16b11ec6a981a56d33d6c1772c7b197d16e0f873",
+  "merge_commit": "bc81fd21dd6dfc2627ad35ce633c38b22eff5223",
+  "source": {
+    "status": "success",
+    "audio_run": 40215469157,
+    "macos_app_run": 40215469059,
+    "asset_video_run": 40215469193,
+    "rust": {
+      "linux": {
+        "passed": 839,
+        "ignored": 8
+      },
+      "macos": {
+        "passed": 838,
+        "ignored": 8
+      }
+    },
+    "python_each_os": {
+      "runtime": {
+        "passed": 55
+      },
+      "repository": {
+        "ran": 141,
+        "passed": 140,
+        "skipped": 1,
+        "skip_reason": "FFmpeg/ffprobe unavailable in general Python test job; four actual Rust FFmpeg tests passed in the separate media job."
+      }
+    },
+    "gpu_each_os": {
+      "library_passed": 52,
+      "probe_passed": 2,
+      "physical_ignored": 4
+    },
+    "actual_ffmpeg_tests": 4,
+    "asset_artifact": [
+      {
+        "id": 12607870348,
+        "name": "stick-studio-assets-af5261357d7c80081993a34eba5c274d83314962",
+        "digest": "sha256:c3b7b3e7e3cfc4586582b016f39bc431ba61ce69119e3c6eb461c03c6285dee5",
+        "size_in_bytes": 3600240
+      }
+    ],
+    "macos_app_artifact": [
+      {
+        "id": 12607785493,
+        "name": "Kilsat-Studio-Preview-arm64",
+        "digest": "sha256:052dc1eb4bad6d8d20e7dd4d13c6f16eb889af99664086275981330bd09c09c0",
+        "size_in_bytes": 19032276
+      }
+    ]
+  },
+  "main": {
+    "status": "success",
+    "audio_run": 40216189665,
+    "macos_app_run": 40216189692,
+    "asset_video_run": 40216189597,
+    "macos_app_status": "success",
+    "asset_video_status": "success",
+    "media_verification": {
+      "artifact_id": 12608190948,
+      "outer_sha256": "d17841d509a12dbb8ec9191a79d0273f1350a29c0635fc6b0637de01228f6794",
+      "inner_archive_sha256": "b62a7597b713848cf0ca2b80ccecb09fc0ed5f58142e1e66ab4c7e98fd1ea844",
+      "all_declared_hashes_verified": true,
+      "images_identical_to_local": true,
+      "six_review_frames_identical_to_visually_inspected_local": true,
+      "video": {
+        "observed": {
+          "frame_count": 720,
+          "duration_seconds": 30,
+          "width": 1920,
+          "height": 1080,
+          "fps": 24,
+          "audio_sample_rate": 24000
+        },
+        "full_decode_passed": true,
+        "speech_synthesized": false,
+        "silent_pcm_confirmed": true,
+        "sha256": {
+          "sequence.mp4": "bc43bfe9d7ab65b91c96794b9cb7ce8468016c55f012e4edcd04fb794ca3724c",
+          "audio.wav": "22a4da1b6841f7db580ce7f434cb659e7f7d4b0ec326c8ce3b0b8c333bc05e26",
+          "pipeline-report.json": "f52c37f7dba0fd0ff3e06d022cab9c3490b20a79ad828dd18e6850cffc488788"
+        }
+      },
+      "elapsed_asset_video_probe_package_seconds": 39.04722998,
+      "independent_frame_probe": {
+        "frames": 720,
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "seconds": 30,
+        "codecs": [
+          "h264",
+          "aac"
+        ]
+      },
+      "independent_full_decode_passed": true
+    },
+    "asset_artifacts": [
+      {
+        "id": 12608190948,
+        "name": "stick-studio-assets-bc81fd21dd6dfc2627ad35ce633c38b22eff5223",
+        "digest": "sha256:d17841d509a12dbb8ec9191a79d0273f1350a29c0635fc6b0637de01228f6794",
+        "size_in_bytes": 3600231
+      }
+    ],
+    "macos_app_artifacts": [
+      {
+        "id": 12608086135,
+        "name": "Kilsat-Studio-Preview-arm64",
+        "digest": "sha256:d3c20c17f0a531e98dcb4e0c5175f742aa6fe0fa8d2152020a689c2b4cdd41a1",
+        "size_in_bytes": 19032246
+      }
+    ],
+    "rust": {
+      "linux": {
+        "job_id": 121237706890,
+        "passed": 839,
+        "ignored": 8
+      },
+      "macos": {
+        "job_id": 121237706648,
+        "passed": 838,
+        "ignored": 8
+      }
+    },
+    "python_each_os": {
+      "runtime": {
+        "passed": 55
+      },
+      "repository": {
+        "ran": 141,
+        "passed": 140,
+        "skipped": 1,
+        "skip_reason": "FFmpeg/ffprobe unavailable in general Python test job; four actual Rust FFmpeg tests passed in the separate media job."
+      }
+    },
+    "gpu_each_os": {
+      "library_passed": 52,
+      "probe_passed": 2,
+      "physical_ignored": 4
+    },
+    "gpu_jobs": {
+      "linux": 121237706878,
+      "macos": 121237706902
+    },
+    "actual_ffmpeg_tests": 4,
+    "media_job_id": 121237706998
+  },
+  "acceptance": {
+    "physical_mac": false,
+    "artistic": false,
+    "real_fi_en_speech_quality_measured": false,
+    "publication_approved": false,
+    "developer_id_notarized": false
+  }
+}

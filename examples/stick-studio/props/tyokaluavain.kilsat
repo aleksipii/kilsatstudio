@@ -1,0 +1,8 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kiintoavain\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{\"ESINE\":{\"asset\":\"props/tyokaluavain-original\",\"rig\":{\"version\":1,\"id\":\"tyokaluavain_original\",\"joints\":[{\"id\":\"root\",\"parent\":null}],\"parts\":[{\"id\":\"body\",\"joint\":\"root\",\"points\":[[-5,18],[5,18],[5,-23],[14,-31],[16,-46],[8,-50],[8,-36],[-8,-36],[-8,-50],[-16,-46],[-14,-31],[-5,-23]],\"color\":[185,197,201,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1.2,\"mode\":\"behind\"}},{\"id\":\"ring\",\"joint\":\"root\",\"ellipse\":{\"cx\":0,\"cy\":18,\"rx\":8,\"ry\":9},\"color\":[185,197,201,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1.2,\"mode\":\"behind\"}},{\"id\":\"ring_hole\",\"joint\":\"root\",\"ellipse\":{\"cx\":0,\"cy\":18,\"rx\":3.5,\"ry\":4},\"color\":[36,40,45,255]},{\"id\":\"shine\",\"joint\":\"root\",\"points\":[[-2,-20],[0,-20],[0,7],[-2,7]],\"color\":[249,247,239,255]}]}}},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"events\":[],\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"actor_tracks\":{\"ESINE\":[{\"at\":0,\"easing\":\"smoothstep\",\"x\":0.0,\"y\":-39.67272727272726,\"scale_x\":5.454545454545454,\"scale_y\":5.454545454545454}]}}}]}",
+  "assets": [],
+  "art": {
+    "layers": []
+  }
+}

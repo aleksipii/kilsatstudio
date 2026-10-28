@@ -3,9 +3,10 @@ use crate::DialogueJob;
 use motion_audio::{AudioBuffer, MixClip};
 use motion_lipsync::cache::{AlignmentCache, AlignmentInput, AlignmentStatus};
 use motion_lipsync::english::{
-    estimate_identity, estimate_viseme_track, pronunciation_report, EnglishError,
+    estimate_identity_in_span, estimate_viseme_track_in_span, pronunciation_report, EnglishError,
     EstimatedVisemeTrack, Pronunciations,
 };
+use motion_lipsync::timing_eval::{energy_envelope, EnvelopeConfig};
 use motion_lipsync::{Alignment, AlignmentSource, Viseme};
 use motion_tts::{SpeechError, SpeechResult};
 
@@ -13,8 +14,8 @@ use motion_tts::{SpeechError, SpeechResult};
 #[derive(Clone, Debug, PartialEq)]
 pub struct TextEstimate {
     pub track: EstimatedVisemeTrack,
-    /// `estimate_identity` of text, pronunciation overrides, lexicon version and audio
-    /// length. A stored estimate is stale when this no longer matches.
+    /// `estimate_identity_in_span` of text, overrides, lexicon version, audio length and
+    /// speech span. A stored estimate is stale when this no longer matches.
     pub identity: String,
 }
 
@@ -94,12 +95,11 @@ impl DialogueClip {
                 return Err(SpeechError("alignment duration differs from audio".into()));
             }
         }
-        if !job.at.is_finite() || job.at < 0.0 || job.at * 24000.0 >= u64::MAX as f64 {
-            return Err(SpeechError("invalid timeline position".into()));
-        }
+        let start_frame = motion_audio::clock::seconds_to_sample(job.at)
+            .map_err(|_| SpeechError("invalid timeline position".into()))?;
         Ok(Self {
             actor: job.actor.clone(),
-            start_frame: (job.at * 24000.0).round() as u64,
+            start_frame,
             audio,
             alignment,
             estimated_alignment: None,
@@ -127,7 +127,8 @@ impl DialogueClip {
             (None, None, None) => MouthSource::None,
         }
     }
-    /// Derives a text estimate scaled exactly to this clip's audio frames, but only when
+    /// Derives a text estimate scaled to the clip's detected speech span (see
+    /// [`speech_span`]; the mouth rests over leading and trailing silence), but only when
     /// no manual, forced or Rhubarb alignment exists. Replaces a stale estimate. Returns
     /// the text-estimate outcome so callers can report low confidence words.
     pub fn derive_text_estimate(
@@ -140,7 +141,8 @@ impl DialogueClip {
             return Ok(None);
         }
         let frames = self.audio.frames() as u64;
-        let identity = estimate_identity(text, overrides, frames);
+        let (start, end) = speech_span(&self.audio);
+        let identity = estimate_identity_in_span(text, overrides, frames, start, end);
         if let Some(existing) = &self.text_estimated {
             if existing.identity == identity {
                 return Ok(Some(TextEstimateInfo::from_track(
@@ -151,9 +153,39 @@ impl DialogueClip {
             }
         }
         self.text_estimated = None;
-        let track = estimate_viseme_track(text, overrides, Some(frames))?;
+        let track = estimate_viseme_track_in_span(text, overrides, frames, start, end)?;
         let info = TextEstimateInfo::from_track(&track, text, overrides);
         self.text_estimated = Some(TextEstimate { track, identity });
+        Ok(Some(info))
+    }
+    /// Finnish text estimate; only measured leading/trailing silence constrains timing.
+    pub fn derive_finnish_estimate(
+        &mut self,
+        text: &str,
+    ) -> Result<Option<TextEstimateInfo>, SpeechError> {
+        if self.alignment.is_some() || self.estimated_alignment.is_some() {
+            self.text_estimated = None;
+            return Ok(None);
+        }
+        self.text_estimated = None;
+        let frames = self.audio.frames() as u64;
+        let span = energy_envelope(&self.audio.samples, EnvelopeConfig::DEFAULT_24K).speech_span();
+        let has_speech = span.is_some();
+        let (start, end) = span.map_or((0, 0), |s| (s.start, s.end));
+        let track = if has_speech {
+            motion_lipsync::finnish::estimate(text, frames, start, end)
+        } else {
+            motion_lipsync::finnish::silent_track(frames)
+        }
+        .map_err(|e| SpeechError(e.to_string()))?;
+        let info = TextEstimateInfo {
+            low_confidence_words: Vec::new(),
+            time_scale: track.time_scale,
+        };
+        self.text_estimated = Some(TextEstimate {
+            track,
+            identity: motion_lipsync::finnish::identity(text, frames, start, end),
+        });
         Ok(Some(info))
     }
     /// Both preview and export call this with the audio device/export sample clock.
@@ -192,6 +224,20 @@ impl DialogueClip {
             duration_frames: None,
             gain: self.gain,
         }
+    }
+}
+
+/// Speech span `[start, end)` used to place a text estimate in a clip: the first to
+/// last above-threshold sample of the RMS envelope with
+/// [`EnvelopeConfig::DEFAULT_24K`] (threshold max(-50 dBFS, peak - 35 dB)). Covers
+/// the whole clip when nothing exceeds the threshold, so a silent or very quiet clip
+/// keeps the previous whole-clip behaviour. Deterministic in the PCM samples. See
+/// docs/lipsync-timing-evaluation.md for the measurements behind this choice.
+pub fn speech_span(audio: &AudioBuffer) -> (u64, u64) {
+    let frames = audio.frames() as u64;
+    match energy_envelope(&audio.samples, EnvelopeConfig::DEFAULT_24K).speech_span() {
+        Some(span) if audio.channels == 1 => (span.start, span.end),
+        _ => (0, frames),
     }
 }
 

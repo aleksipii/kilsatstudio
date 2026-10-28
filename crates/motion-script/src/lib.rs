@@ -1,13 +1,24 @@
 //! Strict MotionScript scene and dialogue schema.
+pub mod auto_direction;
 mod camera_presets;
+pub mod compiler;
+pub mod event_log;
 pub mod intent;
 mod rules;
+mod screens;
 mod shots;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
+pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 pub use rules::{
-    Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleTrigger, Rules, MAX_RULES,
-    MAX_RULE_NAME, MAX_RULE_OUTPUTS, MAX_RULE_OUTPUTS_PER_SCENE,
+    FiringSource, Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleExpansion,
+    RuleFiring, RuleTrigger, Rules, MAX_RULES, MAX_RULE_NAME, MAX_RULE_OUTPUTS,
+    MAX_RULE_OUTPUTS_PER_SCENE,
+};
+pub use screens::{
+    video_frame_asset, ScreenCue, ScreenSource, MAX_SCREEN_CUES, MAX_SCREEN_FPS,
+    MAX_SCREEN_SEQUENCE_FRAMES, MAX_SCREEN_SPEED, MAX_SCREEN_TAPS, MAX_SCREEN_VIDEO_SECONDS,
+    SCREEN_VIDEO_EXTENSIONS,
 };
 use serde::{Deserialize, Serialize};
 pub use shots::{
@@ -90,6 +101,9 @@ pub struct Composition {
     /// Non-speech audio placed on the scene's shared 24 kHz sample clock.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub audio_cues: Vec<AudioCue>,
+    /// What actors' rig screen slots show over scene time.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub screens: Vec<ScreenCue>,
 }
 /// Maximum gaze keys per actor and scene.
 pub const MAX_GAZE_KEYS: usize = 256;
@@ -186,6 +200,7 @@ impl Default for Composition {
             fade_in: 0.0,
             fade_out: 0.0,
             audio_cues: Vec::new(),
+            screens: Vec::new(),
         }
     }
 }
@@ -1471,6 +1486,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
                 .retain(|_, keys| !keys.is_empty());
             scene.composition.clip_weights.remove(id);
             scene.composition.clip_weight_tracks.remove(id);
+            scene.composition.screens.retain(|cue| cue.actor != id);
             scene
                 .composition
                 .clip_instances
@@ -1605,8 +1621,13 @@ impl Script {
                 return Err(fail("empty character or asset".into()));
             }
             if let Some(v) = &c.voice {
-                if v.provider != "kokoro"
-                    || !["en-us", "en-gb"].contains(&v.language.as_str())
+                let provider_language = match v.provider.as_str() {
+                    "kokoro" => ["en-us", "en-gb"].contains(&v.language.as_str()),
+                    "system" => v.language == "fi-fi" && !v.preset.starts_with("piper_"),
+                    "piper" => v.language == "fi-fi" && v.preset.starts_with("piper_"),
+                    _ => false,
+                };
+                if !provider_language
                     || !v.speed.is_finite()
                     || !(0.5..=2.0).contains(&v.speed)
                     || v.preset.is_empty()
@@ -1617,7 +1638,7 @@ impl Script {
                         .all(|b| b.is_ascii_alphanumeric() || b == b'_')
                 {
                     return Err(fail(format!(
-                        "{id}: expected kokoro, en-us/en-gb, preset of 1..128 ASCII letters/digits/underscores, and speed 0.5..2.0"
+                        "{id}: expected kokoro/en-us/en-gb, system/fi-fi (private preview), or piper/fi-fi with piper_ preset; preset 1..128 ASCII letters/digits/underscores and speed 0.5..2.0"
                     )));
                 }
             }
@@ -1967,6 +1988,7 @@ impl Script {
                     previous = Some(key.at);
                 }
             }
+            self.validate_screens(s)?;
             if s.composition.audio_cues.len() > MAX_AUDIO_CUES {
                 return Err(fail(format!(
                     "{}: at most {MAX_AUDIO_CUES} audio cues per scene",
@@ -4320,5 +4342,27 @@ mod caption_style_tests {
             assert!(error.contains("project.captions"), "{bad}: {error}");
         }
         assert!(parse(&source(", captions: {unknown: 1}")).is_err());
+    }
+}
+
+#[cfg(test)]
+mod local_finnish_voice_boundary_tests {
+    use super::*;
+    fn source(provider: &str, preset: &str, language: &str) -> String {
+        format!("characters:\n  AINO:\n    asset: aino\n    voice: {{provider: {provider}, preset: {preset}, language: {language}, speed: 1}}\nscenes: []\n")
+    }
+    #[test]
+    fn providers_cannot_silently_cross_finnish_and_english_boundaries() {
+        assert!(parse(&source("piper", "piper_harri", "fi-fi")).is_ok());
+        assert!(parse(&source("system", "Satu", "fi-fi")).is_ok());
+        for (provider, preset, language) in [
+            ("kokoro", "af_heart", "fi-fi"),
+            ("system", "piper_harri", "fi-fi"),
+            ("piper", "Satu", "fi-fi"),
+            ("piper", "piper_harri", "en-us"),
+            ("cloud", "voice", "fi-fi"),
+        ] {
+            assert!(parse(&source(provider, preset, language)).is_err());
+        }
     }
 }

@@ -1,5 +1,6 @@
 # Install deliberately in a dedicated environment, never from the application.
 # Deployment must lock and audit transitive wheels for each macOS architecture.
 kokoro==0.9.4
+preshed==3.0.13
 numpy>=1.26,<3
 torch>=2.2,<3

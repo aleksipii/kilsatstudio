@@ -45,7 +45,7 @@ impl Default for State {
 /// `clip_joint=target_joint` per line; blank lines and `#` comments are ignored.
 pub fn parse_mapping(text: &str) -> Result<BTreeMap<String, String>, String> {
     if text.len() > 16_384 {
-        return Err("Joint mapping exceeds 16 KiB".into());
+        return Err("Nivelkohdistus ylittää 16 KiB:n rajan.".into());
     }
     let mut map = BTreeMap::new();
     for line in text
@@ -55,13 +55,15 @@ pub fn parse_mapping(text: &str) -> Result<BTreeMap<String, String>, String> {
     {
         let (from, to) = line
             .split_once('=')
-            .ok_or("Use clip_joint=target_joint on each line")?;
+            .ok_or("Käytä jokaisella rivillä muotoa clip_joint=target_joint.")?;
         let (from, to) = (from.trim(), to.trim());
         if from.is_empty() || to.is_empty() {
-            return Err("Mapping names must not be empty".into());
+            return Err("Kohdistuksen nimet eivät saa olla tyhjiä.".into());
         }
         if map.insert(from.to_owned(), to.to_owned()).is_some() {
-            return Err(format!("Clip joint {from} is mapped twice"));
+            return Err(format!(
+                "Liikekatkelman nivel {from} on kohdistettu kahdesti."
+            ));
         }
     }
     Ok(map)
@@ -78,15 +80,15 @@ impl State {
 
     pub fn ui(&mut self, ui: &mut egui::Ui, script: &Script) -> Option<Action> {
         let mut action = None;
-        ui.label("Rig clip library (copies joint tracks; later edits to a clip never change applied copies)");
+        ui.label("Hahmorakenteen liikekirjasto. Nivelradat kopioidaan; katkelman myöhemmät muutokset eivät muuta käytettyjä kopioita.");
         ui.horizontal(|ui| {
             ui.add(
                 egui::TextEdit::singleline(&mut self.name)
-                    .hint_text("clip name")
+                    .hint_text("liikekatkelman nimi")
                     .desired_width(120.0),
             );
-            ui.checkbox(&mut self.replace, "Replace existing");
-            if ui.button("Capture joint tracks").clicked() {
+            ui.checkbox(&mut self.replace, "Korvaa olemassa oleva");
+            if ui.button("Tallenna nivelradat").clicked() {
                 action = Some(Action::Capture {
                     name: self.name.clone(),
                     replace: self.replace,
@@ -94,12 +96,12 @@ impl State {
             }
         });
         if script.rig_clips.is_empty() {
-            ui.small("No rig clips yet. Author joint keys, name a clip and capture it.");
+            ui.small("Liikekatkelmia ei vielä ole. Tee nivelten avainruudut, anna katkelmalle nimi ja tallenna nivelradat.");
             return action;
         }
         egui::ComboBox::from_id_salt("rig_clip_selected")
             .selected_text(if self.selected.is_empty() {
-                "Select clip"
+                "Valitse liikekatkelma"
             } else {
                 &self.selected
             })
@@ -113,12 +115,12 @@ impl State {
         };
         let joints: Vec<_> = clip.joint_tracks.keys().cloned().collect();
         ui.small(format!(
-            "{} s · joints: {}",
+            "{} s · nivelet: {}",
             clip.duration,
             joints.join(", ")
         ));
         ui.label(
-            "Joint mapping (clip_joint=target_joint per line; unlisted joints keep their ids)",
+            "Nivelkohdistus: clip_joint=target_joint jokaiselle riville. Luetteloimattomien nivelten tunnukset säilyvät.",
         );
         ui.add(
             egui::TextEdit::multiline(&mut self.mapping)
@@ -128,25 +130,25 @@ impl State {
         ui.add(
             egui::Slider::new(&mut self.scale, 0.01..=100.0)
                 .logarithmic(true)
-                .text("Translation scale"),
+                .text("Siirtymien mittakaava"),
         );
-        ui.checkbox(&mut self.retime, "Place in scene interval");
+        ui.checkbox(&mut self.retime, "Sovita kohtauksen aikavälille");
         if self.retime {
             ui.horizontal(|ui| {
-                ui.label("Start (s)");
+                ui.label("Alku (s)");
                 ui.add(egui::DragValue::new(&mut self.start).speed(0.1));
-                ui.label("Duration (s)");
+                ui.label("Kesto (s)");
                 ui.add(egui::DragValue::new(&mut self.duration).speed(0.1));
             });
         }
         ui.horizontal(|ui| {
-            if ui.button("Apply to selected actor").clicked() {
+            if ui.button("Käytä valitulle hahmolle").clicked() {
                 action = Some(Action::Apply {
                     name: self.selected.clone(),
                     placement: RigClipPlacement::default(),
                 });
             }
-            if ui.button("Delete clip").clicked() {
+            if ui.button("Poista liikekatkelma").clicked() {
                 action = Some(Action::Remove {
                     name: self.selected.clone(),
                 });

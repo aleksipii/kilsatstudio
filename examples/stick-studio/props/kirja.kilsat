@@ -1,0 +1,8 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kirja\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{\"ESINE\":{\"asset\":\"props/kirja-original\",\"rig\":{\"version\":1,\"id\":\"kirja_original\",\"joints\":[{\"id\":\"root\",\"parent\":null}],\"parts\":[{\"id\":\"cover\",\"joint\":\"root\",\"points\":[[-6,-47],[33,-47],[35,-45],[35,15],[33,17],[-6,17],[-8,15],[-8,-45]],\"color\":[183,98,87,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1,\"mode\":\"behind\"}},{\"id\":\"pages\",\"joint\":\"root\",\"points\":[[-3,-43],[31,-43],[31,13],[-3,13]],\"color\":[249,247,239,255]},{\"id\":\"spine\",\"joint\":\"root\",\"points\":[[-8,-46],[-2,-46],[-2,16],[-8,16]],\"color\":[126,69,53,255]},{\"id\":\"front_cover\",\"joint\":\"root\",\"points\":[[-2,-45],[34,-45],[34,14],[-2,14]],\"color\":[183,98,87,255]},{\"id\":\"label\",\"joint\":\"root\",\"points\":[[4,-33],[27,-33],[27,-14],[4,-14]],\"color\":[249,247,239,255]},{\"id\":\"rule\",\"joint\":\"root\",\"points\":[[7,-26],[23,-26],[23,-24],[7,-24]],\"color\":[94,145,174,255]},{\"id\":\"bookmark\",\"joint\":\"root\",\"points\":[[25,5],[29,5],[29,21],[25,21]],\"color\":[221,175,91,255]}]}}},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"events\":[],\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"actor_tracks\":{\"ESINE\":[{\"at\":0,\"easing\":\"smoothstep\",\"x\":-83.38235294117648,\"y\":-22.10588235294115,\"scale_x\":6.176470588235294,\"scale_y\":6.176470588235294}]}}}]}",
+  "assets": [],
+  "art": {
+    "layers": []
+  }
+}

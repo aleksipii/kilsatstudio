@@ -1,0 +1,1051 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Yövuoron pysäkki\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#8399a4\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "tausta_tausta_pysakki_night",
+        "name": "pysakki night",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 131,
+            "g": 153,
+            "b": 164,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_pavement",
+        "name": "pysakki pavement",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 150,
+            "g": 167,
+            "b": 167,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_curb",
+        "name": "pysakki curb",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 1020,
+            "width": 1920,
+            "height": 10
+          },
+          "color": {
+            "r": 94,
+            "g": 117,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_road_mark",
+        "name": "pysakki road mark",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 870,
+            "y": 1037,
+            "width": 490,
+            "height": 12
+          },
+          "color": {
+            "r": 203,
+            "g": 194,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_distant_roof",
+        "name": "pysakki distant roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 402,
+            "width": 370,
+            "height": 72
+          },
+          "color": {
+            "r": 35,
+            "g": 57,
+            "b": 63,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_distant_house",
+        "name": "pysakki distant house",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36,
+            "y": 474,
+            "width": 280,
+            "height": 260
+          },
+          "color": {
+            "r": 35,
+            "g": 57,
+            "b": 63,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_distant_window",
+        "name": "pysakki distant window",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 92,
+            "y": 517,
+            "width": 49,
+            "height": 61
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_distant_window_two",
+        "name": "pysakki distant window two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 207,
+            "y": 517,
+            "width": 49,
+            "height": 61
+          },
+          "color": {
+            "r": 146,
+            "g": 137,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_lamp_glow",
+        "name": "pysakki lamp glow",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 47,
+            "y": 111,
+            "width": 347,
+            "height": 480
+          },
+          "color": {
+            "r": 238,
+            "g": 211,
+            "b": 134,
+            "a": 24
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_lamp_post",
+        "name": "pysakki lamp post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 185,
+              "y": 942
+            },
+            {
+              "x": 185,
+              "y": 141
+            },
+            {
+              "x": 303,
+              "y": 141
+            }
+          ],
+          "width": 15,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_lamp_shade",
+        "name": "pysakki lamp shade",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 266,
+            "y": 130,
+            "width": 90,
+            "height": 23
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_lamp_light",
+        "name": "pysakki lamp light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 274,
+            "y": 149,
+            "width": 74,
+            "height": 17
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bench_back",
+        "name": "pysakki bench back",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59,
+            "y": 723,
+            "width": 324,
+            "height": 22
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bench_back_lower",
+        "name": "pysakki bench back lower",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59,
+            "y": 765,
+            "width": 324,
+            "height": 22
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bench_seat",
+        "name": "pysakki bench seat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 48,
+            "y": 826,
+            "width": 346,
+            "height": 22
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bench_legs",
+        "name": "pysakki bench legs",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 86,
+              "y": 938
+            },
+            {
+              "x": 105,
+              "y": 848
+            },
+            {
+              "x": 340,
+              "y": 848
+            },
+            {
+              "x": 359,
+              "y": 938
+            }
+          ],
+          "width": 13,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_sign_post",
+        "name": "pysakki sign post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1736,
+              "y": 938
+            },
+            {
+              "x": 1736,
+              "y": 387
+            }
+          ],
+          "width": 13,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_sign_outline",
+        "name": "pysakki sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1656,
+            "y": 278,
+            "width": 160,
+            "height": 184
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_sign_fill",
+        "name": "pysakki sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1665,
+            "y": 287,
+            "width": 142,
+            "height": 166
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bus_icon",
+        "name": "pysakki bus icon",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1686,
+            "y": 309,
+            "width": 100,
+            "height": 91
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bus_windshield",
+        "name": "pysakki bus windshield",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1695,
+            "y": 322,
+            "width": 82,
+            "height": 37
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bus_wheel_left",
+        "name": "pysakki bus wheel left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1697,
+            "y": 389,
+            "width": 19,
+            "height": 27
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_bus_wheel_right",
+        "name": "pysakki bus wheel right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1757,
+            "y": 389,
+            "width": 19,
+            "height": 27
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_star_left",
+        "name": "pysakki star left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 731,
+            "y": 177,
+            "width": 7,
+            "height": 7
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_star_right",
+        "name": "pysakki star right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1315,
+            "y": 116,
+            "width": 9,
+            "height": 9
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_rear_curb",
+        "name": "pysakki rear curb",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 811
+            },
+            {
+              "x": 1920,
+              "y": 811
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 114,
+            "g": 138,
+            "b": 141,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_paving_seam_0",
+        "name": "pysakki paving seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420,
+              "y": 812
+            },
+            {
+              "x": 100,
+              "y": 1018
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 129,
+            "g": 149,
+            "b": 151,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_paving_seam_1",
+        "name": "pysakki paving seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1420,
+              "y": 812
+            },
+            {
+              "x": 1840,
+              "y": 1018
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 129,
+            "g": 149,
+            "b": 151,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_paving_cross",
+        "name": "pysakki paving cross",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 900
+            },
+            {
+              "x": 1920,
+              "y": 900
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 129,
+            "g": 149,
+            "b": 151,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_road",
+        "name": "pysakki road",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 1030,
+            "width": 1920,
+            "height": 50
+          },
+          "color": {
+            "r": 104,
+            "g": 126,
+            "b": 132,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_road_dash_0",
+        "name": "pysakki road dash 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 150,
+            "y": 1057,
+            "width": 220,
+            "height": 7
+          },
+          "color": {
+            "r": 218,
+            "g": 220,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_road_dash_1",
+        "name": "pysakki road dash 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780,
+            "y": 1057,
+            "width": 220,
+            "height": 7
+          },
+          "color": {
+            "r": 218,
+            "g": 220,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_road_dash_2",
+        "name": "pysakki road dash 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1410,
+            "y": 1057,
+            "width": 220,
+            "height": 7
+          },
+          "color": {
+            "r": 218,
+            "g": 220,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_timetable_outline",
+        "name": "pysakki timetable outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1662,
+            "y": 530,
+            "width": 150,
+            "height": 170
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_timetable_fill",
+        "name": "pysakki timetable fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1667,
+            "y": 535,
+            "width": 140,
+            "height": 160
+          },
+          "color": {
+            "r": 226,
+            "g": 228,
+            "b": 211,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_timetable_rule_0",
+        "name": "pysakki timetable rule 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680,
+              "y": 564
+            },
+            {
+              "x": 1789,
+              "y": 564
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_timetable_rule_1",
+        "name": "pysakki timetable rule 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680,
+              "y": 594
+            },
+            {
+              "x": 1773,
+              "y": 594
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_timetable_rule_2",
+        "name": "pysakki timetable rule 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680,
+              "y": 621
+            },
+            {
+              "x": 1789,
+              "y": 621
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tausta_tausta_pysakki_timetable_rule_3",
+        "name": "pysakki timetable rule 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680,
+              "y": 648
+            },
+            {
+              "x": 1773,
+              "y": 648
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

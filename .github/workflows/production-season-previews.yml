@@ -1,0 +1,114 @@
+name: Production season renders
+on:
+  push:
+    branches: [feat/production-animation-pipeline, main]
+    paths: [.github/production-render-request.json]
+  workflow_dispatch:
+    inputs:
+      allow_downloads:
+        type: boolean
+        default: false
+        description: Allow pinned Piper runtime/model downloads for unpublished renders
+permissions:
+  contents: read
+concurrency:
+  group: season-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  season-group:
+    if: github.event_name == 'push' || inputs.allow_downloads
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        group: [1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check explicit render request
+        id: request
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          request=json.loads(Path('.github/production-render-request.json').read_text())
+          assert request['allow_downloads'] is True
+          assert request['publication_approved'] is False
+          assert request['fps']==24
+          assert (request['render_profile'],request['review_size']) in [('review','960x540'),('full_hd',None)]
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              print('profile='+request['render_profile'],file=output)
+          PY
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build actual production renderer
+        run: cargo build --release --locked -p motion-export --example production_export
+      - name: Install media encoders
+        run: |
+          if ! command -v ffmpeg || ! command -v ffprobe; then
+            sudo apt-get update
+            sudo apt-get install --yes ffmpeg
+          fi
+      - name: Install explicitly requested local inference runtime
+        run: |
+          python3 -m venv "$RUNNER_TEMP/piper-env"
+          "$RUNNER_TEMP/piper-env/bin/python" -m pip install --disable-pip-version-check piper-tts==1.8.0 onnxruntime==1.31.0
+          "$RUNNER_TEMP/piper-env/bin/python" tools/prepare_finnish_test_voice.py --directory "$RUNNER_TEMP/fi-voice" --piper "$RUNNER_TEMP/piper-env/bin/piper" --allow-downloads
+      - name: Render real Finnish episode group and compilation
+        env:
+          SEASON_GROUP: ${{ matrix.group }}
+        run: |
+          requested_review_size="$(python3 -c 'import json; print(json.load(open(".github/production-render-request.json"))["review_size"] or "")')"
+          size_args=()
+          if [ -n "$requested_review_size" ]; then
+            size_args=(--review-size "$requested_review_size")
+          fi
+          python3 scripts/render_kilsat_season.py --group "$SEASON_GROUP" --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --piper-config "$RUNNER_TEMP/fi-voice/profile.json" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --output "$GITHUB_WORKSPACE/out/season-group-$SEASON_GROUP" "${size_args[@]}"
+      - name: Keep download evidence beside the rendered group
+        if: always()
+        env:
+          SEASON_GROUP: ${{ matrix.group }}
+        run: |
+          if [ -d "out/season-group-$SEASON_GROUP" ] && [ -f "$RUNNER_TEMP/fi-voice/download-evidence.json" ]; then
+            cp "$RUNNER_TEMP/fi-voice/download-evidence.json" "out/season-group-$SEASON_GROUP/download-evidence.json"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kilsat-season-${{ steps.request.outputs.profile }}-group-${{ matrix.group }}-${{ github.sha }}
+          path: out/season-group-${{ matrix.group }}/
+          if-no-files-found: warn
+          retention-days: 14
+  full-hd-mac-measurement:
+    if: github.event_name == 'push' || inputs.allow_downloads
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build production renderer
+        run: cargo build --release --locked -p motion-export --example production_export
+      - name: Prepare explicitly requested Finnish inference assets
+        run: |
+          command -v ffmpeg || brew install ffmpeg
+          python3 -m venv "$RUNNER_TEMP/piper-env"
+          "$RUNNER_TEMP/piper-env/bin/python" -m pip install --disable-pip-version-check piper-tts==1.8.0 onnxruntime==1.31.0
+          "$RUNNER_TEMP/piper-env/bin/python" tools/prepare_finnish_test_voice.py --directory "$RUNNER_TEMP/fi-voice" --piper "$RUNNER_TEMP/piper-env/bin/piper" --allow-downloads
+      - name: Measure real Full HD pipeline on Apple Silicon CI
+        run: |
+          mkdir -p out/mac-benchmark
+          python3 scripts/benchmark_animation_pipeline.py --exporter "$GITHUB_WORKSPACE/target/release/examples/production_export" --project "$GITHUB_WORKSPACE/examples/kilsat-season/ep01.kilsat" --ffmpeg "$(command -v ffmpeg)" --ffprobe "$(command -v ffprobe)" --piper-config "$RUNNER_TEMP/fi-voice/profile.json" --output "$GITHUB_WORKSPACE/out/mac-benchmark/full-hd" --report "$GITHUB_WORKSPACE/out/mac-benchmark/measurement.json" --retime-dialogue
+          cp "$RUNNER_TEMP/fi-voice/download-evidence.json" out/mac-benchmark/download-evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kilsat-full-hd-mac-ci-${{ github.sha }}
+          path: out/mac-benchmark/
+          if-no-files-found: warn
+          retention-days: 14

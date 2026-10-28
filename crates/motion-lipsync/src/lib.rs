@@ -1,12 +1,15 @@
 //! Explicit alignment provenance: synthesis tokens are not phoneme timestamps.
+pub mod audio_timeline;
 pub mod cache;
 pub mod engine_reuse;
 pub mod english;
 pub mod estimated_cache;
+pub mod finnish;
 mod import;
 pub mod local_package;
 pub mod manual;
 pub mod rhubarb;
+pub mod timing_eval;
 pub use import::{arpabet_to_ipa, import_alignment_json, AlignmentAudio};
 
 use serde::{Deserialize, Serialize};
@@ -30,13 +33,15 @@ pub enum Viseme {
     U,
 }
 
-/// Small English IPA inventory. Unknown phonemes fail instead of inventing mouth shapes.
+/// Small English IPA inventory plus the Finnish vowels and /ʋ/ (docs/finnish-speech.md).
+/// Length marks are ignored, so long vowels and geminates (`ɑː`, `tː`) keep their
+/// shape. Unknown phonemes fail instead of inventing mouth shapes.
 pub fn phoneme_to_viseme(phoneme: &str) -> Option<Viseme> {
     let normalized = phoneme.trim().replace(['ˈ', 'ˌ', 'ː', 'ˑ'], "");
     Some(match normalized.as_str() {
         "" | "sil" | "sp" | "pau" => Viseme::Rest,
         "p" | "b" | "m" => Viseme::Closed,
-        "f" | "v" => Viseme::TeethLip,
+        "f" | "v" | "ʋ" => Viseme::TeethLip,
         "θ" | "ð" => Viseme::TongueTeeth,
         "t" | "d" | "n" | "l" | "ɾ" => Viseme::TongueUp,
         "s" | "z" => Viseme::Sibilant,
@@ -45,9 +50,10 @@ pub fn phoneme_to_viseme(phoneme: &str) -> Option<Viseme> {
         "ɑ" | "ɒ" | "a" | "æ" | "ʌ" | "aɪ" | "aʊ" => Viseme::A,
         "ɛ" | "e" | "ə" | "ɜ" | "eɪ" => Viseme::E,
         "i" | "ɪ" | "j" => Viseme::I,
-        "o" | "ɔ" | "oʊ" | "əʊ" | "ɔɪ" => Viseme::O,
-        "u" | "ʊ" | "w" => Viseme::U,
-        "k" | "ɡ" | "g" | "ŋ" | "h" | "ʔ" => Viseme::Rest,
+        "o" | "ɔ" | "oʊ" | "əʊ" | "ɔɪ" | "ø" => Viseme::O,
+        "u" | "ʊ" | "w" | "y" => Viseme::U,
+        // Velars, /h/ and the Finnish /h/ allophones [ç] (ihme), [x] (kahvi), [ɦ] (maha).
+        "k" | "ɡ" | "g" | "ŋ" | "h" | "ʔ" | "ç" | "x" | "ɦ" => Viseme::Rest,
         _ => return None,
     })
 }
@@ -182,6 +188,35 @@ mod tests {
         assert_eq!(a.viseme_at(0.3).unwrap(), Viseme::A);
         assert_eq!(a.viseme_at(0.8).unwrap(), Viseme::Rest);
         assert_eq!(phoneme_to_viseme("t͡ʃ"), Some(Viseme::Sh));
+    }
+    #[test]
+    fn finnish_ipa_vowels_length_and_documented_inventory() {
+        for (ipa, shape) in [
+            ("y", Viseme::U),
+            ("yː", Viseme::U),
+            ("ø", Viseme::O),
+            ("øː", Viseme::O),
+            ("æ", Viseme::A),
+            ("æː", Viseme::A),
+            ("ʋ", Viseme::TeethLip),
+            ("tː", Viseme::TongueUp),
+            ("kː", Viseme::Rest),
+            ("ŋː", Viseme::Rest),
+            ("pː", Viseme::Closed),
+        ] {
+            assert_eq!(phoneme_to_viseme(ipa), Some(shape), "{ipa}");
+        }
+        // Inventory as documented in docs/english-lipsync.md#ipa-coverage.
+        let documented = [
+            "sil", "sp", "pau", "p", "b", "m", "f", "v", "ʋ", "θ", "ð", "t", "d", "n", "l", "ɾ",
+            "s", "z", "ʃ", "ʒ", "tʃ", "dʒ", "t͡ʃ", "d͡ʒ", "r", "ɹ", "ɚ", "ɝ", "ɑ", "ɒ", "a", "æ",
+            "ʌ", "aɪ", "aʊ", "ɛ", "e", "ə", "ɜ", "eɪ", "i", "ɪ", "j", "o", "ɔ", "oʊ", "əʊ", "ɔɪ",
+            "ø", "u", "ʊ", "w", "y", "k", "ɡ", "g", "ŋ", "h", "ʔ", "ç", "x", "ɦ",
+        ];
+        assert!(documented.iter().all(|p| phoneme_to_viseme(p).is_some()));
+        for unknown in ["ɣ", "ʎ", "ɲ", "ɐ", "œ", "ɯ", "q", "c"] {
+            assert_eq!(phoneme_to_viseme(unknown), None, "{unknown}");
+        }
     }
     #[test]
     fn rejects_overlaps_and_unmapped_phonemes() {

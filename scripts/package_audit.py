@@ -32,6 +32,7 @@ CONTENTS = APP + '/Contents/'
 RESOURCES = CONTENTS + 'Resources/'
 DESKTOP = CONTENTS + 'MacOS/studio-desktop'
 HELPER = RESOURCES + 'bin/gpu_probe'
+HEAD_HELPER = RESOURCES + 'bin/head_pose'
 SIGNATURE = CONTENTS + '_CodeSignature/CodeResources'
 SOURCE_FILES = (
     'LICENSE', 'NOTICE', 'services/kokoro-runtime/runtime.py',
@@ -151,7 +152,7 @@ def audit_package(archive, repo, commit, target, profile):
             expected[RESOURCES + relative] = _source_identity(repo, relative)
         required = set(expected) | {DESKTOP, CONTENTS + 'Info.plist',
                                     RESOURCES + 'KilsatStudio.icns', RESOURCES + 'BUILD-INFO.txt'}
-        admitted = required | {HELPER, SIGNATURE}
+        admitted = required | {HELPER, HEAD_HELPER, SIGNATURE}
         parents = _ancestors(admitted)
         observed, total = {}, 0
         small = {}
@@ -200,7 +201,7 @@ def audit_package(archive, repo, commit, target, profile):
                         classification = 'notice' if name.endswith('/LICENSE') or name == 'LICENSE' else 'resource'
                         if (digest, size) != expected[name]:
                             errors.append('source bytes differ: ' + name)
-                    elif name in (DESKTOP, HELPER):
+                    elif name in (DESKTOP, HELPER, HEAD_HELPER):
                         classification = 'executable'
                         if not mode & 0o111 or size == 0:
                             errors.append('missing executable permission or empty binary: ' + name)

@@ -1,0 +1,62 @@
+{
+  "format_version": 1,
+  "scene_id": "lobby",
+  "sample_rate": 24000,
+  "duration_samples": 36000,
+  "clips": [
+    {
+      "id": 0,
+      "actor": "EMMA",
+      "language": "en-us",
+      "source": {
+        "kind": "imported",
+        "path": "audio/emma-good-night.wav",
+        "pcm_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "source_samples": 19200,
+      "start_sample": 2400,
+      "trim_start_samples": 4800,
+      "duration_samples": 16800,
+      "gain": 0.8,
+      "mouth": {
+        "source": {
+          "kind": "estimated",
+          "tool": "kilsat-english-estimator",
+          "version": "1"
+        },
+        "visemes": [
+          {
+            "start_sample": 2400,
+            "end_sample": 3600,
+            "viseme": "rest"
+          },
+          {
+            "start_sample": 3600,
+            "end_sample": 6000,
+            "viseme": "u"
+          },
+          {
+            "start_sample": 6000,
+            "end_sample": 7200,
+            "viseme": "tongue_up"
+          },
+          {
+            "start_sample": 8400,
+            "end_sample": 9600,
+            "viseme": "tongue_up"
+          },
+          {
+            "start_sample": 9600,
+            "end_sample": 13200,
+            "viseme": "a"
+          },
+          {
+            "start_sample": 13200,
+            "end_sample": 14400,
+            "viseme": "tongue_up"
+          }
+        ]
+      }
+    }
+  ]
+}

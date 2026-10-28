@@ -1,0 +1,8 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kahvikuppi\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{\"ESINE\":{\"asset\":\"props/kahvikuppi-original\",\"rig\":{\"version\":1,\"id\":\"kahvikuppi_original\",\"joints\":[{\"id\":\"root\",\"parent\":null}],\"parts\":[{\"id\":\"handle\",\"joint\":\"root\",\"ellipse\":{\"cx\":0,\"cy\":-1,\"rx\":9,\"ry\":11},\"color\":[249,247,239,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1.4,\"mode\":\"behind\"}},{\"id\":\"handle_opening\",\"joint\":\"root\",\"ellipse\":{\"cx\":0,\"cy\":-1,\"rx\":4.6,\"ry\":6.2},\"color\":[36,40,45,255]},{\"id\":\"cup\",\"joint\":\"root\",\"points\":[[-31,-22],[-8,-22],[-5,-19],[-5,10],[-8,13],[-31,13],[-34,10],[-34,-19]],\"color\":[249,247,239,255],\"outline\":{\"color\":[36,40,45,255],\"width\":1.4,\"mode\":\"behind\"}},{\"id\":\"rim\",\"joint\":\"root\",\"ellipse\":{\"cx\":-19.5,\"cy\":-22,\"rx\":14.5,\"ry\":4.5},\"color\":[36,40,45,255]},{\"id\":\"coffee\",\"joint\":\"root\",\"ellipse\":{\"cx\":-19.5,\"cy\":-22,\"rx\":11.8,\"ry\":2.6},\"color\":[111,76,55,255]},{\"id\":\"glaze\",\"joint\":\"root\",\"points\":[[-30,-16],[-27.5,-16],[-27.5,4],[-30,4]],\"color\":[221,175,91,255]},{\"id\":\"base\",\"joint\":\"root\",\"ellipse\":{\"cx\":-19.5,\"cy\":12,\"rx\":12,\"ry\":2.7},\"color\":[249,247,239,255]}]}}},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"events\":[],\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"actor_tracks\":{\"ESINE\":[{\"at\":0,\"easing\":\"smoothstep\",\"x\":122.09302325581395,\"y\":-44.77209302325579,\"scale_x\":9.767441860465116,\"scale_y\":9.767441860465116}]}}}]}",
+  "assets": [],
+  "art": {
+    "layers": []
+  }
+}

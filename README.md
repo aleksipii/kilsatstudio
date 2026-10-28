@@ -1,12 +1,14 @@
 # Kilsat Studio
 
 Kilsat Studio is a macOS-first, screenplay-driven 2D animation application built
-in Rust. Its StoryMotion Engine evaluates English YAML MotionScript, while an
-offline voice pipeline integrates the approved Hugging Face Kokoro-82M model.
+in Rust. Its StoryMotion Engine evaluates YAML MotionScript with Finnish or
+English dialogue. Local speech uses configured Finnish Piper, English Kokoro-82M
+or explicitly imported WAV recordings.
 
-The current application provides an original procedural character preview and a
-dialogue workbench. It is an actively developed foundation, not a production-ready
-animation suite. All Kilsat Studio source is independently authored; no Storytold
+The desktop includes editable scenes, original custom rigs, measured-audio
+direction, continuous head-tilt recording and bounded Full HD MP4 export.
+Physical-device, artistic, speech-quality and release acceptance are tracked in
+[master-progress](docs/master-progress.md). All Kilsat Studio source is independently authored; no Storytold
 source code or dependencies are used.
 
 ## License
@@ -18,6 +20,20 @@ not complete their redistribution review; see the
 [dependency audit](docs/dependency-audit.md).
 
 ## Current capabilities
+
+- Follow the twelve-topic [Finnish desktop guide](apps/studio-desktop/KAYTTOOHJE.md)
+  for new scenes/episodes, mouse editing, speech, camera recording and export.
+- Direct actual Finnish speech or imported WAVs into editable acting, reaction
+  and camera shots through a cancellable background worker and one-step Undo.
+- Create a local Piper profile from installed files; prepare Finnish speech and
+  explicitly labelled estimated mouth timing. See [Finnish speech](docs/finnish-speech.md).
+- Review continuous local camera head-tilt recordings before applying keys.
+- Stream up to 1920x1080/24fps/60s to MP4 and measure the whole speech-to-video
+  pipeline. See [Full HD](docs/fullhd-performance.md) and [integration evidence](docs/production-integration.md).
+- Open the [31 original Finnish episode projects](examples/kilsat-season/KAUSI.md)
+  or use the [checked season/compilation runner](docs/kilsat-season.md).
+- Open the [three English Aino/Rane episodes](docs/kilsat-english.md), with English
+  Kokoro voice bindings, captions and an explicit Full HD rendering workflow.
 
 - Reference authored clips as ordered live bone layers with activation windows, fades and optional local weight curves; see [live clip blending](docs/live-clip-blending.md).
 
@@ -36,11 +52,12 @@ not complete their redistribution review; see the
   central preview, editable event Inspector and scrubbable actor/event timeline.
 - Preview Emma/Alex placeholders with deterministic movement, expressions and wave
   gestures. Play, pause, restart and scrub a silent scene.
-- Configure per-character Kokoro presets, English language and speech speed in the Inspector, with validation and Undo/Redo.
+- Configure per-character local speech presets, language and speed in the Inspector, with validation and Undo/Redo.
 - Prepare selected dialogue or a complete scene on bounded background workers,
   using local synthesis or explicitly imported WAV audio.
-- Cache generated speech by content and model/runtime identity; detect corrupted
-  cached audio, time out sidecars and report recoverable errors.
+- Reuse verified Kokoro speech by content/model/runtime identity; detect corrupt
+  audio and time out sidecars. Piper and system voices run fresh because their
+  complete dependency closure is unverified; generated WAVs are content-addressed.
 - Mix dialogue at sample-frame positions, preserve silence and overlapping actors,
   and reject overlapping speech from the same actor or scene overruns.
 - Preview waveform/duration and timed mouth shapes. Full-scene macOS playback uses
@@ -55,17 +72,31 @@ not complete their redistribution review; see the
 - Render deterministic procedural SVG frame sequences, including a scene-bundle
   path with matching WAV and explicit timed mouth tracks on a shared sample clock.
 
-Missing alignment keeps mouths at rest. Kokoro phoneme strings are **not** treated
-as accurate timestamps. Facial emotion affects the visual preview; acoustic emotion
-conditioning is not implemented. Procedural characters remain placeholders; explicit foreground image/drawing
-layers can now be loaded, but textured skeletal character rigs are not implemented.
+Manual, forced and Rhubarb tracks take precedence over explicitly labelled text
+estimates. An estimate is not measured acoustic alignment. Kokoro phoneme strings
+are **not** treated as accurate timestamps. Facial emotion affects visual acting;
+acoustic emotion conditioning is not implemented. Custom rigs support textures,
+two-joint skinning, outlined/rounded parts, expressions and viseme mouths.
 
 ## Practical macOS test build
+
+The **Tikku-ukkostudio** button opens an editable, silent 30-second starter with
+six original articulated stick figures, four sets and 20 props. Connected round
+limbs preserve the stick-figure style in bent poses. **Esine käteen** attaches
+nine hand-prop choices, including front, back and oblique phone views, to a
+character across all scenes. Framing buttons write native 2D camera keys for
+wide, two-person, medium, close-up and held-prop shots. The
+[asset pack guide](examples/stick-studio/README.md) describes the cast, native
+projects and 60 PNG/SVG exports. The [art direction plan](docs/stick-studio-art-direction.md)
+sets the joint, grip, background and framing review criteria. The
+[professional studio roadmap](docs/professional-studio-next.md)
+prioritizes an asset browser/recovery, visual animation/contact tools and
+integrated sound editing with measured speech quality.
 
 Preview builds for Apple Silicon, macOS 13+, are available from the
 [macOS practical preview workflow](https://github.com/aleksipii/kilsatstudio/actions/workflows/macos-preview.yml).
 See the [practical test guide](docs/practical-testing.md) for download and launch
-instructions. The app includes a **Load sound-check demo (synthetic tones)**
+instructions. The app includes an **Ääniesimerkki (synthetic tones)**
 button to test scene movement, mixed audio and illustrative mouth cues without
 Python, Kokoro assets or a network download. These tones are not speech or Kokoro
 output. Preview builds are ad-hoc signed and not notarized. A user has confirmed
@@ -287,3 +318,5 @@ fixture check and retained managed-install license evidence. See the guides abov
 and [master progress](docs/master-progress.md) for actual validation. These tools
 do not establish real recognizer quality, physical Mac device/GPU acceptance,
 full-scene GPU parity or distribution clearance.
+
+Suomenkielinen työpöytäsovelluksen käyttöohje: [Mistä tehdään mitäkin](apps/studio-desktop/KAYTTOOHJE.md). Sama opas löytyy sovelluksen yläpalkin Ohjeet-painikkeesta.

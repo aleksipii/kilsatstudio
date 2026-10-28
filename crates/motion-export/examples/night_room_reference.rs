@@ -4,12 +4,14 @@
 //! cargo run -p motion-export --example night_room_reference                  # timing report
 //! cargo run -p motion-export --example night_room_reference -- write         # refresh files
 //! cargo run -p motion-export --example night_room_reference -- report <wav-dir>
+//! cargo run -p motion-export --example night_room_reference -- timing [<wav-dir>]
 //! cargo run -p motion-export --example night_room_reference -- frames <out-dir> [<wav-dir>]
 //! cargo run -p motion-export --example night_room_reference -- export <out-dir> [<wav-dir>] [--ffmpeg <path>]
 //! ```
 //!
 //! `report` prints each shot's start/end, the cut points on the 24 kHz sequence
-//! clock, caption windows and mouth-variant switch counts. `write` regenerates
+//! clock, caption windows and mouth-variant switch counts. `timing` prints the
+//! comic-timing measurements (docs/lipsync-timing-evaluation.md). `write` regenerates
 //! `night-room.kilsat`, the phone-screen PNGs and the placeholder `audio/*.wav`
 //! fixtures. `frames` writes one PNG per shot plus `contact-sheet.png` with every
 //! feature on. `export` writes the PNG sequence (and `sequence.mp4` when an explicit
@@ -25,7 +27,7 @@ use resvg::tiny_skia::{IntSize, Pixmap, PixmapPaint, Transform};
 use std::path::{Path, PathBuf};
 
 fn usage() -> ! {
-    eprintln!("usage: night_room_reference [report [wav-dir] | write | frames <out> [wav-dir] | export <out> [wav-dir] [--ffmpeg path]]");
+    eprintln!("usage: night_room_reference [report [wav-dir] | timing [wav-dir] | write | frames <out> [wav-dir] | export <out> [wav-dir] [--ffmpeg path]]");
     std::process::exit(2);
 }
 
@@ -43,6 +45,13 @@ fn main() {
     match args.first().map(String::as_str) {
         None => report(None),
         Some("report") => report(path(1).as_deref()),
+        Some("timing") => {
+            let real = path(1);
+            let (expansion, rendered) = support::build(real.as_deref());
+            let dir = support::audio_source_dir(real.as_deref());
+            let timings = support::comic_timing(&expansion, &rendered, &dir);
+            print!("{}", support::comic_timing_report(&timings));
+        }
         Some("write") => {
             support::write_all(&support::example_dir());
             println!("wrote {}", support::example_dir().display());
