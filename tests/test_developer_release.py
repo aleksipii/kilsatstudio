@@ -94,7 +94,7 @@ class DeveloperReleaseTests(unittest.TestCase):
     def stage(repo, binary, directory, commit, arch, profile, gpu, head):
         """Use fake native files while leaving run_release's orchestration real."""
         del repo, commit, arch, profile
-        bundle = directory / "Kilsat Studio Preview.app"
+        bundle = directory / "Kilsat Studio.app"
         main = bundle / "Contents" / "MacOS" / "studio-desktop"
         main.parent.mkdir(parents=True)
         shutil.copy2(binary, main)
@@ -149,7 +149,7 @@ class DeveloperReleaseTests(unittest.TestCase):
             self.invoke(root, tools)
             signs = [command for command in tools.calls if command[0] == "codesign" and "--sign" in command]
             self.assertEqual([Path(command[-1]).name for command in signs],
-                             ["gpu_probe", "head_pose", "Kilsat Studio Preview.app"])
+                             ["gpu_probe", "head_pose", "Kilsat Studio.app"])
             for command in signs:
                 self.assertEqual(command[command.index("--sign") + 1], IDENTITY)
                 self.assertEqual(command[command.index("--options") + 1], "runtime")
@@ -200,7 +200,7 @@ class DeveloperReleaseTests(unittest.TestCase):
             self.assertLess(deep_verify, assess)
             self.assertLess(assess, final_archive)
             with zipfile.ZipFile(root / "release.zip") as archive:
-                ticket = "Kilsat Studio Preview.app/Contents/stapled-ticket"
+                ticket = "Kilsat Studio.app/Contents/stapled-ticket"
                 self.assertEqual(archive.read(ticket), b"fake accepted ticket")
                 self.assertIn("LICENSE", archive.namelist())
             final_bytes = (root / "release.zip").read_bytes()

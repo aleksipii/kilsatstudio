@@ -1630,7 +1630,7 @@ dependencies = [
 
 [[package]]
 name = "motion-animation"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-rig",
  "serde",
@@ -1639,7 +1639,7 @@ dependencies = [
 
 [[package]]
 name = "motion-art"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "base64",
  "image",
@@ -1659,7 +1659,7 @@ dependencies = [
 
 [[package]]
 name = "motion-export"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-art",
  "motion-audio",
@@ -1681,11 +1681,11 @@ dependencies = [
 
 [[package]]
 name = "motion-jobs"
-version = "0.1.0"
+version = "1.0.0"
 
 [[package]]
 name = "motion-library"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-art",
  "serde",
@@ -1707,7 +1707,7 @@ dependencies = [
 
 [[package]]
 name = "motion-project"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-art",
  "motion-script",
@@ -1718,7 +1718,7 @@ dependencies = [
 
 [[package]]
 name = "motion-render"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-animation",
  "motion-art",
@@ -1737,7 +1737,7 @@ dependencies = [
 
 [[package]]
 name = "motion-rig"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1746,7 +1746,7 @@ dependencies = [
 
 [[package]]
 name = "motion-scene"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-animation",
  "motion-audio",
@@ -1760,7 +1760,7 @@ dependencies = [
 
 [[package]]
 name = "motion-script"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "motion-animation",
  "motion-lipsync",
@@ -1784,7 +1784,7 @@ dependencies = [
 
 [[package]]
 name = "motion-voice"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "hound",
  "motion-audio",
@@ -2948,7 +2948,7 @@ dependencies = [
 
 [[package]]
 name = "studio-desktop"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "eframe",
  "hound",
