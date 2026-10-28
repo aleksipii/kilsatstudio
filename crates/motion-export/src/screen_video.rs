@@ -579,6 +579,12 @@ mod tests {
             let status = Command::new(&ffmpeg)
                 .args(["-nostdin", "-v", "error", "-y", "-f", "lavfi", "-i"])
                 .arg("color=c=0xC86464:s=320x640:r=30:d=1")
+                // Tag the frames themselves; recent FFmpeg takes encoder
+                // colour metadata from the frames, not only from flags.
+                .arg("-vf")
+                .arg(format!(
+                    "setparams=color_primaries={primaries}:color_trc=bt709:colorspace=bt709:range=tv"
+                ))
                 .args(["-c:v", "libx264", "-pix_fmt", "yuv444p", "-qp", "0"])
                 .args([
                     "-color_primaries",
@@ -605,6 +611,19 @@ mod tests {
             path
         };
         let red_of = |source: PathBuf, max_width| {
+            // Show the raw tags in the log, so a detection failure is diagnosable.
+            let raw = Command::new(&ffprobe)
+                .args(["-v", "error", "-select_streams", "v:0", "-show_entries"])
+                .arg("stream=codec_name,color_primaries,color_transfer,color_space,color_range")
+                .args(["-of", "json"])
+                .arg(&source)
+                .output()
+                .unwrap();
+            eprintln!(
+                "{}: {}",
+                source.display(),
+                String::from_utf8_lossy(&raw.stdout)
+            );
             let color = probe_color(&ffprobe, &source, Duration::from_secs(30)).unwrap();
             let r = ScreenVideoRequest {
                 source,
@@ -637,9 +656,9 @@ mod tests {
             assert_eq!(again, decoded);
             (color, image.width(), image.rgba()[0])
         };
-        let (color, width, srgb_red) = red_of(make("srgb.mp4", "bt709"), None);
+        let (color, width, srgb_red) = red_of(make("srgb.mov", "bt709"), None);
         assert_eq!((color, width), (ScreenVideoColor::Bt709, 320));
-        let (color, width, p3_red) = red_of(make("p3.mp4", "smpte432"), Some(160));
+        let (color, width, p3_red) = red_of(make("p3.mov", "smpte432"), Some(160));
         assert_eq!((color, width), (ScreenVideoColor::DisplayP3, 160));
         // The same code values mean a more saturated red in P3: in sRGB the
         // red channel must rise.
