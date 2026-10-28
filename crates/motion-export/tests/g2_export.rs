@@ -15,21 +15,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// Regression hashes for the G2 SVG export at 1920x1080 (`sequence_digest` over the
-/// 96 per-frame SHA-256 values). SVG text is platform independent; CI checks it on
-/// macOS and Ubuntu. Recorded in `docs/evidence/g2-export/README.md`.
-const G2_SVG_SEQUENCE_SHA256: &str =
-    "584232d5dc3afc85d30d2247b29587be2a554e38d3cccf62d6e999d055a67e91";
-/// SVG frames 24 (wide) and 72 (close-up), the A08 reference frames.
-const G2_SVG_F024_SHA256: &str = "e9d24dd4950a2537020c0975f83090e66ee6a517edd578dce310eed510404915";
-const G2_SVG_F072_SHA256: &str = "5a531245112def209e3e3fad76379ce84702f03a6cc120d26844d6bc1db786a1";
-/// PNG frames from resvg/tiny-skia. Equal to the A08 export hashes in
-/// `docs/evidence/g2-render/README.md`. Asserted on Apple Silicon macOS only:
-/// floating-point rasterization is not claimed to be identical on other targets.
-const G2_PNG_WIDE_SHA256: &str = "85e13144c14393c48e5b78e4e7370d49aefbd66ebbb54bb060f51335814ed45c";
-const G2_PNG_CLOSE_SHA256: &str =
-    "d6d4c9def910e060b46edfd71e76ed6656cead1d4b35902acc3b9263e390dc1c";
-
 static NEXT: AtomicUsize = AtomicUsize::new(0);
 
 /// A fresh, not yet existing output path (exports create their own directory).
@@ -70,6 +55,15 @@ fn assert_audio_matches_video(audio_samples: u64, frame_count: u64, fps: u32) {
 fn g2_export_frame_count_audio_length_clock_and_regression_hashes() {
     let scene = g2::load(&g2::scene_path()).unwrap();
     assert_eq!(scene.script.scenes[0].id, g2::SCENE_ID);
+    assert_eq!(
+        scene.source_sha256,
+        g2::G2_SCENE_SHA256,
+        "the G2 scene changed: re-record the hashes in tests/support/g2.rs in the same PR"
+    );
+    assert_eq!(
+        scene.refused_steps,
+        ["SpeechSynthesis", "RecognizerAlignment", "ModelDownload"]
+    );
     let fps = scene.script.project.fps;
     let duration = scene.script.scenes[0].duration;
     let dir = destination("g2-svg");
@@ -125,9 +119,9 @@ fn g2_export_frame_count_audio_length_clock_and_regression_hashes() {
 
     // Regression: every exported frame.
     let hashes = frame_hashes(&dir, &manifest);
-    assert_eq!(hashes[24], G2_SVG_F024_SHA256);
-    assert_eq!(hashes[72], G2_SVG_F072_SHA256);
-    assert_eq!(g2::sequence_digest(&hashes), G2_SVG_SEQUENCE_SHA256);
+    assert_eq!(hashes[24], g2::G2_SVG_F024_SHA256);
+    assert_eq!(hashes[72], g2::G2_SVG_F072_SHA256);
+    assert_eq!(g2::sequence_digest(&hashes), g2::G2_SVG_SEQUENCE_SHA256);
     fs::remove_dir_all(dir).unwrap();
 }
 
@@ -147,7 +141,7 @@ fn g2_png_export_matches_recorded_reference_frames() {
         |_| {},
     )
     .unwrap();
-    for (frame, expected) in [(24, G2_PNG_WIDE_SHA256), (72, G2_PNG_CLOSE_SHA256)] {
+    for (frame, expected) in [(24, g2::G2_PNG_WIDE_SHA256), (72, g2::G2_PNG_CLOSE_SHA256)] {
         let png = fs::read(dir.join(format!("frame_{frame:06}.png"))).unwrap();
         // PNG signature and IHDR size: 1920x1080 on every platform.
         assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");

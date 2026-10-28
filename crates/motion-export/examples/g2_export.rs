@@ -159,10 +159,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         n if n % 2 == 1 => Some(v[n / 2]),
         n => Some((v[n / 2 - 1] + v[n / 2]) / 2.0),
     };
+    let sequence_sha256 = g2::sequence_digest(&frame_hashes);
+    // The SVG reference applies only to the recorded G2 scene; PNG bytes are not
+    // claimed across CPUs, so they have no reference here.
+    let reference = (args.format == "svg" && scene.source_sha256 == g2::G2_SCENE_SHA256)
+        .then_some(g2::G2_SVG_SEQUENCE_SHA256);
     let summary = serde_json::json!({
         "scene": args.scene.display().to_string(),
         "scene_sha256": scene.source_sha256,
-        "model_policy": "strict",
+        "model_policy_refused": scene.refused_steps,
         "format": args.format,
         "width": project.width,
         "height": project.height,
@@ -176,7 +181,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         "audio_seconds": audio_samples as f64 / f64::from(wav.sample_rate),
         "frame_sha256_first": frame_hashes.first(),
         "frame_sha256_last": frame_hashes.last(),
-        "sequence_sha256": g2::sequence_digest(&frame_hashes),
+        "sequence_sha256": sequence_sha256,
+        "reference_sequence_sha256": reference,
+        "sequence_matches_reference": reference.map(|r| r == sequence_sha256),
         "video_file": (args.format == "mp4").then_some("scene.mp4"),
         "timing": {
             "load_ms": load_ms,
@@ -198,6 +205,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("{}", serde_json::to_string_pretty(&summary)?);
     if report.frame_count != expected_frames || manifest["frame_count"] != expected_frames {
         return Err("frame count does not match frame_count(duration, fps)".into());
+    }
+    if reference.is_some_and(|r| r != sequence_sha256) {
+        return Err("SVG sequence differs from G2_SVG_SEQUENCE_SHA256".into());
     }
     Ok(())
 }
