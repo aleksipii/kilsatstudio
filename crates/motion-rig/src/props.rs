@@ -99,6 +99,23 @@ pub struct HandPropItem {
     pub parts: Vec<RigidPartDefinition>,
     /// Parts drawn over the item (fingers wrapped around it).
     pub grip_parts: Vec<RigidPartDefinition>,
+    /// Optional display slot (phones, tablets) carried onto the rig on attach.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub screen: Option<HandPropScreen>,
+}
+/// An item's display slot in item-local coordinates.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HandPropScreen {
+    /// Slot name used by scenes (for example `phone`).
+    pub id: String,
+    /// Item part that is the glass.
+    pub part: String,
+    /// Content rectangle `[x, y, width, height]`, y down.
+    pub rect: [f64; 4],
+    /// Item parts of the drawn UI, hidden while the slot shows content.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub overlays: Vec<String>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -119,6 +136,10 @@ pub enum PropError {
     Item,
     #[error("hand prop parts must use the local grip joint and bounded untextured vector shapes")]
     Part,
+    #[error("hand prop {0}: screen must name its own glass and overlay parts and have a positive bounded rectangle")]
+    Screen(String),
+    #[error("the other hand already holds a screen named {0}")]
+    ScreenTaken(String),
     #[error("hand prop {item}: {source}")]
     Geometry { item: String, source: crate::Error },
     #[error("grip offset must be within ±100, rotation ±180° and scale 0.25..=3")]
@@ -165,6 +186,27 @@ impl HandPropCatalog {
                 || item.parts.len() + item.grip_parts.len() > 32
             {
                 return Err(PropError::Item);
+            }
+            if let Some(screen) = &item.screen {
+                let has = |id: &String| item.parts.iter().any(|p| &p.id == id);
+                let [_, _, w, h] = screen.rect;
+                if screen.id.is_empty()
+                    || screen.id.len() > 64
+                    || !screen
+                        .id
+                        .bytes()
+                        .all(|c| c.is_ascii_alphanumeric() || c == b'_')
+                    || !has(&screen.part)
+                    || !screen.overlays.iter().all(|o| has(o) && o != &screen.part)
+                    || !screen
+                        .rect
+                        .iter()
+                        .all(|n| n.is_finite() && n.abs() <= 512.0)
+                    || w <= 0.0
+                    || h <= 0.0
+                {
+                    return Err(PropError::Screen(item.id.clone()));
+                }
             }
             let parts: Vec<_> = item.parts.iter().chain(&item.grip_parts).cloned().collect();
             if !parts.iter().all(valid_catalog_part) {
@@ -276,6 +318,28 @@ pub fn grip_parts(
         .collect()
 }
 
+/// The item's screen slot re-expressed on the hand joint, if it has one.
+pub fn grip_screen(
+    item: &HandPropItem,
+    hand: HandSide,
+    placement: GripPlacement,
+) -> Option<crate::ScreenSlotDefinition> {
+    let screen = item.screen.as_ref()?;
+    let part_id = |id: &str| format!("{}{}_{}", hand.part_prefix(), item.id, id);
+    let [x, y, w, h] = screen.rect;
+    let origin = placement.to_hand(item.grip, [x, y]);
+    let right = placement.to_hand(item.grip, [x + w, y]);
+    let down = placement.to_hand(item.grip, [x, y + h]);
+    Some(crate::ScreenSlotDefinition {
+        id: screen.id.clone(),
+        part: part_id(&screen.part),
+        origin,
+        x_axis: [right[0] - origin[0], right[1] - origin[1]],
+        y_axis: [down[0] - origin[0], down[1] - origin[1]],
+        overlays: screen.overlays.iter().map(|o| part_id(o)).collect(),
+    })
+}
+
 /// Replace whatever this hand holds with `item` and validate the result.
 /// The rig is left unchanged on error.
 pub fn attach_hand_prop(
@@ -288,7 +352,15 @@ pub fn attach_hand_prop(
     hand_availability(rig, hand)?;
     let mut next = rig.clone();
     next.parts.retain(|p| !p.id.starts_with(hand.part_prefix()));
+    next.screens
+        .retain(|s| !s.part.starts_with(hand.part_prefix()));
     next.parts.extend(grip_parts(item, hand, placement));
+    if let Some(screen) = grip_screen(item, hand, placement) {
+        if next.screens.iter().any(|s| s.id == screen.id) {
+            return Err(PropError::ScreenTaken(screen.id));
+        }
+        next.screens.push(screen);
+    }
     next.validate().map_err(PropError::Rig)?;
     *rig = next;
     Ok(())
@@ -298,6 +370,8 @@ pub fn attach_hand_prop(
 pub fn detach_hand_prop(rig: &mut RigDefinition, hand: HandSide) -> Result<(), PropError> {
     let mut next = rig.clone();
     next.parts.retain(|p| !p.id.starts_with(hand.part_prefix()));
+    next.screens
+        .retain(|s| !s.part.starts_with(hand.part_prefix()));
     next.validate().map_err(PropError::Rig)?;
     *rig = next;
     Ok(())
@@ -416,6 +490,42 @@ mod tests {
         );
         detach_hand_prop(&mut definition, HandSide::Right).unwrap();
         assert_eq!(definition, rig(None));
+    }
+
+    #[test]
+    fn phone_screen_slot_travels_with_the_prop() {
+        let catalog = HandPropCatalog::decode(CATALOG).unwrap();
+        let phone = catalog.items.iter().find(|i| i.id == "puhelin").unwrap();
+        let placement = GripPlacement {
+            x: 3.0,
+            y: -2.0,
+            rotation_degrees: 30.0,
+            scale: 0.5,
+        };
+        let mut definition = rig(None);
+        attach_hand_prop(&mut definition, HandSide::Right, phone, placement).unwrap();
+        let slot = &definition.screens[0];
+        assert_eq!(slot.id, "phone");
+        assert_eq!(slot.part, "heldprop_r_puhelin_screen");
+        // Scaled by the placement, aspect preserved.
+        let [w, h] = slot.size();
+        assert!((w - 14.0).abs() < 1e-9 && (h - 25.5).abs() < 1e-9);
+        // A second phone in the other hand would reuse the slot name.
+        let mut both = definition.clone();
+        assert_eq!(
+            attach_hand_prop(&mut both, HandSide::Left, phone, placement),
+            Err(PropError::ScreenTaken("phone".into()))
+        );
+        assert_eq!(both, definition);
+        // Re-attaching replaces the slot; detaching removes it.
+        attach_hand_prop(&mut definition, HandSide::Right, phone, placement).unwrap();
+        assert_eq!(definition.screens.len(), 1);
+        detach_hand_prop(&mut definition, HandSide::Right).unwrap();
+        assert_eq!(definition, rig(None));
+        let mut bad = catalog.clone();
+        let index = bad.items.iter().position(|i| i.id == "puhelin").unwrap();
+        bad.items[index].screen.as_mut().unwrap().part = "nope".into();
+        assert_eq!(bad.validate(), Err(PropError::Screen("puhelin".into())));
     }
 
     #[test]

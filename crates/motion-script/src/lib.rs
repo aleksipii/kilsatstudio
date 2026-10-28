@@ -4,6 +4,7 @@ mod camera_presets;
 pub mod compiler;
 pub mod event_log;
 mod rules;
+mod screens;
 mod shots;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
@@ -12,6 +13,11 @@ pub use rules::{
     FiringSource, Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleExpansion,
     RuleFiring, RuleTrigger, Rules, MAX_RULES, MAX_RULE_NAME, MAX_RULE_OUTPUTS,
     MAX_RULE_OUTPUTS_PER_SCENE,
+};
+pub use screens::{
+    video_frame_asset, ScreenCue, ScreenSource, MAX_SCREEN_CUES, MAX_SCREEN_FPS,
+    MAX_SCREEN_SEQUENCE_FRAMES, MAX_SCREEN_SPEED, MAX_SCREEN_TAPS, MAX_SCREEN_VIDEO_SECONDS,
+    SCREEN_VIDEO_EXTENSIONS,
 };
 use serde::{Deserialize, Serialize};
 pub use shots::{
@@ -94,6 +100,9 @@ pub struct Composition {
     /// Non-speech audio placed on the scene's shared 24 kHz sample clock.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub audio_cues: Vec<AudioCue>,
+    /// What actors' rig screen slots show over scene time.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub screens: Vec<ScreenCue>,
 }
 /// Maximum gaze keys per actor and scene.
 pub const MAX_GAZE_KEYS: usize = 256;
@@ -190,6 +199,7 @@ impl Default for Composition {
             fade_in: 0.0,
             fade_out: 0.0,
             audio_cues: Vec::new(),
+            screens: Vec::new(),
         }
     }
 }
@@ -1475,6 +1485,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
                 .retain(|_, keys| !keys.is_empty());
             scene.composition.clip_weights.remove(id);
             scene.composition.clip_weight_tracks.remove(id);
+            scene.composition.screens.retain(|cue| cue.actor != id);
             scene
                 .composition
                 .clip_instances
@@ -1976,6 +1987,7 @@ impl Script {
                     previous = Some(key.at);
                 }
             }
+            self.validate_screens(s)?;
             if s.composition.audio_cues.len() > MAX_AUDIO_CUES {
                 return Err(fail(format!(
                     "{}: at most {MAX_AUDIO_CUES} audio cues per scene",

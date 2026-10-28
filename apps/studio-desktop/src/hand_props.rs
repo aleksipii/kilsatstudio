@@ -52,6 +52,10 @@ fn message(error: PropError) -> String {
         PropError::MissingHand(joint) => format!("Hahmolta puuttuu {joint}-nivel."),
         PropError::HandOccupied => "Tässä kädessä on hahmon oma esine. Valitse toinen käsi.".into(),
         PropError::Rig(e) => format!("Otteen hahmorakenne: {e}"),
+        PropError::Screen(item) => format!("Esineen {item} näyttöpaikka ei kelpaa."),
+        PropError::ScreenTaken(id) => {
+            format!("Toisessa kädessä on jo näyttö nimeltä {id}. Irrota se ensin.")
+        }
     }
 }
 
