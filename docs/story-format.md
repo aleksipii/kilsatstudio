@@ -20,12 +20,21 @@ Vasen paneeli → **Luo animaatio käsikirjoituksesta (Claude / ChatGPT)**:
    Liitä se tekoälylle ja kirjoita perään tarinan idea (millä kielellä tahansa).
 2. **Liitä vastaus** tekstikenttään. Koko vastaus kelpaa: ensimmäinen
    ```` ```yaml ```` -koodilohko poimitaan automaattisesti.
-3. **Luo animaatio.** Nykyinen projekti korvataan; **Kumoa** palauttaa sen.
-   Jos käsikirjoituksessa on virheitä, ne näytetään polkuineen ja
-   **Kopioi virheet tekoälylle** kopioi korjauspyynnön samaan keskusteluun.
+3. **Luo animaatio oikealla puheella.** Jokainen repliikki tuotetaan hahmon äänellä
+   (Kokoro englanniksi, Piper suomeksi) taustatyönä, WAV puretaan ja tarkistetaan,
+   tallennetaan sisältötiivisteellä projektikansion `assets/auto-direction/`-kansioon ja
+   tarina ajoitetaan mitattujen kestojen mukaan. Jokainen `speak`-tapahtuma soittaa
+   omaa WAViaan, joten esikatselu ja vienti käyttävät samaa ääntä. Työ on rajattu
+   (30 min), peruttavissa ja vanhentunut tulos hylätään. Projektikansio on annettava.
+   **Luonnos ilman puhetta** tekee saman heti tekstiarviolla.
+   Nykyinen projekti korvataan; **Kumoa** palauttaa sen. Virheet näytetään polkuineen,
+   ja **Kopioi virheet tekoälylle** kopioi korjauspyynnön samaan keskusteluun.
+4. **Leikkaustarkastus** näkyy luonnin jälkeen (ks. alla).
 
-Sen jälkeen: valmistele puhe Puhe-välilehdellä (Kokoro englanniksi, Piper suomeksi),
-tarkista ajoitus ja vie video tavalliseen tapaan.
+Ohje ja käännös tarjoavat Tikku-ukkostudion lisäksi **avoimen projektin omat
+rigatut hahmot ja kuvitetut kohtaukset** (kohtaus → lavaste, tunnus pienaakkosin,
+`oma_`-etuliite jos se peittäisi paketin lavasteen). Kopioi ohje uudelleen, kun lisäät
+omia hahmoja tai taustoja.
 
 ## Muoto
 
@@ -62,8 +71,12 @@ scenes:
 | `scenes` | 1–12 kohtausta, kussakin 1–48 beatia (yhteensä ≤ 200). `positions` määrää, ketkä ovat lavalla: `far_left`, `left`, `center`, `right`, `far_right`; kaksi hahmoa ei voi aloittaa samasta paikasta. |
 | beat | Täsmälleen yksi: `say` (repliikki, vaatii `line`), `do` (toiminta) tai `pause` (0,2–10 s). |
 | `say` | `line` ≤ 400 merkkiä, `emotion`, `gesture` (puheen aikana), `look`, `shot`, `on`, `hold` (tauko repliikin jälkeen), `reaction: {by, emotion, gesture, hold}`. Ei `move_to`:ta. |
-| `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `hold`, `shot`, `on`. |
-| arvot | `emotion`: neutral, happy, sad, surprised, angry · `gesture`: wave, point, nod, shrug · `face`: front, left, right, back · `gait`: walk, jog, run · `shot`: auto, wide, medium, close_up, two_shot, over_shoulder |
+| `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `holds` (+ `hand`), `pose`, `hold`, `shot`, `camera`, `on`. |
+| `holds` | Käsiesine poimitaan perille saavuttaessa; `none` laskee sen. Ilman `hand`-kenttää valitaan vapaa käsi (vasen ensin, jotta oikea jää eleille). Tila alkaa joka kohtauksessa castin `holds`-arvosta. |
+| `pose` | `sit` lisää lavasteeseen toimistotuolin hahmon alle (istuimen korkeus sivu- tai etukuvan mukaan); `stand` nousee. Istuva hahmo ei voi kävellä ennen `stand`-beatia. |
+| `camera` | `static`, `push_in`, `pull_out` (zoomi 30 %), `pan_left`, `pan_right` (12 % näkyvästä leveydestä kumpaankin suuntaan, zoomi vähintään 1,2), `shake` (0,5 s vaimeneva tärähdys). Liike aloittaa aina oman otoksensa. |
+| `cast.*.speed` | Puhenopeus 0,7–1,4. Hahmoilla on oletusnopeudet (esim. Kiire 1,18, Noutaja 0,88); suomessa ne erottavat hahmot, koska Piperissa on yksi ääni. |
+| arvot | `emotion`: neutral, happy, sad, surprised, angry · `gesture`: wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap, think · `face`: front, left, right, back · `gait`: walk, jog, run · `shot`: auto, wide, medium, close_up, two_shot, over_shoulder |
 
 Tuntemattomat kentät, hahmot, lavasteet ja arvot hylätään (ei arvata, ei ohiteta).
 
@@ -72,8 +85,8 @@ Tuntemattomat kentät, hahmot, lavasteet ja arvot hylätään (ei arvata, ei ohi
 - **Yksi MotionScript-kohtaus per tarinakohtaus**, 1920×1080, 24 fps. Tausta kopioidaan
   lavasteen kuvituksesta kohtauksen omiksi tasoiksi; lavalla olemattomat hahmot piilotetaan.
 - **Ajoitus:** beatit peräkkäin; alussa 0,5 s, beattien välissä 0,3 s, lopussa 0,8 s.
-  Repliikin kesto on **arvio** (max(0,42 s/sana, 0,068 s/merkki, 1 s)), ellei kutsuja anna
-  mitattuja kestoja (`compile_story(…, Some(&kestot))`). Beatien alut pyöristetään ruutuihin.
+  Repliikin kesto on mitattu oikeasta puheesta (`MeasuredLine`) tai luonnoksessa arvio
+  (max(0,42 s/sana, 0,068 s/merkki, 1 s)). Beatien alut pyöristetään ruutuihin.
 - **Kuvat ja leikkaukset:** jokainen otos on kamera-avainpari; leikkaus on kova (edellinen
   rajaus pysyy 1 ms ennen leikkausruutua). Automaattisäännöt: kohtauksen alku `wide`,
   repliikki `medium` puhujaan, voimakas tunne (angry, surprised, sad) `close_up`,
@@ -87,14 +100,37 @@ Tuntemattomat kentät, hahmot, lavasteet ja arvot hylätään (ei arvata, ei ohi
   kaikilla on oletuksena `piper_harri`, ellei `voice` kerro muuta. Tekstitykset saavat
   hahmon tunnusvärin.
 
+## Leikkaustarkastus
+
+Luonnin jälkeen sovellus näyttää mitattavat leikkausongelmat (`story::ReviewNote`):
+puhuja kuvan ulkopuolella repliikin neljänneksillä, alle 0,75 s välähdysotokset,
+yli 10 s liikkumattomat otokset (paitsi `camera: static` tai liikkuva kohde), yli
+18 merkkiä/s puhe ja yli 4 s hiljaisuus repliikkien välissä. Tarkastus ei arvioi
+komiikkaa, näyttelyä tai huulisynkan laatua.
+
+## MotionScript-lisäykset
+
+Tarinakääntäjä käyttää kahta uutta tavallista MotionScript-tapahtumaa, joita voi
+myös muokata editorissa:
+
+- `{type: hold, actor, at, hand: left|right, item?}`: käsi pitää luettelon esinettä
+  hetkestä `at` alkaen, tai ei mitään, jos `item` puuttuu. Arvioija valmistelee rigin
+  jokaiselle käsitilalle ja valitsee sen ajan perusteella, joten haku on tarkka.
+  Vaatii oman rigin; varattu käsi tai tuntematon esine on validointivirhe.
+- `{type: pose, actor, at, value: sit|stand}`: istuminen 0,4 s pehmennyksellä, kestää
+  seuraavaan pose-tapahtumaan. Vaatii rigin, jossa on root-, thigh- ja shin-nivelet.
+
+Uudet eleet toimivat sekä omilla rigeillä (ennakointi–ylilyönti–pito–palautus) että
+alkuperäisellä seitsennivelrigillä.
+
 ## Rajoitukset
 
-- Ajoitus on tekstiarvio. Työpöytäsovellus ei vielä uudelleenajoita tarinaa oikean puheen
-  kestoilla, vaikka kääntäjä tukee annettuja kestoja. Jos oikea puhe on arviota pidempi,
-  saman hahmon peräkkäiset repliikit voivat mennä päällekkäin, ja koko kohtauksen äänen
-  valmistelu hylkää ne.
-- Hahmot ja lavasteet tulevat vain upotetusta Tikku-ukkostudiosta (6 hahmoa, 4 lavastetta).
-- Eleitä on neljä ja tunteita viisi; esineen poimiminen tai laskeminen kesken kohtauksen,
-  istuminen, kosketukset ja kameran ajot puuttuvat.
+- Suomessa on yksi Piper-ääni (Harri); hahmot erottuvat vain puhenopeudella, kunnes
+  käyttäjä asentaa muita suomenkielisiä Piper-malleja.
+- Tunteita on viisi, koska ne vaativat rigiin piirretyt ilmevariantit.
+- Tuoli on aina toimistotuoli etunäkymästä piirrettynä; sivukuvassa se on tyylitelty.
+- Käsien ja istumisen tila alkaa jokaisessa kohtauksessa alusta (castin `holds`).
+- Ajastettu esine ei voi olla `composition.screens`-näytön kohde (näyttö vaatii castin
+  `holds`-esineen).
 - Laatu (rytmi, rajaukset, huulisynkka, ääni) vaatii ihmisen arvion; testit osoittavat vain
   determinismin, validoinnin ja rajat.

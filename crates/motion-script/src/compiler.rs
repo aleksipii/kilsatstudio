@@ -300,7 +300,9 @@ impl Compiler<'_> {
                     | Event::Gesture { at: time, .. }
                     | Event::Speak { at: time, .. }
                     | Event::Emotion { at: time, .. }
-                    | Event::Face { at: time, .. } => *time = at,
+                    | Event::Face { at: time, .. }
+                    | Event::Hold { at: time, .. }
+                    | Event::Pose { at: time, .. } => *time = at,
                 }
                 self.script.scenes[self.scene].events.push(event);
                 self.origins.push(event_path.clone());

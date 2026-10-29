@@ -5,8 +5,8 @@ kilsat_story: 1
 title: Kahvitauko
 language: fi
 cast:
-  VEIKKO: {holds: kahvikuppi}
-  PASMA: {}
+  VEIKKO: {}
+  PASMA: {speed: 1.05}
   SISU: {}
 scenes:
   - id: kahvila_aamu
@@ -15,6 +15,8 @@ scenes:
     positions: {VEIKKO: left, PASMA: far_right}
     beats:
       - do: VEIKKO
+        holds: kahvikuppi
+        pose: sit
         emotion: happy
         hold: 0.5
       - do: PASMA
@@ -24,16 +26,18 @@ scenes:
         line: Veikko! Palaveri alkaa kahden minuutin päästä.
         emotion: surprised
         gesture: point
+        camera: push_in
       - say: VEIKKO
         line: Mutta minulla on kahvitauko.
         emotion: sad
-        reaction: {by: PASMA, emotion: angry, hold: 1.2}
+        reaction: {by: PASMA, emotion: angry, gesture: arms_crossed, hold: 1.2}
       - say: PASMA
         line: Kahvitauko on palaverin jälkeen. Se on sääntö.
-        gesture: nod
+        gesture: shake_head
       - pause: 1.0
         shot: close_up
         on: VEIKKO
+        camera: push_in
   - id: sisu_saapuu
     set: kahvila
     positions: {VEIKKO: left, PASMA: right, SISU: far_left}
@@ -47,8 +51,9 @@ scenes:
       - say: PASMA
         line: En minä. Hyvää kahvitaukoa.
         emotion: surprised
-        gesture: wave
-        reaction: {by: VEIKKO, emotion: happy, gesture: shrug}
+        gesture: bow
+        reaction: {by: VEIKKO, emotion: happy, gesture: thumbs_up}
       - do: PASMA
         move_to: far_right
         gait: run
+        camera: shake

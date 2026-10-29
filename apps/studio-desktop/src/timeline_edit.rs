@@ -159,7 +159,9 @@ impl Drag {
             | Event::Gesture { at, .. }
             | Event::Speak { at, .. }
             | Event::Emotion { at, .. }
-            | Event::Face { at, .. } => *at = self.proposed_at,
+            | Event::Face { at, .. }
+            | Event::Hold { at, .. }
+            | Event::Pose { at, .. } => *at = self.proposed_at,
         }
         if self.resize {
             if let Event::Move { duration, .. } | Event::Gesture { duration, .. } = &mut replacement

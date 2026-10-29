@@ -256,6 +256,67 @@ struct PreparedAnimation {
     /// Per scene and actor: screen taps the free hand presses.
     taps: Vec<std::collections::BTreeMap<String, Vec<taps::PreparedTaps>>>,
     tap_diagnostics: Vec<TapDiagnostic>,
+    /// Per actor: rigs for each hand state that timed `hold` events reach,
+    /// with their rest parts. The initial state uses `rigs`.
+    held: std::collections::BTreeMap<String, Vec<HeldVariant>>,
+}
+/// What the left and right hands hold.
+type HandState = [Option<String>; 2];
+struct HeldVariant {
+    state: HandState,
+    rig: motion_rig::PreparedRig,
+    rest: Vec<motion_rig::EvaluatedPart>,
+}
+fn hand_slot(hand: motion_rig::HandSide) -> usize {
+    match hand {
+        motion_rig::HandSide::Left => 0,
+        motion_rig::HandSide::Right => 1,
+    }
+}
+fn initial_hands(character: &motion_script::Character) -> HandState {
+    let mut state: HandState = [None, None];
+    if let Some(held) = &character.holds {
+        state[hand_slot(held.hand)] = Some(held.item.clone());
+    }
+    state
+}
+/// Hand state after the actor's hold events up to `time` (sorted events).
+fn hands_at(events: &[&Event], actor: &str, time: f64, initial: &HandState) -> HandState {
+    let mut state = initial.clone();
+    for event in events {
+        if let Event::Hold {
+            at,
+            actor: a,
+            hand,
+            item,
+        } = event
+        {
+            if a == actor && *at <= time {
+                state[hand_slot(*hand)] = item.clone();
+            }
+        }
+    }
+    state
+}
+/// Sitting weight from the actor's pose events up to `time`, eased over
+/// `SIT_SECONDS` from the previous pose.
+fn sit_weight(events: &[&Event], actor: &str, time: f64) -> f64 {
+    let (mut from, mut to, mut since) = (0.0, 0.0, f64::INFINITY);
+    for event in events {
+        if let Event::Pose {
+            at,
+            actor: a,
+            value,
+        } = event
+        {
+            if a == actor && *at <= time {
+                from = from + (to - from) * (since / motion_animation::SIT_SECONDS).min(1.0);
+                to = if value == "sit" { 1.0 } else { 0.0 };
+                since = time - at;
+            }
+        }
+    }
+    from + (to - from) * (since / motion_animation::SIT_SECONDS).min(1.0)
 }
 /// Where every actor stands before its first move.
 fn actor_base(script: &Script) -> Vec2 {
@@ -377,6 +438,50 @@ impl PreparedAnimation {
             })
             .collect::<Result<_, Error>>()?;
         let (taps, tap_diagnostics) = taps::prepare(script, &rigs, &joint_tracks);
+        let mut held = std::collections::BTreeMap::new();
+        for (id, character) in &script.characters {
+            let Some(rig) = &character.rig else { continue };
+            let initial = initial_hands(character);
+            let mut states = std::collections::BTreeSet::new();
+            for scene in &script.scenes {
+                let mut events: Vec<_> = scene.events.iter().collect();
+                events.sort_by(|a, b| a.actor_time().0.total_cmp(&b.actor_time().0));
+                for event in &events {
+                    if let Event::Hold { at, actor, .. } = event {
+                        if actor == id {
+                            states.insert(hands_at(&events, id, *at, &initial));
+                        }
+                    }
+                }
+            }
+            states.remove(&initial);
+            let mut variants = Vec::new();
+            for state in states {
+                let mut definition = rig.clone();
+                let invalid = |e: String| Error::InvalidAnimation(format!("{id}: {e}"));
+                for (slot, hand) in [motion_rig::HandSide::Left, motion_rig::HandSide::Right]
+                    .into_iter()
+                    .enumerate()
+                {
+                    if state[slot] != initial[slot] {
+                        motion_script::held_rig(&mut definition, hand, state[slot].as_deref())
+                            .map_err(|e| invalid(e.to_string()))?;
+                    }
+                }
+                let prepared = definition.prepare().map_err(|e| invalid(e.to_string()))?;
+                let rest = prepared
+                    .evaluate_parts(&[])
+                    .map_err(|e| invalid(e.to_string()))?;
+                variants.push(HeldVariant {
+                    state,
+                    rig: prepared,
+                    rest,
+                });
+            }
+            if !variants.is_empty() {
+                held.insert(id.clone(), variants);
+            }
+        }
         Ok(Self {
             rigid_parts,
             rigs,
@@ -386,7 +491,33 @@ impl PreparedAnimation {
             moves,
             taps,
             tap_diagnostics,
+            held,
         })
+    }
+    /// The rig and rest parts for `actor` at `time`: a timed hand state when
+    /// hold events changed what the hands carry, otherwise the initial rig.
+    fn rig_at<'a>(
+        &'a self,
+        script: &Script,
+        events: &[&Event],
+        actor: &str,
+        time: f64,
+    ) -> Option<(&'a motion_rig::PreparedRig, &'a [motion_rig::EvaluatedPart])> {
+        let rig = self.rigs.get(actor)?;
+        let rest = self.rigid_parts.get(actor).map_or(&[][..], Vec::as_slice);
+        let Some(variants) = self.held.get(actor) else {
+            return Some((rig, rest));
+        };
+        let initial = initial_hands(script.characters.get(actor)?);
+        let state = hands_at(events, actor, time, &initial);
+        Some(
+            variants
+                .iter()
+                .find(|variant| variant.state == state)
+                .map_or((rig, rest), |variant| {
+                    (&variant.rig, variant.rest.as_slice())
+                }),
+        )
     }
     fn instance_tracks<'a>(
         &'a self,
@@ -794,7 +925,10 @@ fn evaluate_validated(
                 scale: Vec2::new(1.0, 1.0),
                 wave: 0.0,
                 skeleton: motion_animation::humanoid(None, 0.0),
-                rigid_parts: prepared.rigid_parts.get(id).cloned().unwrap_or_default(),
+                rigid_parts: prepared
+                    .rig_at(script, &events, id, time_seconds)
+                    .map(|(_, rest)| rest.to_vec())
+                    .unwrap_or_default(),
                 mouth: None,
                 view: FaceView::Front,
             };
@@ -835,7 +969,10 @@ fn evaluate_validated(
                                 .map(|g| (g, progress, weight));
                         }
                     }
-                    Event::Speak { .. } | Event::Face { .. } => {}
+                    Event::Speak { .. }
+                    | Event::Face { .. }
+                    | Event::Hold { .. }
+                    | Event::Pose { .. } => {}
                 }
             }
             let (view, mirror) = facing_at(&events, id, time_seconds);
@@ -887,7 +1024,7 @@ fn evaluate_validated(
                 &offsets,
                 weights,
             )?;
-            if let Some(rig) = prepared.rigs.get(id) {
+            if let Some((rig, _)) = prepared.rig_at(script, &events, id, time_seconds) {
                 let tracks = prepared.joint_tracks[scene_index].get(id);
                 let mut offsets = tracks
                     .map(|tracks| {
@@ -908,6 +1045,11 @@ fn evaluate_validated(
                 if let Some((gesture, progress, _)) = gesture {
                     // The rig layer shapes its own timing from progress.
                     let motion = motion_animation::rig_gesture(gesture, progress, weights.gesture);
+                    add_rig_motion(rig, &mut offsets, &motion);
+                }
+                let sitting = sit_weight(&events, id, time_seconds);
+                if sitting > 0.0 {
+                    let motion = motion_animation::rig_sit(sitting, pose.view == FaceView::Side);
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
                 // Screen taps: the free hand presses the glass, last so it

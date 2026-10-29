@@ -177,6 +177,7 @@ struct Studio {
     quick_start: quick_start::Draft,
     story_text: String,
     story_issues: Vec<motion_script::story::StoryIssue>,
+    story_review: Option<Vec<String>>,
     ui_metrics: ui_metrics::Metrics,
     native_alignment: alignment_panel::Panel,
     alignment_identity: Option<alignment_panel::Identity>,
@@ -424,6 +425,7 @@ impl Default for Studio {
             quick_start: quick_start::Draft::default(),
             story_text: String::new(),
             story_issues: Vec::new(),
+            story_review: None,
             history: project_history::History::new(include_str!(
                 "../../../examples/hello-emma.yaml"
             )),
@@ -2077,7 +2079,7 @@ impl Studio {
         if !self.editing_idle() {
             return;
         }
-        let built = match story_import::build(&self.story_text, None) {
+        let built = match story_import::build_with(&self.story_text, None, &self.story_project()) {
             Ok(built) => built,
             Err(issues) => {
                 self.status = format!(
@@ -2094,6 +2096,13 @@ impl Studio {
         self.story_issues.clear();
         let mut document = built.document;
         let compilation = built.compilation;
+        self.story_review = Some(
+            compilation
+                .review
+                .iter()
+                .map(story_import::review_text)
+                .collect(),
+        );
         self.flush_text_edit();
         let before = self.snapshot();
         self.stop_playback();
@@ -2136,6 +2145,12 @@ impl Studio {
             compilation.duration
         );
     }
+    fn story_project(&self) -> story_import::ProjectContent {
+        story_import::ProjectContent::new(
+            &self.source,
+            self.project_document.as_ref().map(|d| &d.art),
+        )
+    }
     fn start_story_speech(&mut self) {
         if !self.editing_idle() || self.setup_busy {
             return;
@@ -2147,7 +2162,8 @@ impl Studio {
             self.status = "Anna projektikansion koko polku (Projektin lisätyökalut → Projektikansio) ennen puheen valmistelua. Äänitiedostot tallennetaan sinne.".into();
             return;
         }
-        if let Err(issues) = story_import::build(&self.story_text, None) {
+        if let Err(issues) = story_import::build_with(&self.story_text, None, &self.story_project())
+        {
             self.status = format!(
                 "Käsikirjoitusta ei hyväksytty: {} korjattavaa kohtaa.",
                 issues.len()
@@ -2168,6 +2184,7 @@ impl Studio {
             imported_audio: Default::default(),
             cancel: cancel.clone(),
             story: Some(self.story_text.clone()),
+            story_project: self.story_project(),
         };
         match self.direction_worker.submit(request) {
             Ok(()) => {
@@ -2194,7 +2211,7 @@ impl Studio {
             .show(ui, |ui| {
                 ui.label("1. Kopioi ohje ja liitä se Claudeen tai ChatGPT:hen. Kirjoita perään tarinasi idea.");
                 if ui.button("Kopioi ohje tekoälylle").clicked() {
-                    match story_import::guide() {
+                    match story_import::guide(&self.story_project()) {
                         Ok(guide) => {
                             ui.ctx().copy_text(guide);
                             self.status = "Ohje kopioitu leikepöydälle. Liitä se tekoälylle ja kirjoita perään tarinan idea, esimerkiksi: Sisu ja Noutaja riitelevät bussipysäkillä.".into();
@@ -2228,6 +2245,16 @@ impl Studio {
                         }
                     });
                 });
+                if let Some(review) = &self.story_review {
+                    if review.is_empty() {
+                        ui.label("Leikkaustarkastus: ei automaattisesti havaittuja ongelmia. Katso ja kuuntele silti valmis animaatio.");
+                    } else {
+                        ui.colored_label(egui::Color32::from_rgb(220, 170, 80), format!("Leikkaustarkastus: {} huomiota", review.len()));
+                        for note in review.iter().take(20) {
+                            ui.label(egui::RichText::new(note).small());
+                        }
+                    }
+                }
                 if !self.story_issues.is_empty() {
                     ui.colored_label(egui::Color32::from_rgb(220, 120, 90), "Korjattavaa:");
                     for issue in self.story_issues.iter().take(20) {
@@ -2241,7 +2268,7 @@ impl Studio {
                         self.status = "Virheet kopioitu. Liitä ne samaan tekoälykeskusteluun ja liitä korjattu käsikirjoitus tänne.".into();
                     }
                 }
-                ui.weak("Hahmot, taustat ja käsiesineet tulevat Tikku-ukkostudiosta. Ajoitus arvioidaan tekstistä; valmistele puhe Puhe-välilehdellä ennen vientiä.");
+                ui.weak("Käytettävissä: Tikku-ukkostudion hahmot, lavasteet ja käsiesineet sekä avoimen projektin omat rigatut hahmot ja kuvitetut kohtaukset. Kopioi ohje uudelleen, kun lisäät omia hahmoja tai taustoja.");
             });
     }
     fn creation_ui(&mut self, ui: &mut egui::Ui) {
@@ -3281,6 +3308,7 @@ impl Studio {
             imported_audio,
             cancel: cancel.clone(),
             story: None,
+            story_project: Default::default(),
         };
         match self.direction_worker.submit(request) {
             Ok(()) => {
@@ -6024,6 +6052,15 @@ impl Studio {
                 motion_script::Event::Face { value, .. } => {
                     (1, event_editor::facing_label(value).to_owned(), FACE, 0.0)
                 }
+                motion_script::Event::Pose { value, .. } => {
+                    (1, event_editor::pose_label(value).to_owned(), FACE, 0.0)
+                }
+                motion_script::Event::Hold { item, .. } => (
+                    2,
+                    item.as_deref().unwrap_or("laskee esineen").to_owned(),
+                    GESTURE,
+                    0.0,
+                ),
                 motion_script::Event::Emotion { value, .. } => (
                     1,
                     event_editor::expression_label(value).to_owned(),

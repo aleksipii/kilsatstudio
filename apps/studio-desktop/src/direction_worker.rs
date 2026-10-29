@@ -36,6 +36,8 @@ pub struct Request {
     /// with its character's voice and the story is recompiled on the measured
     /// lengths; `source`, `dialogue` and `imported_audio` are not used.
     pub story: Option<String>,
+    /// The open project's own characters and sets, offered to the story.
+    pub story_project: crate::story_import::ProjectContent,
 }
 /// A story compiled on measured speech, ready to replace the project.
 pub struct StoryReady {
@@ -430,7 +432,8 @@ fn prepare_story(
         let first: Vec<String> = issues.iter().take(5).map(ToString::to_string).collect();
         format!("Käsikirjoitusta ei hyväksytty: {}", first.join("; "))
     };
-    let draft = crate::story_import::build(text, None).map_err(issues)?;
+    let draft =
+        crate::story_import::build_with(text, None, &request.story_project).map_err(issues)?;
     if !request.root.is_absolute() || !request.root.is_dir() {
         return Err(
             "Anna olemassa olevan projektikansion koko polku ennen puheen valmistelua".into(),
@@ -485,7 +488,8 @@ fn prepare_story(
         );
     }
     check(&request.cancel, started, limit)?;
-    let built = crate::story_import::build(text, Some(&measured)).map_err(issues)?;
+    let built = crate::story_import::build_with(text, Some(&measured), &request.story_project)
+        .map_err(issues)?;
     Ok(StoryReady {
         built,
         elapsed: started.elapsed(),
@@ -654,6 +658,7 @@ mod tests {
                 imported_audio: BTreeMap::new(),
                 cancel: CancellationToken::new(),
                 story: None,
+                story_project: Default::default(),
             },
             calls,
         )

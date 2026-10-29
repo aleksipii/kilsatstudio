@@ -102,7 +102,9 @@ pub fn duplicate_at(
         | Event::Emotion { at: start, .. }
         | Event::Gesture { at: start, .. }
         | Event::Speak { at: start, .. }
-        | Event::Face { at: start, .. } => *start = at,
+        | Event::Face { at: start, .. }
+        | Event::Hold { at: start, .. }
+        | Event::Pose { at: start, .. } => *start = at,
     }
     Ok(event)
 }
@@ -142,6 +144,7 @@ mod tests {
                 }
                 Event::Emotion { value, .. } => assert_eq!(value, "neutral"),
                 Event::Face { value, .. } => assert_eq!(value, "front"),
+                Event::Hold { .. } | Event::Pose { .. } => unreachable!("not created here"),
                 Event::Speak { text, audio, .. } => {
                     assert_eq!(text, "New dialogue.");
                     assert!(audio.is_none());

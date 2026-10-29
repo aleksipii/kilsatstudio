@@ -28,7 +28,9 @@ impl Draft {
             | Event::Speak { at, actor, .. }
             | Event::Emotion { at, actor, .. }
             | Event::Gesture { at, actor, .. }
-            | Event::Face { at, actor, .. } => (at, actor),
+            | Event::Face { at, actor, .. }
+            | Event::Hold { at, actor, .. }
+            | Event::Pose { at, actor, .. } => (at, actor),
         };
         egui::ComboBox::from_id_salt("event_actor")
             .selected_text(actor.as_str())
@@ -74,6 +76,37 @@ impl Draft {
                     });
             }
             Event::Emotion { value, .. } => emotion(ui, "Ilme", value),
+            Event::Pose { value, .. } => {
+                egui::ComboBox::from_label("Asento")
+                    .selected_text(pose_label(value))
+                    .show_ui(ui, |ui| {
+                        for name in motion_script::POSES {
+                            ui.selectable_value(value, name.into(), pose_label(name));
+                        }
+                    });
+            }
+            Event::Hold { hand, item, .. } => {
+                egui::ComboBox::from_label("Käsi")
+                    .selected_text(match hand {
+                        motion_rig::HandSide::Left => "Vasen",
+                        motion_rig::HandSide::Right => "Oikea",
+                    })
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(hand, motion_rig::HandSide::Left, "Vasen");
+                        ui.selectable_value(hand, motion_rig::HandSide::Right, "Oikea");
+                    });
+                let items: Vec<String> = motion_rig::stick_studio_hand_props()
+                    .map(|c| c.items.iter().map(|i| i.id.clone()).collect())
+                    .unwrap_or_default();
+                egui::ComboBox::from_label("Esine")
+                    .selected_text(item.as_deref().unwrap_or("(laskee käsistä)"))
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(item, None, "(laskee käsistä)");
+                        for id in items {
+                            ui.selectable_value(item, Some(id.clone()), id);
+                        }
+                    });
+            }
             Event::Gesture {
                 value, duration, ..
             } => {
@@ -156,6 +189,22 @@ pub(crate) fn gesture_label(value: &str) -> &str {
         "point" => "Osoitus",
         "nod" => "Nyökkäys",
         "shrug" => "Olankohautus",
+        "shake_head" => "Päänpudistus",
+        "facepalm" => "Facepalm",
+        "arms_crossed" => "Kädet puuskassa",
+        "thumbs_up" => "Peukku ylös",
+        "bow" => "Kumarrus",
+        "jump" => "Hyppy",
+        "clap" => "Taputus",
+        "think" => "Mietintä",
+        _ => value,
+    }
+}
+
+pub(crate) fn pose_label(value: &str) -> &str {
+    match value {
+        "sit" => "Istuu",
+        "stand" => "Seisoo",
         _ => value,
     }
 }

@@ -167,6 +167,36 @@ pub fn rig_gait(gait: Gait, seconds: f64, travel: f64, weight: f64) -> RigMotion
     motion
 }
 
+/// Seconds to sit down or stand up.
+pub const SIT_SECONDS: f64 = 0.4;
+
+/// Sitting offsets blended by `weight` in `0..=1`. In profile the thighs come
+/// forward to the horizontal and the shins hang; seen from the front the knees
+/// part and the hips drop a little. Rotations follow the rig convention, so a
+/// mirrored (left-facing) actor sits the same way.
+pub fn rig_sit(weight: f64, profile: bool) -> RigMotion {
+    let mut motion = rest();
+    if !weight.is_finite() || weight <= 0.0 {
+        return motion;
+    }
+    let w = smoothstep(weight.min(1.0));
+    if profile {
+        motion[ROOT] = translation(0.0, 60.0 * w);
+        motion[THIGH_L] = rotation(-1.45 * w);
+        motion[THIGH_R] = rotation(-1.4 * w);
+        motion[SHIN_L] = rotation(1.45 * w);
+        motion[SHIN_R] = rotation(1.4 * w);
+        motion[TORSO] = rotation(-0.05 * w);
+    } else {
+        motion[ROOT] = translation(0.0, 22.0 * w);
+        motion[THIGH_L] = rotation(0.75 * w);
+        motion[THIGH_R] = rotation(-0.75 * w);
+        motion[SHIN_L] = rotation(-0.75 * w);
+        motion[SHIN_R] = rotation(0.75 * w);
+    }
+    motion
+}
+
 /// End of the anticipation (a small move against the action).
 const ANTICIPATION_END: f64 = 0.12;
 /// Anticipation depth as a fraction of the full pose.

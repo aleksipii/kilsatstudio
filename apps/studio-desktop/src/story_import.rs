@@ -46,6 +46,116 @@ const CAST: [(&str, &str, &str, f64); 6] = [
     ("SISU", "resourceful, calm grandmother who does not step aside even for the reaper; glasses, violet scarf and a cane", "bf_emma", 0.92),
 ];
 const FINNISH_VOICE: &str = "piper_harri";
+/// Furniture artwork the compiler may place, with the source canvas geometry:
+/// horizontal centre, seat top and floor (wheel bottom) in source pixels.
+const FURNITURE: [(&str, &str, f64, f64, f64); 1] = [(
+    "toimistotuoli",
+    include_str!("../../../examples/stick-studio/props/toimistotuoli.kilsat"),
+    256.0,
+    280.0,
+    461.0,
+)];
+
+/// Scale and move one piece of furniture artwork into a scene, behind actors.
+fn furniture_layers(
+    item: &story::Furniture,
+    index: usize,
+) -> Result<Vec<motion_art::Layer>, String> {
+    let (_, project, centre, seat, floor) = FURNITURE
+        .iter()
+        .find(|(id, ..)| *id == item.prop)
+        .ok_or_else(|| format!("unknown furniture {}", item.prop))?;
+    let scale = (item.floor - item.seat) / (floor - seat);
+    if !scale.is_finite() || scale <= 0.0 {
+        return Err(format!(
+            "furniture {} has no room under the seat",
+            item.prop
+        ));
+    }
+    let map = |x: f64, y: f64| {
+        (
+            item.x + (x - centre) * scale,
+            item.floor - (floor - y) * scale,
+        )
+    };
+    let rect = |r: &motion_art::Rect| {
+        let (x, y) = map(r.x, r.y);
+        motion_art::Rect {
+            x,
+            y,
+            width: r.width * scale,
+            height: r.height * scale,
+        }
+    };
+    let document = set_document(project)?;
+    document
+        .art
+        .layers
+        .into_iter()
+        .map(|mut layer| {
+            layer.content = match layer.content {
+                motion_art::Content::Rectangle { rect: r, color } => {
+                    motion_art::Content::Rectangle {
+                        rect: rect(&r),
+                        color,
+                    }
+                }
+                motion_art::Content::Ellipse { rect: r, color } => motion_art::Content::Ellipse {
+                    rect: rect(&r),
+                    color,
+                },
+                motion_art::Content::Stroke {
+                    points,
+                    color,
+                    width,
+                } => motion_art::Content::Stroke {
+                    points: points
+                        .iter()
+                        .map(|p| {
+                            let (x, y) = map(p.x, p.y);
+                            motion_art::Point { x, y }
+                        })
+                        .collect(),
+                    color,
+                    width: width * scale,
+                },
+                other => return Err(format!("furniture art {other:?} is not supported")),
+            };
+            let suffix = layer
+                .id
+                .strip_prefix(&format!("{}_", layer.scene_id))
+                .unwrap_or(&layer.id)
+                .to_string();
+            layer.id = format!("{}_furniture{index}_{suffix}", item.scene);
+            layer.scene_id = item.scene.clone();
+            layer.plane = motion_art::Plane::Background;
+            layer.clip = None;
+            Ok(layer)
+        })
+        .collect()
+}
+
+/// The user-facing Finnish text for an automatic editing check.
+pub(crate) fn review_text(note: &story::ReviewNote) -> String {
+    use story::ReviewNote::*;
+    match note {
+        SpeakerOffScreen { scene, actor, at } => format!(
+            "{scene} {at:.1} s: {actor} puhuu kuvan ulkopuolella. Rajaa puhujaan (on: {actor}) tai käytä two_shot-kuvaa."
+        ),
+        FlashCut { scene, at, seconds } => format!(
+            "{scene} {at:.1} s: otos kestää vain {seconds:.2} s (välähdys). Pidennä beatia tai poista kuvanvaihto."
+        ),
+        LongStaticShot { scene, at, seconds } => format!(
+            "{scene} {at:.1} s: liikkumaton otos {seconds:.1} s. Lisää leikkaus, reaktio tai camera: push_in."
+        ),
+        FastSpeech { scene, actor, at, chars_per_second } => format!(
+            "{scene} {at:.1} s: {actor} puhuu nopeasti ({chars_per_second:.0} merkkiä/s). Lyhennä repliikkiä tai hidasta speed-arvoa."
+        ),
+        LongSilence { scene, at, seconds } => format!(
+            "{scene} {at:.1} s: {seconds:.1} s hiljaisuutta repliikkien välissä. Tarkista, onko tauko tarkoituksellinen."
+        ),
+    }
+}
 
 pub(crate) struct Built {
     pub document: motion_project::ProjectDocument,
@@ -66,7 +176,29 @@ fn set_document(project: &str) -> Result<motion_project::ProjectDocument, String
     motion_project::decode(project.as_bytes()).map_err(|e| e.to_string())
 }
 
-pub(crate) fn catalog() -> Result<StoryCatalog, String> {
+/// The open project's own characters and painted scenes, offered to the
+/// story beside the stick-studio pack. Unreadable input simply offers nothing.
+#[derive(Clone, Default)]
+pub(crate) struct ProjectContent {
+    script: Option<motion_script::Script>,
+    art: Vec<motion_art::Layer>,
+}
+impl ProjectContent {
+    pub(crate) fn new(source: &str, art: Option<&motion_art::Document>) -> Self {
+        Self {
+            script: motion_script::parse(source).ok(),
+            art: art.map(|a| a.layers.clone()).unwrap_or_default(),
+        }
+    }
+}
+
+/// A catalog plus the artwork of each set.
+struct Library {
+    catalog: StoryCatalog,
+    set_layers: BTreeMap<String, Vec<motion_art::Layer>>,
+}
+
+fn pack_library() -> Result<Library, String> {
     let starter = crate::stick_studio::load()?;
     let script = motion_script::parse(&starter.source).map_err(|e| e.to_string())?;
     let manifest: serde_json::Value = serde_json::from_str(MANIFEST).map_err(|e| e.to_string())?;
@@ -96,6 +228,7 @@ pub(crate) fn catalog() -> Result<StoryCatalog, String> {
         );
     }
     let mut sets = BTreeMap::new();
+    let mut set_layers = BTreeMap::new();
     for (id, description, project) in SETS {
         let document = set_document(project)?;
         let set_script = motion_script::parse(&document.source).map_err(|e| e.to_string())?;
@@ -111,22 +244,138 @@ pub(crate) fn catalog() -> Result<StoryCatalog, String> {
                 background_color: scene.composition.background_color.clone(),
             },
         );
+        set_layers.insert(id.to_string(), document.art.layers);
     }
-    Ok(StoryCatalog { characters, sets })
+    Ok(Library {
+        catalog: StoryCatalog { characters, sets },
+        set_layers,
+    })
 }
 
-/// Instructions to paste into Claude or ChatGPT before the story idea.
-pub(crate) fn guide() -> Result<String, String> {
-    Ok(story::authoring_guide(&catalog()?))
+/// A story set id for a project scene: lower-case `a-z0-9_`, prefixed with
+/// `oma_` when it would hide a pack set.
+fn project_set_id(scene: &str, taken: &BTreeMap<String, CatalogSet>) -> Option<String> {
+    let mut id: String = scene
+        .chars()
+        .map(|c| c.to_ascii_lowercase())
+        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+        .collect();
+    if !id.starts_with(|c: char| c.is_ascii_lowercase()) {
+        id.insert_str(0, "oma_");
+    }
+    if taken.contains_key(&id) {
+        id.insert_str(0, "oma_");
+    }
+    (id.len() <= 40 && !taken.contains_key(&id)).then_some(id)
 }
 
-/// Compile pasted story text and assemble a project with each scene's set artwork.
+fn library(project: &ProjectContent) -> Result<Library, String> {
+    let mut library = pack_library()?;
+    let Some(script) = &project.script else {
+        return Ok(library);
+    };
+    for (id, character) in &script.characters {
+        let rig_ok = character.rig.is_some() && character.resolved_rig().is_ok();
+        if !rig_ok || library.catalog.characters.contains_key(id) {
+            continue;
+        }
+        let voice = character.voice.as_ref();
+        let preset = |provider: &str, fallback: &str| {
+            voice
+                .filter(|v| v.provider == provider)
+                .map_or(fallback.to_string(), |v| v.preset.clone())
+        };
+        let acting = character.rig.as_ref().map_or(String::new(), |rig| {
+            let mut parts = Vec::new();
+            if rig.visemes.is_some() {
+                parts.push("talking mouth");
+            }
+            if rig.eyes.is_some() {
+                parts.push("eyes");
+            }
+            if !rig.expressions.is_empty() {
+                parts.push("expressions");
+            }
+            if parts.is_empty() {
+                String::new()
+            } else {
+                format!(" with {}", parts.join(", "))
+            }
+        });
+        let mut own = character.clone();
+        own.voice = None;
+        library.catalog.characters.insert(
+            id.clone(),
+            CatalogCharacter {
+                name: id.clone(),
+                description: format!("the user's own character from this project{acting}"),
+                character: own,
+                accent: script
+                    .project
+                    .captions
+                    .as_ref()
+                    .and_then(|c| c.speaker_fill.get(id).cloned())
+                    .unwrap_or_else(|| "#ffffff".into()),
+                english_voice: preset("kokoro", "am_michael"),
+                finnish_voice: preset("piper", FINNISH_VOICE),
+                speed: voice.map_or(1.0, |v| f64::from(v.speed)).clamp(0.7, 1.4),
+            },
+        );
+    }
+    for scene in &script.scenes {
+        let layers: Vec<_> = project
+            .art
+            .iter()
+            .filter(|layer| layer.scene_id == scene.id && layer.attachment.is_none())
+            .cloned()
+            .collect();
+        if layers.is_empty() {
+            continue;
+        }
+        let Some(id) = project_set_id(&scene.id, &library.catalog.sets) else {
+            continue;
+        };
+        library.catalog.sets.insert(
+            id.clone(),
+            CatalogSet {
+                name: scene.id.clone(),
+                description: format!("set painted in the user's project (scene {})", scene.id),
+                background_color: scene.composition.background_color.clone(),
+            },
+        );
+        library.set_layers.insert(id, layers);
+    }
+    Ok(library)
+}
+
+#[cfg(test)]
+pub(crate) fn catalog() -> Result<StoryCatalog, String> {
+    Ok(pack_library()?.catalog)
+}
+
+/// Instructions to paste into Claude or ChatGPT before the story idea,
+/// listing the pack and the open project's own characters and sets.
+pub(crate) fn guide(project: &ProjectContent) -> Result<String, String> {
+    Ok(story::authoring_guide(&library(project)?.catalog))
+}
+
+/// Compile with the pack only (tests and the bundled example).
+#[cfg(test)]
 pub(crate) fn build(
     text: &str,
     measured: Option<&[story::MeasuredLine]>,
 ) -> Result<Built, Vec<StoryIssue>> {
-    let catalog = catalog().map_err(catalog_error)?;
-    let compilation = story::compile_story(text, &catalog, measured)?;
+    build_with(text, measured, &ProjectContent::default())
+}
+
+/// Compile pasted story text and assemble a project with each scene's set artwork.
+pub(crate) fn build_with(
+    text: &str,
+    measured: Option<&[story::MeasuredLine]>,
+    project: &ProjectContent,
+) -> Result<Built, Vec<StoryIssue>> {
+    let library = library(project).map_err(catalog_error)?;
+    let compilation = story::compile_story(text, &library.catalog, measured)?;
     let source =
         motion_script::to_source(&compilation.script).map_err(|e| catalog_error(e.to_string()))?;
     if source.len() > MAX_SOURCE_BYTES {
@@ -144,26 +393,26 @@ pub(crate) fn build(
     }
     let mut document =
         motion_project::ProjectDocument::new(source).map_err(|e| catalog_error(e.to_string()))?;
-    let mut set_layers = BTreeMap::new();
-    for (id, _, project) in SETS {
-        let set = set_document(project).map_err(catalog_error)?;
-        set_layers.insert(id, set.art.layers);
-    }
     for (scene_id, set_id) in &compilation.scene_sets {
-        let layers = set_layers
+        let layers = library
+            .set_layers
             .get(set_id.as_str())
             .ok_or_else(|| catalog_error(format!("set {set_id} has no artwork")))?;
-        for layer in layers {
+        for (index, layer) in layers.iter().enumerate() {
             let mut layer = layer.clone();
             let suffix = layer
                 .id
                 .strip_prefix(&format!("{}_", layer.scene_id))
                 .unwrap_or(&layer.id)
                 .to_string();
-            layer.id = format!("{scene_id}_{suffix}");
+            layer.id = format!("{scene_id}_{index}_{suffix}");
             layer.scene_id = scene_id.clone();
             document.art.layers.push(layer);
         }
+    }
+    for (index, item) in compilation.furniture.iter().enumerate() {
+        let layers = furniture_layers(item, index).map_err(catalog_error)?;
+        document.art.layers.extend(layers);
     }
     document
         .validate()
@@ -189,7 +438,7 @@ mod tests {
             .rig
             .as_ref()
             .is_some_and(|r| r.eyes.is_some())));
-        let guide = guide().unwrap();
+        let guide = guide(&ProjectContent::default()).unwrap();
         assert!(guide.contains("SISU") && guide.contains("hautausmaa"));
     }
 
@@ -245,8 +494,74 @@ mod tests {
     }
 
     #[test]
+    fn a_seated_actor_gets_a_chair_behind_them() {
+        let text = "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {}\nscenes:\n  - id: s\n    set: kahvila\n    positions: {VEIKKO: center}\n    beats:\n      - do: VEIKKO\n        pose: sit\n";
+        let built = build(text, None).unwrap();
+        let chair: Vec<_> = built
+            .document
+            .art
+            .layers
+            .iter()
+            .filter(|l| l.id.contains("furniture0"))
+            .collect();
+        assert!(chair.len() > 5);
+        assert!(chair
+            .iter()
+            .all(|l| l.plane == motion_art::Plane::Background && l.scene_id == "s"));
+    }
+
+    #[test]
     fn errors_are_returned_not_panicked() {
         let issues = build("kilsat_story: 1\ntitle: x\n", None).err().unwrap();
         assert!(!issues.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod project_content_tests {
+    use super::*;
+
+    #[test]
+    fn own_characters_and_painted_scenes_become_story_material() {
+        // A project made from a story offers its scenes as sets; the pack's
+        // starter offers its six painted scenes.
+        let starter = crate::stick_studio::load().unwrap();
+        let mut script = motion_script::parse(&starter.source).unwrap();
+        let mut own = script.characters["VEIKKO"].clone();
+        own.voice = Some(motion_script::VoiceConfig {
+            provider: "kokoro".into(),
+            preset: "bm_lewis".into(),
+            language: "en-gb".into(),
+            speed: 1.1,
+        });
+        script.characters.insert("ONNI".into(), own);
+        let source = motion_script::to_source(&script).unwrap();
+        let project = ProjectContent::new(&source, Some(&starter.art));
+        let library = library(&project).unwrap();
+        let onni = &library.catalog.characters["ONNI"];
+        assert_eq!(onni.english_voice, "bm_lewis");
+        assert!(onni.description.contains("own character"));
+        assert!(library.catalog.sets.contains_key("vuoron_alku"));
+        assert!(!library.set_layers["vuoron_alku"].is_empty());
+        let guide = story::authoring_guide(&library.catalog);
+        assert!(guide.contains("ONNI") && guide.contains("vuoron_alku"));
+        let text = "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  ONNI: {}\nscenes:\n  - id: s\n    set: vuoron_alku\n    positions: {ONNI: center}\n    beats:\n      - say: ONNI\n        line: My own set.\n";
+        let built = build_with(text, None, &project).unwrap();
+        assert!(built.document.art.layers.iter().any(|l| l.scene_id == "s"));
+        assert!(
+            build(text, None).is_err(),
+            "not offered without the project"
+        );
+    }
+
+    #[test]
+    fn set_ids_never_hide_pack_sets() {
+        let sets = catalog().unwrap().sets;
+        assert_eq!(
+            project_set_id("kahvila", &sets).as_deref(),
+            Some("oma_kahvila")
+        );
+        assert_eq!(project_set_id("Scene 1", &sets).as_deref(), Some("scene_1"));
+        assert_eq!(project_set_id("1st", &sets).as_deref(), Some("oma_1st"));
     }
 }
