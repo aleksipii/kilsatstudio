@@ -605,7 +605,8 @@ fn over(source: vec4<f32>, backdrop: vec4<f32>, mode: f32) -> vec4<f32> {
    let coverage=1.-smoothstep(-s.origin.z,s.origin.z,distance);
    let uv=vec2(s.color.x*local.x+s.color.z*local.y,s.color.y*local.x+s.color.w*local.y)+s.geometry.zw;
    let value=image_sample(uv,s);
-   colors[depth]=over(vec4(value.rgb,value.a*coverage),colors[depth],0.); continue;
+   // origin.w: picture brightness on straight byte-space sRGB, clamped at white.
+   colors[depth]=over(vec4(min(value.rgb*s.origin.w,vec3(1.)),value.a*coverage),colors[depth],0.); continue;
   }
   if kind>14.5 && kind<15.5 {
    masks[depth]=s.geometry.x; continue;

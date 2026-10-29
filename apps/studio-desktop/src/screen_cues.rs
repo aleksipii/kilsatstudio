@@ -4,7 +4,9 @@
 //! through `motion_script::apply_composition`, applied by the caller on the
 //! undoable screenplay path. Errors are returned for inline display.
 use eframe::egui;
-use motion_rig::TextureFit;
+use motion_rig::{
+    TextureFit, DEFAULT_SCREEN_GLOW_RADIUS, MAX_SCREEN_BRIGHTNESS, MAX_SCREEN_GLOW_RADIUS,
+};
 use motion_script::{ScreenCue, ScreenSource, Script};
 
 /// `(actor, slot)` for every character rig with a screen slot.
@@ -97,6 +99,12 @@ pub struct Draft {
     pub trim_end: Option<f64>,
     pub speed: f64,
     pub looping: bool,
+    /// Picture brightness multiplier (1 = as recorded).
+    pub brightness: f64,
+    /// Glow strength `0..=1` (0 = none).
+    pub glow: f64,
+    /// Glow reach in slot lengths; `None` uses the default.
+    pub glow_radius: Option<f64>,
     /// Source seconds separated by commas, semicolons or spaces.
     pub taps: String,
 }
@@ -118,6 +126,9 @@ impl Draft {
             trim_end: None,
             speed: 1.0,
             looping: false,
+            brightness: 1.0,
+            glow: 0.0,
+            glow_radius: None,
             taps: String::new(),
         }
     }
@@ -129,6 +140,9 @@ impl Draft {
         draft.trim_end = cue.trim_end;
         draft.speed = cue.speed;
         draft.looping = cue.looping;
+        draft.brightness = cue.brightness;
+        draft.glow = cue.glow;
+        draft.glow_radius = cue.glow_radius;
         draft.taps = cue
             .taps
             .iter()
@@ -212,6 +226,22 @@ impl Draft {
             speed: if timed { self.speed } else { 1.0 },
             looping: timed && self.looping,
             taps,
+            // An `off` screen shows nothing and never glows; keep the cue minimal.
+            brightness: if self.kind == Kind::Off {
+                1.0
+            } else {
+                self.brightness
+            },
+            glow: if self.kind == Kind::Off {
+                0.0
+            } else {
+                self.glow
+            },
+            glow_radius: if self.kind == Kind::Off || self.glow == 0.0 {
+                None
+            } else {
+                self.glow_radius
+            },
         })
     }
 }
@@ -408,6 +438,31 @@ pub fn ui(ui: &mut egui::Ui, panel: &mut Panel, view: View<'_>) -> Option<Action
                             ui.selectable_value(&mut draft.fit, fit, fit_label(fit));
                         }
                     });
+                ui.horizontal(|ui| {
+                    ui.label("Kirkkaus");
+                    ui.add(
+                        egui::DragValue::new(&mut draft.brightness)
+                            .speed(0.02)
+                            .range(0.0..=MAX_SCREEN_BRIGHTNESS),
+                    );
+                    ui.label("Hehku");
+                    ui.add(egui::Slider::new(&mut draft.glow, 0.0..=1.0));
+                });
+                if draft.glow > 0.0 {
+                    ui.horizontal(|ui| {
+                        let mut custom = draft.glow_radius.is_some();
+                        if ui.checkbox(&mut custom, "Hehkun säde (näytön pituuksina)").changed() {
+                            draft.glow_radius = custom.then_some(DEFAULT_SCREEN_GLOW_RADIUS);
+                        }
+                        if let Some(radius) = &mut draft.glow_radius {
+                            ui.add(
+                                egui::DragValue::new(radius)
+                                    .speed(0.02)
+                                    .range(0.01..=MAX_SCREEN_GLOW_RADIUS),
+                            );
+                        }
+                    });
+                }
             }
             if matches!(draft.kind, Kind::Video | Kind::Sequence) {
                 ui.horizontal(|ui| {
@@ -526,11 +581,18 @@ pub(crate) mod tests {
         draft.trim_start = 0.5;
         draft.looping = true;
         draft.taps = "1.0, 2.5".into();
+        draft.brightness = 1.4;
+        draft.glow = 0.6;
+        draft.glow_radius = Some(0.5);
         let added = add(&source, 0, draft.to_cue().unwrap()).unwrap();
         let cues = screens(&added);
         assert_eq!(cues.len(), 1);
         assert_eq!(cues[0].taps, vec![1.0, 2.5]);
         assert!(cues[0].looping);
+        assert_eq!(
+            (cues[0].brightness, cues[0].glow, cues[0].glow_radius),
+            (1.4, 0.6, Some(0.5))
+        );
 
         // Switching to `off` drops trim/speed/loop/taps instead of failing validation.
         let mut edit = Draft::from_cue(0, &cues[0]);
@@ -548,6 +610,10 @@ pub(crate) mod tests {
         assert_eq!(
             (cues[0].at, cues[0].looping, cues[0].taps.len()),
             (1.0, false, 0)
+        );
+        assert_eq!(
+            (cues[0].brightness, cues[0].glow, cues[0].glow_radius),
+            (1.0, 0.0, None)
         );
 
         let removed = remove(&edited, 0, 0).unwrap();

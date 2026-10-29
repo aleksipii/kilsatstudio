@@ -79,7 +79,79 @@ fn bad_texture(part: &motion_rig::EvaluatedPart) -> bool {
             || t.rest_bounds[3] <= 0.0
             || t.uv[2] <= t.uv[0]
             || t.uv[3] <= t.uv[1]
+            || !(0.0..=motion_rig::MAX_SCREEN_BRIGHTNESS).contains(&t.brightness)
+            || t.glow.is_some_and(|g| {
+                !(0.0..=1.0).contains(&g.strength)
+                    || !g.radius.is_finite()
+                    || g.radius <= 0.0
+                    || g.radius > 1_000_000.0
+            })
     })
+}
+
+/// The glow, straight colour and opacity of a textured part's glow, from the
+/// decoded image's mean colour. Shared by the SVG and GPU paths.
+pub(crate) fn texture_glow_paint(
+    texture: &motion_rig::EvaluatedTexture,
+    images: Option<&std::collections::BTreeMap<String, motion_art::ImageResource>>,
+) -> Result<Option<(motion_rig::TextureGlow, [u8; 3], f64)>, Error> {
+    let Some(glow) = texture.glow else {
+        return Ok(None);
+    };
+    let image = images
+        .and_then(|images| images.get(&texture.asset))
+        .ok_or_else(|| Error::RigTexture(format!("missing image resource {}", texture.asset)))?;
+    Ok(glow
+        .paint(image.average_rgb(), texture.brightness)
+        .map(|(rgb, alpha)| (glow, rgb, alpha)))
+}
+
+/// Number of gradient stops after the centre in a glow's smoothstep falloff;
+/// the GPU interpolates linearly between the same stops.
+pub(crate) const GLOW_STOPS: u32 = 6;
+
+/// Screen glows of one actor's textured parts, drawn before the actor so they
+/// light what is behind it: an ellipse in the texture's rest space, screen
+/// blended, with a smoothstep falloff from the centre to its edge.
+fn append_texture_glows(
+    svg: &mut String,
+    actor: &motion_scene::ActorPose,
+    actor_index: usize,
+    images: Option<&std::collections::BTreeMap<String, motion_art::ImageResource>>,
+) -> Result<(), Error> {
+    for (part_index, part) in actor.rigid_parts.iter().enumerate() {
+        let Some(texture) = &part.texture else {
+            continue;
+        };
+        let Some((glow, rgb, alpha)) = texture_glow_paint(texture, images)? else {
+            continue;
+        };
+        let [cx, cy, rx, ry] = glow.ellipse(texture.rest_bounds);
+        let color = format!("#{:02x}{:02x}{:02x}", rgb[0], rgb[1], rgb[2]);
+        write!(
+            svg,
+            "<defs><radialGradient id=\"rigglow{actor_index}x{part_index}\" cx=\"0.5\" cy=\"0.5\" r=\"0.5\"><stop offset=\"0\" stop-color=\"{color}\" stop-opacity=\"{alpha:.6}\"/>"
+        )
+        .unwrap();
+        for step in 0..=GLOW_STOPS {
+            let f = f64::from(step) / f64::from(GLOW_STOPS);
+            let fade = 1.0 - f * f * (3.0 - 2.0 * f);
+            write!(
+                svg,
+                "<stop offset=\"{f:.6}\" stop-color=\"{color}\" stop-opacity=\"{:.6}\"/>",
+                alpha * fade
+            )
+            .unwrap();
+        }
+        let m = texture.transform;
+        write!(
+            svg,
+            "</radialGradient></defs><ellipse transform=\"matrix({:.6} {:.6} {:.6} {:.6} {:.6} {:.6})\" cx=\"{cx:.6}\" cy=\"{cy:.6}\" rx=\"{rx:.6}\" ry=\"{ry:.6}\" fill=\"url(#rigglow{actor_index}x{part_index})\" style=\"mix-blend-mode:screen\"/>",
+            m.a, m.b, m.c, m.d, m.tx, m.ty
+        )
+        .unwrap();
+    }
+    Ok(())
 }
 
 /// Append one textured part: the image sub-rectangle `uv` stretched over the
@@ -114,9 +186,23 @@ fn append_rig_texture(
     for point in &part.points {
         write!(svg, "{:.6},{:.6} ", point.x, point.y).unwrap();
     }
+    svg.push_str("\"/></clipPath>");
+    // Brightness scales straight sRGB bytes and clamps at white, as on the GPU.
+    // Unchanged pictures keep their legacy bytes.
+    let filter = if texture.brightness == 1.0 {
+        String::new()
+    } else {
+        let slope = texture.brightness;
+        write!(
+            svg,
+            "<filter id=\"{clip_id}b\" x=\"0\" y=\"0\" width=\"1\" height=\"1\" color-interpolation-filters=\"sRGB\"><feComponentTransfer><feFuncR type=\"linear\" slope=\"{slope:.6}\"/><feFuncG type=\"linear\" slope=\"{slope:.6}\"/><feFuncB type=\"linear\" slope=\"{slope:.6}\"/></feComponentTransfer></filter>"
+        )
+        .unwrap();
+        format!(" filter=\"url(#{clip_id}b)\"")
+    };
     write!(
         svg,
-        "\"/></clipPath></defs><g clip-path=\"url(#{clip_id})\"><image transform=\"matrix({:.6} {:.6} {:.6} {:.6} {:.6} {:.6})\" x=\"{:.6}\" y=\"{:.6}\" width=\"{w:.6}\" height=\"{h:.6}\" preserveAspectRatio=\"none\" href=\"{}\"/></g>",
+        "</defs><g clip-path=\"url(#{clip_id})\"><image{filter} transform=\"matrix({:.6} {:.6} {:.6} {:.6} {:.6} {:.6})\" x=\"{:.6}\" y=\"{:.6}\" width=\"{w:.6}\" height=\"{h:.6}\" preserveAspectRatio=\"none\" href=\"{}\"/></g>",
         m.a, m.b, m.c, m.d, m.tx, m.ty, bx - u0 * w, by - v0 * h, image.data_uri()
     )
     .unwrap();
@@ -304,6 +390,7 @@ fn render_scene(
         }
         if !actor.rigid_parts.is_empty() {
             use motion_rig::OutlineMode;
+            append_texture_glows(&mut svg, actor, actor_index, rig_images)?;
             // Silhouette outlines first, beneath every fill of this actor.
             for part in &actor.rigid_parts {
                 if let Some(o) = part.outline.filter(|o| o.mode == OutlineMode::Silhouette) {

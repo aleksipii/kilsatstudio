@@ -14,7 +14,7 @@
 //! part, so the picture moves with the hand in preview and export alike.
 use crate::{
     definition::valid_id, Affine2, Error, EvaluatedTexture, PreparedRig, RigDefinition, TextureFit,
-    Transform2, Vec2,
+    TextureGlow, Transform2, Vec2,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -25,6 +25,43 @@ pub const MAX_SCREEN_SLOTS: usize = 8;
 pub const SCREEN_OFF_COLOR: [u8; 4] = [12, 13, 16, 255];
 /// Glass colour behind content, visible in `contain` letterbox bands.
 pub const SCREEN_LETTERBOX_COLOR: [u8; 4] = [0, 0, 0, 255];
+/// Highest accepted screen brightness multiplier.
+pub const MAX_SCREEN_BRIGHTNESS: f64 = 4.0;
+/// Largest accepted glow reach, in multiples of the slot's longer side.
+pub const MAX_SCREEN_GLOW_RADIUS: f64 = 4.0;
+/// Glow reach used when a cue sets `glow` without `glow_radius`.
+pub const DEFAULT_SCREEN_GLOW_RADIUS: f64 = 0.75;
+
+/// How brightly a slot shows its picture and how much it lights its
+/// surroundings. `Off` screens never glow.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ScreenLight {
+    /// Multiplier on the picture's colour, `0..=MAX_SCREEN_BRIGHTNESS`.
+    pub brightness: f64,
+    /// Glow opacity scale, `0..=1`; 0 draws no glow.
+    pub glow: f64,
+    /// Glow reach beyond the glass in multiples of the slot's longer side,
+    /// `(0, MAX_SCREEN_GLOW_RADIUS]`.
+    pub glow_radius: f64,
+}
+impl Default for ScreenLight {
+    fn default() -> Self {
+        Self {
+            brightness: 1.0,
+            glow: 0.0,
+            glow_radius: DEFAULT_SCREEN_GLOW_RADIUS,
+        }
+    }
+}
+impl ScreenLight {
+    /// True when every field is finite and within its documented range.
+    pub fn is_valid(&self) -> bool {
+        (0.0..=MAX_SCREEN_BRIGHTNESS).contains(&self.brightness)
+            && (0.0..=1.0).contains(&self.glow)
+            && self.glow_radius > 0.0
+            && self.glow_radius <= MAX_SCREEN_GLOW_RADIUS
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -73,7 +110,11 @@ pub enum ScreenContent {
     /// A dark, switched-off screen.
     Off,
     /// A project image asset (a still, a sequence frame or a decoded video frame).
-    Image { asset: String, fit: TextureFit },
+    Image {
+        asset: String,
+        fit: TextureFit,
+        light: ScreenLight,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -172,8 +213,8 @@ impl PreparedRig {
         let (color, texture) = match content {
             ScreenContent::Drawn => return Ok(()),
             ScreenContent::Off => (SCREEN_OFF_COLOR, None),
-            ScreenContent::Image { asset, fit } => {
-                if asset.trim().is_empty() || asset.len() > 1024 {
+            ScreenContent::Image { asset, fit, light } => {
+                if asset.trim().is_empty() || asset.len() > 1024 || !light.is_valid() {
                     return Err(Error::InvalidDefinition);
                 }
                 let joint = self
@@ -189,6 +230,11 @@ impl PreparedRig {
                         rest_bounds: [0.0, 0.0, w, h],
                         transform: world[joint].compose(screen.frame),
                         fit: *fit,
+                        brightness: light.brightness,
+                        glow: (light.glow > 0.0).then(|| TextureGlow {
+                            strength: light.glow,
+                            radius: light.glow_radius * w.max(h),
+                        }),
                     }),
                 )
             }
@@ -318,6 +364,7 @@ mod tests {
         let content = ScreenContent::Image {
             asset: "screens/demo.png".into(),
             fit: TextureFit::Cover,
+            light: ScreenLight::default(),
         };
         prepared
             .apply_screen(&mut parts, &offsets, "phone", &content)
@@ -351,6 +398,99 @@ mod tests {
     }
 
     #[test]
+    fn brightness_and_glow_reach_the_texture_and_never_an_off_screen() {
+        let prepared = rig().prepare().unwrap();
+        let apply = |content: &ScreenContent| {
+            let mut parts = prepared.evaluate_parts(&[]).unwrap();
+            prepared
+                .apply_screen(&mut parts, &[], "phone", content)
+                .map(|()| parts[0].clone())
+        };
+        let image = |light: ScreenLight| ScreenContent::Image {
+            asset: "a".into(),
+            fit: TextureFit::Cover,
+            light,
+        };
+        // Defaults: unchanged picture, no glow.
+        let texture = apply(&image(ScreenLight::default()))
+            .unwrap()
+            .texture
+            .unwrap();
+        assert_eq!((texture.brightness, texture.glow), (1.0, None));
+        // Glow radius is relative to the slot's longer side (19.5).
+        let lit = ScreenLight {
+            brightness: 1.5,
+            glow: 0.6,
+            glow_radius: 2.0,
+        };
+        let texture = apply(&image(lit)).unwrap().texture.unwrap();
+        assert_eq!(texture.brightness, 1.5);
+        assert_eq!(
+            texture.glow,
+            Some(TextureGlow {
+                strength: 0.6,
+                radius: 39.0
+            })
+        );
+        assert_eq!(
+            texture.glow.unwrap().ellipse(texture.rest_bounds),
+            [4.5, 9.75, 43.5, 48.75]
+        );
+        // Off has no picture, hence no glow.
+        let off = apply(&ScreenContent::Off).unwrap();
+        assert!(off.texture.is_none());
+        // Out-of-range or non-finite values are rejected, not clamped.
+        for bad in [
+            ScreenLight {
+                brightness: -0.1,
+                ..lit
+            },
+            ScreenLight {
+                brightness: f64::NAN,
+                ..lit
+            },
+            ScreenLight {
+                brightness: MAX_SCREEN_BRIGHTNESS + 0.1,
+                ..lit
+            },
+            ScreenLight { glow: 1.1, ..lit },
+            ScreenLight {
+                glow: f64::INFINITY,
+                ..lit
+            },
+            ScreenLight {
+                glow_radius: 0.0,
+                ..lit
+            },
+            ScreenLight {
+                glow_radius: f64::NAN,
+                ..lit
+            },
+        ] {
+            assert!(!bad.is_valid(), "{bad:?}");
+            assert!(apply(&image(bad)).is_err(), "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn glow_paint_follows_the_mean_colour_and_skips_black() {
+        let glow = TextureGlow {
+            strength: 0.5,
+            radius: 10.0,
+        };
+        let (rgb, alpha) = glow.paint([0.4, 0.2, 0.0], 1.0).unwrap();
+        assert_eq!(rgb, [255, 128, 0]);
+        let luma = 0.2126 * 0.4 + 0.7152 * 0.2;
+        assert!((alpha - 0.5 * luma).abs() < 1e-12);
+        // Brightness scales the glow too, clamped to opaque.
+        let (_, brighter) = glow.paint([0.4, 0.2, 0.0], 2.0).unwrap();
+        assert!((brighter - 2.0 * alpha).abs() < 1e-12);
+        assert_eq!(glow.paint([1.0; 3], 4.0).unwrap().1, 1.0);
+        assert_eq!(glow.paint([0.0; 3], 1.0), None);
+        assert_eq!(glow.paint([0.5; 3], 0.0), None);
+    }
+
+    #[test]
     fn fit_modes_place_a_wide_recording_in_a_tall_slot() {
         let texture = |fit| EvaluatedTexture {
             asset: "a".into(),
@@ -365,6 +505,8 @@ mod tests {
                 ty: 0.0,
             },
             fit,
+            brightness: 1.0,
+            glow: None,
         };
         // 1:1 image into a 1:2 slot.
         assert_eq!(

@@ -27,7 +27,11 @@ what this implementation actually accepts.
   and events. Background names are metadata; `composition.background_color` and
   timed `composition.background_keys` control the rendered solid backdrop. See
   [scene composition](composition.md). Non-speech sounds use
-  `composition.audio_cues` ([audio cues](audio-cues.md)).
+  `composition.audio_cues` ([audio cues](audio-cues.md)). Pictures and
+  recordings on a rig's phone or tablet use `composition.screens`, with optional
+  per-cue `brightness` (0–4, default 1), `glow` (0–1, default 0) and
+  `glow_radius` (slot lengths, (0, 4], default 0.75); see
+  [screen slots](screen-slots.md).
 - Each event starts at a finite nonnegative `at` less than scene duration and names
   an existing `actor`. Unknown fields and commands fail explicitly.
 

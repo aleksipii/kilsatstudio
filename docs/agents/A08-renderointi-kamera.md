@@ -69,6 +69,14 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
 - [ ] MotionScript-kytkentä (set → kamera-avaimet/merkit) — A02:n alue, avoin.
 - [ ] Taidekatselmointi renderöidyistä kuvista (vain SVG-luonnokset katsottu).
 
+### PR #130 -katselmoinnin jatko — näytön kirkkaus ja hehku (A08) + KS-003d (A04)
+
+- [x] `ScreenCue.brightness` / `glow` / `glow_radius` (serde-oletukset, ohitetaan oletusarvoisina, validointi) → `ScreenLight` → `EvaluatedTexture::{brightness, glow}`.
+- [x] SVG- ja GPU-polku piirtävät samat luvut (`TextureGlow::ellipse`/`paint`); `off` ei hehku.
+- [x] Testit: validointi, serde, SVG-pikselit (kirkkaampi kuva, hehku lasin ulkopuolella pimeässä, ei mitään kun off/musta), GPU-komentojen vastaavuus, GPU-kattavuusfixture (mitattu Metalilla).
+- [x] KS-003d: G2-kohtaus näyttövihjeillä, aikahyppy ≡ ruuduittainen toisto sekunti- ja 24 kHz -kellolla (`crates/motion-render/tests/g2_screen_seek.rs`).
+- [ ] Hehku ei valaise hahmoa itseään (piirretään hahmon taakse); havainnollinen taidekatselmointi.
+
 ## Hyväksymisehdot
 
 - Puhelin pysyy kädessä ja kuvassa molemmissa kuvakulmissa (testi + vertailukuva).
@@ -80,6 +88,20 @@ Tarkka jako: [ORK-G2-01](00-orkestroija.md#ork-g2-01--g2n-tiedostoalueet-a05-a06
 Odotettu: renderöintisopimus, rajaussäännöt, testikohtaus, vertailukuvat hasheineen.
 
 ### Toteutunut lopputulema
+
+### Näytön kirkkaus ja hehku + KS-003d (A08/A04) — 29.10.2026, haara `feat/screen-glow-seek`
+- Tehty: `ScreenCue.brightness`/`glow`/`glow_radius` (oletukset, validointi, serde-ohitus),
+  `motion-rig` `ScreenLight` → `EvaluatedTexture::{brightness, glow}`; SVG-renderöijä ja
+  GPU-komentorakentaja piirtävät samat luvut, `off`-näyttö ei hehku. KS-003d:
+  `crates/motion-render/tests/g2_screen_seek.rs` — G2-kohtaus näyttövihjeillä, aikahyppy ≡
+  ruuduittainen toisto sekunti- ja 24 kHz -kellolla.
+- Tarkistettu: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked`,
+  `cargo test --workspace --locked` mainin (#137, #138) kanssa yhdistettynä:
+  fmt ok, clippy 0 varoitusta, 1092 läpi / 0 epäonnistui / 11 ohitettu.
+  GPU-kattavuusfixture mitattu Metalilla agentin ajossa.
+- Työpöytä: A09:n näyttövihje-editori (#137) muokkaa nyt kirkkautta, hehkua ja hehkun sädettä;
+  `off`-vihjeeltä ne pudotetaan (yksikkötesti `screen_cues.rs`). Ei kokeiltu käsin GUI:ssa.
+- Tekemättä: hehku ei valaise hahmoa (piirretään hahmon taakse); havainnollinen taidekatselmointi.
 
 ### ORK-LIB-01 (A08) — 28.10.2026, haara `feat/asset-library`
 - Tila: review (ei commitoitu; ORK commitoi)

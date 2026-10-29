@@ -7,6 +7,34 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Screen-slot follow-ups and Kilsat Studio 1.0 — PRs #135–#139 (2026-10-29)
+
+Merged with the user's authorisation (merge commits, no force-push):
+- **#135** streaming export of decoded screen-video frames (`ArtContext.screen_videos`,
+  `images_at`, cache-backed preflight) and the example episode `examples/screen-demo`
+  ("The Live Demo", English, Kokoro `af_heart`/`am_michael`).
+- **#136** release 1.0.0: `Kilsat Studio.app`, bundle id `studio.kilsat.studio`,
+  `scripts/build_release_app.sh`, `macos-release-app.yml`, `docs/release-1.0.md`.
+- **#137** (A09) desktop screen-cue editor, video import with ffprobe, bounded background
+  proxy decode for the preview.
+- **#138** (A05/A02) screen taps drive the free hand (two-bone IK, pure function of scene
+  time, `tap_diagnostics`); `holds: {item, hand}` shorthand.
+- **#139** (A08/A04) screen `brightness`/`glow`/`glow_radius` on SVG and GPU paths, editable
+  in the desktop cue editor; KS-003d seek ≡ frame-by-frame test with screen cues.
+
+Checks actually run locally (macOS, Apple M1): each branch merged with the then-current
+main passed `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked`
+(0 warnings) and `cargo test --workspace --locked` (#138: 1087 passed / 0 failed / 11 ignored;
+#139: 1092 / 0 / 11). GitHub CI passed on #137 and #138 before merge. The example episode
+was rendered locally at 1920×1080, 45.6 s, H.264 + AAC with local Kokoro speech. The 1.0
+package was built, passed `package_audit.py` and `codesign --verify` (ad-hoc), and the app
+process launched.
+
+Still open: Developer ID signing and notarisation (no Developer ID identity available); hands-on
+GUI use of the screen-cue editor; desktop full-size video export (use `production_export`);
+glow does not light the holder; art/perceptual review; `feat/night-room-grading` (one old
+lighting commit plus uncommitted edits, 200+ commits behind main) is **not** merged.
+
 ## Anchored asset library — `feat/asset-library` (2026-10-28, PR open, not merged)
 
 Status: **review**, pull request open; not merged. Contract ORK-LIB-01.
