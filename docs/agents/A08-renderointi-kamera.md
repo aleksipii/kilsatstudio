@@ -96,7 +96,8 @@ Odotettu: renderöintisopimus, rajaussäännöt, testikohtaus, vertailukuvat has
   `crates/motion-render/tests/g2_screen_seek.rs` — G2-kohtaus näyttövihjeillä, aikahyppy ≡
   ruuduittainen toisto sekunti- ja 24 kHz -kellolla.
 - Tarkistettu: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked`,
-  `cargo test --workspace --locked` mainin (#137) kanssa yhdistettynä — luvut PR:ssä.
+  `cargo test --workspace --locked` mainin (#137, #138) kanssa yhdistettynä:
+  fmt ok, clippy 0 varoitusta, 1092 läpi / 0 epäonnistui / 11 ohitettu.
   GPU-kattavuusfixture mitattu Metalilla agentin ajossa.
 - Työpöytä: A09:n näyttövihje-editori (#137) muokkaa nyt kirkkautta, hehkua ja hehkun sädettä;
   `off`-vihjeeltä ne pudotetaan (yksikkötesti `screen_cues.rs`). Ei kokeiltu käsin GUI:ssa.
