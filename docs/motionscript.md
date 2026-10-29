@@ -10,6 +10,19 @@ what this implementation actually accepts.
   and optional `voice` (`provider: kokoro`, English language, preset, speed 0.5–2).
   Asset strings identify future artwork; the desktop currently draws its own
   procedural placeholder actors and does not load a rig from those paths.
+- A character with a custom `rig` may add `holds: {item: <id>, hand: left|right}`
+  to hold a prop from the stick-studio hand prop catalog
+  (`examples/stick-studio/hand-props.json`: `puhelin`, `puhelin_takana`,
+  `puhelin_vino`, `kahvikuppi`, `kirja`, `avain`, `tabletti`, `kyna`,
+  `tyokaluavain`) at the default grip. The authored rig is not rewritten:
+  validation and evaluation attach the item to a copy, so the item's screen
+  slot (`phone`, `tablet`) can be named by `composition.screens` and the
+  source round-trips with the short form. Unknown items (the error lists the
+  catalog), a missing rig or hand joint, and a hand already holding the
+  character's own prop are validation errors; unknown hands or fields are
+  syntax errors. One held item per character; for a second item attach it
+  to the rig (desktop prop panel or `motion_rig::attach_hand_prop`). See
+  [screen slots](screen-slots.md).
 - `scenes` contain unique IDs, positive finite durations, optional background names,
   and events. Background names are metadata; `composition.background_color` and
   timed `composition.background_keys` control the rendered solid backdrop. See

@@ -20,13 +20,21 @@ pub const GRIP_JOINT: &str = "grip";
 /// hand is not free for a catalog item.
 pub const CHARACTER_PROP_PREFIXES: [&str; 4] = ["scythe", "clipboard", "parcel", "cane"];
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum HandSide {
     #[default]
     Left,
     Right,
 }
 impl HandSide {
+    /// The other hand.
+    pub fn other(self) -> Self {
+        match self {
+            Self::Left => Self::Right,
+            Self::Right => Self::Left,
+        }
+    }
     pub fn joint(self) -> &'static str {
         match self {
             Self::Left => "hand_l",
@@ -155,6 +163,22 @@ pub enum PropError {
     HandOccupied,
     #[error("rig with the attached prop is invalid: {0}")]
     Rig(crate::Error),
+}
+
+/// The stick-studio hand prop catalog shipped with the application
+/// (`examples/stick-studio/hand-props.json`), decoded and validated once.
+/// Immutable after first use.
+pub fn stick_studio_hand_props() -> Result<&'static HandPropCatalog, PropError> {
+    static CATALOG: std::sync::OnceLock<Result<HandPropCatalog, PropError>> =
+        std::sync::OnceLock::new();
+    CATALOG
+        .get_or_init(|| {
+            HandPropCatalog::decode(include_str!(
+                "../../../examples/stick-studio/hand-props.json"
+            ))
+        })
+        .as_ref()
+        .map_err(Clone::clone)
 }
 
 impl HandPropCatalog {
