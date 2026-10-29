@@ -77,6 +77,20 @@ Alue: `examples/stick-studio/library/props/**`, `scripts/generate_library_props.
       viivat ≤ 8 px, lattialla seisovan alareuna = ground).
 - [x] `validate_library --distribution` -ajo (ks. Toteutunut lopputulema).
 
+### PR #130 -katselmoinnin avoimet (28.10.2026, haara `feat/screen-taps-finger`) — tehty
+
+Alue: `motion-rig/src/{tap,props,screen,definition,lib}.rs`, `motion-script/src/{holds,screens,lib}.rs`
+(A02:n `holds:`-osuus), `motion-scene/src/{taps,lib}.rs`, `motion-scene/tests/screen_taps.rs`,
+`docs/screen-slots.md`, `docs/motionscript.md`; `apps/studio-desktop/src/main.rs` vain uuden kentän lisäys.
+
+- [x] Näytön napautukset ohjaavat vapaan käden painallusta (lähestyminen, kosketus tasan
+      napautushetkellä, pito, vapautus) kahden luun IK:lla; puhdas ajan funktio.
+- [x] Kirjoitetut nivelavaimet napauttavassa kädessä voittavat; vapaan käden puute ja
+      ohitetut napautukset raportoidaan tyypitettyinä `TapDiagnostic`-diagnostiikkoina.
+- [x] `holds: {item, hand}` -lyhenne liittää stick-studio-luettelon esineen validoinnissa ja
+      arvioinnissa (ei riippuvuussykliä: `motion-script` riippui jo `motion-rig`istä).
+- [x] Testit ja dokumentaatio (ks. Toteutunut lopputulema).
+
 ## Hyväksymisehdot
 
 - Raajat ja esine pysyvät kiinni hahmon liikkuessa ja kameran vaihtuessa (testit).
@@ -119,6 +133,23 @@ KS-003a, haara `feat/a05-rig-ik-props` (27.10.2026). Sopimus: [rig-attachment-ik
   `motion-render`in käännöksen yhteisestä kansiosta; korjattu `cargo clean -p motion-render` ja uusi ajo.
 - Rajaukset: IK-aikajanaraita ja kohtausarviointi (KS-003d) puuttuvat; ei IK-editoria; kamera on testissä
   affiininen sijainen, ei renderöijän kuvaa; ei graafista tai Mac-laitetarkistusta.
+
+#### PR #130 -jatko — napautukset ja `holds:` (29.10.2026, haara `feat/screen-taps-finger`)
+
+- **Toteutettu**: `motion-rig/src/tap.rs` (`tap_envelope`, `PreparedRig::tap_arm`/`tap_press`,
+  `TapError`), `stick_studio_hand_props()` (luettelo käännetty `motion-rig`iin),
+  `PreparedRig::screen_joint`; `motion-script/src/holds.rs` (`Character.holds {item, hand}`,
+  `resolved_rig`, `Script::resolve_held_props`); `motion-scene/src/taps.rs` (napautukset ratkaistaan
+  kerran kohtausta kohden, painallus on puhdas kohtausajan funktio kirjoitettujen ja proseduraalisten
+  kerrosten jälkeen; kirjoitetut käsiavaimet voittavat; `tap_diagnostics()`).
+- **Tarkistettu** (paikallisesti, mainin #137 kanssa yhdistettynä): `cargo fmt --all --check` ok,
+  `cargo clippy --workspace --all-targets --locked` 0 varoitusta, `cargo test --workspace --locked`
+  1087 läpi / 0 epäonnistui / 11 ohitettu. Ennen yhdistämistä samalla haaralla 1077 läpi / 0 epäonnistui / 10 ohitettu.
+- **Esimerkkijakso**: `examples/screen-demo` (Aino) käyttää omaa `arm_l`/`arm_r`-rigiä, ei
+  standardiketjua, joten napautukset raportoidaan `NoFreeArm`-diagnostiikkana eikä jakson kuva muutu.
+- **Rajaukset**: sormenpää = käsinivel; painallus on tasossa; pitävä käsi ei nosta puhelinta itse;
+  työpöytä ei vielä näytä `tap_diagnostics`ia; ajoitus todennettu testein, ei renderöityä videota
+  katsomalla. `holds:` tukee yhtä luettelon esinettä oletusotteella.
 
 #### ORK-LIB-01 — esinemanifestit (28.10.2026)
 

@@ -4,6 +4,7 @@ pub mod definition;
 pub mod ik;
 pub mod props;
 pub mod screen;
+pub mod tap;
 pub use attachment::{AttachmentError, LimbChain, LimbJoints, PELVIS, STICK_LIMBS, TORSO};
 pub use definition::{
     round_corners, ActingInput, BlinkDefinition, EllipseDefinition, EvaluatedOutline,
@@ -15,14 +16,17 @@ pub use definition::{
 };
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
 pub use props::{
-    attach_hand_prop, detach_hand_prop, grip_parts, grip_screen, hand_availability, GripPlacement,
-    HandPropCatalog, HandPropItem, HandPropScreen, HandSide, PropError, GRIP_JOINT,
-    MAX_HAND_PROP_CATALOG_BYTES,
+    attach_hand_prop, detach_hand_prop, grip_parts, grip_screen, hand_availability,
+    stick_studio_hand_props, GripPlacement, HandPropCatalog, HandPropItem, HandPropScreen,
+    HandSide, PropError, GRIP_JOINT, MAX_HAND_PROP_CATALOG_BYTES,
 };
 pub use screen::{
     ScreenContent, ScreenLight, ScreenSlotDefinition, DEFAULT_SCREEN_GLOW_RADIUS,
     MAX_SCREEN_BRIGHTNESS, MAX_SCREEN_GLOW_RADIUS, MAX_SCREEN_SLOTS, SCREEN_LETTERBOX_COLOR,
     SCREEN_OFF_COLOR,
+};
+pub use tap::{
+    tap_envelope, TapArm, TapError, TAP_APPROACH_SECONDS, TAP_HOLD_SECONDS, TAP_RELEASE_SECONDS,
 };
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec2 {

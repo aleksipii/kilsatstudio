@@ -230,11 +230,12 @@ impl ScreenCue {
         let has_slot = script
             .characters
             .get(&self.actor)
-            .and_then(|c| c.rig.as_ref())
+            // `holds:` props were validated with the characters; their slots count.
+            .and_then(|c| c.resolved_rig().ok().flatten())
             .is_some_and(|rig| rig.screens.iter().any(|s| s.id == self.slot));
         if !has_slot {
             return Err(fail(format!(
-                "actor {} has no screen slot {}; attach a phone or tablet prop or add a slot to its rig",
+                "actor {} has no screen slot {}; hold a phone or tablet (holds: {{item: puhelin, hand: right}}) or add a slot to its rig",
                 self.actor, self.slot
             )));
         }

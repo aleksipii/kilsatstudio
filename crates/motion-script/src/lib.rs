@@ -3,12 +3,14 @@ pub mod auto_direction;
 mod camera_presets;
 pub mod compiler;
 pub mod event_log;
+mod holds;
 pub mod intent;
 mod rules;
 mod screens;
 mod shots;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
+pub use holds::{HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 pub use rules::{
     FiringSource, Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleExpansion,
@@ -45,6 +47,11 @@ pub struct Character {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub rig: Option<motion_rig::RigDefinition>,
     pub voice: Option<VoiceConfig>,
+    /// Shorthand for a hand-held catalog prop, attached to `rig` when the
+    /// script is evaluated (`holds: {item: puhelin, hand: right}`); see
+    /// `Character::resolved_rig`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub holds: Option<HeldProp>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
@@ -1558,6 +1565,9 @@ impl Script {
                 rig.validate()
                     .map_err(|error| fail(format!("character {id}: {error}")))?;
             }
+            character
+                .resolved_rig()
+                .map_err(|error| fail(format!("character {id}: {error}")))?;
         }
         if let Some(captions) = &self.project.captions {
             captions.validate(&self.characters)?;

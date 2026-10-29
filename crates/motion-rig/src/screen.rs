@@ -188,6 +188,11 @@ impl PreparedRig {
     pub fn screen_ids(&self) -> impl Iterator<Item = &str> {
         self.screens().iter().map(|s| s.id.as_str())
     }
+    /// Index of the joint that carries slot `id`'s glass part.
+    pub fn screen_joint(&self, id: &str) -> Option<usize> {
+        let screen = self.screens().iter().find(|s| s.id == id)?;
+        self.joint_index(&screen.joint)
+    }
     /// Show `content` in slot `id` on parts evaluated from this rig with the
     /// same joint `offsets`. `Drawn` leaves the parts untouched.
     pub fn apply_screen(

@@ -9,7 +9,7 @@ slot over time.
 | Layer | Where | What it holds |
 | --- | --- | --- |
 | Slot geometry | `motion_rig::ScreenSlotDefinition` (`RigDefinition.screens`) | `id`, the glass `part`, a parallelogram `origin` + `x_axis` + `y_axis` in the glass part's joint space, and `overlays` (drawn UI hidden while content shows) |
-| Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item copies the slot onto the hand; detaching removes it. A second phone in the other hand gets a hand-tagged slot name (`phone_l` / `phone_r`) |
+| Catalog slot | `HandPropItem.screen` in `examples/stick-studio/hand-props.json` | `puhelin` → slot `phone` (28×51 item units), `tabletti` → slot `tablet`. Attaching the item (rig edit or MotionScript `holds:`) copies the slot onto the hand; detaching removes it. A second phone in the other hand gets a hand-tagged slot name (`phone_l` / `phone_r`) |
 | Content over time | `motion_script::ScreenCue` (`composition.screens`) | `actor`, `slot`, `at`, `source`, `fit`, `trim_start`, `trim_end`, `speed`, `loop`, `taps`, `brightness`, `glow`, `glow_radius` |
 | Evaluation | `motion_scene` → `PreparedRig::apply_screen` | Sets the glass part's texture from the scene time, on the same joint transforms as every other part; `ScreenLight` becomes `EvaluatedTexture::brightness` and `::glow` |
 | Fitting | `EvaluatedTexture::placement` | `cover` (default for screens), `contain`, `stretch`; one function used by both the SVG and the GPU renderer |
@@ -53,9 +53,26 @@ frame. Trim, speed, loop and taps are rejected on stills and `off`. Unknown
 slots, out-of-scene times, bad trims, unsorted taps and `..` paths are
 validation errors; other video containers are `Unsupported`.
 
-`holds: phone` / `phone.screen:` shorthand from the original idea is not part
-of the schema: props are attached through the rig (desktop prop panel or
-`attach_hand_prop`), and screen cues name the slot explicitly.
+A character can hold a catalog phone without editing its rig:
+
+```yaml
+characters:
+  liisa:
+    asset: characters/liisa
+    rig: { ... }                       # custom rig with hand_l / hand_r
+    holds: {item: puhelin, hand: right}
+```
+
+`Character::resolved_rig` attaches the item from
+`motion_rig::stick_studio_hand_props()` (the shipped
+`examples/stick-studio/hand-props.json`, compiled into `motion-rig`) with
+`attach_hand_prop` and the default grip; validation and `motion_scene`
+use that rig, so the cue above may name slot `phone`. The authored rig and
+the `holds:` line stay as written (round trip). Screen cues still name the
+slot explicitly; a `phone.screen:` shorthand is not part of the schema.
+Decision: `motion-script` already depends on `motion-rig`, so loading the
+catalog there adds no dependency or cycle; a per-project catalog path is not
+supported (only the shipped stick-studio catalog).
 
 ## Brightness and glow
 
@@ -98,7 +115,38 @@ scene and SVG for all 96 frames, on both clocks. Decoded video frames are keyed
 `Composition::video_frames_at(t)` lists exactly the frames a scene time needs.
 
 `ScreenCue::tap_times(until)` maps tap markers to scene times, repeating on
-loops, for automatic direction to time a finger press to.
+loops.
+
+## Finger taps
+
+Each tap makes the character's free hand press the screen
+(`motion_rig::tap`, applied by `motion_scene`):
+
+- **Which arm**: if the slot's joint is (or hangs from) `hand_l`/`hand_r`,
+  the other arm; otherwise the right arm, then the left. The arm must be the
+  standard stick chain `torso → upper_arm_* → forearm_* → hand_*`, and its
+  hand must hold nothing (no catalog `heldprop_*` part or character prop).
+- **Press**: `tap_envelope` rises with a smoothstep over
+  `TAP_APPROACH_SECONDS` (0.22 s), is exactly 1 at the tap time, holds for
+  `TAP_HOLD_SECONDS` (0.06 s) and releases over `TAP_RELEASE_SECONDS`
+  (0.18 s); it is 0 outside that window and overlapping presses take the
+  stronger one. `PreparedRig::tap_press` moves the hand that fraction of the
+  way from its current pose to the slot centre with the two-bone IK
+  (`solve_limb_ik`, joint limits apply), keeping the elbow on its current
+  side. At the tap time the hand joint is on the slot centre when it is
+  within reach; out of reach the arm points straight at it. Raise the phone
+  (joint keys on the holding arm) so the free hand can reach it.
+- **Timing**: taps are resolved once per scene from `tap_times`, ending
+  where the next cue on the same slot starts; the press is a pure function
+  of scene time applied after authored keys and procedural gait/gesture
+  layers, so seeking, frame-by-frame playback and export give the same pose.
+- **Precedence**: authored joint keys on the tapping arm's upper arm,
+  forearm or hand win; those taps are not animated.
+- **Diagnostics**: `ValidatedScript::tap_diagnostics()` lists every cue whose
+  taps are not animated as a `TapDiagnostic` with `TapSkip::NoFreeArm`
+  (`TapError::NoFreeArm` with the reason, for example a missing
+  `upper_arm_l` or a hand that already holds a prop) or
+  `TapSkip::AuthoredArm`. Evaluation still succeeds; the arm keeps its pose.
 
 ## Video decoding
 
@@ -130,7 +178,14 @@ clutter).
   brightness/glow reach the texture (never on `off`), range checks, glow paint.
 - `motion-script`: YAML parse/round-trip, trimmed double-speed hold, sequence
   loop, actionable validation errors, character removal drops its cues;
-  brightness/glow defaults are omitted on save, round-trip and validate.
+  brightness/glow defaults are omitted on save, round-trip and validate;
+  `holds:` parse/validate/round-trip, idempotent resolution and errors.
+- `motion-rig` `tap`: envelope exactly 1 at taps and 0 outside windows, the
+  free hand reaches the slot centre, typed `NoFreeArm` / `UnknownSlot`.
+- `motion-scene/tests/screen_taps.rs`: Veikko with `holds: puhelin` touches
+  the screen exactly at each tap, nothing differs from a tap-free script
+  outside the windows, frame-by-frame ≡ backward seeking ≡ uncached
+  `evaluate`, authored keys on the arm win, a busy left hand is reported.
 - `motion-render`: GPU glow and brightness commands match the CPU placement
   and paint (`screen_brightness_and_glow_match_the_cpu_placement`, `gpu`
   feature); G2 seek ≡ frame-by-frame with screen cues.
@@ -186,7 +241,15 @@ and render with `production_export --retime-dialogue` (see the example README).
   desktop **Export video** and sequence export do not decode full-size video
   (preflight rejects it; use `production_export`); the preview shows a
   missing-frame error until the proxy decode finishes; no native file picker.
-- Automatic direction does not yet read `tap_times` to place finger motion.
+- Finger taps: the fingertip is the hand joint (stick hands have no finger
+  joints); the press is planar (no depth or press-in of the glass), the
+  holding arm does not lift the phone by itself, and the desktop does not
+  yet show `tap_diagnostics`. Press timing is checked by tests, not by
+  watching rendered video.
+- `holds:` covers one item per character from the shipped stick-studio
+  catalog at the default grip; grip offset/rotation/scale and a project
+  catalog are not configurable from MotionScript. The desktop prop panel
+  edits the rig itself and does not know about `holds:`.
 - Glow lights only what is behind the actor: it does not brighten the
   holder's own face or hand, and it is not cast by art-layer lights onto other
   layers. Its colour is the whole image's mean, not only the cropped (`cover`)
