@@ -101,3 +101,99 @@ fn running_left_mirrors_the_cycle_instead_of_running_backward() {
     let lean = |pose: &motion_scene::ActorPose| mean_x(part(pose, "neck"));
     assert!(lean(&right) > 0.0 && lean(&left) < 0.0);
 }
+
+mod timed_props_and_sitting {
+    use motion_scene::evaluate;
+    use motion_script::Script;
+
+    fn veikko_unchecked(events: &str) -> Script {
+        let project: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../examples/stick-studio/characters/veikko.kilsat"
+        ))
+        .unwrap();
+        let mut script = motion_script::parse(project["source"].as_str().unwrap()).unwrap();
+        script.scenes =
+            serde_yaml::from_str(&format!("- id: s\n  duration: 4\n  events:\n{events}")).unwrap();
+        script
+    }
+    fn veikko(events: &str) -> Script {
+        let script = veikko_unchecked(events);
+        script.validate().unwrap();
+        script
+    }
+    fn part_ids(script: &Script, t: f64) -> Vec<String> {
+        let scene = evaluate(script, 0, t).unwrap();
+        scene.actors[0]
+            .rigid_parts
+            .iter()
+            .map(|p| p.id.clone())
+            .collect()
+    }
+
+    #[test]
+    fn a_hold_event_picks_up_and_puts_down_a_prop_at_its_time() {
+        let script = veikko(
+            "      - {type: hold, actor: VEIKKO, at: 1, hand: left, item: kahvikuppi}\n      - {type: hold, actor: VEIKKO, at: 3, hand: left}\n",
+        );
+        let before = part_ids(&script, 0.5);
+        let during = part_ids(&script, 2.0);
+        let after = part_ids(&script, 3.5);
+        assert!(during.len() > before.len(), "the cup appears");
+        assert_eq!(before, after, "and is put down again");
+        // Seeking is exact: the same time gives the same parts.
+        assert_eq!(during, part_ids(&script, 2.0));
+    }
+
+    #[test]
+    fn sitting_lowers_the_hips_and_standing_restores_them() {
+        let script = veikko(
+            "      - {type: pose, actor: VEIKKO, at: 1, value: sit}\n      - {type: pose, actor: VEIKKO, at: 3, value: stand}\n",
+        );
+        let lowest = |t: f64| {
+            let scene = evaluate(&script, 0, t).unwrap();
+            scene.actors[0]
+                .rigid_parts
+                .iter()
+                .flat_map(|p| p.points.iter().map(|v| v.y))
+                .fold(f64::NEG_INFINITY, f64::max)
+        };
+        let top = |t: f64| {
+            let scene = evaluate(&script, 0, t).unwrap();
+            scene.actors[0]
+                .rigid_parts
+                .iter()
+                .flat_map(|p| p.points.iter().map(|v| v.y))
+                .fold(f64::INFINITY, f64::min)
+        };
+        assert!(top(2.0) > top(0.5) + 10.0, "the head drops when seated");
+        assert!(
+            (top(3.9) - top(0.5)).abs() < 1e-6,
+            "standing restores the pose"
+        );
+        assert!(lowest(2.0).is_finite());
+    }
+
+    #[test]
+    fn timed_props_and_poses_reject_unsupported_input() {
+        let base = motion_script::parse(include_str!("../../../examples/hello-emma.yaml")).unwrap();
+        let mut legacy = base.clone();
+        legacy.scenes[0].events.push(motion_script::Event::Pose {
+            at: 0.0,
+            actor: "EMMA".into(),
+            value: "sit".into(),
+        });
+        assert!(legacy.validate().is_err(), "no rig, no sitting");
+        let mut hold = base;
+        hold.scenes[0].events.push(motion_script::Event::Hold {
+            at: 0.0,
+            actor: "EMMA".into(),
+            hand: motion_rig::HandSide::Left,
+            item: Some("kahvikuppi".into()),
+        });
+        assert!(hold.validate().is_err(), "no rig, no props");
+        let banana = veikko_unchecked(
+            "      - {type: hold, actor: VEIKKO, at: 1, hand: left, item: banana}\n",
+        );
+        assert!(banana.validate().is_err(), "unknown prop");
+    }
+}

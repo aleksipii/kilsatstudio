@@ -13,7 +13,7 @@ pub mod story;
 mod story_tests;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
-pub use holds::{HeldProp, HoldsError};
+pub use holds::{held_rig, HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
 pub use rules::{
     FiringSource, Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleExpansion,
@@ -94,9 +94,27 @@ pub enum Event {
         actor: String,
         value: String,
     },
+    /// From `at`, the `hand` holds `item` from the stick-studio hand prop
+    /// catalog, or nothing when `item` is omitted (the prop is put down).
+    /// Holds until the next hold event for that hand. Needs a custom rig.
+    Hold {
+        at: f64,
+        actor: String,
+        hand: motion_rig::HandSide,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        item: Option<String>,
+    },
+    /// Body pose that lasts until the next pose event: `sit` or `stand`.
+    Pose {
+        at: f64,
+        actor: String,
+        value: String,
+    },
 }
 /// MotionScript facing names, in the order editors should present them.
 pub const FACINGS: [&str; 4] = ["front", "left", "right", "back"];
+/// MotionScript body poses.
+pub const POSES: [&str; 2] = ["stand", "sit"];
 /// Scene-local composition; camera coordinates are offsets from the canvas center.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -689,6 +707,10 @@ pub enum Error {
     #[error("MotionScript validation: {0}")]
     Validation(String),
 }
+/// MotionScript event `type` values.
+pub const EVENT_TYPES: [&str; 7] = [
+    "speak", "move", "emotion", "gesture", "face", "hold", "pose",
+];
 pub fn parse(source: &str) -> Result<Script, Error> {
     let document: serde_yaml::Value = serde_yaml::from_str(source)?;
     if let Some(scenes) = document
@@ -699,8 +721,11 @@ pub fn parse(source: &str) -> Result<Script, Error> {
             if let Some(events) = scene.get("events").and_then(serde_yaml::Value::as_sequence) {
                 for event in events {
                     if let Some(kind) = event.get("type").and_then(serde_yaml::Value::as_str) {
-                        if !["speak", "move", "emotion", "gesture", "face"].contains(&kind) {
-                            return Err(Error::Unsupported(format!("event {kind}: supported commands are speak, move, emotion, gesture, face")));
+                        if !EVENT_TYPES.contains(&kind) {
+                            return Err(Error::Unsupported(format!(
+                                "event {kind}: supported commands are {}",
+                                EVENT_TYPES.join(", ")
+                            )));
                         }
                     }
                 }
@@ -2113,6 +2138,27 @@ impl Script {
                             )));
                         }
                     }
+                    Event::Pose { value, .. } => {
+                        if !POSES.contains(&value.as_str()) {
+                            return Err(Error::Unsupported(format!(
+                                "pose {value}: supported poses are {}",
+                                POSES.join(", ")
+                            )));
+                        }
+                        let legs = c.rig.as_ref().is_some_and(|rig| {
+                            ["root", "thigh_l", "shin_l", "thigh_r", "shin_r"]
+                                .iter()
+                                .all(|joint| rig.joints.iter().any(|j| j.id == *joint))
+                        });
+                        if !legs {
+                            return Err(Error::Unsupported(format!(
+                                "pose {value} for {actor}: sitting needs a custom rig with root, thigh_l, shin_l, thigh_r and shin_r joints"
+                            )));
+                        }
+                    }
+                    Event::Hold { hand, item, .. } => {
+                        holds::validate_hold(actor, c, *hand, item.as_deref())?;
+                    }
                 }
             }
             for (actor, intervals) in &mut moves {
@@ -2182,7 +2228,9 @@ impl Event {
             | Self::Move { at, actor, .. }
             | Self::Emotion { at, actor, .. }
             | Self::Gesture { at, actor, .. }
-            | Self::Face { at, actor, .. } => (*at, actor),
+            | Self::Face { at, actor, .. }
+            | Self::Hold { at, actor, .. }
+            | Self::Pose { at, actor, .. } => (*at, actor),
         }
     }
 }
@@ -2190,9 +2238,12 @@ impl Event {
 fn gesture_joint(gesture: motion_animation::Gesture) -> &'static str {
     use motion_animation::Gesture;
     match gesture {
-        Gesture::Wave | Gesture::Point => "upper_arm_r",
-        Gesture::Nod => "head",
-        Gesture::Shrug => "upper_arm_l",
+        Gesture::Wave | Gesture::Point | Gesture::Facepalm | Gesture::ThumbsUp | Gesture::Think => {
+            "upper_arm_r"
+        }
+        Gesture::Nod | Gesture::ShakeHead | Gesture::Bow => "head",
+        Gesture::Shrug | Gesture::ArmsCrossed | Gesture::Clap => "upper_arm_l",
+        Gesture::Jump => "root",
     }
 }
 fn validate_emotion(value: &str) -> Result<(), Error> {

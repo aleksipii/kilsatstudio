@@ -77,6 +77,60 @@ impl Character {
     }
 }
 
+/// Check a timed `hold` event: a custom rig with that hand free of the
+/// character's own prop, and a catalog item when one is named.
+pub(crate) fn validate_hold(
+    actor: &str,
+    character: &Character,
+    hand: HandSide,
+    item: Option<&str>,
+) -> Result<(), crate::Error> {
+    let rig = character
+        .resolved_rig()
+        .map_err(|e| crate::Error::Validation(format!("character {actor}: {e}")))?
+        .ok_or_else(|| {
+            crate::Error::Unsupported(format!(
+                "hold for {actor}: timed hand props need a custom rig with hand joints"
+            ))
+        })?;
+    let mut rig = rig.into_owned();
+    held_rig(&mut rig, hand, item)
+        .map_err(|e| crate::Error::Validation(format!("hold for {actor}: {e}")))
+}
+
+/// Put `item` (or nothing) into `hand` of an already resolved rig.
+pub fn held_rig(
+    rig: &mut RigDefinition,
+    hand: HandSide,
+    item: Option<&str>,
+) -> Result<(), HoldsError> {
+    let prop = |source| HoldsError::Prop {
+        item: item.unwrap_or("nothing").into(),
+        hand,
+        source,
+    };
+    match item {
+        None => motion_rig::detach_hand_prop(rig, hand).map_err(prop),
+        Some(item) => {
+            let catalog = motion_rig::stick_studio_hand_props().map_err(prop)?;
+            let entry = catalog
+                .items
+                .iter()
+                .find(|entry| entry.id == item)
+                .ok_or_else(|| HoldsError::UnknownItem {
+                    item: item.into(),
+                    known: catalog
+                        .items
+                        .iter()
+                        .map(|entry| entry.id.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                })?;
+            motion_rig::attach_hand_prop(rig, hand, entry, Default::default()).map_err(prop)
+        }
+    }
+}
+
 impl Script {
     /// True when any character uses the `holds:` shorthand.
     pub fn has_held_props(&self) -> bool {

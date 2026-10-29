@@ -55,6 +55,14 @@ pub const SHOTS: [&str; 6] = [
     "two_shot",
     "over_shoulder",
 ];
+pub const CAMERA_MOVES: [&str; 6] = [
+    "static",
+    "push_in",
+    "pull_out",
+    "pan_left",
+    "pan_right",
+    "shake",
+];
 pub const EMOTIONS: [&str; 5] = ["neutral", "happy", "sad", "surprised", "angry"];
 pub const LANGUAGES: [&str; 3] = ["fi", "en", "en-gb"];
 
@@ -102,6 +110,8 @@ pub struct CastMember {
     /// Hand prop id from the stick-studio hand prop catalog.
     pub holds: Option<String>,
     pub hand: Option<HandSide>,
+    /// Speaking rate, 0.7–1.4; defaults to the character's own rate.
+    pub speed: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -132,8 +142,15 @@ pub struct Beat {
     pub face: Option<String>,
     pub move_to: Option<String>,
     pub gait: Option<String>,
+    /// Pick up a hand prop, or `none` to put down what the hand holds.
+    pub holds: Option<String>,
+    pub hand: Option<HandSide>,
+    /// `sit` or `stand`; lasts until changed.
+    pub pose: Option<String>,
     pub hold: Option<f64>,
     pub shot: Option<String>,
+    /// Camera movement during this beat's shot.
+    pub camera: Option<String>,
     pub on: Option<String>,
     pub reaction: Option<Reaction>,
 }
@@ -166,6 +183,8 @@ pub struct CatalogCharacter {
     pub accent: String,
     pub english_voice: String,
     pub finnish_voice: String,
+    /// Default speaking rate (0.7–1.4), part of the character's voice.
+    pub speed: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -251,6 +270,60 @@ pub fn issues_report(issues: &[StoryIssue]) -> String {
 // ---------------------------------------------------------------------------
 // Output
 
+/// A piece of furniture placed in a scene: its bottom centre stands at
+/// `(x, floor)` in project pixels and its seat reaches `seat` (a y coordinate).
+#[derive(Debug, Clone, PartialEq)]
+pub struct Furniture {
+    pub scene: String,
+    /// Catalog prop id, for example `toimistotuoli`.
+    pub prop: String,
+    pub x: f64,
+    pub floor: f64,
+    pub seat: f64,
+}
+
+/// A measurable editing problem found after compilation. These checks do not
+/// judge comedy, performance or lip-sync quality; they flag what a viewer
+/// would likely notice so it can be fixed before watching.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ReviewNote {
+    /// The speaker is outside the frame for part of their line.
+    SpeakerOffScreen {
+        scene: String,
+        actor: String,
+        at: f64,
+    },
+    /// A shot shorter than `MIN_SHOT_SECONDS` (a flash cut).
+    FlashCut {
+        scene: String,
+        at: f64,
+        seconds: f64,
+    },
+    /// A shot longer than `LONG_SHOT_SECONDS` without a camera move.
+    LongStaticShot {
+        scene: String,
+        at: f64,
+        seconds: f64,
+    },
+    /// Speech faster than `FAST_SPEECH_CHARS` characters per second.
+    FastSpeech {
+        scene: String,
+        actor: String,
+        at: f64,
+        chars_per_second: f64,
+    },
+    /// Silence longer than `LONG_SILENCE_SECONDS` between lines.
+    LongSilence {
+        scene: String,
+        at: f64,
+        seconds: f64,
+    },
+}
+pub const MIN_SHOT_SECONDS: f64 = 0.75;
+pub const LONG_SHOT_SECONDS: f64 = 10.0;
+pub const FAST_SPEECH_CHARS: f64 = 18.0;
+pub const LONG_SILENCE_SECONDS: f64 = 4.0;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StoryTiming {
     /// Dialogue lengths are estimated from the text.
@@ -264,6 +337,9 @@ pub struct CompiledLine {
     pub scene: String,
     pub actor: String,
     pub text: String,
+    pub emotion: Option<String>,
+    /// Project-relative speech WAV when the line was measured from audio.
+    pub audio: Option<String>,
     /// Scene-local start and reserved length in seconds.
     pub at: f64,
     pub duration: f64,
@@ -274,12 +350,16 @@ pub struct StoryCompilation {
     pub script: Script,
     /// `(scene id, set id)` for each compiled scene, in order.
     pub scene_sets: Vec<(String, String)>,
+    /// Furniture to add to a scene's set, such as a chair under a sitting actor.
+    pub furniture: Vec<Furniture>,
     pub lines: Vec<CompiledLine>,
     pub shot_count: usize,
     pub duration: f64,
     pub timing: StoryTiming,
     /// Explicit adjustments the compiler made (for example a skipped move).
     pub notes: Vec<String>,
+    /// Automatic editing checks; see [`ReviewNote`].
+    pub review: Vec<ReviewNote>,
 }
 
 // ---------------------------------------------------------------------------
@@ -455,6 +535,15 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
                         "voice {voice:?} does not fit language {}; use {hint}, or leave voice out",
                         story.language
                     ),
+                ));
+            }
+        }
+        if let Some(speed) = member.speed {
+            if !speed.is_finite() || !(0.7..=1.4).contains(&speed) {
+                out.push(issue(
+                    Bound,
+                    format!("{path}.speed"),
+                    "speed must be 0.7–1.4 (1 is normal)",
                 ));
             }
         }
@@ -648,7 +737,34 @@ fn validate_beat(
     vocabulary(out, "face", &beat.face, &FACINGS);
     vocabulary(out, "move_to", &beat.move_to, &positions);
     vocabulary(out, "gait", &beat.gait, &motion_animation::GAITS);
+    vocabulary(out, "pose", &beat.pose, &crate::POSES);
+    if let Some(item) = &beat.holds {
+        let props: Vec<String> = motion_rig::stick_studio_hand_props()
+            .map(|c| c.items.iter().map(|i| i.id.clone()).collect())
+            .unwrap_or_default();
+        if item != "none" && !props.contains(item) {
+            out.push(issue(
+                Reference,
+                format!("{path}.holds"),
+                format!(
+                    "unknown hand prop {item}; use none to put down, or one of {}",
+                    props.join(", ")
+                ),
+            ));
+        }
+    }
+    if beat.hand.is_some() && beat.holds.is_none() {
+        out.push(issue(Schema, format!("{path}.hand"), "hand needs holds"));
+    }
+    if beat.say.is_some() && (beat.holds.is_some() || beat.pose.is_some()) {
+        out.push(issue(
+            Schema,
+            path,
+            "holds and pose belong to a do beat; put them in a do beat before the line",
+        ));
+    }
     vocabulary(out, "shot", &beat.shot, &SHOTS);
+    vocabulary(out, "camera", &beat.camera, &CAMERA_MOVES);
     hold_check(out, "hold", beat.hold, 0.0);
     if let Some(on) = &beat.on {
         actor_check(out, "on", on);
@@ -662,13 +778,15 @@ fn validate_beat(
             || beat.face.is_some()
             || beat.move_to.is_some()
             || beat.gait.is_some()
+            || beat.holds.is_some()
+            || beat.pose.is_some()
             || beat.hold.is_some()
             || beat.reaction.is_some();
         if extra {
             out.push(issue(
                 Schema,
                 path,
-                "a pause beat takes only pause, shot and on",
+                "a pause beat takes only pause, shot, camera and on",
             ));
         }
         return;
@@ -791,14 +909,22 @@ pub fn estimate_line_seconds(text: &str) -> f64 {
     (words * 0.42).max(chars * 0.068).max(1.0)
 }
 
+/// Measured speech for one `say` beat: its length and, optionally, the
+/// project-relative 24 kHz mono PCM16 WAV that the speak event plays.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MeasuredLine {
+    pub seconds: f64,
+    pub audio: Option<String>,
+}
+
 /// Parse, validate and compile a story into a validated MotionScript [`Script`].
 ///
-/// `line_seconds`, when given, holds one reserved length per `say` beat in
-/// story order (for example measured speech); otherwise lengths are estimated.
+/// `measured`, when given, holds one entry per `say` beat in story order
+/// (for example synthesized speech); otherwise lengths are estimated.
 pub fn compile_story(
     input: &str,
     catalog: &StoryCatalog,
-    line_seconds: Option<&[f64]>,
+    measured: Option<&[MeasuredLine]>,
 ) -> Result<StoryCompilation, Vec<StoryIssue>> {
     let story = parse_story(input, catalog)?;
     let say_count = story
@@ -807,7 +933,7 @@ pub fn compile_story(
         .flat_map(|s| &s.beats)
         .filter(|b| b.say.is_some())
         .count();
-    if let Some(lengths) = line_seconds {
+    if let Some(lengths) = measured {
         if lengths.len() != say_count {
             return Err(vec![issue(
                 IssueKind::Invalid,
@@ -818,18 +944,26 @@ pub fn compile_story(
                 ),
             )]);
         }
-        if let Some(index) = lengths
-            .iter()
-            .position(|s| !s.is_finite() || *s <= 0.0 || *s > MAX_LINE_SECONDS)
-        {
+        if let Some(index) = lengths.iter().position(|line| {
+            !line.seconds.is_finite()
+                || line.seconds <= 0.0
+                || line.seconds > MAX_LINE_SECONDS
+                || line.audio.as_deref().is_some_and(|path| {
+                    path.trim().is_empty()
+                        || path.len() > 4096
+                        || path.starts_with('/')
+                        || path.contains('\0')
+                        || path.split('/').any(|part| part == "..")
+                })
+        }) {
             return Err(vec![issue(
                 IssueKind::Bound,
                 format!("line {}", index + 1),
-                format!("line length must be above 0 and at most {MAX_LINE_SECONDS} seconds"),
+                format!("line length must be above 0 and at most {MAX_LINE_SECONDS} seconds, with a project-relative audio path"),
             )]);
         }
     }
-    let mut builder = Builder::new(&story, catalog, line_seconds);
+    let mut builder = Builder::new(&story, catalog, measured);
     let mut scenes = Vec::new();
     let mut scene_sets = Vec::new();
     let mut issues = Vec::new();
@@ -889,16 +1023,68 @@ pub fn compile_story(
         shot_count: builder.shots,
         lines: builder.lines,
         notes: builder.notes,
-        timing: if line_seconds.is_some() {
+        timing: if measured.is_some() {
             StoryTiming::Supplied
         } else {
             StoryTiming::Estimated
         },
         script,
         scene_sets,
+        furniture: builder.furniture,
+        review: builder.review,
         duration,
     })
 }
+
+/// Camera centre offset and zoom at `time`, interpolated linearly between
+/// keys like the scene evaluator.
+fn camera_x_at(keys: &[CameraKey], time: f64) -> (f64, f64) {
+    let Some(first) = keys.first() else {
+        return (0.0, 1.0);
+    };
+    let mut left = first;
+    for right in &keys[1..] {
+        if time <= right.at {
+            let t = ((time - left.at) / (right.at - left.at)).clamp(0.0, 1.0);
+            return (
+                left.x + (right.x - left.x) * t,
+                left.zoom + (right.zoom - left.zoom) * t,
+            );
+        }
+        left = right;
+    }
+    (left.x, left.zoom)
+}
+
+fn slot(hand: HandSide) -> usize {
+    match hand {
+        HandSide::Left => 0,
+        HandSide::Right => 1,
+    }
+}
+/// Time given to picking up or putting down a prop, and to sitting or standing.
+const PROP_SECONDS: f64 = 0.6;
+const SIT_HOLD_SECONDS: f64 = 0.8;
+/// Stick-studio rig geometry in rig units: hip joint to the soles, and the
+/// seat surface just under the hips of a seated actor.
+const FEET_BELOW_HIP: f64 = 136.0;
+const SEAT_BELOW_HIP: f64 = 4.0;
+
+/// One shot: from `at` until the next cut, with an optional camera move.
+#[derive(Debug, Clone, PartialEq)]
+struct Shot {
+    at: f64,
+    framing: Framing,
+    movement: Option<String>,
+}
+
+/// Camera move ranges: push/pull zoom factor, pan sweep as a fraction of the
+/// visible width each way, and a short decaying shake.
+const PUSH_RANGE: f64 = 0.3;
+const PAN_RANGE: f64 = 0.12;
+const PAN_MIN_ZOOM: f64 = 1.2;
+const SHAKE_SECONDS: f64 = 0.5;
+const SHAKE_PIXELS: f64 = 14.0;
 
 #[derive(Debug, Clone, PartialEq)]
 enum Framing {
@@ -913,11 +1099,13 @@ enum Framing {
 struct Builder<'a> {
     story: &'a Story,
     catalog: &'a StoryCatalog,
-    line_seconds: Option<&'a [f64]>,
+    measured: Option<&'a [MeasuredLine]>,
     next_line: usize,
     lines: Vec<CompiledLine>,
     notes: Vec<String>,
     shots: usize,
+    furniture: Vec<Furniture>,
+    review: Vec<ReviewNote>,
 }
 
 /// Actor positions over one scene: a start offset plus sequential linear moves.
@@ -964,15 +1152,21 @@ fn frame_ceil(t: f64) -> f64 {
 }
 
 impl<'a> Builder<'a> {
-    fn new(story: &'a Story, catalog: &'a StoryCatalog, line_seconds: Option<&'a [f64]>) -> Self {
+    fn new(
+        story: &'a Story,
+        catalog: &'a StoryCatalog,
+        measured: Option<&'a [MeasuredLine]>,
+    ) -> Self {
         Self {
             story,
             catalog,
-            line_seconds,
+            measured,
             next_line: 0,
             lines: Vec::new(),
             notes: Vec::new(),
             shots: 0,
+            furniture: Vec::new(),
+            review: Vec::new(),
         }
     }
 
@@ -1009,11 +1203,136 @@ impl<'a> Builder<'a> {
                 provider: provider.into(),
                 preset,
                 language: language.into(),
-                speed: 1.0,
+                speed: member.speed.unwrap_or(entry.speed).clamp(0.7, 1.4) as f32,
             });
             characters.insert(id.clone(), character);
         }
         Ok(characters)
+    }
+
+    fn catalog_held(&self, actor: &str) -> Option<HeldProp> {
+        let member = self.story.cast.get(actor)?.clone().unwrap_or_default();
+        let item = member.holds?;
+        let character = held_character(
+            &self.catalog.characters[actor].character,
+            &item,
+            member.hand,
+        )?;
+        character.holds
+    }
+
+    /// The first empty hand that can take a catalog prop (not busy with the
+    /// character's own prop), preferring the left so gestures keep the right.
+    fn free_hand(&self, actor: &str, state: &[Option<String>; 2]) -> Option<HandSide> {
+        let mut rig = self.catalog.characters[actor].character.rig.clone()?;
+        if let Some(held) = self.catalog_held(actor) {
+            crate::held_rig(&mut rig, held.hand, Some(&held.item)).ok()?;
+        }
+        [HandSide::Left, HandSide::Right].into_iter().find(|hand| {
+            state[slot(*hand)].is_none()
+                && crate::held_rig(&mut rig.clone(), *hand, Some("kahvikuppi")).is_ok()
+        })
+    }
+
+    /// An office chair under a seated actor, scaled so its seat meets the
+    /// lowered hips (profile sits lower than the front view).
+    fn place_chair(&mut self, scene: &str, x: f64, profile: bool) {
+        let h = f64::from(STORY_HEIGHT);
+        let root_y = h * 0.7;
+        let drop = if profile { 60.0 } else { 22.0 };
+        let furniture = Furniture {
+            scene: scene.to_string(),
+            prop: "toimistotuoli".into(),
+            x,
+            floor: root_y + FEET_BELOW_HIP * ACTOR_SCALE,
+            seat: root_y + (drop + SEAT_BELOW_HIP) * ACTOR_SCALE,
+        };
+        let duplicate = self.furniture.iter().any(|f| {
+            f.scene == furniture.scene
+                && (f.x - furniture.x).abs() < 1.0
+                && f.seat == furniture.seat
+        });
+        if !duplicate {
+            self.furniture.push(furniture);
+        }
+    }
+
+    fn review_scene(
+        &mut self,
+        scene: &str,
+        cuts: &[Shot],
+        camera: &[CameraKey],
+        stage: &Stage,
+        duration: f64,
+    ) {
+        let w = f64::from(STORY_WIDTH);
+        for (index, shot) in cuts.iter().enumerate() {
+            let end = cuts.get(index + 1).map_or(duration, |next| next.at);
+            let seconds = end - shot.at;
+            let last = index + 1 == cuts.len();
+            if seconds < MIN_SHOT_SECONDS && !last {
+                self.review.push(ReviewNote::FlashCut {
+                    scene: scene.into(),
+                    at: shot.at,
+                    seconds,
+                });
+            }
+            let moving_subject = stage
+                .moves
+                .values()
+                .flatten()
+                .any(|&(t0, t1, ..)| t0 < end && t1 > shot.at);
+            if seconds > LONG_SHOT_SECONDS && shot.movement.is_none() && !moving_subject {
+                self.review.push(ReviewNote::LongStaticShot {
+                    scene: scene.into(),
+                    at: shot.at,
+                    seconds,
+                });
+            }
+        }
+        let lines: Vec<_> = self
+            .lines
+            .iter()
+            .filter(|l| l.scene == scene)
+            .cloned()
+            .collect();
+        for line in &lines {
+            // Sample the line at a quarter, half and three quarters.
+            let hidden = [0.25, 0.5, 0.75].iter().any(|f| {
+                let t = line.at + line.duration * f;
+                let (cx, zoom) = camera_x_at(camera, t);
+                let half = w / (2.0 * zoom);
+                let x = stage.x(&line.actor, t);
+                (x - (cx + w / 2.0)).abs() > half * 0.95
+            });
+            if hidden {
+                self.review.push(ReviewNote::SpeakerOffScreen {
+                    scene: scene.into(),
+                    actor: line.actor.clone(),
+                    at: line.at,
+                });
+            }
+            let rate =
+                line.text.chars().filter(|c| !c.is_whitespace()).count() as f64 / line.duration;
+            if rate > FAST_SPEECH_CHARS {
+                self.review.push(ReviewNote::FastSpeech {
+                    scene: scene.into(),
+                    actor: line.actor.clone(),
+                    at: line.at,
+                    chars_per_second: rate,
+                });
+            }
+        }
+        for pair in lines.windows(2) {
+            let gap = pair[1].at - (pair[0].at + pair[0].duration);
+            if gap > LONG_SILENCE_SECONDS {
+                self.review.push(ReviewNote::LongSilence {
+                    scene: scene.into(),
+                    at: pair[0].at + pair[0].duration,
+                    seconds: gap,
+                });
+            }
+        }
     }
 
     fn has_eyes(&self, actor: &str) -> bool {
@@ -1037,9 +1356,19 @@ impl<'a> Builder<'a> {
         };
         let mut events: Vec<Event> = Vec::new();
         let mut gaze: BTreeMap<String, Vec<GazeKey>> = BTreeMap::new();
-        let mut cuts: Vec<(f64, Framing)> = Vec::new();
+        let mut cuts: Vec<Shot> = Vec::new();
         let mut content_end: f64 = 0.0;
         let mut facing: BTreeMap<String, String> = BTreeMap::new();
+        let mut seated: BTreeSet<String> = BTreeSet::new();
+        // What each hand holds; every scene starts from the cast's `holds`.
+        let mut hands: BTreeMap<String, [Option<String>; 2]> = BTreeMap::new();
+        for actor in stage.start.keys() {
+            let mut state = [None, None];
+            if let Some(held) = &self.catalog_held(actor) {
+                state[slot(held.hand)] = Some(held.item.clone());
+            }
+            hands.insert(actor.clone(), state);
+        }
 
         let eyes: BTreeSet<String> = stage
             .start
@@ -1071,11 +1400,25 @@ impl<'a> Builder<'a> {
                 look(&mut gaze, actor, 0.0, &partner);
             }
         }
-        let cut = |cuts: &mut Vec<(f64, Framing)>, t: f64, framing: Framing| match cuts.last_mut() {
-            Some((_, last)) if *last == framing => {}
-            Some((at, last)) if (*at - t).abs() < 1e-9 => *last = framing,
-            _ => cuts.push((t, framing)),
+        // A camera move always starts its own shot; otherwise an unchanged
+        // framing continues without a jump cut.
+        let cut = |cuts: &mut Vec<Shot>, at: f64, framing: Framing, movement: Option<&String>| {
+            let shot = Shot {
+                at,
+                framing,
+                movement: movement.cloned(),
+            };
+            match cuts.last_mut() {
+                Some(last) if (last.at - at).abs() < 1e-9 => *last = shot,
+                Some(last)
+                    if last.framing == shot.framing
+                        && last.movement.is_none()
+                        && shot.movement.is_none() => {}
+                _ => cuts.push(shot),
+            }
         };
+        let last_framing =
+            |cuts: &Vec<Shot>| cuts.last().map_or(Framing::Wide, |s| s.framing.clone());
         let gesture_seconds =
             |within: Option<f64>| within.map_or(GESTURE_SECONDS, |d: f64| d.clamp(0.8, 1.6));
 
@@ -1086,15 +1429,23 @@ impl<'a> Builder<'a> {
             let first = b == 0;
             let explicit = beat.shot.as_deref().filter(|s| *s != "auto");
             if let Some(pause) = beat.pause {
-                if explicit.is_some() || first {
+                if explicit.is_some() || first || beat.camera.is_some() {
                     let subject = beat
                         .on
                         .clone()
                         .or_else(|| stage.start.keys().next().cloned())
                         .unwrap_or_default();
-                    let framing =
-                        self.framing(explicit.unwrap_or("wide"), &subject, None, &stage, t);
-                    cut(&mut cuts, if first { 0.0 } else { t }, framing);
+                    let framing = match explicit {
+                        Some(shot) => self.framing(shot, &subject, None, &stage, t),
+                        None if first => Framing::Wide,
+                        None => last_framing(&cuts),
+                    };
+                    cut(
+                        &mut cuts,
+                        if first { 0.0 } else { t },
+                        framing,
+                        beat.camera.as_ref(),
+                    );
                 }
                 t += pause;
                 content_end = content_end.max(t);
@@ -1126,9 +1477,12 @@ impl<'a> Builder<'a> {
             let end;
             if beat.say.is_some() {
                 let text = beat.line.clone().unwrap_or_default().trim().to_string();
-                let seconds = match self.line_seconds {
-                    Some(lengths) => lengths[self.next_line],
-                    None => estimate_line_seconds(&text),
+                let (seconds, audio) = match self.measured {
+                    Some(lines) => (
+                        lines[self.next_line].seconds,
+                        lines[self.next_line].audio.clone(),
+                    ),
+                    None => (estimate_line_seconds(&text), None),
                 };
                 self.next_line += 1;
                 events.push(Event::Speak {
@@ -1136,12 +1490,14 @@ impl<'a> Builder<'a> {
                     actor: actor.clone(),
                     text: text.clone(),
                     emotion: beat.emotion.clone(),
-                    audio: None,
+                    audio: audio.clone(),
                 });
                 self.lines.push(CompiledLine {
                     scene: scene.id.clone(),
                     actor: actor.clone(),
                     text,
+                    emotion: beat.emotion.clone(),
+                    audio,
                     at: t,
                     duration: seconds,
                 });
@@ -1175,7 +1531,15 @@ impl<'a> Builder<'a> {
                 });
                 if shot != "keep" {
                     let framing = self.framing(shot, &subject, partner.as_deref(), &stage, t);
-                    cut(&mut cuts, if first { 0.0 } else { t }, framing);
+                    cut(
+                        &mut cuts,
+                        if first { 0.0 } else { t },
+                        framing,
+                        beat.camera.as_ref(),
+                    );
+                } else if beat.camera.is_some() {
+                    let framing = last_framing(&cuts);
+                    cut(&mut cuts, t, framing, beat.camera.as_ref());
                 }
                 let line_end = t + seconds;
                 end = if let Some(reaction) = &beat.reaction {
@@ -1199,7 +1563,7 @@ impl<'a> Builder<'a> {
                         content_end = content_end.max(at + duration);
                     }
                     look(&mut gaze, &reaction.by, at, &actor);
-                    cut(&mut cuts, at, Framing::Reaction(reaction.by.clone()));
+                    cut(&mut cuts, at, Framing::Reaction(reaction.by.clone()), None);
                     at + hold
                 } else {
                     line_end + beat.hold.unwrap_or(0.0)
@@ -1226,6 +1590,15 @@ impl<'a> Builder<'a> {
                 }
                 let mut moved = false;
                 if let Some(place) = &beat.move_to {
+                    if seated.contains(&actor) && beat.pose.as_deref() != Some("stand") {
+                        return Err(issue(
+                            IssueKind::Invalid,
+                            format!("scenes[{index}].beats[{b}].move_to"),
+                            format!(
+                                "{actor} is sitting; add a do beat with pose: stand before moving"
+                            ),
+                        ));
+                    }
                     let from = stage.final_x(&actor);
                     let to = position_fraction(place).unwrap_or(0.5) * w;
                     if (to - from).abs() < 1.0 {
@@ -1276,6 +1649,69 @@ impl<'a> Builder<'a> {
                         moved = true;
                     }
                 }
+                // Props and poses change once the actor has arrived.
+                let arrive = frame_ceil(t + if moved { length } else { 0.0 });
+                if let Some(item) = &beat.holds {
+                    let state = hands.get_mut(&actor).expect("on-stage actor");
+                    let put_down = item == "none";
+                    let hand = match beat.hand {
+                        Some(hand) => hand,
+                        None if put_down => {
+                            if state[1].is_some() {
+                                HandSide::Right
+                            } else {
+                                HandSide::Left
+                            }
+                        }
+                        None => self
+                            .free_hand(&actor, state)
+                            .ok_or_else(|| {
+                                issue(
+                                    IssueKind::Invalid,
+                                    format!("scenes[{index}].beats[{b}].holds"),
+                                    format!("{actor} has no free hand for {item}; put something down first (holds: none)"),
+                                )
+                            })?,
+                    };
+                    if put_down && state[slot(hand)].is_none() {
+                        self.notes.push(format!(
+                            "scenes[{index}].beats[{b}]: {actor} holds nothing to put down"
+                        ));
+                    } else {
+                        let item = (!put_down).then(|| item.clone());
+                        state[slot(hand)] = item.clone();
+                        events.push(Event::Hold {
+                            at: arrive,
+                            actor: actor.clone(),
+                            hand,
+                            item,
+                        });
+                        length = length.max(arrive - t + PROP_SECONDS);
+                    }
+                }
+                if let Some(pose) = &beat.pose {
+                    let sitting = pose == "sit";
+                    if sitting != seated.contains(&actor) {
+                        events.push(Event::Pose {
+                            at: arrive,
+                            actor: actor.clone(),
+                            value: pose.clone(),
+                        });
+                        if sitting {
+                            seated.insert(actor.clone());
+                            let profile = matches!(
+                                beat.face
+                                    .as_deref()
+                                    .or(facing.get(&actor).map(String::as_str)),
+                                Some("left" | "right")
+                            );
+                            self.place_chair(&scene.id, stage.final_x(&actor), profile);
+                        } else {
+                            seated.remove(&actor);
+                        }
+                        length = length.max(arrive - t + SIT_HOLD_SECONDS);
+                    }
+                }
                 if length == 0.0 {
                     // Emotion, facing or a look alone: give the acting a beat to read.
                     length = ACTION_SECONDS;
@@ -1284,7 +1720,12 @@ impl<'a> Builder<'a> {
                 length += beat.hold.unwrap_or(0.0);
                 let shot = explicit.unwrap_or(if first || moved { "wide" } else { "medium" });
                 let framing = self.framing(shot, &subject, partner.as_deref(), &stage, t);
-                cut(&mut cuts, if first { 0.0 } else { t }, framing);
+                cut(
+                    &mut cuts,
+                    if first { 0.0 } else { t },
+                    framing,
+                    beat.camera.as_ref(),
+                );
                 end = t + length;
             }
             content_end = content_end.max(end);
@@ -1301,11 +1742,19 @@ impl<'a> Builder<'a> {
                 ),
             ));
         }
-        if cuts.first().is_none_or(|(at, _)| *at > 0.0) {
-            cuts.insert(0, (0.0, Framing::Wide));
+        if cuts.first().is_none_or(|shot| shot.at > 0.0) {
+            cuts.insert(
+                0,
+                Shot {
+                    at: 0.0,
+                    framing: Framing::Wide,
+                    movement: None,
+                },
+            );
         }
         self.shots += cuts.len();
         let camera = self.camera(&cuts, &stage, duration);
+        self.review_scene(&scene.id, &cuts, &camera, &stage, duration);
         events.sort_by(|a, b| a.actor_time().0.total_cmp(&b.actor_time().0));
         let cast_order: Vec<&String> = self.story.cast.keys().collect();
         let composition = Composition {
@@ -1372,7 +1821,8 @@ impl<'a> Builder<'a> {
         }
     }
 
-    /// World-space view centre and zoom for a framing at time `t`.
+    /// World-space view centre and zoom for a framing at time `t`, before
+    /// camera movement and the set-bounds clamp.
     fn view(framing: &Framing, stage: &Stage, t: f64) -> (f64, f64, f64) {
         let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
         let root_y = h * 0.7;
@@ -1397,6 +1847,36 @@ impl<'a> Builder<'a> {
                 (xa + (xb - xa) * 0.3, above(140.0), 1.8)
             }
         };
+        (cx, cy, zoom)
+    }
+
+    /// Apply a camera move at `progress` through the shot (`shake` uses the
+    /// seconds since the shot started), then keep the view inside the set.
+    fn moved_view(
+        (cx, cy, zoom): (f64, f64, f64),
+        movement: Option<&str>,
+        progress: f64,
+        since: f64,
+    ) -> (f64, f64, f64) {
+        let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
+        let p = progress.clamp(0.0, 1.0);
+        let (mut cx, mut cy, mut zoom) = (cx, cy, zoom);
+        match movement {
+            Some("push_in") => zoom *= 1.0 + PUSH_RANGE * p,
+            Some("pull_out") => zoom *= 1.0 + PUSH_RANGE * (1.0 - p),
+            Some(side @ ("pan_left" | "pan_right")) => {
+                zoom = zoom.max(PAN_MIN_ZOOM);
+                let sweep = PAN_RANGE * w / zoom * (1.0 - 2.0 * p);
+                cx += if side == "pan_left" { sweep } else { -sweep };
+            }
+            Some("shake") if since < SHAKE_SECONDS => {
+                let k = since * f64::from(STORY_FPS);
+                let decay = 1.0 - since / SHAKE_SECONDS;
+                cx += SHAKE_PIXELS * decay * (k * 2.3).sin();
+                cy += SHAKE_PIXELS * decay * (k * 3.1).cos();
+            }
+            _ => {}
+        }
         // Keep the view inside the painted set.
         let (half_w, half_h) = (w / (2.0 * zoom), h / (2.0 * zoom));
         (
@@ -1406,21 +1886,31 @@ impl<'a> Builder<'a> {
         )
     }
 
-    fn camera(&self, cuts: &[(f64, Framing)], stage: &Stage, duration: f64) -> Vec<CameraKey> {
+    fn camera(&self, cuts: &[Shot], stage: &Stage, duration: f64) -> Vec<CameraKey> {
         let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
         let mut keys: Vec<CameraKey> = Vec::new();
-        for (index, (start, framing)) in cuts.iter().enumerate() {
+        for (index, shot) in cuts.iter().enumerate() {
+            let (start, framing, movement) = (&shot.at, &shot.framing, shot.movement.as_deref());
             let end = cuts
                 .get(index + 1)
-                .map_or(duration, |(next, _)| next - CUT_EPSILON);
+                .map_or(duration, |next| next.at - CUT_EPSILON);
             let length = end - start;
-            // A slow push-in keeps held shots alive; wide shots stay static.
-            let push = if *framing == Framing::Wide || length < 1.5 {
+            // Without an explicit move, a slow push-in keeps held shots alive;
+            // wide shots stay static.
+            let push = if movement.is_some() || *framing == Framing::Wide || length < 1.5 {
                 1.0
             } else {
                 1.025
             };
             let mut times = vec![*start, end];
+            if movement == Some("shake") {
+                let frames = (SHAKE_SECONDS * f64::from(STORY_FPS)) as usize;
+                times.extend(
+                    (1..=frames)
+                        .map(|k| start + k as f64 / f64::from(STORY_FPS))
+                        .filter(|t| *t < end),
+                );
+            }
             for moves in stage.moves.values() {
                 for &(t0, t1, _, _) in moves {
                     times.extend([t0, t1].into_iter().filter(|t| *t > *start && *t < end));
@@ -1429,12 +1919,17 @@ impl<'a> Builder<'a> {
             times.sort_by(f64::total_cmp);
             times.dedup_by(|a, b| (*a - *b).abs() < 1e-6);
             for at in times {
-                let (cx, cy, zoom) = Self::view(framing, stage, at);
                 let progress = if length > 0.0 {
                     (at - start) / length
                 } else {
                     0.0
                 };
+                let (cx, cy, zoom) = Self::moved_view(
+                    Self::view(framing, stage, at),
+                    movement,
+                    progress,
+                    at - start,
+                );
                 let key = CameraKey {
                     at,
                     x: cx - w / 2.0,
@@ -1477,7 +1972,7 @@ title: <title>
 language: fi | en | en-gb
 captions: true            # optional, default true
 cast:                     # characters used in the film
-  <CHARACTER>: {}         # or {voice: <preset>, holds: <hand prop>, hand: left|right}
+  <CHARACTER>: {}         # or {voice: <preset>, speed: 0.7–1.4, holds: <hand prop>, hand: left|right}
 scenes:
   - id: <scene_id>        # a-z, 0-9, _
     set: <set>
@@ -1490,6 +1985,7 @@ scenes:
         gesture: <gesture>          # optional, played while speaking
         look: <CHARACTER>           # optional, whom the speaker looks at
         shot: <shot>                # optional, default auto
+        camera: <camera move>       # optional
         on: <CHARACTER>             # optional, whom the camera frames
         hold: <seconds>             # optional pause after the line, 0–10
         reaction: {by: <CHARACTER>, emotion: <emotion>, gesture: <gesture>, hold: <seconds>}
@@ -1500,9 +1996,13 @@ scenes:
         face: <facing>
         move_to: <position>
         gait: <gait>                # with move_to
+        holds: <hand prop>          # pick it up (after any walk); none puts it down
+        hand: left | right          # optional, with holds
+        pose: sit | stand           # sit adds a chair; stand up before walking
         hold: <seconds>
         shot: <shot>
-      - pause: <seconds>            # 0.2–10, silence; optional shot
+        camera: <camera move>       # say beats take camera too
+      - pause: <seconds>            # 0.2–10, silence; optional shot and camera
 \nVALUES\n",
     );
     text.push_str(&format!(
@@ -1510,6 +2010,10 @@ scenes:
         POSITIONS.map(|(n, _)| n).join(", ")
     ));
     text.push_str(&format!("- emotion: {}\n", list(&EMOTIONS)));
+    text.push_str(&format!(
+        "- camera move: {} (push_in/pull_out for emphasis, pan for reveals, shake for impacts)\n",
+        list(&CAMERA_MOVES)
+    ));
     text.push_str(&format!(
         "- gesture: {}\n",
         list(&motion_animation::GESTURES)

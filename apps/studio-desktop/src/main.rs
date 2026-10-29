@@ -177,6 +177,7 @@ struct Studio {
     quick_start: quick_start::Draft,
     story_text: String,
     story_issues: Vec<motion_script::story::StoryIssue>,
+    story_review: Option<Vec<String>>,
     ui_metrics: ui_metrics::Metrics,
     native_alignment: alignment_panel::Panel,
     alignment_identity: Option<alignment_panel::Identity>,
@@ -424,6 +425,7 @@ impl Default for Studio {
             quick_start: quick_start::Draft::default(),
             story_text: String::new(),
             story_issues: Vec::new(),
+            story_review: None,
             history: project_history::History::new(include_str!(
                 "../../../examples/hello-emma.yaml"
             )),
@@ -2077,7 +2079,7 @@ impl Studio {
         if !self.editing_idle() {
             return;
         }
-        let built = match story_import::build(&self.story_text) {
+        let built = match story_import::build_with(&self.story_text, None, &self.story_project()) {
             Ok(built) => built,
             Err(issues) => {
                 self.status = format!(
@@ -2088,9 +2090,19 @@ impl Studio {
                 return;
             }
         };
+        self.apply_story(built);
+    }
+    fn apply_story(&mut self, built: story_import::Built) {
         self.story_issues.clear();
         let mut document = built.document;
         let compilation = built.compilation;
+        self.story_review = Some(
+            compilation
+                .review
+                .iter()
+                .map(story_import::review_text)
+                .collect(),
+        );
         self.flush_text_edit();
         let before = self.snapshot();
         self.stop_playback();
@@ -2118,7 +2130,7 @@ impl Studio {
         self.confirm_new_episode = false;
         let timing = match compilation.timing {
             motion_script::story::StoryTiming::Estimated => "Repliikkien kestot ovat tekstistä arvioituja: valmistele puhe ja tarkista ajoitus ennen vientiä.",
-            motion_script::story::StoryTiming::Supplied => "Repliikkien kestot ovat annettuja.",
+            motion_script::story::StoryTiming::Supplied => "Jokainen repliikki on ajoitettu oikean puheen mitatun keston mukaan ja käyttää omaa WAV-tiedostoaan. Tallenna projekti samaan projektikansioon.",
         };
         let notes = if compilation.notes.is_empty() {
             String::new()
@@ -2133,13 +2145,73 @@ impl Studio {
             compilation.duration
         );
     }
+    fn story_project(&self) -> story_import::ProjectContent {
+        story_import::ProjectContent::new(
+            &self.source,
+            self.project_document.as_ref().map(|d| &d.art),
+        )
+    }
+    fn start_story_speech(&mut self) {
+        if !self.editing_idle() || self.setup_busy {
+            return;
+        }
+        self.flush_text_edit();
+        self.stop_playback();
+        let root = std::path::PathBuf::from(self.project_root.trim());
+        if !root.is_absolute() || !root.is_dir() {
+            self.status = "Anna projektikansion koko polku (Projektin lisätyökalut → Projektikansio) ennen puheen valmistelua. Äänitiedostot tallennetaan sinne.".into();
+            return;
+        }
+        if let Err(issues) = story_import::build_with(&self.story_text, None, &self.story_project())
+        {
+            self.status = format!(
+                "Käsikirjoitusta ei hyväksytty: {} korjattavaa kohtaa.",
+                issues.len()
+            );
+            self.story_issues = issues;
+            return;
+        }
+        self.story_issues.clear();
+        self.direction_generation = self.direction_generation.wrapping_add(1);
+        let generation = self.direction_generation;
+        let cancel = CancellationToken::new();
+        let request = direction_worker::Request {
+            generation,
+            source: String::new(),
+            dialogue: String::new(),
+            root,
+            provider: self.speech_provider(),
+            imported_audio: Default::default(),
+            cancel: cancel.clone(),
+            story: Some(self.story_text.clone()),
+            story_project: self.story_project(),
+        };
+        match self.direction_worker.submit(request) {
+            Ok(()) => {
+                self.direction_pending = Some(PendingDirection {
+                    generation,
+                    revision: self.document_revision,
+                    source: self.source.clone(),
+                    dialogue: self.story_text.clone(),
+                    root: self.project_root.clone(),
+                    piper_profile: self.piper_config_path.clone(),
+                });
+                self.active_cancel = Some(cancel);
+                self.busy = true;
+                self.status = "Tuotetaan hahmojen puhe ja ajoitetaan tarina sen mukaan…".into();
+            }
+            Err(error) => {
+                self.status = format!("Puheen valmistelun käynnistys epäonnistui: {error}")
+            }
+        }
+    }
     fn story_ui(&mut self, ui: &mut egui::Ui) {
         egui::CollapsingHeader::new("Luo animaatio käsikirjoituksesta (Claude / ChatGPT)")
             .default_open(false)
             .show(ui, |ui| {
                 ui.label("1. Kopioi ohje ja liitä se Claudeen tai ChatGPT:hen. Kirjoita perään tarinasi idea.");
                 if ui.button("Kopioi ohje tekoälylle").clicked() {
-                    match story_import::guide() {
+                    match story_import::guide(&self.story_project()) {
                         Ok(guide) => {
                             ui.ctx().copy_text(guide);
                             self.status = "Ohje kopioitu leikepöydälle. Liitä se tekoälylle ja kirjoita perään tarinan idea, esimerkiksi: Sisu ja Noutaja riitelevät bussipysäkillä.".into();
@@ -2156,14 +2228,33 @@ impl Studio {
                         .char_limit(motion_script::story::MAX_STORY_BYTES),
                 );
                 ui.add_enabled_ui(self.editing_idle() && !self.story_text.trim().is_empty(), |ui| {
-                    if ui
-                        .button("3. Luo animaatio")
-                        .on_hover_text("Korvaa nykyisen projektin. Tallenna nykyinen työ ensin; Kumoa palauttaa sen.")
-                        .clicked()
-                    {
-                        self.load_story();
-                    }
+                    ui.horizontal_wrapped(|ui| {
+                        if ui
+                            .button("3. Luo animaatio oikealla puheella")
+                            .on_hover_text("Tuottaa jokaisen repliikin hahmon äänellä (Kokoro englanniksi, Piper suomeksi), mittaa kestot ja ajoittaa koko tarinan niiden mukaan. Äänet tallennetaan projektikansioon. Korvaa nykyisen projektin; Kumoa palauttaa sen.")
+                            .clicked()
+                        {
+                            self.start_story_speech();
+                        }
+                        if ui
+                            .button("Luonnos ilman puhetta")
+                            .on_hover_text("Nopea esikatselu: repliikkien kestot arvioidaan tekstistä. Korvaa nykyisen projektin; Kumoa palauttaa sen.")
+                            .clicked()
+                        {
+                            self.load_story();
+                        }
+                    });
                 });
+                if let Some(review) = &self.story_review {
+                    if review.is_empty() {
+                        ui.label("Leikkaustarkastus: ei automaattisesti havaittuja ongelmia. Katso ja kuuntele silti valmis animaatio.");
+                    } else {
+                        ui.colored_label(egui::Color32::from_rgb(220, 170, 80), format!("Leikkaustarkastus: {} huomiota", review.len()));
+                        for note in review.iter().take(20) {
+                            ui.label(egui::RichText::new(note).small());
+                        }
+                    }
+                }
                 if !self.story_issues.is_empty() {
                     ui.colored_label(egui::Color32::from_rgb(220, 120, 90), "Korjattavaa:");
                     for issue in self.story_issues.iter().take(20) {
@@ -2177,7 +2268,7 @@ impl Studio {
                         self.status = "Virheet kopioitu. Liitä ne samaan tekoälykeskusteluun ja liitä korjattu käsikirjoitus tänne.".into();
                     }
                 }
-                ui.weak("Hahmot, taustat ja käsiesineet tulevat Tikku-ukkostudiosta. Ajoitus arvioidaan tekstistä; valmistele puhe Puhe-välilehdellä ennen vientiä.");
+                ui.weak("Käytettävissä: Tikku-ukkostudion hahmot, lavasteet ja käsiesineet sekä avoimen projektin omat rigatut hahmot ja kuvitetut kohtaukset. Kopioi ohje uudelleen, kun lisäät omia hahmoja tai taustoja.");
             });
     }
     fn creation_ui(&mut self, ui: &mut egui::Ui) {
@@ -3216,6 +3307,8 @@ impl Studio {
             provider: self.speech_provider(),
             imported_audio,
             cancel: cancel.clone(),
+            story: None,
+            story_project: Default::default(),
         };
         match self.direction_worker.submit(request) {
             Ok(()) => {
@@ -3249,6 +3342,45 @@ impl Studio {
                         .is_some_and(|p| p.generation == generation)
                     {
                         self.status = format!("Puheohjaus {completed}/{total}: {message}");
+                    }
+                }
+                direction_worker::Update::StoryFinished { generation, result } => {
+                    if !self
+                        .direction_pending
+                        .as_ref()
+                        .is_some_and(|p| p.generation == generation)
+                    {
+                        continue;
+                    }
+                    let pending = self.direction_pending.take().expect("matched pending");
+                    let cancelled = self
+                        .active_cancel
+                        .as_ref()
+                        .is_some_and(|t| t.is_cancelled());
+                    self.active_cancel = None;
+                    self.busy = false;
+                    if cancelled {
+                        self.status = "Puheen valmistelu peruttu. Projektia ei muutettu.".into();
+                        continue;
+                    }
+                    if pending.revision != self.document_revision
+                        || pending.source != self.source
+                        || pending.dialogue != self.story_text
+                        || pending.root != self.project_root
+                        || pending.piper_profile != self.piper_config_path
+                    {
+                        self.status =
+                            "Projekti tai käsikirjoitus vaihtui kesken; tulos hylättiin.".into();
+                        continue;
+                    }
+                    match result {
+                        Ok(ready) => {
+                            let elapsed = ready.elapsed.as_secs_f64();
+                            self.apply_story(ready.built);
+                            self.status =
+                                format!("{} Puheen valmistelu {elapsed:.1} s.", self.status);
+                        }
+                        Err(error) => self.status = format!("Tarinan puhe: {error}"),
                     }
                 }
                 direction_worker::Update::Finished { generation, result } => {
@@ -5920,6 +6052,15 @@ impl Studio {
                 motion_script::Event::Face { value, .. } => {
                     (1, event_editor::facing_label(value).to_owned(), FACE, 0.0)
                 }
+                motion_script::Event::Pose { value, .. } => {
+                    (1, event_editor::pose_label(value).to_owned(), FACE, 0.0)
+                }
+                motion_script::Event::Hold { item, .. } => (
+                    2,
+                    item.as_deref().unwrap_or("laskee esineen").to_owned(),
+                    GESTURE,
+                    0.0,
+                ),
                 motion_script::Event::Emotion { value, .. } => (
                     1,
                     event_editor::expression_label(value).to_owned(),
