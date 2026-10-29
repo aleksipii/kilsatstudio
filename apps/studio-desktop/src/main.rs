@@ -5872,11 +5872,12 @@ impl Studio {
         let saved_blocks = motion_blocks::saved(script, self.selected_actor.as_deref());
         egui::SidePanel::left("motion_block_palette")
             .resizable(true)
-            .default_width(150.0)
-            .width_range(120.0..=280.0)
+            .default_width(170.0)
+            .width_range(140.0..=320.0)
             .show_inside(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .id_salt("motion_block_scroll")
+                    .auto_shrink([false, false])
                     .show(ui, |ui| {
                         ui.label(egui::RichText::new("PALIKAT").strong());
                         ui.weak("Vedä palikka hahmon raidalle.");
@@ -5885,7 +5886,7 @@ impl Studio {
                             ui.small(heading);
                             ui.horizontal_wrapped(|ui| {
                                 for block in blocks {
-                                    block_chip(ui, block, editable);
+                                    let _ = block_chip(ui, block, editable);
                                 }
                             });
                         }
@@ -5896,7 +5897,7 @@ impl Studio {
                         }
                         ui.horizontal_wrapped(|ui| {
                             for block in saved_blocks {
-                                block_chip(ui, block, editable);
+                                let _ = block_chip(ui, block, editable);
                             }
                         });
                     });
@@ -6168,30 +6169,80 @@ fn timeline_event_at(position: egui::Pos2, boxes: &[(usize, egui::Rect)]) -> Opt
         .map(|(index, _)| *index)
 }
 /// A draggable palette block. Disabled blocks still show what is available.
-fn block_chip(ui: &mut egui::Ui, block: motion_blocks::Block, enabled: bool) {
+fn block_chip(ui: &mut egui::Ui, block: motion_blocks::Block, enabled: bool) -> egui::Response {
     let color = match block {
         motion_blocks::Block::Gait(_) => MOVE,
         motion_blocks::Block::Gesture(_) => GESTURE,
         motion_blocks::Block::Face(_) => FACE,
         motion_blocks::Block::Clip(_) => ACCENT,
     };
-    let label = block.label();
+    let full = block.label();
     let hint = block.hint();
-    if !enabled {
-        ui.add_enabled(false, egui::Button::new(label));
-        return;
-    }
-    let id = egui::Id::new(("motion_block", format!("{block:?}")));
-    ui.dnd_drag_source(id, block, |ui| {
-        egui::Frame::new()
+    let padding = ui.spacing().button_padding.x * 2.0 + 2.0;
+    let label = chip_label(ui, &full, ui.max_rect().width() - padding);
+    // A sized button (never wrapping its text) so `horizontal_wrapped` moves a
+    // chip that does not fit to the next row instead of squeezing its letters.
+    let chip = |label: &str| {
+        egui::Button::new(label)
+            .wrap_mode(egui::TextWrapMode::Extend)
             .fill(color.gamma_multiply(0.3))
             .stroke(egui::Stroke::new(1.0_f32, color))
             .corner_radius(4.0)
-            .inner_margin(egui::Margin::symmetric(8, 3))
-            .show(ui, |ui| ui.label(label));
-    })
-    .response
-    .on_hover_text(hint);
+    };
+    if !enabled {
+        let response = ui.add_enabled(false, chip(&label));
+        return if label != full {
+            response.on_disabled_hover_text(full)
+        } else {
+            response
+        };
+    }
+    let response = ui.add(chip(&label).sense(egui::Sense::drag()));
+    response.dnd_set_drag_payload(block);
+    if response.dragged() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+        if let Some(pointer) = ui.ctx().pointer_interact_pos() {
+            egui::Area::new(response.id.with("ghost"))
+                .order(egui::Order::Tooltip)
+                .interactable(false)
+                .fixed_pos(pointer + egui::vec2(10.0, 6.0))
+                .show(ui.ctx(), |ui| {
+                    ui.add(chip(&label));
+                });
+        }
+    }
+    let hover = if label == full {
+        hint.to_owned()
+    } else {
+        format!("{full}\n\n{hint}")
+    };
+    response.on_hover_text(hover)
+}
+
+/// The chip text, shortened with an ellipsis when it is wider than the palette
+/// (`max_width`); the hover text keeps the full name.
+fn chip_label(ui: &egui::Ui, full: &str, max_width: f32) -> String {
+    let font = egui::TextStyle::Button.resolve(ui.style());
+    let width = |text: &str| {
+        ui.fonts(|fonts| {
+            fonts
+                .layout_no_wrap(text.to_owned(), font.clone(), egui::Color32::WHITE)
+                .size()
+                .x
+        })
+    };
+    if width(full) <= max_width {
+        return full.to_owned();
+    }
+    let mut chars: Vec<char> = full.chars().collect();
+    while chars.len() > 1 {
+        chars.pop();
+        let short: String = chars.iter().collect::<String>() + "…";
+        if width(&short) <= max_width {
+            return short;
+        }
+    }
+    "…".to_owned()
 }
 fn timeline_seek(pointer_x: f32, left: f32, width: f32, duration: f64) -> f64 {
     if !pointer_x.is_finite() || !left.is_finite() || !width.is_finite() || width <= 0.0 {
@@ -10261,5 +10312,92 @@ mod screen_cue_history_tests {
             .contains("FFmpeg puuttuu"));
         assert!(studio.screen_videos.import.is_none());
         assert_eq!(studio.source, source);
+    }
+}
+
+#[cfg(test)]
+mod block_palette_tests {
+    use super::*;
+
+    /// Lays the palette out in a narrow panel (no window) and returns the panel
+    /// rect, the chip rects with their full labels, and one text row's height.
+    fn layout(width: f32, extra: &[&str]) -> (egui::Rect, Vec<(String, egui::Rect)>, f32) {
+        let ctx = egui::Context::default();
+        let mut chips = Vec::new();
+        let mut panel = egui::Rect::NOTHING;
+        let mut row = 0.0;
+        // Two passes: egui measures fonts on the first frame.
+        for _ in 0..2 {
+            chips.clear();
+            let input = egui::RawInput {
+                screen_rect: Some(egui::Rect::from_min_size(
+                    egui::Pos2::ZERO,
+                    egui::vec2(800.0, 600.0),
+                )),
+                ..Default::default()
+            };
+            let _ = ctx.run(input, |ctx| {
+                egui::SidePanel::left("palette")
+                    .exact_width(width)
+                    .show(ctx, |ui| {
+                        panel = ui.max_rect();
+                        row = ui.text_style_height(&egui::TextStyle::Button);
+                        let mut groups: Vec<Vec<motion_blocks::Block>> = motion_blocks::builtin()
+                            .into_iter()
+                            .map(|(_, blocks)| blocks)
+                            .collect();
+                        groups.push(
+                            extra
+                                .iter()
+                                .map(|n| motion_blocks::Block::Clip((*n).to_owned()))
+                                .collect(),
+                        );
+                        for blocks in groups {
+                            ui.horizontal_wrapped(|ui| {
+                                for block in blocks {
+                                    let label = block.label();
+                                    let response = block_chip(ui, block, true);
+                                    chips.push((label, response.rect));
+                                }
+                            });
+                        }
+                    });
+            });
+        }
+        (panel, chips, row)
+    }
+
+    #[test]
+    fn every_palette_chip_is_one_line_and_inside_a_narrow_panel() {
+        let long = "hyvin pitkä tallennettu liike nimeltään";
+        for width in [140.0, 170.0, 320.0] {
+            let (panel, chips, row) = layout(width, &["askel", "vilkutus", long]);
+            assert!(chips.len() > 10);
+            for (label, rect) in &chips {
+                assert!(
+                    rect.left() >= panel.left() - 0.5 && rect.right() <= panel.right() + 0.5,
+                    "{label} at width {width}: {rect:?} outside {panel:?}"
+                );
+                assert!(
+                    rect.height() < row * 1.9,
+                    "{label} at width {width} wraps onto several lines: {rect:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn long_chip_names_are_shortened_with_an_ellipsis() {
+        let ctx = egui::Context::default();
+        let _ = ctx.run(Default::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| {
+                assert_eq!(chip_label(ui, "askel", 200.0), "askel");
+                let short = chip_label(ui, "hyvin pitkä tallennettu liike", 60.0);
+                assert!(
+                    short.ends_with('…') && short.chars().count() < 29,
+                    "{short}"
+                );
+            });
+        });
     }
 }
