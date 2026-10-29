@@ -8,6 +8,9 @@ pub mod intent;
 mod rules;
 mod screens;
 mod shots;
+pub mod story;
+#[cfg(test)]
+mod story_tests;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use holds::{HeldProp, HoldsError};

@@ -1,6 +1,8 @@
 # MotionScript supported subset
 
 See `examples/hello-emma.yaml` for the combined movement and Kokoro dialogue demo.
+For the high-level story format that a chat assistant can write and the desktop
+app compiles into MotionScript, see [story-format.md](story-format.md).
 The full target specification is `docs/master-build-prompt.md`; this page describes
 what this implementation actually accepts.
 

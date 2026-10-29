@@ -40,6 +40,7 @@ mod screen_video_worker;
 mod sequence_panel;
 mod sequence_worker;
 mod stick_studio;
+mod story_import;
 mod studio_help;
 mod timeline_edit;
 mod ui_levels;
@@ -174,6 +175,8 @@ struct Studio {
     confirm_new_episode: bool,
     episode_title: String,
     quick_start: quick_start::Draft,
+    story_text: String,
+    story_issues: Vec<motion_script::story::StoryIssue>,
     ui_metrics: ui_metrics::Metrics,
     native_alignment: alignment_panel::Panel,
     alignment_identity: Option<alignment_panel::Identity>,
@@ -419,6 +422,8 @@ impl Default for Studio {
             confirm_new_episode: false,
             episode_title: "Uusi jakso".into(),
             quick_start: quick_start::Draft::default(),
+            story_text: String::new(),
+            story_issues: Vec::new(),
             history: project_history::History::new(include_str!(
                 "../../../examples/hello-emma.yaml"
             )),
@@ -2067,6 +2072,113 @@ impl Studio {
         self.history.record(before, self.snapshot());
         self.confirm_new_episode = false;
         self.status = "Tikku-ukkostudio avattu: kuusi nivelhahmoa, taustat ja esineet ovat muokattavia. Esimerkki on äänetön. Tallenna uutena .kilsat-tiedostona. Kumoa palauttaa edellisen projektin sisällön ja kuvituksen.".into();
+    }
+    fn load_story(&mut self) {
+        if !self.editing_idle() {
+            return;
+        }
+        let built = match story_import::build(&self.story_text) {
+            Ok(built) => built,
+            Err(issues) => {
+                self.status = format!(
+                    "Käsikirjoitusta ei hyväksytty: {} korjattavaa kohtaa. Kopioi virheet tekoälylle ja liitä korjattu versio.",
+                    issues.len()
+                );
+                self.story_issues = issues;
+                return;
+            }
+        };
+        self.story_issues.clear();
+        let mut document = built.document;
+        let compilation = built.compilation;
+        self.flush_text_edit();
+        let before = self.snapshot();
+        self.stop_playback();
+        self.source = document.source.clone();
+        self.caption_mode = document.caption_mode;
+        self.set_model_policy(document.model_policy);
+        self.load_event_log(&mut document);
+        self.project_document = Some(document);
+        self.script_path.clear();
+        self.asset_dirty = false;
+        self.art_editor.reset();
+        self.art_editor.dirty = true;
+        self.alignment.clear();
+        self.scene_alignment.clear();
+        self.preview = None;
+        self.scene_index = 0;
+        self.selected_actor = compilation.script.characters.keys().next().cloned();
+        self.selected_joint = "head".into();
+        self.editor_tab = false;
+        self.character_mode = true;
+        self.reset_scene();
+        self.document_changed();
+        self.validate();
+        self.history.record(before, self.snapshot());
+        self.confirm_new_episode = false;
+        let timing = match compilation.timing {
+            motion_script::story::StoryTiming::Estimated => "Repliikkien kestot ovat tekstistä arvioituja: valmistele puhe ja tarkista ajoitus ennen vientiä.",
+            motion_script::story::StoryTiming::Supplied => "Repliikkien kestot ovat annettuja.",
+        };
+        let notes = if compilation.notes.is_empty() {
+            String::new()
+        } else {
+            format!(" Huomiot: {}", compilation.notes.join("; "))
+        };
+        self.status = format!(
+            "Animaatio luotu käsikirjoituksesta: {} kohtausta, {} otosta, {} repliikkiä, {:.1} s. {timing} Kumoa palauttaa edellisen projektin.{notes}",
+            compilation.script.scenes.len(),
+            compilation.shot_count,
+            compilation.lines.len(),
+            compilation.duration
+        );
+    }
+    fn story_ui(&mut self, ui: &mut egui::Ui) {
+        egui::CollapsingHeader::new("Luo animaatio käsikirjoituksesta (Claude / ChatGPT)")
+            .default_open(false)
+            .show(ui, |ui| {
+                ui.label("1. Kopioi ohje ja liitä se Claudeen tai ChatGPT:hen. Kirjoita perään tarinasi idea.");
+                if ui.button("Kopioi ohje tekoälylle").clicked() {
+                    match story_import::guide() {
+                        Ok(guide) => {
+                            ui.ctx().copy_text(guide);
+                            self.status = "Ohje kopioitu leikepöydälle. Liitä se tekoälylle ja kirjoita perään tarinan idea, esimerkiksi: Sisu ja Noutaja riitelevät bussipysäkillä.".into();
+                        }
+                        Err(error) => self.status = format!("Ohjeen luominen epäonnistui: {error}"),
+                    }
+                }
+                ui.label("2. Liitä tekoälyn vastaus tähän (koko vastaus käy, koodilohko poimitaan).");
+                ui.add(
+                    egui::TextEdit::multiline(&mut self.story_text)
+                        .desired_rows(10)
+                        .desired_width(f32::INFINITY)
+                        .code_editor()
+                        .char_limit(motion_script::story::MAX_STORY_BYTES),
+                );
+                ui.add_enabled_ui(self.editing_idle() && !self.story_text.trim().is_empty(), |ui| {
+                    if ui
+                        .button("3. Luo animaatio")
+                        .on_hover_text("Korvaa nykyisen projektin. Tallenna nykyinen työ ensin; Kumoa palauttaa sen.")
+                        .clicked()
+                    {
+                        self.load_story();
+                    }
+                });
+                if !self.story_issues.is_empty() {
+                    ui.colored_label(egui::Color32::from_rgb(220, 120, 90), "Korjattavaa:");
+                    for issue in self.story_issues.iter().take(20) {
+                        ui.label(egui::RichText::new(issue.to_string()).small());
+                    }
+                    if self.story_issues.len() > 20 {
+                        ui.weak(format!("… ja {} muuta", self.story_issues.len() - 20));
+                    }
+                    if ui.button("Kopioi virheet tekoälylle").clicked() {
+                        ui.ctx().copy_text(motion_script::story::issues_report(&self.story_issues));
+                        self.status = "Virheet kopioitu. Liitä ne samaan tekoälykeskusteluun ja liitä korjattu käsikirjoitus tänne.".into();
+                    }
+                }
+                ui.weak("Hahmot, taustat ja käsiesineet tulevat Tikku-ukkostudiosta. Ajoitus arvioidaan tekstistä; valmistele puhe Puhe-välilehdellä ennen vientiä.");
+            });
     }
     fn creation_ui(&mut self, ui: &mut egui::Ui) {
         ui.add_enabled_ui(self.editing_idle(), |ui| {
@@ -4379,6 +4491,7 @@ impl Studio {
                 ui.add_space(5.0);
             }
             ui.separator();
+            self.story_ui(ui);
             self.quick_start_ui(ui);
             egui::CollapsingHeader::new("Projektin lisätyökalut").show(ui, |ui| {
                 self.settings_ui(ui);

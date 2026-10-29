@@ -1,0 +1,54 @@
+# Kilsat story (kilsat_story: 1): the high-level format a chat assistant writes.
+# Paste it into the desktop app under "Luo animaatio käsikirjoituksesta".
+# See docs/story-format.md.
+kilsat_story: 1
+title: Kahvitauko
+language: fi
+cast:
+  VEIKKO: {holds: kahvikuppi}
+  PASMA: {}
+  SISU: {}
+scenes:
+  - id: kahvila_aamu
+    set: kahvila
+    summary: Veikko yrittää nauttia kahvista, mutta Päsmä haluaa palaverin.
+    positions: {VEIKKO: left, PASMA: far_right}
+    beats:
+      - do: VEIKKO
+        emotion: happy
+        hold: 0.5
+      - do: PASMA
+        move_to: right
+        gait: jog
+      - say: PASMA
+        line: Veikko! Palaveri alkaa kahden minuutin päästä.
+        emotion: surprised
+        gesture: point
+      - say: VEIKKO
+        line: Mutta minulla on kahvitauko.
+        emotion: sad
+        reaction: {by: PASMA, emotion: angry, hold: 1.2}
+      - say: PASMA
+        line: Kahvitauko on palaverin jälkeen. Se on sääntö.
+        gesture: nod
+      - pause: 1.0
+        shot: close_up
+        on: VEIKKO
+  - id: sisu_saapuu
+    set: kahvila
+    positions: {VEIKKO: left, PASMA: right, SISU: far_left}
+    beats:
+      - do: SISU
+        move_to: center
+      - say: SISU
+        line: Kuka täällä puhuu säännöistä?
+        look: PASMA
+        shot: two_shot
+      - say: PASMA
+        line: En minä. Hyvää kahvitaukoa.
+        emotion: surprised
+        gesture: wave
+        reaction: {by: VEIKKO, emotion: happy, gesture: shrug}
+      - do: PASMA
+        move_to: far_right
+        gait: run
