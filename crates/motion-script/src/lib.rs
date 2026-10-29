@@ -2190,9 +2190,12 @@ impl Event {
 fn gesture_joint(gesture: motion_animation::Gesture) -> &'static str {
     use motion_animation::Gesture;
     match gesture {
-        Gesture::Wave | Gesture::Point => "upper_arm_r",
-        Gesture::Nod => "head",
-        Gesture::Shrug => "upper_arm_l",
+        Gesture::Wave | Gesture::Point | Gesture::Facepalm | Gesture::ThumbsUp | Gesture::Think => {
+            "upper_arm_r"
+        }
+        Gesture::Nod | Gesture::ShakeHead | Gesture::Bow => "head",
+        Gesture::Shrug | Gesture::ArmsCrossed | Gesture::Clap => "upper_arm_l",
+        Gesture::Jump => "root",
     }
 }
 fn validate_emotion(value: &str) -> Result<(), Error> {

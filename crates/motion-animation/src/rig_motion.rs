@@ -260,6 +260,84 @@ pub fn rig_gesture(gesture: Gesture, progress: f64, weight: f64) -> RigMotion {
             motion[FOREARM_R] = rotation(-1.2 * trail);
             motion[HEAD] = translation(0.0, 4.0 * trail);
         }
+        Gesture::ShakeHead => {
+            // Three side-to-side turns once the head is engaged.
+            let turn = 0.16 * (TAU * 3.0 * p).sin() * trail.max(0.0);
+            motion[HEAD] = rotation(turn);
+            motion[TORSO] = rotation(-0.02 * turn);
+        }
+        Gesture::Facepalm => {
+            // Right hand up and across to the face; the head drops into it.
+            motion[UPPER_ARM_R] = rotation(1.9 * lead);
+            motion[FOREARM_R] = rotation(1.6 * trail);
+            motion[HEAD] = Transform2 {
+                translation: Vec2::new(0.0, 5.0 * trail),
+                rotation: -0.12 * trail,
+                ..Default::default()
+            };
+            motion[TORSO] = rotation(0.04 * lead);
+        }
+        Gesture::ArmsCrossed => {
+            motion[UPPER_ARM_R] = rotation(0.5 * lead);
+            motion[UPPER_ARM_L] = rotation(-0.5 * lead);
+            motion[FOREARM_R] = rotation(2.0 * trail);
+            motion[FOREARM_L] = rotation(-2.0 * trail);
+            motion[HEAD] = rotation(-0.05 * trail);
+        }
+        Gesture::ThumbsUp => {
+            motion[UPPER_ARM_R] = rotation(-0.3 * lead);
+            motion[FOREARM_R] = rotation(-2.8 * trail);
+            motion[TORSO] = rotation(-0.03 * lead);
+            motion[HEAD] = rotation(0.06 * trail);
+        }
+        Gesture::Bow => {
+            // Knees give a little; head and shoulders dip.
+            motion[ROOT] = translation(0.0, 6.0 * lead);
+            motion[TORSO] = translation(0.0, 6.0 * lead);
+            motion[HEAD] = translation(0.0, 16.0 * trail);
+            motion[UPPER_ARM_L] = rotation(-0.12 * trail);
+            motion[UPPER_ARM_R] = rotation(0.12 * trail);
+        }
+        Gesture::Jump => {
+            // Crouch, a parabolic flight with legs tucked, and a soft landing.
+            let crouch = |u: f64| (std::f64::consts::PI * u).sin().max(0.0);
+            let (lift, bend) = if p < 0.2 {
+                (-10.0 * crouch(p / 0.2), crouch(p / 0.2))
+            } else if p < 0.8 {
+                let u = (p - 0.2) / 0.6;
+                (
+                    70.0 * 4.0 * u * (1.0 - u),
+                    0.6 * (std::f64::consts::PI * u).sin(),
+                )
+            } else {
+                let u = (p - 0.8) / 0.2;
+                (-8.0 * crouch(u), crouch(u))
+            };
+            let w = w.min(1.0);
+            motion[ROOT] = translation(0.0, -lift * w);
+            // Knees bend outward (front view), feet tuck back under the hips.
+            motion[THIGH_L] = rotation(0.5 * bend * w);
+            motion[THIGH_R] = rotation(-0.5 * bend * w);
+            motion[SHIN_L] = rotation(-0.9 * bend * w);
+            motion[SHIN_R] = rotation(0.9 * bend * w);
+            let arms = if (0.2..0.8).contains(&p) { 1.0 } else { 0.0 } * w;
+            motion[UPPER_ARM_L] = rotation(0.9 * arms * bend.max(0.3));
+            motion[UPPER_ARM_R] = rotation(-0.9 * arms * bend.max(0.3));
+        }
+        Gesture::Clap => {
+            // Hands meet in front of the chest four times.
+            let beat = 0.5 * (1.0 - (TAU * 4.0 * p).cos()) * trail.max(0.0);
+            motion[UPPER_ARM_R] = rotation(0.55 * lead);
+            motion[UPPER_ARM_L] = rotation(-0.55 * lead);
+            motion[FOREARM_R] = rotation((1.45 + 0.25 * beat) * trail);
+            motion[FOREARM_L] = rotation(-(1.45 + 0.25 * beat) * trail);
+        }
+        Gesture::Think => {
+            // Hand to the chin, head tilted.
+            motion[UPPER_ARM_R] = rotation(1.4 * lead);
+            motion[FOREARM_R] = rotation(2.07 * trail);
+            motion[HEAD] = rotation(0.1 * trail);
+        }
     }
     motion
 }

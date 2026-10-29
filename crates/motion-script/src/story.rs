@@ -55,6 +55,14 @@ pub const SHOTS: [&str; 6] = [
     "two_shot",
     "over_shoulder",
 ];
+pub const CAMERA_MOVES: [&str; 6] = [
+    "static",
+    "push_in",
+    "pull_out",
+    "pan_left",
+    "pan_right",
+    "shake",
+];
 pub const EMOTIONS: [&str; 5] = ["neutral", "happy", "sad", "surprised", "angry"];
 pub const LANGUAGES: [&str; 3] = ["fi", "en", "en-gb"];
 
@@ -102,6 +110,8 @@ pub struct CastMember {
     /// Hand prop id from the stick-studio hand prop catalog.
     pub holds: Option<String>,
     pub hand: Option<HandSide>,
+    /// Speaking rate, 0.7–1.4; defaults to the character's own rate.
+    pub speed: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -134,6 +144,8 @@ pub struct Beat {
     pub gait: Option<String>,
     pub hold: Option<f64>,
     pub shot: Option<String>,
+    /// Camera movement during this beat's shot.
+    pub camera: Option<String>,
     pub on: Option<String>,
     pub reaction: Option<Reaction>,
 }
@@ -166,6 +178,8 @@ pub struct CatalogCharacter {
     pub accent: String,
     pub english_voice: String,
     pub finnish_voice: String,
+    /// Default speaking rate (0.7–1.4), part of the character's voice.
+    pub speed: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -264,6 +278,9 @@ pub struct CompiledLine {
     pub scene: String,
     pub actor: String,
     pub text: String,
+    pub emotion: Option<String>,
+    /// Project-relative speech WAV when the line was measured from audio.
+    pub audio: Option<String>,
     /// Scene-local start and reserved length in seconds.
     pub at: f64,
     pub duration: f64,
@@ -458,6 +475,15 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
                 ));
             }
         }
+        if let Some(speed) = member.speed {
+            if !speed.is_finite() || !(0.7..=1.4).contains(&speed) {
+                out.push(issue(
+                    Bound,
+                    format!("{path}.speed"),
+                    "speed must be 0.7–1.4 (1 is normal)",
+                ));
+            }
+        }
         if member.hand.is_some() && member.holds.is_none() {
             out.push(issue(
                 Schema,
@@ -649,6 +675,7 @@ fn validate_beat(
     vocabulary(out, "move_to", &beat.move_to, &positions);
     vocabulary(out, "gait", &beat.gait, &motion_animation::GAITS);
     vocabulary(out, "shot", &beat.shot, &SHOTS);
+    vocabulary(out, "camera", &beat.camera, &CAMERA_MOVES);
     hold_check(out, "hold", beat.hold, 0.0);
     if let Some(on) = &beat.on {
         actor_check(out, "on", on);
@@ -668,7 +695,7 @@ fn validate_beat(
             out.push(issue(
                 Schema,
                 path,
-                "a pause beat takes only pause, shot and on",
+                "a pause beat takes only pause, shot, camera and on",
             ));
         }
         return;
@@ -791,14 +818,22 @@ pub fn estimate_line_seconds(text: &str) -> f64 {
     (words * 0.42).max(chars * 0.068).max(1.0)
 }
 
+/// Measured speech for one `say` beat: its length and, optionally, the
+/// project-relative 24 kHz mono PCM16 WAV that the speak event plays.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MeasuredLine {
+    pub seconds: f64,
+    pub audio: Option<String>,
+}
+
 /// Parse, validate and compile a story into a validated MotionScript [`Script`].
 ///
-/// `line_seconds`, when given, holds one reserved length per `say` beat in
-/// story order (for example measured speech); otherwise lengths are estimated.
+/// `measured`, when given, holds one entry per `say` beat in story order
+/// (for example synthesized speech); otherwise lengths are estimated.
 pub fn compile_story(
     input: &str,
     catalog: &StoryCatalog,
-    line_seconds: Option<&[f64]>,
+    measured: Option<&[MeasuredLine]>,
 ) -> Result<StoryCompilation, Vec<StoryIssue>> {
     let story = parse_story(input, catalog)?;
     let say_count = story
@@ -807,7 +842,7 @@ pub fn compile_story(
         .flat_map(|s| &s.beats)
         .filter(|b| b.say.is_some())
         .count();
-    if let Some(lengths) = line_seconds {
+    if let Some(lengths) = measured {
         if lengths.len() != say_count {
             return Err(vec![issue(
                 IssueKind::Invalid,
@@ -818,18 +853,26 @@ pub fn compile_story(
                 ),
             )]);
         }
-        if let Some(index) = lengths
-            .iter()
-            .position(|s| !s.is_finite() || *s <= 0.0 || *s > MAX_LINE_SECONDS)
-        {
+        if let Some(index) = lengths.iter().position(|line| {
+            !line.seconds.is_finite()
+                || line.seconds <= 0.0
+                || line.seconds > MAX_LINE_SECONDS
+                || line.audio.as_deref().is_some_and(|path| {
+                    path.trim().is_empty()
+                        || path.len() > 4096
+                        || path.starts_with('/')
+                        || path.contains('\0')
+                        || path.split('/').any(|part| part == "..")
+                })
+        }) {
             return Err(vec![issue(
                 IssueKind::Bound,
                 format!("line {}", index + 1),
-                format!("line length must be above 0 and at most {MAX_LINE_SECONDS} seconds"),
+                format!("line length must be above 0 and at most {MAX_LINE_SECONDS} seconds, with a project-relative audio path"),
             )]);
         }
     }
-    let mut builder = Builder::new(&story, catalog, line_seconds);
+    let mut builder = Builder::new(&story, catalog, measured);
     let mut scenes = Vec::new();
     let mut scene_sets = Vec::new();
     let mut issues = Vec::new();
@@ -889,7 +932,7 @@ pub fn compile_story(
         shot_count: builder.shots,
         lines: builder.lines,
         notes: builder.notes,
-        timing: if line_seconds.is_some() {
+        timing: if measured.is_some() {
             StoryTiming::Supplied
         } else {
             StoryTiming::Estimated
@@ -899,6 +942,22 @@ pub fn compile_story(
         duration,
     })
 }
+
+/// One shot: from `at` until the next cut, with an optional camera move.
+#[derive(Debug, Clone, PartialEq)]
+struct Shot {
+    at: f64,
+    framing: Framing,
+    movement: Option<String>,
+}
+
+/// Camera move ranges: push/pull zoom factor, pan sweep as a fraction of the
+/// visible width each way, and a short decaying shake.
+const PUSH_RANGE: f64 = 0.3;
+const PAN_RANGE: f64 = 0.12;
+const PAN_MIN_ZOOM: f64 = 1.2;
+const SHAKE_SECONDS: f64 = 0.5;
+const SHAKE_PIXELS: f64 = 14.0;
 
 #[derive(Debug, Clone, PartialEq)]
 enum Framing {
@@ -913,7 +972,7 @@ enum Framing {
 struct Builder<'a> {
     story: &'a Story,
     catalog: &'a StoryCatalog,
-    line_seconds: Option<&'a [f64]>,
+    measured: Option<&'a [MeasuredLine]>,
     next_line: usize,
     lines: Vec<CompiledLine>,
     notes: Vec<String>,
@@ -964,11 +1023,15 @@ fn frame_ceil(t: f64) -> f64 {
 }
 
 impl<'a> Builder<'a> {
-    fn new(story: &'a Story, catalog: &'a StoryCatalog, line_seconds: Option<&'a [f64]>) -> Self {
+    fn new(
+        story: &'a Story,
+        catalog: &'a StoryCatalog,
+        measured: Option<&'a [MeasuredLine]>,
+    ) -> Self {
         Self {
             story,
             catalog,
-            line_seconds,
+            measured,
             next_line: 0,
             lines: Vec::new(),
             notes: Vec::new(),
@@ -1009,7 +1072,7 @@ impl<'a> Builder<'a> {
                 provider: provider.into(),
                 preset,
                 language: language.into(),
-                speed: 1.0,
+                speed: member.speed.unwrap_or(entry.speed).clamp(0.7, 1.4) as f32,
             });
             characters.insert(id.clone(), character);
         }
@@ -1037,7 +1100,7 @@ impl<'a> Builder<'a> {
         };
         let mut events: Vec<Event> = Vec::new();
         let mut gaze: BTreeMap<String, Vec<GazeKey>> = BTreeMap::new();
-        let mut cuts: Vec<(f64, Framing)> = Vec::new();
+        let mut cuts: Vec<Shot> = Vec::new();
         let mut content_end: f64 = 0.0;
         let mut facing: BTreeMap<String, String> = BTreeMap::new();
 
@@ -1071,11 +1134,25 @@ impl<'a> Builder<'a> {
                 look(&mut gaze, actor, 0.0, &partner);
             }
         }
-        let cut = |cuts: &mut Vec<(f64, Framing)>, t: f64, framing: Framing| match cuts.last_mut() {
-            Some((_, last)) if *last == framing => {}
-            Some((at, last)) if (*at - t).abs() < 1e-9 => *last = framing,
-            _ => cuts.push((t, framing)),
+        // A camera move always starts its own shot; otherwise an unchanged
+        // framing continues without a jump cut.
+        let cut = |cuts: &mut Vec<Shot>, at: f64, framing: Framing, movement: Option<&String>| {
+            let shot = Shot {
+                at,
+                framing,
+                movement: movement.cloned(),
+            };
+            match cuts.last_mut() {
+                Some(last) if (last.at - at).abs() < 1e-9 => *last = shot,
+                Some(last)
+                    if last.framing == shot.framing
+                        && last.movement.is_none()
+                        && shot.movement.is_none() => {}
+                _ => cuts.push(shot),
+            }
         };
+        let last_framing =
+            |cuts: &Vec<Shot>| cuts.last().map_or(Framing::Wide, |s| s.framing.clone());
         let gesture_seconds =
             |within: Option<f64>| within.map_or(GESTURE_SECONDS, |d: f64| d.clamp(0.8, 1.6));
 
@@ -1086,15 +1163,23 @@ impl<'a> Builder<'a> {
             let first = b == 0;
             let explicit = beat.shot.as_deref().filter(|s| *s != "auto");
             if let Some(pause) = beat.pause {
-                if explicit.is_some() || first {
+                if explicit.is_some() || first || beat.camera.is_some() {
                     let subject = beat
                         .on
                         .clone()
                         .or_else(|| stage.start.keys().next().cloned())
                         .unwrap_or_default();
-                    let framing =
-                        self.framing(explicit.unwrap_or("wide"), &subject, None, &stage, t);
-                    cut(&mut cuts, if first { 0.0 } else { t }, framing);
+                    let framing = match explicit {
+                        Some(shot) => self.framing(shot, &subject, None, &stage, t),
+                        None if first => Framing::Wide,
+                        None => last_framing(&cuts),
+                    };
+                    cut(
+                        &mut cuts,
+                        if first { 0.0 } else { t },
+                        framing,
+                        beat.camera.as_ref(),
+                    );
                 }
                 t += pause;
                 content_end = content_end.max(t);
@@ -1126,9 +1211,12 @@ impl<'a> Builder<'a> {
             let end;
             if beat.say.is_some() {
                 let text = beat.line.clone().unwrap_or_default().trim().to_string();
-                let seconds = match self.line_seconds {
-                    Some(lengths) => lengths[self.next_line],
-                    None => estimate_line_seconds(&text),
+                let (seconds, audio) = match self.measured {
+                    Some(lines) => (
+                        lines[self.next_line].seconds,
+                        lines[self.next_line].audio.clone(),
+                    ),
+                    None => (estimate_line_seconds(&text), None),
                 };
                 self.next_line += 1;
                 events.push(Event::Speak {
@@ -1136,12 +1224,14 @@ impl<'a> Builder<'a> {
                     actor: actor.clone(),
                     text: text.clone(),
                     emotion: beat.emotion.clone(),
-                    audio: None,
+                    audio: audio.clone(),
                 });
                 self.lines.push(CompiledLine {
                     scene: scene.id.clone(),
                     actor: actor.clone(),
                     text,
+                    emotion: beat.emotion.clone(),
+                    audio,
                     at: t,
                     duration: seconds,
                 });
@@ -1175,7 +1265,15 @@ impl<'a> Builder<'a> {
                 });
                 if shot != "keep" {
                     let framing = self.framing(shot, &subject, partner.as_deref(), &stage, t);
-                    cut(&mut cuts, if first { 0.0 } else { t }, framing);
+                    cut(
+                        &mut cuts,
+                        if first { 0.0 } else { t },
+                        framing,
+                        beat.camera.as_ref(),
+                    );
+                } else if beat.camera.is_some() {
+                    let framing = last_framing(&cuts);
+                    cut(&mut cuts, t, framing, beat.camera.as_ref());
                 }
                 let line_end = t + seconds;
                 end = if let Some(reaction) = &beat.reaction {
@@ -1199,7 +1297,7 @@ impl<'a> Builder<'a> {
                         content_end = content_end.max(at + duration);
                     }
                     look(&mut gaze, &reaction.by, at, &actor);
-                    cut(&mut cuts, at, Framing::Reaction(reaction.by.clone()));
+                    cut(&mut cuts, at, Framing::Reaction(reaction.by.clone()), None);
                     at + hold
                 } else {
                     line_end + beat.hold.unwrap_or(0.0)
@@ -1284,7 +1382,12 @@ impl<'a> Builder<'a> {
                 length += beat.hold.unwrap_or(0.0);
                 let shot = explicit.unwrap_or(if first || moved { "wide" } else { "medium" });
                 let framing = self.framing(shot, &subject, partner.as_deref(), &stage, t);
-                cut(&mut cuts, if first { 0.0 } else { t }, framing);
+                cut(
+                    &mut cuts,
+                    if first { 0.0 } else { t },
+                    framing,
+                    beat.camera.as_ref(),
+                );
                 end = t + length;
             }
             content_end = content_end.max(end);
@@ -1301,8 +1404,15 @@ impl<'a> Builder<'a> {
                 ),
             ));
         }
-        if cuts.first().is_none_or(|(at, _)| *at > 0.0) {
-            cuts.insert(0, (0.0, Framing::Wide));
+        if cuts.first().is_none_or(|shot| shot.at > 0.0) {
+            cuts.insert(
+                0,
+                Shot {
+                    at: 0.0,
+                    framing: Framing::Wide,
+                    movement: None,
+                },
+            );
         }
         self.shots += cuts.len();
         let camera = self.camera(&cuts, &stage, duration);
@@ -1372,7 +1482,8 @@ impl<'a> Builder<'a> {
         }
     }
 
-    /// World-space view centre and zoom for a framing at time `t`.
+    /// World-space view centre and zoom for a framing at time `t`, before
+    /// camera movement and the set-bounds clamp.
     fn view(framing: &Framing, stage: &Stage, t: f64) -> (f64, f64, f64) {
         let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
         let root_y = h * 0.7;
@@ -1397,6 +1508,36 @@ impl<'a> Builder<'a> {
                 (xa + (xb - xa) * 0.3, above(140.0), 1.8)
             }
         };
+        (cx, cy, zoom)
+    }
+
+    /// Apply a camera move at `progress` through the shot (`shake` uses the
+    /// seconds since the shot started), then keep the view inside the set.
+    fn moved_view(
+        (cx, cy, zoom): (f64, f64, f64),
+        movement: Option<&str>,
+        progress: f64,
+        since: f64,
+    ) -> (f64, f64, f64) {
+        let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
+        let p = progress.clamp(0.0, 1.0);
+        let (mut cx, mut cy, mut zoom) = (cx, cy, zoom);
+        match movement {
+            Some("push_in") => zoom *= 1.0 + PUSH_RANGE * p,
+            Some("pull_out") => zoom *= 1.0 + PUSH_RANGE * (1.0 - p),
+            Some(side @ ("pan_left" | "pan_right")) => {
+                zoom = zoom.max(PAN_MIN_ZOOM);
+                let sweep = PAN_RANGE * w / zoom * (1.0 - 2.0 * p);
+                cx += if side == "pan_left" { sweep } else { -sweep };
+            }
+            Some("shake") if since < SHAKE_SECONDS => {
+                let k = since * f64::from(STORY_FPS);
+                let decay = 1.0 - since / SHAKE_SECONDS;
+                cx += SHAKE_PIXELS * decay * (k * 2.3).sin();
+                cy += SHAKE_PIXELS * decay * (k * 3.1).cos();
+            }
+            _ => {}
+        }
         // Keep the view inside the painted set.
         let (half_w, half_h) = (w / (2.0 * zoom), h / (2.0 * zoom));
         (
@@ -1406,21 +1547,31 @@ impl<'a> Builder<'a> {
         )
     }
 
-    fn camera(&self, cuts: &[(f64, Framing)], stage: &Stage, duration: f64) -> Vec<CameraKey> {
+    fn camera(&self, cuts: &[Shot], stage: &Stage, duration: f64) -> Vec<CameraKey> {
         let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
         let mut keys: Vec<CameraKey> = Vec::new();
-        for (index, (start, framing)) in cuts.iter().enumerate() {
+        for (index, shot) in cuts.iter().enumerate() {
+            let (start, framing, movement) = (&shot.at, &shot.framing, shot.movement.as_deref());
             let end = cuts
                 .get(index + 1)
-                .map_or(duration, |(next, _)| next - CUT_EPSILON);
+                .map_or(duration, |next| next.at - CUT_EPSILON);
             let length = end - start;
-            // A slow push-in keeps held shots alive; wide shots stay static.
-            let push = if *framing == Framing::Wide || length < 1.5 {
+            // Without an explicit move, a slow push-in keeps held shots alive;
+            // wide shots stay static.
+            let push = if movement.is_some() || *framing == Framing::Wide || length < 1.5 {
                 1.0
             } else {
                 1.025
             };
             let mut times = vec![*start, end];
+            if movement == Some("shake") {
+                let frames = (SHAKE_SECONDS * f64::from(STORY_FPS)) as usize;
+                times.extend(
+                    (1..=frames)
+                        .map(|k| start + k as f64 / f64::from(STORY_FPS))
+                        .filter(|t| *t < end),
+                );
+            }
             for moves in stage.moves.values() {
                 for &(t0, t1, _, _) in moves {
                     times.extend([t0, t1].into_iter().filter(|t| *t > *start && *t < end));
@@ -1429,12 +1580,17 @@ impl<'a> Builder<'a> {
             times.sort_by(f64::total_cmp);
             times.dedup_by(|a, b| (*a - *b).abs() < 1e-6);
             for at in times {
-                let (cx, cy, zoom) = Self::view(framing, stage, at);
                 let progress = if length > 0.0 {
                     (at - start) / length
                 } else {
                     0.0
                 };
+                let (cx, cy, zoom) = Self::moved_view(
+                    Self::view(framing, stage, at),
+                    movement,
+                    progress,
+                    at - start,
+                );
                 let key = CameraKey {
                     at,
                     x: cx - w / 2.0,
@@ -1477,7 +1633,7 @@ title: <title>
 language: fi | en | en-gb
 captions: true            # optional, default true
 cast:                     # characters used in the film
-  <CHARACTER>: {}         # or {voice: <preset>, holds: <hand prop>, hand: left|right}
+  <CHARACTER>: {}         # or {voice: <preset>, speed: 0.7–1.4, holds: <hand prop>, hand: left|right}
 scenes:
   - id: <scene_id>        # a-z, 0-9, _
     set: <set>
@@ -1490,6 +1646,7 @@ scenes:
         gesture: <gesture>          # optional, played while speaking
         look: <CHARACTER>           # optional, whom the speaker looks at
         shot: <shot>                # optional, default auto
+        camera: <camera move>       # optional
         on: <CHARACTER>             # optional, whom the camera frames
         hold: <seconds>             # optional pause after the line, 0–10
         reaction: {by: <CHARACTER>, emotion: <emotion>, gesture: <gesture>, hold: <seconds>}
@@ -1502,7 +1659,8 @@ scenes:
         gait: <gait>                # with move_to
         hold: <seconds>
         shot: <shot>
-      - pause: <seconds>            # 0.2–10, silence; optional shot
+        camera: <camera move>       # say beats take camera too
+      - pause: <seconds>            # 0.2–10, silence; optional shot and camera
 \nVALUES\n",
     );
     text.push_str(&format!(
@@ -1510,6 +1668,10 @@ scenes:
         POSITIONS.map(|(n, _)| n).join(", ")
     ));
     text.push_str(&format!("- emotion: {}\n", list(&EMOTIONS)));
+    text.push_str(&format!(
+        "- camera move: {} (push_in/pull_out for emphasis, pan for reveals, shake for impacts)\n",
+        list(&CAMERA_MOVES)
+    ));
     text.push_str(&format!(
         "- gesture: {}\n",
         list(&motion_animation::GESTURES)

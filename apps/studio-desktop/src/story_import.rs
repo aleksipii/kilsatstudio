@@ -34,14 +34,16 @@ const SETS: [(&str, &str, &str); 4] = [
     ),
 ];
 
-/// `(id, personality for the assistant, English voice)`; Finnish uses Piper.
-const CAST: [(&str, &str, &str); 6] = [
-    ("NOUTAJA", "calm, laconic grim reaper with dry humour; black hood and a scythe", "bm_george"),
-    ("VEIKKO", "ordinary commuter everyone can relate to; blue cap and shoulder bag", "am_michael"),
-    ("PASMA", "pompous small-time boss who turns small things into big ones; red tie and clipboard", "am_adam"),
-    ("KIPINA", "curious inventor whose fix always needs another fix; orange beanie and goggles", "af_bella"),
-    ("KIIRE", "courier who reaches everywhere except a standstill; lime vest and a parcel", "am_eric"),
-    ("SISU", "resourceful, calm grandmother who does not step aside even for the reaper; glasses, violet scarf and a cane", "bf_emma"),
+/// `(id, personality for the assistant, English voice, speaking rate)`.
+/// Finnish uses the one installed Piper voice, so the rate is what tells the
+/// characters apart there.
+const CAST: [(&str, &str, &str, f64); 6] = [
+    ("NOUTAJA", "calm, laconic grim reaper with dry humour; black hood and a scythe", "bm_george", 0.88),
+    ("VEIKKO", "ordinary commuter everyone can relate to; blue cap and shoulder bag", "am_michael", 1.0),
+    ("PASMA", "pompous small-time boss who turns small things into big ones; red tie and clipboard", "am_adam", 0.96),
+    ("KIPINA", "curious inventor whose fix always needs another fix; orange beanie and goggles", "af_bella", 1.08),
+    ("KIIRE", "courier who reaches everywhere except a standstill; lime vest and a parcel", "am_eric", 1.18),
+    ("SISU", "resourceful, calm grandmother who does not step aside even for the reaper; glasses, violet scarf and a cane", "bf_emma", 0.92),
 ];
 const FINNISH_VOICE: &str = "piper_harri";
 
@@ -69,7 +71,7 @@ pub(crate) fn catalog() -> Result<StoryCatalog, String> {
     let script = motion_script::parse(&starter.source).map_err(|e| e.to_string())?;
     let manifest: serde_json::Value = serde_json::from_str(MANIFEST).map_err(|e| e.to_string())?;
     let mut characters = BTreeMap::new();
-    for (id, description, english_voice) in CAST {
+    for (id, description, english_voice, speed) in CAST {
         let character = script
             .characters
             .get(id)
@@ -89,6 +91,7 @@ pub(crate) fn catalog() -> Result<StoryCatalog, String> {
                 accent: entry["accent"].as_str().unwrap_or("#ffffff").to_lowercase(),
                 english_voice: english_voice.into(),
                 finnish_voice: FINNISH_VOICE.into(),
+                speed,
             },
         );
     }
@@ -118,9 +121,12 @@ pub(crate) fn guide() -> Result<String, String> {
 }
 
 /// Compile pasted story text and assemble a project with each scene's set artwork.
-pub(crate) fn build(text: &str) -> Result<Built, Vec<StoryIssue>> {
+pub(crate) fn build(
+    text: &str,
+    measured: Option<&[story::MeasuredLine]>,
+) -> Result<Built, Vec<StoryIssue>> {
     let catalog = catalog().map_err(catalog_error)?;
-    let compilation = story::compile_story(text, &catalog, None)?;
+    let compilation = story::compile_story(text, &catalog, measured)?;
     let source =
         motion_script::to_source(&compilation.script).map_err(|e| catalog_error(e.to_string()))?;
     if source.len() > MAX_SOURCE_BYTES {
@@ -189,7 +195,7 @@ mod tests {
 
     #[test]
     fn example_story_becomes_a_project_with_set_artwork_per_scene() {
-        let built = build(EXAMPLE).unwrap();
+        let built = build(EXAMPLE, None).unwrap();
         let script = motion_script::parse(&built.document.source).unwrap();
         assert_eq!(script.scenes.len(), 2);
         for scene in &script.scenes {
@@ -218,29 +224,29 @@ mod tests {
             for chunk in CAST.chunks(3) {
                 let cast: String = chunk
                     .iter()
-                    .map(|(id, _, _)| format!("  {id}: {{}}\n"))
+                    .map(|(id, _, _, _)| format!("  {id}: {{}}\n"))
                     .collect();
                 let positions: Vec<String> = chunk
                     .iter()
                     .zip(["left", "center", "right"])
-                    .map(|((id, _, _), p)| format!("{id}: {p}"))
+                    .map(|((id, _, _, _), p)| format!("{id}: {p}"))
                     .collect();
                 let beats: String = chunk
                     .iter()
-                    .map(|(id, _, _)| format!("      - say: {id}\n        line: Hello there.\n        gesture: wave\n"))
+                    .map(|(id, _, _, _)| format!("      - say: {id}\n        line: Hello there.\n        gesture: wave\n"))
                     .collect();
                 let text = format!(
                     "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n{cast}scenes:\n  - id: s\n    set: {set}\n    positions: {{{}}}\n    beats:\n{beats}",
                     positions.join(", ")
                 );
-                build(&text).unwrap_or_else(|e| panic!("{set}: {e:#?}"));
+                build(&text, None).unwrap_or_else(|e| panic!("{set}: {e:#?}"));
             }
         }
     }
 
     #[test]
     fn errors_are_returned_not_panicked() {
-        let issues = build("kilsat_story: 1\ntitle: x\n").err().unwrap();
+        let issues = build("kilsat_story: 1\ntitle: x\n", None).err().unwrap();
         assert!(!issues.is_empty());
     }
 }

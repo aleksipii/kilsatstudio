@@ -20,6 +20,7 @@ fn catalog() -> StoryCatalog {
                     accent: "#5e91ae".into(),
                     english_voice: "am_michael".into(),
                     finnish_voice: "piper_harri".into(),
+                    speed: 1.0,
                 },
             )
         })
@@ -114,14 +115,43 @@ fn dialogue_lines_never_overlap_and_listeners_look_at_the_speaker() {
 #[test]
 fn supplied_line_lengths_drive_timing() {
     let catalog = catalog();
-    let lengths = [2.0, 1.5, 3.0, 2.25, 1.75];
-    let result = compile_story(EXAMPLE, &catalog, Some(&lengths)).unwrap();
+    let measured: Vec<MeasuredLine> = [2.0, 1.5, 3.0, 2.25, 1.75]
+        .into_iter()
+        .enumerate()
+        .map(|(i, seconds)| MeasuredLine {
+            seconds,
+            audio: Some(format!("assets/story/{i}.wav")),
+        })
+        .collect();
+    let result = compile_story(EXAMPLE, &catalog, Some(&measured)).unwrap();
     assert_eq!(result.timing, StoryTiming::Supplied);
-    for (line, length) in result.lines.iter().zip(lengths) {
-        assert_eq!(line.duration, length);
+    for (line, measured) in result.lines.iter().zip(&measured) {
+        assert_eq!(line.duration, measured.seconds);
+        assert_eq!(line.audio, measured.audio);
     }
-    assert!(compile_story(EXAMPLE, &catalog, Some(&[1.0])).is_err());
-    assert!(compile_story(EXAMPLE, &catalog, Some(&[f64::NAN, 1.0, 1.0, 1.0, 1.0])).is_err());
+    let speak_audio: Vec<_> = result
+        .script
+        .scenes
+        .iter()
+        .flat_map(|s| &s.events)
+        .filter_map(|e| match e {
+            Event::Speak { audio, .. } => audio.clone(),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(speak_audio.len(), 5);
+    let line = |seconds: f64, audio: Option<&str>| MeasuredLine {
+        seconds,
+        audio: audio.map(str::to_string),
+    };
+    assert!(compile_story(EXAMPLE, &catalog, Some(&[line(1.0, None)])).is_err());
+    let mut bad = measured.clone();
+    bad[0] = line(f64::NAN, None);
+    assert!(compile_story(EXAMPLE, &catalog, Some(&bad)).is_err());
+    bad[0] = line(1.0, Some("../outside.wav"));
+    assert!(compile_story(EXAMPLE, &catalog, Some(&bad)).is_err());
+    bad[0] = line(1.0, Some("/abs.wav"));
+    assert!(compile_story(EXAMPLE, &catalog, Some(&bad)).is_err());
 }
 
 #[test]
@@ -279,4 +309,59 @@ fn estimates_are_bounded_and_monotonic() {
     assert_eq!(estimate_line_seconds("Hi"), 1.0);
     assert!(estimate_line_seconds("one two three four five six") > 2.0);
     assert!(estimate_line_seconds("Kahvitauko on palaverin jälkeen") > 1.8);
+}
+
+#[test]
+fn camera_moves_shape_the_shot() {
+    let catalog = catalog();
+    let zooms = |camera: &str| {
+        let text = minimal(&format!(
+            "      - say: VEIKKO\n        line: One two three four five six seven.\n        shot: medium\n        camera: {camera}\n"
+        ));
+        let result = compile_story(&text, &catalog, None).unwrap();
+        result.script.scenes[0].composition.camera.clone()
+    };
+    let push = zooms("push_in");
+    let (first, last) = (&push[push.len() - 2], push.last().unwrap());
+    assert!(first.zoom < last.zoom, "push_in zooms in");
+    let pull = zooms("pull_out");
+    assert!(pull[pull.len() - 2].zoom > pull.last().unwrap().zoom);
+    let pan = zooms("pan_right");
+    assert!(
+        pan[pan.len() - 2].x < pan.last().unwrap().x,
+        "pan_right moves right"
+    );
+    let shake = zooms("shake");
+    assert!(shake.len() > push.len() + 5, "shake adds per-frame keys");
+    let still = zooms("static");
+    let (a, b) = (&still[still.len() - 2], still.last().unwrap());
+    assert_eq!((a.x, a.y, a.zoom), (b.x, b.y, b.zoom));
+    assert!(
+        errors(&minimal("      - pause: 1\n        camera: dolly_zoom\n"))
+            .iter()
+            .any(|i| i.path == "scenes[0].beats[0].camera")
+    );
+}
+
+#[test]
+fn new_gestures_and_speaking_rate_compile() {
+    let catalog = catalog();
+    for gesture in motion_animation::GESTURES {
+        let text = minimal(&format!(
+            "      - do: VEIKKO\n        gesture: {gesture}\n      - say: SISU\n        line: Yes.\n        gesture: {gesture}\n"
+        ));
+        compile_story(&text, &catalog, None).unwrap_or_else(|e| panic!("{gesture}: {e:?}"));
+    }
+    let fast = minimal("      - pause: 1\n").replace("VEIKKO: {}", "VEIKKO: {speed: 1.2}");
+    let result = compile_story(&fast, &catalog, None).unwrap();
+    assert_eq!(
+        result.script.characters["VEIKKO"]
+            .voice
+            .as_ref()
+            .unwrap()
+            .speed,
+        1.2f32
+    );
+    let wrong = minimal("      - pause: 1\n").replace("VEIKKO: {}", "VEIKKO: {speed: 3}");
+    assert!(errors(&wrong).iter().any(|i| i.path == "cast.VEIKKO.speed"));
 }

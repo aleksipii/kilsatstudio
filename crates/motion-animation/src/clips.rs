@@ -99,7 +99,20 @@ impl Gait {
 }
 
 /// MotionScript gesture names, in the order editors should present them.
-pub const GESTURES: [&str; 4] = ["wave", "point", "nod", "shrug"];
+pub const GESTURES: [&str; 12] = [
+    "wave",
+    "point",
+    "nod",
+    "shrug",
+    "shake_head",
+    "facepalm",
+    "arms_crossed",
+    "thumbs_up",
+    "bow",
+    "jump",
+    "clap",
+    "think",
+];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Gesture {
@@ -107,6 +120,14 @@ pub enum Gesture {
     Point,
     Nod,
     Shrug,
+    ShakeHead,
+    Facepalm,
+    ArmsCrossed,
+    ThumbsUp,
+    Bow,
+    Jump,
+    Clap,
+    Think,
 }
 impl Gesture {
     pub fn parse(name: &str) -> Option<Self> {
@@ -115,6 +136,14 @@ impl Gesture {
             "point" => Self::Point,
             "nod" => Self::Nod,
             "shrug" => Self::Shrug,
+            "shake_head" => Self::ShakeHead,
+            "facepalm" => Self::Facepalm,
+            "arms_crossed" => Self::ArmsCrossed,
+            "thumbs_up" => Self::ThumbsUp,
+            "bow" => Self::Bow,
+            "jump" => Self::Jump,
+            "clap" => Self::Clap,
+            "think" => Self::Think,
             _ => return None,
         })
     }
@@ -155,7 +184,7 @@ struct Library {
     walk: Vec<Option<Track>>,
     jog: Vec<Option<Track>>,
     run: Vec<Option<Track>>,
-    gestures: [Vec<Option<Track>>; 4],
+    gestures: [Vec<Option<Track>>; 12],
 }
 
 fn offset(time: f64, x: f64, y: f64) -> Keyframe {
@@ -289,12 +318,87 @@ fn library() -> &'static Library {
             (HEAD, &[(0.0, 0.0, 4.0)]),
             (CHEST, &[(0.0, 0.0, -3.0)]),
         ]);
+        let shake_head = clip(&[(
+            HEAD,
+            &[
+                (0.0, 0.0, 0.0),
+                (0.17, -5.0, 0.0),
+                (0.33, 5.0, 0.0),
+                (0.5, -5.0, 0.0),
+                (0.67, 5.0, 0.0),
+                (0.83, -5.0, 0.0),
+                (1.0, 0.0, 0.0),
+            ],
+        )]);
+        let facepalm = clip(&[
+            (RIGHT_HAND, &[(0.0, -28.0, -62.0)]),
+            (HEAD, &[(0.0, 0.0, 4.0)]),
+        ]);
+        let arms_crossed = clip(&[
+            (LEFT_HAND, &[(0.0, 20.0, -4.0)]),
+            (RIGHT_HAND, &[(0.0, -20.0, -4.0)]),
+        ]);
+        let thumbs_up = clip(&[(RIGHT_HAND, &[(0.0, 14.0, -40.0)])]);
+        let bow = clip(&[(HEAD, &[(0.0, 0.0, 14.0)]), (CHEST, &[(0.0, 0.0, 8.0)])]);
+        let jump = clip(&[
+            (
+                HIP,
+                &[
+                    (0.0, 0.0, 0.0),
+                    (0.15, 0.0, 5.0),
+                    (0.5, 0.0, -30.0),
+                    (0.85, 0.0, 5.0),
+                    (1.0, 0.0, 0.0),
+                ],
+            ),
+            (LEFT_HAND, &[(0.0, -6.0, -20.0)]),
+            (RIGHT_HAND, &[(0.0, 6.0, -20.0)]),
+        ]);
+        let clap = clip(&[
+            (
+                LEFT_HAND,
+                &[
+                    (0.0, 14.0, -4.0),
+                    (0.25, 20.0, -4.0),
+                    (0.5, 14.0, -4.0),
+                    (0.75, 20.0, -4.0),
+                    (1.0, 14.0, -4.0),
+                ],
+            ),
+            (
+                RIGHT_HAND,
+                &[
+                    (0.0, -14.0, -4.0),
+                    (0.25, -20.0, -4.0),
+                    (0.5, -14.0, -4.0),
+                    (0.75, -20.0, -4.0),
+                    (1.0, -14.0, -4.0),
+                ],
+            ),
+        ]);
+        let think = clip(&[
+            (RIGHT_HAND, &[(0.0, -24.0, -48.0)]),
+            (HEAD, &[(0.0, 2.0, 0.0)]),
+        ]);
         Library {
             rig,
             walk,
             jog,
             run,
-            gestures: [wave, point, nod, shrug],
+            gestures: [
+                wave,
+                point,
+                nod,
+                shrug,
+                shake_head,
+                facepalm,
+                arms_crossed,
+                thumbs_up,
+                bow,
+                jump,
+                clap,
+                think,
+            ],
         }
     })
 }

@@ -18,6 +18,8 @@ use std::{
 };
 const MAX_WAV_BYTES: u64 = 8 * 1024 * 1024;
 const MAX_JOB_TIME: Duration = Duration::from_secs(300);
+/// A whole story may have up to 200 lines; synthesis stays bounded and cancellable.
+const MAX_STORY_JOB_TIME: Duration = Duration::from_secs(30 * 60);
 static NEXT_TEMP: AtomicU64 = AtomicU64::new(1);
 
 pub struct Request {
@@ -30,6 +32,15 @@ pub struct Request {
     /// be absolute or project relative; imports take precedence over synthesis.
     pub imported_audio: BTreeMap<usize, PathBuf>,
     pub cancel: CancellationToken,
+    /// Story text (`kilsat_story: 1`). When present, every line is synthesized
+    /// with its character's voice and the story is recompiled on the measured
+    /// lengths; `source`, `dialogue` and `imported_audio` are not used.
+    pub story: Option<String>,
+}
+/// A story compiled on measured speech, ready to replace the project.
+pub struct StoryReady {
+    pub built: crate::story_import::Built,
+    pub elapsed: Duration,
 }
 #[derive(Debug, Clone)]
 pub struct VerifiedAudio {
@@ -58,6 +69,10 @@ pub enum Update {
         generation: u64,
         result: Result<Ready, String>,
     },
+    StoryFinished {
+        generation: u64,
+        result: Result<StoryReady, String>,
+    },
 }
 pub struct Worker {
     sender: mpsc::SyncSender<Request>,
@@ -82,28 +97,34 @@ impl Worker {
         thread::spawn(move || {
             while let Ok(request) = requests.recv() {
                 let generation = request.generation;
-                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    prepare(request, MAX_JOB_TIME, |completed, total, message| {
-                        let _ = progress.try_send(Update::Progress {
-                            generation,
-                            completed,
-                            total,
-                            message,
-                        });
-                    })
-                }))
-                .unwrap_or_else(|_| {
-                    Err("Puheohjauksen valmistelija keskeytyi; käsikirjoitusta ei muutettu".into())
-                });
+                let report = |completed, total, message| {
+                    let _ = progress.try_send(Update::Progress {
+                        generation,
+                        completed,
+                        total,
+                        message,
+                    });
+                };
+                let crashed = "Puheohjauksen valmistelija keskeytyi; käsikirjoitusta ei muutettu";
+                let update = if request.story.is_some() {
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        prepare_story(request, MAX_STORY_JOB_TIME, report)
+                    }))
+                    .unwrap_or_else(|_| Err(crashed.into()));
+                    Update::StoryFinished { generation, result }
+                } else {
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        prepare(request, MAX_JOB_TIME, report)
+                    }))
+                    .unwrap_or_else(|_| Err(crashed.into()));
+                    Update::Finished { generation, result }
+                };
                 if let Ok(mut pending) = worker_pending.lock() {
                     if !pending.is_empty() {
                         pending.remove(0);
                     }
                 }
-                if progress
-                    .send(Update::Finished { generation, result })
-                    .is_err()
-                {
+                if progress.send(update).is_err() {
                     break;
                 }
             }
@@ -395,6 +416,82 @@ fn prepare(
     })
 }
 
+fn prepare_story(
+    request: Request,
+    limit: Duration,
+    mut progress: impl FnMut(usize, usize, String),
+) -> Result<StoryReady, String> {
+    let started = Instant::now();
+    if limit.is_zero() || limit > MAX_STORY_JOB_TIME {
+        return Err("Tarinan puheen valmistelun aikarajan on oltava enintään 30 minuuttia".into());
+    }
+    let text = request.story.as_deref().unwrap_or_default();
+    let issues = |issues: Vec<motion_script::story::StoryIssue>| {
+        let first: Vec<String> = issues.iter().take(5).map(ToString::to_string).collect();
+        format!("Käsikirjoitusta ei hyväksytty: {}", first.join("; "))
+    };
+    let draft = crate::story_import::build(text, None).map_err(issues)?;
+    if !request.root.is_absolute() || !request.root.is_dir() {
+        return Err(
+            "Anna olemassa olevan projektikansion koko polku ennen puheen valmistelua".into(),
+        );
+    }
+    let root = fs::canonicalize(&request.root).map_err(|e| e.to_string())?;
+    let _deadline = Deadline::start(limit, request.cancel.clone());
+    let lines = &draft.compilation.lines;
+    let mut measured = Vec::with_capacity(lines.len());
+    for (index, line) in lines.iter().enumerate() {
+        check(&request.cancel, started, limit)?;
+        let voice = draft.compilation.script.characters[&line.actor]
+            .voice
+            .as_ref()
+            .ok_or_else(|| format!("{}: hahmolla ei ole puheääntä", line.actor))?;
+        let result = request
+            .provider
+            .synthesize_cancellable(
+                SpeechRequest {
+                    text: line.text.clone(),
+                    voice: VoiceSettings {
+                        preset: voice.preset.clone(),
+                        language: voice.language.clone(),
+                        speed: voice.speed,
+                        style: line.emotion.clone(),
+                    },
+                },
+                &request.cancel,
+            )
+            .map_err(|e| format!("Repliikki {} ({}): {e}", index + 1, line.actor))?;
+        let (bytes, frames) =
+            decoded_snapshot(&result.audio_path, &request.cancel, started, limit)?;
+        let seconds = frames as f64 / auto_direction::SAMPLE_RATE as f64;
+        if seconds > motion_script::story::MAX_LINE_SECONDS {
+            return Err(format!(
+                "Repliikki {} ({}) kestää {seconds:.1} s; jaa se lyhyemmiksi repliikeiksi (enintään {} s)",
+                index + 1,
+                line.actor,
+                motion_script::story::MAX_LINE_SECONDS
+            ));
+        }
+        let digest = hash(&bytes);
+        let relative = publish(&root, &bytes, &digest, &request.cancel, started, limit)?;
+        measured.push(motion_script::story::MeasuredLine {
+            seconds,
+            audio: Some(relative),
+        });
+        progress(
+            index + 1,
+            lines.len(),
+            format!("Puhe {}/{}: {}", index + 1, lines.len(), line.actor),
+        );
+    }
+    check(&request.cancel, started, limit)?;
+    let built = crate::story_import::build(text, Some(&measured)).map_err(issues)?;
+    Ok(StoryReady {
+        built,
+        elapsed: started.elapsed(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -456,6 +553,92 @@ mod tests {
             })
         }
     }
+    /// Speech whose length depends on the text, so timing must follow it.
+    struct TextLength {
+        dir: PathBuf,
+        voices: Arc<Mutex<Vec<String>>>,
+    }
+    impl SpeechProvider for TextLength {
+        fn synthesize(&self, request: SpeechRequest) -> Result<SpeechResult, SpeechError> {
+            self.voices
+                .lock()
+                .unwrap()
+                .push(request.voice.preset.clone());
+            let frames = 24_000 + 2_400 * request.text.chars().count() as u32;
+            let path = self.dir.join(format!("{frames}.wav"));
+            fs::write(&path, wav(frames)).unwrap();
+            Ok(SpeechResult {
+                audio_path: path,
+                sample_rate: 24_000,
+                sample_count: u64::from(frames),
+                cache_key: "k".into(),
+                phonemes: String::new(),
+                cached: false,
+            })
+        }
+    }
+    #[test]
+    fn story_is_retimed_on_measured_speech_with_one_wav_per_line() {
+        let project = Project::new();
+        let scratch = Project::new();
+        let voices = Arc::new(Mutex::new(Vec::new()));
+        let story = include_str!("../../../examples/story/kahvitauko.yaml");
+        let mut request = request(&project, PathBuf::new()).0;
+        request.provider = Arc::new(TextLength {
+            dir: scratch.0.clone(),
+            voices: voices.clone(),
+        });
+        request.story = Some(story.into());
+        let mut steps = 0;
+        let ready = prepare_story(request, MAX_STORY_JOB_TIME, |_, _, _| steps += 1).unwrap();
+        let compilation = &ready.built.compilation;
+        assert_eq!(
+            compilation.timing,
+            motion_script::story::StoryTiming::Supplied
+        );
+        assert_eq!(steps, compilation.lines.len());
+        assert_eq!(voices.lock().unwrap().len(), compilation.lines.len());
+        assert!(voices
+            .lock()
+            .unwrap()
+            .iter()
+            .all(|v| v.starts_with("piper_")));
+        for line in &compilation.lines {
+            let expected = 1.0 + 0.1 * line.text.chars().count() as f64;
+            assert!((line.duration - expected).abs() < 1e-9);
+            let audio = line.audio.as_deref().unwrap();
+            assert!(project.0.join(audio).is_file());
+        }
+        for pair in compilation.lines.windows(2) {
+            if pair[0].scene == pair[1].scene {
+                assert!(pair[0].at + pair[0].duration <= pair[1].at);
+            }
+        }
+        let script = motion_script::parse(&ready.built.document.source).unwrap();
+        let with_audio = script
+            .scenes
+            .iter()
+            .flat_map(|scene| &scene.events)
+            .filter(|e| matches!(e, motion_script::Event::Speak { audio: Some(_), .. }))
+            .count();
+        assert_eq!(with_audio, compilation.lines.len());
+    }
+    #[test]
+    fn story_speech_needs_a_project_folder_and_a_valid_story() {
+        let project = Project::new();
+        let (mut request, calls) = request(&project, PathBuf::new());
+        request.story = Some("kilsat_story: 1\n".into());
+        assert!(prepare_story(request, MAX_STORY_JOB_TIME, |_, _, _| {}).is_err());
+        let (mut request, _) = request_for(&project);
+        request.root = PathBuf::from("relative");
+        assert!(prepare_story(request, MAX_STORY_JOB_TIME, |_, _, _| {}).is_err());
+        assert_eq!(calls.load(Ordering::Relaxed), 0);
+    }
+    fn request_for(project: &Project) -> (Request, Arc<AtomicU64>) {
+        let (mut request, calls) = request(project, PathBuf::new());
+        request.story = Some(include_str!("../../../examples/story/kahvitauko.yaml").into());
+        (request, calls)
+    }
     fn request(project: &Project, path: PathBuf) -> (Request, Arc<AtomicU64>) {
         let calls = Arc::new(AtomicU64::new(0));
         (
@@ -470,6 +653,7 @@ mod tests {
                 }),
                 imported_audio: BTreeMap::new(),
                 cancel: CancellationToken::new(),
+                story: None,
             },
             calls,
         )
