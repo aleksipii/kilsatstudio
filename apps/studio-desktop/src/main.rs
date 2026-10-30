@@ -47,6 +47,7 @@ mod ui_levels;
 mod ui_metrics;
 mod voice_editor;
 mod webcam_pose;
+mod xsheet_panel;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
@@ -289,6 +290,7 @@ struct Studio {
     playback_error: Option<String>,
     scene_worker: scene_worker::Worker,
     scene_preview: Option<ScenePreview>,
+    xsheet: xsheet_panel::XSheetPanel,
     scene_alignment: String,
     scene_audio_active: bool,
     kokoro_setup: kokoro_setup::Worker,
@@ -476,6 +478,7 @@ impl Default for Studio {
             playback_error: None,
             scene_worker: scene_worker::Worker::new(),
             scene_preview: None,
+            xsheet: xsheet_panel::XSheetPanel::new(),
             scene_alignment: String::new(),
             scene_audio_active: false,
             kokoro_setup: kokoro_setup::Worker::spawn(),
@@ -5483,6 +5486,7 @@ impl Studio {
                     }
                     if level.shows(Tool::VisemeCheck) {
                         self.viseme_check_ui(ui);
+                        self.xsheet_ui(ui);
                     }
                     if level.shows(Tool::PhysicsProfile) {
                         ui.separator();
