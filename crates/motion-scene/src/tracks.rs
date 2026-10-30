@@ -18,6 +18,7 @@
 //! format; the authored form stays in `motion-script` (A02).
 use crate::time::seconds_to_sample;
 use crate::{Error, Vec2};
+use motion_animation::MoveEase;
 
 /// Upper bound on spans per track, so resolution work stays bounded.
 pub const MAX_TRACK_SPANS: usize = 4096;
@@ -43,6 +44,8 @@ pub struct AuthoredSpan {
     /// Positive length in seconds.
     pub duration: f64,
     pub target: TrackTarget,
+    /// Speed profile from `from` to `to`.
+    pub ease: MoveEase,
 }
 
 /// A concrete interval: playback only interpolates `from → to`.
@@ -56,6 +59,7 @@ pub struct ResolvedSpan {
     pub end_sample: u64,
     pub from: Vec2,
     pub to: Vec2,
+    pub ease: MoveEase,
 }
 
 impl ResolvedSpan {
@@ -68,8 +72,12 @@ impl ResolvedSpan {
             ((time - self.at) / self.duration).clamp(0.0, 1.0)
         }
     }
+    /// Fraction of the distance covered at `time`, after easing.
+    pub fn distance_progress(&self, time: f64) -> f64 {
+        self.ease.apply(self.progress(time))
+    }
     fn value(&self, time: f64) -> Vec2 {
-        let progress = self.progress(time);
+        let progress = self.distance_progress(time);
         // A finished span holds exactly `to`; `from + (to - from) * 1` can be off by one ulp.
         if progress == 1.0 {
             return self.to;
@@ -142,6 +150,7 @@ impl ResolvedTrack {
                 end_sample: seconds_to_sample(end)?,
                 from,
                 to,
+                ease: span.ease,
             });
         }
         Ok(track)
@@ -186,12 +195,18 @@ pub fn resolve_moves(
                 x,
                 y,
                 duration,
+                ease,
                 ..
             } if id == actor => Some(AuthoredSpan {
                 order,
                 at: *at,
                 duration: *duration,
                 target: TrackTarget::Abs(Vec2::new(*x, *y)),
+                // Validation guarantees a known ease.
+                ease: ease
+                    .as_deref()
+                    .and_then(MoveEase::parse)
+                    .unwrap_or_default(),
             }),
             _ => None,
         })
@@ -209,6 +224,7 @@ mod tests {
             at,
             duration,
             target,
+            ease: MoveEase::Linear,
         }
     }
     const BASE: Vec2 = Vec2::new(300.0, 400.0);
@@ -293,6 +309,30 @@ mod tests {
             ResolvedTrack::resolve(Vec2::new(0.0, 0.0), &reversed).unwrap(),
             track
         );
+    }
+
+    #[test]
+    fn eased_spans_start_and_stop_gently_and_end_exactly() {
+        let mut eased = span(0, 1.0, 2.0, TrackTarget::Abs(Vec2::new(500.0, 400.0)));
+        eased.ease = MoveEase::InOut;
+        let track = ResolvedTrack::resolve(BASE, &[eased]).unwrap();
+        let linear = ResolvedTrack::resolve(
+            BASE,
+            &[span(0, 1.0, 2.0, TrackTarget::Abs(Vec2::new(500.0, 400.0)))],
+        )
+        .unwrap();
+        // Slower than linear early, ahead in the middle, exact at the ends.
+        assert!(track.value_at(1.1).x < linear.value_at(1.1).x);
+        assert!((track.value_at(2.0).x - 400.0).abs() < 1e-9);
+        assert_eq!(track.value_at(3.0), Vec2::new(500.0, 400.0));
+        assert_eq!(track.value_at(1.0), BASE);
+        // Monotonic, so the actor never steps back.
+        let mut last = BASE.x;
+        for i in 0..=200 {
+            let x = track.value_at(1.0 + i as f64 / 100.0).x;
+            assert!(x >= last - 1e-9);
+            last = x;
+        }
     }
 
     #[test]

@@ -1,7 +1,7 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
 pub mod editable_timeline;
 use motion_animation::HumanoidState;
-pub use motion_animation::{Gait, GAITS, GESTURES, POSTURE_BLEND_SECONDS};
+pub use motion_animation::{Gait, MoveEase, GAITS, GESTURES, MOVE_EASES, POSTURE_BLEND_SECONDS};
 use motion_animation::{Interpolation, Transform2};
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
 use motion_lipsync::Viseme;
@@ -301,25 +301,29 @@ fn hands_at(events: &[&Event], actor: &str, time: f64, initial: &HandState) -> H
     }
     state
 }
-/// Sitting weight from the actor's pose events up to `time`, eased over
-/// `SIT_SECONDS` from the previous pose.
-fn sit_weight(events: &[&Event], actor: &str, time: f64) -> f64 {
-    let (mut from, mut to, mut since) = (0.0, 0.0, f64::INFINITY);
-    for event in events {
-        if let Event::Pose {
-            at,
-            actor: a,
-            value,
-        } = event
-        {
-            if a == actor && *at <= time {
-                from = from + (to - from) * (since / motion_animation::SIT_SECONDS).min(1.0);
-                to = if value == "sit" { 1.0 } else { 0.0 };
-                since = time - at;
+/// The actor's body pose changes up to `time` (sorted events), oldest first.
+fn pose_changes(
+    events: &[&Event],
+    actor: &str,
+    time: f64,
+) -> Vec<(f64, motion_animation::BodyPose)> {
+    events
+        .iter()
+        .filter_map(|event| match event {
+            Event::Pose {
+                at,
+                actor: a,
+                value,
+            } if a == actor && *at <= time => {
+                // Validation guarantees a known pose.
+                Some((
+                    *at,
+                    motion_animation::BodyPose::parse(value).unwrap_or_default(),
+                ))
             }
-        }
-    }
-    from + (to - from) * (since / motion_animation::SIT_SECONDS).min(1.0)
+            _ => None,
+        })
+        .collect()
 }
 /// Seconds since the actor last moved, gestured or sat down or stood up, or
 /// since the scene start; `None` while one of those is still in progress.
@@ -339,7 +343,16 @@ fn still_seconds(events: &[&Event], actor: &str, time: f64) -> Option<f64> {
                 duration,
                 ..
             } if a == actor => (*at, *duration),
-            Event::Pose { at, actor: a, .. } if a == actor => (*at, motion_animation::SIT_SECONDS),
+            Event::Pose {
+                at,
+                actor: a,
+                value,
+            } if a == actor => (
+                *at,
+                motion_animation::BodyPose::parse(value)
+                    .unwrap_or_default()
+                    .seconds(),
+            ),
             _ => continue,
         };
         if at > time {
@@ -989,6 +1002,7 @@ fn evaluate_validated(
                 view: FaceView::Front,
             };
             let mut walk_seconds = None;
+            let mut move_progress = None;
             let mut gait = motion_animation::Gait::Walk;
             let mut world_travel = 0.0;
             let mut emotion_changes = Vec::new();
@@ -1047,13 +1061,26 @@ fn evaluate_validated(
                     .active(time_seconds)
                     .filter(|span| span.progress(time_seconds) < 1.0 && span.from != span.to);
                 if let Some(span) = active {
-                    walk_seconds = Some(time_seconds - span.at);
+                    // Eased moves step in time with the distance covered, so
+                    // the feet slow down with the body instead of sliding.
+                    walk_seconds = Some(if span.ease == motion_animation::MoveEase::Linear {
+                        time_seconds - span.at
+                    } else {
+                        span.distance_progress(time_seconds) * span.duration
+                    });
+                    move_progress = Some(span.progress(time_seconds));
                     if let Some(Event::Move {
-                        gait: Some(name), ..
+                        gait: name, pace, ..
                     }) = scene.events.get(span.order)
                     {
-                        // Validation guarantees a known gait.
-                        gait = motion_animation::Gait::parse(name).unwrap_or_default();
+                        // Validation guarantees a known gait and a valid pace.
+                        if let Some(name) = name {
+                            gait = motion_animation::Gait::parse(name).unwrap_or_default();
+                        }
+                        // A slower or faster pace steps slower or faster too.
+                        if let (Some(pace), Some(seconds)) = (pace, walk_seconds.as_mut()) {
+                            *seconds *= pace;
+                        }
                     }
                     let dx = span.to.x - span.from.x;
                     world_travel = if dx > 0.0 {
@@ -1083,6 +1110,7 @@ fn evaluate_validated(
                 &HumanoidState {
                     walk_seconds,
                     gait,
+                    move_progress,
                     travel,
                     emotion_changes: &emotion_changes,
                     gesture,
@@ -1107,7 +1135,22 @@ fn evaluate_validated(
                 // joints a rig defines, on top of authored joint keys.
                 if let Some(seconds) = walk_seconds {
                     let travel = if travel == 0.0 { 1.0 } else { travel };
-                    let motion = motion_animation::rig_gait(gait, seconds, travel, weights.walk);
+                    let motion = if gait.is_leap() {
+                        motion_animation::rig_leap(
+                            move_progress.unwrap_or(0.0),
+                            travel,
+                            weights.walk,
+                        )
+                    } else {
+                        // The current emotion colours the steps.
+                        motion_animation::rig_gait_with_mood(
+                            gait,
+                            seconds,
+                            travel,
+                            weights.walk,
+                            motion_animation::GaitMood::from_emotion(&pose.emotion),
+                        )
+                    };
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
                 // Validation already accepted these principles.
@@ -1139,9 +1182,13 @@ fn evaluate_validated(
                         add_rig_motion(rig, &mut offsets, &motion);
                     }
                 }
-                let sitting = sit_weight(&events, id, time_seconds);
-                if sitting > 0.0 {
-                    let motion = motion_animation::rig_sit(sitting, pose.view == FaceView::Side);
+                let changes = pose_changes(&events, id, time_seconds);
+                if !changes.is_empty() {
+                    let motion = motion_animation::rig_pose_at(
+                        &changes,
+                        time_seconds,
+                        pose.view == FaceView::Side,
+                    );
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
                 // Screen taps: the free hand presses the glass, last so it
@@ -1209,12 +1256,20 @@ fn evaluate_validated(
         // Already computed successfully for every visible actor above.
         time::exposed_seconds(time_seconds, script.project.fps, on).unwrap_or(time_seconds)
     });
-    actors.sort_by_key(|actor| {
+    let z = |actor: &ActorPose| {
         scene
             .composition
             .layers
             .get(&actor.id)
             .map_or(0, |layer| layer.z)
+    };
+    // Stable: equal keys keep character-id order.
+    actors.sort_by(|a, b| {
+        z(a).cmp(&z(b)).then(if scene.composition.depth_sort {
+            a.y.total_cmp(&b.y)
+        } else {
+            std::cmp::Ordering::Equal
+        })
     });
     let composition = &scene.composition;
     let fade_in = if composition.fade_in > 0.0 {

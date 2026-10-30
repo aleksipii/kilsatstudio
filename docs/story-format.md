@@ -68,16 +68,24 @@ scenes:
 | Kenttä | Säännöt |
 | --- | --- |
 | `cast` | 1–6 hahmoa katalogista. `voice`: Kokoro-esiasetus (`am_michael`) englannille, Piper (`piper_*`) suomelle. `holds`: Tikku-ukkostudion käsiesine; `hand` valitaan vapaasta kädestä, jos sitä ei anneta. |
-| `scenes` | 1–12 kohtausta, kussakin 1–48 beatia (yhteensä ≤ 200). `positions` määrää, ketkä ovat lavalla: `far_left`, `left`, `center`, `right`, `far_right`; kaksi hahmoa ei voi aloittaa samasta paikasta. |
+| `scenes` | 1–12 kohtausta, kussakin 1–48 beatia (yhteensä ≤ 200). `positions` määrää, ketkä ovat lavalla: `far_left`, `left`, `center`, `right`, `far_right` sekä ruudun ulkopuoliset `offscreen_left` ja `offscreen_right`; kaksi hahmoa ei voi aloittaa samasta ruudun sisäisestä paikasta, mutta ruudun ulkopuolella saa odottaa useampi. |
 | beat | Täsmälleen yksi: `say` (repliikki, vaatii `line`), `do` (toiminta) tai `pause` (0,2–10 s). |
-| `say` | `line` ≤ 400 merkkiä, `emotion`, `gesture` (puheen aikana), `look`, `shot`, `on`, `hold` (tauko repliikin jälkeen), `reaction: {by, emotion, gesture, hold}`. Ei `move_to`:ta. |
+| `say` | `line` ≤ 400 merkkiä, `emotion`, `gesture` (puheen aikana), `look`, `shot`, `on`, `hold` (tauko repliikin jälkeen), `reaction: {by, emotion, gesture, hold}`, `move_to` + `gait` (kävely alkaa repliikin kanssa, "walk and talk"). |
 | `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `holds` (+ `hand`), `pose`, `hold`, `shot`, `camera`, `on`. |
 | `holds` | Käsiesine poimitaan perille saavuttaessa; `none` laskee sen. Ilman `hand`-kenttää valitaan vapaa käsi (vasen ensin, jotta oikea jää eleille). Tila alkaa joka kohtauksessa castin `holds`-arvosta. |
-| `pose` | `sit` lisää lavasteeseen toimistotuolin hahmon alle (istuimen korkeus sivu- tai etukuvan mukaan); `stand` nousee. Istuva hahmo ei voi kävellä ennen `stand`-beatia. |
+| `move_to` | Paikka (myös `offscreen_left`/`offscreen_right`: sisääntulo ja poistuminen) tai lavalla oleva hahmo: kävelijä pysähtyy 16 % ruudun leveydestä hänen eteensä tulosuunnan puolelle ja katsoo häntä. |
+| `path` | 2–6 reittipistettä (paikkoja tai hahmoja), jotka kävellään yhtenä matkana: kiihdytys alussa, jarrutus lopussa, ei pysähdyksiä välissä. Ei yhdessä `move_to`:n tai `follow`:n kanssa. |
+| `follow` | Hahmo kävelee edellisessä beatissa liikkuneen hahmon perässä: lähtee 0,4 s myöhemmin, samalla askellajilla (ellei `gait` muuta kerro) ja pysähtyy 12 % ruudun leveydestä hänen taakseen. Ei ohita johtajaa. Vain `do`-beateissa. |
+| `depth` | `near`, `mid` (oletus) tai `far`: hahmo kävelee kameraa kohti tai siitä poispäin, kasvaa (×1,25) tai pienenee (×0,7) ja laskee tai nousee ruudussa. Pelkkä `depth` kävelee suoraan kohti kameraa (kasvot edellä) tai poispäin (selkä edellä); `move_to`:n kanssa vinosti. Tarinat piirtävät hahmot syvyysjärjestyksessä (`depth_sort`): alempana ruudussa oleva on edessä. |
+| `pace` | Nopeuskerroin 0,5–1,5 mille tahansa askellajille. Askelrytmi muuttuu samassa suhteessa (MotionScriptin `move.pace`), joten jalat pysyvät maan tahdissa. |
+| `look_back` | `true` `move_to`:n kanssa: hahmo pysähtyy puolivälissä, katsoo taakseen 0,9 s ja jatkaa. |
+| väistäminen | Kun kävelijä kulkee seisovan hahmon kohdalta (samalla syvyydellä, ei istumassa eikä kävelyn kohde), tämä astuu 45 px taaemmas ja palaa, kun kävelijä on ohittanut. Väistöt näkyvät käännöksen huomautuksissa. |
+| `gait` | Askellaji `move_to`:n, `path`:n, `follow`:n tai `depth`:n kanssa. `carry` on hidas, kumara kantaminen; se valitaan automaattisesti, kun hahmolla on esine kummassakin kädessä. Kävelyt kiihdyttävät ja jarruttavat (`ease: in_out`); `backwards` kulkee selkä edellä (kasvot poispäin kulkusuunnasta); `leap` on yksi hyppy, enintään 35 % ruudun leveydestä. Nopeudet px/s: stroll 180, sneak 150, tiptoe 170, limp 150, backwards 150, walk 260, jog 450, leap 520, run 700, sprint 950, carry 160. Hahmon tunne näkyy askelissa: surullinen laahustaa (pienet kädenheilahdukset, pää alhaalla), vihainen tömistelee (raskas pomppu, jäykät kädet) ja iloinen hypähtelee. |
+| `pose` | `sit` lisää lavasteeseen toimistotuolin hahmon alle (istuimen korkeus sivu- tai etukuvan mukaan); `crouch` kyykky, `kneel` polvillaan, `lie` makaa lattialla, `fall` kaatuu nopeasti (0,35 s) makaamaan; `stand` nousee. Hahmo voi kävellä vain seisaaltaan: `pose: stand` samassa beatissa `move_to`:n kanssa nousee ensin. |
 | `camera` | `static`, `push_in`, `pull_out` (zoomi 30 %), `pan_left`, `pan_right` (12 % näkyvästä leveydestä kumpaankin suuntaan, zoomi vähintään 1,2), `shake` (0,5 s vaimeneva tärähdys). Liike aloittaa aina oman otoksensa. |
 | `cast.*.speed` | Puhenopeus 0,7–1,4. Hahmoilla on oletusnopeudet (esim. Kiire 1,18, Noutaja 0,88); suomessa ne erottavat hahmot, koska Piperissa on yksi ääni. |
 | `principles` | Animaatioperiaatteet: `cast.*.principles` hahmolle ja beatin `principles` sen eleelle. Esiasetus (`subtle`, `cartoon`, `snappy`) tai lohko; ks. [animation-principles.md](animation-principles.md). Beatin `principles` vaatii `gesture`-kentän. |
-| arvot | `emotion`: neutral, happy, sad, surprised, angry · `gesture`: wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap, think · `face`: front, three_quarter_left, three_quarter_right, left, right, back · `gait`: walk, jog, run · `shot`: auto, wide, medium, close_up, two_shot, over_shoulder |
+| arvot | `emotion`: neutral, happy, sad, surprised, angry · `gesture`: wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap, think, stumble · `face`: front, three_quarter_left, three_quarter_right, left, right, back · `gait`: walk, jog, run, stroll, sneak, tiptoe, limp, sprint, backwards, leap, carry · `pose`: stand, sit, crouch, kneel, lie, fall · `depth`: near, mid, far · `shot`: auto, wide, medium, close_up, two_shot, over_shoulder |
 
 Tuntemattomat kentät, hahmot, lavasteet ja arvot hylätään (ei arvata, ei ohiteta).
 
@@ -118,14 +126,29 @@ myös muokata editorissa:
   hetkestä `at` alkaen, tai ei mitään, jos `item` puuttuu. Arvioija valmistelee rigin
   jokaiselle käsitilalle ja valitsee sen ajan perusteella, joten haku on tarkka.
   Vaatii oman rigin; varattu käsi tai tuntematon esine on validointivirhe.
-- `{type: pose, actor, at, value: sit|stand}`: istuminen 0,4 s pehmennyksellä, kestää
-  seuraavaan pose-tapahtumaan. Vaatii rigin, jossa on root-, thigh- ja shin-nivelet.
+- `{type: pose, actor, at, value: stand|sit|crouch|kneel|lie}`: asento vaihtuu
+  pehmeästi (sit/stand 0,4 s, crouch 0,3 s, kneel 0,5 s, lie 0,9 s) siitä asennosta,
+  jossa hahmo sillä hetkellä on, ja kestää seuraavaan pose-tapahtumaan. Vaatii rigin,
+  jossa on root-, thigh- ja shin-nivelet. Jalkojen kulmat on mitoitettu
+  tikku-ukkostudion mittasuhteille (reisi 70, sääri 62).
+- `{type: move, …, gait?, ease?, pace?}`: `pace` (0,25–4) skaalaa askelrytmiä, kun
+  liike on kirjoitettu askellajin luontaista nopeutta hitaammaksi tai nopeammaksi.
+  Kohtauksen `composition.depth_sort: true` piirtää saman `layers.z`-tason hahmot
+  syvyysjärjestyksessä (juuren y; tasatilanteessa hahmon tunnisteen järjestys).
+- `{type: move, …, gait?, ease?}`: `gait` on jokin yllä luetelluista askellajeista ja
+  `ease` nopeusprofiili `linear` (oletus), `in`, `out` tai `in_out` (kiihdytys ja
+  jarrutus 25 % kestosta, tasainen vauhti välissä). Kiihdyttävän liikkeen askelrytmi
+  seuraa kuljettua matkaa, joten jalat eivät liu'u. Liikkeen kohde saa olla enintään
+  yhden ruudun leveyden tai korkeuden verran kuvan ulkopuolella.
 
 Uudet eleet toimivat sekä omilla rigeillä (ennakointi–ylilyönti–pito–palautus) että
 alkuperäisellä seitsennivelrigillä.
 
 ## Rajoitukset
 
+- Uusien askellajien ja asentojen ulkoasu on tarkistettu renderöidyistä ruuduista, mutta
+  niitä ei ole säädetty animaattorin kanssa. Kaatumisen kääntö tukeutuu jalkoihin
+  (tikku-ukkostudion mittasuhteilla), joten muilla rigeillä jalat voivat käydä lattian alla.
 - Suomessa on yksi Piper-ääni (Harri); hahmot erottuvat vain puhenopeudella, kunnes
   käyttäjä asentaa muita suomenkielisiä Piper-malleja.
 - Tunteita on viisi, koska ne vaativat rigiin piirretyt ilmevariantit.
