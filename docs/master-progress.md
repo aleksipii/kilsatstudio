@@ -35,6 +35,52 @@ only select drawn art and no bundled set has any; library prop views not wired (
 unused by the desktop). Next: redrawn starter art (full characters with per-view drawings, sets
 with drawn reverse/high/low layers) and per-view SVG/PNG import. `kilsatstudio1.0` not advanced.
 
+## Locomotion commands — PR #155 (2026-10-30)
+
+Merged with the user's authorisation (merge commit `9dc24b7`, no force-push):
+- **Gaits:** `stroll`, `sneak`, `tiptoe`, `limp`, `sprint`, `backwards`, `leap` and `carry` join
+  `walk`, `jog` and `run`. They work on the built-in humanoid and on custom rigs. Emotion now
+  shapes custom-rig gaits: sad drags, angry stomps, happy bounces.
+- **MotionScript `move`:** new optional `ease` (`linear`, `in`, `out`, `in_out`) and `pace`
+  (0.25–4) fields. With either, the step rate follows the distance covered. Move targets may
+  now lie up to one frame outside the picture.
+- **Poses and gestures:** the `crouch`, `kneel`, `lie` and `fall` poses blend from the pose in
+  flight, and tipping pivots on the soles. New `stumble` gesture.
+- **Draw order:** new composition flag `depth_sort` (opt-in) paints actors on the same z by
+  root y. Stories use it.
+- **Story format:**
+  - Offscreen positions for entering and exiting.
+  - `move_to: <CHARACTER>` (stops at talking distance).
+  - `path` (2–6 waypoints walked as one journey).
+  - `follow` (walks after the leader of the previous beat).
+  - `depth: near|mid|far`.
+  - `pace`.
+  - `look_back`.
+  - Walk-and-talk in `say` beats.
+  - Bystanders step aside automatically.
+  - `carry` is chosen when both hands are full.
+- **Desktop:** Finnish labels for the new values and a speed-profile ("Vauhti") picker.
+
+Checks actually run locally (macOS, Apple Silicon) on the merge with `origin/main` (`bd19409`):
+- `cargo fmt --all --check`: passed.
+- `cargo clippy --workspace --all-targets`: 0 warnings.
+- `cargo test --workspace`: one run had a single failure in
+  `motion-voice` `tests/cues.rs::asset_errors_are_reported_before_any_scene_is_returned`, a
+  crate this PR does not touch. The next full run passed 1259/0, and the test passed three
+  isolated reruns, so it looks flaky (not investigated further).
+- I checked the poses, gaits, stumble, fall, carry and mood walks visually on contact sheets
+  rendered through `motion_render` → `rasterize_svg_png`, using a temporary example that was
+  not committed.
+
+GitHub CI was green on the merged PR head, including the macOS jobs.
+
+Still open:
+- No interactive run of the desktop app (editor picker, motion blocks).
+- No animator review of the new motion.
+- The pose geometry and the fall pivot assume the stick-studio proportions (thigh 70,
+  shin 62).
+- `depth_sort` orders whole actors, not individual parts.
+
 ## Art angles 1: three-quarter view and per-view part drawings — PR #153 (2026-10-30)
 
 Merged with the user's authorisation (merge commit `835e459`, no force-push):
