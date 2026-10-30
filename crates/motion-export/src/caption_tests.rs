@@ -267,14 +267,16 @@ fn mode_frame(script: &Script, rendered: &RenderedScene, mode: CaptionMode) -> V
     Pixmap::decode_png(&png).unwrap().take()
 }
 
+/// PNG bytes as the exporters write them: encoded pixels plus sRGB/gAMA tags.
 fn png_bytes(rgba: &[u8]) -> Vec<u8> {
-    Pixmap::from_vec(
+    let png = Pixmap::from_vec(
         rgba.to_vec(),
         resvg::tiny_skia::IntSize::from_wh(W, H).unwrap(),
     )
     .unwrap()
     .encode_png()
-    .unwrap()
+    .unwrap();
+    crate::color::tag_png_srgb(png).unwrap()
 }
 
 #[test]

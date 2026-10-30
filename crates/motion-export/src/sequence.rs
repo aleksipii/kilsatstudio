@@ -816,10 +816,8 @@ fn export_project_sequence(
                     Some(&validated),
                     captions,
                 )?;
-                (
-                    out.encode_png().map_err(|e| invalid(e.to_string()))?,
-                    entries,
-                )
+                let png = out.encode_png().map_err(|e| invalid(e.to_string()))?;
+                (crate::color::tag_png_srgb(png).map_err(invalid)?, entries)
             };
             used = used
                 .checked_add(bytes.len() as u64)
