@@ -206,6 +206,7 @@ mod tests {
             y: 3.0,
             duration: 0.3,
             gait: None,
+            ease: None,
         };
         let mut drag = Drag::new(0, 0, &event, 0.0).unwrap();
         drag.update(1000.0, 100.0, 1.01, 24).unwrap();

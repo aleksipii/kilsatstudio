@@ -55,6 +55,7 @@ pub fn create(
                 y: pose.y,
                 duration,
                 gait: None,
+                ease: None,
             }
         }
         Kind::Emotion => Event::Emotion {
@@ -237,6 +238,7 @@ mod tests {
             y: 200.0,
             duration: 2.0,
             gait: None,
+            ease: None,
         });
         let event = create(&script, 0, "EMMA", 1.0, Kind::Move).unwrap();
         match event {

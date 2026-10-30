@@ -267,7 +267,11 @@ fn beat_shape_and_references_are_strict() {
             "scenes[0].beats[0].reaction.by",
         ),
         (
-            "      - say: VEIKKO\n        line: x\n        move_to: center\n",
+            "      - do: VEIKKO\n        move_to: VEIKKO\n",
+            "scenes[0].beats[0].move_to",
+        ),
+        (
+            "      - do: VEIKKO\n        move_to: backstage\n",
             "scenes[0].beats[0].move_to",
         ),
         (
@@ -516,4 +520,188 @@ fn principles_reach_the_cast_and_beat_gestures() {
     assert!(errors(&lonely)
         .iter()
         .any(|i| i.path.ends_with(".principles")));
+}
+
+fn moves_of<'a>(script: &'a Script, actor: &str) -> Vec<&'a Event> {
+    script.scenes[0]
+        .events
+        .iter()
+        .filter(|e| matches!(e, Event::Move { actor: a, .. } if a == actor))
+        .collect()
+}
+
+fn faces_of(script: &Script, actor: &str) -> Vec<String> {
+    script.scenes[0]
+        .events
+        .iter()
+        .filter_map(|e| match e {
+            Event::Face {
+                actor: a, value, ..
+            } if a == actor => Some(value.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn actors_enter_and_exit_through_offscreen_positions() {
+    let source = minimal(
+        "      - do: SISU\n        move_to: center\n      - say: SISU\n        line: Morning.\n      - do: SISU\n        move_to: offscreen_left\n        gait: run\n",
+    )
+    .replace(
+        "{VEIKKO: left, SISU: right}",
+        "{VEIKKO: offscreen_left, SISU: offscreen_right}",
+    );
+    let result = compile_story(&source, &catalog(), None).unwrap();
+    let moves = moves_of(&result.script, "SISU");
+    assert_eq!(moves.len(), 2);
+    // Every compiled move validates, though the actor starts and ends outside the frame.
+    crate::parse(&crate::to_source(&result.script).unwrap()).unwrap();
+    for event in moves {
+        let Event::Move { ease, .. } = event else {
+            unreachable!()
+        };
+        assert_eq!(
+            ease.as_deref(),
+            Some("in_out"),
+            "walks speed up and slow down"
+        );
+    }
+    // Enters walking left, exits running left, both in profile.
+    assert_eq!(faces_of(&result.script, "SISU")[0], "left");
+    // Several actors may wait outside the frame on the same side.
+    let crowd = minimal("      - pause: 1\n").replace(
+        "{VEIKKO: left, SISU: right}",
+        "{VEIKKO: offscreen_left, SISU: offscreen_left}",
+    );
+    compile_story(&crowd, &catalog(), None).unwrap();
+}
+
+#[test]
+fn move_to_a_character_stops_at_talking_distance_and_looks_at_them() {
+    let source = minimal("      - do: VEIKKO\n        move_to: SISU\n").replace(
+        "{VEIKKO: left, SISU: right}",
+        "{VEIKKO: far_left, SISU: far_right}",
+    );
+    let result = compile_story(&source, &catalog(), None).unwrap();
+    let scene = &result.script.scenes[0];
+    let start = scene.composition.actor_tracks["VEIKKO"][0].x;
+    let Event::Move { x, .. } = moves_of(&result.script, "VEIKKO")[0] else {
+        unreachable!()
+    };
+    // The move is relative to the centre; VEIKKO stops left of SISU.
+    let stop = x + start;
+    let sisu = 0.86 * 1920.0;
+    assert!((sisu - stop - 0.16 * 1920.0).abs() < 1e-6, "{stop}");
+    assert!(scene.composition.gaze_tracks["VEIKKO"]
+        .iter()
+        .any(|k| k.target.as_deref() == Some("SISU")));
+}
+
+#[test]
+fn speakers_can_walk_while_talking() {
+    let source = minimal(
+        "      - say: VEIKKO\n        line: Wait for me, I am coming with you.\n        move_to: center\n        gait: jog\n",
+    );
+    let result = compile_story(&source, &catalog(), None).unwrap();
+    let speak_at = result.script.scenes[0]
+        .events
+        .iter()
+        .find_map(|e| match e {
+            Event::Speak { at, .. } => Some(*at),
+            _ => None,
+        })
+        .unwrap();
+    let Event::Move { at, gait, .. } = moves_of(&result.script, "VEIKKO")[0] else {
+        unreachable!()
+    };
+    assert_eq!((*at, gait.as_deref()), (speak_at, Some("jog")));
+}
+
+#[test]
+fn new_gaits_compile_and_backwards_faces_away_from_travel() {
+    for gait in motion_animation::GAITS {
+        let source = minimal(&format!(
+            "      - do: VEIKKO\n        move_to: center\n        gait: {gait}\n"
+        ));
+        let result =
+            compile_story(&source, &catalog(), None).unwrap_or_else(|e| panic!("{gait}: {e:?}"));
+        assert_eq!(moves_of(&result.script, "VEIKKO").len(), 1, "{gait}");
+    }
+    // VEIKKO travels right (left → center) but faces left while backing up.
+    let back = minimal("      - do: VEIKKO\n        move_to: center\n        gait: backwards\n");
+    let result = compile_story(&back, &catalog(), None).unwrap();
+    assert_eq!(faces_of(&result.script, "VEIKKO")[0], "left");
+    // Slower gaits take longer over the same distance.
+    let duration = |gait: &str| {
+        let source = minimal(&format!(
+            "      - do: VEIKKO\n        move_to: far_right\n        gait: {gait}\n"
+        ))
+        .replace(
+            "{VEIKKO: left, SISU: right}",
+            "{VEIKKO: far_left, SISU: center}",
+        );
+        let result = compile_story(&source, &catalog(), None).unwrap();
+        match moves_of(&result.script, "VEIKKO")[0] {
+            Event::Move { duration, .. } => *duration,
+            _ => unreachable!(),
+        }
+    };
+    assert!(duration("sneak") > duration("walk"));
+    assert!(duration("sprint") < duration("run"));
+    // A leap keeps constant speed and is limited to a short hop.
+    let Event::Move { ease, .. } = moves_of(
+        &compile_story(
+            &minimal("      - do: VEIKKO\n        move_to: center\n        gait: leap\n"),
+            &catalog(),
+            None,
+        )
+        .unwrap()
+        .script,
+        "VEIKKO",
+    )[0]
+    .clone() else {
+        unreachable!()
+    };
+    assert_eq!(ease, None);
+    let far = minimal("      - do: VEIKKO\n        move_to: far_right\n        gait: leap\n")
+        .replace("SISU: right", "SISU: center");
+    assert!(errors(&far)
+        .iter()
+        .any(|i| i.path == "scenes[0].beats[0].gait" && i.kind == IssueKind::Invalid));
+}
+
+#[test]
+fn body_poses_compile_and_block_walking_until_standing() {
+    for pose in ["crouch", "kneel", "lie"] {
+        let source = minimal(&format!("      - do: VEIKKO\n        pose: {pose}\n"));
+        let result = compile_story(&source, &catalog(), None).unwrap();
+        assert!(result.script.scenes[0]
+            .events
+            .iter()
+            .any(|e| matches!(e, Event::Pose { value, .. } if value == pose)));
+        let walk = minimal(&format!(
+            "      - do: VEIKKO\n        pose: {pose}\n      - do: VEIKKO\n        move_to: center\n"
+        ));
+        assert!(errors(&walk)
+            .iter()
+            .any(|i| i.path == "scenes[0].beats[1].move_to"));
+    }
+    // Standing up in the walking beat happens before the walk.
+    let up = minimal(
+        "      - do: VEIKKO\n        pose: kneel\n      - do: VEIKKO\n        pose: stand\n        move_to: center\n",
+    );
+    let result = compile_story(&up, &catalog(), None).unwrap();
+    let events = &result.script.scenes[0].events;
+    let stand = events
+        .iter()
+        .find_map(|e| match e {
+            Event::Pose { at, value, .. } if value == "stand" => Some(*at),
+            _ => None,
+        })
+        .unwrap();
+    let Event::Move { at, .. } = moves_of(&result.script, "VEIKKO")[0] else {
+        unreachable!()
+    };
+    assert!(*at > stand);
 }

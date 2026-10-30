@@ -46,6 +46,7 @@ impl Draft {
                 y,
                 duration,
                 gait,
+                ease,
                 ..
             } => {
                 number(ui, "X", x);
@@ -62,6 +63,20 @@ impl Draft {
                             {
                                 // Walking is the default and stays implicit in the source.
                                 *gait = (name != "walk").then(|| name.into());
+                            }
+                        }
+                    });
+                let current = ease.as_deref().unwrap_or("linear").to_owned();
+                egui::ComboBox::from_label("Vauhti")
+                    .selected_text(ease_label(&current))
+                    .show_ui(ui, |ui| {
+                        for name in motion_scene::MOVE_EASES {
+                            if ui
+                                .selectable_label(current == name, ease_label(name))
+                                .clicked()
+                            {
+                                // Constant speed is the default and stays implicit.
+                                *ease = (name != "linear").then(|| name.into());
                             }
                         }
                     });
@@ -205,6 +220,9 @@ pub(crate) fn pose_label(value: &str) -> &str {
     match value {
         "sit" => "Istuu",
         "stand" => "Seisoo",
+        "crouch" => "Kyykky",
+        "kneel" => "Polvillaan",
+        "lie" => "Makaa",
         _ => value,
     }
 }
@@ -214,6 +232,23 @@ pub(crate) fn gait_label(value: &str) -> &str {
         "walk" => "Kävely",
         "jog" => "Hölkkä",
         "run" => "Juoksu",
+        "stroll" => "Löntystely",
+        "sneak" => "Hiipiminen",
+        "tiptoe" => "Varpaillaan",
+        "limp" => "Ontuminen",
+        "sprint" => "Pyrähdys",
+        "backwards" => "Takaperin",
+        "leap" => "Hyppy",
+        _ => value,
+    }
+}
+
+pub(crate) fn ease_label(value: &str) -> &str {
+    match value {
+        "linear" => "Tasainen",
+        "in" => "Kiihdyttää",
+        "out" => "Jarruttaa",
+        "in_out" => "Kiihdyttää ja jarruttaa",
         _ => value,
     }
 }

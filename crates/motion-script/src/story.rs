@@ -17,6 +17,7 @@ use crate::{
     ActorKey, CameraKey, CaptionStyle, Character, Composition, Event, GazeKey, HeldProp, Layer,
     Project, Scene, Script, VoiceConfig, FACINGS,
 };
+use motion_animation::MoveEase;
 use motion_rig::HandSide;
 use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet};
@@ -39,14 +40,21 @@ pub const STORY_FPS: u32 = 24;
 pub const STORY_WIDTH: u32 = 1920;
 pub const STORY_HEIGHT: u32 = 1080;
 
-/// Named stage positions as fractions of the frame width.
-pub const POSITIONS: [(&str, f64); 5] = [
+/// Named stage positions as fractions of the frame width. The `offscreen_`
+/// positions are just outside the frame: start there to enter, move there to
+/// exit.
+pub const POSITIONS: [(&str, f64); 7] = [
     ("far_left", 0.14),
     ("left", 0.30),
     ("center", 0.50),
     ("right", 0.70),
     ("far_right", 0.86),
+    ("offscreen_left", -0.12),
+    ("offscreen_right", 1.12),
 ];
+fn offscreen(place: &str) -> bool {
+    place.starts_with("offscreen_")
+}
 pub const SHOTS: [&str; 6] = [
     "auto",
     "wide",
@@ -80,7 +88,25 @@ const LISTENER_DELAY: f64 = 0.2;
 /// Actor scale on stage; the stick-studio rigs are drawn for this size at 1080p.
 const ACTOR_SCALE: f64 = 1.6;
 /// Walking speeds in project pixels per second.
-const GAIT_SPEEDS: [(&str, f64); 3] = [("walk", 260.0), ("jog", 450.0), ("run", 700.0)];
+const GAIT_SPEEDS: [(&str, f64); 10] = [
+    ("walk", 260.0),
+    ("jog", 450.0),
+    ("run", 700.0),
+    ("stroll", 180.0),
+    ("sneak", 150.0),
+    ("tiptoe", 170.0),
+    ("limp", 150.0),
+    ("sprint", 950.0),
+    ("backwards", 150.0),
+    ("leap", 520.0),
+];
+/// Where `move_to: <CHARACTER>` stops: this far from them, as a fraction of
+/// the frame width, on the side the mover comes from.
+const APPROACH_DISTANCE: f64 = 0.16;
+/// `move_to: <CHARACTER>` stays at least this far inside the frame edges.
+const APPROACH_MARGIN: f64 = 0.06;
+/// The longest leap, as a fraction of the frame width.
+const MAX_LEAP: f64 = 0.35;
 
 // ---------------------------------------------------------------------------
 // Source document
@@ -142,12 +168,13 @@ pub struct Beat {
     pub gesture: Option<String>,
     pub look: Option<String>,
     pub face: Option<String>,
+    /// A stage position, or an on-stage character to walk up to.
     pub move_to: Option<String>,
     pub gait: Option<String>,
     /// Pick up a hand prop, or `none` to put down what the hand holds.
     pub holds: Option<String>,
     pub hand: Option<HandSide>,
-    /// `sit` or `stand`; lasts until changed.
+    /// `stand`, `sit`, `crouch`, `kneel` or `lie`; lasts until changed.
     pub pose: Option<String>,
     pub hold: Option<f64>,
     pub shot: Option<String>,
@@ -659,6 +686,8 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
                         POSITIONS.map(|(n, _)| n).join(", ")
                     ),
                 ));
+            } else if offscreen(place) {
+                // Any number of actors can wait outside the frame.
             } else if let Some(other) = taken.insert(place.as_str(), actor.as_str()) {
                 out.push(issue(
                     Invalid,
@@ -746,7 +775,18 @@ fn validate_beat(
     vocabulary(out, "emotion", &beat.emotion, &EMOTIONS);
     vocabulary(out, "gesture", &beat.gesture, &motion_animation::GESTURES);
     vocabulary(out, "face", &beat.face, &FACINGS);
-    vocabulary(out, "move_to", &beat.move_to, &positions);
+    if let Some(target) = &beat.move_to {
+        if !positions.contains(&target.as_str()) && !on_stage(target) {
+            out.push(issue(
+                Unsupported,
+                format!("{path}.move_to"),
+                format!(
+                    "move_to {target:?} is not supported; use {} or a character on stage",
+                    list(&positions)
+                ),
+            ));
+        }
+    }
     vocabulary(out, "gait", &beat.gait, &motion_animation::GAITS);
     vocabulary(out, "pose", &beat.pose, &crate::POSES);
     if let Some(item) = &beat.holds {
@@ -821,6 +861,13 @@ fn validate_beat(
     if beat.gait.is_some() && beat.move_to.is_none() {
         out.push(issue(Schema, format!("{path}.gait"), "gait needs move_to"));
     }
+    if beat.move_to.as_deref() == Some(actor) {
+        out.push(issue(
+            Invalid,
+            format!("{path}.move_to"),
+            "an actor cannot walk to itself; name another character or a position",
+        ));
+    }
     if beat.principles.is_some() && beat.gesture.is_none() {
         out.push(issue(
             Schema,
@@ -848,13 +895,6 @@ fn validate_beat(
                 format!("a line has at most {MAX_LINE_CHARS} characters; split it into several say beats"),
             )),
             Some(_) => {}
-        }
-        if beat.move_to.is_some() {
-            out.push(issue(
-                Schema,
-                format!("{path}.move_to"),
-                "a say beat cannot move; put the walk in a do beat before the line",
-            ));
         }
         if let Some(reaction) = &beat.reaction {
             let rpath = format!("{path}.reaction");
@@ -1126,34 +1166,40 @@ struct Builder<'a> {
     review: Vec<ReviewNote>,
 }
 
-/// Actor positions over one scene: a start offset plus sequential linear moves.
+/// One move on stage: start and end time, start and end x, speed profile.
+type StageMove = (f64, f64, f64, f64, MoveEase);
+
+/// Actor positions over one scene: a start offset plus sequential moves.
 struct Stage {
     start: BTreeMap<String, f64>,
-    moves: BTreeMap<String, Vec<(f64, f64, f64, f64)>>,
+    moves: BTreeMap<String, Vec<StageMove>>,
 }
 impl Stage {
     fn x(&self, actor: &str, t: f64) -> f64 {
         let mut x = self.start[actor];
-        for &(t0, t1, x0, x1) in self.moves.get(actor).into_iter().flatten() {
+        for &(t0, t1, x0, x1, ease) in self.moves.get(actor).into_iter().flatten() {
             if t >= t1 {
                 x = x1;
             } else if t > t0 {
-                return x0 + (x1 - x0) * (t - t0) / (t1 - t0);
+                return x0 + (x1 - x0) * ease.apply((t - t0) / (t1 - t0));
             } else {
                 break;
             }
         }
         x
     }
+    fn on_screen(&self, actor: &str, t: f64) -> bool {
+        (0.0..=f64::from(STORY_WIDTH)).contains(&self.x(actor, t))
+    }
     fn final_x(&self, actor: &str) -> f64 {
         self.x(actor, f64::INFINITY)
     }
-    /// The nearest other on-stage actor at time `t`.
+    /// The nearest other actor inside the frame at time `t`.
     fn partner(&self, actor: &str, t: f64) -> Option<String> {
         let x = self.x(actor, t);
         self.start
             .keys()
-            .filter(|other| other.as_str() != actor)
+            .filter(|other| other.as_str() != actor && self.on_screen(other, t))
             .min_by(|a, b| {
                 (self.x(a, t) - x)
                     .abs()
@@ -1365,8 +1411,7 @@ impl<'a> Builder<'a> {
     }
 
     fn scene(&mut self, index: usize, scene: &StoryScene) -> Result<Scene, StoryIssue> {
-        let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
-        let root_y = h * 0.7;
+        let w = f64::from(STORY_WIDTH);
         let mut stage = Stage {
             start: scene
                 .positions
@@ -1380,7 +1425,8 @@ impl<'a> Builder<'a> {
         let mut cuts: Vec<Shot> = Vec::new();
         let mut content_end: f64 = 0.0;
         let mut facing: BTreeMap<String, String> = BTreeMap::new();
-        let mut seated: BTreeSet<String> = BTreeSet::new();
+        // Actors in a pose other than standing, with that pose.
+        let mut posed: BTreeMap<String, String> = BTreeMap::new();
         // What each hand holds; every scene starts from the cast's `holds`.
         let mut hands: BTreeMap<String, [Option<String>; 2]> = BTreeMap::new();
         for actor in stage.start.keys() {
@@ -1522,6 +1568,23 @@ impl<'a> Builder<'a> {
                     at: t,
                     duration: seconds,
                 });
+                // Walk and talk: the move starts with the line.
+                let mut walk_end = t;
+                if beat.move_to.is_some() {
+                    self.must_stand(index, b, &actor, &posed)?;
+                    if let Some(duration) = self.walk(
+                        (index, b),
+                        &actor,
+                        beat,
+                        t,
+                        &mut stage,
+                        &mut events,
+                        &facing,
+                    )? {
+                        walk_end = t + duration;
+                        content_end = content_end.max(walk_end);
+                    }
+                }
                 if beat.look.is_none() {
                     if let Some(partner) = &partner {
                         look(&mut gaze, &actor, t, partner);
@@ -1564,7 +1627,7 @@ impl<'a> Builder<'a> {
                     cut(&mut cuts, t, framing, beat.camera.as_ref());
                 }
                 let line_end = t + seconds;
-                end = if let Some(reaction) = &beat.reaction {
+                let spoken_end = if let Some(reaction) = &beat.reaction {
                     let at = frame_ceil(line_end);
                     let hold = reaction.hold.unwrap_or(REACTION_SECONDS);
                     if let Some(emotion) = &reaction.emotion {
@@ -1591,6 +1654,7 @@ impl<'a> Builder<'a> {
                 } else {
                     line_end + beat.hold.unwrap_or(0.0)
                 };
+                end = spoken_end.max(walk_end);
                 previous_speaker = Some(actor.clone());
             } else {
                 // Action beat.
@@ -1613,64 +1677,39 @@ impl<'a> Builder<'a> {
                     length = length.max(GESTURE_SECONDS);
                 }
                 let mut moved = false;
-                if let Some(place) = &beat.move_to {
-                    if seated.contains(&actor) && beat.pose.as_deref() != Some("stand") {
-                        return Err(issue(
-                            IssueKind::Invalid,
-                            format!("scenes[{index}].beats[{b}].move_to"),
-                            format!(
-                                "{actor} is sitting; add a do beat with pose: stand before moving"
-                            ),
-                        ));
-                    }
-                    let from = stage.final_x(&actor);
-                    let to = position_fraction(place).unwrap_or(0.5) * w;
-                    if (to - from).abs() < 1.0 {
-                        self.notes.push(format!(
-                            "scenes[{index}].beats[{b}]: {actor} is already at {place}; the move was skipped"
-                        ));
-                    } else {
-                        let gait = beat.gait.clone().unwrap_or_else(|| "walk".into());
-                        let speed = GAIT_SPEEDS
-                            .iter()
-                            .find(|(name, _)| *name == gait)
-                            .map_or(GAIT_SPEEDS[0].1, |(_, speed)| *speed);
-                        let duration = frame_ceil(((to - from).abs() / speed).max(0.6));
-                        let offset = stage.start[&actor] - w / 2.0;
-                        events.push(Event::Move {
+                if beat.move_to.is_some() {
+                    // Standing up in the same beat happens before the walk.
+                    let mut start = t;
+                    if beat.pose.as_deref() == Some("stand") && posed.contains_key(&actor) {
+                        events.push(Event::Pose {
                             at: t,
                             actor: actor.clone(),
-                            x: to - offset,
-                            y: root_y,
-                            duration,
-                            gait: Some(gait),
+                            value: "stand".into(),
                         });
-                        // Walk in profile unless the beat sets a facing itself.
-                        if beat.face.is_none() {
-                            let before = facing
-                                .get(&actor)
-                                .cloned()
-                                .unwrap_or_else(|| "front".into());
-                            let side = if to > from { "right" } else { "left" };
-                            events.push(Event::Face {
-                                at: t,
-                                actor: actor.clone(),
-                                value: side.into(),
-                            });
-                            events.push(Event::Face {
-                                at: t + duration,
-                                actor: actor.clone(),
-                                value: before,
-                            });
-                        }
-                        stage.moves.entry(actor.clone()).or_default().push((
-                            t,
-                            t + duration,
-                            from,
-                            to,
-                        ));
-                        length = length.max(duration);
+                        posed.remove(&actor);
+                        start = frame_ceil(t + motion_animation::SIT_SECONDS);
+                    }
+                    self.must_stand(index, b, &actor, &posed)?;
+                    if let Some(duration) = self.walk(
+                        (index, b),
+                        &actor,
+                        beat,
+                        start,
+                        &mut stage,
+                        &mut events,
+                        &facing,
+                    )? {
+                        length = length.max(start - t + duration);
                         moved = true;
+                        if let Some(target) = beat
+                            .move_to
+                            .as_ref()
+                            .filter(|m| stage.start.contains_key(*m))
+                        {
+                            if beat.look.is_none() {
+                                look(&mut gaze, &actor, t, target);
+                            }
+                        }
                     }
                 }
                 // Props and poses change once the actor has arrived.
@@ -1714,15 +1753,14 @@ impl<'a> Builder<'a> {
                     }
                 }
                 if let Some(pose) = &beat.pose {
-                    let sitting = pose == "sit";
-                    if sitting != seated.contains(&actor) {
+                    let current = posed.get(&actor).map_or("stand", String::as_str);
+                    if pose != current {
                         events.push(Event::Pose {
                             at: arrive,
                             actor: actor.clone(),
                             value: pose.clone(),
                         });
-                        if sitting {
-                            seated.insert(actor.clone());
+                        if pose == "sit" {
                             let profile = matches!(
                                 beat.face
                                     .as_deref()
@@ -1730,10 +1768,17 @@ impl<'a> Builder<'a> {
                                 Some("left" | "right")
                             );
                             self.place_chair(&scene.id, stage.final_x(&actor), profile);
-                        } else {
-                            seated.remove(&actor);
                         }
-                        length = length.max(arrive - t + SIT_HOLD_SECONDS);
+                        if pose == "stand" {
+                            posed.remove(&actor);
+                        } else {
+                            posed.insert(actor.clone(), pose.clone());
+                        }
+                        let settle = motion_animation::BodyPose::parse(pose)
+                            .map_or(SIT_HOLD_SECONDS, |p| {
+                                p.seconds() + SIT_HOLD_SECONDS - motion_animation::SIT_SECONDS
+                            });
+                        length = length.max(arrive - t + settle);
                     }
                 }
                 if length == 0.0 {
@@ -1822,6 +1867,117 @@ impl<'a> Builder<'a> {
             duration,
             events,
         })
+    }
+
+    /// Moving needs a standing actor.
+    fn must_stand(
+        &self,
+        index: usize,
+        b: usize,
+        actor: &str,
+        posed: &BTreeMap<String, String>,
+    ) -> Result<(), StoryIssue> {
+        match posed.get(actor) {
+            Some(pose) => Err(issue(
+                IssueKind::Invalid,
+                format!("scenes[{index}].beats[{b}].move_to"),
+                format!("{actor} is in pose {pose}; add pose: stand to this beat or a do beat before moving"),
+            )),
+            None => Ok(()),
+        }
+    }
+
+    /// Compile `beat.move_to` for `actor` starting at `t`: the move, profile
+    /// facing during it and the stage path. Returns the move's duration, or
+    /// `None` when the actor is already there (with a note).
+    #[allow(clippy::too_many_arguments)]
+    fn walk(
+        &mut self,
+        (index, b): (usize, usize),
+        actor: &str,
+        beat: &Beat,
+        t: f64,
+        stage: &mut Stage,
+        events: &mut Vec<Event>,
+        facing: &BTreeMap<String, String>,
+    ) -> Result<Option<f64>, StoryIssue> {
+        let Some(place) = &beat.move_to else {
+            return Ok(None);
+        };
+        let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
+        let root_y = h * 0.7;
+        let from = stage.final_x(actor);
+        let to = match position_fraction(place) {
+            Some(fraction) => fraction * w,
+            None => {
+                // Walk up to another character and stop at talking distance
+                // on the side the mover comes from.
+                let target = stage.x(place, t);
+                let side = if from <= target { -1.0 } else { 1.0 };
+                (target + side * APPROACH_DISTANCE * w)
+                    .clamp(APPROACH_MARGIN * w, (1.0 - APPROACH_MARGIN) * w)
+            }
+        };
+        if (to - from).abs() < 1.0 {
+            self.notes.push(format!(
+                "scenes[{index}].beats[{b}]: {actor} is already at {place}; the move was skipped"
+            ));
+            return Ok(None);
+        }
+        let gait = beat.gait.clone().unwrap_or_else(|| "walk".into());
+        if gait == "leap" && (to - from).abs() > MAX_LEAP * w {
+            return Err(issue(
+                IssueKind::Invalid,
+                format!("scenes[{index}].beats[{b}].gait"),
+                format!(
+                    "a leap covers at most one neighbouring position; {actor} would leap {:.0} % of the frame — walk closer first",
+                    100.0 * (to - from).abs() / w
+                ),
+            ));
+        }
+        let speed = GAIT_SPEEDS
+            .iter()
+            .find(|(name, _)| *name == gait)
+            .map_or(GAIT_SPEEDS[0].1, |(_, speed)| *speed);
+        let duration = frame_ceil(((to - from).abs() / speed).max(0.6));
+        // Walks speed up and slow down; a leap keeps its momentum.
+        let ease = if gait == "leap" {
+            MoveEase::Linear
+        } else {
+            MoveEase::InOut
+        };
+        let offset = stage.start[actor] - w / 2.0;
+        events.push(Event::Move {
+            at: t,
+            actor: actor.to_string(),
+            x: to - offset,
+            y: root_y,
+            duration,
+            ease: (ease != MoveEase::Linear).then(|| ease.name().to_string()),
+            gait: Some(gait.clone()),
+        });
+        // Walk in profile unless the beat sets a facing itself. Walking
+        // backwards faces away from the travel direction.
+        if beat.face.is_none() {
+            let before = facing.get(actor).cloned().unwrap_or_else(|| "front".into());
+            let right = (to > from) != (gait == "backwards");
+            events.push(Event::Face {
+                at: t,
+                actor: actor.to_string(),
+                value: if right { "right" } else { "left" }.into(),
+            });
+            events.push(Event::Face {
+                at: t + duration,
+                actor: actor.to_string(),
+                value: before,
+            });
+        }
+        stage
+            .moves
+            .entry(actor.to_string())
+            .or_default()
+            .push((t, t + duration, from, to, ease));
+        Ok(Some(duration))
     }
 
     fn framing(
@@ -1936,8 +2092,17 @@ impl<'a> Builder<'a> {
                 );
             }
             for moves in stage.moves.values() {
-                for &(t0, t1, _, _) in moves {
-                    times.extend([t0, t1].into_iter().filter(|t| *t > *start && *t < end));
+                for &(t0, t1, ..) in moves {
+                    // Quarter points (on frames) keep a framing on an easing actor.
+                    times.extend(
+                        (0..=4)
+                            .map(|k| match k {
+                                0 => t0,
+                                4 => t1,
+                                _ => frame_ceil(t0 + (t1 - t0) * f64::from(k) / 4.0),
+                            })
+                            .filter(|t| *t > *start && *t < end),
+                    );
                 }
             }
             times.sort_by(f64::total_cmp);
@@ -1988,6 +2153,7 @@ RULES
 - line is the exact words spoken: no stage directions, no speaker names, no emojis.
 - Keep lines short (one or two sentences). Split long speeches into several say beats.
 - Good films have rhythm: setup, a turn, a reaction, a pause before the punchline.
+- To enter, start an actor at offscreen_left or offscreen_right and move_to a position; to exit, move_to offscreen_left or offscreen_right.
 - Short film: 1–6 scenes, 4–20 beats per scene, 30 seconds to 5 minutes in total.
 
 FORMAT
@@ -2012,17 +2178,19 @@ scenes:
         camera: <camera move>       # optional
         on: <CHARACTER>             # optional, whom the camera frames
         hold: <seconds>             # optional pause after the line, 0–10
+        move_to: <position or CHARACTER>  # optional, walks while talking
+        gait: <gait>                # optional, with move_to
         reaction: {by: <CHARACTER>, emotion: <emotion>, gesture: <gesture>, hold: <seconds>}
       - do: <CHARACTER>
         emotion: <emotion>          # any of these, all optional
         gesture: <gesture>
         look: <CHARACTER>
         face: <facing>
-        move_to: <position>
+        move_to: <position or CHARACTER>  # a CHARACTER: walk up to them
         gait: <gait>                # with move_to
         holds: <hand prop>          # pick it up (after any walk); none puts it down
         hand: left | right          # optional, with holds
-        pose: sit | stand           # sit adds a chair; stand up before walking
+        pose: <pose>                # sit adds a chair; stand up before walking
         hold: <seconds>
         shot: <shot>
         camera: <camera move>       # say beats take camera too
@@ -2043,7 +2211,11 @@ scenes:
         list(&motion_animation::GESTURES)
     ));
     text.push_str(&format!("- face: {}\n", list(&FACINGS)));
-    text.push_str(&format!("- gait: {}\n", list(&motion_animation::GAITS)));
+    text.push_str(&format!(
+        "- gait: {} (default walk; backwards faces away from the travel direction; leap jumps to a neighbouring position)\n",
+        list(&motion_animation::GAITS)
+    ));
+    text.push_str(&format!("- pose: {}\n", list(&crate::POSES)));
     text.push_str(&format!(
         "- shot: {} (auto: wide to open a scene, medium on the speaker, close_up on strong emotion, wide for walks; reaction cuts to the listener)\n",
         list(&SHOTS)

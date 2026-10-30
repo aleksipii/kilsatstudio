@@ -57,36 +57,66 @@ struct GaitShape {
     bob: f64,
     /// Forward torso lean.
     lean: f64,
+    /// Bent-knee crouch in `0..=1`: the root drops and both knees bend so
+    /// the feet stay under the body.
+    crouch: f64,
+    /// Constant forward raise of both upper arms, radians.
+    reach: f64,
+    /// Rise onto the toes in rig units.
+    toe: f64,
+    /// Right-leg favouring in `0..=1`: shorter right swing, a dip and a
+    /// sideways torso tilt when the weight lands on it.
+    limp: f64,
+}
+
+const fn gait_shape(leg: f64, knee: f64, arm: f64, elbow: f64, bob: f64, lean: f64) -> GaitShape {
+    GaitShape {
+        leg,
+        knee,
+        arm,
+        elbow,
+        bob,
+        lean,
+        crouch: 0.0,
+        reach: 0.0,
+        toe: 0.0,
+        limp: 0.0,
+    }
 }
 
 fn shape(gait: Gait) -> GaitShape {
     match gait {
-        Gait::Walk => GaitShape {
-            leg: 0.42,
-            knee: 0.55,
-            arm: 0.35,
-            elbow: -0.25,
-            bob: 4.0,
-            lean: 0.03,
+        Gait::Walk => gait_shape(0.42, 0.55, 0.35, -0.25, 4.0, 0.03),
+        Gait::Jog => gait_shape(0.55, 0.95, 0.5, -1.2, 8.0, 0.09),
+        Gait::Run => gait_shape(0.75, 1.35, 0.7, -1.5, 12.0, 0.18),
+        Gait::Stroll => gait_shape(0.3, 0.4, 0.22, -0.15, 2.5, 0.0),
+        Gait::Sneak => GaitShape {
+            crouch: 1.0,
+            reach: 0.9,
+            ..gait_shape(0.3, 0.45, 0.08, -1.7, 2.0, 0.32)
         },
-        Gait::Jog => GaitShape {
-            leg: 0.55,
-            knee: 0.95,
-            arm: 0.5,
-            elbow: -1.2,
-            bob: 8.0,
-            lean: 0.09,
+        Gait::Tiptoe => GaitShape {
+            reach: 0.45,
+            toe: 7.0,
+            ..gait_shape(0.22, 0.4, 0.08, -1.9, 3.0, 0.06)
         },
-        Gait::Run => GaitShape {
-            leg: 0.75,
-            knee: 1.35,
-            arm: 0.7,
-            elbow: -1.5,
-            bob: 12.0,
-            lean: 0.18,
+        Gait::Limp => GaitShape {
+            limp: 1.0,
+            ..gait_shape(0.36, 0.45, 0.3, -0.2, 3.0, 0.05)
         },
+        Gait::Sprint => gait_shape(0.95, 1.7, 0.95, -1.6, 14.0, 0.3),
+        // Leans slightly against the travel direction.
+        Gait::Backwards => gait_shape(0.3, 0.4, 0.2, -0.3, 3.0, -0.06),
+        // Not cyclic; see `rig_leap`.
+        Gait::Leap => gait_shape(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     }
 }
+
+/// Sneak crouch at full depth: root drop and the bend that keeps the feet
+/// under the hips (thigh 70, shin 62 rig units in the stick-studio rigs).
+const CROUCH_DROP: f64 = 16.0;
+const CROUCH_THIGH: f64 = -0.45;
+const CROUCH_SHIN: f64 = 1.0;
 
 fn rotation(value: f64) -> Transform2 {
     Transform2 {
@@ -137,25 +167,35 @@ pub fn rig_gait(gait: Gait, seconds: f64, travel: f64, weight: f64) -> RigMotion
     if !seconds.is_finite() || seconds < 0.0 || weight == 0.0 {
         return motion;
     }
+    if gait.is_leap() {
+        // A leap needs move progress, not elapsed seconds.
+        return motion;
+    }
     let s = shape(gait);
     let cycle = gait.cycle_seconds();
     let weight = weight * smoothstep(seconds / (cycle * GAIT_EASE_IN_CYCLES));
     let phase = TAU * seconds.rem_euclid(cycle) / cycle;
     let (sin, cos) = phase.sin_cos();
     let drag = (phase - GAIT_DRAG).sin();
+    // The favoured (right) leg swings less.
+    let right = 1.0 - 0.45 * s.limp;
     // Left leg forward while sin > 0; a forward-swinging leg bends its knee.
-    motion[THIGH_L] = rotation(-s.leg * sin * weight);
-    motion[THIGH_R] = rotation(s.leg * sin * weight);
-    motion[SHIN_L] = rotation((0.08 + s.knee * cos.max(0.0)) * weight);
-    motion[SHIN_R] = rotation((0.08 + s.knee * (-cos).max(0.0)) * weight);
+    motion[THIGH_L] = rotation((-s.leg * sin + CROUCH_THIGH * s.crouch) * weight);
+    motion[THIGH_R] = rotation((s.leg * right * sin + CROUCH_THIGH * s.crouch) * weight);
+    motion[SHIN_L] = rotation((0.08 + s.knee * cos.max(0.0) + CROUCH_SHIN * s.crouch) * weight);
+    motion[SHIN_R] =
+        rotation((0.08 + s.knee * right * (-cos).max(0.0) + CROUCH_SHIN * s.crouch) * weight);
     // Arms swing opposite to the legs; forearms follow a beat later.
-    motion[UPPER_ARM_L] = rotation(s.arm * sin * weight);
-    motion[UPPER_ARM_R] = rotation(-s.arm * sin * weight);
+    motion[UPPER_ARM_L] = rotation((s.arm * sin - s.reach) * weight);
+    motion[UPPER_ARM_R] = rotation((-s.arm * sin - s.reach) * weight);
     motion[FOREARM_L] = rotation((s.elbow - 0.15 * drag.max(0.0)) * weight);
     motion[FOREARM_R] = rotation((s.elbow - 0.15 * (-drag).max(0.0)) * weight);
-    // Highest at passing (legs together), lowest at contact.
-    motion[ROOT] = translation(0.0, -s.bob * (1.0 - sin.abs()) * weight);
-    motion[TORSO] = rotation(s.lean * weight);
+    // Highest at passing (legs together), lowest at contact. A limp sinks
+    // further while the weight is on the right leg (sin > 0 puts it behind).
+    let dip = s.limp * 6.0 * sin.max(0.0);
+    let drop = CROUCH_DROP * s.crouch - s.toe;
+    motion[ROOT] = translation(0.0, (drop - s.bob * (1.0 - sin.abs()) + dip) * weight);
+    motion[TORSO] = rotation((s.lean + 0.06 * s.limp * sin.max(0.0)) * weight);
     // The head counters the lean and lags the bob slightly.
     motion[HEAD] = Transform2 {
         translation: Vec2::new(0.0, 0.15 * s.bob * (2.0 * phase - GAIT_DRAG).cos() * weight),
@@ -196,6 +236,196 @@ pub fn rig_sit(weight: f64, profile: bool) -> RigMotion {
         motion[SHIN_R] = rotation(0.75 * w);
     }
     motion
+}
+
+/// Leap offsets at move `progress` in `0..=1`: a crouch, a flight with the
+/// legs split and the arms reaching forward, and a soft landing. `travel`
+/// as in [`rig_gait`]; `weight` scales the layer.
+pub fn rig_leap(progress: f64, travel: f64, weight: f64) -> RigMotion {
+    let mut motion = rest();
+    let weight = if weight.is_finite() {
+        weight.clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    if weight == 0.0 {
+        return motion;
+    }
+    let (lift, crouch, split) = crate::leap_shape(progress);
+    if lift == 0.0 && crouch == 0.0 && split == 0.0 {
+        return motion;
+    }
+    let w = weight;
+    // Crouch: knees bend and the arms swing back; flight: front leg forward,
+    // back leg trailing, arms reaching.
+    motion[ROOT] = translation(0.0, (22.0 * crouch - 110.0 * lift) * w);
+    motion[THIGH_L] = rotation((-0.6 * crouch - 0.85 * split) * w);
+    motion[SHIN_L] = rotation((1.1 * crouch + 0.35 * split) * w);
+    motion[THIGH_R] = rotation((-0.6 * crouch + 0.7 * split) * w);
+    motion[SHIN_R] = rotation((1.1 * crouch + 1.1 * split) * w);
+    motion[UPPER_ARM_L] = rotation((0.7 * crouch - 1.9 * split) * w);
+    motion[UPPER_ARM_R] = rotation((0.7 * crouch - 1.5 * split) * w);
+    motion[FOREARM_L] = rotation(-0.3 * split * w);
+    motion[FOREARM_R] = rotation(-0.3 * split * w);
+    motion[TORSO] = rotation((0.25 * crouch + 0.15 * split) * w);
+    motion[HEAD] = rotation((-0.1 * crouch - 0.08 * split) * w);
+    if travel < 0.0 {
+        mirror(&mut motion);
+    }
+    motion
+}
+
+/// MotionScript body poses, in the order editors should present them.
+pub const BODY_POSES: [&str; 5] = ["stand", "sit", "crouch", "kneel", "lie"];
+
+/// A body pose that lasts until the next pose change.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
+pub enum BodyPose {
+    #[default]
+    Stand,
+    Sit,
+    Crouch,
+    Kneel,
+    /// Lying on the floor.
+    Lie,
+}
+impl BodyPose {
+    pub fn parse(name: &str) -> Option<Self> {
+        Some(match name {
+            "stand" => Self::Stand,
+            "sit" => Self::Sit,
+            "crouch" => Self::Crouch,
+            "kneel" => Self::Kneel,
+            "lie" => Self::Lie,
+            _ => return None,
+        })
+    }
+    pub fn name(self) -> &'static str {
+        BODY_POSES[self as usize]
+    }
+    /// Seconds to move into this pose from the previous one.
+    pub fn seconds(self) -> f64 {
+        match self {
+            Self::Stand | Self::Sit => SIT_SECONDS,
+            Self::Crouch => 0.3,
+            Self::Kneel => 0.5,
+            Self::Lie => 0.9,
+        }
+    }
+}
+
+/// Full offsets of a body pose. `profile` picks the side view; rotations
+/// follow the rig convention, so a mirrored actor poses the same way.
+/// Leg geometry assumes the stick-studio proportions (thigh 70, shin 62).
+pub fn rig_body_pose(pose: BodyPose, profile: bool) -> RigMotion {
+    let mut motion = rest();
+    match (pose, profile) {
+        (BodyPose::Stand, _) => {}
+        (BodyPose::Sit, _) => motion = rig_sit(1.0, profile),
+        (BodyPose::Crouch, true) => {
+            // Knees forward, feet under the hips, torso leaning in.
+            motion[ROOT] = translation(0.0, 30.0);
+            motion[THIGH_L] = rotation(-0.7);
+            motion[SHIN_L] = rotation(1.5);
+            motion[THIGH_R] = rotation(-0.6);
+            motion[SHIN_R] = rotation(1.49);
+            motion[TORSO] = rotation(0.35);
+            motion[HEAD] = rotation(-0.2);
+            motion[UPPER_ARM_L] = rotation(-0.5);
+            motion[UPPER_ARM_R] = rotation(-0.4);
+        }
+        (BodyPose::Crouch, false) => {
+            // Knees apart, feet stay under the shoulders.
+            motion[ROOT] = translation(0.0, 17.0);
+            motion[THIGH_L] = rotation(0.6);
+            motion[SHIN_L] = rotation(-1.1);
+            motion[THIGH_R] = rotation(-0.6);
+            motion[SHIN_R] = rotation(1.1);
+            motion[UPPER_ARM_L] = rotation(-0.3);
+            motion[UPPER_ARM_R] = rotation(0.3);
+        }
+        (BodyPose::Kneel, true) => {
+            // Front foot planted, back knee and shin on the floor.
+            motion[ROOT] = translation(0.0, 62.0);
+            motion[THIGH_L] = rotation(-1.52);
+            motion[SHIN_L] = rotation(1.52);
+            motion[THIGH_R] = rotation(0.7);
+            motion[SHIN_R] = rotation(0.93);
+            motion[TORSO] = rotation(0.05);
+        }
+        (BodyPose::Kneel, false) => {
+            // Both knees down, shins folded out to the sides.
+            motion[ROOT] = translation(0.0, 64.0);
+            motion[THIGH_L] = rotation(0.25);
+            motion[SHIN_L] = rotation(1.32);
+            motion[THIGH_R] = rotation(-0.25);
+            motion[SHIN_R] = rotation(-1.32);
+        }
+        (BodyPose::Lie, _) => {
+            // Flat on the floor, head toward the facing direction and
+            // slightly raised so it rests on the ground line.
+            motion[ROOT] = Transform2 {
+                translation: Vec2::new(0.0, 96.0),
+                rotation: std::f64::consts::FRAC_PI_2 - 0.06,
+                ..Default::default()
+            };
+            motion[HEAD] = rotation(-0.25);
+            motion[UPPER_ARM_L] = rotation(-0.15);
+            motion[UPPER_ARM_R] = rotation(0.15);
+            motion[THIGH_L] = rotation(-0.35);
+            motion[THIGH_R] = rotation(0.05);
+        }
+    }
+    motion
+}
+
+/// Blend two offset sets: translations and rotations interpolate, scales
+/// interpolate too (unit scale stays unit). `t` is clamped to `0..=1`.
+pub fn blend_rig_motion(from: &RigMotion, to: &RigMotion, t: f64) -> RigMotion {
+    let t = if t.is_finite() {
+        t.clamp(0.0, 1.0)
+    } else {
+        1.0
+    };
+    let lerp = |a: f64, b: f64| a + (b - a) * t;
+    std::array::from_fn(|i| {
+        let (a, b) = (from[i], to[i]);
+        Transform2 {
+            translation: Vec2::new(
+                lerp(a.translation.x, b.translation.x),
+                lerp(a.translation.y, b.translation.y),
+            ),
+            rotation: lerp(a.rotation, b.rotation),
+            scale: Vec2::new(lerp(a.scale.x, b.scale.x), lerp(a.scale.y, b.scale.y)),
+        }
+    })
+}
+
+/// Body pose offsets at `time` from timed pose changes `(at, pose)` sorted by
+/// time. Each change eases (smoothstep) from the pose in flight at that moment
+/// over the new pose's [`BodyPose::seconds`], so interrupted changes stay
+/// continuous. A pure function of its inputs.
+pub fn rig_pose_at(changes: &[(f64, BodyPose)], time: f64, profile: bool) -> RigMotion {
+    let mut from = rest();
+    let mut to = rest();
+    let mut progress = 1.0;
+    let mut current: Option<(f64, BodyPose)> = None;
+    for &(at, pose) in changes {
+        if !at.is_finite() || at > time {
+            break;
+        }
+        if let Some((start, previous)) = current {
+            // The pose in flight when this change starts.
+            let p = (at - start) / previous.seconds();
+            from = blend_rig_motion(&from, &to, smoothstep(p));
+        }
+        to = rig_body_pose(pose, profile);
+        current = Some((at, pose));
+    }
+    if let Some((start, pose)) = current {
+        progress = (time - start) / pose.seconds();
+    }
+    blend_rig_motion(&from, &to, smoothstep(progress))
 }
 
 /// Seconds of stillness before the moving hold starts to fade in, so short
@@ -714,5 +944,157 @@ mod tests {
             );
             assert_eq!(seeked, played[frame]);
         }
+    }
+}
+
+#[cfg(test)]
+mod locomotion_tests {
+    use super::*;
+    use crate::{MoveEase, GAITS};
+
+    fn gaits() -> impl Iterator<Item = Gait> {
+        GAITS.iter().map(|name| Gait::parse(name).unwrap())
+    }
+
+    #[test]
+    fn every_cyclic_gait_moves_repeats_and_stays_bounded() {
+        for gait in gaits().filter(|g| !g.is_leap()) {
+            let cycle = gait.cycle_seconds();
+            let a = rig_gait(gait, 2.0 * cycle + 0.07, 1.0, 1.0);
+            let b = rig_gait(gait, 5.0 * cycle + 0.07, 1.0, 1.0);
+            assert_ne!(a, rest(), "{gait:?}");
+            for (x, y) in a.iter().zip(&b) {
+                assert!((x.rotation - y.rotation).abs() < 1e-9, "{gait:?}");
+                assert!((x.translation.y - y.translation.y).abs() < 1e-9, "{gait:?}");
+            }
+            for i in 0..=200 {
+                let m = rig_gait(gait, i as f64 * cycle / 50.0, -1.0, 1.0);
+                assert!(m.iter().all(|o| o.is_valid() && o.rotation.abs() < 3.2));
+            }
+        }
+    }
+
+    #[test]
+    fn gait_shapes_read_as_their_names() {
+        let at =
+            |gait: Gait, phase: f64| rig_gait(gait, gait.cycle_seconds() * (3.0 + phase), 1.0, 1.0);
+        // Sneak: crouched (root lower than a walk) with the hands up front.
+        let (sneak, walk) = (at(Gait::Sneak, 0.0), at(Gait::Walk, 0.0));
+        assert!(sneak[ROOT].translation.y > walk[ROOT].translation.y + 10.0);
+        assert!(sneak[UPPER_ARM_L].rotation < -0.5 && sneak[UPPER_ARM_R].rotation < -0.5);
+        // Tiptoe rises above the walk.
+        assert!(at(Gait::Tiptoe, 0.5)[ROOT].translation.y < walk[ROOT].translation.y);
+        // Sprint swings the legs further and leans more than a run.
+        let (sprint, run) = (at(Gait::Sprint, 0.25), at(Gait::Run, 0.25));
+        assert!(sprint[THIGH_L].rotation < run[THIGH_L].rotation);
+        assert!(sprint[TORSO].rotation > run[TORSO].rotation);
+        // Limp: the right leg swings less than the left, and the root sinks
+        // deeper on one step than on the other.
+        let limp = at(Gait::Limp, 0.25);
+        assert!(limp[THIGH_R].rotation.abs() < limp[THIGH_L].rotation.abs());
+        let (one, other) = (at(Gait::Limp, 0.25), at(Gait::Limp, 0.75));
+        assert!((one[ROOT].translation.y - other[ROOT].translation.y).abs() > 3.0);
+        // Backwards leans against the travel direction.
+        assert!(at(Gait::Backwards, 0.0)[TORSO].rotation < 0.0);
+        // The leap is not a step cycle.
+        assert_eq!(rig_gait(Gait::Leap, 1.3, 1.0, 1.0), rest());
+    }
+
+    #[test]
+    fn leap_crouches_flies_and_lands_at_rest() {
+        assert_eq!(rig_leap(0.0, 1.0, 1.0), rest());
+        assert_eq!(rig_leap(1.0, 1.0, 1.0), rest());
+        assert_eq!(rig_leap(0.5, 1.0, 0.0), rest());
+        assert_eq!(rig_leap(f64::NAN, 1.0, 1.0), rest());
+        assert!(
+            rig_leap(0.09, 1.0, 1.0)[ROOT].translation.y > 10.0,
+            "crouch"
+        );
+        let top = rig_leap(0.5, 1.0, 1.0);
+        assert!(top[ROOT].translation.y < -100.0, "flight");
+        assert!(
+            top[THIGH_L].rotation < 0.0 && top[THIGH_R].rotation > 0.0,
+            "legs split"
+        );
+        let back = rig_leap(0.5, -1.0, 1.0);
+        assert_eq!(back[THIGH_L].rotation, -top[THIGH_L].rotation);
+        // Continuous across take-off and landing.
+        for i in 0..1000 {
+            let (a, b) = (
+                rig_leap(i as f64 / 1000.0, 1.0, 1.0),
+                rig_leap((i + 1) as f64 / 1000.0, 1.0, 1.0),
+            );
+            assert!(
+                (a[ROOT].translation.y - b[ROOT].translation.y).abs() < 2.0,
+                "{i}"
+            );
+        }
+    }
+
+    #[test]
+    fn move_ease_is_monotonic_and_exact_at_the_ends() {
+        for name in crate::MOVE_EASES {
+            let ease = MoveEase::parse(name).unwrap();
+            assert_eq!(ease.name(), name);
+            assert_eq!(ease.apply(0.0), 0.0, "{name}");
+            assert!((ease.apply(1.0) - 1.0).abs() < 1e-12, "{name}");
+            let mut last = 0.0;
+            for i in 1..=1000 {
+                let p = ease.apply(i as f64 / 1000.0);
+                assert!(p >= last && p - last < 0.003, "{name} at {i}");
+                last = p;
+            }
+        }
+        assert_eq!(MoveEase::Linear.apply(0.3), 0.3);
+        assert!(MoveEase::InOut.apply(0.1) < 0.1 && MoveEase::InOut.apply(0.9) > 0.9);
+        assert!(MoveEase::In.apply(0.1) < 0.1 && MoveEase::Out.apply(0.1) > 0.1);
+        assert!((MoveEase::InOut.apply(0.5) - 0.5).abs() < 1e-12);
+        assert_eq!(MoveEase::InOut.apply(f64::NAN), 0.0);
+        assert_eq!(MoveEase::parse("bounce"), None);
+    }
+
+    #[test]
+    fn body_poses_blend_continuously_and_sit_matches_the_old_layer() {
+        for name in BODY_POSES {
+            let pose = BodyPose::parse(name).unwrap();
+            assert_eq!(pose.name(), name);
+            for profile in [true, false] {
+                let m = rig_body_pose(pose, profile);
+                assert!(m.iter().all(|o| o.is_valid()));
+                assert_eq!(m == rest(), pose == BodyPose::Stand, "{name}");
+            }
+        }
+        assert_eq!(rig_body_pose(BodyPose::Sit, true), rig_sit(1.0, true));
+        // Sitting down from standing matches the legacy sit layer.
+        for i in 0..=10 {
+            let t = i as f64 * SIT_SECONDS / 10.0;
+            let new = rig_pose_at(&[(0.0, BodyPose::Sit)], t, true);
+            let old = rig_sit(t / SIT_SECONDS, true);
+            for (a, b) in new.iter().zip(&old) {
+                assert!((a.rotation - b.rotation).abs() < 1e-12);
+                assert!((a.translation.y - b.translation.y).abs() < 1e-12);
+            }
+        }
+        // Lying down rotates the whole body onto the floor.
+        let lie = rig_pose_at(&[(1.0, BodyPose::Lie)], 5.0, true);
+        assert!(lie[ROOT].rotation > 1.4 && lie[ROOT].translation.y > 80.0);
+        // A change that interrupts another starts from the pose in flight.
+        let changes = [(0.0, BodyPose::Crouch), (0.1, BodyPose::Kneel)];
+        let before = rig_pose_at(&changes[..1], 0.1, true);
+        let at_change = rig_pose_at(&changes, 0.1, true);
+        for (a, b) in before.iter().zip(&at_change) {
+            assert!((a.rotation - b.rotation).abs() < 1e-12);
+            assert!((a.translation.y - b.translation.y).abs() < 1e-12);
+        }
+        // Later changes are ignored until their time.
+        assert_eq!(
+            rig_pose_at(
+                &[(0.0, BodyPose::Kneel), (9.0, BodyPose::Stand)],
+                3.0,
+                false
+            ),
+            rig_body_pose(BodyPose::Kneel, false)
+        );
+        assert_eq!(rig_pose_at(&[], 3.0, false), rest());
     }
 }

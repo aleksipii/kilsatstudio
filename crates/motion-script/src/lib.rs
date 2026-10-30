@@ -86,9 +86,14 @@ pub enum Event {
         x: f64,
         y: f64,
         duration: f64,
-        /// `walk` (default), `jog` or `run`; see `motion_animation::GAITS`.
+        /// `walk` (default), `jog`, `run` or another of
+        /// `motion_animation::GAITS`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         gait: Option<String>,
+        /// Speed profile: `linear` (default), `in`, `out` or `in_out`; see
+        /// `motion_animation::MOVE_EASES`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        ease: Option<String>,
     },
     Emotion {
         at: f64,
@@ -128,7 +133,8 @@ pub enum Event {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         item: Option<String>,
     },
-    /// Body pose that lasts until the next pose event: `sit` or `stand`.
+    /// Body pose that lasts until the next pose event: `stand`, `sit`,
+    /// `crouch`, `kneel` or `lie`.
     Pose {
         at: f64,
         actor: String,
@@ -138,7 +144,7 @@ pub enum Event {
 /// MotionScript facing names, in the order editors should present them.
 pub const FACINGS: [&str; 4] = ["front", "left", "right", "back"];
 /// MotionScript body poses.
-pub const POSES: [&str; 2] = ["stand", "sit"];
+pub const POSES: [&str; 5] = motion_animation::BODY_POSES;
 /// Scene-local composition; camera coordinates are offsets from the canvas center.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -2112,6 +2118,7 @@ impl Script {
                         y,
                         duration,
                         gait,
+                        ease,
                         ..
                     } => {
                         if let Some(gait) = gait {
@@ -2122,15 +2129,26 @@ impl Script {
                                 )));
                             }
                         }
+                        if let Some(ease) = ease {
+                            if motion_animation::MoveEase::parse(ease).is_none() {
+                                return Err(Error::Unsupported(format!(
+                                    "move ease {ease}: supported values are {}",
+                                    motion_animation::MOVE_EASES.join(", ")
+                                )));
+                            }
+                        }
+                        // Up to one frame beyond each edge, so actors can
+                        // enter from and exit to outside the frame.
+                        let (w, h) = (self.project.width as f64, self.project.height as f64);
                         if !x.is_finite()
                             || !y.is_finite()
-                            || *x < 0.0
-                            || *y < 0.0
-                            || *x > self.project.width as f64
-                            || *y > self.project.height as f64
+                            || *x < -w
+                            || *y < -h
+                            || *x > 2.0 * w
+                            || *y > 2.0 * h
                         {
                             return Err(fail(format!(
-                                "{actor}: move coordinates must be within project dimensions"
+                                "{actor}: move coordinates must be finite and at most one frame width or height outside the frame"
                             )));
                         }
                         validate_duration(*duration, at, s.duration)?;
@@ -2186,7 +2204,7 @@ impl Script {
                         });
                         if !legs {
                             return Err(Error::Unsupported(format!(
-                                "pose {value} for {actor}: sitting needs a custom rig with root, thigh_l, shin_l, thigh_r and shin_r joints"
+                                "pose {value} for {actor}: body poses need a custom rig with root, thigh_l, shin_l, thigh_r and shin_r joints"
                             )));
                         }
                     }
@@ -2338,6 +2356,7 @@ mod edit_tests {
             y: 100.0,
             duration: 1.0,
             gait: None,
+            ease: None,
         }
     }
     #[test]
@@ -2357,7 +2376,7 @@ mod edit_tests {
         let moved = apply_event(SOURCE, 0, 0, movement("EMMA", 2.0)).unwrap();
         assert!(!moved.contains("gait"));
         let bad_gait = script(
-            "      - {type: move, actor: EMMA, at: 0, x: 10, y: 20, duration: 1, gait: sprint}\n",
+            "      - {type: move, actor: EMMA, at: 0, x: 10, y: 20, duration: 1, gait: moonwalk}\n",
         );
         assert!(
             matches!(parse(&bad_gait), Err(Error::Unsupported(m)) if m.contains("walk, jog, run"))
@@ -2681,8 +2700,10 @@ mod scene_settings_tests {
             (1920, 0),
             (16385, 1080),
             (1920, 16385),
-            (799, 1080),
-            (1920, 499),
+            // The outro move (800, 500) would end more than one frame
+            // outside these frames; moves may leave the frame by at most that.
+            (399, 1080),
+            (1920, 249),
         ] {
             let mut p = base.clone();
             p.width = width;
