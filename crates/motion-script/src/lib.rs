@@ -136,6 +136,10 @@ pub enum Event {
     },
 }
 /// MotionScript facing names, in the order editors should present them.
+/// Camera angles: `front` (the set as drawn), `reverse` (the opposite side:
+/// actors swap sides and turn around, the set shows its reverse drawing), and
+/// `high` / `low` (looking down or up, which need art drawn for that angle).
+pub const CAMERA_ANGLES: [&str; 4] = ["front", "reverse", "high", "low"];
 pub const FACINGS: [&str; 6] = [
     "front",
     "three_quarter_left",
@@ -507,6 +511,16 @@ pub struct CameraKey {
     pub x: f64,
     pub y: f64,
     pub zoom: f64,
+    /// Camera angle from this key until the next key (a cut, never blended);
+    /// omitted means `front`. See [`CAMERA_ANGLES`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub angle: Option<String>,
+}
+impl CameraKey {
+    /// This key's camera angle (`front` when omitted).
+    pub fn angle(&self) -> &str {
+        self.angle.as_deref().unwrap_or(CAMERA_ANGLES[0])
+    }
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -1902,6 +1916,14 @@ impl Script {
                 {
                     return Err(fail(format!("{}: camera keys require increasing scene times, finite offsets and zoom 0.05..20", s.id)));
                 }
+                if !CAMERA_ANGLES.contains(&key.angle()) {
+                    return Err(Error::Unsupported(format!(
+                        "{}: camera angle {}: supported angles are {}",
+                        s.id,
+                        key.angle(),
+                        CAMERA_ANGLES.join(", ")
+                    )));
+                }
                 previous = Some(key.at);
             }
             for (actor, weights) in &composition.clip_weights {
@@ -2832,12 +2854,14 @@ mod composition_tests {
                     x: 0.0,
                     y: 0.0,
                     zoom: 1.0,
+                    angle: None,
                 },
                 CameraKey {
                     at: 4.0,
                     x: 100.0,
                     y: 50.0,
                     zoom: 2.0,
+                    angle: None,
                 },
             ],
             background_color: "#12abEF".into(),
@@ -2865,6 +2889,18 @@ mod composition_tests {
             invalid.camera[1].zoom = zoom;
             assert!(apply_composition(SOURCE, 0, invalid).is_err());
         }
+        let mut reverse = composition.clone();
+        reverse.camera[1].angle = Some("reverse".into());
+        let updated = apply_composition(SOURCE, 0, reverse.clone()).unwrap();
+        assert!(updated.contains("angle: reverse"));
+        assert_eq!(parse(&updated).unwrap().scenes[0].composition, reverse);
+        assert_eq!(reverse.camera[0].angle(), "front");
+        let mut invalid = composition.clone();
+        invalid.camera[1].angle = Some("dutch".into());
+        assert!(matches!(
+            apply_composition(SOURCE, 0, invalid),
+            Err(Error::Unsupported(m)) if m.contains("front, reverse, high, low")
+        ));
         let mut invalid = composition.clone();
         invalid.layers.insert("MISSING".into(), Layer::default());
         assert!(apply_composition(SOURCE, 0, invalid).is_err());

@@ -75,7 +75,7 @@ pub fn paint_order(
             return Ok(());
         };
         let steps = document
-            .composition(scene_id, plane, scene.time)
+            .composition(scene_id, plane, scene.time, Some(scene.camera.angle.name()))
             .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
         for step in steps {
             let motion_art::CompositionStep::Layer(layer) = step else {
@@ -158,6 +158,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         }
     }
 

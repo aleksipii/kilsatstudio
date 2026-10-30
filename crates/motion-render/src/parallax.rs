@@ -192,6 +192,7 @@ pub fn layer_camera(camera: CameraPose, factor: f64) -> CameraPose {
         // A convex/extrapolated blend of 1 and zoom, clamped to the renderer's
         // valid zoom range.
         zoom: (1.0 + (camera.zoom - 1.0) * factor).clamp(0.05, 20.0),
+        angle: Default::default(),
     }
 }
 
@@ -326,7 +327,12 @@ pub fn value_structure(
     };
     let steps = hazed
         .document
-        .composition(scene_id, Plane::Background, scene.time)
+        .composition(
+            scene_id,
+            Plane::Background,
+            scene.time,
+            Some(scene.camera.angle.name()),
+        )
         .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
     let mut background = Vec::new();
     let mut unmeasured = Vec::new();
@@ -415,6 +421,7 @@ mod tests {
                 },
                 color,
             },
+            angle: None,
         }
     }
     const GREY: Color = Color {
@@ -509,6 +516,7 @@ mod tests {
             x: 100.0,
             y: -40.0,
             zoom: 2.0,
+            angle: Default::default(),
         };
         assert_eq!(layer_camera(camera, 1.0), camera);
         let far = layer_camera(camera, 0.3);
@@ -520,6 +528,7 @@ mod tests {
             x: 0.0,
             y: 0.0,
             zoom: 0.1,
+            angle: Default::default(),
         };
         assert_eq!(layer_camera(wide, 4.0).zoom, 0.05);
     }

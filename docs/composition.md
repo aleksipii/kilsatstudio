@@ -19,7 +19,7 @@ composition:
   fade_out: 0.5
 ```
 
-The camera uses scene seconds, linear interpolation and endpoint holds. Positive
+A key may set `angle` (`front`, `reverse`, `high`, `low`); it is a cut held until the next key, see [camera angles](camera-angles.md). The camera uses scene seconds, linear interpolation and endpoint holds. Positive
 camera offsets move the viewport right/down; zoom is centered on the canvas.
 For each world point the shared transformation is:
 `canvas_center + (world_point - canvas_center - camera_offset) * zoom`.

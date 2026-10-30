@@ -71,7 +71,8 @@ scenes:
 | `scenes` | 1–12 kohtausta, kussakin 1–48 beatia (yhteensä ≤ 200). `positions` määrää, ketkä ovat lavalla: `far_left`, `left`, `center`, `right`, `far_right`; kaksi hahmoa ei voi aloittaa samasta paikasta. |
 | beat | Täsmälleen yksi: `say` (repliikki, vaatii `line`), `do` (toiminta) tai `pause` (0,2–10 s). |
 | `say` | `line` ≤ 400 merkkiä, `emotion`, `gesture` (puheen aikana), `look`, `shot`, `on`, `hold` (tauko repliikin jälkeen), `reaction: {by, emotion, gesture, hold}`. Ei `move_to`:ta. |
-| `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `holds` (+ `hand`), `pose`, `hold`, `shot`, `camera`, `on`. |
+| `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `holds` (+ `hand`), `pose`, `hold`, `shot`, `camera`, `angle`, `on`. |
+| `angle` | Kamerakulma: `front` (oletus), `reverse` (vastakuva: hahmot vaihtavat puolta ja kääntyvät, lavaste peilataan), `high`, `low` (vain lavasteille, joihin kulma on piirretty). Pysyy, kunnes muutetaan, ja vaihto on leikkaus. Jokainen kohtaus alkaa edestä. Käy myös `say`- ja `pause`-beateissa. Ks. [camera-angles.md](camera-angles.md). |
 | `holds` | Käsiesine poimitaan perille saavuttaessa; `none` laskee sen. Ilman `hand`-kenttää valitaan vapaa käsi (vasen ensin, jotta oikea jää eleille). Tila alkaa joka kohtauksessa castin `holds`-arvosta. |
 | `pose` | `sit` lisää lavasteeseen toimistotuolin hahmon alle (istuimen korkeus sivu- tai etukuvan mukaan); `stand` nousee. Istuva hahmo ei voi kävellä ennen `stand`-beatia. |
 | `camera` | `static`, `push_in`, `pull_out` (zoomi 30 %), `pan_left`, `pan_right` (12 % näkyvästä leveydestä kumpaankin suuntaan, zoomi vähintään 1,2), `shake` (0,5 s vaimeneva tärähdys). Liike aloittaa aina oman otoksensa. |
@@ -131,6 +132,9 @@ alkuperäisellä seitsennivelrigillä.
 - Tunteita on viisi, koska ne vaativat rigiin piirretyt ilmevariantit.
 - Tuoli on aina toimistotuoli etunäkymästä piirrettynä; sivukuvassa se on tyylitelty.
 - Käsien ja istumisen tila alkaa jokaisessa kohtauksessa alusta (castin `holds`).
+- Vastakuva peilaa lavasteen: tekstit lukisivat väärin päin, ja piirtojärjestys ei muutu
+  (tuolin selkänoja jää hahmon taakse, käsiesine näkyy selän edessä). `high`/`low`
+  vaativat lavasteeseen piirretyt kulmatasot; valmislavasteissa niitä ei vielä ole.
 - Ajastettu esine ei voi olla `composition.screens`-näytön kohde (näyttö vaatii castin
   `holds`-esineen).
 - Laatu (rytmi, rajaukset, huulisynkka, ääni) vaatii ihmisen arvion; testit osoittavat vain

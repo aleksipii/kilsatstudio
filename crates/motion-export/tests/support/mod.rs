@@ -114,6 +114,7 @@ fn layer(scene: &str, id: &str, plane: Plane, content: Content) -> Layer {
         clip_shape: None,
         blend: BlendMode::Normal,
         content,
+        angle: None,
     }
 }
 

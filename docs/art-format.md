@@ -9,7 +9,9 @@ and artwork smuggled into a v1 file fail rather than silently losing edits.
 Each layer has a stable globally unique `id`, a stable `scene_id`, editable name,
 visibility, opacity (0–1), optional actor identifier `attachment`, optional
 rectangular `clip`, `plane` (`background` or `foreground`) and optional
-`active: {start, end}` in scene seconds. Missing plane/active fields in existing
+`active: {start, end}` in scene seconds, and optional `angle` (the camera angle
+the layer is drawn for; omitted shows it from every angle, see
+[camera angles](camera-angles.md)). Missing plane/active fields in existing
 v2 projects load as foreground/always visible. Within each plane, vector order
 is drawing order, back to front. Content is an image referencing an image inventory asset, freehand stroke,
 filled rectangle, or filled ellipse. RGBA colors use integer bytes. Geometry uses

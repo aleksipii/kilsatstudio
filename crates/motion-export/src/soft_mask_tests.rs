@@ -70,6 +70,7 @@ fn fixture() -> (Script, RenderedScene, ArtContext) {
                         a: 255,
                     },
                 },
+                angle: None,
             }],
             ..Default::default()
         },

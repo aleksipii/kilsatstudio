@@ -15,7 +15,7 @@
 //! all at once, so the list can be handed back to the author for correction.
 use crate::{
     ActorKey, CameraKey, CaptionStyle, Character, Composition, Event, GazeKey, HeldProp, Layer,
-    Project, Scene, Script, VoiceConfig, FACINGS,
+    Project, Scene, Script, VoiceConfig, CAMERA_ANGLES, FACINGS,
 };
 use motion_rig::HandSide;
 use serde::Deserialize;
@@ -153,6 +153,9 @@ pub struct Beat {
     pub shot: Option<String>,
     /// Camera movement during this beat's shot.
     pub camera: Option<String>,
+    /// Camera angle (`front`, `reverse`, `high`, `low`) from this beat until
+    /// changed; every scene starts from `front`. A change is a cut.
+    pub angle: Option<String>,
     pub on: Option<String>,
     pub reaction: Option<Reaction>,
     /// Animation principles for this beat's gesture, over the cast member's.
@@ -196,6 +199,8 @@ pub struct CatalogSet {
     pub name: String,
     pub description: String,
     pub background_color: String,
+    /// Camera angles this set can be filmed from (always includes `front`).
+    pub angles: Vec<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -675,6 +680,22 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
             ));
         }
         let on_stage = |actor: &str| scene.positions.contains_key(actor);
+        if let Some(set) = catalog.sets.get(&scene.set) {
+            for (b, beat) in scene.beats.iter().enumerate() {
+                let Some(angle) = &beat.angle else { continue };
+                if CAMERA_ANGLES.contains(&angle.as_str()) && !set.angles.contains(angle) {
+                    out.push(issue(
+                        IssueKind::Unsupported,
+                        format!("{path}.beats[{b}].angle"),
+                        format!(
+                            "set {} has no {angle} angle; it can be filmed from {}",
+                            scene.set,
+                            set.angles.join(", ")
+                        ),
+                    ));
+                }
+            }
+        }
         for (b, beat) in scene.beats.iter().enumerate() {
             validate_beat(
                 &mut out,
@@ -776,6 +797,7 @@ fn validate_beat(
     }
     vocabulary(out, "shot", &beat.shot, &SHOTS);
     vocabulary(out, "camera", &beat.camera, &CAMERA_MOVES);
+    vocabulary(out, "angle", &beat.angle, &CAMERA_ANGLES);
     hold_check(out, "hold", beat.hold, 0.0);
     if let Some(on) = &beat.on {
         actor_check(out, "on", on);
@@ -797,7 +819,7 @@ fn validate_beat(
             out.push(issue(
                 Schema,
                 path,
-                "a pause beat takes only pause, shot, camera and on",
+                "a pause beat takes only pause, shot, camera, angle and on",
             ));
         }
         return;
@@ -1094,6 +1116,8 @@ struct Shot {
     at: f64,
     framing: Framing,
     movement: Option<String>,
+    /// Camera angle (a `CAMERA_ANGLES` entry).
+    angle: &'static str,
 }
 
 /// Camera move ranges: push/pull zoom factor, pan sweep as a fraction of the
@@ -1423,16 +1447,20 @@ impl<'a> Builder<'a> {
         }
         // A camera move always starts its own shot; otherwise an unchanged
         // framing continues without a jump cut.
+        // The current camera angle; changed by beats, read by every cut.
+        let angle = std::cell::Cell::new(CAMERA_ANGLES[0]);
         let cut = |cuts: &mut Vec<Shot>, at: f64, framing: Framing, movement: Option<&String>| {
             let shot = Shot {
                 at,
                 framing,
                 movement: movement.cloned(),
+                angle: angle.get(),
             };
             match cuts.last_mut() {
                 Some(last) if (last.at - at).abs() < 1e-9 => *last = shot,
                 Some(last)
                     if last.framing == shot.framing
+                        && last.angle == shot.angle
                         && last.movement.is_none()
                         && shot.movement.is_none() => {}
                 _ => cuts.push(shot),
@@ -1448,6 +1476,16 @@ impl<'a> Builder<'a> {
         for (b, beat) in scene.beats.iter().enumerate() {
             t = frame_ceil(t);
             let first = b == 0;
+            // A new angle cuts here, keeping the framing unless the beat changes it.
+            if let Some(name) = beat.angle.as_deref() {
+                if let Some(&next) = CAMERA_ANGLES.iter().find(|a| **a == name) {
+                    if next != angle.get() {
+                        angle.set(next);
+                        let framing = last_framing(&cuts);
+                        cut(&mut cuts, if first { 0.0 } else { t }, framing, None);
+                    }
+                }
+            }
             let explicit = beat.shot.as_deref().filter(|s| *s != "auto");
             if let Some(pause) = beat.pause {
                 if explicit.is_some() || first || beat.camera.is_some() {
@@ -1773,6 +1811,7 @@ impl<'a> Builder<'a> {
                     at: 0.0,
                     framing: Framing::Wide,
                     movement: None,
+                    angle: CAMERA_ANGLES[0],
                 },
             );
         }
@@ -1959,6 +1998,7 @@ impl<'a> Builder<'a> {
                     x: cx - w / 2.0,
                     y: cy - h / 2.0,
                     zoom: zoom * (1.0 + (push - 1.0) * progress),
+                    angle: (shot.angle != CAMERA_ANGLES[0]).then(|| shot.angle.to_string()),
                 };
                 if keys.last().is_none_or(|last| at > last.at) {
                     keys.push(key);
@@ -2010,6 +2050,7 @@ scenes:
         look: <CHARACTER>           # optional, whom the speaker looks at
         shot: <shot>                # optional, default auto
         camera: <camera move>       # optional
+        angle: <angle>              # optional, camera side until changed
         on: <CHARACTER>             # optional, whom the camera frames
         hold: <seconds>             # optional pause after the line, 0–10
         reaction: {by: <CHARACTER>, emotion: <emotion>, gesture: <gesture>, hold: <seconds>}
@@ -2026,7 +2067,7 @@ scenes:
         hold: <seconds>
         shot: <shot>
         camera: <camera move>       # say beats take camera too
-      - pause: <seconds>            # 0.2–10, silence; optional shot and camera
+      - pause: <seconds>            # 0.2–10, silence; optional shot, camera and angle
 \nVALUES\n",
     );
     text.push_str(&format!(
@@ -2043,6 +2084,10 @@ scenes:
         list(&motion_animation::GESTURES)
     ));
     text.push_str(&format!("- face: {}\n", list(&FACINGS)));
+    text.push_str(&format!(
+        "- angle: {} (front by default; reverse films from the other side, so characters swap sides and turn around: use it for shot/reverse-shot dialogue; high/low look down/up; each set lists the angles it supports; every scene starts at front)\n",
+        list(&CAMERA_ANGLES)
+    ));
     text.push_str(&format!("- gait: {}\n", list(&motion_animation::GAITS)));
     text.push_str(&format!(
         "- shot: {} (auto: wide to open a scene, medium on the speaker, close_up on strong emotion, wide for walks; reaction cuts to the listener)\n",
@@ -2058,7 +2103,12 @@ scenes:
     }
     text.push_str("\nSETS\n");
     for (id, set) in &catalog.sets {
-        text.push_str(&format!("- {id} ({}): {}\n", set.name, set.description));
+        text.push_str(&format!(
+            "- {id} ({}): {}; angles: {}\n",
+            set.name,
+            set.description,
+            set.angles.join(", ")
+        ));
     }
     let mut ids = catalog.characters.keys();
     let a = ids.next().map_or("A", String::as_str);

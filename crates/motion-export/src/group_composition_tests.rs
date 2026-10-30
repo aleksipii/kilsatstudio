@@ -100,6 +100,7 @@ fn leaf(id: &str, color: Color, x: f64) -> Layer {
             },
             color,
         },
+        angle: None,
     }
 }
 fn raster(doc: &Document) -> resvg::tiny_skia::Pixmap {

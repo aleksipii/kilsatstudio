@@ -7001,6 +7001,7 @@ mod scene_preview_tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         studio.project_document = Some(document);
         studio.settings_draft =
@@ -7060,6 +7061,7 @@ mod scene_preview_tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         studio.project_document = Some(document);
         studio.script_path = "/unwritable/art-loss.yaml".into();
@@ -7137,6 +7139,7 @@ mod scene_preview_tests {
             x: 20.0,
             y: 10.0,
             zoom: 1.5,
+            angle: None,
         });
         draft.composition.layers.insert(
             "EMMA".into(),
@@ -7166,6 +7169,7 @@ mod scene_preview_tests {
                 x: 0.0,
                 y: 0.0,
                 zoom: -1.0,
+                angle: None,
             });
         studio.apply_settings_draft();
         assert_eq!(studio.source, original);
@@ -8000,6 +8004,7 @@ mod scene_preview_tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         studio.art_editor.commit(&mut document.art, candidate);
         studio.record_art_transaction();
@@ -8379,6 +8384,7 @@ mod bone_and_compositor_tests {
                     a: 255,
                 },
             },
+            angle: None,
         }
     }
     #[test]
@@ -9273,6 +9279,7 @@ mod native_integration_tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         document.validate().unwrap();
         studio.project_document = Some(document);
@@ -9712,6 +9719,7 @@ mod direct_manipulation_history_tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         studio.project_document = Some(document);
         studio.script_path = "existing.kilsat".into();
@@ -9783,6 +9791,7 @@ mod stick_studio_tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         studio.project_document = Some(document);
         studio.script_path = "existing.kilsat".into();

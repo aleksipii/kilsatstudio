@@ -703,8 +703,14 @@ pub struct Layer {
     pub clip_shape: Option<ClipShape>,
     #[serde(default, skip_serializing_if = "BlendMode::is_normal")]
     pub blend: BlendMode,
+    /// Camera angle this layer is drawn for (`front`, `reverse`, `high`, `low`);
+    /// `None` shows it from every angle. The screenplay's camera angle selects it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub angle: Option<String>,
     pub content: Content,
 }
+/// Camera angle used when a scene names none.
+pub const FRONT_ANGLE: &str = "front";
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Document {
@@ -800,6 +806,81 @@ impl Layer {
         let start = self.active.map_or(0.0, |r| r.start);
         select_frame(frames, *playback, time - start).map(|f| f.asset_id.as_str())
     }
+    /// Visibility at a scene-local time seen from camera `angle`: active, and
+    /// drawn for that angle or for every angle.
+    pub fn shows(&self, time: f64, angle: &str) -> bool {
+        self.is_active(time) && self.angle.as_deref().is_none_or(|a| a == angle)
+    }
+    /// This layer mirrored about the vertical line `x = axis`, as seen from the
+    /// opposite side. Only vector content and geometric clips can be mirrored;
+    /// images, raster/painted masks, animated clips and actor attachments are
+    /// rejected rather than drawn unmirrored.
+    pub fn mirrored_x(&self, axis: f64) -> Result<Layer, Error> {
+        let x = |v: f64| 2.0 * axis - v;
+        let point = |p: &Point| Point { x: x(p.x), y: p.y };
+        let rect = |r: &Rect| Rect {
+            x: x(r.x + r.width),
+            ..*r
+        };
+        if self.attachment.is_some() {
+            return invalid("an actor-attached layer cannot be mirrored for another angle");
+        }
+        let content = match &self.content {
+            Content::Stroke {
+                points,
+                color,
+                width,
+            } => Content::Stroke {
+                points: points.iter().map(point).collect(),
+                color: *color,
+                width: *width,
+            },
+            Content::Rectangle { rect: r, color } => Content::Rectangle {
+                rect: rect(r),
+                color: *color,
+            },
+            Content::Ellipse { rect: r, color } => Content::Ellipse {
+                rect: rect(r),
+                color: *color,
+            },
+            Content::Image { .. } | Content::AnimatedImage { .. } => {
+                return invalid("an image layer cannot be mirrored; draw it for this angle");
+            }
+        };
+        let clip_shape = match &self.clip_shape {
+            None => None,
+            Some(ClipShape::Ellipse { rect: r }) => Some(ClipShape::Ellipse { rect: rect(r) }),
+            Some(ClipShape::Polygon {
+                points,
+                feather,
+                motion,
+            }) if motion.is_empty() => Some(ClipShape::Polygon {
+                points: points.iter().map(point).collect(),
+                feather: *feather,
+                motion: Vec::new(),
+            }),
+            Some(ClipShape::SoftEllipse {
+                rect: r,
+                feather,
+                keys,
+            }) if keys.is_empty() => Some(ClipShape::SoftEllipse {
+                rect: rect(r),
+                feather: *feather,
+                keys: Vec::new(),
+            }),
+            Some(_) => {
+                return invalid(
+                    "a layer with an image, painted or animated mask cannot be mirrored",
+                );
+            }
+        };
+        Ok(Layer {
+            content,
+            clip: self.clip.as_ref().map(rect),
+            clip_shape,
+            ..self.clone()
+        })
+    }
     /// Visibility at a scene-local time; an interval excludes its end boundary.
     pub fn is_active(&self, time: f64) -> bool {
         self.visible
@@ -891,11 +972,14 @@ impl Document {
         Ok(())
     }
     /// Validated bounded traversal; opacity and blend remain isolated group operations.
+    /// Layers and groups drawn for `scene` and `plane` at `time`, seen from
+    /// camera `angle` (see [`Layer::shows`]); `None` keeps every angle (editors).
     pub fn composition<'a>(
         &'a self,
         scene: &str,
         plane: Plane,
         time: f64,
+        angle: Option<&str>,
     ) -> Result<Vec<CompositionStep<'a>>, Error> {
         self.validate()?;
         fn emit<'a>(
@@ -903,7 +987,7 @@ impl Document {
             units: &[ArtUnit],
             scene: &str,
             plane: Plane,
-            time: f64,
+            (time, angle): (f64, Option<&str>),
             out: &mut Vec<CompositionStep<'a>>,
         ) {
             for unit in units {
@@ -913,7 +997,7 @@ impl Document {
                 match unit {
                     ArtUnit::Layer(id) => {
                         let l = doc.layers.iter().find(|l| &l.id == id).unwrap();
-                        if l.is_active(time) {
+                        if angle.map_or(l.is_active(time), |a| l.shows(time, a)) {
                             out.push(CompositionStep::Layer(l));
                         }
                     }
@@ -921,7 +1005,7 @@ impl Document {
                         let g = doc.groups.iter().find(|g| &g.id == id).unwrap();
                         if g.visible {
                             out.push(CompositionStep::EnterGroup(g));
-                            emit(doc, &g.children, scene, plane, time, out);
+                            emit(doc, &g.children, scene, plane, (time, angle), out);
                             out.push(CompositionStep::LeaveGroup);
                         }
                     }
@@ -929,7 +1013,14 @@ impl Document {
             }
         }
         let mut result = Vec::with_capacity(self.layers.len() + self.groups.len() * 2);
-        emit(self, &self.root_order(), scene, plane, time, &mut result);
+        emit(
+            self,
+            &self.root_order(),
+            scene,
+            plane,
+            (time, angle),
+            &mut result,
+        );
         Ok(result)
     }
     fn detach(&mut self, unit: &ArtUnit) -> Result<(Option<String>, usize), Error> {
@@ -980,6 +1071,13 @@ impl Document {
                 || !(0.0..=1.0).contains(&layer.opacity)
             {
                 return invalid("layer name or opacity is invalid");
+            }
+            if layer.angle.as_ref().is_some_and(|a| {
+                a.is_empty()
+                    || a.len() > 32
+                    || !a.bytes().all(|b| b.is_ascii_lowercase() || b == b'_')
+            }) {
+                return invalid("layer angle must be a lower-case name such as front or reverse");
             }
             if layer.active.is_some_and(|range| {
                 !range.start.is_finite()
@@ -1285,7 +1383,9 @@ mod tests {
         let restored: Document =
             serde_json::from_str(&serde_json::to_string(&doc).unwrap()).unwrap();
         assert_eq!(doc, restored);
-        let steps = doc.composition("intro", Plane::Foreground, 0.0).unwrap();
+        let steps = doc
+            .composition("intro", Plane::Foreground, 0.0, Some(FRONT_ANGLE))
+            .unwrap();
         assert_eq!(steps.len(), 5);
         assert!(matches!(steps[0], CompositionStep::EnterGroup(g) if g.id == "outer"));
         assert!(matches!(steps[2], CompositionStep::Layer(l) if l.id == "stable"));
@@ -1344,7 +1444,7 @@ mod tests {
         assert!(orphan.validate().is_err());
         doc.groups[0].visible = false;
         assert!(doc
-            .composition("intro", Plane::Foreground, 5.0)
+            .composition("intro", Plane::Foreground, 5.0, Some(FRONT_ANGLE))
             .unwrap()
             .is_empty());
     }
@@ -1641,7 +1741,100 @@ mod tests {
                 },
                 width: 2.0,
             },
+            angle: None,
         }
+    }
+    #[test]
+    fn angle_layers_show_only_from_their_angle_and_validate() {
+        let mut shared = layer();
+        shared.id = "shared".into();
+        let mut front = layer();
+        front.id = "front".into();
+        front.angle = Some("front".into());
+        let mut reverse = layer();
+        reverse.id = "reverse".into();
+        reverse.angle = Some("reverse".into());
+        let doc = Document {
+            layers: vec![shared, front, reverse],
+            ..Default::default()
+        };
+        let ids = |angle| {
+            doc.composition("intro", Plane::Foreground, 0.0, angle)
+                .unwrap()
+                .into_iter()
+                .filter_map(|s| match s {
+                    CompositionStep::Layer(l) => Some(l.id.as_str()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(ids(Some("front")), ["shared", "front"]);
+        assert_eq!(ids(Some("reverse")), ["shared", "reverse"]);
+        assert_eq!(ids(Some("high")), ["shared"]);
+        assert_eq!(ids(None), ["shared", "front", "reverse"]);
+        for bad in ["", "Front", "up-high", &"x".repeat(33)] {
+            let mut invalid = doc.clone();
+            invalid.layers[1].angle = Some(bad.to_string());
+            assert!(invalid.validate().is_err(), "{bad:?}");
+        }
+        let json = serde_json::to_string(&doc).unwrap();
+        assert_eq!(serde_json::from_str::<Document>(&json).unwrap(), doc);
+        assert!(!serde_json::to_string(&layer()).unwrap().contains("angle"));
+    }
+    #[test]
+    fn mirroring_reflects_vector_geometry_and_rejects_images() {
+        let mut item = layer();
+        item.clip_shape = None;
+        let m = item.mirrored_x(50.0).unwrap();
+        assert_eq!(
+            m.clip,
+            Some(Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 100.0,
+                height: 100.0
+            })
+        );
+        let Content::Stroke { points, .. } = &m.content else {
+            panic!()
+        };
+        assert_eq!(
+            points,
+            &[Point { x: 99.0, y: 2.0 }, Point { x: 97.0, y: 4.0 }]
+        );
+        let rect = Rect {
+            x: 10.0,
+            y: 5.0,
+            width: 20.0,
+            height: 8.0,
+        };
+        item.content = Content::Rectangle {
+            rect,
+            color: Color {
+                r: 1,
+                g: 2,
+                b: 3,
+                a: 255,
+            },
+        };
+        let Content::Rectangle { rect: r, .. } = item.mirrored_x(50.0).unwrap().content else {
+            panic!()
+        };
+        assert_eq!((r.x, r.width, r.y), (70.0, 20.0, 5.0));
+        // Mirroring twice gives back the original.
+        assert_eq!(
+            item.mirrored_x(50.0).unwrap().mirrored_x(50.0).unwrap(),
+            item
+        );
+        let mut image = item.clone();
+        image.content = Content::Image {
+            asset_id: "photo".into(),
+            rect,
+        };
+        assert!(image.mirrored_x(50.0).is_err());
+        let mut attached = item.clone();
+        attached.attachment = Some("A".into());
+        assert!(attached.mirrored_x(50.0).is_err());
     }
     #[test]
     fn active_intervals_are_half_open_and_require_finite_nonnegative_time() {
