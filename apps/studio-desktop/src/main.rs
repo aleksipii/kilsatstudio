@@ -26,6 +26,7 @@ mod kokoro_setup;
 mod live_clip_editor;
 mod local_speech_ui;
 mod managed_license_evidence;
+mod model_sheet_panel;
 mod motion_blocks;
 mod native_compositor;
 mod playback;
@@ -186,6 +187,7 @@ struct Studio {
     native_canvas: Option<NativeCanvas>,
     native_canvas_generation: u64,
     gpu_check: gpu_check_panel::Panel,
+    model_sheet: model_sheet_panel::Panel,
     sequence_panel: sequence_panel::Panel,
     sequence_revision: u64,
     document_revision: u64,
@@ -362,6 +364,7 @@ impl Default for Studio {
             native_canvas: None,
             native_canvas_generation: 0,
             gpu_check: Default::default(),
+            model_sheet: Default::default(),
             sequence_panel: Default::default(),
             sequence_revision: 0,
             document_revision: 0,
@@ -5507,6 +5510,16 @@ impl Studio {
                                 self.live_clip_ui(ui);
                             },
                         );
+                        egui::CollapsingHeader::new("Model sheet ja hahmotyyli").show(ui, |ui| {
+                            let character = self.script.as_ref().and_then(|script| {
+                                let actor = self.selected_actor.as_deref().or_else(|| {
+                                    script.characters.keys().next().map(String::as_str)
+                                })?;
+                                let (actor, character) = script.characters.get_key_value(actor)?;
+                                Some((actor.as_str(), character.rig.as_ref()?))
+                            });
+                            self.model_sheet.ui(ui, character);
+                        });
                         ui.weak("Kahden luun IK (A05) on olemassa, mutta IK-kohteen aikajanaraita ja ratkaisu kohtausarvioinnissa odottavat A04:ää (KS-003d).");
                     }
                     ui.separator();
