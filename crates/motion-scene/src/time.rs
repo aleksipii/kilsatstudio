@@ -55,6 +55,25 @@ pub fn sample_to_frame(sample: u64, fps: u32) -> Result<u64, Error> {
     clock::sample_to_frame(sample, fps).map_err(scene_error)
 }
 
+/// Scene-local time at which a pose exposed `on` frames is evaluated: the
+/// first frame of the exposure group containing the frame that shows
+/// `seconds` (groups start at scene frame 0). On ones `seconds` is returned
+/// unchanged, so projects without timing evaluate exactly as before. Preview,
+/// seek and export all reach this through the scene evaluator.
+pub fn exposed_seconds(
+    seconds: f64,
+    fps: u32,
+    exposure: motion_animation::Exposure,
+) -> Result<f64, Error> {
+    if exposure == motion_animation::Exposure::ONES {
+        return Ok(seconds);
+    }
+    let frame = sample_to_frame(seconds_to_sample(seconds)?, fps)?;
+    let start = frame_to_seconds(exposure.exposed_frame(frame), fps)?;
+    // Sample rounding may land a hair after `seconds`; never evaluate later.
+    Ok(start.min(seconds))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

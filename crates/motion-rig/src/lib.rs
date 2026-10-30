@@ -2,6 +2,8 @@
 pub mod attachment;
 pub mod definition;
 pub mod ik;
+pub mod prop_card;
+pub mod prop_states;
 pub mod props;
 pub mod screen;
 pub mod tap;
@@ -15,8 +17,16 @@ pub use definition::{
     MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
 };
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
+pub use prop_card::{
+    prop_card_svg, PropCard, PROP_CARD_CELL_HEIGHT, PROP_CARD_CELL_WIDTH, PROP_CARD_HEADER_HEIGHT,
+};
+pub use prop_states::{
+    blend_frames, smoothstep, PropCarrier, PropSample, PropStateDefinition, PropTrack,
+    PropTrackError, UnknownPropState, DEFAULT_HAND_OFF_SECONDS, DEFAULT_PROP_STATE,
+    DEFAULT_SET_DOWN_SECONDS, MAX_PROP_STATES, MAX_PROP_TRANSFERS, MAX_PROP_TRANSFER_SECONDS,
+};
 pub use props::{
-    attach_hand_prop, detach_hand_prop, grip_parts, grip_screen, hand_availability,
+    attach_hand_prop, detach_hand_prop, grip_parts, grip_screen, hand_availability, held_part_id,
     stick_studio_hand_props, GripPlacement, HandPropCatalog, HandPropItem, HandPropScreen,
     HandSide, PropError, GRIP_JOINT, MAX_HAND_PROP_CATALOG_BYTES,
 };

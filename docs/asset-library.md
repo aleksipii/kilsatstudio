@@ -179,6 +179,20 @@ small floor items, `mid`). Every location × variant in the shipped pack passes
 with no issues (test `stick_studio_library_is_valid_and_styled`), and the
 generator test covers every valid window/door/time-of-day combination.
 
+## Prop states
+
+Art props may declare optional named `states` (older manifests stay valid):
+
+```json
+"states": [{"id": "on"}, {"id": "off", "hide": ["glow"]}]
+```
+
+The first state is the default and hides nothing. Each other state hides
+`geometry.layers` ids, each once, and must leave at least one layer visible. At most
+8 states; ids `[a-z0-9_]{1,64}`. Other kinds get `NotAllowed`. `Manifest::hidden_layers`
+returns the hidden ids, or an error listing the declared states. No shipped library
+prop declares states yet, and assembly does not apply them.
+
 ## Shipped content and tools
 
 `cargo run -p motion-library --example generate_stick_library -- examples/stick-studio`
