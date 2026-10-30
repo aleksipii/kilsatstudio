@@ -2961,6 +2961,7 @@ dependencies = [
  "motion-jobs",
  "motion-lipsync",
  "motion-project",
+ "motion-render",
  "motion-rig",
  "motion-scene",
  "motion-script",

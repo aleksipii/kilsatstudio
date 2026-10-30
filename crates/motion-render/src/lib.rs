@@ -9,6 +9,7 @@ pub mod gpu;
 mod gpu_captions;
 #[cfg(feature = "gpu")]
 pub mod gpu_scene;
+pub mod model_sheet;
 pub mod parallax;
 #[cfg(feature = "gpu")]
 pub mod scene_commands;
