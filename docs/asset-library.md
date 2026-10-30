@@ -100,8 +100,15 @@ actors). Within a band the order is: the location's own room and variant layers,
 location parts in manifest order, then set parts; within an asset the declared
 layer order, variant layers last. Effective depth is `part.depth`, else
 `layer.depth`, else the asset `depth`. Layer ids are `<scene>_<instance>_<layer>`;
-the location itself uses the reserved instance `room`. Parallax is metadata only:
-**the renderer does not apply parallax**.
+the location itself uses the reserved instance `room`.
+
+Effective parallax is `part.parallax`, else `layer.parallax`, else the depth
+default (far 0.3, mid 0.6, near 1.0); `Assembled::parallax` maps every document
+layer id to it. `atmosphere: { color, strength }` may be set on a location or a
+set (the set's wins) and is reported as `Assembled::atmosphere`. Both are optional
+and validated (parallax finite and 0..=4, strength 0..=1). The renderer applies
+them only when the caller passes a `motion_render::parallax::Multiplane`; see
+[parallax.md](parallax.md).
 
 ## Transforms, cameras and marks
 
@@ -208,7 +215,9 @@ error. `--preview-svg <dir>` writes flat SVG sketches with anchors (red) and mar
 
 ## Limitations
 
-- Parallax is metadata; nothing renders it.
+- Parallax and atmosphere render only through the opt-in
+  `motion_render::parallax` entry points; the desktop preview and export do not
+  pass them yet.
 - `rig_project` and `blob` assets cannot be kit-bashed: `motion_art` has no filled
   polygon or mesh content, so assembly returns `AssembleError::UnsupportedGeometry`
   instead of skipping them.

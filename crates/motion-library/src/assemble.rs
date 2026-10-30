@@ -7,6 +7,10 @@
 //! location parts, then the set parts, each part in manifest order and each
 //! asset's layers in their declared order (variant layers after base layers).
 //! Effective depth: `part.depth`, else `layer.depth`, else the asset's `depth`.
+//! Effective parallax: `part.parallax`, else `layer.parallax`, else the
+//! effective depth's [`Depth::default_parallax`]. Atmosphere: the set's, else
+//! its location's. Both are reported in [`Assembled`] and change nothing until
+//! a renderer is given them explicitly.
 //! Layer ids are `<scene>_<instance>_<layer>`; the location itself uses the
 //! instance name `room`.
 //!
@@ -19,8 +23,8 @@
 //! [`AssembleError::UnsupportedGeometry`] instead of skipping them.
 use crate::library::Library;
 use crate::manifest::{
-    document_layer, Anchor, ArtLayer, CameraSpec, Depth, Geometry, Kind, Manifest, MarkKind, Part,
-    SELF_INSTANCE,
+    document_layer, Anchor, ArtLayer, Atmosphere, CameraSpec, Depth, Geometry, Kind, Manifest,
+    MarkKind, Part, SELF_INSTANCE,
 };
 use motion_art::{Color, Content, Document, Point, Rect};
 use serde::Serialize;
@@ -74,6 +78,11 @@ pub struct Assembled {
     pub cameras: Vec<CameraSpec>,
     /// Set marks resolved to world points (empty for a bare location).
     pub marks: Vec<WorldMark>,
+    /// Effective multiplane parallax factor of every assembled layer, by
+    /// document layer id.
+    pub parallax: BTreeMap<String, f64>,
+    /// Aerial perspective: the set's, else its location's; `None` is off.
+    pub atmosphere: Option<Atmosphere>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -198,6 +207,7 @@ struct Builder<'a> {
     scene: &'a str,
     bands: [Vec<motion_art::Layer>; 3],
     anchors: Vec<WorldAnchor>,
+    parallax: BTreeMap<String, f64>,
 }
 impl<'a> Builder<'a> {
     fn new(scene: &'a str) -> Builder<'a> {
@@ -205,6 +215,7 @@ impl<'a> Builder<'a> {
             scene,
             bands: Default::default(),
             anchors: Vec::new(),
+            parallax: BTreeMap::new(),
         }
     }
     #[allow(clippy::too_many_arguments)]
@@ -216,10 +227,14 @@ impl<'a> Builder<'a> {
         palette: &BTreeMap<String, Color>,
         default_depth: Depth,
         forced_depth: Option<Depth>,
+        forced_parallax: Option<f64>,
         t: Transform,
     ) -> Result<(), AssembleError> {
         for layer in layers {
             let depth = forced_depth.or(layer.depth).unwrap_or(default_depth);
+            let parallax = forced_parallax
+                .or(layer.parallax)
+                .unwrap_or(depth.default_parallax());
             let color =
                 match &layer.paint {
                     Some(slot) => Some(*palette.get(slot).ok_or_else(|| {
@@ -237,6 +252,7 @@ impl<'a> Builder<'a> {
                 t.content(&layer.content, color),
             );
             l.name = format!("{instance} {}", layer.id);
+            self.parallax.insert(l.id.clone(), parallax);
             let band = match depth {
                 Depth::Far => 0,
                 Depth::Mid => 1,
@@ -296,6 +312,7 @@ impl<'a> Builder<'a> {
             &palette,
             asset.depth,
             part.depth,
+            part.parallax,
             t,
         )?;
         self.add_anchors(&asset.id, &part.instance, &asset.anchors, t);
@@ -332,6 +349,7 @@ impl<'a> Builder<'a> {
             &palette,
             loc.depth,
             None,
+            None,
             Transform::IDENTITY,
         )?;
         let room_anchors = room.iter().flat_map(|r| r.anchors.iter());
@@ -350,6 +368,7 @@ impl<'a> Builder<'a> {
         self,
         cameras: Vec<CameraSpec>,
         marks: Vec<WorldMark>,
+        atmosphere: Option<Atmosphere>,
     ) -> Result<Assembled, AssembleError> {
         let [far, mid, near] = self.bands;
         let document = Document {
@@ -362,6 +381,8 @@ impl<'a> Builder<'a> {
             anchors: self.anchors,
             cameras,
             marks,
+            parallax: self.parallax,
+            atmosphere,
         })
     }
 }
@@ -399,7 +420,7 @@ pub fn assemble_location(
     let loc = expect(lib, id, Kind::Location)?;
     let mut b = Builder::new(scene_id);
     b.add_location(lib, loc, variant)?;
-    b.finish(Vec::new(), Vec::new())
+    b.finish(Vec::new(), Vec::new(), loc.atmosphere)
 }
 
 /// Assemble a set: its location (with `variant`), the set's own parts, its
@@ -448,5 +469,9 @@ pub fn assemble_set(
             at,
         });
     }
-    b.finish(set.cameras.clone(), marks)
+    b.finish(
+        set.cameras.clone(),
+        marks,
+        set.atmosphere.or(loc.atmosphere),
+    )
 }

@@ -417,6 +417,55 @@ pub fn build_with_art(
     document: &motion_art::Document,
     images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
 ) -> Result<SceneCommands, Error> {
+    build_art_inner(
+        scene, width, height, mouths, labels, scene_id, document, images, None,
+    )
+}
+
+/// [`build_with_art`] with multiplane parallax and aerial perspective, sharing
+/// `crate::parallax` with `render_svg_with_multiplane`. An empty `multiplane`
+/// gives identical commands.
+#[allow(clippy::too_many_arguments)]
+pub fn build_with_multiplane(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    labels: Labels,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    multiplane: &crate::parallax::Multiplane,
+) -> Result<SceneCommands, Error> {
+    document
+        .validate()
+        .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
+    let hazed = multiplane.apply_atmosphere(document);
+    build_art_inner(
+        scene,
+        width,
+        height,
+        mouths,
+        labels,
+        scene_id,
+        &hazed.document,
+        images,
+        Some(multiplane),
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn build_art_inner(
+    scene: &EvaluatedScene,
+    width: u32,
+    height: u32,
+    mouths: &[(&str, Viseme)],
+    labels: Labels,
+    scene_id: &str,
+    document: &motion_art::Document,
+    images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
+    multiplane: Option<&crate::parallax::Multiplane>,
+) -> Result<SceneCommands, Error> {
     document
         .validate()
         .map_err(|e| crate::Error::InvalidArtwork(e.to_string()))?;
@@ -440,6 +489,7 @@ pub fn build_with_art(
         motion_art::Plane::Background,
         &mut resources,
         &mut work,
+        multiplane,
     )?;
     append_lights(
         &mut result,
@@ -460,6 +510,7 @@ pub fn build_with_art(
         motion_art::Plane::Foreground,
         &mut resources,
         &mut work,
+        multiplane,
     )?;
     append_lights(
         &mut result,
@@ -775,11 +826,10 @@ fn append_art(
     plane: motion_art::Plane,
     resources: &mut std::collections::BTreeMap<String, usize>,
     work: &mut u64,
+    multiplane: Option<&crate::parallax::Multiplane>,
 ) -> Result<(), Error> {
     use motion_art::{ClipShape, CompositionStep, Content};
-    let factor = result.canvas[2] as f64 / scene.width as f64 * scene.camera.zoom;
     let scale = result.canvas[2] as f64 / scene.width as f64;
-    let (cx, cy) = scene.camera.project(0.0, 0.0, scene.width, scene.height);
     let mut depth = 0usize;
     for step in document
         .composition(scene_id, plane, scene.time)
@@ -822,6 +872,13 @@ fn append_art(
                     },
                     None => (0.0, 0.0),
                 };
+                // Multiplane parallax: the same per-layer camera as the SVG path.
+                let camera = match multiplane {
+                    Some(m) => m.camera_for(layer, scene.camera),
+                    None => scene.camera,
+                };
+                let factor = scale * camera.zoom;
+                let (cx, cy) = camera.project(0.0, 0.0, scene.width, scene.height);
                 let inv = [(1.0 / factor) as f32, 0.0, 0.0, (1.0 / factor) as f32];
                 let origin = [
                     (-(result.canvas[0] as f64 + scale * cx) / factor - x) as f32,
@@ -2228,5 +2285,103 @@ mod tests {
         )
         .unwrap();
         assert!(commands.pixels.is_empty());
+    }
+
+    #[test]
+    fn multiplane_uses_the_shared_layer_camera_and_is_identity_when_empty() {
+        use crate::parallax::{layer_camera, Atmosphere, Multiplane};
+        use motion_art::*;
+        let script = motion_script::parse(
+            "project: {title: p, fps: 24, width: 640, height: 360}\n\
+             characters: {ALEX: {asset: a}}\n\
+             scenes:\n  - id: s\n    duration: 2\n    composition: {camera: \
+             [{at: 0, x: 0, y: 0, zoom: 1}, {at: 2, x: 200, y: -40, zoom: 1.6}]}\n    events: []\n",
+        )
+        .unwrap();
+        let mut scene = motion_scene::evaluate(&script, 0, 1.5).unwrap();
+        scene.actors.clear();
+        assert_ne!(scene.camera, motion_scene::CameraPose::default());
+        let mut far = artwork_layer(
+            "far",
+            Content::Rectangle {
+                rect: Rect {
+                    x: 40.0,
+                    y: 60.0,
+                    width: 120.0,
+                    height: 80.0,
+                },
+                color: Color {
+                    r: 200,
+                    g: 40,
+                    b: 30,
+                    a: 255,
+                },
+            },
+        );
+        far.plane = Plane::Background;
+        let document = Document {
+            layers: vec![far],
+            ..Default::default()
+        };
+        let images = std::collections::BTreeMap::new();
+        let art = |scene: &EvaluatedScene, document: &Document| {
+            build_with_art(
+                scene,
+                320,
+                180,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                document,
+                &images,
+            )
+            .unwrap()
+            .bytes()
+        };
+        let multi = |mp: &Multiplane| {
+            build_with_multiplane(
+                &scene,
+                320,
+                180,
+                &[],
+                Labels::OmitAcknowledged,
+                "s",
+                &document,
+                &images,
+                mp,
+            )
+            .unwrap()
+            .bytes()
+        };
+        let legacy = art(&scene, &document);
+        // No entries, or factor 1: identical commands.
+        assert_eq!(multi(&Multiplane::default()), legacy);
+        assert_eq!(
+            multi(&Multiplane::new([("far".into(), 1.0)], None).unwrap()),
+            legacy
+        );
+        // Factor 0.3: exactly the commands of a scene filmed by `layer_camera`.
+        let mp = Multiplane::new([("far".into(), 0.3)], None).unwrap();
+        let mut far_camera = scene.clone();
+        far_camera.camera = layer_camera(scene.camera, 0.3);
+        assert_eq!(multi(&mp), art(&far_camera, &document));
+        assert_ne!(multi(&mp), legacy);
+        // Atmosphere: the same CPU-hazed document the SVG path receives.
+        let fog = Multiplane::new(
+            [("far".into(), 0.3)],
+            Some(Atmosphere {
+                color: Color {
+                    r: 200,
+                    g: 215,
+                    b: 235,
+                    a: 255,
+                },
+                strength: 0.8,
+            }),
+        )
+        .unwrap();
+        let hazed = fog.apply_atmosphere(&document).document.into_owned();
+        assert_ne!(hazed, document);
+        assert_eq!(multi(&fog), art(&far_camera, &hazed));
     }
 }

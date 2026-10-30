@@ -1080,3 +1080,161 @@ fn gpu_parity_new_gpu_coverage_measurements() {
         std::fs::write(path, report).unwrap();
     }
 }
+
+/// P05 multiplane fixtures: a panned/zoomed camera with Far/Mid/Near layers,
+/// with and without aerial perspective. CPU: `render_svg_with_multiplane`;
+/// GPU: `scene_commands::build_with_multiplane`. Both use
+/// `motion_render::parallax::Multiplane::camera_for`.
+fn multiplane_fixtures() -> Vec<(&'static str, Fixture, motion_render::parallax::Multiplane)> {
+    use motion_render::parallax::{Atmosphere, Multiplane};
+    let mut scene = no_actors("#202830");
+    scene.camera.x = 20.0;
+    scene.camera.y = -6.0;
+    scene.camera.zoom = 1.5;
+    let mut far = layer(
+        "far",
+        fill(rect(8.0, 20.0, 60.0, 40.0), rgba(40, 90, 200, 255)),
+        None,
+    );
+    far.plane = Plane::Background;
+    let mut mid = layer(
+        "mid",
+        Content::Ellipse {
+            rect: rect(50.0, 50.0, 40.0, 30.0),
+            color: rgba(60, 170, 80, 255),
+        },
+        None,
+    );
+    mid.plane = Plane::Background;
+    let near = layer(
+        "near",
+        fill(rect(70.0, 80.0, 30.0, 30.0), rgba(220, 70, 40, 255)),
+        None,
+    );
+    let document = doc(vec![far, mid, near]);
+    let factors = || {
+        [
+            ("far".to_string(), 0.3),
+            ("mid".to_string(), 0.6),
+            ("near".to_string(), 1.0),
+        ]
+    };
+    let fixture = |name| Fixture {
+        name,
+        scene: scene.clone(),
+        document: document.clone(),
+        images: BTreeMap::new(),
+        tolerance: TOL_SHAPES,
+    };
+    vec![
+        (
+            "multiplane_pan_zoom",
+            fixture("multiplane_pan_zoom"),
+            Multiplane::new(factors(), None).unwrap(),
+        ),
+        (
+            "multiplane_atmosphere",
+            fixture("multiplane_atmosphere"),
+            Multiplane::new(
+                factors(),
+                Some(Atmosphere {
+                    color: rgba(190, 205, 225, 255),
+                    strength: 0.6,
+                }),
+            )
+            .unwrap(),
+        ),
+    ]
+}
+
+fn multiplane_cpu_reference(f: &Fixture, mp: &motion_render::parallax::Multiplane) -> Vec<u8> {
+    let svg = motion_render::parallax::render_svg_with_multiplane(
+        &f.scene,
+        SIZE,
+        SIZE,
+        &[],
+        "s",
+        &f.document,
+        &f.images,
+        mp,
+    )
+    .unwrap();
+    let png = media::rasterize(&svg).unwrap();
+    resvg::tiny_skia::Pixmap::decode_png(&png)
+        .unwrap()
+        .data()
+        .to_vec()
+}
+
+fn multiplane_commands(
+    f: &Fixture,
+    mp: &motion_render::parallax::Multiplane,
+) -> scene_commands::SceneCommands {
+    scene_commands::build_with_multiplane(
+        &f.scene,
+        SIZE,
+        SIZE,
+        &[],
+        Labels::OmitAcknowledged,
+        "s",
+        &f.document,
+        &f.images,
+        mp,
+    )
+    .unwrap()
+}
+
+/// Runs without a GPU: parallax really changes the CPU reference (so the
+/// hardware comparison is not vacuous) and an empty multiplane does not.
+#[test]
+fn multiplane_cpu_reference_moves_far_layers_and_empty_is_identity() {
+    for (name, f, mp) in multiplane_fixtures() {
+        let plain = cpu_reference(&f);
+        assert_ne!(multiplane_cpu_reference(&f, &mp), plain, "{name}");
+        assert_eq!(
+            multiplane_cpu_reference(&f, &motion_render::parallax::Multiplane::default()),
+            plain,
+            "{name}"
+        );
+        assert!(multiplane_commands(&f, &mp).command_count() > 0, "{name}");
+    }
+}
+
+#[test]
+#[ignore = "requires explicit KILSAT_GPU_BACKEND and an actual GPU; run by hand"]
+fn gpu_parity_multiplane_within_shapes_tolerance() {
+    let cancel = AtomicBool::new(false);
+    let mut renderer = GpuSceneRenderer::new(backend(), &cancel).unwrap();
+    let mut failures = Vec::new();
+    let mut report =
+        String::from("fixture | max R,G,B,A | rms R,G,B,A | changed | edge rms | interior rms\n");
+    for (name, f, mp) in multiplane_fixtures() {
+        let reference = multiplane_cpu_reference(&f, &mp);
+        let frame = renderer
+            .render(&multiplane_commands(&f, &mp), &cancel)
+            .unwrap();
+        assert!(
+            frame.validation_errors.is_empty(),
+            "{name}: {:?}",
+            frame.validation_errors
+        );
+        let d = compare_decoded_rgba(SIZE, SIZE, &reference, &frame.rgba).unwrap();
+        report += &format!(
+            "{name} | {:?} | {:.2?} | {:.4} | {:.2} | {:.2}\n",
+            d.maximum_channel_error,
+            d.rms_channel_error,
+            d.changed_pixel_fraction,
+            d.edge_rms_error,
+            d.interior_rms_error
+        );
+        for v in f.tolerance.violations(&d) {
+            failures.push(format!("{name}: {v}"));
+        }
+    }
+    println!("{report}");
+    assert!(
+        failures.is_empty(),
+        "parity tolerance exceeded:\n{}",
+        failures.join("\n")
+    );
+}

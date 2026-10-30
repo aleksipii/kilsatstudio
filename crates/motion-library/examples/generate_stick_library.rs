@@ -76,6 +76,7 @@ fn base(id: &str, kind: Kind, name: &str, bounds: Rect, depth: Depth, t: &[&str]
         location: None,
         cameras: Vec::new(),
         marks: Vec::new(),
+        atmosphere: None,
     }
 }
 
@@ -223,6 +224,7 @@ fn migrate(pack: &Path, m: &Migration) -> Result<Manifest, String> {
         layers.push(ArtLayer {
             id: short,
             depth: Some(depth),
+            parallax: None,
             paint: None,
             content,
         });
@@ -237,6 +239,7 @@ fn layer(id: &str, depth: Depth, content: Content) -> ArtLayer {
     ArtLayer {
         id: id.into(),
         depth: Some(depth),
+        parallax: None,
         paint: None,
         content,
     }
@@ -675,6 +678,7 @@ fn place_parts(ctx: &mut Ctx, ground_y: f64, spots: &[Spot]) -> Vec<Part> {
             scale: None,
             flip_x: s.flip,
             depth: None,
+            parallax: None,
             variant: None,
         });
     }
@@ -1024,6 +1028,7 @@ fn room_location(ctx: &mut Ctx, r: &RoomLocation) -> (Manifest, Vec<Mark>, f64) 
             scale: None,
             flip_x: false,
             depth: None,
+            parallax: None,
             variant: None,
         });
     }
@@ -1172,6 +1177,7 @@ fn kit_location(ctx: &mut Ctx, k: &KitLocation) -> (Manifest, Vec<Mark>, f64) {
         scale: None,
         flip_x: false,
         depth: None,
+        parallax: None,
         variant: None,
     });
     m.parts.extend(place_parts(ctx, k.ground_y, k.spots));

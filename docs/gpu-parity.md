@@ -185,3 +185,22 @@ Not implemented (deliberately, rather than faking it). Design and blockers:
    need rustybuzz on both paths.
 4. Budget: the shader loops all commands per fragment; glyph polygons must count
    toward `MAX_FRAGMENT_WORK` or move to a tiled/instanced pipeline.
+
+## Multiplane parallax (P05)
+
+Fixtures `multiplane_pan_zoom` and `multiplane_atmosphere` (camera x 20, y −6,
+zoom 1.5; Far 0.3 rectangle, Mid 0.6 ellipse, Near 1.0 rectangle; the second adds
+atmosphere strength 0.6). CPU: `parallax::render_svg_with_multiplane` through
+`media::rasterize`; GPU: `scene_commands::build_with_multiplane` on Metal.
+Measured 2026-10-30 on Apple M1, macOS 27.0.1, with tolerance `TOL_SHAPES`
+(40 / 4.0 / 30%). The 25 existing fixtures reproduced the table above unchanged
+in the same run.
+
+| Fixture | Max R,G,B,A | RMS R,G,B,A | Changed px | Edge RMS | Interior RMS |
+| --- | --- | --- | --- | --- | --- |
+| multiplane_pan_zoom | 14,30,24,0 | 1.61,1.05,0.72,0 | 3.41% | 4.22 | 0.00 |
+| multiplane_atmosphere | 17,31,21,0 | 1.72,1.10,0.83,0 | 3.39% | 4.52 | 0.00 |
+
+Interior RMS 0 means the per-layer placement and the hazed colours agree; the
+differences are edge antialiasing, as for the other shape fixtures. Single
+machine and driver; synthetic 128×128 fixtures only.
