@@ -71,7 +71,8 @@ scenes:
 | `scenes` | 1–12 kohtausta, kussakin 1–48 beatia (yhteensä ≤ 200). `positions` määrää, ketkä ovat lavalla: `far_left`, `left`, `center`, `right`, `far_right` sekä ruudun ulkopuoliset `offscreen_left` ja `offscreen_right`; kaksi hahmoa ei voi aloittaa samasta ruudun sisäisestä paikasta, mutta ruudun ulkopuolella saa odottaa useampi. |
 | beat | Täsmälleen yksi: `say` (repliikki, vaatii `line`), `do` (toiminta) tai `pause` (0,2–10 s). |
 | `say` | `line` ≤ 400 merkkiä, `emotion`, `gesture` (puheen aikana), `look`, `shot`, `on`, `hold` (tauko repliikin jälkeen), `reaction: {by, emotion, gesture, hold}`, `move_to` + `gait` (kävely alkaa repliikin kanssa, "walk and talk"). |
-| `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `holds` (+ `hand`), `pose`, `hold`, `shot`, `camera`, `on`. |
+| `do` | `emotion`, `gesture`, `look`, `face`, `move_to` + `gait`, `holds` (+ `hand`), `pose`, `hold`, `shot`, `camera`, `angle`, `on`. |
+| `angle` | Kamerakulma: `front` (oletus), `reverse` (vastakuva: hahmot vaihtavat puolta ja kääntyvät, lavaste peilataan), `high`, `low` (vain lavasteille, joihin kulma on piirretty). Pysyy, kunnes muutetaan, ja vaihto on leikkaus. Jokainen kohtaus alkaa edestä. Käy myös `say`- ja `pause`-beateissa. Ks. [camera-angles.md](camera-angles.md). |
 | `holds` | Käsiesine poimitaan perille saavuttaessa; `none` laskee sen. Ilman `hand`-kenttää valitaan vapaa käsi (vasen ensin, jotta oikea jää eleille). Tila alkaa joka kohtauksessa castin `holds`-arvosta. |
 | `move_to` | Paikka (myös `offscreen_left`/`offscreen_right`: sisääntulo ja poistuminen) tai lavalla oleva hahmo: kävelijä pysähtyy 16 % ruudun leveydestä hänen eteensä tulosuunnan puolelle ja katsoo häntä. |
 | `path` | 2–6 reittipistettä (paikkoja tai hahmoja), jotka kävellään yhtenä matkana: kiihdytys alussa, jarrutus lopussa, ei pysähdyksiä välissä. Ei yhdessä `move_to`:n tai `follow`:n kanssa. |
@@ -154,6 +155,9 @@ alkuperäisellä seitsennivelrigillä.
 - Tunteita on viisi, koska ne vaativat rigiin piirretyt ilmevariantit.
 - Tuoli on aina toimistotuoli etunäkymästä piirrettynä; sivukuvassa se on tyylitelty.
 - Käsien ja istumisen tila alkaa jokaisessa kohtauksessa alusta (castin `holds`).
+- Vastakuva peilaa lavasteen: tekstit lukisivat väärin päin, ja piirtojärjestys ei muutu
+  (tuolin selkänoja jää hahmon taakse, käsiesine näkyy selän edessä). `high`/`low`
+  vaativat lavasteeseen piirretyt kulmatasot; valmislavasteissa niitä ei vielä ole.
 - Ajastettu esine ei voi olla `composition.screens`-näytön kohde (näyttö vaatii castin
   `holds`-esineen).
 - Laatu (rytmi, rajaukset, huulisynkka, ääni) vaatii ihmisen arvion; testit osoittavat vain

@@ -208,6 +208,44 @@ impl ProjectDocument {
                     return invalid("artwork image must reference an image asset in this project");
                 }
             }
+            if let Some(angle) = &layer.angle {
+                if !motion_script::CAMERA_ANGLES.contains(&angle.as_str()) {
+                    return Err(Error::Validation(format!(
+                        "artwork layer {}: camera angle {angle} is not supported; use {}",
+                        layer.id,
+                        motion_script::CAMERA_ANGLES.join(", ")
+                    )));
+                }
+            }
+        }
+        self.validate_angles(&script)
+    }
+    /// A scene with artwork that cuts to another camera angle needs artwork
+    /// drawn for that angle; otherwise the set would show unchanged behind
+    /// actors who turned around.
+    fn validate_angles(&self, script: &motion_script::Script) -> Result<(), Error> {
+        for scene in &script.scenes {
+            let layers: Vec<_> = self
+                .art
+                .layers
+                .iter()
+                .filter(|l| l.scene_id == scene.id && l.attachment.is_none())
+                .collect();
+            if layers.is_empty() {
+                continue;
+            }
+            let used: BTreeSet<&str> = scene.composition.camera.iter().map(|k| k.angle()).collect();
+            for angle in used {
+                if angle != motion_art::FRONT_ANGLE
+                    && !layers.iter().any(|l| l.angle.as_deref() == Some(angle))
+                {
+                    return Err(Error::Validation(format!(
+                        "scene {}: the camera cuts to the {angle} angle, but no artwork is drawn for it; \
+                         add layers with angle {angle} (the story importer mirrors vector sets automatically)",
+                        scene.id
+                    )));
+                }
+            }
         }
         Ok(())
     }
@@ -607,6 +645,7 @@ mod tests {
                     a: 128,
                 },
             },
+            angle: None,
         }
     }
     #[test]
@@ -726,6 +765,26 @@ mod tests {
         let mut value: serde_json::Value = serde_json::from_slice(&saved).unwrap();
         value.as_object_mut().unwrap().remove("art");
         assert!(decode(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    #[test]
+    fn camera_angles_need_artwork_drawn_for_them() {
+        let source = "characters: {}\nscenes: [{id: intro, duration: 2, events: [], composition: {camera: [{at: 0, x: 0, y: 0, zoom: 1}, {at: 1, x: 0, y: 0, zoom: 1, angle: high}]}}]\n";
+        // Without artwork nothing would show the wrong side: accepted.
+        let mut doc = ProjectDocument::new(source).unwrap();
+        doc.art.layers.push(rectangle());
+        let error = doc.validate().unwrap_err().to_string();
+        assert!(
+            error.contains("high angle") && error.contains("intro"),
+            "{error}"
+        );
+        let mut high = rectangle();
+        high.id = "shape-high".into();
+        high.angle = Some("high".into());
+        doc.art.layers.push(high);
+        doc.validate().unwrap();
+        doc.art.layers[1].angle = Some("dutch".into());
+        let error = doc.validate().unwrap_err().to_string();
+        assert!(error.contains("dutch") && error.contains("front, reverse, high, low"));
     }
     #[test]
     fn animated_prop_frames_and_lights_are_validated_against_the_project() {

@@ -296,6 +296,7 @@ mod tests {
                 x: 4.0,
                 y: 8.0,
                 zoom: 1.25,
+                angle: None,
             });
         let mut document = EditableTimeline::from_script(&source).unwrap();
         let before = document.clone();

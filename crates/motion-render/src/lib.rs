@@ -619,7 +619,7 @@ fn append_art(
 ) -> Result<(), Error> {
     use motion_art::Content;
     let steps = document
-        .composition(scene_id, plane, scene.time)
+        .composition(scene_id, plane, scene.time, Some(scene.camera.angle.name()))
         .map_err(|e| Error::InvalidArtwork(e.to_string()))?;
     for step in steps {
         let layer = match step {
@@ -1334,6 +1334,7 @@ mod transparent_art_tests {
                 x: 50.0,
                 y: 20.0,
                 zoom: 2.0,
+                angle: Default::default(),
             },
             background_color: "#12abef".into(),
             opacity: 0.5,
@@ -1360,6 +1361,7 @@ mod transparent_art_tests {
             x: 20.0,
             y: 15.0,
             zoom: 1.25,
+            angle: Default::default(),
         };
         scene.opacity = 0.4;
         let document: motion_art::Document = serde_json::from_value(serde_json::json!({
@@ -1436,6 +1438,7 @@ mod composition_tests {
                 x: 50.0,
                 y: 20.0,
                 zoom: 2.0,
+                angle: Default::default(),
             },
             background_color: "#12abef".into(),
             opacity: 0.5,
@@ -1502,6 +1505,7 @@ mod timed_art_tests {
                     a: 255,
                 },
             },
+            angle: None,
         }
     }
 
@@ -1513,6 +1517,7 @@ mod timed_art_tests {
             x: 50.0,
             y: 20.0,
             zoom: 2.0,
+            angle: Default::default(),
         };
         s.opacity = 0.5;
         // Interleaved document order must be stable independently in each plane.

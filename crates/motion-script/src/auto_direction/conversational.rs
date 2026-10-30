@@ -411,6 +411,7 @@ fn fit_camera(
         x,
         y,
         zoom: zoom / push,
+        angle: None,
     }];
     if push > 1.0 {
         scene.composition.camera.push(CameraKey {
@@ -418,6 +419,7 @@ fn fit_camera(
             x,
             y,
             zoom,
+            angle: None,
         });
     }
     Ok(())

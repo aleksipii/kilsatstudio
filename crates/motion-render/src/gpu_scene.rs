@@ -779,6 +779,7 @@ mod tests {
                     ],
                     motion: Vec::new(),
                 }),
+                angle: None,
             }],
             ..Default::default()
         };
@@ -847,6 +848,7 @@ mod tests {
                 },
             },
             clip_shape: None,
+            angle: None,
         };
         let point = |x, y| Point { x, y };
         layer.clip_shape = Some(ClipShape::Polygon {
@@ -940,6 +942,7 @@ mod tests {
                     feather: sigma,
                     motion: Vec::new(),
                 }),
+                angle: None,
             }],
             ..Default::default()
         };
@@ -1031,6 +1034,7 @@ mod tests {
                         channel,
                         keys: Vec::new(),
                     }),
+                    angle: None,
                 }],
                 ..Default::default()
             };

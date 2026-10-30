@@ -105,6 +105,7 @@ fn layer(id: &str, content: Content, clip_shape: Option<ClipShape>) -> Layer {
         clip_shape,
         blend: BlendMode::Normal,
         content,
+        angle: None,
     }
 }
 fn fill(r: Rect, c: Color) -> Content {
@@ -775,6 +776,7 @@ fn pressure_probe_document() -> Document {
                 ],
                 motion: Vec::new(),
             }),
+            angle: None,
         }],
         ..Default::default()
     }

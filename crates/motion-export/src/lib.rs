@@ -1741,6 +1741,7 @@ mod artwork_tests {
             blend: motion_art::BlendMode::Normal,
             clip: None,
             content,
+            angle: None,
         }
     }
     #[test]

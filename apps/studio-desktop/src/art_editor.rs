@@ -771,6 +771,14 @@ impl Editor {
     let layer=&mut next.layers[index];
     ui.text_edit_singleline(&mut layer.name);
     egui::ComboBox::from_label("Sijoitus").selected_text(match layer.plane {Plane::Background=>"Tausta",Plane::Foreground=>"Etuala"}).show_ui(ui,|ui|{ui.selectable_value(&mut layer.plane,Plane::Background,"Tausta");ui.selectable_value(&mut layer.plane,Plane::Foreground,"Etuala");});
+    egui::ComboBox::from_label("Kuvakulma")
+        .selected_text(layer.angle.as_deref().map_or("Kaikki kulmat", crate::composition_editor::angle_label))
+        .show_ui(ui, |ui| {
+            ui.selectable_value(&mut layer.angle, None, "Kaikki kulmat");
+            for name in motion_scene::CAMERA_ANGLES {
+                ui.selectable_value(&mut layer.angle, Some(name.to_string()), crate::composition_editor::angle_label(name));
+            }
+        });
     let mut timed=layer.active.is_some();
     if ui.checkbox(&mut timed,"Näkyvissä aikavälillä").changed(){layer.active=timed.then_some(TimeRange{start:0.0,end:scene.duration});}
     if let Some(active)=&mut layer.active {ui.horizontal(|ui|{ui.label("Alku (s)");ui.add(egui::DragValue::new(&mut active.start).speed(0.1));ui.label("Loppu (s)");ui.add(egui::DragValue::new(&mut active.end).speed(0.1));});ui.weak(format!("Kohtaus: {:.2} s. Alkuhetki kuuluu aikaväliin, loppuhetki ei.",scene.duration));if !active.start.is_finite() || !active.end.is_finite() || active.start<0.0 || active.end<=active.start || active.end>scene.duration {ui.colored_label(egui::Color32::LIGHT_RED,"Käytä aikoja 0 ≤ alku < loppu ≤ kohtauksen kesto.");}}
@@ -792,7 +800,7 @@ impl Editor {
       ui.push_id(&asset.id, |ui| {ui.horizontal(|ui| {
        asset_thumbnail(ui, textures.get(&asset.id));
        ui.vertical(|ui| {ui.add(egui::Label::new(&asset.id).truncate()).on_hover_text(&asset.path);
-        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Lisää etualalle"),(Plane::Background,"Lisää taustalle")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}});}}});
+        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Lisää etualalle"),(Plane::Background,"Lisää taustalle")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}, angle: None });}}});
        });
       });});
      }
@@ -819,7 +827,7 @@ impl Editor {
                 }
             }
             for plane in [Plane::Background, Plane::Foreground] {
-                if let Ok(steps) = document.composition(scene_id, plane, 0.0) {
+                if let Ok(steps) = document.composition(scene_id, plane, 0.0, None) {
                     let mut depth: usize = 0;
                     for step in steps {
                         match step {
@@ -1176,6 +1184,7 @@ impl Editor {
                 blend: motion_art::BlendMode::Normal,
                 clip: None,
                 content,
+                angle: None,
             });
             self.commit(document, next);
             self.points.clear();
@@ -1239,11 +1248,9 @@ pub fn paint(
     let scale = (canvas.width() / scene.width as f32).min(canvas.height() / scene.height as f32);
     let origin =
         canvas.center() - egui::vec2(scene.width as f32, scene.height as f32) * scale * 0.5;
-    for layer in document
-        .layers
-        .iter()
-        .filter(|l| l.is_active(scene.time) && l.scene_id == scene_id && l.plane == plane)
-    {
+    for layer in document.layers.iter().filter(|l| {
+        l.shows(scene.time, scene.camera.angle.name()) && l.scene_id == scene_id && l.plane == plane
+    }) {
         let offset = if let Some(id) = &layer.attachment {
             let Some(actor) = scene.actors.iter().find(|a| &a.id == id) else {
                 continue;
@@ -1373,6 +1380,7 @@ mod tests {
                         a: 255,
                     },
                 },
+                angle: None,
             }],
             ..Document::default()
         }
@@ -1384,6 +1392,7 @@ mod tests {
                 x: 20.0,
                 y: 10.0,
                 zoom: 2.0,
+                angle: Default::default(),
             },
             background_color: "#000000".into(),
             opacity: 1.0,
@@ -1853,6 +1862,7 @@ mod tests {
                         a: 255,
                     },
                 },
+                angle: None,
             }],
             ..Document::default()
         };
@@ -1943,6 +1953,7 @@ mod tests {
                 x: 20.0,
                 y: 10.0,
                 zoom: 2.0,
+                angle: Default::default(),
             },
             background_color: "#000000".into(),
             opacity: 1.0,
@@ -2035,6 +2046,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         };
         editor.commit(
             &mut document,
@@ -2091,6 +2103,7 @@ mod tests {
                         a: 255,
                     },
                 },
+                angle: None,
             }],
             ..Document::default()
         };
@@ -2158,6 +2171,7 @@ mod tests {
                         a: 255,
                     },
                 },
+                angle: None,
             });
         }
         let ctx = egui::Context::default();
@@ -2173,6 +2187,7 @@ mod tests {
                     x: 0.0,
                     y: 0.0,
                     zoom: 1.0,
+                    angle: Default::default(),
                 },
                 background_color: "#000000".into(),
                 opacity: 0.25,
@@ -2241,6 +2256,7 @@ mod tests {
                         a: 255,
                     },
                 },
+                angle: None,
             });
             e.commit(&mut d, next);
         }

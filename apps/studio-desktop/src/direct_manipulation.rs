@@ -202,7 +202,13 @@ impl Drag {
             return Ok(self.source.clone());
         }
         let mut key = self.key.clone();
-        key.x += delta[0];
+        // The reverse angle shows actors mirrored; a drag to the right on
+        // screen moves the source actor to the left.
+        key.x += if scene.camera.angle == motion_scene::CameraAngle::Reverse {
+            -delta[0]
+        } else {
+            delta[0]
+        };
         key.y += delta[1];
         let mut keys = self.keys.clone();
         upsert(&mut keys, key);
@@ -504,6 +510,7 @@ mod tests {
             x: 80.0,
             y: -30.0,
             zoom: 1.5,
+            angle: Default::default(),
         };
         let p = screen_point(rect, &scene, 1000.0, 500.0);
         let world = canvas_to_world(rect, &scene, p).unwrap();
@@ -556,6 +563,15 @@ mod tests {
         assert_eq!(keys[1].scale_x, 1.2);
         assert_eq!(keys[1].scale_y, 0.8);
         assert_eq!(keys[2].x, 100.0);
+        // From the reverse angle the same screen drag moves the actor the other way.
+        scene.camera.angle = motion_scene::CameraAngle::Reverse;
+        let drag = Drag::new(&source, 0, "EMMA", 1.0, rect, &scene, start).unwrap();
+        let result =
+            motion_script::parse(&drag.apply(&scene, start + egui::vec2(20.0, 10.0)).unwrap())
+                .unwrap();
+        let keys = &result.scenes[0].composition.actor_tracks["EMMA"];
+        assert!((keys[1].x - 30.0).abs() < 0.001, "{}", keys[1].x);
+        assert!((keys[1].y - 10.0).abs() < 0.001);
     }
     #[test]
     fn custom_head_tilt_uses_named_joint_and_preserves_scale() {

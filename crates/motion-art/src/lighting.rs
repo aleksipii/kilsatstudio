@@ -470,6 +470,7 @@ mod tests {
                 },
                 playback: Playback::Hold,
             },
+            angle: None,
         }
     }
     fn flicker(mode: FlickerMode, amount: f64, rate_hz: f64, seed: u32) -> Flicker {

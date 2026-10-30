@@ -652,6 +652,7 @@ pub(crate) fn document_layer(id: String, scene_id: &str, plane: Plane, content: 
         clip_shape: None,
         blend: Default::default(),
         content,
+        angle: None,
     }
 }
 

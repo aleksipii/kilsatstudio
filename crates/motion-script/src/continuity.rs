@@ -225,6 +225,7 @@ impl Canvas {
             x: 0.0,
             y: 0.0,
             zoom: 1.0,
+            angle: None,
         })
     }
 
