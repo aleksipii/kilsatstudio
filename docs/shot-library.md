@@ -54,6 +54,49 @@ out-of-range values are rejected. Unit tests (in `shots.rs`) cover cut timing,
 framing geometry through the camera projection, moving targets, over-the-shoulder,
 stage tracks, determinism and every error class.
 
+### Continuity notes (`ShotExpansion::continuity`)
+
+After expansion, `check_continuity` reads the cuts for basic film grammar and
+returns `ContinuityNote`s. They never block the expansion and never change a
+cut or a decision of the automatic director. Each note has a severity
+(`warning` or `hint`) and is located at the cut by the incoming `scene_id`/
+`scene_index`, the authored `shot`, the outgoing `previous_scene_id` and the
+cut time `at` on the sequence clock.
+
+| check | severity | when |
+| --- | --- | --- |
+| `axis_cross` | warning | two characters who both have dialogue in the list swap screen sides between shots, with no neutral shot in between |
+| `jump_cut` | warning | consecutive shots frame the same character with the same preset (and shoulder side), the zoom changes by less than 1.25× and the character moves less than 10% of the canvas width on screen |
+| `cut_on_action` | hint | the cut lands while nothing moves, and a move, gesture or pose starts within 0.5 s; `suggested_cut` gives that start |
+
+The 2D stage has no camera position, so the 180-degree rule is read as the
+pair's screen order. Each shot's first and last frames give the order:
+
+- An over-the-shoulder shot of one of the pair puts the other on the shoulder
+  side.
+- Otherwise the root positions decide when both characters are in frame. If
+  they are within 2% of the canvas width of each other, the shot is neutral.
+- A shot showing neither of them (a cutaway) is neutral.
+- A single of one of them carries no order.
+
+A reversal inside one shot, such as one character walking past the other, is
+seen on screen and is allowed. Eyelines of singles are not inferred from gaze
+tracks.
+
+A shot acknowledges notes on the cuts into it and into its reaction shot:
+
+```yaml
+  - id: two_b
+    preset: establishing
+    point: [320, 180]
+    continuity: {allow: [axis_cross]}   # also jump_cut, cut_on_action
+```
+
+Acknowledged notes are left out. Unknown names are syntax errors, and the key is
+omitted when empty. The night-room reference and the automatic director's
+current output produce no notes. Tests are in `continuity.rs` and
+`tests/continuity_examples.rs`.
+
 ## Reference sequence
 
 See [examples/night-room-reference/](../examples/night-room-reference/README.md):
