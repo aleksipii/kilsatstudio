@@ -226,6 +226,7 @@ pub fn events(
                 duration,
                 gait: (*gait != "walk").then(|| (*gait).into()),
                 ease: None,
+                pace: None,
             });
             events
         }

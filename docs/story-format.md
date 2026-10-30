@@ -76,8 +76,8 @@ scenes:
 | `move_to` | Paikka (myös `offscreen_left`/`offscreen_right`: sisääntulo ja poistuminen) tai lavalla oleva hahmo: kävelijä pysähtyy 16 % ruudun leveydestä hänen eteensä tulosuunnan puolelle ja katsoo häntä. |
 | `path` | 2–6 reittipistettä (paikkoja tai hahmoja), jotka kävellään yhtenä matkana: kiihdytys alussa, jarrutus lopussa, ei pysähdyksiä välissä. Ei yhdessä `move_to`:n tai `follow`:n kanssa. |
 | `follow` | Hahmo kävelee edellisessä beatissa liikkuneen hahmon perässä: lähtee 0,4 s myöhemmin, samalla askellajilla (ellei `gait` muuta kerro) ja pysähtyy 12 % ruudun leveydestä hänen taakseen. Ei ohita johtajaa. Vain `do`-beateissa. |
-| `depth` | `near`, `mid` (oletus) tai `far`: hahmo kävelee kameraa kohti tai siitä poispäin, kasvaa (×1,25) tai pienenee (×0,7) ja laskee tai nousee ruudussa. Pelkkä `depth` kävelee suoraan kohti kameraa (kasvot edellä) tai poispäin (selkä edellä); `move_to`:n kanssa vinosti. Piirtojärjestys ei muutu. |
-| `pace` | Nopeuskerroin 0,5–1,5 mille tahansa askellajille. Askelrytmi ei muutu, joten hyvin hitaalla tai nopealla tahdilla jalat voivat liukua hieman. |
+| `depth` | `near`, `mid` (oletus) tai `far`: hahmo kävelee kameraa kohti tai siitä poispäin, kasvaa (×1,25) tai pienenee (×0,7) ja laskee tai nousee ruudussa. Pelkkä `depth` kävelee suoraan kohti kameraa (kasvot edellä) tai poispäin (selkä edellä); `move_to`:n kanssa vinosti. Tarinat piirtävät hahmot syvyysjärjestyksessä (`depth_sort`): alempana ruudussa oleva on edessä. |
+| `pace` | Nopeuskerroin 0,5–1,5 mille tahansa askellajille. Askelrytmi muuttuu samassa suhteessa (MotionScriptin `move.pace`), joten jalat pysyvät maan tahdissa. |
 | `look_back` | `true` `move_to`:n kanssa: hahmo pysähtyy puolivälissä, katsoo taakseen 0,9 s ja jatkaa. |
 | väistäminen | Kun kävelijä kulkee seisovan hahmon kohdalta (samalla syvyydellä, ei istumassa eikä kävelyn kohde), tämä astuu 45 px taaemmas ja palaa, kun kävelijä on ohittanut. Väistöt näkyvät käännöksen huomautuksissa. |
 | `gait` | Askellaji `move_to`:n, `path`:n, `follow`:n tai `depth`:n kanssa. `carry` on hidas, kumara kantaminen; se valitaan automaattisesti, kun hahmolla on esine kummassakin kädessä. Kävelyt kiihdyttävät ja jarruttavat (`ease: in_out`); `backwards` kulkee selkä edellä (kasvot poispäin kulkusuunnasta); `leap` on yksi hyppy, enintään 35 % ruudun leveydestä. Nopeudet px/s: stroll 180, sneak 150, tiptoe 170, limp 150, backwards 150, walk 260, jog 450, leap 520, run 700, sprint 950, carry 160. Hahmon tunne näkyy askelissa: surullinen laahustaa (pienet kädenheilahdukset, pää alhaalla), vihainen tömistelee (raskas pomppu, jäykät kädet) ja iloinen hypähtelee. |
@@ -131,6 +131,10 @@ myös muokata editorissa:
   jossa hahmo sillä hetkellä on, ja kestää seuraavaan pose-tapahtumaan. Vaatii rigin,
   jossa on root-, thigh- ja shin-nivelet. Jalkojen kulmat on mitoitettu
   tikku-ukkostudion mittasuhteille (reisi 70, sääri 62).
+- `{type: move, …, gait?, ease?, pace?}`: `pace` (0,25–4) skaalaa askelrytmiä, kun
+  liike on kirjoitettu askellajin luontaista nopeutta hitaammaksi tai nopeammaksi.
+  Kohtauksen `composition.depth_sort: true` piirtää saman `layers.z`-tason hahmot
+  syvyysjärjestyksessä (juuren y; tasatilanteessa hahmon tunnisteen järjestys).
 - `{type: move, …, gait?, ease?}`: `gait` on jokin yllä luetelluista askellajeista ja
   `ease` nopeusprofiili `linear` (oletus), `in`, `out` tai `in_out` (kiihdytys ja
   jarrutus 25 % kestosta, tasainen vauhti välissä). Kiihdyttävän liikkeen askelrytmi
@@ -143,9 +147,8 @@ alkuperäisellä seitsennivelrigillä.
 ## Rajoitukset
 
 - Uusien askellajien ja asentojen ulkoasu on tarkistettu renderöidyistä ruuduista, mutta
-  niitä ei ole säädetty animaattorin kanssa. Kaatumisen nopeassa siirtymässä jalat
-  painuvat hetkeksi hieman lattian alle. Syvyysliike ei muuta piirtojärjestystä, joten
-  taaempana kulkeva hahmo voi piirtyä edessä seisovan päälle; sama koskee väistäjää.
+  niitä ei ole säädetty animaattorin kanssa. Kaatumisen kääntö tukeutuu jalkoihin
+  (tikku-ukkostudion mittasuhteilla), joten muilla rigeillä jalat voivat käydä lattian alla.
 - Suomessa on yksi Piper-ääni (Harri); hahmot erottuvat vain puhenopeudella, kunnes
   käyttäjä asentaa muita suomenkielisiä Piper-malleja.
 - Tunteita on viisi, koska ne vaativat rigiin piirretyt ilmevariantit.

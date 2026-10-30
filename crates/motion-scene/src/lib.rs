@@ -1067,11 +1067,17 @@ fn evaluate_validated(
                     });
                     move_progress = Some(span.progress(time_seconds));
                     if let Some(Event::Move {
-                        gait: Some(name), ..
+                        gait: name, pace, ..
                     }) = scene.events.get(span.order)
                     {
-                        // Validation guarantees a known gait.
-                        gait = motion_animation::Gait::parse(name).unwrap_or_default();
+                        // Validation guarantees a known gait and a valid pace.
+                        if let Some(name) = name {
+                            gait = motion_animation::Gait::parse(name).unwrap_or_default();
+                        }
+                        // A slower or faster pace steps slower or faster too.
+                        if let (Some(pace), Some(seconds)) = (pace, walk_seconds.as_mut()) {
+                            *seconds *= pace;
+                        }
                     }
                     let dx = span.to.x - span.from.x;
                     world_travel = if dx > 0.0 {
@@ -1247,12 +1253,20 @@ fn evaluate_validated(
         // Already computed successfully for every visible actor above.
         time::exposed_seconds(time_seconds, script.project.fps, on).unwrap_or(time_seconds)
     });
-    actors.sort_by_key(|actor| {
+    let z = |actor: &ActorPose| {
         scene
             .composition
             .layers
             .get(&actor.id)
             .map_or(0, |layer| layer.z)
+    };
+    // Stable: equal keys keep character-id order.
+    actors.sort_by(|a, b| {
+        z(a).cmp(&z(b)).then(if scene.composition.depth_sort {
+            a.y.total_cmp(&b.y)
+        } else {
+            std::cmp::Ordering::Equal
+        })
     });
     let composition = &scene.composition;
     let fade_in = if composition.fade_in > 0.0 {

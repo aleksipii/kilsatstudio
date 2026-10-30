@@ -492,8 +492,24 @@ pub fn rig_pose_at(changes: &[(f64, BodyPose)], time: f64, profile: bool) -> Rig
     if let Some((start, pose)) = current {
         progress = (time - start) / pose.seconds();
     }
-    blend_rig_motion(&from, &to, smoothstep(progress))
+    let mut motion = blend_rig_motion(&from, &to, smoothstep(progress));
+    // Tipping over pivots on the feet: while the body is part way down, the
+    // root drops only as far as the rotation lowers it, so the feet never
+    // sink through the floor (the final lying pose is already on it).
+    let tilt = motion[ROOT].rotation;
+    if tilt != 0.0 {
+        // Lowest sole corner after tilting; the root moves so it stays on
+        // the floor line (it may rise a little early in the tip).
+        let lowest = FOOT_SPAN * tilt.sin().abs() + SOLE_DEPTH * tilt.cos();
+        motion[ROOT].translation.y = motion[ROOT].translation.y.min(SOLE_DEPTH - lowest);
+    }
+    motion
 }
+
+/// Stick-studio feet relative to the root: soles this far below it (thigh
+/// 70, shin 62, foot 10) and outer toe or heel edges this far to either side.
+const SOLE_DEPTH: f64 = 142.0;
+const FOOT_SPAN: f64 = 33.0;
 
 /// Seconds of stillness before the moving hold starts to fade in, so short
 /// pauses between actions stay crisp.

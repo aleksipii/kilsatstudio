@@ -892,3 +892,18 @@ fn travel_fields_are_validated() {
         );
     }
 }
+
+#[test]
+fn stories_paint_by_depth_and_pass_pace_to_the_steps() {
+    let source = minimal("      - do: VEIKKO\n        move_to: center\n        pace: 0.5\n");
+    let result = compile_story(&source, &catalog(), None).unwrap();
+    let composition = &result.script.scenes[0].composition;
+    assert!(composition.depth_sort);
+    assert!(composition.layers.values().all(|layer| layer.z == 0));
+    assert!(result.script.scenes[0]
+        .events
+        .iter()
+        .any(|e| matches!(e, Event::Move { pace: Some(p), .. } if *p == 0.5)));
+    // The written source round-trips through validation.
+    crate::parse(&crate::to_source(&result.script).unwrap()).unwrap();
+}

@@ -58,7 +58,8 @@ pub struct DepthViolation {
 ///    order; layers inactive at `scene.time` are omitted).
 /// 2. Actors in `scene.actors` order. The evaluator sorts by composition
 ///    `layers.z` ascending and breaks ties by character ID, so equal z never
-///    depends on input map order or on actor position.
+///    depends on input map order. Only with composition `depth_sort` do
+///    equal-z actors sort by their root y first (lower on screen in front).
 /// 3. Foreground-plane artwork in document sibling order. Attached layers are
 ///    [`DepthBand::Props`], unattached ones [`DepthBand::Foreground`]. Layers
 ///    attached to an actor absent from the scene are omitted, as in rendering.

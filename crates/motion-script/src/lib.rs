@@ -94,6 +94,11 @@ pub enum Event {
         /// `motion_animation::MOVE_EASES`.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         ease: Option<String>,
+        /// Step-rate factor, 0.25–4: a move authored slower or faster than the
+        /// gait's natural speed steps proportionally slower or faster, so the
+        /// feet keep pace with the ground. Default 1.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pace: Option<f64>,
     },
     Emotion {
         at: f64,
@@ -155,6 +160,11 @@ pub struct Composition {
     pub background_keys: Vec<BackgroundKey>,
     pub camera: Vec<CameraKey>,
     pub layers: BTreeMap<String, Layer>,
+    /// Draw actors on the same `layers.z` by depth: the one standing lower
+    /// on screen (nearer the camera) is painted in front. Off by default, so
+    /// equal z keeps the character-id order.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub depth_sort: bool,
     pub actor_tracks: BTreeMap<String, Vec<ActorKey>>,
     pub clip_weights: BTreeMap<String, ClipWeights>,
     pub clip_weight_tracks: BTreeMap<String, Vec<ClipWeightKeyframe>>,
@@ -270,6 +280,7 @@ impl Default for Composition {
             background_keys: vec![],
             camera: vec![],
             layers: BTreeMap::new(),
+            depth_sort: false,
             actor_tracks: BTreeMap::new(),
             clip_weights: BTreeMap::new(),
             clip_weight_tracks: BTreeMap::new(),
@@ -2119,8 +2130,14 @@ impl Script {
                         duration,
                         gait,
                         ease,
+                        pace,
                         ..
                     } => {
+                        if let Some(pace) = pace {
+                            if !pace.is_finite() || !(0.25..=4.0).contains(pace) {
+                                return Err(fail(format!("{actor}: move pace must be 0.25–4")));
+                            }
+                        }
                         if let Some(gait) = gait {
                             if motion_animation::Gait::parse(gait).is_none() {
                                 return Err(Error::Unsupported(format!(
@@ -2358,6 +2375,7 @@ mod edit_tests {
             duration: 1.0,
             gait: None,
             ease: None,
+            pace: None,
         }
     }
     #[test]

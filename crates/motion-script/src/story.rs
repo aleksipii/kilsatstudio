@@ -2017,19 +2017,22 @@ impl<'a> Builder<'a> {
         let composition = Composition {
             background_color: self.catalog.sets[&scene.set].background_color.clone(),
             camera,
+            // One layer for the whole cast, painted by depth: whoever stands
+            // nearer the camera (lower on screen) is in front, so depth moves
+            // and stepping aside overlap correctly. Ties keep cast (id) order.
             layers: cast_order
                 .iter()
-                .enumerate()
-                .map(|(z, id)| {
+                .map(|id| {
                     (
                         (*id).clone(),
                         Layer {
-                            z: z as i32,
+                            z: 0,
                             visible: stage.start.contains_key(*id),
                         },
                     )
                 })
                 .collect(),
+            depth_sort: true,
             actor_tracks: stage
                 .start
                 .iter()
@@ -2227,6 +2230,7 @@ impl<'a> Builder<'a> {
                 y,
                 duration,
                 ease: (ease != MoveEase::Linear).then(|| ease.name().to_string()),
+                pace: (pace != 1.0).then_some(pace),
                 gait: Some(gait.clone()),
             });
             if beat.face.is_none() {
@@ -2372,6 +2376,7 @@ impl<'a> Builder<'a> {
             y: root_y + dy,
             duration,
             ease: Some(MoveEase::InOut.name().to_string()),
+            pace: beat.pace.filter(|p| *p != 1.0),
             gait: Some(gait.clone()),
         });
         if beat.face.is_none() {
@@ -2470,6 +2475,7 @@ impl<'a> Builder<'a> {
                     y,
                     duration: STEP_ASIDE_SECONDS,
                     ease: Some(MoveEase::InOut.name().to_string()),
+                    pace: None,
                     gait: Some("walk".into()),
                 });
                 push_move(

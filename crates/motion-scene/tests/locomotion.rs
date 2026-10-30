@@ -167,3 +167,76 @@ fn emotion_colours_the_walk() {
     // The sad head hangs lower.
     assert!(highest(&sad, "face") > highest(&neutral, "face"));
 }
+
+#[test]
+fn falling_pivots_on_the_feet_without_sinking() {
+    let standing = actor(&script(json!([])), 1.0);
+    let floor = lowest(&standing, "foot_l");
+    for face in ["front", "right"] {
+        let s = script(json!([
+            { "type": "face", "actor": "VEIKKO", "at": 0, "value": face },
+            { "type": "pose", "actor": "VEIKKO", "at": 1, "value": "fall" },
+            { "type": "pose", "actor": "VEIKKO", "at": 3, "value": "stand" }
+        ]));
+        for i in 0..=80 {
+            let t = 1.0 + i as f64 * 0.04;
+            let pose = actor(&s, t);
+            for part in ["foot_l", "foot_r", "shin_l", "shin_r", "face"] {
+                let y = lowest(&pose, part);
+                assert!(y < floor + 6.0, "{face} {part} at {t}: {y} vs {floor}");
+            }
+        }
+    }
+}
+
+#[test]
+fn pace_scales_the_step_rate_with_the_speed() {
+    let walk = |pace: Option<f64>| {
+        let mut event = json!({ "type": "move", "actor": "VEIKKO", "at": 1, "x": 1200,
+                                "y": 700, "duration": 3, "gait": "walk" });
+        if let Some(pace) = pace {
+            event["pace"] = json!(pace);
+        }
+        script(json!([event]))
+    };
+    // Half pace: 0.6 s into the move steps like 0.3 s at full pace.
+    let (slow, normal) = (walk(Some(0.5)), walk(None));
+    assert_eq!(
+        actor(&slow, 1.6).rigid_parts,
+        actor(&normal, 1.3).rigid_parts
+    );
+    assert_ne!(
+        actor(&slow, 1.6).rigid_parts,
+        actor(&normal, 1.6).rigid_parts
+    );
+    let bad = source(
+        json!([{ "type": "move", "actor": "VEIKKO", "at": 1, "x": 1200,
+                               "y": 700, "duration": 3, "pace": 9 }]),
+    );
+    assert!(motion_script::parse(&bad).is_err());
+}
+
+#[test]
+fn depth_sort_paints_the_nearer_actor_in_front() {
+    let mut value: Value = serde_json::from_str(&source(json!([]))).unwrap();
+    let veikko = value["characters"]["VEIKKO"].clone();
+    value["characters"]["AAVE"] = veikko;
+    // AAVE sorts first by id; it walks downstage (nearer the camera).
+    value["scenes"][0]["events"] = json!([
+        { "type": "move", "actor": "AAVE", "at": 0, "x": 900, "y": 800, "duration": 1 },
+        { "type": "move", "actor": "VEIKKO", "at": 0, "x": 1000, "y": 700, "duration": 1 }
+    ]);
+    let order = |depth_sort: bool| {
+        let mut v = value.clone();
+        v["scenes"][0]["composition"] = json!({ "depth_sort": depth_sort });
+        let s = motion_script::parse(&v.to_string()).unwrap();
+        evaluate(&s, 0, 2.0)
+            .unwrap()
+            .actors
+            .into_iter()
+            .map(|a| a.id)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(order(false), ["AAVE", "VEIKKO"], "id order by default");
+    assert_eq!(order(true), ["VEIKKO", "AAVE"], "nearer actor painted last");
+}

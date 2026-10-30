@@ -31,7 +31,7 @@ renderer and `SceneCommands`:
 | --- | --- | --- |
 | `Background` | Background-plane artwork (attached or not) | Document sibling order, groups flattened in order |
 | (overlay) | Lights with `behind_actors` | Document order; canvas-space tint, not a band item |
-| `Characters` | Evaluated actors | `EvaluatedScene::actors` order: composition `layers.z` ascending, ties by character ID |
+| `Characters` | Evaluated actors | `EvaluatedScene::actors` order: composition `layers.z` ascending, ties by character ID; with composition `depth_sort`, equal z sorts by root y first (lower on screen is in front; stories turn it on) |
 | `Props` | Foreground-plane artwork attached to an actor | Document sibling order |
 | `Foreground` | Unattached foreground-plane artwork | Document sibling order |
 | (overlay) | Other scene lights | Document order, over everything |
