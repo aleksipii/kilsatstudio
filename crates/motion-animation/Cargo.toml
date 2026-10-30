@@ -7,3 +7,5 @@ license.workspace = true
 motion-rig = { path = "../motion-rig" }
 thiserror.workspace = true
 serde.workspace = true
+[dev-dependencies]
+serde_yaml = "0.9"

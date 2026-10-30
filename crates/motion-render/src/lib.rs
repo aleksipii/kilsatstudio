@@ -10,6 +10,7 @@ mod gpu_captions;
 #[cfg(feature = "gpu")]
 pub mod gpu_scene;
 pub mod model_sheet;
+pub mod parallax;
 #[cfg(feature = "gpu")]
 pub mod scene_commands;
 
@@ -59,7 +60,7 @@ pub fn render_svg_with_mouths(
     height: u32,
     mouths: &[(&str, Viseme)],
 ) -> Result<String, Error> {
-    render_scene(scene, width, height, mouths, None, true)
+    render_scene(scene, width, height, mouths, None, true, None)
 }
 
 type Artwork<'a> = (
@@ -317,6 +318,7 @@ fn render_scene(
     mouths: &[(&str, Viseme)],
     artwork: Option<Artwork<'_>>,
     paint_canvas_background: bool,
+    multiplane: Option<&parallax::Multiplane>,
 ) -> Result<String, Error> {
     validate_scene(scene, width, height)?;
     let scale = (width as f64 / scene.width as f64).min(height as f64 / scene.height as f64);
@@ -353,6 +355,7 @@ fn render_scene(
             document,
             images,
             motion_art::Plane::Background,
+            multiplane,
         )?;
     }
     if let Some((scene_id, document, images)) = artwork {
@@ -512,6 +515,7 @@ fn render_scene(
             document,
             images,
             motion_art::Plane::Foreground,
+            multiplane,
         )?;
     }
     svg.push_str("</g>");
@@ -548,6 +552,7 @@ pub fn render_svg_with_art(
         mouths,
         Some((scene_id, document, images)),
         true,
+        None,
     )
 }
 
@@ -574,6 +579,7 @@ pub fn render_svg_with_art_transparent(
         mouths,
         Some((scene_id, document, images)),
         false,
+        None,
     )
 }
 
@@ -609,6 +615,7 @@ fn append_art(
     document: &motion_art::Document,
     images: &std::collections::BTreeMap<String, motion_art::ImageResource>,
     plane: motion_art::Plane,
+    multiplane: Option<&parallax::Multiplane>,
 ) -> Result<(), Error> {
     use motion_art::Content;
     let steps = document
@@ -648,6 +655,11 @@ fn append_art(
             },
             None => (0.0, 0.0),
         };
+        // Multiplane parallax: re-base this layer onto its own camera.
+        let parallax = parallax::svg_compensation(scene, layer, multiplane);
+        if let Some(transform) = &parallax {
+            write!(svg, "<g transform=\"{transform}\">").unwrap();
+        }
         let blend_style = match layer.blend {
             motion_art::BlendMode::Normal => "",
             motion_art::BlendMode::Multiply => " style=\"mix-blend-mode:multiply\"",
@@ -906,6 +918,9 @@ fn append_art(
             svg.push_str("</g>");
         }
         svg.push_str("</g>");
+        if parallax.is_some() {
+            svg.push_str("</g>");
+        }
         if svg.len() > 48 * 1024 * 1024 {
             return Err(Error::InvalidArtwork(
                 "SVG artwork exceeds 48 MiB frame budget".into(),

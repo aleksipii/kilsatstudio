@@ -48,6 +48,7 @@ mod ui_levels;
 mod ui_metrics;
 mod voice_editor;
 mod webcam_pose;
+mod xsheet_panel;
 
 use eframe::egui;
 use motion_audio::WaveformPeak;
@@ -291,6 +292,7 @@ struct Studio {
     playback_error: Option<String>,
     scene_worker: scene_worker::Worker,
     scene_preview: Option<ScenePreview>,
+    xsheet: xsheet_panel::XSheetPanel,
     scene_alignment: String,
     scene_audio_active: bool,
     kokoro_setup: kokoro_setup::Worker,
@@ -479,6 +481,7 @@ impl Default for Studio {
             playback_error: None,
             scene_worker: scene_worker::Worker::new(),
             scene_preview: None,
+            xsheet: xsheet_panel::XSheetPanel::new(),
             scene_alignment: String::new(),
             scene_audio_active: false,
             kokoro_setup: kokoro_setup::Worker::spawn(),
@@ -614,7 +617,7 @@ impl Studio {
                     }
                 }
                 if ui.button("Lisää hahmo").clicked() {
-                    self.apply_structure(motion_script::add_character(&self.source, &id, motion_script::Character { asset: self.lifecycle_asset.trim().into(), default_pose: None, voice: None, rig: None, holds: None }));
+                    self.apply_structure(motion_script::add_character(&self.source, &id, motion_script::Character { asset: self.lifecycle_asset.trim().into(), default_pose: None, voice: None, rig: None, holds: None, timing: Default::default(), principles: None }));
                 }
                 if ui.button("Kopioi valittu hahmo").clicked() {
                     if let Some(character) = self.selected_actor.as_ref().and_then(|actor| self.script.as_ref()?.characters.get(actor)).cloned() {
@@ -5486,6 +5489,7 @@ impl Studio {
                     }
                     if level.shows(Tool::VisemeCheck) {
                         self.viseme_check_ui(ui);
+                        self.xsheet_ui(ui);
                     }
                     if level.shows(Tool::PhysicsProfile) {
                         ui.separator();

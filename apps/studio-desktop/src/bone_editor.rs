@@ -193,6 +193,10 @@ fn easing_label(easing: ActorEasing) -> &'static str {
         ActorEasing::Linear => "Lineaarinen",
         ActorEasing::Smoothstep => "Pehmeä",
         ActorEasing::Hold => "Pidä arvo",
+        ActorEasing::EaseIn => "Hidas alku",
+        ActorEasing::EaseOut => "Hidas loppu",
+        ActorEasing::EaseInOut => "Hidas alku ja loppu",
+        ActorEasing::Back(_) => "Ylilyönti",
     }
 }
 

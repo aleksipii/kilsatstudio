@@ -19,6 +19,8 @@ pub const MAX_TAGS: usize = 32;
 pub const MAX_PALETTE: usize = 64;
 pub const MAX_ANCHORS: usize = 128;
 pub const MAX_VARIANTS: usize = 16;
+/// Most named states one prop may declare.
+pub const MAX_PROP_STATES: usize = 8;
 pub const MAX_PARTS: usize = 256;
 pub const MAX_CAMERAS: usize = 32;
 pub const MAX_MARKS: usize = 128;
@@ -26,6 +28,9 @@ pub const MAX_RIG_PROJECT_BYTES: u64 = 64 * 1024 * 1024;
 pub const MAX_BLOB_BYTES: u64 = 1024 * 1024 * 1024;
 pub const MIN_PART_SCALE: f64 = 0.01;
 pub const MAX_PART_SCALE: f64 = 100.0;
+/// Largest accepted multiplane parallax factor (foreground planes may move
+/// faster than the character plane, which is 1.0).
+pub const MAX_PARALLAX: f64 = 4.0;
 /// Instance name reserved for a location's own contribution (room, own anchors,
 /// location-variant layers).
 pub const SELF_INSTANCE: &str = "room";
@@ -189,7 +194,10 @@ impl fmt::Display for AssetId {
 }
 
 /// Default stacking depth. `far` and `mid` map to [`Plane::Background`] (far
-/// first), `near` to [`Plane::Foreground`]. Parallax is metadata only.
+/// first), `near` to [`Plane::Foreground`]. Each depth also has a default
+/// multiplane parallax factor ([`Depth::default_parallax`]); assembly reports
+/// the effective factor per layer, and the renderer applies it only when the
+/// caller opts in (`motion_render::parallax`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Depth {
@@ -203,6 +211,33 @@ impl Depth {
             Depth::Far | Depth::Mid => Plane::Background,
             Depth::Near => Plane::Foreground,
         }
+    }
+    /// Camera-motion factor of this depth: far 0.3, mid 0.6, near 1.0 (the
+    /// character plane is 1.0).
+    pub fn default_parallax(self) -> f64 {
+        match self {
+            Depth::Far => 0.3,
+            Depth::Mid => 0.6,
+            Depth::Near => 1.0,
+        }
+    }
+}
+
+/// Aerial perspective of a location or set: distant planes fade toward
+/// `color` and lose saturation. `strength` 0..=1; 0 leaves output unchanged.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Atmosphere {
+    pub color: Color,
+    pub strength: f64,
+}
+
+fn validate_parallax(field: String, value: Option<f64>) -> Result<(), ManifestError> {
+    match value {
+        Some(v) if !v.is_finite() || !(0.0..=MAX_PARALLAX).contains(&v) => {
+            Err(invalid(field, "parallax must be finite and 0..=4"))
+        }
+        _ => Ok(()),
     }
 }
 
@@ -300,6 +335,9 @@ pub struct ArtLayer {
     pub id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub depth: Option<Depth>,
+    /// Multiplane parallax factor overriding the depth default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parallax: Option<f64>,
     /// Palette slot replacing the content colour at assembly time.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub paint: Option<String>,
@@ -446,6 +484,17 @@ pub struct Variant {
     pub layers: Vec<ArtLayer>,
 }
 
+/// One named appearance of a prop, such as `on` / `off` or `full` / `empty`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PropState {
+    /// `[a-z0-9_]{1,64}`.
+    pub id: String,
+    /// `geometry.layers` ids not drawn in this state.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hide: Vec<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Part {
@@ -458,6 +507,10 @@ pub struct Part {
     pub flip_x: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub depth: Option<Depth>,
+    /// Multiplane parallax factor for every layer of this instance; overrides
+    /// layer and depth defaults.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parallax: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub variant: Option<String>,
 }
@@ -516,6 +569,10 @@ pub struct Manifest {
     pub anchors: Vec<Anchor>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub variants: Vec<Variant>,
+    /// Named prop states (art props only). The first is the default and hides
+    /// nothing; the others hide some `geometry.layers` by id.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub states: Vec<PropState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub room: Option<RoomSpec>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -526,6 +583,9 @@ pub struct Manifest {
     pub cameras: Vec<CameraSpec>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub marks: Vec<Mark>,
+    /// Location/set aerial perspective; a set's value replaces its location's.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub atmosphere: Option<Atmosphere>,
 }
 
 /// `[a-z0-9_]{1,64}`: anchor, layer, instance, variant, palette, camera and mark ids.
@@ -624,6 +684,7 @@ pub(crate) fn validate_art_layers(
         ) {
             return Err(ManifestError::UnsupportedContent { field: f });
         }
+        validate_parallax(format!("{f}.parallax"), layer.parallax)?;
         if let Some(slot) = &layer.paint {
             if !slots.contains(slot.as_str()) {
                 return Err(ManifestError::UnknownPaletteSlot {
@@ -669,6 +730,80 @@ pub(crate) fn relative_path_ok(path: &str) -> bool {
 }
 
 impl Manifest {
+    /// Declared state ids in order (empty when the prop has no states).
+    pub fn state_ids(&self) -> Vec<&str> {
+        self.states.iter().map(|s| s.id.as_str()).collect()
+    }
+    /// `geometry.layers` ids hidden in `state`.
+    pub fn hidden_layers(&self, state: &str) -> Result<&[String], ManifestError> {
+        self.states
+            .iter()
+            .find(|s| s.id == state)
+            .map(|s| s.hide.as_slice())
+            .ok_or_else(|| {
+                invalid(
+                    "states",
+                    format!(
+                        "unknown state `{state}`; declared states are {}",
+                        if self.states.is_empty() {
+                            "none".to_owned()
+                        } else {
+                            self.state_ids().join(", ")
+                        }
+                    ),
+                )
+            })
+    }
+    fn validate_states(&self) -> Result<(), ManifestError> {
+        if self.states.is_empty() {
+            return Ok(());
+        }
+        let Geometry::Art { layers } = &self.geometry else {
+            return Err(invalid("states", "only art props can declare states"));
+        };
+        if self.kind != Kind::Prop {
+            return Err(ManifestError::NotAllowed {
+                field: "states",
+                kind: self.kind,
+            });
+        }
+        if self.states.len() > MAX_PROP_STATES {
+            return Err(invalid("states", "at most 8 states"));
+        }
+        let layer_ids: BTreeSet<&str> = layers.iter().map(|l| l.id.as_str()).collect();
+        let mut ids = BTreeSet::new();
+        for (index, state) in self.states.iter().enumerate() {
+            let field = format!("states[{index}]");
+            if !local_id(&state.id) {
+                return Err(invalid(field, "id must match [a-z0-9_]{1,64}"));
+            }
+            if !ids.insert(state.id.as_str()) {
+                return Err(ManifestError::Duplicate {
+                    field: "states".into(),
+                    id: state.id.clone(),
+                });
+            }
+            if index == 0 && !state.hide.is_empty() {
+                return Err(invalid(
+                    field,
+                    "the first state is the default and must hide nothing",
+                ));
+            }
+            let mut hidden = BTreeSet::new();
+            for layer in &state.hide {
+                if !layer_ids.contains(layer.as_str()) || !hidden.insert(layer.as_str()) {
+                    return Err(invalid(
+                        format!("{field}.hide"),
+                        format!("`{layer}` must name a geometry layer, once"),
+                    ));
+                }
+            }
+            if hidden.len() == layer_ids.len() {
+                return Err(invalid(field, "must leave at least one layer visible"));
+            }
+        }
+        Ok(())
+    }
     pub fn from_json(bytes: &[u8]) -> Result<Manifest, ManifestError> {
         Ok(serde_json::from_slice(bytes)?)
     }
@@ -740,6 +875,17 @@ impl Manifest {
                 ))
             }
             _ => {}
+        }
+        if let Some(a) = &self.atmosphere {
+            if !matches!(kind, Kind::Location | Kind::Set) {
+                return Err(ManifestError::NotAllowed {
+                    field: "atmosphere",
+                    kind,
+                });
+            }
+            if !a.strength.is_finite() || !(0.0..=1.0).contains(&a.strength) {
+                return Err(invalid("atmosphere.strength", "must be finite and 0..=1"));
+            }
         }
         if self.room.is_some() && kind != Kind::Location {
             return Err(ManifestError::NotAllowed {
@@ -877,6 +1023,7 @@ impl Manifest {
             }
             Geometry::Composite => {}
         }
+        self.validate_states()?;
 
         // Anchors.
         if self.anchors.len() > MAX_ANCHORS {
@@ -959,6 +1106,7 @@ impl Manifest {
                     return Err(invalid(format!("{f}.scale"), "must be 0.01..=100"));
                 }
             }
+            validate_parallax(format!("{f}.parallax"), p.parallax)?;
             if p.variant.as_deref().is_some_and(|v| !local_id(v)) {
                 return Err(invalid(
                     format!("{f}.variant"),

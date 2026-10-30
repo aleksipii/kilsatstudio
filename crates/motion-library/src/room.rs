@@ -102,6 +102,7 @@ fn painted(id: String, depth: Depth, slot: &str, content: Content) -> ArtLayer {
     ArtLayer {
         id,
         depth: Some(depth),
+        parallax: None,
         paint: Some(slot.to_owned()),
         content,
     }

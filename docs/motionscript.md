@@ -25,6 +25,13 @@ what this implementation actually accepts.
   syntax errors. One held item per character; for a second item attach it
   to the rig (desktop prop panel or `motion_rig::attach_hand_prop`). See
   [screen slots](screen-slots.md).
+- A character with a custom `rig` may add `principles:` (a preset `subtle`,
+  `cartoon` or `snappy`, or a block of `anticipation`, `overshoot`,
+  `follow_through`, `overlap`, `squash_stretch` and `moving_hold`). A gesture
+  event may add its own `principles:` over the character's, without
+  `moving_hold`. Without a block the rig moves exactly as before. Out-of-range
+  values are validation errors naming the field and range; unknown presets
+  are unsupported. See [animation principles](animation-principles.md).
 - `scenes` contain unique IDs, positive finite durations, optional background names,
   and events. Background names are metadata; `composition.background_color` and
   timed `composition.background_keys` control the rendered solid backdrop. See
@@ -41,11 +48,36 @@ what this implementation actually accepts.
 | --- | --- | --- |
 | move | x, y, duration | Linear movement to project-space coordinates, from the last completed pose; positive duration, ending inside the scene |
 | emotion | value | neutral, happy, sad, surprised or angry; also eases the body posture over 0.25 s |
-| gesture | value, duration | wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap or think; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
+| gesture | value, duration (optional principles) | wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap or think; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
 | speak | text | Dialogue job; requires character voice or event audio; optional emotion and audio |
 | face | value | front, left, right or back; holds until the next face event |
 | hold | hand | Custom rig only: from `at` the hand holds the catalog `item`, or nothing without `item` |
 | pose | value | Custom rig with leg joints: `sit` or `stand`, eased over 0.4 s, lasts until the next pose |
+
+Held props can also be moved and changed with `composition.props`. The prop must be
+the character's `holds:` item and starts in that hand. Anchors are scene-space points
+(pixels) with an optional `rotation_degrees`; names are dot-separated `[a-z0-9_]` words.
+
+```yaml
+composition:
+  anchors:
+    table.top: {x: 820, y: 610}
+  props:
+    - actor: VEIKKO
+      item: kahvikuppi
+      actions:
+        - {at: 2.0, hand_off: {from: right, to: left}}             # 0.4 s blend
+        - {at: 4.0, set_down: {anchor: table.top}, duration: 0.6}  # default 0.5 s
+        - {at: 5.0, prop_state: empty}                              # instant
+```
+
+Each action has exactly one of `hand_off`, `set_down` or `prop_state`, in time order.
+Transfers may not overlap and must end within the scene. Errors name the scene, the
+actor and the action time, and say how to fix the problem: an unknown anchor lists the
+declared anchors, an unknown state lists the item's states, and an unknown item lists
+the catalog. A `hand_off` must start from where the prop is. An actor cannot combine
+prop cues with timed `hold` events in the same scene. After a `set_down` the prop stays
+on the anchor; picking it back up is not supported yet.
 
 Move intervals for one actor cannot overlap. At time zero actors begin at the
 project center horizontally and 70% of height vertically. Stable source order
@@ -74,6 +106,41 @@ cargo run -p motion-scene --example evaluate_scene -- examples/hello-emma.yaml 0
 
 The output is sampled actor poses at project fps, not rendered images or video.
 The command refuses to replace an existing output and caps frame/actor counts.
+
+## Timing: exposure and blocking
+
+`composition.timing` (per scene) and `timing` on a character set how actor poses
+are evaluated. A character's fields override the scene's; unset fields mean on
+ones with each key's own easing, which is exactly the behavior of scripts
+without `timing`.
+
+```yaml
+characters:
+  EMMA: {asset: characters/emma, timing: {on: 1}}   # EMMA stays on ones
+scenes:
+  - id: intro
+    duration: 4
+    events: []
+    composition:
+      timing: {on: 2, interpolation: stepped}       # everyone else: twos, blocking
+      actor_tracks:
+        EMMA:
+          - {at: 0.0, x: 0, easing: ease_in_out}
+          - {at: 1.0, x: 80, easing: back(1.3)}
+          - {at: 2.0, x: 120}
+```
+
+- `on: 1 | 2 | 3` holds each evaluated pose for that many project frames. The
+  scene time is snapped to the start of its exposure block (frame 0, 2, 4, … on
+  twos) before evaluation, so playback, seeking and export give the same frames.
+- `interpolation: stepped` evaluates every key as `hold` for blocking passes;
+  `spline` (the default) uses each key's easing. The stored easings are not
+  changed, so switching back to `spline` restores the in-betweens.
+- Timing affects character poses only (moves, actor/bone tracks, clips, gaze).
+  The scene clock, camera, fades, audio and speech mouths stay on ones.
+- Other `on` values, unknown `interpolation` values and unknown easing names are
+  rejected with their document path, for example
+  ``scenes[0].composition.actor_tracks.EMMA[1].easing: unknown easing `bounce`; supported: …``.
 
 ## Captions
 
