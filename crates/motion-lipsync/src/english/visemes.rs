@@ -49,26 +49,17 @@ impl EstimatedVisemeTrack {
             .map_or(Viseme::Rest, |c| c.viseme)
     }
 
-    /// Lossy conversion to the Rhubarb-style cues used by `EstimatedVisemeAlignment`.
+    /// Lossy conversion to the Rhubarb-style cues used by `EstimatedVisemeAlignment`,
+    /// through the shared projection `mouth_chart::MouthChart::from_viseme`.
     /// Rhubarb's nine shapes cannot express Sibilant, Sh, R or TongueTeeth, which
-    /// collapse to the nearest shape (E, E, E, H); prefer the viseme cues.
+    /// collapse to the nearest shape (C, C, C, H); prefer the viseme cues.
     pub fn to_mouth_cues(&self) -> Vec<crate::rhubarb::MouthCue> {
         self.cues
             .iter()
             .map(|c| crate::rhubarb::MouthCue {
                 start_sample: c.start_sample,
                 end_sample: c.end_sample,
-                shape: match c.viseme {
-                    Viseme::Rest => 'X',
-                    Viseme::Closed => 'A',
-                    Viseme::I => 'B',
-                    Viseme::E | Viseme::Sibilant | Viseme::Sh | Viseme::R => 'C',
-                    Viseme::A => 'D',
-                    Viseme::O => 'E',
-                    Viseme::U => 'F',
-                    Viseme::TeethLip => 'G',
-                    Viseme::TongueUp | Viseme::TongueTeeth => 'H',
-                },
+                shape: crate::mouth_chart::MouthChart::from_viseme(c.viseme).letter(),
             })
             .collect()
     }
