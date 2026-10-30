@@ -79,8 +79,12 @@ pub const DEFAULT_SECONDS: f64 = 1.5;
 /// Gait speed as a fraction of the canvas width per second.
 fn speed(gait: &str) -> f64 {
     match gait {
+        "sprint" => 0.6,
         "run" => 0.45,
+        "leap" => 0.3,
         "jog" => 0.27,
+        "stroll" => 0.11,
+        "sneak" | "tiptoe" | "limp" | "backwards" | "carry" => 0.09,
         _ => 0.16,
     }
 }
@@ -201,7 +205,12 @@ pub fn events(
             };
             let y = pose.y.clamp(0.0, height);
             let mut events = Vec::new();
-            let facing = if x > pose.x { "right" } else { "left" };
+            // Walking backwards faces away from the travel direction.
+            let facing = if (x > pose.x) != (*gait == "backwards") {
+                "right"
+            } else {
+                "left"
+            };
             if facing_at(&scene.events, &actor, at) != facing {
                 events.push(Event::Face {
                     at,
@@ -216,6 +225,8 @@ pub fn events(
                 y,
                 duration,
                 gait: (*gait != "walk").then(|| (*gait).into()),
+                ease: None,
+                pace: None,
             });
             events
         }

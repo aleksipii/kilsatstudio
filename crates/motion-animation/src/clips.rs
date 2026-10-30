@@ -66,7 +66,19 @@ pub const JOG_CYCLE_SECONDS: f64 = 0.5;
 /// Seconds per full run cycle (two steps).
 pub const RUN_CYCLE_SECONDS: f64 = 0.4;
 /// MotionScript gait names, in the order editors should present them.
-pub const GAITS: [&str; 3] = ["walk", "jog", "run"];
+pub const GAITS: [&str; 11] = [
+    "walk",
+    "jog",
+    "run",
+    "stroll",
+    "sneak",
+    "tiptoe",
+    "limp",
+    "sprint",
+    "backwards",
+    "leap",
+    "carry",
+];
 
 /// How a character travels while a move is active.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
@@ -75,6 +87,22 @@ pub enum Gait {
     Walk,
     Jog,
     Run,
+    /// Slow, relaxed walk.
+    Stroll,
+    /// Crouched, careful steps with the hands raised.
+    Sneak,
+    /// Quick, short steps on the toes.
+    Tiptoe,
+    /// Uneven walk favouring the right leg.
+    Limp,
+    /// Flat-out run with a strong lean.
+    Sprint,
+    /// Walking backwards: the body faces away from the travel direction.
+    Backwards,
+    /// One jump along the move: crouch, flight and landing.
+    Leap,
+    /// Slow, hunched walk with both arms holding a load in front.
+    Carry,
 }
 impl Gait {
     pub fn parse(name: &str) -> Option<Self> {
@@ -82,24 +110,105 @@ impl Gait {
             "walk" => Self::Walk,
             "jog" => Self::Jog,
             "run" => Self::Run,
+            "stroll" => Self::Stroll,
+            "sneak" => Self::Sneak,
+            "tiptoe" => Self::Tiptoe,
+            "limp" => Self::Limp,
+            "sprint" => Self::Sprint,
+            "backwards" => Self::Backwards,
+            "leap" => Self::Leap,
+            "carry" => Self::Carry,
             _ => return None,
         })
     }
     pub fn name(self) -> &'static str {
         GAITS[self as usize]
     }
-    /// Seconds per full cycle (two steps).
+    /// Seconds per full cycle (two steps). A leap is one jump over the whole
+    /// move; its value only paces the ease-in.
     pub fn cycle_seconds(self) -> f64 {
         match self {
             Self::Walk => WALK_CYCLE_SECONDS,
             Self::Jog => JOG_CYCLE_SECONDS,
             Self::Run => RUN_CYCLE_SECONDS,
+            Self::Stroll | Self::Backwards => 0.8,
+            Self::Sneak | Self::Limp => 0.9,
+            Self::Carry => 0.85,
+            Self::Tiptoe => 0.36,
+            Self::Sprint => 0.34,
+            Self::Leap => 1.0,
+        }
+    }
+    /// True for a single jump rather than a repeating step cycle.
+    pub fn is_leap(self) -> bool {
+        self == Self::Leap
+    }
+}
+
+/// MotionScript move easing names, in the order editors should present them.
+pub const MOVE_EASES: [&str; 4] = ["linear", "in", "out", "in_out"];
+/// Fraction of a move spent speeding up (`in`) or slowing down (`out`).
+const MOVE_RAMP: f64 = 0.25;
+
+/// How a move's position changes over its duration. Ramps accelerate and
+/// decelerate at a constant rate (a trapezoidal speed profile), so the body
+/// never jumps to full speed and the cruise speed stays steady in between.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
+pub enum MoveEase {
+    /// Constant speed (the legacy behaviour).
+    #[default]
+    Linear,
+    /// Speed up from a standstill.
+    In,
+    /// Slow down to a stop.
+    Out,
+    /// Speed up, cruise, slow down.
+    InOut,
+}
+impl MoveEase {
+    pub fn parse(name: &str) -> Option<Self> {
+        Some(match name {
+            "linear" => Self::Linear,
+            "in" => Self::In,
+            "out" => Self::Out,
+            "in_out" => Self::InOut,
+            _ => return None,
+        })
+    }
+    pub fn name(self) -> &'static str {
+        MOVE_EASES[self as usize]
+    }
+    /// Fraction of the distance covered at time fraction `u`; monotonic,
+    /// `0` at `0` and exactly `1` at `1`. Nonfinite input counts as `0`.
+    pub fn apply(self, u: f64) -> f64 {
+        if !u.is_finite() {
+            return 0.0;
+        }
+        let u = u.clamp(0.0, 1.0);
+        let r = MOVE_RAMP;
+        let (start, end) = match self {
+            Self::Linear => return u,
+            Self::In => (true, false),
+            Self::Out => (false, true),
+            Self::InOut => (true, true),
+        };
+        // Cruise speed so the area under the speed profile is one.
+        let ramps = f64::from(u8::from(start) + u8::from(end));
+        let v = 1.0 / (1.0 - ramps * r / 2.0);
+        let head = if start { r / 2.0 } else { 0.0 };
+        if start && u < r {
+            v * u * u / (2.0 * r)
+        } else if end && u > 1.0 - r {
+            let rest = 1.0 - u;
+            1.0 - v * rest * rest / (2.0 * r)
+        } else {
+            v * (u - head)
         }
     }
 }
 
 /// MotionScript gesture names, in the order editors should present them.
-pub const GESTURES: [&str; 12] = [
+pub const GESTURES: [&str; 13] = [
     "wave",
     "point",
     "nod",
@@ -112,6 +221,7 @@ pub const GESTURES: [&str; 12] = [
     "jump",
     "clap",
     "think",
+    "stumble",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -128,6 +238,8 @@ pub enum Gesture {
     Jump,
     Clap,
     Think,
+    /// Trip: the body pitches forward, the arms fling out and it recovers.
+    Stumble,
 }
 impl Gesture {
     pub fn parse(name: &str) -> Option<Self> {
@@ -144,6 +256,7 @@ impl Gesture {
             "jump" => Self::Jump,
             "clap" => Self::Clap,
             "think" => Self::Think,
+            "stumble" => Self::Stumble,
             _ => return None,
         })
     }
@@ -168,6 +281,8 @@ pub struct HumanoidState<'a> {
     pub walk_seconds: Option<f64>,
     /// Cycle used while `walk_seconds` is set.
     pub gait: Gait,
+    /// Normalized progress through the active move; drives a leap.
+    pub move_progress: Option<f64>,
     /// Local horizontal travel direction: `1` forward (+x), `-1` backward, `0`
     /// unknown. Only jog and run lean with it; the walk stays upright.
     pub travel: f64,
@@ -181,10 +296,9 @@ pub struct HumanoidState<'a> {
 
 struct Library {
     rig: Rig,
-    walk: Vec<Option<Track>>,
-    jog: Vec<Option<Track>>,
-    run: Vec<Option<Track>>,
-    gestures: [Vec<Option<Track>>; 12],
+    /// Step cycles indexed by `Gait as usize`; the leap is procedural.
+    gaits: Vec<Vec<Option<Track>>>,
+    gestures: [Vec<Option<Track>>; 13],
 }
 
 fn offset(time: f64, x: f64, y: f64) -> Keyframe {
@@ -291,6 +405,52 @@ fn library() -> &'static Library {
         };
         let jog = cycle(JOG_CYCLE_SECONDS, 18.0, 10.0, 10.0, 4.0);
         let run = cycle(RUN_CYCLE_SECONDS, 26.0, 14.0, 16.0, 7.0);
+        // Shaped cycles for the other gaits. The hip drops by `crouch`
+        // (negative rises onto the toes) while the feet, its children, stay
+        // on the floor. `limp` shortens the right stride and deepens the dip
+        // when the weight lands on it.
+        let shaped =
+            |seconds: f64, feet: f64, hands: f64, lift: f64, bob: f64, crouch: f64, limp: f64| {
+                let q = seconds / 4.0;
+                let hip = [
+                    (0.0, 0.0, crouch),
+                    (q, 0.0, crouch - bob),
+                    (2.0 * q, 0.0, crouch),
+                    (3.0 * q, 0.0, crouch - bob + limp * 6.0),
+                    (4.0 * q, 0.0, crouch),
+                ];
+                let stride = |a: f64, y: f64| -> [(f64, f64, f64); 5] {
+                    [
+                        (0.0, 0.0, y),
+                        (q, a, y),
+                        (2.0 * q, 0.0, y),
+                        (3.0 * q, -a, y),
+                        (4.0 * q, 0.0, y),
+                    ]
+                };
+                clip(&[
+                    (HIP, &hip),
+                    (LEFT_FOOT, &stride(feet, -crouch)),
+                    (RIGHT_FOOT, &stride(-feet * (1.0 - 0.5 * limp), -crouch)),
+                    (LEFT_HAND, &stride(-hands, -lift)),
+                    (RIGHT_HAND, &stride(hands, -lift)),
+                ])
+            };
+        let gaits = vec![
+            walk,
+            jog,
+            run,
+            shaped(0.8, 9.0, 5.0, 0.0, 1.5, 0.0, 0.0),
+            shaped(0.9, 10.0, 3.0, 22.0, 1.0, 8.0, 0.0),
+            shaped(0.36, 6.0, 2.0, 16.0, 1.5, -3.0, 0.0),
+            shaped(0.9, 12.0, 6.0, 0.0, 2.0, 0.0, 1.0),
+            shaped(0.34, 32.0, 18.0, 20.0, 9.0, 0.0, 0.0),
+            shaped(0.8, 9.0, 5.0, 0.0, 1.5, 0.0, 0.0),
+            // The leap is evaluated from move progress, not from a cycle.
+            vec![None; 7],
+            shaped(0.85, 8.0, 1.0, 18.0, 2.0, 4.0, 0.0),
+        ];
+        debug_assert_eq!(gaits.len(), GAITS.len());
         let wave = clip(&[(
             RIGHT_HAND,
             &[
@@ -380,11 +540,39 @@ fn library() -> &'static Library {
             (RIGHT_HAND, &[(0.0, -24.0, -48.0)]),
             (HEAD, &[(0.0, 2.0, 0.0)]),
         ]);
+        let stumble = clip(&[
+            (
+                HIP,
+                &[
+                    (0.0, 0.0, 0.0),
+                    (0.3, 6.0, 6.0),
+                    (0.6, 4.0, 2.0),
+                    (1.0, 0.0, 0.0),
+                ],
+            ),
+            (CHEST, &[(0.0, 0.0, 0.0), (0.3, 10.0, 4.0), (1.0, 0.0, 0.0)]),
+            (HEAD, &[(0.0, 0.0, 0.0), (0.3, 12.0, 6.0), (1.0, 0.0, 0.0)]),
+            (
+                LEFT_HAND,
+                &[(0.0, 0.0, 0.0), (0.3, -6.0, -56.0), (1.0, 0.0, 0.0)],
+            ),
+            (
+                RIGHT_HAND,
+                &[(0.0, 0.0, 0.0), (0.3, 24.0, -30.0), (1.0, 0.0, 0.0)],
+            ),
+            (
+                RIGHT_FOOT,
+                &[
+                    (0.0, 0.0, 0.0),
+                    (0.3, -14.0, -8.0),
+                    (0.6, 6.0, 0.0),
+                    (1.0, 0.0, 0.0),
+                ],
+            ),
+        ]);
         Library {
             rig,
-            walk,
-            jog,
-            run,
+            gaits,
             gestures: [
                 wave,
                 point,
@@ -398,9 +586,34 @@ fn library() -> &'static Library {
                 jump,
                 clap,
                 think,
+                stumble,
             ],
         }
     })
+}
+
+/// Leap timing at move `progress`: flight height in `0..=1`, crouch depth in
+/// `0..=1` (take-off and landing) and leg split in `0..=1` (mid-air).
+/// Zero outside the move, so the leap starts and ends at rest.
+pub fn leap_shape(progress: f64) -> (f64, f64, f64) {
+    const TAKE_OFF: f64 = 0.18;
+    const LANDING: f64 = 0.82;
+    if !progress.is_finite() || progress <= 0.0 || progress >= 1.0 {
+        return (0.0, 0.0, 0.0);
+    }
+    let pi = std::f64::consts::PI;
+    if progress < TAKE_OFF {
+        (0.0, (pi * progress / TAKE_OFF).sin(), 0.0)
+    } else if progress < LANDING {
+        let u = (progress - TAKE_OFF) / (LANDING - TAKE_OFF);
+        (4.0 * u * (1.0 - u), 0.0, (pi * u).sin())
+    } else {
+        (
+            0.0,
+            (pi * (progress - LANDING) / (1.0 - LANDING)).sin(),
+            0.0,
+        )
+    }
 }
 
 /// Fixed posture offsets per supported emotion; unknown values stand neutral.
@@ -503,21 +716,34 @@ pub fn evaluate_humanoid_with_weights_and_offsets(
             .expect("bounded posture intensity");
     }
     if let Some(t) = state.walk_seconds.filter(|t| t.is_finite() && *t >= 0.0) {
-        let clip = match state.gait {
-            Gait::Walk => &lib.walk,
-            Gait::Jog => &lib.jog,
-            Gait::Run => &lib.run,
-        };
-        add(
-            &mut pose,
-            clip,
-            t.rem_euclid(state.gait.cycle_seconds()),
-            weights.walk,
-        );
+        if state.gait.is_leap() {
+            let progress = state.move_progress.unwrap_or(0.0);
+            let (lift, crouch, split) = leap_shape(progress);
+            let w = weights.walk;
+            let travel = if state.travel < 0.0 { -1.0 } else { 1.0 };
+            pose[HIP].translation.y += (crouch * 8.0 - lift * 60.0) * w;
+            pose[LEFT_FOOT].translation.x += 14.0 * split * travel * w;
+            pose[RIGHT_FOOT].translation.x -= 14.0 * split * travel * w;
+            pose[LEFT_HAND].translation.y -= 30.0 * split * w;
+            pose[RIGHT_HAND].translation.y -= 30.0 * split * w;
+        } else {
+            add(
+                &mut pose,
+                &lib.gaits[state.gait as usize],
+                t.rem_euclid(state.gait.cycle_seconds()),
+                weights.walk,
+            );
+        }
         let lean = match state.gait {
-            Gait::Walk => 0.0,
+            Gait::Walk | Gait::Stroll | Gait::Limp | Gait::Leap => 0.0,
             Gait::Jog => 3.0,
             Gait::Run => 6.0,
+            Gait::Sneak => 5.0,
+            Gait::Tiptoe => 1.0,
+            Gait::Sprint => 9.0,
+            Gait::Carry => 4.0,
+            // Leans slightly against the travel direction.
+            Gait::Backwards => -1.5,
         };
         if lean != 0.0 && state.travel.is_finite() {
             let lean = lean * state.travel.clamp(-1.0, 1.0) * weights.walk;
@@ -571,7 +797,7 @@ mod tests {
         for name in GAITS {
             assert_eq!(Gait::parse(name).unwrap().name(), name);
         }
-        assert_eq!(Gait::parse("sprint"), None);
+        assert_eq!(Gait::parse("moonwalk"), None);
         let pose = |gait, travel| {
             evaluate_humanoid(&HumanoidState {
                 walk_seconds: Some(0.1),
@@ -952,5 +1178,45 @@ mod intensity_tests {
         let expected = weighted(&seek, weights);
         let _ = weighted(&HumanoidState::default(), weights);
         assert_eq!(weighted(&seek, weights), expected);
+    }
+}
+
+#[cfg(test)]
+mod humanoid_locomotion_tests {
+    use super::*;
+
+    #[test]
+    fn built_in_humanoid_steps_with_every_gait_and_leaps_from_progress() {
+        let idle = evaluate_humanoid(&HumanoidState::default());
+        for name in GAITS {
+            let gait = Gait::parse(name).unwrap();
+            let pose = evaluate_humanoid(&HumanoidState {
+                walk_seconds: Some(gait.cycle_seconds() * 0.25),
+                gait,
+                move_progress: Some(0.5),
+                travel: 1.0,
+                ..Default::default()
+            });
+            assert_ne!(pose, idle, "{name}");
+            assert!(pose.iter().all(|p| p.x.is_finite() && p.y.is_finite()));
+        }
+        let leap = |progress| {
+            evaluate_humanoid(&HumanoidState {
+                walk_seconds: Some(0.2),
+                gait: Gait::Leap,
+                move_progress: Some(progress),
+                ..Default::default()
+            })
+        };
+        assert!(leap(0.5)[HIP].y < idle[HIP].y - 50.0, "airborne");
+        assert_eq!(leap(0.0), idle);
+        // Sneaking lowers the hip while the feet stay on the floor.
+        let sneak = evaluate_humanoid(&HumanoidState {
+            walk_seconds: Some(0.0),
+            gait: Gait::Sneak,
+            ..Default::default()
+        });
+        assert!(sneak[HIP].y > idle[HIP].y);
+        assert!((sneak[LEFT_FOOT].y - idle[LEFT_FOOT].y).abs() < 1e-9);
     }
 }

@@ -2,16 +2,17 @@
 mod clips;
 pub use clips::{
     evaluate_humanoid, evaluate_humanoid_with_offsets, evaluate_humanoid_with_weights_and_offsets,
-    gesture_envelope, valid_humanoid_offset, ClipWeights, Gait, Gesture, HumanoidState, GAITS,
-    GESTURES, HUMANOID_BONES, JOG_CYCLE_SECONDS, POSTURE_BLEND_SECONDS, RUN_CYCLE_SECONDS,
-    WALK_CYCLE_SECONDS,
+    gesture_envelope, leap_shape, valid_humanoid_offset, ClipWeights, Gait, Gesture, HumanoidState,
+    MoveEase, GAITS, GESTURES, HUMANOID_BONES, JOG_CYCLE_SECONDS, MOVE_EASES,
+    POSTURE_BLEND_SECONDS, RUN_CYCLE_SECONDS, WALK_CYCLE_SECONDS,
 };
 mod principles;
 pub use principles::{Principles, PrinciplesError, PRINCIPLE_PRESETS};
 mod rig_motion;
 pub use rig_motion::{
-    acting_curve, acting_curve_with, rig_gait, rig_gesture, rig_gesture_with, rig_moving_hold,
-    rig_sit, RigMotion, MOVING_HOLD_DELAY, RIG_MOTION_JOINTS, SIT_SECONDS,
+    acting_curve, acting_curve_with, blend_rig_motion, rig_body_pose, rig_gait, rig_gait_with_mood,
+    rig_gesture, rig_gesture_with, rig_leap, rig_moving_hold, rig_pose_at, rig_sit, BodyPose,
+    GaitMood, RigMotion, BODY_POSES, MOVING_HOLD_DELAY, RIG_MOTION_JOINTS, SIT_SECONDS,
 };
 pub mod exposure;
 pub use exposure::{Exposure, ExposureError, Interpolation, MAX_EXPOSURE};
