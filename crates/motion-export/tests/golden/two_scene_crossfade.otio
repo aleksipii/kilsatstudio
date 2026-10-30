@@ -1,0 +1,502 @@
+{
+  "OTIO_SCHEMA": "Timeline.1",
+  "metadata": {
+    "kilsat": {
+      "color": "sRGB-encoded, Rec.709/sRGB primaries; no ACES/OCIO pipeline",
+      "fps": 4,
+      "frame_count": 6,
+      "frame_rule": "frame f starts at sample floor(f * sample_rate / fps)",
+      "otio_writer": "kilsat motion-export",
+      "sample_rate": 24000,
+      "total_samples": 36000,
+      "writer_schema": 1
+    }
+  },
+  "name": "P07 golden",
+  "global_start_time": {
+    "OTIO_SCHEMA": "RationalTime.1",
+    "rate": 4.0,
+    "value": 0.0
+  },
+  "tracks": {
+    "OTIO_SCHEMA": "Stack.1",
+    "metadata": {},
+    "name": "tracks",
+    "source_range": null,
+    "effects": [],
+    "markers": [],
+    "enabled": true,
+    "children": [
+      {
+        "OTIO_SCHEMA": "Track.1",
+        "metadata": {},
+        "name": "Video",
+        "source_range": null,
+        "effects": [],
+        "markers": [],
+        "enabled": true,
+        "children": [
+          {
+            "OTIO_SCHEMA": "Clip.2",
+            "metadata": {
+              "kilsat": {
+                "duration_samples": 24000,
+                "outgoing_overlap_samples": 12000,
+                "scene_id": "intro",
+                "scene_index": 0,
+                "start_sample": 0
+              }
+            },
+            "name": "intro",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 4.0,
+                "value": 2.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 4.0,
+                "value": 0.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true,
+            "media_references": {
+              "DEFAULT_MEDIA": {
+                "OTIO_SCHEMA": "ImageSequenceReference.1",
+                "metadata": {},
+                "name": "frames",
+                "available_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 4.0,
+                    "value": 6.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 4.0,
+                    "value": 0.0
+                  }
+                },
+                "available_image_bounds": null,
+                "target_url_base": "./",
+                "name_prefix": "frame-",
+                "name_suffix": ".png",
+                "start_frame": 0,
+                "frame_step": 1,
+                "rate": 4.0,
+                "frame_zero_padding": 6,
+                "missing_frame_policy": "error"
+              }
+            },
+            "active_media_reference_key": "DEFAULT_MEDIA"
+          },
+          {
+            "OTIO_SCHEMA": "Clip.2",
+            "metadata": {
+              "kilsat": {
+                "duration_samples": 24000,
+                "outgoing_overlap_samples": 0,
+                "scene_id": "second",
+                "scene_index": 1,
+                "start_sample": 12000
+              }
+            },
+            "name": "second",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 4.0,
+                "value": 4.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 4.0,
+                "value": 2.0
+              }
+            },
+            "effects": [],
+            "markers": [
+              {
+                "OTIO_SCHEMA": "Marker.2",
+                "metadata": {},
+                "name": "Crossfade (baked)",
+                "color": "PURPLE",
+                "marked_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 4.0,
+                    "value": 2.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 4.0,
+                    "value": 2.0
+                  }
+                },
+                "comment": "Dissolve from the previous scene is already rendered into this media."
+              }
+            ],
+            "enabled": true,
+            "media_references": {
+              "DEFAULT_MEDIA": {
+                "OTIO_SCHEMA": "ImageSequenceReference.1",
+                "metadata": {},
+                "name": "frames",
+                "available_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 4.0,
+                    "value": 6.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 4.0,
+                    "value": 0.0
+                  }
+                },
+                "available_image_bounds": null,
+                "target_url_base": "./",
+                "name_prefix": "frame-",
+                "name_suffix": ".png",
+                "start_frame": 0,
+                "frame_step": 1,
+                "rate": 4.0,
+                "frame_zero_padding": 6,
+                "missing_frame_policy": "error"
+              }
+            },
+            "active_media_reference_key": "DEFAULT_MEDIA"
+          }
+        ],
+        "kind": "Video"
+      },
+      {
+        "OTIO_SCHEMA": "Track.1",
+        "metadata": {},
+        "name": "Mix",
+        "source_range": null,
+        "effects": [],
+        "markers": [],
+        "enabled": true,
+        "children": [
+          {
+            "OTIO_SCHEMA": "Clip.2",
+            "metadata": {},
+            "name": "audio.wav",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 36000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 0.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true,
+            "media_references": {
+              "DEFAULT_MEDIA": {
+                "OTIO_SCHEMA": "ExternalReference.1",
+                "metadata": {},
+                "name": "audio.wav",
+                "available_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 36000.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 0.0
+                  }
+                },
+                "available_image_bounds": null,
+                "target_url": "audio.wav"
+              }
+            },
+            "active_media_reference_key": "DEFAULT_MEDIA"
+          }
+        ],
+        "kind": "Audio"
+      },
+      {
+        "OTIO_SCHEMA": "Track.1",
+        "metadata": {},
+        "name": "Dialogue: ALEX",
+        "source_range": null,
+        "effects": [],
+        "markers": [],
+        "enabled": false,
+        "children": [
+          {
+            "OTIO_SCHEMA": "Gap.1",
+            "metadata": {},
+            "name": "",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 21000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 0.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true
+          },
+          {
+            "OTIO_SCHEMA": "Clip.2",
+            "metadata": {
+              "kilsat": {
+                "actor": "ALEX",
+                "alignment_source": null,
+                "audio": "slice of the mixed audio.wav, not an isolated stem",
+                "gain": 1.0,
+                "scene_id": "second",
+                "scene_start_sample": 9000,
+                "source_trim_samples": 0
+              }
+            },
+            "name": "ALEX · second",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 3000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 21000.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true,
+            "media_references": {
+              "DEFAULT_MEDIA": {
+                "OTIO_SCHEMA": "ExternalReference.1",
+                "metadata": {},
+                "name": "audio.wav",
+                "available_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 36000.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 0.0
+                  }
+                },
+                "available_image_bounds": null,
+                "target_url": "audio.wav"
+              }
+            },
+            "active_media_reference_key": "DEFAULT_MEDIA"
+          }
+        ],
+        "kind": "Audio"
+      },
+      {
+        "OTIO_SCHEMA": "Track.1",
+        "metadata": {},
+        "name": "Dialogue: EMMA",
+        "source_range": null,
+        "effects": [],
+        "markers": [],
+        "enabled": false,
+        "children": [
+          {
+            "OTIO_SCHEMA": "Gap.1",
+            "metadata": {},
+            "name": "",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 6000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 0.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true
+          },
+          {
+            "OTIO_SCHEMA": "Clip.2",
+            "metadata": {
+              "kilsat": {
+                "actor": "EMMA",
+                "alignment_source": {
+                  "kind": "manual"
+                },
+                "audio": "slice of the mixed audio.wav, not an isolated stem",
+                "gain": 1.0,
+                "scene_id": "intro",
+                "scene_start_sample": 6000,
+                "source_trim_samples": 2400
+              }
+            },
+            "name": "EMMA · intro",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 12000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 6000.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true,
+            "media_references": {
+              "DEFAULT_MEDIA": {
+                "OTIO_SCHEMA": "ExternalReference.1",
+                "metadata": {},
+                "name": "audio.wav",
+                "available_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 36000.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 0.0
+                  }
+                },
+                "available_image_bounds": null,
+                "target_url": "audio.wav"
+              }
+            },
+            "active_media_reference_key": "DEFAULT_MEDIA"
+          }
+        ],
+        "kind": "Audio"
+      },
+      {
+        "OTIO_SCHEMA": "Track.1",
+        "metadata": {},
+        "name": "Dialogue: EMMA (2)",
+        "source_range": null,
+        "effects": [],
+        "markers": [],
+        "enabled": false,
+        "children": [
+          {
+            "OTIO_SCHEMA": "Gap.1",
+            "metadata": {},
+            "name": "",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 12000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 0.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true
+          },
+          {
+            "OTIO_SCHEMA": "Clip.2",
+            "metadata": {
+              "kilsat": {
+                "actor": "EMMA",
+                "alignment_source": null,
+                "audio": "slice of the mixed audio.wav, not an isolated stem",
+                "gain": 1.0,
+                "scene_id": "second",
+                "scene_start_sample": 0,
+                "source_trim_samples": 0
+              }
+            },
+            "name": "EMMA · second",
+            "source_range": {
+              "OTIO_SCHEMA": "TimeRange.1",
+              "duration": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 6000.0
+              },
+              "start_time": {
+                "OTIO_SCHEMA": "RationalTime.1",
+                "rate": 24000.0,
+                "value": 12000.0
+              }
+            },
+            "effects": [],
+            "markers": [],
+            "enabled": true,
+            "media_references": {
+              "DEFAULT_MEDIA": {
+                "OTIO_SCHEMA": "ExternalReference.1",
+                "metadata": {},
+                "name": "audio.wav",
+                "available_range": {
+                  "OTIO_SCHEMA": "TimeRange.1",
+                  "duration": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 36000.0
+                  },
+                  "start_time": {
+                    "OTIO_SCHEMA": "RationalTime.1",
+                    "rate": 24000.0,
+                    "value": 0.0
+                  }
+                },
+                "available_image_bounds": null,
+                "target_url": "audio.wav"
+              }
+            },
+            "active_media_reference_key": "DEFAULT_MEDIA"
+          }
+        ],
+        "kind": "Audio"
+      }
+    ]
+  }
+}

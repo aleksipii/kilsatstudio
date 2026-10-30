@@ -117,6 +117,10 @@ pub struct HandPropItem {
     /// Optional display slot (phones, tablets) carried onto the rig on attach.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub screen: Option<HandPropScreen>,
+    /// Optional named states; the first is the default and hides nothing
+    /// (see `crate::prop_states`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub states: Vec<crate::PropStateDefinition>,
 }
 /// An item's display slot in item-local coordinates.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -153,6 +157,8 @@ pub enum PropError {
     Part,
     #[error("hand prop {0}: screen must name its own glass and overlay parts and have a positive bounded rectangle")]
     Screen(String),
+    #[error("hand prop {item}: states: {reason}")]
+    States { item: String, reason: String },
     #[error("hand prop {item}: {source}")]
     Geometry { item: String, source: crate::Error },
     #[error("grip offset must be within ±100, rotation ±180° and scale 0.25..=3")]
@@ -237,6 +243,7 @@ impl HandPropCatalog {
                     return Err(PropError::Screen(item.id.clone()));
                 }
             }
+            item.validate_states()?;
             let parts: Vec<_> = item.parts.iter().chain(&item.grip_parts).cloned().collect();
             if !parts.iter().all(valid_catalog_part) {
                 return Err(PropError::Part);
@@ -300,6 +307,11 @@ pub fn hand_availability(rig: &RigDefinition, hand: HandSide) -> Result<(), Prop
     Ok(())
 }
 
+/// Id of item part `part` once `item` is attached to `hand`.
+pub fn held_part_id(hand: HandSide, item: &str, part: &str) -> String {
+    format!("{}{item}_{part}", hand.part_prefix())
+}
+
 /// Item parts re-expressed on the hand joint so `item.grip` lands on the
 /// placement's grip point. Rotated non-circular ellipses become polygons.
 pub fn grip_parts(
@@ -313,7 +325,7 @@ pub fn grip_parts(
         .chain(&item.grip_parts)
         .map(|original| {
             let mut part = original.clone();
-            part.id = format!("{}{}_{}", hand.part_prefix(), item.id, original.id);
+            part.id = held_part_id(hand, &item.id, &original.id);
             part.joint = hand.joint().into();
             if let Some(ellipse) = part.ellipse {
                 if placement.rotation_degrees == 0.0 || ellipse.rx == ellipse.ry {
@@ -354,7 +366,7 @@ pub fn grip_screen(
     placement: GripPlacement,
 ) -> Option<crate::ScreenSlotDefinition> {
     let screen = item.screen.as_ref()?;
-    let part_id = |id: &str| format!("{}{}_{}", hand.part_prefix(), item.id, id);
+    let part_id = |id: &str| held_part_id(hand, &item.id, id);
     let [x, y, w, h] = screen.rect;
     let origin = placement.to_hand(item.grip, [x, y]);
     let right = placement.to_hand(item.grip, [x + w, y]);

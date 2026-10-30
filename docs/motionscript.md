@@ -54,6 +54,31 @@ what this implementation actually accepts.
 | hold | hand | Custom rig only: from `at` the hand holds the catalog `item`, or nothing without `item` |
 | pose | value | Custom rig with leg joints: `sit` or `stand`, eased over 0.4 s, lasts until the next pose |
 
+Held props can also be moved and changed with `composition.props`. The prop must be
+the character's `holds:` item and starts in that hand. Anchors are scene-space points
+(pixels) with an optional `rotation_degrees`; names are dot-separated `[a-z0-9_]` words.
+
+```yaml
+composition:
+  anchors:
+    table.top: {x: 820, y: 610}
+  props:
+    - actor: VEIKKO
+      item: kahvikuppi
+      actions:
+        - {at: 2.0, hand_off: {from: right, to: left}}             # 0.4 s blend
+        - {at: 4.0, set_down: {anchor: table.top}, duration: 0.6}  # default 0.5 s
+        - {at: 5.0, prop_state: empty}                              # instant
+```
+
+Each action has exactly one of `hand_off`, `set_down` or `prop_state`, in time order.
+Transfers may not overlap and must end within the scene. Errors name the scene, the
+actor and the action time, and say how to fix the problem: an unknown anchor lists the
+declared anchors, an unknown state lists the item's states, and an unknown item lists
+the catalog. A `hand_off` must start from where the prop is. An actor cannot combine
+prop cues with timed `hold` events in the same scene. After a `set_down` the prop stays
+on the anchor; picking it back up is not supported yet.
+
 Move intervals for one actor cannot overlap. At time zero actors begin at the
 project center horizontally and 70% of height vertically. Stable source order
 resolves simultaneous expression changes. Seeking calls the same stateless
@@ -81,6 +106,41 @@ cargo run -p motion-scene --example evaluate_scene -- examples/hello-emma.yaml 0
 
 The output is sampled actor poses at project fps, not rendered images or video.
 The command refuses to replace an existing output and caps frame/actor counts.
+
+## Timing: exposure and blocking
+
+`composition.timing` (per scene) and `timing` on a character set how actor poses
+are evaluated. A character's fields override the scene's; unset fields mean on
+ones with each key's own easing, which is exactly the behavior of scripts
+without `timing`.
+
+```yaml
+characters:
+  EMMA: {asset: characters/emma, timing: {on: 1}}   # EMMA stays on ones
+scenes:
+  - id: intro
+    duration: 4
+    events: []
+    composition:
+      timing: {on: 2, interpolation: stepped}       # everyone else: twos, blocking
+      actor_tracks:
+        EMMA:
+          - {at: 0.0, x: 0, easing: ease_in_out}
+          - {at: 1.0, x: 80, easing: back(1.3)}
+          - {at: 2.0, x: 120}
+```
+
+- `on: 1 | 2 | 3` holds each evaluated pose for that many project frames. The
+  scene time is snapped to the start of its exposure block (frame 0, 2, 4, … on
+  twos) before evaluation, so playback, seeking and export give the same frames.
+- `interpolation: stepped` evaluates every key as `hold` for blocking passes;
+  `spline` (the default) uses each key's easing. The stored easings are not
+  changed, so switching back to `spline` restores the in-betweens.
+- Timing affects character poses only (moves, actor/bone tracks, clips, gaze).
+  The scene clock, camera, fades, audio and speech mouths stay on ones.
+- Other `on` values, unknown `interpolation` values and unknown easing names are
+  rejected with their document path, for example
+  ``scenes[0].composition.actor_tracks.EMMA[1].easing: unknown easing `bounce`; supported: …``.
 
 ## Captions
 

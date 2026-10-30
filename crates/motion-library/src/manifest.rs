@@ -19,6 +19,8 @@ pub const MAX_TAGS: usize = 32;
 pub const MAX_PALETTE: usize = 64;
 pub const MAX_ANCHORS: usize = 128;
 pub const MAX_VARIANTS: usize = 16;
+/// Most named states one prop may declare.
+pub const MAX_PROP_STATES: usize = 8;
 pub const MAX_PARTS: usize = 256;
 pub const MAX_CAMERAS: usize = 32;
 pub const MAX_MARKS: usize = 128;
@@ -446,6 +448,17 @@ pub struct Variant {
     pub layers: Vec<ArtLayer>,
 }
 
+/// One named appearance of a prop, such as `on` / `off` or `full` / `empty`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PropState {
+    /// `[a-z0-9_]{1,64}`.
+    pub id: String,
+    /// `geometry.layers` ids not drawn in this state.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hide: Vec<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Part {
@@ -516,6 +529,10 @@ pub struct Manifest {
     pub anchors: Vec<Anchor>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub variants: Vec<Variant>,
+    /// Named prop states (art props only). The first is the default and hides
+    /// nothing; the others hide some `geometry.layers` by id.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub states: Vec<PropState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub room: Option<RoomSpec>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -669,6 +686,80 @@ pub(crate) fn relative_path_ok(path: &str) -> bool {
 }
 
 impl Manifest {
+    /// Declared state ids in order (empty when the prop has no states).
+    pub fn state_ids(&self) -> Vec<&str> {
+        self.states.iter().map(|s| s.id.as_str()).collect()
+    }
+    /// `geometry.layers` ids hidden in `state`.
+    pub fn hidden_layers(&self, state: &str) -> Result<&[String], ManifestError> {
+        self.states
+            .iter()
+            .find(|s| s.id == state)
+            .map(|s| s.hide.as_slice())
+            .ok_or_else(|| {
+                invalid(
+                    "states",
+                    format!(
+                        "unknown state `{state}`; declared states are {}",
+                        if self.states.is_empty() {
+                            "none".to_owned()
+                        } else {
+                            self.state_ids().join(", ")
+                        }
+                    ),
+                )
+            })
+    }
+    fn validate_states(&self) -> Result<(), ManifestError> {
+        if self.states.is_empty() {
+            return Ok(());
+        }
+        let Geometry::Art { layers } = &self.geometry else {
+            return Err(invalid("states", "only art props can declare states"));
+        };
+        if self.kind != Kind::Prop {
+            return Err(ManifestError::NotAllowed {
+                field: "states",
+                kind: self.kind,
+            });
+        }
+        if self.states.len() > MAX_PROP_STATES {
+            return Err(invalid("states", "at most 8 states"));
+        }
+        let layer_ids: BTreeSet<&str> = layers.iter().map(|l| l.id.as_str()).collect();
+        let mut ids = BTreeSet::new();
+        for (index, state) in self.states.iter().enumerate() {
+            let field = format!("states[{index}]");
+            if !local_id(&state.id) {
+                return Err(invalid(field, "id must match [a-z0-9_]{1,64}"));
+            }
+            if !ids.insert(state.id.as_str()) {
+                return Err(ManifestError::Duplicate {
+                    field: "states".into(),
+                    id: state.id.clone(),
+                });
+            }
+            if index == 0 && !state.hide.is_empty() {
+                return Err(invalid(
+                    field,
+                    "the first state is the default and must hide nothing",
+                ));
+            }
+            let mut hidden = BTreeSet::new();
+            for layer in &state.hide {
+                if !layer_ids.contains(layer.as_str()) || !hidden.insert(layer.as_str()) {
+                    return Err(invalid(
+                        format!("{field}.hide"),
+                        format!("`{layer}` must name a geometry layer, once"),
+                    ));
+                }
+            }
+            if hidden.len() == layer_ids.len() {
+                return Err(invalid(field, "must leave at least one layer visible"));
+            }
+        }
+        Ok(())
+    }
     pub fn from_json(bytes: &[u8]) -> Result<Manifest, ManifestError> {
         Ok(serde_json::from_slice(bytes)?)
     }
@@ -877,6 +968,7 @@ impl Manifest {
             }
             Geometry::Composite => {}
         }
+        self.validate_states()?;
 
         // Anchors.
         if self.anchors.len() > MAX_ANCHORS {

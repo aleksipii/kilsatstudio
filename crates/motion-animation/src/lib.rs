@@ -13,6 +13,8 @@ pub use rig_motion::{
     acting_curve, acting_curve_with, rig_gait, rig_gesture, rig_gesture_with, rig_moving_hold,
     rig_sit, RigMotion, MOVING_HOLD_DELAY, RIG_MOTION_JOINTS, SIT_SECONDS,
 };
+pub mod exposure;
+pub use exposure::{Exposure, ExposureError, Interpolation, MAX_EXPOSURE};
 pub mod spring;
 #[cfg(test)]
 use motion_rig::Joint;
@@ -30,11 +32,70 @@ pub const LEFT_HAND: usize = 3;
 pub const RIGHT_HAND: usize = 4;
 pub const LEFT_FOOT: usize = 5;
 pub const RIGHT_FOOT: usize = 6;
+/// Outgoing interpolation of a key: it shapes the interval up to the next key.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Easing {
     Linear,
     SmoothStep,
+    /// Stepped: the key's value holds until the next key.
     Hold,
+    /// Cubic, slow start.
+    EaseIn,
+    /// Cubic, slow arrival.
+    EaseOut,
+    /// Cubic, slow start and arrival.
+    EaseInOut,
+    /// Ease-out that passes the next key and settles back onto it. `overshoot`
+    /// is the conventional back constant (1.70158 gives about 10 % overshoot);
+    /// it must be finite and within `0..=MAX_BACK_OVERSHOOT`.
+    Back {
+        overshoot: f64,
+    },
+}
+/// Largest accepted `Easing::Back` overshoot constant.
+pub const MAX_BACK_OVERSHOOT: f64 = 10.0;
+/// The conventional back constant (about 10 % overshoot).
+pub const DEFAULT_BACK_OVERSHOOT: f64 = 1.70158;
+impl Easing {
+    /// Whether the parameters are finite and bounded.
+    pub fn is_valid(self) -> bool {
+        match self {
+            Easing::Back { overshoot } => {
+                overshoot.is_finite() && (0.0..=MAX_BACK_OVERSHOOT).contains(&overshoot)
+            }
+            _ => true,
+        }
+    }
+    /// Map normalized interval progress `t` in `0..=1` to blend progress.
+    /// Every curve maps 0 to 0 and 1 to 1 exactly (`Hold` stays at 0 until the
+    /// next key takes over). Only `Back` leaves `0..=1` in between.
+    pub fn apply(self, t: f64) -> f64 {
+        match self {
+            Easing::Linear => t,
+            Easing::SmoothStep => t * t * (3.0 - 2.0 * t),
+            Easing::Hold => 0.0,
+            Easing::EaseIn => t * t * t,
+            Easing::EaseOut => {
+                let u = 1.0 - t;
+                1.0 - u * u * u
+            }
+            Easing::EaseInOut => {
+                if t < 0.5 {
+                    4.0 * t * t * t
+                } else {
+                    let u = 2.0 - 2.0 * t;
+                    1.0 - u * u * u / 2.0
+                }
+            }
+            // Exact endpoints: the polynomial leaves rounding residue at 0.
+            Easing::Back { .. } if t <= 0.0 => 0.0,
+            Easing::Back { .. } if t >= 1.0 => 1.0,
+            Easing::Back { overshoot } => {
+                let u = t - 1.0;
+                1.0 + (overshoot + 1.0) * u * u * u + overshoot * u * u
+            }
+        }
+    }
 }
 #[derive(Debug, Clone, Copy)]
 pub struct Keyframe {
@@ -148,9 +209,9 @@ impl Track {
     pub fn new(keys: Vec<Keyframe>) -> Result<Self, Error> {
         if keys.is_empty()
             || keys.len() > 4096
-            || keys
-                .iter()
-                .any(|k| !k.time.is_finite() || k.time < 0.0 || !k.value.is_valid())
+            || keys.iter().any(|k| {
+                !k.time.is_finite() || k.time < 0.0 || !k.value.is_valid() || !k.easing.is_valid()
+            })
             || keys.windows(2).any(|k| k[0].time >= k[1].time)
         {
             return Err(Error::InvalidTrack);
@@ -158,6 +219,15 @@ impl Track {
         Ok(Self { keys })
     }
     pub fn sample(&self, time: f64) -> Result<Transform2, Error> {
+        self.sample_with(time, Interpolation::Spline)
+    }
+    /// Sample with an evaluation-time interpolation mode. `Stepped` treats every
+    /// key as `Hold` (pose-to-pose blocking) without changing the stored keys.
+    pub fn sample_with(
+        &self,
+        time: f64,
+        interpolation: Interpolation,
+    ) -> Result<Transform2, Error> {
         if !time.is_finite() || time < 0.0 {
             return Err(Error::InvalidTime);
         }
@@ -170,12 +240,11 @@ impl Track {
         }
         let (a, b) = (self.keys[i - 1], self.keys[i]);
         let t = (time - a.time) / (b.time - a.time);
-        let t = match a.easing {
-            Easing::Linear => t,
-            Easing::SmoothStep => t * t * (3.0 - 2.0 * t),
-            Easing::Hold => 0.0,
+        let easing = match interpolation {
+            Interpolation::Spline => a.easing,
+            Interpolation::Stepped => Easing::Hold,
         };
-        Ok(interpolate_transform(a.value, b.value, t))
+        Ok(interpolate_transform(a.value, b.value, easing.apply(t)))
     }
 }
 /// Interpolate validated local authored offsets without constructing temporary tracks.
@@ -307,6 +376,74 @@ mod tests {
         .unwrap();
         assert_eq!(hold.sample(0.9).unwrap().translation.x, 0.0);
         assert_eq!(hold.sample(1.0).unwrap().translation.x, 1.0);
+    }
+    #[test]
+    fn easing_curves_hit_endpoints_and_are_monotonic_except_back() {
+        let monotonic = [
+            Easing::Linear,
+            Easing::SmoothStep,
+            Easing::EaseIn,
+            Easing::EaseOut,
+            Easing::EaseInOut,
+        ];
+        for easing in monotonic
+            .into_iter()
+            .chain([Easing::Back { overshoot: 1.3 }])
+        {
+            assert_eq!(easing.apply(0.0), 0.0, "{easing:?}");
+            assert_eq!(easing.apply(1.0), 1.0, "{easing:?}");
+        }
+        for easing in monotonic {
+            let mut previous = easing.apply(0.0);
+            for i in 1..=1000 {
+                let value = easing.apply(i as f64 / 1000.0);
+                assert!(
+                    value >= previous && (0.0..=1.0).contains(&value),
+                    "{easing:?}"
+                );
+                previous = value;
+            }
+        }
+        assert_eq!(Easing::EaseInOut.apply(0.5), 0.5);
+        assert!(Easing::EaseIn.apply(0.25) < 0.25 && Easing::EaseOut.apply(0.25) > 0.25);
+        // Back passes the target and settles; zero overshoot is a cubic ease-out.
+        let back = Easing::Back { overshoot: 1.70158 };
+        let peak = (0..=1000)
+            .map(|i| back.apply(i as f64 / 1000.0))
+            .fold(f64::MIN, f64::max);
+        assert!(peak > 1.09 && peak < 1.11, "{peak}");
+        let flat = Easing::Back { overshoot: 0.0 };
+        assert!((0..=100).all(|i| {
+            let t = i as f64 / 100.0;
+            (flat.apply(t) - Easing::EaseOut.apply(t)).abs() < 1e-12
+        }));
+    }
+    #[test]
+    fn back_overshoot_is_validated_and_stepped_sampling_holds() {
+        for overshoot in [f64::NAN, f64::INFINITY, -0.1, MAX_BACK_OVERSHOOT + 0.1] {
+            let bad = Easing::Back { overshoot };
+            assert!(!bad.is_valid());
+            assert_eq!(
+                Track::new(vec![key(0.0, 0.0, 0.0, bad), key(1.0, 1.0, 0.0, bad)]).unwrap_err(),
+                Error::InvalidTrack
+            );
+        }
+        let track = Track::new(vec![
+            key(0.0, 0.0, 0.0, Easing::EaseInOut),
+            key(1.0, 10.0, 1.0, Easing::Back { overshoot: 2.0 }),
+            key(2.0, 20.0, 0.0, Easing::Linear),
+        ])
+        .unwrap();
+        let stepped = |t| track.sample_with(t, Interpolation::Stepped).unwrap();
+        assert_eq!(stepped(0.7).translation.x, 0.0);
+        assert_eq!(stepped(1.0).translation.x, 10.0);
+        assert_eq!(stepped(1.999).translation.x, 10.0);
+        assert_eq!(stepped(2.5).translation.x, 20.0);
+        assert_eq!(
+            track.sample(0.5).unwrap(),
+            track.sample_with(0.5, Interpolation::Spline).unwrap()
+        );
+        assert!(track.sample(1.6).unwrap().translation.x > 20.0);
     }
     #[test]
     fn rejects_bad_times_and_keys() {

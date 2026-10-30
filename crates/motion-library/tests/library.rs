@@ -1275,3 +1275,49 @@ fn stick_studio_library_is_valid_and_styled() {
     }
     assert!(checked >= 30, "{checked}");
 }
+
+#[test]
+fn prop_states_are_optional_and_validated() {
+    // Existing manifests without `states` still validate and round-trip unchanged.
+    let plain = Manifest::from_json(&serde_json::to_vec(&chair()).unwrap()).unwrap();
+    assert!(plain.states.is_empty());
+    assert!(!plain.to_json_pretty().unwrap().contains("states"));
+
+    let with = |states: Value| mutated(chair(), |v| v["states"] = states);
+    let good = with(json!([{"id": "with_shadow"}, {"id": "no_shadow", "hide": ["shadow"]}]));
+    validate(&good).unwrap();
+    let m = Manifest::from_json(&serde_json::to_vec(&good).unwrap()).unwrap();
+    assert_eq!(m.state_ids(), ["with_shadow", "no_shadow"]);
+    assert_eq!(m.hidden_layers("no_shadow").unwrap(), ["shadow"]);
+    let unknown = m.hidden_layers("broken").unwrap_err().to_string();
+    assert!(
+        unknown.contains("unknown state `broken`") && unknown.contains("with_shadow, no_shadow"),
+        "{unknown}"
+    );
+
+    let reason = |states: Value| validate(&with(states)).unwrap_err().to_string();
+    assert!(reason(json!([{"id": "a", "hide": ["shadow"]}])).contains("default"));
+    assert!(reason(json!([{"id": "a"}, {"id": "b", "hide": ["lid"]}])).contains("`lid`"));
+    assert!(reason(json!([{"id": "a"}, {"id": "b", "hide": ["leg", "leg"]}])).contains("once"));
+    assert!(reason(json!([{"id": "a"}, {"id": "a"}])).contains("duplicate"));
+    assert!(reason(json!([{"id": "A"}])).contains("[a-z0-9_]"));
+    assert!(
+        reason(json!([{"id": "a"}, {"id": "b", "hide": ["seat", "leg", "shadow"]}]))
+            .contains("at least one layer")
+    );
+    let many: Vec<Value> = (0..9).map(|i| json!({"id": format!("s{i}")})).collect();
+    assert!(reason(Value::Array(many)).contains("at most 8"));
+    assert!(matches!(
+        validate(&with(json!([{"id": "a", "colour": 1}]))),
+        Err(ManifestError::Json(_))
+    ));
+    // Only props carry states.
+    let background = mutated(wall_bg(), |v| v["states"] = json!([{"id": "a"}]));
+    assert!(matches!(
+        validate(&background),
+        Err(ManifestError::NotAllowed {
+            field: "states",
+            ..
+        })
+    ));
+}

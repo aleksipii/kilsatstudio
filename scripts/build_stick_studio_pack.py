@@ -89,7 +89,7 @@ def hand_prop_catalog(path: Path) -> dict:
     for expected, item in zip(HAND_PROP_IDS, catalog['items']):
         if (not isinstance(item, dict)
                 or not {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts'} <= set(item)
-                or not set(item) <= {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts', 'screen'}
+                or not set(item) <= {'id', 'name', 'width', 'height', 'grip', 'parts', 'grip_parts', 'screen', 'states'}
                 or item.get('id') != expected or not isinstance(item.get('name'), str)
                 or not 1 <= len(item['name']) <= 128 or any(ord(c) < 32 for c in item['name'])
                 or not all(number(item.get(key), 512) and item[key] > 0 for key in ('width', 'height'))
@@ -112,6 +112,18 @@ def hand_prop_catalog(path: Path) -> dict:
                     or not isinstance(screen.get('overlays', []), list)
                     or any(o not in own or o == screen['part'] for o in screen.get('overlays', []))):
                 raise ValueError(f'hand-prop {expected} screen slot is invalid')
+        if 'states' in item:
+            # Optional named states: the first hides nothing, others hide own parts.
+            states = item['states']
+            own = {p.get('id') for p in item['parts'] + item['grip_parts'] if isinstance(p, dict)}
+            ids = [s.get('id') for s in states if isinstance(s, dict)] if isinstance(states, list) else []
+            if (not isinstance(states, list) or not 1 <= len(states) <= 8 or len(ids) != len(states)
+                    or any(not set(s) <= {'id', 'hide'} for s in states)
+                    or any(not isinstance(i, str) or not re.fullmatch(r'[a-z0-9_]{1,64}', i) for i in ids)
+                    or len(set(ids)) != len(ids) or states[0].get('hide')
+                    or any(not isinstance(s.get('hide', []), list) or len(set(s.get('hide', []))) != len(s.get('hide', []))
+                           or any(h not in own for h in s.get('hide', [])) for s in states)):
+                raise ValueError(f'hand-prop {expected} states are invalid')
         seen = set()
         for part in item['parts'] + item['grip_parts']:
             if (not isinstance(part, dict) or not {'id', 'joint', 'color'} <= set(part)

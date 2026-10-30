@@ -1634,6 +1634,7 @@ version = "1.0.0"
 dependencies = [
  "motion-rig",
  "serde",
+ "serde_yaml",
  "thiserror 2.0.21",
 ]
 

@@ -147,7 +147,11 @@ fn g2_png_export_matches_recorded_reference_frames() {
         assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");
         assert_eq!(u32::from_be_bytes(png[16..20].try_into().unwrap()), 1920);
         assert_eq!(u32::from_be_bytes(png[20..24].try_into().unwrap()), 1080);
-        let actual = g2::sha256_hex(&png);
+        // P07 adds sRGB/gAMA colour tags after IHDR; the reference hashes describe
+        // the untagged encoder output, so compare with exactly those two chunks removed.
+        assert_eq!(&png[37..41], b"sRGB", "frame {frame} is tagged sRGB");
+        assert_eq!(&png[50..54], b"gAMA", "frame {frame} carries gAMA");
+        let actual = g2::sha256_hex(&strip_color_chunks(&png));
         if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
             assert_eq!(actual, expected, "frame {frame}");
         } else if actual != expected {
@@ -155,6 +159,21 @@ fn g2_png_export_matches_recorded_reference_frames() {
         }
     }
     fs::remove_dir_all(dir).unwrap();
+}
+
+/// Drop `sRGB` and `gAMA` chunks, leaving every other byte of the PNG untouched.
+fn strip_color_chunks(png: &[u8]) -> Vec<u8> {
+    let mut out = png[..8].to_vec();
+    let mut at = 8;
+    while at + 12 <= png.len() {
+        let length = u32::from_be_bytes(png[at..at + 4].try_into().unwrap()) as usize;
+        let end = at + 12 + length;
+        if !matches!(&png[at + 4..at + 8], b"sRGB" | b"gAMA") {
+            out.extend_from_slice(&png[at..end]);
+        }
+        at = end;
+    }
+    out
 }
 
 fn tiny_scene(duration: f64, fps: u32) -> (motion_script::Script, RenderedScene) {
