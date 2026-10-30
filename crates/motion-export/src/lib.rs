@@ -7,6 +7,7 @@ mod caption_tests;
 mod captions;
 #[cfg(test)]
 mod clip_library_tests;
+mod color;
 #[cfg(test)]
 mod export_preview_parity_tests;
 #[cfg(all(test, feature = "gpu"))]
@@ -18,7 +19,9 @@ mod lighting_tests;
 #[cfg(test)]
 mod live_clip_tests;
 mod media;
+pub mod otio;
 mod preview_scene;
+mod prores;
 #[cfg(test)]
 mod rig_acting_tests;
 #[cfg(test)]
@@ -33,12 +36,17 @@ pub use preview_scene::ScenePreview;
 pub mod screen_video;
 mod sequence;
 mod streaming;
+pub use color::ColorTag;
 pub use media::{export_mp4_scene, export_mp4_scene_with_art, export_mp4_scene_with_art_captions};
 use motion_lipsync::{AlignmentSource, Viseme};
 pub use motion_script::CaptionMode;
 use motion_script::Script;
 use motion_tts::CancellationToken;
 use motion_voice::export::{RenderedScene, SceneManifest, SAMPLE_RATE};
+pub use otio::{parse_otio, sequence_otio, write_sequence_otio, OtioVideo};
+pub use prores::{
+    encode_prores_frames, export_prores_sequence, ProResFrames, ProResOptions, ProResProfile,
+};
 pub use sequence::{
     export_mp4_sequence, export_mp4_sequence_captions, export_png_sequence,
     export_png_sequence_captions, export_svg_sequence, export_svg_sequence_captions,

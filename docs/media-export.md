@@ -48,6 +48,56 @@ stream and the scene-length audio stream (50 ms tolerance). The ordinary export
 suite passed 11 tests; the explicit real-encoder test also passed. This does not
 establish macOS encoder or device compatibility.
 
+## Professional delivery: OTIO, ProRes and colour tags (P07)
+
+**OpenTimelineIO.** `sequence_otio` / `write_sequence_otio` write `timeline.otio`
+next to a sequence export, with plain serde and no Python dependency. `parse_otio`
+reads it back and rejects unknown schema versions. Structure: `Timeline` →
+`Stack` → one video track (one clip per scene), a `Mix` audio track over the
+whole sequence WAV, and disabled per-actor `Dialogue:` tracks (a second lane
+is added when one actor's lines overlap). Video times are whole frames from
+`floor(frame * 24000 / fps)`, the same rule as PNG/MP4/ProRes export. Audio
+times are whole 24 kHz samples. No floating-point sums are involved. Scene
+crossfades are already rendered into the media, so they appear as a
+`Crossfade (baked)` marker, not as an OTIO transition that would dissolve a
+second time. Media paths are relative (`frame-%06d.png` as an
+`ImageSequenceReference`, or a movie file name). Dialogue clips are slices of
+the mixed WAV, not isolated stems, and say so in their metadata. The golden file
+is `crates/motion-export/tests/golden/two_scene_crossfade.otio`. After reviewing
+a deliberate change, regenerate it with `KILSAT_UPDATE_GOLDEN=1`.
+
+**ProRes.** `export_prores_sequence` and `encode_prores_frames` encode through the
+caller-selected FFmpeg (`prores_ks`): profile `Hq` (422 HQ, `yuv422p10le`)
+or `P4444` (4444 with alpha). ProRes 4444 is natively 12-bit, so ffprobe reports
+`yuva444p12le`. It uses the same missing-FFmpeg error, cancellation, timeout and
+partial-file cleanup as MP4. The movie has its own size cap
+(`ProResOptions::max_video_bytes`, 2 GiB by default, 1 MiB–16 GiB), because the 256 MiB MP4 budget
+would be reached within seconds of ProRes.
+
+**Colour.** Kilsat renders 8-bit sRGB-encoded RGBA. **There is no ACES or OCIO
+pipeline** and no transform between the renderer and the file: the tags only
+state how the code values should be read. ProRes uses the Rec.709 Y'CbCr matrix
+in limited range, with BT.709 primaries. `ColorTag::Srgb` (the default) writes
+transfer `iec61966-2-1`, and `ColorTag::Rec709` writes `bt709` as a relabel of
+the same pixels. The tags are stamped on every frame with FFmpeg's `setparams`
+filter. FFmpeg 9 writes the frame's own colour properties and ignores
+`-color_trc` given alone. Exported PNGs carry `sRGB` (perceptual) and
+`gAMA` (45455) chunks after `IHDR`, and their pixel data is unchanged. The
+existing H.264 MP4 path is still untagged and uses FFmpeg's default BT.601
+matrix; this is a known follow-up. EXR output is not implemented and needs a
+dependency decision first.
+
+Verified on macOS Apple Silicon with Homebrew FFmpeg 9.0.2 by running
+`REAL_FFMPEG=/opt/homebrew/bin/ffmpeg cargo test -p motion-export --lib prores:: -- --include-ignored`:
+
+- HQ: `prores`, profile `HQ`, `yuv422p10le`, `bt709`/`bt709`/`bt709`, tv range,
+  6 frames, which equals the export frame count, plus a `pcm_s16le` 24 kHz audio stream.
+- 4444: profile `4444`, `yuva444p12le`, transfer `iec61966-2-1`, 3 frames. After
+  decoding, the transparent half has alpha 0 and the opaque half has alpha 255.
+
+The official `opentimelineio` library has not read the golden file locally:
+it had no build for Python 3.15. CI tries it and reports the check as skipped
+when the library cannot be installed.
 
 ## Dependency and encoder distribution boundary
 
