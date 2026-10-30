@@ -53,6 +53,9 @@ fn message(error: PropError) -> String {
         PropError::HandOccupied => "Tässä kädessä on hahmon oma esine. Valitse toinen käsi.".into(),
         PropError::Rig(e) => format!("Otteen hahmorakenne: {e}"),
         PropError::Screen(item) => format!("Esineen {item} näyttöpaikka ei kelpaa."),
+        PropError::States { item, reason } => {
+            format!("Esineen {item} tilat eivät kelpaa: {reason}")
+        }
     }
 }
 
