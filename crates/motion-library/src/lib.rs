@@ -21,7 +21,8 @@ pub use assemble::{
 pub use library::{Library, LibraryError, Policy, Query, Warning};
 pub use manifest::{
     Anchor, ArtLayer, AssetId, CameraSpec, Depth, Geometry, Kind, License, Manifest, ManifestError,
-    Mark, MarkKind, Origin, Part, Redistribution, Variant, SCHEMA_VERSION,
+    Mark, MarkKind, Origin, Part, PropState, Redistribution, Variant, MAX_PROP_STATES,
+    SCHEMA_VERSION,
 };
 pub use room::{DoorSide, RoomArt, RoomSpec, TimeOfDay};
 pub use store::{ContentStore, Digest, StoreError};
