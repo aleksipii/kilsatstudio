@@ -145,6 +145,7 @@ pub fn events(
             actor,
             value: (*value).into(),
             duration: length(DEFAULT_SECONDS),
+            principles: None,
         }],
         Block::Face(value) => vec![Event::Face {
             at,

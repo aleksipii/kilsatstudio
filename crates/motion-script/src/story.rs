@@ -112,6 +112,8 @@ pub struct CastMember {
     pub hand: Option<HandSide>,
     /// Speaking rate, 0.7–1.4; defaults to the character's own rate.
     pub speed: Option<f64>,
+    /// Animation principles: a preset (`subtle`, `cartoon`, `snappy`) or a block.
+    pub principles: Option<crate::PrinciplesSpec>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -153,6 +155,8 @@ pub struct Beat {
     pub camera: Option<String>,
     pub on: Option<String>,
     pub reaction: Option<Reaction>,
+    /// Animation principles for this beat's gesture, over the cast member's.
+    pub principles: Option<crate::PrinciplesSpec>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Deserialize)]
@@ -547,6 +551,13 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
                 ));
             }
         }
+        if let Err(error) = crate::character_principles(member.principles.as_ref(), id) {
+            out.push(issue(
+                Bound,
+                format!("{path}.principles"),
+                error.to_string(),
+            ));
+        }
         if member.hand.is_some() && member.holds.is_none() {
             out.push(issue(
                 Schema,
@@ -809,6 +820,13 @@ fn validate_beat(
     }
     if beat.gait.is_some() && beat.move_to.is_none() {
         out.push(issue(Schema, format!("{path}.gait"), "gait needs move_to"));
+    }
+    if beat.principles.is_some() && beat.gesture.is_none() {
+        out.push(issue(
+            Schema,
+            format!("{path}.principles"),
+            "beat principles shape its gesture; add a gesture or set principles on the cast member",
+        ));
     }
     if matches!(beat.shot.as_deref(), Some("two_shot" | "over_shoulder")) && stage_size < 2 {
         out.push(issue(
@@ -1199,6 +1217,9 @@ impl<'a> Builder<'a> {
                     entry.english_voice.clone()
                 }
             });
+            if member.principles.is_some() {
+                character.principles = member.principles.clone();
+            }
             character.voice = Some(VoiceConfig {
                 provider: provider.into(),
                 preset,
@@ -1517,6 +1538,7 @@ impl<'a> Builder<'a> {
                         actor: actor.clone(),
                         value: gesture.clone(),
                         duration,
+                        principles: beat.principles.clone(),
                     });
                     content_end = content_end.max(start + duration);
                 }
@@ -1559,6 +1581,7 @@ impl<'a> Builder<'a> {
                             actor: reaction.by.clone(),
                             value: gesture.clone(),
                             duration,
+                            principles: None,
                         });
                         content_end = content_end.max(at + duration);
                     }
@@ -1585,6 +1608,7 @@ impl<'a> Builder<'a> {
                         actor: actor.clone(),
                         value: gesture.clone(),
                         duration: GESTURE_SECONDS,
+                        principles: beat.principles.clone(),
                     });
                     length = length.max(GESTURE_SECONDS);
                 }

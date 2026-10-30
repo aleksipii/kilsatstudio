@@ -246,6 +246,7 @@ mod tests {
             actor: "EMMA".into(),
             value: "wave".into(),
             duration: 1.0,
+            principles: None,
         };
         assert!(
             Drag::resize(0, 0, &speech(0.5), 0.0).is_none(),
@@ -292,6 +293,7 @@ mod tests {
             actor: "EMMA".into(),
             value: "wave".into(),
             duration: -1.0,
+            principles: None,
         };
         assert!(Drag::new(0, 0, &event, 0.0).is_none());
     }

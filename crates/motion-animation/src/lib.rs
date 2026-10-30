@@ -6,9 +6,12 @@ pub use clips::{
     GESTURES, HUMANOID_BONES, JOG_CYCLE_SECONDS, POSTURE_BLEND_SECONDS, RUN_CYCLE_SECONDS,
     WALK_CYCLE_SECONDS,
 };
+mod principles;
+pub use principles::{Principles, PrinciplesError, PRINCIPLE_PRESETS};
 mod rig_motion;
 pub use rig_motion::{
-    acting_curve, rig_gait, rig_gesture, rig_sit, RigMotion, RIG_MOTION_JOINTS, SIT_SECONDS,
+    acting_curve, acting_curve_with, rig_gait, rig_gesture, rig_gesture_with, rig_moving_hold,
+    rig_sit, RigMotion, MOVING_HOLD_DELAY, RIG_MOTION_JOINTS, SIT_SECONDS,
 };
 pub mod spring;
 #[cfg(test)]
