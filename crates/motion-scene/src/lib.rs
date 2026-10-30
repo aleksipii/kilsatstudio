@@ -12,6 +12,7 @@ mod sequence;
 pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline};
 pub mod time;
 pub use time::SEQUENCE_SAMPLE_RATE;
+mod props;
 mod taps;
 pub mod tracks;
 pub use taps::{TapDiagnostic, TapSkip};
@@ -259,6 +260,8 @@ struct PreparedAnimation {
     /// Per actor: rigs for each hand state that timed `hold` events reach,
     /// with their rest parts. The initial state uses `rigs`.
     held: std::collections::BTreeMap<String, Vec<HeldVariant>>,
+    /// Per scene: resolved `composition.props` cues by actor.
+    props: Vec<props::SceneProps>,
 }
 /// What the left and right hands hold.
 type HandState = [Option<String>; 2];
@@ -492,6 +495,7 @@ impl PreparedAnimation {
             taps,
             tap_diagnostics,
             held,
+            props: props::prepare(script)?,
         })
     }
     /// The rig and rest parts for `actor` at `time`: a timed hand state when
@@ -1011,6 +1015,11 @@ fn evaluate_validated(
                 .map(|(emotion, since)| (emotion.as_str(), *since))
                 .collect();
             let offsets = prepared.offsets(script, scene_index, id, time_seconds)?;
+            let prop_cue = prepared
+                .props
+                .get(scene_index)
+                .and_then(|p| p.get(id.as_str()));
+            let mut prop_hands = None;
             let weights = scene.composition.sample_clip_weights(id, time_seconds);
             pose.wave *= weights.gesture;
             pose.skeleton = motion_animation::evaluate_humanoid_with_weights_and_offsets(
@@ -1085,6 +1094,9 @@ fn evaluate_validated(
                     rig.apply_screen(&mut pose.rigid_parts, &offsets, slot, &content)
                         .map_err(invalid)?;
                 }
+                if prop_cue.is_some() {
+                    prop_hands = Some(props::hand_frames(rig, &offsets)?);
+                }
             }
             if let Some(keys) = scene.composition.actor_tracks.get(id) {
                 // Validation above guarantees this track and scene-clock sample are valid.
@@ -1102,6 +1114,10 @@ fn evaluate_validated(
                 pose.scale = value.scale;
             }
             pose.scale.x *= mirror;
+            // Props move last, against the final root pose (anchors are scene-space).
+            if let (Some(cue), Some(hands)) = (prop_cue, prop_hands) {
+                props::apply(&mut pose, cue, hands, time_seconds);
+            }
             Ok(pose)
         })
         .collect::<Result<Vec<_>, Error>>()?;
