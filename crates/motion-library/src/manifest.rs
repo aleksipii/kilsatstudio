@@ -28,6 +28,9 @@ pub const MAX_RIG_PROJECT_BYTES: u64 = 64 * 1024 * 1024;
 pub const MAX_BLOB_BYTES: u64 = 1024 * 1024 * 1024;
 pub const MIN_PART_SCALE: f64 = 0.01;
 pub const MAX_PART_SCALE: f64 = 100.0;
+/// Largest accepted multiplane parallax factor (foreground planes may move
+/// faster than the character plane, which is 1.0).
+pub const MAX_PARALLAX: f64 = 4.0;
 /// Instance name reserved for a location's own contribution (room, own anchors,
 /// location-variant layers).
 pub const SELF_INSTANCE: &str = "room";
@@ -191,7 +194,10 @@ impl fmt::Display for AssetId {
 }
 
 /// Default stacking depth. `far` and `mid` map to [`Plane::Background`] (far
-/// first), `near` to [`Plane::Foreground`]. Parallax is metadata only.
+/// first), `near` to [`Plane::Foreground`]. Each depth also has a default
+/// multiplane parallax factor ([`Depth::default_parallax`]); assembly reports
+/// the effective factor per layer, and the renderer applies it only when the
+/// caller opts in (`motion_render::parallax`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Depth {
@@ -205,6 +211,33 @@ impl Depth {
             Depth::Far | Depth::Mid => Plane::Background,
             Depth::Near => Plane::Foreground,
         }
+    }
+    /// Camera-motion factor of this depth: far 0.3, mid 0.6, near 1.0 (the
+    /// character plane is 1.0).
+    pub fn default_parallax(self) -> f64 {
+        match self {
+            Depth::Far => 0.3,
+            Depth::Mid => 0.6,
+            Depth::Near => 1.0,
+        }
+    }
+}
+
+/// Aerial perspective of a location or set: distant planes fade toward
+/// `color` and lose saturation. `strength` 0..=1; 0 leaves output unchanged.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Atmosphere {
+    pub color: Color,
+    pub strength: f64,
+}
+
+fn validate_parallax(field: String, value: Option<f64>) -> Result<(), ManifestError> {
+    match value {
+        Some(v) if !v.is_finite() || !(0.0..=MAX_PARALLAX).contains(&v) => {
+            Err(invalid(field, "parallax must be finite and 0..=4"))
+        }
+        _ => Ok(()),
     }
 }
 
@@ -302,6 +335,9 @@ pub struct ArtLayer {
     pub id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub depth: Option<Depth>,
+    /// Multiplane parallax factor overriding the depth default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parallax: Option<f64>,
     /// Palette slot replacing the content colour at assembly time.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub paint: Option<String>,
@@ -471,6 +507,10 @@ pub struct Part {
     pub flip_x: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub depth: Option<Depth>,
+    /// Multiplane parallax factor for every layer of this instance; overrides
+    /// layer and depth defaults.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub parallax: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub variant: Option<String>,
 }
@@ -543,6 +583,9 @@ pub struct Manifest {
     pub cameras: Vec<CameraSpec>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub marks: Vec<Mark>,
+    /// Location/set aerial perspective; a set's value replaces its location's.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub atmosphere: Option<Atmosphere>,
 }
 
 /// `[a-z0-9_]{1,64}`: anchor, layer, instance, variant, palette, camera and mark ids.
@@ -641,6 +684,7 @@ pub(crate) fn validate_art_layers(
         ) {
             return Err(ManifestError::UnsupportedContent { field: f });
         }
+        validate_parallax(format!("{f}.parallax"), layer.parallax)?;
         if let Some(slot) = &layer.paint {
             if !slots.contains(slot.as_str()) {
                 return Err(ManifestError::UnknownPaletteSlot {
@@ -831,6 +875,17 @@ impl Manifest {
                 ))
             }
             _ => {}
+        }
+        if let Some(a) = &self.atmosphere {
+            if !matches!(kind, Kind::Location | Kind::Set) {
+                return Err(ManifestError::NotAllowed {
+                    field: "atmosphere",
+                    kind,
+                });
+            }
+            if !a.strength.is_finite() || !(0.0..=1.0).contains(&a.strength) {
+                return Err(invalid("atmosphere.strength", "must be finite and 0..=1"));
+            }
         }
         if self.room.is_some() && kind != Kind::Location {
             return Err(ManifestError::NotAllowed {
@@ -1051,6 +1106,7 @@ impl Manifest {
                     return Err(invalid(format!("{f}.scale"), "must be 0.01..=100"));
                 }
             }
+            validate_parallax(format!("{f}.parallax"), p.parallax)?;
             if p.variant.as_deref().is_some_and(|v| !local_id(v)) {
                 return Err(invalid(
                     format!("{f}.variant"),

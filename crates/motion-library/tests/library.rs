@@ -1321,3 +1321,87 @@ fn prop_states_are_optional_and_validated() {
         })
     ));
 }
+
+#[test]
+fn parallax_defaults_overrides_and_atmosphere_are_reported() {
+    let pack = full_pack();
+    let (lib, _) = pack.load(Policy::Distribution).unwrap();
+    let plain = assemble_set(&lib, "set.test.room_v1", None, "s1").unwrap();
+    // Every layer has a factor; defaults follow the effective depth.
+    assert_eq!(plain.parallax.len(), plain.document.layers.len());
+    assert_eq!(plain.parallax["s1_room_wall"], 0.3);
+    assert_eq!(plain.parallax["s1_chair_seat"], 0.6);
+    assert_eq!(plain.parallax["s1_chair_shadow"], 1.0);
+    assert_eq!(plain.atmosphere, None);
+
+    // Layer override, part (instance) override and set atmosphere.
+    let pack = full_pack();
+    pack.put(&mutated(chair(), |v| {
+        v["geometry"]["layers"][0]["parallax"] = json!(0.5)
+    }));
+    pack.put(&mutated(set(), |v| {
+        v["parts"][0]["parallax"] = json!(1.25);
+        v["atmosphere"] =
+            json!({"color": {"r": 200, "g": 210, "b": 230, "a": 255}, "strength": 0.4});
+    }));
+    let (lib, _) = pack.load(Policy::Distribution).unwrap();
+    let a = assemble_set(&lib, "set.test.room_v1", None, "s1").unwrap();
+    assert_eq!(a.parallax["s1_chair_seat"], 0.5);
+    assert_eq!(a.parallax["s1_chair_leg"], 0.6);
+    assert_eq!(a.parallax["s1_small_chair_seat"], 1.25);
+    assert_eq!(a.parallax["s1_small_chair_shadow"], 1.25);
+    assert_eq!(a.atmosphere.unwrap().strength, 0.4);
+    // The document itself is unchanged by parallax metadata.
+    assert_eq!(a.document, plain.document);
+    // A location's atmosphere applies to its bare assembly and to sets without one.
+    let pack = full_pack();
+    pack.put(&mutated(
+        location(),
+        |v| v["atmosphere"] = json!({"color": {"r": 1, "g": 2, "b": 3, "a": 255}, "strength": 1.0}),
+    ));
+    let (lib, _) = pack.load(Policy::Distribution).unwrap();
+    let loc = assemble_location(&lib, "location.test.room_v1", None, "s1").unwrap();
+    assert_eq!(loc.atmosphere.unwrap().color.r, 1);
+    let set = assemble_set(&lib, "set.test.room_v1", None, "s1").unwrap();
+    assert_eq!(set.atmosphere, loc.atmosphere);
+}
+
+#[test]
+fn parallax_and_atmosphere_are_validated() {
+    for bad in [json!(-0.1), json!(4.5)] {
+        let v = mutated(chair(), |v| {
+            v["geometry"]["layers"][0]["parallax"] = bad.clone()
+        });
+        assert!(
+            matches!(validate(&v), Err(ManifestError::InvalidField { ref field, .. }) if field == "geometry.layers[0].parallax"),
+            "{bad}"
+        );
+        let v = mutated(location(), |v| v["parts"][0]["parallax"] = bad.clone());
+        assert!(matches!(
+            validate(&v),
+            Err(ManifestError::InvalidField { ref field, .. }) if field == "parts[0].parallax"
+        ));
+    }
+    let atmosphere = json!({"color": {"r": 1, "g": 2, "b": 3, "a": 255}, "strength": 0.5});
+    let v = mutated(chair(), |v| v["atmosphere"] = atmosphere.clone());
+    assert!(matches!(
+        validate(&v),
+        Err(ManifestError::NotAllowed {
+            field: "atmosphere",
+            ..
+        })
+    ));
+    let v =
+        mutated(
+            location(),
+            |v| {
+                v["atmosphere"] =
+                    json!({"color": {"r": 1, "g": 2, "b": 3, "a": 255}, "strength": 1.5})
+            },
+        );
+    assert!(matches!(
+        validate(&v),
+        Err(ManifestError::InvalidField { ref field, .. }) if field == "atmosphere.strength"
+    ));
+    validate(&mutated(location(), |v| v["atmosphere"] = atmosphere)).unwrap();
+}
