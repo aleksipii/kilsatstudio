@@ -7,6 +7,34 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Art angles 2: camera angles front/reverse/high/low — PR #156 (2026-10-30)
+
+Merged with the user's authorisation (merge commit `5ca9d29`, no force-push). See
+[camera-angles.md](camera-angles.md).
+- MotionScript camera keys take `angle`, held until the next key as a cut. Scene evaluation
+  reports `camera.angle`; `reverse` mirrors actor roots and the camera x about the canvas
+  centre and turns views around before rig evaluation.
+- Art layers take an optional `angle`, and SVG, GPU and desktop renderers filter by the scene's
+  angle. `Layer::mirrored_x` mirrors vector content and rejects images/raster masks/attachments.
+  Project validation requires artwork drawn for every non-front angle a scene with artwork uses.
+- Story beats take `angle`; sets list their angles and unsupported ones are reported. The importer
+  mirrors vector sets and chairs for reverse scenes; all four bundled sets offer front and reverse.
+- Desktop: angle pickers (camera keys, art layers); framing keeps the angle; reverse drags fixed.
+
+Checks actually run locally (macOS, Apple Silicon), after merging `origin/main` (#155) into the
+branch: fmt, `clippy --workspace --all-targets -D warnings` (0), `cargo test --workspace
+--all-targets` 1277 passed / 0 failed / 13 ignored; earlier on the branch `--features gpu`
+motion-render/motion-export 265 passed. A first CI run failed in `gpu-contracts` (a missing field
+in the `gpu_scene_probe` example test that the local run had not compiled); fixed in `3a13849`.
+All 15 CI checks on the final head were green before merging. Front and reverse frames of a café
+story were rendered to PNG and inspected; a seated character showing a face in reverse was fixed.
+
+Still open: no hand-run desktop review; mirroring flops lettering; draw order does not change
+with the angle (chair back, hand props); lights and attached art are not mirrored; `high`/`low`
+only select drawn art and no bundled set has any; library prop views not wired (motion-library is
+unused by the desktop). Next: redrawn starter art (full characters with per-view drawings, sets
+with drawn reverse/high/low layers) and per-view SVG/PNG import. `kilsatstudio1.0` not advanced.
+
 ## Art angles 1: three-quarter view and per-view part drawings — PR #153 (2026-10-30)
 
 Merged with the user's authorisation (merge commit `835e459`, no force-push):
