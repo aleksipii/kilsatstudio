@@ -75,6 +75,41 @@ cargo run -p motion-scene --example evaluate_scene -- examples/hello-emma.yaml 0
 The output is sampled actor poses at project fps, not rendered images or video.
 The command refuses to replace an existing output and caps frame/actor counts.
 
+## Timing: exposure and blocking
+
+`composition.timing` (per scene) and `timing` on a character set how actor poses
+are evaluated. A character's fields override the scene's; unset fields mean on
+ones with each key's own easing, which is exactly the behavior of scripts
+without `timing`.
+
+```yaml
+characters:
+  EMMA: {asset: characters/emma, timing: {on: 1}}   # EMMA stays on ones
+scenes:
+  - id: intro
+    duration: 4
+    events: []
+    composition:
+      timing: {on: 2, interpolation: stepped}       # everyone else: twos, blocking
+      actor_tracks:
+        EMMA:
+          - {at: 0.0, x: 0, easing: ease_in_out}
+          - {at: 1.0, x: 80, easing: back(1.3)}
+          - {at: 2.0, x: 120}
+```
+
+- `on: 1 | 2 | 3` holds each evaluated pose for that many project frames. The
+  scene time is snapped to the start of its exposure block (frame 0, 2, 4, … on
+  twos) before evaluation, so playback, seeking and export give the same frames.
+- `interpolation: stepped` evaluates every key as `hold` for blocking passes;
+  `spline` (the default) uses each key's easing. The stored easings are not
+  changed, so switching back to `spline` restores the in-betweens.
+- Timing affects character poses only (moves, actor/bone tracks, clips, gaze).
+  The scene clock, camera, fades, audio and speech mouths stay on ones.
+- Other `on` values, unknown `interpolation` values and unknown easing names are
+  rejected with their document path, for example
+  ``scenes[0].composition.actor_tracks.EMMA[1].easing: unknown easing `bounce`; supported: …``.
+
 ## Captions
 
 `project.captions` (optional) turns speak events into speaker-coloured captions; see [captions](captions.md).
