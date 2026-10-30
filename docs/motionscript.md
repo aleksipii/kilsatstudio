@@ -47,6 +47,31 @@ what this implementation actually accepts.
 | hold | hand | Custom rig only: from `at` the hand holds the catalog `item`, or nothing without `item` |
 | pose | value | Custom rig with leg joints: `sit` or `stand`, eased over 0.4 s, lasts until the next pose |
 
+Held props can also be moved and changed with `composition.props`. The prop must be
+the character's `holds:` item and starts in that hand. Anchors are scene-space points
+(pixels) with an optional `rotation_degrees`; names are dot-separated `[a-z0-9_]` words.
+
+```yaml
+composition:
+  anchors:
+    table.top: {x: 820, y: 610}
+  props:
+    - actor: VEIKKO
+      item: kahvikuppi
+      actions:
+        - {at: 2.0, hand_off: {from: right, to: left}}             # 0.4 s blend
+        - {at: 4.0, set_down: {anchor: table.top}, duration: 0.6}  # default 0.5 s
+        - {at: 5.0, prop_state: empty}                              # instant
+```
+
+Each action has exactly one of `hand_off`, `set_down` or `prop_state`, in time order.
+Transfers may not overlap and must end within the scene. Errors name the scene, the
+actor and the action time, and say how to fix the problem: an unknown anchor lists the
+declared anchors, an unknown state lists the item's states, and an unknown item lists
+the catalog. A `hand_off` must start from where the prop is. An actor cannot combine
+prop cues with timed `hold` events in the same scene. After a `set_down` the prop stays
+on the anchor; picking it back up is not supported yet.
+
 Move intervals for one actor cannot overlap. At time zero actors begin at the
 project center horizontally and 70% of height vertically. Stable source order
 resolves simultaneous expression changes. Seeking calls the same stateless

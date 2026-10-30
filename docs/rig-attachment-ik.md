@@ -95,6 +95,44 @@ nine walk positions and a wide and a 2.5× close camera. The camera there is a p
 affine stand-in (centre, zoom, viewport). Real renderer output and reference images
 are A08's (KS-003c).
 
+## Prop states, hand-offs and set-downs (`prop_states.rs`, PRO P06)
+
+- A catalog item may list `states`, for example `kahvikuppi`:
+  `[{id: full}, {id: empty, hide: [coffee]}]`. The first state is the default and
+  must hide nothing; other states hide item parts (`parts` or `grip_parts`) by id,
+  never the screen glass. At most 8 states; ids `[a-z0-9_]{1,64}`. An item without
+  `states` has the single state `default`. `HandPropItem::hidden_parts` returns an
+  `UnknownPropState` error that lists the declared states.
+- `PropTrack` says who carries one prop over scene time: the starting hand, then
+  up to 64 non-overlapping transfers to the other hand or to a scene anchor. During
+  a transfer (0–10 s; defaults 0.4 s for `hand_off`, 0.5 s for `set_down`) the
+  prop's frame blends from the old carrier's current frame to the new one's with a
+  smoothstep (`blend_frames`: straight-line origin, shorter-way rotation, linear
+  scale). It starts exactly on the old carrier and ends exactly on the new one, so
+  the prop never jumps. Hands do not reach for each other automatically; animate
+  them with joint tracks or IK when they should meet.
+- Tests sample the blend at 2400 Hz while both hands move and check the step size.
+
+MotionScript reaches this through `composition.anchors` and `composition.props`
+(see [motionscript.md](motionscript.md)); `motion-scene` hides the parts of the
+current state and moves the prop's parts from the `holds:` hand to the carrier
+after the pose and root transform are known (anchors are scene-space).
+
+## Prop cards (`prop_card.rs`)
+
+`prop_card_svg(item, figure, hand)` writes a deterministic SVG: one 360 × 440 px
+cell per state under a 48 px title. Each cell shows the figure holding the item at
+the figure's own scale, with a height ruler in rig units, and a close-up of the item
+labelled with its zoom factor.
+
+```sh
+cargo run -p motion-rig --example prop_card -- kahvikuppi target/prop-cards/kahvikuppi.svg
+```
+
+The example uses the original Veikko stick figure. Tests check the card size,
+that `empty` drops the coffee in both views, byte-identical output on repeat, and
+that every catalog item renders. PNG output is not included.
+
 ## Not included
 
 - No IK editor in the desktop UI, no IK timeline track (KS-003d) and no
