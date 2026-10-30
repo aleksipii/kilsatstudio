@@ -6,6 +6,7 @@ mod continuity;
 pub mod event_log;
 mod holds;
 pub mod intent;
+mod prop_cues;
 mod rules;
 mod screens;
 mod shots;
@@ -21,6 +22,10 @@ pub use continuity::{
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use holds::{held_rig, HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
+pub use prop_cues::{
+    HandOff, PropAction, PropAnchor, PropCue, PropCueError, ResolvedPropCue, SetDown,
+    MAX_PROP_ACTIONS, MAX_PROP_ANCHORS, MAX_PROP_ANCHOR_COORD, MAX_PROP_CUES,
+};
 pub use rules::{
     FiringSource, Rule, RuleCameraPreset, RuleCondition, RuleEffect, RuleError, RuleExpansion,
     RuleFiring, RuleTrigger, Rules, MAX_RULES, MAX_RULE_NAME, MAX_RULE_OUTPUTS,
@@ -158,6 +163,12 @@ pub struct Composition {
     /// scene's characters; see `timing`.
     #[serde(skip_serializing_if = "Timing::is_unset")]
     pub timing: Timing,
+    /// Named scene points props can be set down on (see `prop_cues`).
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub anchors: BTreeMap<String, PropAnchor>,
+    /// Timed hand-offs, set-downs and state changes of held props.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub props: Vec<PropCue>,
 }
 /// Maximum gaze keys per actor and scene.
 pub const MAX_GAZE_KEYS: usize = 256;
@@ -256,6 +267,8 @@ impl Default for Composition {
             audio_cues: Vec::new(),
             screens: Vec::new(),
             timing: Timing::default(),
+            anchors: BTreeMap::new(),
+            props: Vec::new(),
         }
     }
 }
@@ -1529,6 +1542,7 @@ pub fn remove_character(source: &str, id: &str) -> Result<String, Error> {
             scene.composition.clip_weights.remove(id);
             scene.composition.clip_weight_tracks.remove(id);
             scene.composition.screens.retain(|cue| cue.actor != id);
+            scene.composition.props.retain(|cue| cue.actor != id);
             scene
                 .composition
                 .clip_instances
@@ -2035,6 +2049,7 @@ impl Script {
                 }
             }
             self.validate_screens(s)?;
+            self.resolve_prop_cues(s)?;
             if s.composition.audio_cues.len() > MAX_AUDIO_CUES {
                 return Err(fail(format!(
                     "{}: at most {MAX_AUDIO_CUES} audio cues per scene",

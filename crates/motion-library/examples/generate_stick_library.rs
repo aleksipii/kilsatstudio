@@ -71,6 +71,7 @@ fn base(id: &str, kind: Kind, name: &str, bounds: Rect, depth: Depth, t: &[&str]
         geometry: Geometry::Composite,
         anchors: Vec::new(),
         variants: Vec::new(),
+        states: Vec::new(),
         room: None,
         parts: Vec::new(),
         location: None,
