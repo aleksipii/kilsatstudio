@@ -1,11 +1,48 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-25. A checked item identifies integrated, inspected implementation, not a
+2026-10-30. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
+
+## PRO studio series P01–P08 — PRs #144–#151 (2026-10-30)
+
+Merged with the user's authorisation by the PRO orchestrator, in waves (merge commits,
+no force-push):
+- **Wave 1:** **#145** (P01, `08df5c2`) easings, exposure on twos/threes and stepped blocking;
+  **#146** (P04, `b29c21f`) continuity warnings for shot lists (180° rule, jump cuts,
+  cut-on-action hints); **#147** (P02, `a98cbf6`) A–H/X mouth chart projected from the 13
+  visemes, plus the X-sheet and its desktop panel; **#149** (P07, `8087a4c`) OpenTimelineIO
+  timeline, ProRes 422 HQ/4444 and colour tags; **#144** (P06, `3fffe30`) prop states,
+  hand-offs, set-downs and prop cards.
+- **Wave 2:** **#151** (P03, `fb98d47`) animation principles as MotionScript settings;
+  **#150** (P05, `06cd1a8`) multiplane parallax, aerial perspective and value-structure check.
+- **Wave 3:** **#148** (P08, `1cd90a1`) model sheet, silhouette check and character style
+  presets.
+
+Orchestrator changes: #144 first failed CI because the new `PropError::States` was not
+handled in `apps/studio-desktop/src/hand_props.rs`. A Finnish message was added (`0baa8fb`).
+#144, #151, #150 and #148 then had `origin/main` merged in to resolve additive conflicts in
+shared hot files (`motion-script/src/lib.rs`, `motion-scene/src/lib.rs`, `studio-desktop/src/main.rs`,
+`motion-library/src/lib.rs` and its tests, `motion-render/src/lib.rs`), keeping both sides.
+
+Checks actually run locally (macOS, Apple Silicon): all eight branches were merged together
+on top of `c6ad82c` before any merge. On that combination, `cargo fmt --all --check`,
+`cargo check --workspace`, `cargo clippy --workspace --all-targets` (0 warnings) and
+`cargo test --workspace` passed. The same checks passed on each conflict-resolution commit
+before it was pushed. The final #148 head (`4ba5107`), whose tree equals `main` `1cd90a1`,
+gave 1226 passed / 0 failed / 13 ignored, using a clean target directory. One false
+`motion-render` compile error came from a target directory shared between worktrees and
+disappeared with a clean one. GitHub CI was green on every PR head before it was merged.
+
+Still open: no graphical application run of the X-sheet or model sheet panels, or of the new
+easing labels; no word-level timing in the X-sheet; continuity thresholds not reviewed against
+real edits, and the desktop does not show the notes; the official `opentimelineio` reader not
+run locally; EXR output needs an A01 dependency decision; the H.264 path is still untagged
+BT.601; no art or perceptual review of parallax, principles or style presets. `kilsatstudio1.0`
+has not been advanced. That needs the user's separate approval, as does any version or tag change.
 
 ## Screen-slot follow-ups and Kilsat Studio 1.0 — PRs #135–#139 (2026-10-29)
 
