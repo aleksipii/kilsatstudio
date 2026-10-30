@@ -557,6 +557,12 @@ pub fn export_scene(
     )
 }
 
+/// Rasterize a standalone SVG (for example a model sheet) to PNG bytes with the
+/// same bundled-font renderer as PNG export. No system fonts or processes.
+pub fn rasterize_svg_png(svg: &str) -> Result<Vec<u8>, Error> {
+    media::rasterize(svg)
+}
+
 /// Rasterize the same evaluated SVG poses to PNG without external processes.
 pub fn export_png_scene(
     script: &Script,
