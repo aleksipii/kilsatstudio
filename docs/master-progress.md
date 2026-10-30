@@ -7,6 +7,29 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Art angles 1: three-quarter view and per-view part drawings — PR #153 (2026-10-30)
+
+Merged with the user's authorisation (merge commit `835e459`, no force-push):
+- `FaceView::ThreeQuarter`; MotionScript and story `face` accept `three_quarter_left` /
+  `three_quarter_right` (mirrored like `left`). Desktop facing labels added.
+- Rig parts take optional `views` (`three_quarter`, `side`, `back`) with variant fields,
+  so characters can be drawn or textured separately per angle. Precedence: variant, view
+  drawing, base. Drawn feature views skip the automatic face turn; missing drawings fall
+  back to the front drawing (three-quarter) or the automatic turn.
+- The built-in stick figure turns its face partway in three-quarter on every renderer
+  (shared `procedural_face`). The model sheet turnaround adds "puolisivulta".
+
+Checks actually run locally (macOS, Apple Silicon): fmt, check, clippy (0 warnings) and
+`cargo test --workspace --no-fail-fast` 1231 passed / 0 failed / 13 ignored. Model sheet
+reference hashes were updated after visually inspecting the rendered sheet. All 14 GitHub
+CI checks on the PR head were green before merging.
+
+Still open: no hand-run desktop review; bundled characters have no per-view drawings yet
+(the stick body is unchanged in three-quarter, only the face turns); older app builds reject
+rigs using `views`. Next: per-view art for props and sets with screenplay camera angles
+(reverse/high/low), a redrawn starter set with full drawn characters alongside stick
+figures, and per-view SVG/PNG import in the desktop app. `kilsatstudio1.0` was not advanced.
+
 ## PRO studio series P01–P08 — PRs #144–#151 (2026-10-30)
 
 Merged with the user's authorisation by the PRO orchestrator, in waves (merge commits,

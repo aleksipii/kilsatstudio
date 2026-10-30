@@ -14,7 +14,7 @@ pub use definition::{
     JointLimitDefinition, MouthShapes, OutlineDefinition, OutlineMode, PartTextureDefinition,
     PartVariantDefinition, PreparedRig, RigDefinition, RigJointDefinition, RigidPartDefinition,
     TextureFit, TextureGlow, VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES,
-    MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VISEME_NAMES,
+    MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VIEW_NAMES, VISEME_NAMES,
 };
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
 pub use prop_card::{

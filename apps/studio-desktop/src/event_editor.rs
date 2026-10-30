@@ -259,6 +259,8 @@ pub(crate) fn ease_label(value: &str) -> &str {
 pub(crate) fn facing_label(value: &str) -> &str {
     match value {
         "front" => "Edestä",
+        "three_quarter_left" => "3/4 vasemmalle",
+        "three_quarter_right" => "3/4 oikealle",
         "left" => "Profiili vasemmalle",
         "right" => "Profiili oikealle",
         "back" => "Selkä katsojaan",

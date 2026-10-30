@@ -85,7 +85,7 @@ scenes:
 | `camera` | `static`, `push_in`, `pull_out` (zoomi 30 %), `pan_left`, `pan_right` (12 % näkyvästä leveydestä kumpaankin suuntaan, zoomi vähintään 1,2), `shake` (0,5 s vaimeneva tärähdys). Liike aloittaa aina oman otoksensa. |
 | `cast.*.speed` | Puhenopeus 0,7–1,4. Hahmoilla on oletusnopeudet (esim. Kiire 1,18, Noutaja 0,88); suomessa ne erottavat hahmot, koska Piperissa on yksi ääni. |
 | `principles` | Animaatioperiaatteet: `cast.*.principles` hahmolle ja beatin `principles` sen eleelle. Esiasetus (`subtle`, `cartoon`, `snappy`) tai lohko; ks. [animation-principles.md](animation-principles.md). Beatin `principles` vaatii `gesture`-kentän. |
-| arvot | `emotion`: neutral, happy, sad, surprised, angry · `gesture`: wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap, think, stumble · `face`: front, left, right, back · `gait`: walk, jog, run, stroll, sneak, tiptoe, limp, sprint, backwards, leap, carry · `pose`: stand, sit, crouch, kneel, lie, fall · `depth`: near, mid, far · `shot`: auto, wide, medium, close_up, two_shot, over_shoulder |
+| arvot | `emotion`: neutral, happy, sad, surprised, angry · `gesture`: wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap, think, stumble · `face`: front, three_quarter_left, three_quarter_right, left, right, back · `gait`: walk, jog, run, stroll, sneak, tiptoe, limp, sprint, backwards, leap, carry · `pose`: stand, sit, crouch, kneel, lie, fall · `depth`: near, mid, far · `shot`: auto, wide, medium, close_up, two_shot, over_shoulder |
 
 Tuntemattomat kentät, hahmot, lavasteet ja arvot hylätään (ei arvata, ei ohiteta).
 
