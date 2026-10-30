@@ -117,7 +117,11 @@ fn load_images(
     let mut required = BTreeSet::new();
     for (id, scene) in scenes {
         for plane in [motion_art::Plane::Background, motion_art::Plane::Foreground] {
-            for step in project.art.composition(id, plane, scene.time)? {
+            for step in
+                project
+                    .art
+                    .composition(id, plane, scene.time, Some(scene.camera.angle.name()))?
+            {
                 if let motion_art::CompositionStep::Layer(layer) = step {
                     if layer
                         .attachment
@@ -332,6 +336,7 @@ mod tests {
             clip: None,
             clip_shape: None,
             blend: BlendMode::Normal,
+            angle: None,
             content: Content::Image {
                 asset_id: "i".into(),
                 rect: Rect {

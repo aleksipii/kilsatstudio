@@ -34,6 +34,11 @@ fn catalog() -> StoryCatalog {
                     name: id.into(),
                     description: "test set".into(),
                     background_color: "#eddec9".into(),
+                    angles: if id == "kahvila" {
+                        vec!["front".into(), "reverse".into()]
+                    } else {
+                        vec!["front".into()]
+                    },
                 },
             )
         })
@@ -533,6 +538,53 @@ fn principles_reach_the_cast_and_beat_gestures() {
     assert!(errors(&lonely)
         .iter()
         .any(|i| i.path.ends_with(".principles")));
+}
+
+#[test]
+fn angles_cut_hold_until_changed_and_need_set_support() {
+    let story = minimal(
+        "      - say: VEIKKO\n        line: Hello there.\n      - say: SISU\n        line: Hi.\n        angle: reverse\n      - say: VEIKKO\n        line: Still behind you.\n      - say: SISU\n        line: Back again.\n        angle: front\n",
+    )
+    .replace("set: toimisto", "set: kahvila");
+    let compiled = compile_story(&story, &catalog(), None).unwrap();
+    let keys = &compiled.script.scenes[0].composition.camera;
+    let angle_at = |t: f64| {
+        keys.iter()
+            .rev()
+            .find(|k| k.at <= t)
+            .map_or("front", |k| k.angle())
+            .to_string()
+    };
+    let lines = &compiled.lines;
+    assert_eq!(angle_at(lines[0].at), "front");
+    assert_eq!(angle_at(lines[1].at), "reverse");
+    // The angle holds through the next line, even without a new shot.
+    assert_eq!(angle_at(lines[2].at), "reverse");
+    assert_eq!(angle_at(lines[3].at), "front");
+    // The reverse begins with a key exactly at its cut.
+    assert!(keys
+        .iter()
+        .any(|k| k.angle() == "reverse" && (k.at - lines[1].at).abs() < 1e-9));
+    // Valid MotionScript that round-trips.
+    let source = crate::to_source(&compiled.script).unwrap();
+    assert_eq!(
+        crate::parse(&source).unwrap().scenes[0].composition.camera,
+        *keys
+    );
+
+    // toimisto offers only front.
+    let unsupported = errors(&minimal(
+        "      - say: VEIKKO\n        line: Hello.\n        angle: reverse\n",
+    ));
+    assert!(unsupported.iter().any(|i| i.kind == IssueKind::Unsupported
+        && i.path == "scenes[0].beats[0].angle"
+        && i.message.contains("can be filmed from front")));
+    let unknown = errors(&minimal(
+        "      - say: VEIKKO\n        line: Hello.\n        angle: dutch\n",
+    ));
+    assert!(unknown
+        .iter()
+        .any(|i| i.path == "scenes[0].beats[0].angle" && i.message.contains("reverse")));
 }
 
 fn moves_of<'a>(script: &'a Script, actor: &str) -> Vec<&'a Event> {

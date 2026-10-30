@@ -392,6 +392,7 @@ fn camera_keys(
             x: cx - w / 2.0,
             y: cy - h / 2.0,
             zoom,
+            angle: None,
         }
     };
     let mut keys: Vec<CameraKey> = times.into_iter().map(key_at).collect();
@@ -856,7 +857,8 @@ shots:
                 at: 0.0,
                 x: 0.0,
                 y: 0.0,
-                zoom: 1.0
+                zoom: 1.0,
+                angle: None,
             }]
         );
         let close = &out.script.scenes[2].composition.camera;

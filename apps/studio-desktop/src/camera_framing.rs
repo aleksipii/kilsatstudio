@@ -238,6 +238,7 @@ pub(crate) fn apply(
             x: 0.0,
             y: 0.0,
             zoom: 1.0,
+            angle: None,
         }
     } else {
         let bounds = if shot == Shot::TwoActors {
@@ -271,7 +272,20 @@ pub(crate) fn apply(
             zoom: (f64::from(evaluated.width) * 0.84 / width)
                 .min(f64::from(evaluated.height) * 0.84 / height)
                 .clamp(0.05, 20.0),
+            angle: None,
         }
+    };
+    // Keep the angle in effect here. Bounds were measured on the evaluated
+    // (mirrored) reverse view, which negates the stored camera x.
+    let angle = evaluated.camera.angle;
+    let key = CameraKey {
+        x: if angle == motion_scene::CameraAngle::Reverse {
+            -key.x
+        } else {
+            key.x
+        },
+        angle: (angle != motion_scene::CameraAngle::Front).then(|| angle.name().to_string()),
+        ..key
     };
     let mut composition = scene.composition.clone();
     match composition
@@ -291,6 +305,7 @@ pub(crate) fn apply(
                     x: 0.0,
                     y: 0.0,
                     zoom: 1.0,
+                    angle: None,
                 });
                 composition.camera.push(key);
             } else {
@@ -472,6 +487,7 @@ mod tests {
                 x: 0.0,
                 y: 0.0,
                 zoom: 1.0,
+                angle: None,
             })
             .collect();
         let source = serde_json::to_string(&script).unwrap();

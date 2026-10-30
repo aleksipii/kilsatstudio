@@ -99,6 +99,19 @@ pub fn ui(
                 ui.label("Lähennys");
                 ui.add(egui::DragValue::new(&mut key.zoom).speed(0.05));
             });
+            let current = key.angle().to_string();
+            egui::ComboBox::from_label("Kuvakulma")
+                .selected_text(angle_label(&current))
+                .show_ui(ui, |ui| {
+                    for name in motion_scene::CAMERA_ANGLES {
+                        if ui
+                            .selectable_label(current == name, angle_label(name))
+                            .clicked()
+                        {
+                            key.angle = (name != "front").then(|| name.to_string());
+                        }
+                    }
+                });
         });
     }
     if let Some(index) = remove {
@@ -115,6 +128,7 @@ pub fn ui(
             x: 0.0,
             y: 0.0,
             zoom: 1.0,
+            angle: None,
         });
     }
     ui.small("Avainruutujen aikojen pitää olla erillisiä ja kasvavia. Muuta järjestystä muokkaamalla aikoja ennen käyttämistä.");
@@ -202,6 +216,17 @@ fn camera_presets_ui(ui: &mut egui::Ui, value: &mut Composition, duration: f64) 
             }
         });
     });
+}
+
+/// Finnish label for a screenplay camera angle.
+pub(crate) fn angle_label(name: &str) -> &str {
+    match name {
+        "front" => "Edestä (piirretty puoli)",
+        "reverse" => "Vastakuva (toinen puoli)",
+        "high" => "Yläkulma",
+        "low" => "Alakulma",
+        other => other,
+    }
 }
 
 #[cfg(test)]

@@ -832,7 +832,7 @@ fn append_art(
     let scale = result.canvas[2] as f64 / scene.width as f64;
     let mut depth = 0usize;
     for step in document
-        .composition(scene_id, plane, scene.time)
+        .composition(scene_id, plane, scene.time, Some(scene.camera.angle.name()))
         .map_err(art_error)?
     {
         match step {
@@ -1208,6 +1208,7 @@ mod tests {
             clip_shape: None,
             blend: motion_art::BlendMode::Normal,
             content,
+            angle: None,
         }
     }
     #[test]

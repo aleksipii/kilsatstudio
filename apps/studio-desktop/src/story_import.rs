@@ -57,6 +57,54 @@ const FURNITURE: [(&str, &str, f64, f64, f64); 1] = [(
 )];
 
 /// Scale and move one piece of furniture artwork into a scene, behind actors.
+/// Whether any layer is drawn specifically for camera `angle`.
+fn drawn_for(layers: &[motion_art::Layer], angle: &str) -> bool {
+    layers.iter().any(|l| l.angle.as_deref() == Some(angle))
+}
+
+/// Camera angles a set can be filmed from: front, every angle some layer is
+/// drawn for, and reverse when every shared layer can be mirrored.
+fn set_angles(layers: &[motion_art::Layer]) -> Vec<String> {
+    let mut angles: Vec<String> = motion_scene::CAMERA_ANGLES
+        .iter()
+        .filter(|a| **a == "front" || drawn_for(layers, a))
+        .map(|a| a.to_string())
+        .collect();
+    let mirrorable = layers
+        .iter()
+        .filter(|l| l.angle.is_none())
+        .all(|l| l.mirrored_x(0.0).is_ok());
+    if mirrorable && !angles.iter().any(|a| a == "reverse") {
+        angles.insert(1, "reverse".into());
+    }
+    angles
+}
+
+/// Layers for a scene that cuts to the reverse angle: every shared layer is
+/// kept for the front and a mirrored copy (about the canvas centre `axis`) is
+/// added for the reverse. Layers already drawn for an angle stay as they are.
+fn with_reverse(
+    layers: Vec<motion_art::Layer>,
+    axis: f64,
+) -> Result<Vec<motion_art::Layer>, String> {
+    let mut front = Vec::with_capacity(layers.len());
+    let mut reverse = Vec::new();
+    for mut layer in layers {
+        if layer.angle.is_none() {
+            let mut mirrored = layer
+                .mirrored_x(axis)
+                .map_err(|e| format!("layer {}: {e}", layer.id))?;
+            mirrored.id = format!("{}_rev", layer.id);
+            mirrored.angle = Some("reverse".into());
+            reverse.push(mirrored);
+            layer.angle = Some("front".into());
+        }
+        front.push(layer);
+    }
+    front.extend(reverse);
+    Ok(front)
+}
+
 fn furniture_layers(
     item: &story::Furniture,
     index: usize,
@@ -242,6 +290,7 @@ fn pack_library() -> Result<Library, String> {
                 name: set_script.project.title.clone(),
                 description: description.into(),
                 background_color: scene.composition.background_color.clone(),
+                angles: set_angles(&document.art.layers),
             },
         );
         set_layers.insert(id.to_string(), document.art.layers);
@@ -341,6 +390,7 @@ fn library(project: &ProjectContent) -> Result<Library, String> {
                 name: scene.id.clone(),
                 description: format!("set painted in the user's project (scene {})", scene.id),
                 background_color: scene.composition.background_color.clone(),
+                angles: set_angles(&layers),
             },
         );
         library.set_layers.insert(id, layers);
@@ -393,11 +443,23 @@ pub(crate) fn build_with(
     }
     let mut document =
         motion_project::ProjectDocument::new(source).map_err(|e| catalog_error(e.to_string()))?;
+    let axis = f64::from(compilation.script.project.width) / 2.0;
+    let reversed = |scene_id: &str| {
+        compilation
+            .script
+            .scenes
+            .iter()
+            .find(|s| s.id == scene_id)
+            .is_some_and(|s| s.composition.camera.iter().any(|k| k.angle() == "reverse"))
+    };
     for (scene_id, set_id) in &compilation.scene_sets {
         let layers = library
             .set_layers
             .get(set_id.as_str())
             .ok_or_else(|| catalog_error(format!("set {set_id} has no artwork")))?;
+        // A set without its own reverse drawing is mirrored for the reverse angle.
+        let mirror = reversed(scene_id) && !drawn_for(layers, "reverse");
+        let mut placed = Vec::new();
         for (index, layer) in layers.iter().enumerate() {
             let mut layer = layer.clone();
             let suffix = layer
@@ -407,11 +469,23 @@ pub(crate) fn build_with(
                 .to_string();
             layer.id = format!("{scene_id}_{index}_{suffix}");
             layer.scene_id = scene_id.clone();
-            document.art.layers.push(layer);
+            placed.push(layer);
         }
+        let placed = if mirror {
+            with_reverse(placed, axis).map_err(catalog_error)?
+        } else {
+            placed
+        };
+        document.art.layers.extend(placed);
     }
     for (index, item) in compilation.furniture.iter().enumerate() {
         let layers = furniture_layers(item, index).map_err(catalog_error)?;
+        // Furniture is placed per story, so it is always mirrored for reverse.
+        let layers = if reversed(&item.scene) {
+            with_reverse(layers, axis).map_err(catalog_error)?
+        } else {
+            layers
+        };
         document.art.layers.extend(layers);
     }
     document
@@ -465,6 +539,76 @@ mod tests {
         // The document round-trips through the project format.
         let bytes = motion_project::encode(&built.document).unwrap();
         motion_project::decode(&bytes).unwrap();
+    }
+
+    #[test]
+    fn reverse_angle_mirrors_the_set_and_furniture_and_swaps_actor_sides() {
+        let text = "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {}\n  SISU: {}\nscenes:\n  - id: s\n    set: kahvila\n    positions: {VEIKKO: left, SISU: right}\n    beats:\n      - do: VEIKKO\n        pose: sit\n      - say: SISU\n        line: Hello there.\n      - say: VEIKKO\n        line: Over here.\n        angle: reverse\n";
+        let catalog = catalog().unwrap();
+        assert!(catalog
+            .sets
+            .values()
+            .all(|set| set.angles == ["front", "reverse"]));
+        assert!(guide(&ProjectContent::default())
+            .unwrap()
+            .contains("angles: front, reverse"));
+        let built = build(text, None).unwrap();
+        let art = &built.document.art;
+        let tagged = |angle: &str| {
+            art.layers
+                .iter()
+                .filter(|l| l.angle.as_deref() == Some(angle))
+                .count()
+        };
+        assert!(tagged("front") > 40, "set and chair kept for the front");
+        assert_eq!(tagged("front"), tagged("reverse"));
+        assert!(art.layers.iter().all(|l| l.angle.is_some()));
+        // Each mirrored copy reflects its front layer about the canvas centre.
+        let width = 1920.0;
+        for layer in art
+            .layers
+            .iter()
+            .filter(|l| l.angle.as_deref() == Some("front"))
+        {
+            let copy = art
+                .layers
+                .iter()
+                .find(|l| l.id == format!("{}_rev", layer.id))
+                .unwrap();
+            assert_eq!(copy.content, layer.mirrored_x(width / 2.0).unwrap().content);
+        }
+        let script = motion_script::parse(&built.document.source).unwrap();
+        let line = &built.compilation.lines[1];
+        let x_at = |t: f64| {
+            let scene = motion_scene::evaluate(&script, 0, t).unwrap();
+            let veikko = scene.actors.iter().find(|a| a.id == "VEIKKO").unwrap().x;
+            (scene.camera.angle, veikko)
+        };
+        let (front, before) = x_at(line.at - 0.1);
+        let (reverse, after) = x_at(line.at + 0.1);
+        assert_eq!(front, motion_scene::CameraAngle::Front);
+        assert_eq!(reverse, motion_scene::CameraAngle::Reverse);
+        assert!(before < width / 2.0 && after > width / 2.0);
+        assert!((before + after - width).abs() < 1e-6, "mirrored, not moved");
+        // Both shots render through the normal pipeline; set
+        // STORY_ANGLE_OUT=<dir> to keep the frames for a visual check.
+        for (name, t) in [("front", line.at - 0.1), ("reverse", line.at + 0.1)] {
+            let scene = motion_scene::evaluate(&script, 0, t).unwrap();
+            let svg = motion_render::render_svg_with_art(
+                &scene,
+                960,
+                540,
+                &[],
+                "s",
+                art,
+                &BTreeMap::new(),
+            )
+            .unwrap();
+            if let Ok(dir) = std::env::var("STORY_ANGLE_OUT") {
+                let png = motion_export::rasterize_svg_png(&svg).unwrap();
+                std::fs::write(format!("{dir}/{name}.png"), png).unwrap();
+            }
+        }
     }
 
     #[test]

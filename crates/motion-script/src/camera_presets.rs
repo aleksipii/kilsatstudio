@@ -23,6 +23,7 @@ pub fn camera_preset_keys(preset: CameraPreset, duration: f64) -> Result<Vec<Cam
         x: 0.0,
         y: 0.0,
         zoom: 1.0,
+        angle: None,
     };
     let mut end = CameraKey {
         at: duration,

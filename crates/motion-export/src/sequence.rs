@@ -923,12 +923,14 @@ mod tests {
                         x: 0.0,
                         y: 0.0,
                         zoom: 1.0,
+                        angle: None,
                     },
                     motion_script::CameraKey {
                         at: 1.0,
                         x: 1.0,
                         y: 0.5,
                         zoom: 1.2,
+                        angle: None,
                     },
                 ];
             }
@@ -980,6 +982,7 @@ mod tests {
                             a: 255,
                         },
                     },
+                    angle: None,
                 });
             }
             let mut image_layer = art.document.layers[1].clone();
@@ -1104,6 +1107,7 @@ mod tests {
                         height: 8.0,
                     },
                 },
+                angle: None,
             });
         }
         let per_image = (art.images["pixel"].png().len() as u64).div_ceil(3) * 4 + 256;
@@ -1473,6 +1477,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         let dest = crate::tests::destination();
         export_png_sequence(
@@ -1601,6 +1606,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         });
         let cancel = CancellationToken::new();
         for (mode, opacity, expected) in [
@@ -1700,6 +1706,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         };
         let mut art = ArtContext::default();
         for i in 0..150 {

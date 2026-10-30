@@ -465,6 +465,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         };
         let art = ArtContext {
             document: Document {

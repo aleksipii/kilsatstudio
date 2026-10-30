@@ -238,6 +238,7 @@ mod tests {
                     a: 255,
                 },
             },
+            angle: None,
         }
     }
     #[test]

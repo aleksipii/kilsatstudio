@@ -60,6 +60,7 @@ fn animated(id: &str, frames: &[(&str, f64)], playback: Playback, rect: Rect) ->
             rect,
             playback,
         },
+        angle: None,
     }
 }
 fn solid(r: u8, g: u8, b: u8) -> ImageResource {

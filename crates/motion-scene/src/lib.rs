@@ -6,8 +6,8 @@ use motion_animation::{Interpolation, Transform2};
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
 use motion_lipsync::Viseme;
 pub use motion_rig::FaceView;
-pub use motion_script::FACINGS;
 use motion_script::{Event, Script};
+pub use motion_script::{CAMERA_ANGLES, FACINGS};
 mod sequence;
 pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline};
 pub mod time;
@@ -132,11 +132,41 @@ impl ActorPose {
         .point(point)
     }
 }
+/// Which side the camera films from; held from a camera key until the next.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub enum CameraAngle {
+    #[default]
+    Front,
+    /// The opposite side of the set: actors are mirrored about the canvas
+    /// centre and turned around (front and back views swap).
+    Reverse,
+    /// Looking down; selects art drawn for `high`.
+    High,
+    /// Looking up; selects art drawn for `low`.
+    Low,
+}
+impl CameraAngle {
+    /// The screenplay name (`CAMERA_ANGLES`), also used by art layer `angle`.
+    pub fn name(self) -> &'static str {
+        match self {
+            CameraAngle::Front => "front",
+            CameraAngle::Reverse => "reverse",
+            CameraAngle::High => "high",
+            CameraAngle::Low => "low",
+        }
+    }
+    pub fn parse(name: &str) -> Option<CameraAngle> {
+        [Self::Front, Self::Reverse, Self::High, Self::Low]
+            .into_iter()
+            .find(|a| a.name() == name)
+    }
+}
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CameraPose {
     pub x: f64,
     pub y: f64,
     pub zoom: f64,
+    pub angle: CameraAngle,
 }
 impl Default for CameraPose {
     fn default() -> Self {
@@ -144,6 +174,7 @@ impl Default for CameraPose {
             x: 0.0,
             y: 0.0,
             zoom: 1.0,
+            angle: CameraAngle::Front,
         }
     }
 }
@@ -162,6 +193,15 @@ fn camera_at(keys: &[motion_script::CameraKey], time: f64) -> CameraPose {
     let Some(first) = keys.first() else {
         return CameraPose::default();
     };
+    // The angle is a cut: the last key at or before `time` (the first key
+    // before it starts), never blended.
+    let angle = keys
+        .iter()
+        .rev()
+        .find(|k| k.at <= time)
+        .unwrap_or(first)
+        .angle();
+    let angle = CameraAngle::parse(angle).unwrap_or_default();
     let mut left = first;
     for right in keys.iter().skip(1) {
         if time <= right.at {
@@ -170,6 +210,7 @@ fn camera_at(keys: &[motion_script::CameraKey], time: f64) -> CameraPose {
                 x: left.x + (right.x - left.x) * t,
                 y: left.y + (right.y - left.y) * t,
                 zoom: left.zoom + (right.zoom - left.zoom) * t,
+                angle,
             };
         }
         left = right;
@@ -178,6 +219,29 @@ fn camera_at(keys: &[motion_script::CameraKey], time: f64) -> CameraPose {
         x: left.x,
         y: left.y,
         zoom: left.zoom,
+        angle,
+    }
+}
+/// The view of an actor filmed from the reverse angle: the side facing the
+/// camera turns away. Applied before rig evaluation so drawn views follow.
+fn turned_around(view: FaceView) -> FaceView {
+    match view {
+        FaceView::Front => FaceView::Back,
+        FaceView::Back => FaceView::Front,
+        // No back three-quarter drawing exists: seen from behind.
+        FaceView::ThreeQuarter => FaceView::Back,
+        FaceView::Side => FaceView::Side,
+    }
+}
+/// The reverse angle seen as a mirror of the front one: every actor's root is
+/// reflected about the canvas centre line (position, rotation and x scale),
+/// so preview and export share one rule. Views were turned during evaluation.
+fn reverse_actors(actors: &mut [ActorPose], width: u32) {
+    let w = f64::from(width);
+    for actor in actors {
+        actor.x = w - actor.x;
+        actor.rotation = -actor.rotation;
+        actor.scale.x = -actor.scale.x;
     }
 }
 #[derive(Debug, Clone, PartialEq)]
@@ -968,6 +1032,8 @@ fn evaluate_validated(
     let mut events: Vec<_> = scene.events.iter().collect();
     // Stable ordering preserves source order for simultaneous expression events.
     events.sort_by(|a, b| a.actor_time().0.total_cmp(&b.actor_time().0));
+    let mut camera = camera_at(&scene.composition.camera, time_seconds);
+    let reversed = camera.angle == CameraAngle::Reverse;
     let mut actors: Vec<_> = script
         .characters
         .keys()
@@ -1051,7 +1117,7 @@ fn evaluate_validated(
                 }
             }
             let (view, mirror) = facing_at(&events, id, time_seconds);
-            pose.view = view;
+            pose.view = if reversed { turned_around(view) } else { view };
             if let Some(track) = prepared.moves[scene_index].get(id) {
                 // Each move starts where the previous one ended (resolved once);
                 // the actor walks only while the active move is still changing.
@@ -1282,9 +1348,13 @@ fn evaluate_validated(
     } else {
         1.0
     };
+    if reversed {
+        reverse_actors(&mut actors, script.project.width);
+        camera.x = -camera.x;
+    }
     Ok(EvaluatedScene {
         time: time_seconds,
-        camera: camera_at(&composition.camera, time_seconds),
+        camera,
         background_color: composition
             .background_keys
             .iter()
@@ -1494,7 +1564,8 @@ scenes:
             CameraPose {
                 x: 50.0,
                 y: 20.0,
-                zoom: 2.0
+                zoom: 2.0,
+                angle: Default::default(),
             }
         );
         assert_eq!(
@@ -2440,5 +2511,57 @@ scenes:
             );
         }
         assert_eq!(format!("{:?}", validated.evaluate(0, 1.5).unwrap()), during);
+    }
+}
+
+#[cfg(test)]
+mod angle_tests {
+    use super::*;
+    #[test]
+    fn reverse_angle_mirrors_actors_and_camera_from_its_cut() {
+        let script = motion_script::parse(
+            r#"
+project: {width: 640, height: 360}
+characters: {A: {asset: a}}
+scenes:
+- id: shot
+  duration: 4
+  events:
+  - {type: move, at: 0, actor: A, x: 100, y: 252, duration: 0.5}
+  - {type: face, at: 0, actor: A, value: right}
+  - {type: face, at: 3, actor: A, value: front}
+  composition:
+    camera:
+    - {at: 0, x: 40, y: 0, zoom: 1.5}
+    - {at: 1.999, x: 40, y: 0, zoom: 1.5}
+    - {at: 2, x: 40, y: 0, zoom: 1.5, angle: reverse}
+    - {at: 4, x: 40, y: 0, zoom: 1.5, angle: reverse}
+"#,
+        )
+        .unwrap();
+        let front = evaluate(&script, 0, 1.5).unwrap();
+        let reverse = evaluate(&script, 0, 2.5).unwrap();
+        let (a, b) = (&front.actors[0], &reverse.actors[0]);
+        assert_eq!(front.camera.angle, CameraAngle::Front);
+        assert_eq!(reverse.camera.angle, CameraAngle::Reverse);
+        // Between the last front key and the cut the angle does not blend.
+        assert_eq!(
+            evaluate(&script, 0, 1.9995).unwrap().camera.angle,
+            CameraAngle::Front
+        );
+        assert_eq!((a.x, b.x), (100.0, 540.0));
+        assert_eq!((front.camera.x, reverse.camera.x), (40.0, -40.0));
+        assert_eq!((a.view, b.view), (FaceView::Side, FaceView::Side));
+        assert_eq!(a.scale.x, -b.scale.x);
+        // Screen positions mirror exactly: the framing is the same shot flopped.
+        let (fx, _) = front.camera.project(a.x, a.y, 640, 360);
+        let (rx, _) = reverse.camera.project(b.x, b.y, 640, 360);
+        assert!((fx + rx - 640.0).abs() < 1e-9);
+        // Facing the camera from the front means showing the back in reverse.
+        assert_eq!(
+            evaluate(&script, 0, 3.5).unwrap().actors[0].view,
+            FaceView::Back
+        );
+        assert_eq!(evaluate(&script, 0, 2.5).unwrap(), reverse, "seek is exact");
     }
 }
