@@ -6,7 +6,8 @@
 //! joint keys: translations and rotations add. Rotations follow the rig
 //! convention (y down): a positive rotation swings a hanging limb toward -x.
 //! Every value is a pure function of its inputs, so seeking is exact.
-use crate::{Gait, Gesture, Transform2, Vec2};
+use crate::principles::squash_scale;
+use crate::{Gait, Gesture, Principles, Transform2, Vec2};
 use std::f64::consts::TAU;
 
 /// Standard joint names this module drives. A rig may define any subset.
@@ -197,64 +198,150 @@ pub fn rig_sit(weight: f64, profile: bool) -> RigMotion {
     motion
 }
 
+/// Seconds of stillness before the moving hold starts to fade in, so short
+/// pauses between actions stay crisp.
+pub const MOVING_HOLD_DELAY: f64 = 0.5;
+/// Seconds over which the moving hold fades in after the delay.
+const MOVING_HOLD_FADE: f64 = 1.0;
+/// Breathing cycle of the moving hold.
+const BREATH_SECONDS: f64 = 3.6;
+/// Slower, out-of-phase head sway of the moving hold.
+const SWAY_SECONDS: f64 = 5.3;
+
+/// Moving-hold offsets `still_seconds` into a hold: the chest rises and falls
+/// with a slow breath, the shoulders follow it and the head sways slightly.
+/// `strength` in `0..=1` scales the layer. Deterministic (no randomness) and
+/// zero at the start of the hold, so it never pops in.
+pub fn rig_moving_hold(still_seconds: f64, strength: f64) -> RigMotion {
+    let mut motion = rest();
+    if !still_seconds.is_finite() || !strength.is_finite() || strength <= 0.0 {
+        return motion;
+    }
+    let w = strength.min(1.0) * smoothstep((still_seconds - MOVING_HOLD_DELAY) / MOVING_HOLD_FADE);
+    if w == 0.0 {
+        return motion;
+    }
+    let t = still_seconds - MOVING_HOLD_DELAY;
+    // 0 at exhale, 1 at full inhale.
+    let breath = 0.5 * (1.0 - (TAU * t / BREATH_SECONDS).cos());
+    let sway = (TAU * t / SWAY_SECONDS).sin();
+    motion[TORSO] = translation(0.0, -1.5 * breath * w);
+    motion[HEAD] = rotation(0.03 * sway * w);
+    motion[UPPER_ARM_L] = rotation(-0.025 * breath * w);
+    motion[UPPER_ARM_R] = rotation(0.025 * breath * w);
+    motion
+}
+
 /// End of the anticipation (a small move against the action).
 const ANTICIPATION_END: f64 = 0.12;
-/// Anticipation depth as a fraction of the full pose.
-const ANTICIPATION: f64 = 0.12;
 /// End of the attack, which overshoots and settles into the held pose.
 const ATTACK_END: f64 = 0.38;
-/// Overshoot strength of the attack ("back" easing constant).
-const OVERSHOOT: f64 = 1.3;
 /// Start of the release back to rest.
 const RELEASE_START: f64 = 0.7;
-/// Depth of the follow-through past rest during the release.
-const FOLLOW_THROUGH: f64 = 0.25;
-/// Progress lag of child joints (forearms, head) behind their drivers.
-const OVERLAP: f64 = 0.08;
+// Anticipation depth, overshoot, follow-through and overlap are tunable; see
+// `Principles` (its defaults are the values used here before).
+
+/// Acting curve for one joint at normalized progress with the default
+/// principles; see [`acting_curve_with`].
+pub fn acting_curve(progress: f64) -> f64 {
+    acting_curve_with(progress, &Principles::DEFAULT)
+}
 
 /// Acting curve for one joint at normalized progress: anticipation, an
 /// overshooting attack that settles, a hold, and an eased release with a small
-/// follow-through. Exactly zero at and outside both ends; peaks slightly above
-/// one.
-pub fn acting_curve(progress: f64) -> f64 {
+/// follow-through. Exactly zero at and outside both ends. Depths come from
+/// `principles`, which callers validate.
+pub fn acting_curve_with(progress: f64, principles: &Principles) -> f64 {
     let p = progress;
     if !p.is_finite() || p <= 0.0 || p >= 1.0 {
         return 0.0;
     }
     if p < ANTICIPATION_END {
-        return -ANTICIPATION * (std::f64::consts::PI * p / ANTICIPATION_END).sin();
+        return -principles.anticipation * (std::f64::consts::PI * p / ANTICIPATION_END).sin();
     }
     if p < ATTACK_END {
+        let overshoot = principles.overshoot;
         let u = (p - ANTICIPATION_END) / (ATTACK_END - ANTICIPATION_END) - 1.0;
-        return 1.0 + (OVERSHOOT + 1.0) * u * u * u + OVERSHOOT * u * u;
+        return 1.0 + (overshoot + 1.0) * u * u * u + overshoot * u * u;
     }
     if p < RELEASE_START {
         return 1.0;
     }
     let u = (p - RELEASE_START) / (1.0 - RELEASE_START);
-    1.0 - smoothstep(u) - FOLLOW_THROUGH * (std::f64::consts::PI * u).sin() * u * u
+    1.0 - smoothstep(u) - principles.follow_through * (std::f64::consts::PI * u).sin() * u * u
 }
 
 /// Driver joints finish early; children start late. Both span the full curve,
 /// so children trail into the pose and keep moving after the driver settles.
-fn driver(progress: f64) -> f64 {
-    acting_curve(progress / (1.0 - OVERLAP))
+fn driver(progress: f64, principles: &Principles) -> f64 {
+    acting_curve_with(progress / (1.0 - principles.overlap), principles)
 }
-fn follower(progress: f64) -> f64 {
-    acting_curve((progress - OVERLAP) / (1.0 - OVERLAP))
+fn follower(progress: f64, principles: &Principles) -> f64 {
+    let overlap = principles.overlap;
+    acting_curve_with((progress - overlap) / (1.0 - overlap), principles)
+}
+
+/// Progress step for the slope that drives squash and stretch.
+const SLOPE_STEP: f64 = 1.0 / 1024.0;
+
+/// Signed torso stretch for a gesture: the torso stretches while the driver
+/// moves into the pose and squashes as it settles back or is released. A pure
+/// function of progress, so seeking matches frame-by-frame playback.
+fn gesture_stretch(gesture: Gesture, p: f64, w: f64, principles: &Principles) -> f64 {
+    let amount = principles.squash_stretch;
+    if gesture == Gesture::Jump {
+        // Squash in the crouch and on landing, stretch while rising.
+        return amount * w * jump_stretch(p);
+    }
+    let slope = (driver((p + SLOPE_STEP).min(1.0), principles)
+        - driver((p - SLOPE_STEP).max(0.0), principles))
+        / (2.0 * SLOPE_STEP);
+    amount * w * (slope / 8.0).tanh()
+}
+
+/// Jump stretch in `-1..=1` at progress `p`.
+fn jump_stretch(p: f64) -> f64 {
+    let crouch = |u: f64| (std::f64::consts::PI * u).sin().max(0.0);
+    if p < 0.2 {
+        -crouch(p / 0.2)
+    } else if p < 0.8 {
+        // Vertical speed of the parabolic flight, normalized: +1 at take-off,
+        // -1 just before landing.
+        let u = (p - 0.2) / 0.6;
+        1.0 - 2.0 * u
+    } else {
+        -crouch((p - 0.8) / 0.2)
+    }
+}
+
+/// Gesture offsets at normalized `progress` with the default principles; see
+/// [`rig_gesture_with`].
+pub fn rig_gesture(gesture: Gesture, progress: f64, weight: f64) -> RigMotion {
+    rig_gesture_with(gesture, progress, weight, &Principles::DEFAULT)
 }
 
 /// Gesture offsets at normalized `progress`, scaled by the layer `weight` in
 /// `0..=1`. Timing (anticipation, overshoot, overlap, follow-through) comes
-/// from `progress`; `weight` only blends the layer.
-pub fn rig_gesture(gesture: Gesture, progress: f64, weight: f64) -> RigMotion {
+/// from `progress` shaped by `principles`; `weight` only blends the layer.
+/// Invalid principles fall back to the defaults.
+pub fn rig_gesture_with(
+    gesture: Gesture,
+    progress: f64,
+    weight: f64,
+    principles: &Principles,
+) -> RigMotion {
     let mut motion = rest();
     if !progress.is_finite() || !weight.is_finite() || weight <= 0.0 {
         return motion;
     }
+    let principles = if principles.validate().is_ok() {
+        principles
+    } else {
+        &Principles::DEFAULT
+    };
     let w = weight.min(1.0);
     let p = progress.clamp(0.0, 1.0);
-    let (lead, trail) = (driver(p) * w, follower(p) * w);
+    let (lead, trail) = (driver(p, principles) * w, follower(p, principles) * w);
     match gesture {
         Gesture::Wave => {
             // The hand only waves once the arm is up.
@@ -369,6 +456,10 @@ pub fn rig_gesture(gesture: Gesture, progress: f64, weight: f64) -> RigMotion {
             motion[HEAD] = rotation(0.1 * trail);
         }
     }
+    if principles.squash_stretch > 0.0 {
+        let (x, y) = squash_scale(gesture_stretch(gesture, p, w, principles));
+        motion[TORSO].scale = Vec2::new(x, y);
+    }
     motion
 }
 
@@ -458,9 +549,170 @@ mod tests {
         // Early on the arm leads; late on the forearm is still moving.
         let early = rig_gesture(Gesture::Point, 0.2, 1.0);
         assert!(early[UPPER_ARM_R].rotation.abs() > 0.0);
-        assert!(follower(0.2) < driver(0.2));
+        let d = Principles::DEFAULT;
+        assert!(follower(0.2, &d) < driver(0.2, &d));
         let late = rig_gesture(Gesture::Shrug, 0.95, 1.0);
-        assert!(driver(0.95) == 0.0 && late[UPPER_ARM_L].rotation == 0.0);
+        assert!(driver(0.95, &d) == 0.0 && late[UPPER_ARM_L].rotation == 0.0);
         assert!(late[FOREARM_L].rotation != 0.0, "forearm follows through");
+    }
+
+    /// The acting curve exactly as it was with fixed constants.
+    fn legacy_acting_curve(p: f64) -> f64 {
+        if !p.is_finite() || p <= 0.0 || p >= 1.0 {
+            return 0.0;
+        }
+        if p < 0.12 {
+            return -0.12 * (std::f64::consts::PI * p / 0.12).sin();
+        }
+        if p < 0.38 {
+            let u = (p - 0.12) / (0.38 - 0.12) - 1.0;
+            return 1.0 + (1.3 + 1.0) * u * u * u + 1.3 * u * u;
+        }
+        if p < 0.7 {
+            return 1.0;
+        }
+        let u = (p - 0.7) / (1.0 - 0.7);
+        1.0 - smoothstep(u) - 0.25 * (std::f64::consts::PI * u).sin() * u * u
+    }
+
+    #[test]
+    fn default_principles_match_the_old_constants_bit_for_bit() {
+        for i in -10..=10_010 {
+            let p = i as f64 / 10_000.0;
+            assert_eq!(
+                acting_curve(p).to_bits(),
+                legacy_acting_curve(p).to_bits(),
+                "{p}"
+            );
+            let legacy_driver = legacy_acting_curve(p / (1.0 - 0.08));
+            let legacy_follower = legacy_acting_curve((p - 0.08) / (1.0 - 0.08));
+            let d = Principles::DEFAULT;
+            assert_eq!(driver(p, &d).to_bits(), legacy_driver.to_bits());
+            assert_eq!(follower(p, &d).to_bits(), legacy_follower.to_bits());
+        }
+        // Default gestures keep unit scale everywhere.
+        for name in GESTURES {
+            let gesture = Gesture::parse(name).unwrap();
+            for i in 0..=100 {
+                let motion = rig_gesture(gesture, i as f64 / 100.0, 1.0);
+                assert!(motion.iter().all(|o| o.scale == Vec2::new(1.0, 1.0)));
+            }
+        }
+    }
+
+    #[test]
+    fn principles_change_the_curve() {
+        let peak = |p: &Principles| {
+            (0..1000)
+                .map(|i| acting_curve_with(i as f64 / 1000.0, p))
+                .fold(f64::MIN, f64::max)
+        };
+        let none = Principles {
+            anticipation: 0.0,
+            overshoot: 0.0,
+            follow_through: 0.0,
+            ..Principles::DEFAULT
+        };
+        assert!(peak(&none) <= 1.0, "no overshoot");
+        assert!(acting_curve_with(0.06, &none) == 0.0, "no anticipation");
+        assert!(acting_curve_with(0.97, &none) >= 0.0, "no follow-through");
+        let cartoon = Principles::preset("cartoon").unwrap();
+        assert!(peak(&cartoon) > peak(&Principles::DEFAULT));
+        assert!(acting_curve_with(0.06, &cartoon) < acting_curve(0.06));
+        assert!(acting_curve_with(0.97, &cartoon) < acting_curve(0.97));
+        // Invalid principles fall back to the defaults instead of breaking the rig.
+        let bad = Principles {
+            overlap: 2.0,
+            ..Principles::DEFAULT
+        };
+        assert_eq!(
+            rig_gesture_with(Gesture::Point, 0.3, 1.0, &bad),
+            rig_gesture(Gesture::Point, 0.3, 1.0)
+        );
+    }
+
+    #[test]
+    fn squash_and_stretch_preserve_area_and_stay_bounded() {
+        let cartoon = Principles {
+            squash_stretch: 0.3,
+            ..Principles::preset("cartoon").unwrap()
+        };
+        let (mut stretched, mut squashed) = (false, false);
+        for name in GESTURES {
+            let gesture = Gesture::parse(name).unwrap();
+            for i in 0..=400 {
+                let motion = rig_gesture_with(gesture, i as f64 / 400.0, 1.0, &cartoon);
+                let scale = motion[TORSO].scale;
+                assert!((scale.x * scale.y - 1.0).abs() < 1e-9, "{name}");
+                assert!((0.7 - 1e-9..=1.3 + 1e-9).contains(&scale.y), "{name}");
+                stretched |= scale.y > 1.05;
+                squashed |= scale.y < 0.95;
+                // Limbs only rotate, so the stick figure stays attached.
+                for joint in [UPPER_ARM_L, FOREARM_L, UPPER_ARM_R, FOREARM_R] {
+                    assert_eq!(motion[joint].scale, Vec2::new(1.0, 1.0));
+                }
+                assert!(motion.iter().all(|o| o.is_valid()));
+            }
+        }
+        assert!(stretched && squashed);
+        // The jump stretches on take-off and squashes on landing.
+        assert!(
+            rig_gesture_with(Gesture::Jump, 0.22, 1.0, &cartoon)[TORSO]
+                .scale
+                .y
+                > 1.1
+        );
+        assert!(
+            rig_gesture_with(Gesture::Jump, 0.9, 1.0, &cartoon)[TORSO]
+                .scale
+                .y
+                < 0.9
+        );
+    }
+
+    #[test]
+    fn moving_hold_breathes_deterministically_and_can_be_off() {
+        assert_eq!(rig_moving_hold(10.0, 0.0), rest(), "off");
+        assert_eq!(rig_moving_hold(f64::NAN, 1.0), rest());
+        assert_eq!(rig_moving_hold(MOVING_HOLD_DELAY, 1.0), rest(), "fades in");
+        let a = rig_moving_hold(7.3, 1.0);
+        assert_eq!(a, rig_moving_hold(7.3, 1.0), "no randomness");
+        assert_ne!(a, rest());
+        // Small: a breath, not an action.
+        assert!(a[TORSO].translation.y.abs() <= 1.5);
+        assert!(a.iter().all(|o| o.rotation.abs() <= 0.03 + 1e-12));
+        // Continuous from the start of the hold.
+        for i in 0..4000 {
+            let (x, y) = (i as f64 / 400.0, (i + 1) as f64 / 400.0);
+            let (m, n) = (rig_moving_hold(x, 1.0), rig_moving_hold(y, 1.0));
+            assert!((m[TORSO].translation.y - n[TORSO].translation.y).abs() < 0.05);
+            assert!((m[HEAD].rotation - n[HEAD].rotation).abs() < 0.002);
+        }
+        let half = rig_moving_hold(7.3, 0.5);
+        assert!((half[HEAD].rotation - 0.5 * a[HEAD].rotation).abs() < 1e-12);
+    }
+
+    #[test]
+    fn seeking_matches_frame_by_frame_playback() {
+        // Every layer is a pure function of time: a jump to any frame equals
+        // reaching it by stepping through all earlier frames.
+        let cartoon = Principles::preset("cartoon").unwrap();
+        let fps = 24.0;
+        let mut played = Vec::new();
+        for frame in 0..=48 {
+            let t = frame as f64 / fps;
+            played.push((
+                rig_gesture_with(Gesture::Jump, t / 2.0, 1.0, &cartoon),
+                rig_moving_hold(t + 0.4, cartoon.moving_hold),
+            ));
+        }
+        for frame in [48, 3, 31, 0, 17] {
+            let t = frame as f64 / fps;
+            let seeked = (
+                rig_gesture_with(Gesture::Jump, t / 2.0, 1.0, &cartoon),
+                rig_moving_hold(t + 0.4, cartoon.moving_hold),
+            );
+            assert_eq!(seeked, played[frame]);
+        }
     }
 }

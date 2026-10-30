@@ -321,6 +321,38 @@ fn sit_weight(events: &[&Event], actor: &str, time: f64) -> f64 {
     }
     from + (to - from) * (since / motion_animation::SIT_SECONDS).min(1.0)
 }
+/// Seconds since the actor last moved, gestured or sat down or stood up, or
+/// since the scene start; `None` while one of those is still in progress.
+fn still_seconds(events: &[&Event], actor: &str, time: f64) -> Option<f64> {
+    let mut last_end: f64 = 0.0;
+    for event in events {
+        let (at, duration) = match event {
+            Event::Move {
+                at,
+                actor: a,
+                duration,
+                ..
+            }
+            | Event::Gesture {
+                at,
+                actor: a,
+                duration,
+                ..
+            } if a == actor => (*at, *duration),
+            Event::Pose { at, actor: a, .. } if a == actor => (*at, motion_animation::SIT_SECONDS),
+            _ => continue,
+        };
+        if at > time {
+            continue;
+        }
+        let end = at + duration;
+        if time < end {
+            return None;
+        }
+        last_end = last_end.max(end);
+    }
+    Some(time - last_end)
+}
 /// Where every actor stands before its first move.
 fn actor_base(script: &Script) -> Vec2 {
     Vec2::new(
@@ -890,6 +922,9 @@ fn add_rig_motion(
                 offset.translation.x += delta.translation.x;
                 offset.translation.y += delta.translation.y;
                 offset.rotation += delta.rotation;
+                // Scales compose (squash and stretch); unit scale is a no-op.
+                offset.scale.x *= delta.scale.x;
+                offset.scale.y *= delta.scale.y;
             }
             None => offsets.push((joint, *delta)),
         }
@@ -955,6 +990,7 @@ fn evaluate_validated(
             let mut world_travel = 0.0;
             let mut emotion_changes = Vec::new();
             let mut gesture = None;
+            let mut gesture_principles = None;
             let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
                 if pose.emotion != *value {
                     pose.emotion = value.clone();
@@ -975,7 +1011,10 @@ fn evaluate_validated(
                         ..
                     } => set_emotion(&mut pose, value, at),
                     Event::Gesture {
-                        value, duration, ..
+                        value,
+                        duration,
+                        principles,
+                        ..
                     } => {
                         // Validation guarantees a known gesture. The strongest active
                         // envelope wins; ties keep the earlier event.
@@ -983,6 +1022,7 @@ fn evaluate_validated(
                         let weight = motion_animation::gesture_envelope(progress);
                         if weight > pose.wave {
                             pose.wave = weight;
+                            gesture_principles = principles.as_ref();
                             gesture = motion_animation::Gesture::parse(value)
                                 .map(|g| (g, progress, weight));
                         }
@@ -1067,10 +1107,34 @@ fn evaluate_validated(
                     let motion = motion_animation::rig_gait(gait, seconds, travel, weights.walk);
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
+                // Validation already accepted these principles.
+                let invalid_principles =
+                    |error: motion_script::Error| Error::InvalidAnimation(error.to_string());
+                let character = script.characters.get(id);
+                let principles = motion_script::character_principles(
+                    character.and_then(|c| c.principles.as_ref()),
+                    id,
+                )
+                .map_err(invalid_principles)?;
                 if let Some((gesture, progress, _)) = gesture {
                     // The rig layer shapes its own timing from progress.
-                    let motion = motion_animation::rig_gesture(gesture, progress, weights.gesture);
+                    let principles =
+                        motion_script::gesture_principles(principles, gesture_principles, id)
+                            .map_err(invalid_principles)?;
+                    let motion = motion_animation::rig_gesture_with(
+                        gesture,
+                        progress,
+                        weights.gesture,
+                        &principles,
+                    );
                     add_rig_motion(rig, &mut offsets, &motion);
+                } else if principles.moving_hold > 0.0 && walk_seconds.is_none() {
+                    // Moving hold: a long hold keeps breathing instead of freezing.
+                    if let Some(still) = still_seconds(&events, id, time_seconds) {
+                        let motion =
+                            motion_animation::rig_moving_hold(still, principles.moving_hold);
+                        add_rig_motion(rig, &mut offsets, &motion);
+                    }
                 }
                 let sitting = sit_weight(&events, id, time_seconds);
                 if sitting > 0.0 {

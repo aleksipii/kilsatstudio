@@ -67,6 +67,7 @@ pub fn create(
             actor,
             value: "wave".into(),
             duration,
+            principles: None,
         },
         Kind::Face => Event::Face {
             at,

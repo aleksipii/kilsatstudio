@@ -470,3 +470,50 @@ fn review_flags_off_screen_speakers_fast_speech_and_long_static_shots() {
         vec![]
     );
 }
+
+#[test]
+fn principles_reach_the_cast_and_beat_gestures() {
+    let catalog = catalog();
+    let text = minimal(
+        "      - do: VEIKKO\n        gesture: wave\n        principles: {preset: snappy, squash_stretch: 0.1}\n      - say: SISU\n        line: Hi.\n        gesture: nod\n",
+    )
+    .replace("VEIKKO: {}", "VEIKKO: {principles: cartoon}");
+    let result = compile_story(&text, &catalog, None).unwrap();
+    let veikko = result.script.characters["VEIKKO"].principles.as_ref();
+    assert_eq!(veikko.unwrap().preset.as_deref(), Some("cartoon"));
+    assert!(result.script.characters["SISU"].principles.is_none());
+    let gestures: Vec<_> = result.script.scenes[0]
+        .events
+        .iter()
+        .filter_map(|e| match e {
+            Event::Gesture {
+                actor, principles, ..
+            } => Some((actor.as_str(), principles.clone())),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(gestures.len(), 2);
+    let (actor, spec) = &gestures[0];
+    assert_eq!(*actor, "VEIKKO");
+    assert_eq!(spec.as_ref().unwrap().squash_stretch, Some(0.1));
+    assert!(gestures[1].1.is_none());
+    // The compiled screenplay keeps the blocks through a source round trip.
+    let source = crate::to_source(&result.script).unwrap();
+    let reparsed = crate::parse(&source).unwrap();
+    assert_eq!(
+        reparsed.characters["VEIKKO"].principles,
+        result.script.characters["VEIKKO"].principles
+    );
+
+    let bad =
+        minimal("      - pause: 1\n").replace("VEIKKO: {}", "VEIKKO: {principles: {overshoot: 5}}");
+    let issue = errors(&bad)
+        .into_iter()
+        .find(|i| i.path == "cast.VEIKKO.principles")
+        .expect("bounded");
+    assert!(issue.message.contains("0..=3"), "{}", issue.message);
+    let lonely = minimal("      - do: VEIKKO\n        face: left\n        principles: snappy\n");
+    assert!(errors(&lonely)
+        .iter()
+        .any(|i| i.path.ends_with(".principles")));
+}

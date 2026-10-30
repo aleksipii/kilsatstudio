@@ -25,6 +25,13 @@ what this implementation actually accepts.
   syntax errors. One held item per character; for a second item attach it
   to the rig (desktop prop panel or `motion_rig::attach_hand_prop`). See
   [screen slots](screen-slots.md).
+- A character with a custom `rig` may add `principles:` (a preset `subtle`,
+  `cartoon` or `snappy`, or a block of `anticipation`, `overshoot`,
+  `follow_through`, `overlap`, `squash_stretch` and `moving_hold`). A gesture
+  event may add its own `principles:` over the character's, without
+  `moving_hold`. Without a block the rig moves exactly as before. Out-of-range
+  values are validation errors naming the field and range; unknown presets
+  are unsupported. See [animation principles](animation-principles.md).
 - `scenes` contain unique IDs, positive finite durations, optional background names,
   and events. Background names are metadata; `composition.background_color` and
   timed `composition.background_keys` control the rendered solid backdrop. See
@@ -41,7 +48,7 @@ what this implementation actually accepts.
 | --- | --- | --- |
 | move | x, y, duration | Linear movement to project-space coordinates, from the last completed pose; positive duration, ending inside the scene |
 | emotion | value | neutral, happy, sad, surprised or angry; also eases the body posture over 0.25 s |
-| gesture | value, duration | wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap or think; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
+| gesture | value, duration (optional principles) | wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap or think; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
 | speak | text | Dialogue job; requires character voice or event audio; optional emotion and audio |
 | face | value | front, left, right or back; holds until the next face event |
 | hold | hand | Custom rig only: from `at` the hand holds the catalog `item`, or nothing without `item` |

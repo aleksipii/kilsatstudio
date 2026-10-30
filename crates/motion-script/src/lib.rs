@@ -6,6 +6,7 @@ mod continuity;
 pub mod event_log;
 mod holds;
 pub mod intent;
+mod principles;
 mod prop_cues;
 mod rules;
 mod screens;
@@ -22,6 +23,7 @@ pub use continuity::{
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use holds::{held_rig, HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
+pub use principles::{character_principles, gesture_principles, PrinciplesSpec};
 pub use prop_cues::{
     HandOff, PropAction, PropAnchor, PropCue, PropCueError, ResolvedPropCue, SetDown,
     MAX_PROP_ACTIONS, MAX_PROP_ANCHORS, MAX_PROP_ANCHOR_COORD, MAX_PROP_CUES,
@@ -70,6 +72,10 @@ pub struct Character {
     /// Exposure and blocking for this character; overrides the scene's.
     #[serde(default, skip_serializing_if = "Timing::is_unset")]
     pub timing: Timing,
+    /// Animation principles for the rig layer (`principles: cartoon`); see
+    /// `principles.rs`. Requires a custom rig.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub principles: Option<PrinciplesSpec>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
@@ -94,6 +100,9 @@ pub enum Event {
         actor: String,
         value: String,
         duration: f64,
+        /// Principles for this gesture only, over the character's.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        principles: Option<PrinciplesSpec>,
     },
     Speak {
         at: f64,
@@ -1606,6 +1615,10 @@ impl Script {
             character
                 .resolved_rig()
                 .map_err(|error| fail(format!("character {id}: {error}")))?;
+            if character.principles.is_some() && character.rig.is_none() {
+                return Err(Error::Unsupported(format!("principles for character {id}: animation principles drive custom-rig characters; add a rig")));
+            }
+            character_principles(character.principles.as_ref(), id)?;
         }
         if let Some(captions) = &self.project.captions {
             captions.validate(&self.characters)?;
@@ -2125,8 +2138,18 @@ impl Script {
                     }
                     Event::Emotion { value, .. } => validate_emotion(value)?,
                     Event::Gesture {
-                        value, duration, ..
+                        value,
+                        duration,
+                        principles,
+                        ..
                     } => {
+                        if let Some(spec) = principles {
+                            if c.rig.is_none() {
+                                return Err(Error::Unsupported(format!("principles on a gesture of {actor}: animation principles drive custom-rig characters; give {actor} a rig")));
+                            }
+                            let base = character_principles(c.principles.as_ref(), actor)?;
+                            gesture_principles(base, Some(spec), actor)?;
+                        }
                         let Some(gesture) = motion_animation::Gesture::parse(value) else {
                             return Err(Error::Unsupported(format!(
                                 "gesture {value}: supported gestures are {}",
@@ -3943,6 +3966,7 @@ scenes:
             actor: "B".into(),
             value: "wave".into(),
             duration: 1.0,
+            principles: None,
         });
         assert!(matches!(script.validate(), Err(Error::Unsupported(_))));
         let legacy = parse(&source()).unwrap();
