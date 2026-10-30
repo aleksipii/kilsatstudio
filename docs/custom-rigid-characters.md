@@ -262,6 +262,31 @@ alpha 0 hides it. A skinned part's variant polygon must keep its point count.
 Texture variants count toward the 16 textured parts and are included in the
 rig's image assets.
 
+*Views*: a part may also carry `views`, keyed by `three_quarter`, `side` or `back`,
+with the same fields as a variant. It is the part's own drawing for that view
+(alpha 0 hides it there), so a full character can be drawn separately from each
+angle, including an imported image per view:
+
+```yaml
+parts:
+  - id: hair
+    joint: head
+    points: [[-30, -40], [30, -40], [30, -10], [-30, -10]]
+    color: [60, 40, 30, 255]
+    views:
+      three_quarter: {points: [[-22, -40], [34, -40], [30, -8], [-26, -14]]}
+      back: {texture: {asset: hair_back}}
+```
+
+Per sample the variant (viseme, expression, blink) wins, then the view drawing,
+then the base part, field by field. A facial feature with a drawing for the
+current view is not turned automatically. Missing drawings fall back: front for
+`three_quarter`; the automatic turn (features squashed toward +x: 0.8 for
+three-quarter, 0.55 for side; hidden from behind) otherwise. The screenplay picks
+the view with `face: three_quarter_left|three_quarter_right|left|right|back`;
+`*_left` mirrors the actor like `left`. View textures count toward the 16
+textured parts and are listed in the rig's image assets.
+
 *Visemes*: map keys are the `motion_lipsync::Viseme` names (`rest closed teeth_lip
 tongue_teeth tongue_up sibilant sh r a e i o u`); unmapped visemes, and actors with
 no viseme, keep the base mouth. `apply_speech` (already used by preview, SVG/PNG and

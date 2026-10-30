@@ -136,7 +136,14 @@ pub enum Event {
     },
 }
 /// MotionScript facing names, in the order editors should present them.
-pub const FACINGS: [&str; 4] = ["front", "left", "right", "back"];
+pub const FACINGS: [&str; 6] = [
+    "front",
+    "three_quarter_left",
+    "three_quarter_right",
+    "left",
+    "right",
+    "back",
+];
 /// MotionScript body poses.
 pub const POSES: [&str; 2] = ["stand", "sit"];
 /// Scene-local composition; camera coordinates are offsets from the canvas center.
@@ -2362,9 +2369,14 @@ mod edit_tests {
         assert!(
             matches!(parse(&bad_gait), Err(Error::Unsupported(m)) if m.contains("walk, jog, run"))
         );
+        let quarter =
+            script("      - {type: face, actor: EMMA, at: 0, value: three_quarter_right}\n");
+        assert!(
+            matches!(&parse(&quarter).unwrap().scenes[0].events[0], Event::Face { value, .. } if value == "three_quarter_right")
+        );
         let bad_face = script("      - {type: face, actor: EMMA, at: 0, value: up}\n");
         assert!(
-            matches!(parse(&bad_face), Err(Error::Unsupported(m)) if m.contains("front, left, right, back"))
+            matches!(parse(&bad_face), Err(Error::Unsupported(m)) if m.contains("front, three_quarter_left, three_quarter_right, left, right, back"))
         );
         let late_face = script("      - {type: face, actor: EMMA, at: 5, value: back}\n");
         assert!(parse(&late_face).is_err());
