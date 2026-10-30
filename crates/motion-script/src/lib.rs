@@ -144,7 +144,7 @@ pub enum Event {
 /// MotionScript facing names, in the order editors should present them.
 pub const FACINGS: [&str; 4] = ["front", "left", "right", "back"];
 /// MotionScript body poses.
-pub const POSES: [&str; 5] = motion_animation::BODY_POSES;
+pub const POSES: [&str; motion_animation::BODY_POSES.len()] = motion_animation::BODY_POSES;
 /// Scene-local composition; camera coordinates are offsets from the canvas center.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -2294,6 +2294,7 @@ fn gesture_joint(gesture: motion_animation::Gesture) -> &'static str {
             "upper_arm_r"
         }
         Gesture::Nod | Gesture::ShakeHead | Gesture::Bow => "head",
+        Gesture::Stumble => "torso",
         Gesture::Shrug | Gesture::ArmsCrossed | Gesture::Clap => "upper_arm_l",
         Gesture::Jump => "root",
     }

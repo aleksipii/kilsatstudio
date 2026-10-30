@@ -88,7 +88,7 @@ const LISTENER_DELAY: f64 = 0.2;
 /// Actor scale on stage; the stick-studio rigs are drawn for this size at 1080p.
 const ACTOR_SCALE: f64 = 1.6;
 /// Walking speeds in project pixels per second.
-const GAIT_SPEEDS: [(&str, f64); 10] = [
+const GAIT_SPEEDS: [(&str, f64); 11] = [
     ("walk", 260.0),
     ("jog", 450.0),
     ("run", 700.0),
@@ -99,6 +99,7 @@ const GAIT_SPEEDS: [(&str, f64); 10] = [
     ("sprint", 950.0),
     ("backwards", 150.0),
     ("leap", 520.0),
+    ("carry", 160.0),
 ];
 /// Where `move_to: <CHARACTER>` stops: this far from them, as a fraction of
 /// the frame width, on the side the mover comes from.
@@ -107,6 +108,41 @@ const APPROACH_DISTANCE: f64 = 0.16;
 const APPROACH_MARGIN: f64 = 0.06;
 /// The longest leap, as a fraction of the frame width.
 const MAX_LEAP: f64 = 0.35;
+/// Depth planes: name, vertical offset of the hips in pixels (positive is
+/// lower on screen) and size relative to `mid`.
+pub const DEPTHS: [(&str, f64, f64); 3] =
+    [("near", 20.0, 1.25), ("mid", 0.0, 1.0), ("far", -60.0, 0.7)];
+/// Walking distance, in pixels, of one depth plane.
+const DEPTH_STEP: f64 = 260.0;
+/// `follow` starts this long after the leader and stops this far behind them
+/// (fraction of the frame width).
+const FOLLOW_DELAY: f64 = 0.4;
+const FOLLOW_GAP: f64 = 0.12;
+/// `look_back` stops half way and looks back for this long.
+const LOOK_BACK_SECONDS: f64 = 0.9;
+/// A bystander in a walker's way steps this far upstage, and back, each step
+/// taking `STEP_ASIDE_SECONDS`.
+const STEP_ASIDE: f64 = 45.0;
+const STEP_ASIDE_SECONDS: f64 = 0.4;
+/// Waypoints in one `path`.
+pub const MAX_PATH: usize = 6;
+/// `pace` multiplies the gait's speed within these bounds.
+pub const PACE_RANGE: (f64, f64) = (0.5, 1.5);
+fn depth_of(name: &str) -> Option<(f64, f64)> {
+    DEPTHS
+        .iter()
+        .find(|(n, _, _)| *n == name)
+        .map(|(_, dy, scale)| (*dy, *scale))
+}
+fn depth_index(name: &str) -> usize {
+    DEPTHS.iter().position(|(n, _, _)| *n == name).unwrap_or(1)
+}
+fn gait_speed(gait: &str) -> f64 {
+    GAIT_SPEEDS
+        .iter()
+        .find(|(name, _)| *name == gait)
+        .map_or(GAIT_SPEEDS[0].1, |(_, speed)| *speed)
+}
 
 // ---------------------------------------------------------------------------
 // Source document
@@ -170,6 +206,16 @@ pub struct Beat {
     pub face: Option<String>,
     /// A stage position, or an on-stage character to walk up to.
     pub move_to: Option<String>,
+    /// Waypoints walked in order without stopping: positions or characters.
+    pub path: Option<Vec<String>>,
+    /// Walk after the character who moved in the previous beat.
+    pub follow: Option<String>,
+    /// Depth plane to walk to: `near`, `mid` or `far`.
+    pub depth: Option<String>,
+    /// Speed multiplier for the walk, 0.5–1.5.
+    pub pace: Option<f64>,
+    /// Stop half way through `move_to` and look back.
+    pub look_back: Option<bool>,
     pub gait: Option<String>,
     /// Pick up a hand prop, or `none` to put down what the hand holds.
     pub holds: Option<String>,
@@ -184,6 +230,16 @@ pub struct Beat {
     pub reaction: Option<Reaction>,
     /// Animation principles for this beat's gesture, over the cast member's.
     pub principles: Option<crate::PrinciplesSpec>,
+}
+
+impl Beat {
+    /// True when the beat moves its actor.
+    pub fn travels(&self) -> bool {
+        self.move_to.is_some()
+            || self.path.is_some()
+            || self.follow.is_some()
+            || self.depth.is_some()
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Deserialize)]
@@ -775,18 +831,7 @@ fn validate_beat(
     vocabulary(out, "emotion", &beat.emotion, &EMOTIONS);
     vocabulary(out, "gesture", &beat.gesture, &motion_animation::GESTURES);
     vocabulary(out, "face", &beat.face, &FACINGS);
-    if let Some(target) = &beat.move_to {
-        if !positions.contains(&target.as_str()) && !on_stage(target) {
-            out.push(issue(
-                Unsupported,
-                format!("{path}.move_to"),
-                format!(
-                    "move_to {target:?} is not supported; use {} or a character on stage",
-                    list(&positions)
-                ),
-            ));
-        }
-    }
+
     vocabulary(out, "gait", &beat.gait, &motion_animation::GAITS);
     vocabulary(out, "pose", &beat.pose, &crate::POSES);
     if let Some(item) = &beat.holds {
@@ -827,7 +872,9 @@ fn validate_beat(
             || beat.gesture.is_some()
             || beat.look.is_some()
             || beat.face.is_some()
-            || beat.move_to.is_some()
+            || beat.travels()
+            || beat.pace.is_some()
+            || beat.look_back.is_some()
             || beat.gait.is_some()
             || beat.holds.is_some()
             || beat.pose.is_some()
@@ -858,15 +905,119 @@ fn validate_beat(
             ));
         }
     }
-    if beat.gait.is_some() && beat.move_to.is_none() {
-        out.push(issue(Schema, format!("{path}.gait"), "gait needs move_to"));
-    }
-    if beat.move_to.as_deref() == Some(actor) {
+    if beat.gait.is_some() && !beat.travels() {
         out.push(issue(
-            Invalid,
-            format!("{path}.move_to"),
-            "an actor cannot walk to itself; name another character or a position",
+            Schema,
+            format!("{path}.gait"),
+            "gait needs move_to, path, follow or depth",
         ));
+    }
+    let target_check = |out: &mut Vec<StoryIssue>, field: &str, target: &str| {
+        if !positions.contains(&target) && !on_stage(target) {
+            out.push(issue(
+                Unsupported,
+                format!("{path}.{field}"),
+                format!(
+                    "{target:?} is not supported; use {} or a character on stage",
+                    list(&positions)
+                ),
+            ));
+        } else if target == actor {
+            out.push(issue(
+                Invalid,
+                format!("{path}.{field}"),
+                "an actor cannot walk to itself; name another character or a position",
+            ));
+        }
+    };
+    if let Some(stops) = &beat.path {
+        if !(2..=MAX_PATH).contains(&stops.len()) {
+            out.push(issue(
+                Bound,
+                format!("{path}.path"),
+                format!("path lists 2–{MAX_PATH} waypoints; use move_to for one"),
+            ));
+        }
+        for (i, stop) in stops.iter().enumerate() {
+            target_check(out, &format!("path[{i}]"), stop);
+        }
+    }
+    if let Some(leader) = &beat.follow {
+        if !on_stage(leader) {
+            actor_check(out, "follow", leader);
+        } else if leader == actor {
+            out.push(issue(
+                Invalid,
+                format!("{path}.follow"),
+                "an actor cannot follow itself",
+            ));
+        }
+        if beat.say.is_some() {
+            out.push(issue(
+                Schema,
+                format!("{path}.follow"),
+                "follow belongs to a do beat right after the leader's move",
+            ));
+        }
+    }
+    let ways = [
+        beat.move_to.is_some(),
+        beat.path.is_some(),
+        beat.follow.is_some(),
+    ]
+    .iter()
+    .filter(|w| **w)
+    .count();
+    if ways > 1 {
+        out.push(issue(
+            Schema,
+            path,
+            "use only one of move_to, path or follow in a beat",
+        ));
+    }
+    if beat.follow.is_some() && beat.depth.is_some() {
+        out.push(issue(
+            Schema,
+            format!("{path}.depth"),
+            "follow keeps the leader's depth; move in depth in its own beat",
+        ));
+    }
+    vocabulary(out, "depth", &beat.depth, &DEPTHS.map(|(name, _, _)| name));
+    if let Some(pace) = beat.pace {
+        let (low, high) = PACE_RANGE;
+        if !pace.is_finite() || !(low..=high).contains(&pace) {
+            out.push(issue(
+                Bound,
+                format!("{path}.pace"),
+                format!("pace must be {low}–{high}"),
+            ));
+        }
+        if !beat.travels() {
+            out.push(issue(
+                Schema,
+                format!("{path}.pace"),
+                "pace needs move_to, path, follow or depth",
+            ));
+        }
+    }
+    if beat.look_back == Some(true) {
+        if beat.move_to.is_none() {
+            out.push(issue(
+                Schema,
+                format!("{path}.look_back"),
+                "look_back needs move_to",
+            ));
+        }
+        if beat.gait.as_deref() == Some("leap") {
+            out.push(issue(
+                Invalid,
+                format!("{path}.look_back"),
+                "a leap cannot stop half way to look back",
+            ));
+        }
+    }
+    if let Some(target) = &beat.move_to {
+        target_check(out, "move_to", target);
     }
     if beat.principles.is_some() && beat.gesture.is_none() {
         out.push(issue(
@@ -1169,10 +1320,30 @@ struct Builder<'a> {
 /// One move on stage: start and end time, start and end x, speed profile.
 type StageMove = (f64, f64, f64, f64, MoveEase);
 
+/// Record a move, keeping each actor's moves in time order.
+fn push_move(stage: &mut Stage, actor: &str, stage_move: StageMove) {
+    let moves = stage.moves.entry(actor.to_string()).or_default();
+    moves.push(stage_move);
+    moves.sort_by(|a, b| a.0.total_cmp(&b.0));
+}
+
+/// What a walk needs to know about the rest of the scene.
+struct Blocking<'a> {
+    facing: &'a BTreeMap<String, String>,
+    posed: &'a BTreeMap<String, String>,
+    hands: &'a BTreeMap<String, [Option<String>; 2]>,
+    /// Start of the previous beat.
+    previous_beat: f64,
+}
+
 /// Actor positions over one scene: a start offset plus sequential moves.
 struct Stage {
     start: BTreeMap<String, f64>,
     moves: BTreeMap<String, Vec<StageMove>>,
+    /// Current depth plane per actor; absent is `mid`.
+    depth: BTreeMap<String, &'static str>,
+    /// Size changes from depth moves: (time, size relative to `mid`).
+    scale_keys: BTreeMap<String, Vec<(f64, f64)>>,
 }
 impl Stage {
     fn x(&self, actor: &str, t: f64) -> f64 {
@@ -1419,6 +1590,8 @@ impl<'a> Builder<'a> {
                 .map(|(actor, place)| (actor.clone(), position_fraction(place).unwrap_or(0.5) * w))
                 .collect(),
             moves: BTreeMap::new(),
+            depth: BTreeMap::new(),
+            scale_keys: BTreeMap::new(),
         };
         let mut events: Vec<Event> = Vec::new();
         let mut gaze: BTreeMap<String, Vec<GazeKey>> = BTreeMap::new();
@@ -1491,8 +1664,11 @@ impl<'a> Builder<'a> {
 
         let mut t = LEAD;
         let mut previous_speaker: Option<String> = None;
+        // Start of the previous beat; `follow` looks for the leader's move there.
+        let mut beat_start = 0.0;
         for (b, beat) in scene.beats.iter().enumerate() {
             t = frame_ceil(t);
+            let previous_beat = std::mem::replace(&mut beat_start, t);
             let first = b == 0;
             let explicit = beat.shot.as_deref().filter(|s| *s != "auto");
             if let Some(pause) = beat.pause {
@@ -1570,7 +1746,7 @@ impl<'a> Builder<'a> {
                 });
                 // Walk and talk: the move starts with the line.
                 let mut walk_end = t;
-                if beat.move_to.is_some() {
+                if beat.travels() {
                     self.must_stand(index, b, &actor, &posed)?;
                     if let Some(duration) = self.walk(
                         (index, b),
@@ -1579,7 +1755,12 @@ impl<'a> Builder<'a> {
                         t,
                         &mut stage,
                         &mut events,
-                        &facing,
+                        Blocking {
+                            facing: &facing,
+                            posed: &posed,
+                            hands: &hands,
+                            previous_beat,
+                        },
                     )? {
                         walk_end = t + duration;
                         content_end = content_end.max(walk_end);
@@ -1677,7 +1858,7 @@ impl<'a> Builder<'a> {
                     length = length.max(GESTURE_SECONDS);
                 }
                 let mut moved = false;
-                if beat.move_to.is_some() {
+                if beat.travels() {
                     // Standing up in the same beat happens before the walk.
                     let mut start = t;
                     if beat.pose.as_deref() == Some("stand") && posed.contains_key(&actor) {
@@ -1697,13 +1878,20 @@ impl<'a> Builder<'a> {
                         start,
                         &mut stage,
                         &mut events,
-                        &facing,
+                        Blocking {
+                            facing: &facing,
+                            posed: &posed,
+                            hands: &hands,
+                            previous_beat,
+                        },
                     )? {
                         length = length.max(start - t + duration);
                         moved = true;
                         if let Some(target) = beat
                             .move_to
                             .as_ref()
+                            .or(beat.follow.as_ref())
+                            .or(beat.path.as_ref().and_then(|p| p.last()))
                             .filter(|m| stage.start.contains_key(*m))
                         {
                             if beat.look.is_none() {
@@ -1846,15 +2034,21 @@ impl<'a> Builder<'a> {
                 .start
                 .iter()
                 .map(|(actor, x)| {
-                    (
-                        actor.clone(),
-                        vec![ActorKey {
-                            x: x - w / 2.0,
-                            scale_x: ACTOR_SCALE,
-                            scale_y: ACTOR_SCALE,
-                            ..ActorKey::default()
-                        }],
-                    )
+                    let key = |at: f64, size: f64| ActorKey {
+                        at,
+                        x: x - w / 2.0,
+                        scale_x: ACTOR_SCALE * size,
+                        scale_y: ACTOR_SCALE * size,
+                        ..ActorKey::default()
+                    };
+                    let mut keys = vec![key(0.0, 1.0)];
+                    for &(at, size) in stage.scale_keys.get(actor).into_iter().flatten() {
+                        match keys.last_mut() {
+                            Some(last) if (last.at - at).abs() < 1e-9 => *last = key(at, size),
+                            _ => keys.push(key(at, size)),
+                        }
+                    }
+                    (actor.clone(), keys)
                 })
                 .collect(),
             gaze_tracks: gaze,
@@ -1887,9 +2081,12 @@ impl<'a> Builder<'a> {
         }
     }
 
-    /// Compile `beat.move_to` for `actor` starting at `t`: the move, profile
-    /// facing during it and the stage path. Returns the move's duration, or
-    /// `None` when the actor is already there (with a note).
+    /// Compile a beat's travel for `actor` starting at `t`: `move_to`,
+    /// `path`, `depth`, `look_back` and `pace`, or `follow`. Emits the moves,
+    /// profile facing during them, size keys for depth, and step-aside moves
+    /// for bystanders in the way. Returns the seconds from `t` until the
+    /// travel (and any step aside) is over, or `None` when the actor is
+    /// already there (with a note).
     #[allow(clippy::too_many_arguments)]
     fn walk(
         &mut self,
@@ -1899,85 +2096,393 @@ impl<'a> Builder<'a> {
         t: f64,
         stage: &mut Stage,
         events: &mut Vec<Event>,
-        facing: &BTreeMap<String, String>,
+        blocking: Blocking,
     ) -> Result<Option<f64>, StoryIssue> {
-        let Some(place) = &beat.move_to else {
-            return Ok(None);
+        let path = format!("scenes[{index}].beats[{b}]");
+        let invalid = |field: &str, message: String| {
+            issue(IssueKind::Invalid, format!("{path}.{field}"), message)
         };
         let (w, h) = (f64::from(STORY_WIDTH), f64::from(STORY_HEIGHT));
         let root_y = h * 0.7;
+        // Both hands full: a slow, hunched carry unless a gait is given.
+        let loaded = blocking
+            .hands
+            .get(actor)
+            .is_some_and(|hands| hands.iter().all(Option::is_some));
+        let default_gait = if loaded { "carry" } else { "walk" };
+        let pace = beat.pace.unwrap_or(1.0);
+        if let Some(leader) = &beat.follow {
+            return self.follow(
+                &path,
+                actor,
+                leader,
+                beat,
+                t,
+                stage,
+                events,
+                &blocking,
+                default_gait,
+            );
+        }
+        let gait = beat.gait.clone().unwrap_or_else(|| default_gait.into());
+        let speed = gait_speed(&gait) * pace;
         let from = stage.final_x(actor);
-        let to = match position_fraction(place) {
-            Some(fraction) => fraction * w,
-            None => {
-                // Walk up to another character and stop at talking distance
-                // on the side the mover comes from.
-                let target = stage.x(place, t);
-                let side = if from <= target { -1.0 } else { 1.0 };
-                (target + side * APPROACH_DISTANCE * w)
-                    .clamp(APPROACH_MARGIN * w, (1.0 - APPROACH_MARGIN) * w)
+        // Resolve the stops in order; a character stop is relative to where
+        // the walker arrives from.
+        let mut stops = Vec::new();
+        let mut x = from;
+        for place in beat.path.iter().flatten().chain(beat.move_to.iter()) {
+            let to = match position_fraction(place) {
+                Some(fraction) => fraction * w,
+                None => {
+                    let target = stage.x(place, t);
+                    let side = if x <= target { -1.0 } else { 1.0 };
+                    (target + side * APPROACH_DISTANCE * w)
+                        .clamp(APPROACH_MARGIN * w, (1.0 - APPROACH_MARGIN) * w)
+                }
+            };
+            if (to - x).abs() >= 1.0 {
+                stops.push(to);
+                x = to;
             }
-        };
-        if (to - from).abs() < 1.0 {
+        }
+        let look_back = beat.look_back == Some(true) && stops.len() == 1;
+        if look_back {
+            stops.insert(0, (from + stops[0]) / 2.0);
+        }
+        let depth_from = stage.depth.get(actor).copied().unwrap_or("mid");
+        let depth_to = beat
+            .depth
+            .as_deref()
+            .and_then(|d| DEPTHS.iter().find(|(n, _, _)| *n == d))
+            .map_or(depth_from, |(n, _, _)| *n);
+        let (dy_from, size_from) = depth_of(depth_from).unwrap_or((0.0, 1.0));
+        let (dy_to, size_to) = depth_of(depth_to).unwrap_or((0.0, 1.0));
+        let depth_px = DEPTH_STEP * depth_index(depth_to).abs_diff(depth_index(depth_from)) as f64;
+        if stops.is_empty() && depth_px > 0.0 {
+            // Straight toward or away from the camera.
+            stops.push(from);
+        }
+        if stops.is_empty() {
+            let place = beat.move_to.as_deref().unwrap_or("there");
             self.notes.push(format!(
-                "scenes[{index}].beats[{b}]: {actor} is already at {place}; the move was skipped"
+                "{path}: {actor} is already at {place}; the move was skipped"
             ));
             return Ok(None);
         }
-        let gait = beat.gait.clone().unwrap_or_else(|| "walk".into());
-        if gait == "leap" && (to - from).abs() > MAX_LEAP * w {
-            return Err(issue(
-                IssueKind::Invalid,
-                format!("scenes[{index}].beats[{b}].gait"),
-                format!(
-                    "a leap covers at most one neighbouring position; {actor} would leap {:.0} % of the frame — walk closer first",
-                    100.0 * (to - from).abs() / w
-                ),
-            ));
+        let mut legs = Vec::new();
+        let mut x0 = from;
+        for &x1 in &stops {
+            if gait == "leap" && (x1 - x0).abs() > MAX_LEAP * w {
+                return Err(invalid(
+                    "gait",
+                    format!(
+                        "a leap covers at most one neighbouring position; {actor} would leap {:.0} % of the frame — walk closer first",
+                        100.0 * (x1 - x0).abs() / w
+                    ),
+                ));
+            }
+            legs.push((x0, x1));
+            x0 = x1;
         }
-        let speed = GAIT_SPEEDS
-            .iter()
-            .find(|(name, _)| *name == gait)
-            .map_or(GAIT_SPEEDS[0].1, |(_, speed)| *speed);
-        let duration = frame_ceil(((to - from).abs() / speed).max(0.6));
-        // Walks speed up and slow down; a leap keeps its momentum.
-        let ease = if gait == "leap" {
-            MoveEase::Linear
-        } else {
-            MoveEase::InOut
-        };
+        let travel_x: f64 = legs.iter().map(|(a, c)| (c - a).abs()).sum();
+        let before = blocking
+            .facing
+            .get(actor)
+            .cloned()
+            .unwrap_or_else(|| "front".into());
         let offset = stage.start[actor] - w / 2.0;
-        events.push(Event::Move {
-            at: t,
-            actor: actor.to_string(),
-            x: to - offset,
-            y: root_y,
-            duration,
-            ease: (ease != MoveEase::Linear).then(|| ease.name().to_string()),
-            gait: Some(gait.clone()),
-        });
-        // Walk in profile unless the beat sets a facing itself. Walking
-        // backwards faces away from the travel direction.
-        if beat.face.is_none() {
-            let before = facing.get(actor).cloned().unwrap_or_else(|| "front".into());
-            let right = (to > from) != (gait == "backwards");
-            events.push(Event::Face {
-                at: t,
+        let mut at = t;
+        let mut covered = 0.0;
+        let mut busy_until = t;
+        let count = legs.len();
+        for (i, &(x0, x1)) in legs.iter().enumerate() {
+            let dx = x1 - x0;
+            let share = if travel_x > 0.0 {
+                dx.abs() / travel_x
+            } else {
+                1.0
+            };
+            covered += share;
+            let distance = dx.hypot(depth_px * share);
+            let duration = frame_ceil((distance / speed).max(0.6));
+            // One continuous journey speeds up once and slows down once;
+            // a look back stops half way. A leap keeps its momentum.
+            let ease = if gait == "leap" {
+                MoveEase::Linear
+            } else if count == 1 || look_back {
+                MoveEase::InOut
+            } else if i == 0 {
+                MoveEase::In
+            } else if i + 1 == count {
+                MoveEase::Out
+            } else {
+                MoveEase::Linear
+            };
+            let y = root_y + dy_from + (dy_to - dy_from) * covered.min(1.0);
+            events.push(Event::Move {
+                at,
                 actor: actor.to_string(),
-                value: if right { "right" } else { "left" }.into(),
+                x: x1 - offset,
+                y,
+                duration,
+                ease: (ease != MoveEase::Linear).then(|| ease.name().to_string()),
+                gait: Some(gait.clone()),
             });
+            if beat.face.is_none() {
+                let side = if dx.abs() < 1.0 {
+                    // Nearer shows the face; farther shows the back.
+                    if dy_to > dy_from {
+                        "front"
+                    } else {
+                        "back"
+                    }
+                } else if (dx > 0.0) != (gait == "backwards") {
+                    "right"
+                } else {
+                    "left"
+                };
+                events.push(Event::Face {
+                    at,
+                    actor: actor.to_string(),
+                    value: side.into(),
+                });
+                if look_back && i == 0 {
+                    // Stop, look over the shoulder, then carry on (the next
+                    // leg turns back to the travel direction).
+                    let back = if side == "right" { "left" } else { "right" };
+                    events.push(Event::Face {
+                        at: at + duration,
+                        actor: actor.to_string(),
+                        value: back.into(),
+                    });
+                }
+            }
+            if dx.abs() >= 1.0 && gait != "leap" {
+                busy_until = busy_until.max(self.clear_the_way(
+                    &path,
+                    actor,
+                    beat,
+                    (at, duration, x0, x1, ease),
+                    stage,
+                    events,
+                    &blocking,
+                ));
+            }
+            push_move(stage, actor, (at, at + duration, x0, x1, ease));
+            at += duration;
+            if look_back && i == 0 {
+                at = frame_ceil(at + LOOK_BACK_SECONDS);
+            }
+        }
+        if beat.face.is_none() {
             events.push(Event::Face {
-                at: t + duration,
+                at,
                 actor: actor.to_string(),
                 value: before,
             });
         }
-        stage
+        if depth_to != depth_from {
+            stage.depth.insert(actor.to_string(), depth_to);
+            let keys = stage.scale_keys.entry(actor.to_string()).or_default();
+            keys.push((t, size_from));
+            keys.push((at, size_to));
+        }
+        Ok(Some(at.max(busy_until) - t))
+    }
+
+    /// `follow`: walk after `leader`'s travel in the previous beat, starting a
+    /// moment after them and stopping a little behind them.
+    #[allow(clippy::too_many_arguments)]
+    fn follow(
+        &mut self,
+        path: &str,
+        actor: &str,
+        leader: &str,
+        beat: &Beat,
+        t: f64,
+        stage: &mut Stage,
+        events: &mut Vec<Event>,
+        blocking: &Blocking,
+        default_gait: &str,
+    ) -> Result<Option<f64>, StoryIssue> {
+        let w = f64::from(STORY_WIDTH);
+        let root_y = f64::from(STORY_HEIGHT) * 0.7;
+        let led: Vec<StageMove> = stage
             .moves
-            .entry(actor.to_string())
-            .or_default()
-            .push((t, t + duration, from, to, ease));
-        Ok(Some(duration))
+            .get(leader)
+            .into_iter()
+            .flatten()
+            .filter(|m| m.0 >= blocking.previous_beat - 1e-9 && m.2 != m.3)
+            .copied()
+            .collect();
+        let (Some(first), Some(last)) = (led.first(), led.last()) else {
+            return Err(issue(
+                IssueKind::Invalid,
+                format!("{path}.follow"),
+                format!("{leader} does not walk in the previous beat; put follow in the beat right after {leader}'s move_to"),
+            ));
+        };
+        let start = frame_ceil(first.0 + FOLLOW_DELAY);
+        if stage
+            .moves
+            .get(actor)
+            .into_iter()
+            .flatten()
+            .any(|m| m.1 > start)
+        {
+            return Err(issue(
+                IssueKind::Invalid,
+                format!("{path}.follow"),
+                format!("{actor} is still moving when {leader} sets off"),
+            ));
+        }
+        let from = stage.x(actor, start);
+        let direction = (last.3 - first.2).signum();
+        let to = last.3 - direction * FOLLOW_GAP * w;
+        if (to - from).abs() < 1.0 {
+            self.notes.push(format!(
+                "{path}: {actor} is already behind {leader}; follow was skipped"
+            ));
+            return Ok(None);
+        }
+        let leader_gait = events.iter().rev().find_map(|e| match e {
+            Event::Move { actor: a, gait, .. } if a == leader => gait.clone(),
+            _ => None,
+        });
+        let gait = beat
+            .gait
+            .clone()
+            .or(leader_gait.filter(|g| g != "leap"))
+            .unwrap_or_else(|| default_gait.into());
+        let speed = gait_speed(&gait) * beat.pace.unwrap_or(1.0);
+        // Never overtake: arrive after the leader has stopped.
+        let duration = frame_ceil(
+            ((to - from).abs() / speed)
+                .max(0.6)
+                .max(last.1 + FOLLOW_DELAY - start),
+        );
+        let (dy, _) =
+            depth_of(stage.depth.get(actor).copied().unwrap_or("mid")).unwrap_or((0.0, 1.0));
+        let offset = stage.start[actor] - w / 2.0;
+        events.push(Event::Move {
+            at: start,
+            actor: actor.to_string(),
+            x: to - offset,
+            y: root_y + dy,
+            duration,
+            ease: Some(MoveEase::InOut.name().to_string()),
+            gait: Some(gait.clone()),
+        });
+        if beat.face.is_none() {
+            let right = (to > from) != (gait == "backwards");
+            events.push(Event::Face {
+                at: start,
+                actor: actor.to_string(),
+                value: if right { "right" } else { "left" }.into(),
+            });
+            events.push(Event::Face {
+                at: start + duration,
+                actor: actor.to_string(),
+                value: blocking
+                    .facing
+                    .get(actor)
+                    .cloned()
+                    .unwrap_or_else(|| "front".into()),
+            });
+        }
+        push_move(
+            stage,
+            actor,
+            (start, start + duration, from, to, MoveEase::InOut),
+        );
+        Ok(Some((start + duration - t).max(0.0)))
+    }
+
+    /// Standing actors that `actor`'s leg passes step upstage and back as the
+    /// walker goes by. Returns when the last of them is back in place.
+    #[allow(clippy::too_many_arguments)]
+    fn clear_the_way(
+        &mut self,
+        path: &str,
+        actor: &str,
+        beat: &Beat,
+        (at, duration, x0, x1, ease): (f64, f64, f64, f64, MoveEase),
+        stage: &mut Stage,
+        events: &mut Vec<Event>,
+        blocking: &Blocking,
+    ) -> f64 {
+        let w = f64::from(STORY_WIDTH);
+        let root_y = f64::from(STORY_HEIGHT) * 0.7;
+        let (low, high) = (x0.min(x1) + 40.0, x0.max(x1) - 40.0);
+        let named: Vec<&String> = beat
+            .path
+            .iter()
+            .flatten()
+            .chain(beat.move_to.iter())
+            .collect();
+        let mut until = at;
+        let others: Vec<String> = stage.start.keys().cloned().collect();
+        for other in others {
+            if other == actor
+                || named.contains(&&other)
+                || blocking.posed.contains_key(&other)
+                || stage.depth.get(&other) != stage.depth.get(actor)
+            {
+                continue;
+            }
+            let ox = stage.x(&other, at);
+            if !(low < ox && ox < high) {
+                continue;
+            }
+            // When the walker reaches them (the eased position is monotonic).
+            let target = (ox - x0) / (x1 - x0);
+            let (mut a, mut c) = (0.0, 1.0);
+            for _ in 0..40 {
+                let m = 0.5 * (a + c);
+                if ease.apply(m) < target {
+                    a = m;
+                } else {
+                    c = m;
+                }
+            }
+            let crossing = at + duration * a;
+            let aside = frame_ceil((crossing - 0.5).max(at));
+            let back = frame_ceil((crossing + 0.3).max(aside + STEP_ASIDE_SECONDS));
+            let end = back + STEP_ASIDE_SECONDS;
+            let busy = stage
+                .moves
+                .get(&other)
+                .into_iter()
+                .flatten()
+                .any(|m| m.0 < end && m.1 > aside);
+            if busy {
+                continue;
+            }
+            let (dy, _) =
+                depth_of(stage.depth.get(&other).copied().unwrap_or("mid")).unwrap_or((0.0, 1.0));
+            let x = ox - (stage.start[&other] - w / 2.0);
+            for (when, y) in [(aside, root_y + dy - STEP_ASIDE), (back, root_y + dy)] {
+                events.push(Event::Move {
+                    at: when,
+                    actor: other.clone(),
+                    x,
+                    y,
+                    duration: STEP_ASIDE_SECONDS,
+                    ease: Some(MoveEase::InOut.name().to_string()),
+                    gait: Some("walk".into()),
+                });
+                push_move(
+                    stage,
+                    &other,
+                    (when, when + STEP_ASIDE_SECONDS, ox, ox, MoveEase::InOut),
+                );
+            }
+            self.notes
+                .push(format!("{path}: {other} steps aside to let {actor} pass"));
+            until = until.max(end);
+        }
+        until
     }
 
     fn framing(
@@ -2153,6 +2658,7 @@ RULES
 - line is the exact words spoken: no stage directions, no speaker names, no emojis.
 - Keep lines short (one or two sentences). Split long speeches into several say beats.
 - Good films have rhythm: setup, a turn, a reaction, a pause before the punchline.
+- Bystanders step aside automatically when someone walks past them.
 - To enter, start an actor at offscreen_left or offscreen_right and move_to a position; to exit, move_to offscreen_left or offscreen_right.
 - Short film: 1–6 scenes, 4–20 beats per scene, 30 seconds to 5 minutes in total.
 
@@ -2187,7 +2693,12 @@ scenes:
         look: <CHARACTER>
         face: <facing>
         move_to: <position or CHARACTER>  # a CHARACTER: walk up to them
-        gait: <gait>                # with move_to
+        path: [<stop>, <stop>, ...] # instead of move_to: 2–6 stops in one walk
+        follow: <CHARACTER>         # instead of move_to: walk after whoever moved in the previous beat
+        depth: near | mid | far     # walk toward or away from the camera
+        pace: <0.5–1.5>             # optional speed factor for the walk
+        look_back: true             # with move_to: stop half way and look back
+        gait: <gait>                # with move_to, path, follow or depth
         holds: <hand prop>          # pick it up (after any walk); none puts it down
         hand: left | right          # optional, with holds
         pose: <pose>                # sit adds a chair; stand up before walking

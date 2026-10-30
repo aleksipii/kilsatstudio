@@ -84,7 +84,7 @@ fn speed(gait: &str) -> f64 {
         "leap" => 0.3,
         "jog" => 0.27,
         "stroll" => 0.11,
-        "sneak" | "tiptoe" | "limp" | "backwards" => 0.09,
+        "sneak" | "tiptoe" | "limp" | "backwards" | "carry" => 0.09,
         _ => 0.16,
     }
 }

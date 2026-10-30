@@ -212,6 +212,7 @@ pub(crate) fn gesture_label(value: &str) -> &str {
         "jump" => "Hyppy",
         "clap" => "Taputus",
         "think" => "Mietintä",
+        "stumble" => "Kompastuminen",
         _ => value,
     }
 }
@@ -223,6 +224,7 @@ pub(crate) fn pose_label(value: &str) -> &str {
         "crouch" => "Kyykky",
         "kneel" => "Polvillaan",
         "lie" => "Makaa",
+        "fall" => "Kaatuu",
         _ => value,
     }
 }
@@ -239,6 +241,7 @@ pub(crate) fn gait_label(value: &str) -> &str {
         "sprint" => "Pyrähdys",
         "backwards" => "Takaperin",
         "leap" => "Hyppy",
+        "carry" => "Kantaa",
         _ => value,
     }
 }

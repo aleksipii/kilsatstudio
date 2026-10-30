@@ -66,7 +66,7 @@ pub const JOG_CYCLE_SECONDS: f64 = 0.5;
 /// Seconds per full run cycle (two steps).
 pub const RUN_CYCLE_SECONDS: f64 = 0.4;
 /// MotionScript gait names, in the order editors should present them.
-pub const GAITS: [&str; 10] = [
+pub const GAITS: [&str; 11] = [
     "walk",
     "jog",
     "run",
@@ -77,6 +77,7 @@ pub const GAITS: [&str; 10] = [
     "sprint",
     "backwards",
     "leap",
+    "carry",
 ];
 
 /// How a character travels while a move is active.
@@ -100,6 +101,8 @@ pub enum Gait {
     Backwards,
     /// One jump along the move: crouch, flight and landing.
     Leap,
+    /// Slow, hunched walk with both arms holding a load in front.
+    Carry,
 }
 impl Gait {
     pub fn parse(name: &str) -> Option<Self> {
@@ -114,6 +117,7 @@ impl Gait {
             "sprint" => Self::Sprint,
             "backwards" => Self::Backwards,
             "leap" => Self::Leap,
+            "carry" => Self::Carry,
             _ => return None,
         })
     }
@@ -129,6 +133,7 @@ impl Gait {
             Self::Run => RUN_CYCLE_SECONDS,
             Self::Stroll | Self::Backwards => 0.8,
             Self::Sneak | Self::Limp => 0.9,
+            Self::Carry => 0.85,
             Self::Tiptoe => 0.36,
             Self::Sprint => 0.34,
             Self::Leap => 1.0,
@@ -203,7 +208,7 @@ impl MoveEase {
 }
 
 /// MotionScript gesture names, in the order editors should present them.
-pub const GESTURES: [&str; 12] = [
+pub const GESTURES: [&str; 13] = [
     "wave",
     "point",
     "nod",
@@ -216,6 +221,7 @@ pub const GESTURES: [&str; 12] = [
     "jump",
     "clap",
     "think",
+    "stumble",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -232,6 +238,8 @@ pub enum Gesture {
     Jump,
     Clap,
     Think,
+    /// Trip: the body pitches forward, the arms fling out and it recovers.
+    Stumble,
 }
 impl Gesture {
     pub fn parse(name: &str) -> Option<Self> {
@@ -248,6 +256,7 @@ impl Gesture {
             "jump" => Self::Jump,
             "clap" => Self::Clap,
             "think" => Self::Think,
+            "stumble" => Self::Stumble,
             _ => return None,
         })
     }
@@ -289,7 +298,7 @@ struct Library {
     rig: Rig,
     /// Step cycles indexed by `Gait as usize`; the leap is procedural.
     gaits: Vec<Vec<Option<Track>>>,
-    gestures: [Vec<Option<Track>>; 12],
+    gestures: [Vec<Option<Track>>; 13],
 }
 
 fn offset(time: f64, x: f64, y: f64) -> Keyframe {
@@ -439,6 +448,7 @@ fn library() -> &'static Library {
             shaped(0.8, 9.0, 5.0, 0.0, 1.5, 0.0, 0.0),
             // The leap is evaluated from move progress, not from a cycle.
             vec![None; 7],
+            shaped(0.85, 8.0, 1.0, 18.0, 2.0, 4.0, 0.0),
         ];
         debug_assert_eq!(gaits.len(), GAITS.len());
         let wave = clip(&[(
@@ -530,6 +540,36 @@ fn library() -> &'static Library {
             (RIGHT_HAND, &[(0.0, -24.0, -48.0)]),
             (HEAD, &[(0.0, 2.0, 0.0)]),
         ]);
+        let stumble = clip(&[
+            (
+                HIP,
+                &[
+                    (0.0, 0.0, 0.0),
+                    (0.3, 6.0, 6.0),
+                    (0.6, 4.0, 2.0),
+                    (1.0, 0.0, 0.0),
+                ],
+            ),
+            (CHEST, &[(0.0, 0.0, 0.0), (0.3, 10.0, 4.0), (1.0, 0.0, 0.0)]),
+            (HEAD, &[(0.0, 0.0, 0.0), (0.3, 12.0, 6.0), (1.0, 0.0, 0.0)]),
+            (
+                LEFT_HAND,
+                &[(0.0, 0.0, 0.0), (0.3, -6.0, -56.0), (1.0, 0.0, 0.0)],
+            ),
+            (
+                RIGHT_HAND,
+                &[(0.0, 0.0, 0.0), (0.3, 24.0, -30.0), (1.0, 0.0, 0.0)],
+            ),
+            (
+                RIGHT_FOOT,
+                &[
+                    (0.0, 0.0, 0.0),
+                    (0.3, -14.0, -8.0),
+                    (0.6, 6.0, 0.0),
+                    (1.0, 0.0, 0.0),
+                ],
+            ),
+        ]);
         Library {
             rig,
             gaits,
@@ -546,6 +586,7 @@ fn library() -> &'static Library {
                 jump,
                 clap,
                 think,
+                stumble,
             ],
         }
     })
@@ -700,6 +741,7 @@ pub fn evaluate_humanoid_with_weights_and_offsets(
             Gait::Sneak => 5.0,
             Gait::Tiptoe => 1.0,
             Gait::Sprint => 9.0,
+            Gait::Carry => 4.0,
             // Leans slightly against the travel direction.
             Gait::Backwards => -1.5,
         };

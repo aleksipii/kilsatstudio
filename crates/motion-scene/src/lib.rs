@@ -1133,7 +1133,14 @@ fn evaluate_validated(
                             weights.walk,
                         )
                     } else {
-                        motion_animation::rig_gait(gait, seconds, travel, weights.walk)
+                        // The current emotion colours the steps.
+                        motion_animation::rig_gait_with_mood(
+                            gait,
+                            seconds,
+                            travel,
+                            weights.walk,
+                            motion_animation::GaitMood::from_emotion(&pose.emotion),
+                        )
                     };
                     add_rig_motion(rig, &mut offsets, &motion);
                 }

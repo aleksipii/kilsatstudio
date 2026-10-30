@@ -10,9 +10,9 @@ mod principles;
 pub use principles::{Principles, PrinciplesError, PRINCIPLE_PRESETS};
 mod rig_motion;
 pub use rig_motion::{
-    acting_curve, acting_curve_with, blend_rig_motion, rig_body_pose, rig_gait, rig_gesture,
-    rig_gesture_with, rig_leap, rig_moving_hold, rig_pose_at, rig_sit, BodyPose, RigMotion,
-    BODY_POSES, MOVING_HOLD_DELAY, RIG_MOTION_JOINTS, SIT_SECONDS,
+    acting_curve, acting_curve_with, blend_rig_motion, rig_body_pose, rig_gait, rig_gait_with_mood,
+    rig_gesture, rig_gesture_with, rig_leap, rig_moving_hold, rig_pose_at, rig_sit, BodyPose,
+    GaitMood, RigMotion, BODY_POSES, MOVING_HOLD_DELAY, RIG_MOTION_JOINTS, SIT_SECONDS,
 };
 pub mod exposure;
 pub use exposure::{Exposure, ExposureError, Interpolation, MAX_EXPOSURE};

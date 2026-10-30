@@ -109,6 +109,11 @@ fn shape(gait: Gait) -> GaitShape {
         Gait::Backwards => gait_shape(0.3, 0.4, 0.2, -0.3, 3.0, -0.06),
         // Not cyclic; see `rig_leap`.
         Gait::Leap => gait_shape(0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        Gait::Carry => GaitShape {
+            crouch: 0.35,
+            reach: 0.75,
+            ..gait_shape(0.26, 0.4, 0.04, -1.2, 3.0, 0.2)
+        },
     }
 }
 
@@ -150,6 +155,30 @@ fn smoothstep(u: f64) -> f64 {
     u * u * (3.0 - 2.0 * u)
 }
 
+/// How an emotion colours a gait.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
+pub enum GaitMood {
+    #[default]
+    Neutral,
+    /// Drags: small arm swing, head and shoulders down, little bounce.
+    Sad,
+    /// Stomps: heavy bob, stiff pumping arms, leaning in.
+    Angry,
+    /// Bounces: springy bob, loose arms, head up.
+    Happy,
+}
+impl GaitMood {
+    /// Mood for a MotionScript emotion; unknown or neutral emotions are neutral.
+    pub fn from_emotion(emotion: &str) -> Self {
+        match emotion {
+            "sad" => Self::Sad,
+            "angry" => Self::Angry,
+            "happy" => Self::Happy,
+            _ => Self::Neutral,
+        }
+    }
+}
+
 /// Gait offsets `seconds` into an active move. `travel` is the local
 /// horizontal direction (+1 toward +x, -1 toward -x); zero counts as +x.
 /// `weight` scales the whole layer and is clamped to `0..=1`.
@@ -158,6 +187,17 @@ fn smoothstep(u: f64) -> f64 {
 /// their upper arms (overlapping action), so a move never pops into full
 /// stride.
 pub fn rig_gait(gait: Gait, seconds: f64, travel: f64, weight: f64) -> RigMotion {
+    rig_gait_with_mood(gait, seconds, travel, weight, GaitMood::Neutral)
+}
+
+/// [`rig_gait`] coloured by `mood`. A neutral mood gives exactly `rig_gait`.
+pub fn rig_gait_with_mood(
+    gait: Gait,
+    seconds: f64,
+    travel: f64,
+    weight: f64,
+    mood: GaitMood,
+) -> RigMotion {
     let mut motion = rest();
     let weight = if weight.is_finite() {
         weight.clamp(0.0, 1.0)
@@ -171,7 +211,30 @@ pub fn rig_gait(gait: Gait, seconds: f64, travel: f64, weight: f64) -> RigMotion
         // A leap needs move progress, not elapsed seconds.
         return motion;
     }
-    let s = shape(gait);
+    let mut s = shape(gait);
+    // Mood scales the swing and bounce; the head is set below.
+    let head_drop = match mood {
+        GaitMood::Neutral => 0.0,
+        GaitMood::Sad => {
+            s.arm *= 0.4;
+            s.bob *= 0.5;
+            s.leg *= 0.8;
+            s.lean += 0.08;
+            0.18
+        }
+        GaitMood::Angry => {
+            s.bob *= 1.7;
+            s.arm *= 1.3;
+            s.elbow -= 0.5;
+            s.lean += 0.08;
+            0.06
+        }
+        GaitMood::Happy => {
+            s.bob *= 1.9;
+            s.arm *= 1.25;
+            -0.08
+        }
+    };
     let cycle = gait.cycle_seconds();
     let weight = weight * smoothstep(seconds / (cycle * GAIT_EASE_IN_CYCLES));
     let phase = TAU * seconds.rem_euclid(cycle) / cycle;
@@ -199,7 +262,7 @@ pub fn rig_gait(gait: Gait, seconds: f64, travel: f64, weight: f64) -> RigMotion
     // The head counters the lean and lags the bob slightly.
     motion[HEAD] = Transform2 {
         translation: Vec2::new(0.0, 0.15 * s.bob * (2.0 * phase - GAIT_DRAG).cos() * weight),
-        rotation: -0.5 * s.lean * weight,
+        rotation: (-0.5 * s.lean + head_drop) * weight,
         ..Default::default()
     };
     if travel < 0.0 {
@@ -276,7 +339,7 @@ pub fn rig_leap(progress: f64, travel: f64, weight: f64) -> RigMotion {
 }
 
 /// MotionScript body poses, in the order editors should present them.
-pub const BODY_POSES: [&str; 5] = ["stand", "sit", "crouch", "kneel", "lie"];
+pub const BODY_POSES: [&str; 6] = ["stand", "sit", "crouch", "kneel", "lie", "fall"];
 
 /// A body pose that lasts until the next pose change.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Hash)]
@@ -288,6 +351,8 @@ pub enum BodyPose {
     Kneel,
     /// Lying on the floor.
     Lie,
+    /// Falling flat: ends lying on the floor, reached quickly.
+    Fall,
 }
 impl BodyPose {
     pub fn parse(name: &str) -> Option<Self> {
@@ -297,6 +362,7 @@ impl BodyPose {
             "crouch" => Self::Crouch,
             "kneel" => Self::Kneel,
             "lie" => Self::Lie,
+            "fall" => Self::Fall,
             _ => return None,
         })
     }
@@ -310,6 +376,7 @@ impl BodyPose {
             Self::Crouch => 0.3,
             Self::Kneel => 0.5,
             Self::Lie => 0.9,
+            Self::Fall => 0.35,
         }
     }
 }
@@ -361,7 +428,7 @@ pub fn rig_body_pose(pose: BodyPose, profile: bool) -> RigMotion {
             motion[THIGH_R] = rotation(-0.25);
             motion[SHIN_R] = rotation(-1.32);
         }
-        (BodyPose::Lie, _) => {
+        (BodyPose::Lie | BodyPose::Fall, _) => {
             // Flat on the floor, head toward the facing direction and
             // slightly raised so it rests on the ground line.
             motion[ROOT] = Transform2 {
@@ -678,6 +745,25 @@ pub fn rig_gesture_with(
             motion[UPPER_ARM_L] = rotation(-0.55 * lead);
             motion[FOREARM_R] = rotation((1.45 + 0.25 * beat) * trail);
             motion[FOREARM_L] = rotation(-(1.45 + 0.25 * beat) * trail);
+        }
+        Gesture::Stumble => {
+            // The toe catches: the back leg kicks up, the body pitches
+            // forward and the arms fling out, then it recovers.
+            let trip = (std::f64::consts::PI * p).sin().powi(2) * w;
+            let catch = (std::f64::consts::PI * (p - 0.15).max(0.0) / 0.85)
+                .sin()
+                .max(0.0)
+                * w;
+            motion[ROOT] = translation(0.0, 10.0 * catch);
+            motion[TORSO] = rotation(0.45 * trip);
+            motion[HEAD] = rotation(-0.25 * trip);
+            motion[THIGH_R] = rotation(0.7 * trip);
+            motion[SHIN_R] = rotation(0.9 * trip);
+            motion[THIGH_L] = rotation(-0.35 * catch);
+            motion[SHIN_L] = rotation(0.5 * catch);
+            motion[UPPER_ARM_L] = rotation(-1.7 * lead);
+            motion[UPPER_ARM_R] = rotation(-1.3 * trail);
+            motion[FOREARM_L] = rotation(-0.4 * trail);
         }
         Gesture::Think => {
             // Hand to the chin, head tilted.
@@ -1096,5 +1182,53 @@ mod locomotion_tests {
             rig_body_pose(BodyPose::Kneel, false)
         );
         assert_eq!(rig_pose_at(&[], 3.0, false), rest());
+    }
+}
+
+#[cfg(test)]
+mod mood_tests {
+    use super::*;
+
+    #[test]
+    fn moods_colour_the_gait_and_neutral_changes_nothing() {
+        let at = |mood| rig_gait_with_mood(Gait::Walk, 1.0 + 0.25 * 2.0 / 3.0, 1.0, 1.0, mood);
+        assert_eq!(
+            at(GaitMood::Neutral),
+            rig_gait(Gait::Walk, 1.0 + 0.25 * 2.0 / 3.0, 1.0, 1.0)
+        );
+        let (neutral, sad, angry, happy) = (
+            at(GaitMood::Neutral),
+            at(GaitMood::Sad),
+            at(GaitMood::Angry),
+            at(GaitMood::Happy),
+        );
+        assert!(sad[UPPER_ARM_L].rotation.abs() < neutral[UPPER_ARM_L].rotation.abs());
+        assert!(sad[HEAD].rotation > neutral[HEAD].rotation, "head hangs");
+        assert!(angry[UPPER_ARM_L].rotation.abs() > neutral[UPPER_ARM_L].rotation.abs());
+        assert!(happy[HEAD].rotation < neutral[HEAD].rotation, "head up");
+        // Bounce: compare the root at passing (legs together).
+        let passing = |mood| {
+            rig_gait_with_mood(Gait::Walk, 2.0, 1.0, 1.0, mood)[ROOT]
+                .translation
+                .y
+        };
+        assert!(passing(GaitMood::Happy) < passing(GaitMood::Neutral));
+        assert!(passing(GaitMood::Sad) > passing(GaitMood::Neutral));
+        assert_eq!(GaitMood::from_emotion("sad"), GaitMood::Sad);
+        assert_eq!(GaitMood::from_emotion("surprised"), GaitMood::Neutral);
+    }
+
+    #[test]
+    fn stumble_pitches_forward_and_fall_ends_lying_quickly() {
+        let mid = rig_gesture(Gesture::Stumble, 0.4, 1.0);
+        assert!(mid[TORSO].rotation > 0.2 && mid[UPPER_ARM_L].rotation < -0.5);
+        assert_eq!(rig_gesture(Gesture::Stumble, 0.0, 1.0)[TORSO].rotation, 0.0);
+        assert_eq!(
+            rig_body_pose(BodyPose::Fall, true),
+            rig_body_pose(BodyPose::Lie, true)
+        );
+        assert!(BodyPose::Fall.seconds() < BodyPose::Lie.seconds());
+        let fallen = rig_pose_at(&[(0.0, BodyPose::Fall)], BodyPose::Fall.seconds(), true);
+        assert_eq!(fallen, rig_body_pose(BodyPose::Lie, true));
     }
 }

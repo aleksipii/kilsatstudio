@@ -151,3 +151,19 @@ fn body_poses_lower_the_figure_and_lying_turns_it_flat() {
     assert!((head - foot).abs() < 40.0, "head {head}, foot {foot}");
     assert!((head - floor).abs() < 40.0, "head {head}, floor {floor}");
 }
+
+#[test]
+fn emotion_colours_the_walk() {
+    let walk = |emotion: &str| {
+        let s = script(json!([
+            { "type": "emotion", "actor": "VEIKKO", "at": 0, "value": emotion },
+            { "type": "move", "actor": "VEIKKO", "at": 1, "x": 1200, "y": 700,
+              "duration": 2, "gait": "walk" }
+        ]));
+        actor(&s, 1.7)
+    };
+    let (neutral, sad) = (walk("neutral"), walk("sad"));
+    assert_ne!(neutral.rigid_parts, sad.rigid_parts);
+    // The sad head hangs lower.
+    assert!(highest(&sad, "face") > highest(&neutral, "face"));
+}
