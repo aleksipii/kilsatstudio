@@ -2,7 +2,7 @@
 //! applied to rigs (docs/model-sheet.md).
 //!
 //! Everything on a sheet comes from the rig definition: the turnaround uses the
-//! views the rig evaluates (front, side, back), the expression row uses the
+//! views the rig evaluates (front, three-quarter, side, back), the expression row uses the
 //! rig's emotion variants and blink, the mouth row uses its viseme map, the
 //! ruler measures the head joint's parts and the swatches list its colours. The
 //! same rig and options always give the same SVG bytes.
@@ -449,7 +449,7 @@ pub struct ModelSheet {
 const SHEET_WIDTH: f64 = 1800.0;
 const MARGIN: f64 = 40.0;
 const RULER: f64 = 120.0;
-const TURN_W: f64 = 380.0;
+const TURN_W: f64 = 300.0;
 const TURN_H: f64 = 520.0;
 const FACE: f64 = 260.0;
 const MOUTH_W: f64 = 120.0;
@@ -616,6 +616,7 @@ pub fn render_model_sheet(
     };
     let views = [
         ("edestä", FaceView::Front),
+        ("puolisivulta", FaceView::ThreeQuarter),
         ("sivulta", FaceView::Side),
         ("takaa", FaceView::Back),
     ];
@@ -689,7 +690,7 @@ pub fn render_model_sheet(
             scale,
             tx,
             ty,
-            i == 3,
+            i == views.len(),
         )?;
         sheet.text(
             x + TURN_W / 2.0,
@@ -700,7 +701,7 @@ pub fn render_model_sheet(
             label,
         );
     }
-    // Limb readings sit below the silhouette cell, two per line.
+    // Limb readings sit below the silhouette cell, one per line.
     for (index, limb) in silhouette.limbs.iter().enumerate() {
         let text = format!(
             "{} {:.0} % näkyy{}",
@@ -709,14 +710,14 @@ pub fn render_model_sheet(
             if limb.warning { " · varoitus" } else { "" }
         );
         let color = if limb.warning { WARN } else { INK };
-        let x = cell_x(3) + 10.0 + (index % 2) as f64 * (TURN_W / 2.0);
-        let line_y = top + TURN_H + 20.0 + (index / 2) as f64 * 18.0;
+        let x = cell_x(views.len()) + 10.0;
+        let line_y = top + TURN_H + 20.0 + index as f64 * 18.0;
         sheet.text(x, line_y, 14.0, "start", color, &text);
     }
     if let Some(p) = proportions {
         let head_top = ty + scale * front_bounds[1];
         let step = scale * p.head_height;
-        let right = cell_x(2) + TURN_W;
+        let right = cell_x(views.len() - 1) + TURN_W;
         let mut k = 0;
         while f64::from(k) <= p.heads.floor() {
             let ly = head_top + step * f64::from(k);
@@ -747,7 +748,7 @@ pub fn render_model_sheet(
             &format!("{:.2} päänkorkeutta", p.heads),
         );
     }
-    y = top + TURN_H + 20.0 + 18.0 * silhouette.limbs.len().div_ceil(2) as f64;
+    y = top + TURN_H + 20.0 + 18.0 * silhouette.limbs.len() as f64;
 
     // Expressions and mouth shapes, cropped to the head joint's parts.
     let mut expressions = Vec::new();

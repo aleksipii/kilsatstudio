@@ -446,6 +446,7 @@ mod tests {
             ellipse: None,
             smooth: 0,
             outline: None,
+            views: Default::default(),
         }];
         if let Some(id) = extra_part {
             let mut part = parts[0].clone();

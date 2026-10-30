@@ -59,6 +59,8 @@ pub const VISEME_NAMES: [&str; 13] = [
 /// Emotion names the screenplay accepts.
 pub const EMOTION_NAMES: [&str; 5] = ["neutral", "happy", "sad", "surprised", "angry"];
 pub const MAX_VARIANTS_PER_PART: usize = 16;
+/// Non-front views a part may be drawn for separately (`RigidPartDefinition::views`).
+pub const VIEW_NAMES: [&str; 3] = ["three_quarter", "side", "back"];
 pub const MAX_EXPRESSION_ENTRIES: usize = 16;
 pub const MAX_EYE_PARTS: usize = 8;
 pub const MAX_GAZE_TRAVEL: f64 = 500.0;
@@ -237,6 +239,13 @@ pub struct RigidPartDefinition {
     /// Optional bold outline drawn by the SVG renderer.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub outline: Option<OutlineDefinition>,
+    /// Hand-drawn appearance per view, keyed by a `VIEW_NAMES` entry. It replaces
+    /// the base part in that view (alpha 0 hides it there), before any viseme,
+    /// expression or blink variant is applied. Views drawn this way skip the
+    /// automatic face turn. A missing `three_quarter` falls back to the front
+    /// drawing and a missing `side` or `back` to the automatic turn.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub views: BTreeMap<String, PartVariantDefinition>,
 }
 /// Image binding for a part. `uv` is `[u0, v0, u1, v1]`, the image sub-rectangle
 /// (fractions of the image, v downwards) stretched over the part's rest-pose
@@ -569,11 +578,13 @@ fn part_control(part: &RigidPartDefinition) -> Result<Vec<[f64; 2]>, Error> {
 }
 /// Validate variants and return the vertices their shapes expand to.
 fn validate_variants(part: &RigidPartDefinition, base: &[[f64; 2]]) -> Result<usize, Error> {
-    if part.variants.len() > MAX_VARIANTS_PER_PART {
+    if part.variants.len() > MAX_VARIANTS_PER_PART
+        || part.views.keys().any(|v| !VIEW_NAMES.contains(&v.as_str()))
+    {
         return Err(Error::InvalidDefinition);
     }
     let mut expanded = 0;
-    for (id, variant) in &part.variants {
+    for (id, variant) in part.variants.iter().chain(&part.views) {
         if !valid_id(id) {
             return Err(Error::InvalidDefinition);
         }
@@ -783,7 +794,13 @@ impl RigDefinition {
         if self
             .parts
             .iter()
-            .filter(|p| p.texture.is_some() || p.variants.values().any(|v| v.texture.is_some()))
+            .filter(|p| {
+                p.texture.is_some()
+                    || p.variants
+                        .values()
+                        .chain(p.views.values())
+                        .any(|v| v.texture.is_some())
+            })
             .count()
             > MAX_TEXTURED_PARTS
         {
@@ -874,7 +891,12 @@ impl RigDefinition {
         self.parts.iter().flat_map(|p| {
             p.texture
                 .iter()
-                .chain(p.variants.values().filter_map(|v| v.texture.as_ref()))
+                .chain(
+                    p.variants
+                        .values()
+                        .chain(p.views.values())
+                        .filter_map(|v| v.texture.as_ref()),
+                )
                 .map(|t| t.asset.as_str())
         })
     }
@@ -918,7 +940,11 @@ impl RigDefinition {
                 if let Some(e) = definition.ellipse.take() {
                     definition.points = ellipse_points(&e);
                 }
-                for variant in definition.variants.values_mut() {
+                for variant in definition
+                    .variants
+                    .values_mut()
+                    .chain(definition.views.values_mut())
+                {
                     if let Some(e) = variant.ellipse.take() {
                         variant.points = Some(ellipse_points(&e));
                     }
@@ -1092,12 +1118,37 @@ pub struct ActingInput<'a> {
 pub enum FaceView {
     #[default]
     Front,
+    /// Halfway between front and side, turned toward +x like the side view.
+    ThreeQuarter,
     Side,
     Back,
+}
+impl FaceView {
+    /// Key of this view in `RigidPartDefinition::views`; `None` for the front.
+    pub fn name(self) -> Option<&'static str> {
+        match self {
+            FaceView::Front => None,
+            FaceView::ThreeQuarter => Some("three_quarter"),
+            FaceView::Side => Some("side"),
+            FaceView::Back => Some("back"),
+        }
+    }
+    /// Fraction of the facial feature spread kept in this view (the rest becomes
+    /// the shift toward the facing side), or `None` when the face is hidden.
+    pub fn feature_squash(self) -> Option<f64> {
+        match self {
+            FaceView::Front => Some(1.0),
+            FaceView::ThreeQuarter => Some(THREE_QUARTER_SQUASH),
+            FaceView::Side => Some(SIDE_SQUASH),
+            FaceView::Back => None,
+        }
+    }
 }
 /// Fraction of the feature spread kept in the side view; the rest becomes the
 /// shift toward the facing side.
 const SIDE_SQUASH: f64 = 0.55;
+/// Fraction of the feature spread kept in the three-quarter view.
+const THREE_QUARTER_SQUASH: f64 = 0.8;
 /// Evaluated mouth alternatives for this pose: `(viseme name, part)` for each
 /// mapped viseme, replacing `parts[part]` when that viseme is spoken.
 #[derive(Debug, Clone, PartialEq)]
@@ -1208,6 +1259,7 @@ impl PreparedRig {
     ) -> Result<EvaluatedPart, Error> {
         let prepared = &self.parts[index];
         let part = &prepared.definition;
+        let drawn = view.name().and_then(|name| part.views.get(name));
         let variant = match variant {
             Some(i) => Some(
                 part.variants
@@ -1217,27 +1269,35 @@ impl PreparedRig {
             ),
             None => None,
         };
+        // Precedence: viseme/expression variant, then the view drawing, then the base.
         let rest_points = variant
             .and_then(|v| v.points.as_ref())
+            .or(drawn.and_then(|v| v.points.as_ref()))
             .unwrap_or(&part.points);
-        let mut color = variant.and_then(|v| v.color).unwrap_or(part.color);
+        let mut color = variant
+            .and_then(|v| v.color)
+            .or(drawn.and_then(|v| v.color))
+            .unwrap_or(part.color);
         let mut texture_definition = variant
             .and_then(|v| v.texture.as_ref())
+            .or(drawn.and_then(|v| v.texture.as_ref()))
             .or(part.texture.as_ref());
-        let feature = view != FaceView::Front && self.acting.features.binary_search(&index).is_ok();
+        let feature = view != FaceView::Front
+            && drawn.is_none()
+            && self.acting.features.binary_search(&index).is_ok();
         let turned: Vec<[f64; 2]>;
-        let rest_points = match (feature, view, self.acting.side) {
-            (true, FaceView::Back, _) => {
+        let rest_points = match (feature, view.feature_squash(), self.acting.side) {
+            (true, None, _) => {
                 // The back of the head shows no face.
                 color[3] = 0;
                 texture_definition = None;
                 rest_points
             }
-            (true, FaceView::Side, Some((center, half))) => {
-                let shift = (1.0 - SIDE_SQUASH) * half;
+            (true, Some(squash), Some((center, half))) => {
+                let shift = (1.0 - squash) * half;
                 turned = rest_points
                     .iter()
-                    .map(|p| [center + (p[0] - center) * SIDE_SQUASH + shift, p[1]])
+                    .map(|p| [center + (p[0] - center) * squash + shift, p[1]])
                     .collect();
                 &turned
             }
@@ -1307,10 +1367,14 @@ impl PreparedRig {
         // posing the rounded rest shape for rigid parts, and follows skinning.
         let points = round_corners(
             &points,
-            variant.and_then(|v| v.smooth).unwrap_or(part.smooth),
+            variant
+                .and_then(|v| v.smooth)
+                .or(drawn.and_then(|v| v.smooth))
+                .unwrap_or(part.smooth),
         );
         let outline = variant
             .and_then(|v| v.outline)
+            .or(drawn.and_then(|v| v.outline))
             .or(part.outline)
             .filter(|o| o.width > 0.0 && o.color[3] > 0 && color[3] > 0)
             .map(|o| EvaluatedOutline {
@@ -2005,5 +2069,155 @@ mod tests {
         s.parts[0].points.clear();
         s.parts[0].ellipse = Some(e);
         assert_eq!(s.validate(), Err(Error::InvalidDefinition));
+    }
+    fn face_rig() -> RigDefinition {
+        let shape = |points: &[[f64; 2]]| PartVariantDefinition {
+            points: Some(points.to_vec()),
+            ..Default::default()
+        };
+        RigDefinition {
+            version: 1,
+            id: "face".into(),
+            joints: vec![RigJointDefinition {
+                id: "head".into(),
+                parent: None,
+                x: 0.0,
+                y: 0.0,
+                rotation: 0.0,
+                scale_x: 1.0,
+                scale_y: 1.0,
+            }],
+            parts: vec![
+                RigidPartDefinition {
+                    id: "skull".into(),
+                    joint: "head".into(),
+                    points: vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]],
+                    color: [200, 160, 120, 255],
+                    views: BTreeMap::from([
+                        (
+                            "three_quarter".into(),
+                            shape(&[[1.0, 0.0], [10.0, 0.0], [9.0, 10.0], [1.0, 10.0]]),
+                        ),
+                        (
+                            "back".into(),
+                            PartVariantDefinition {
+                                color: Some([60, 40, 20, 255]),
+                                ..Default::default()
+                            },
+                        ),
+                    ]),
+                    ..Default::default()
+                },
+                RigidPartDefinition {
+                    id: "eye".into(),
+                    joint: "head".into(),
+                    points: vec![[2.0, 4.0], [4.0, 4.0], [3.0, 6.0]],
+                    color: [0, 0, 0, 255],
+                    variants: BTreeMap::from([(
+                        "wide".into(),
+                        shape(&[[2.0, 3.0], [4.0, 3.0], [3.0, 7.0]]),
+                    )]),
+                    ..Default::default()
+                },
+            ],
+            expressions: BTreeMap::from([(
+                "happy".into(),
+                vec![ExpressionVariant {
+                    part: "eye".into(),
+                    variant: "wide".into(),
+                }],
+            )]),
+            ..Default::default()
+        }
+    }
+    fn xy(part: &EvaluatedPart) -> Vec<[f64; 2]> {
+        part.points.iter().map(|p| [p.x, p.y]).collect()
+    }
+    fn act(d: &RigDefinition, emotion: &str, view: FaceView) -> Vec<EvaluatedPart> {
+        let input = ActingInput {
+            emotion,
+            blink: false,
+            view,
+        };
+        d.prepare().unwrap().evaluate_acting(&[], input).unwrap().0
+    }
+    #[test]
+    fn three_quarter_view_turns_features_less_than_the_side_view() {
+        let d = face_rig();
+        // Features span x 2..4: centre 3, half width 1.
+        let eye = |view| xy(&act(&d, "neutral", view)[1]);
+        assert_eq!(eye(FaceView::Front), [[2.0, 4.0], [4.0, 4.0], [3.0, 6.0]]);
+        let quarter = eye(FaceView::ThreeQuarter);
+        let side = eye(FaceView::Side);
+        for (got, want) in quarter.iter().zip([[2.4, 4.0], [4.0, 4.0], [3.2, 6.0]]) {
+            assert!(
+                (got[0] - want[0]).abs() < 1e-12 && got[1] == want[1],
+                "{got:?}"
+            );
+        }
+        let spread = |p: &[[f64; 2]]| p[1][0] - p[0][0];
+        assert!(spread(&side) < spread(&quarter) && spread(&quarter) < 2.0);
+        assert_eq!(act(&d, "neutral", FaceView::Back)[1].color[3], 0);
+    }
+    #[test]
+    fn drawn_views_replace_the_part_only_in_their_view() {
+        let d = face_rig();
+        let skull = |view| act(&d, "neutral", view)[0].clone();
+        let base = skull(FaceView::Front);
+        assert_eq!(xy(&skull(FaceView::ThreeQuarter))[0], [1.0, 0.0]);
+        // No side drawing: the skull is not a feature, so it stays as drawn.
+        assert_eq!(skull(FaceView::Side), base);
+        let back = skull(FaceView::Back);
+        assert_eq!((xy(&back), back.color), (xy(&base), [60, 40, 20, 255]));
+    }
+    #[test]
+    fn a_drawn_feature_view_skips_the_turn_and_variants_still_apply() {
+        let mut d = face_rig();
+        d.parts[1].views.insert(
+            "three_quarter".into(),
+            PartVariantDefinition {
+                color: Some([200, 0, 0, 255]),
+                ..Default::default()
+            },
+        );
+        let eye = act(&d, "neutral", FaceView::ThreeQuarter)[1].clone();
+        assert_eq!(xy(&eye), [[2.0, 4.0], [4.0, 4.0], [3.0, 6.0]]);
+        assert_eq!(eye.color, [200, 0, 0, 255]);
+        // The emotion variant's shape wins; the view drawing keeps its colour.
+        let happy = act(&d, "happy", FaceView::ThreeQuarter)[1].clone();
+        assert_eq!(xy(&happy), [[2.0, 3.0], [4.0, 3.0], [3.0, 7.0]]);
+        assert_eq!(happy.color, [200, 0, 0, 255]);
+    }
+    #[test]
+    fn view_drawings_are_validated_and_list_their_images() {
+        let mut d = face_rig();
+        d.parts[0]
+            .views
+            .insert("top".into(), PartVariantDefinition::default());
+        assert!(d.prepare().is_err());
+        let mut d = face_rig();
+        d.parts[0].views.insert(
+            "side".into(),
+            PartVariantDefinition {
+                points: Some(vec![[0.0, 0.0], [1.0, 1.0], [1.0, 0.0], [0.0, 1.0]]),
+                ..Default::default()
+            },
+        );
+        assert!(d.prepare().is_err(), "self-crossing view polygon");
+        let mut d = face_rig();
+        d.parts[0].views.insert(
+            "side".into(),
+            PartVariantDefinition {
+                texture: Some(PartTextureDefinition {
+                    asset: "skull_side".into(),
+                    uv: full_uv(),
+                }),
+                ..Default::default()
+            },
+        );
+        d.prepare().unwrap();
+        assert_eq!(d.image_assets().collect::<Vec<_>>(), ["skull_side"]);
+        let json = serde_json::to_string(&d).unwrap();
+        assert_eq!(serde_json::from_str::<RigDefinition>(&json).unwrap(), d);
     }
 }

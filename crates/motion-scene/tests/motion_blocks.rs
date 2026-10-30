@@ -73,6 +73,26 @@ fn facing_mirrors_turns_and_hides_the_face_from_behind() {
 }
 
 #[test]
+fn three_quarter_facing_sits_between_front_and_profile() {
+    let s = script(json!([
+        { "type": "face", "actor": "VEIKKO", "at": 1, "value": "three_quarter_right" },
+        { "type": "face", "actor": "VEIKKO", "at": 2, "value": "right" },
+        { "type": "face", "actor": "VEIKKO", "at": 3, "value": "three_quarter_left" },
+    ]));
+    let front = veikko(&s, 0.5);
+    let quarter = veikko(&s, 1.0 + TURN_SECONDS);
+    let side = veikko(&s, 2.0 + TURN_SECONDS);
+    assert_eq!(
+        (quarter.view, quarter.scale.x),
+        (FaceView::ThreeQuarter, 1.0)
+    );
+    let eye = |pose| mean_x(part(pose, "eye_l"));
+    assert!(eye(&front) < eye(&quarter) && eye(&quarter) < eye(&side));
+    let left = veikko(&s, 3.0 + TURN_SECONDS);
+    assert_eq!((left.view, left.scale.x), (FaceView::ThreeQuarter, -1.0));
+}
+
+#[test]
 fn gestures_drive_custom_rig_arms() {
     let s = script(json!([
         { "type": "gesture", "actor": "VEIKKO", "at": 0, "value": "wave", "duration": 2 },

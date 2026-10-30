@@ -854,6 +854,7 @@ fn apply_gaze(
 pub fn procedural_face(view: FaceView) -> Option<(f64, f64)> {
     match view {
         FaceView::Front => Some((1.0, 0.0)),
+        FaceView::ThreeQuarter => Some((0.8, 5.0)),
         FaceView::Side => Some((0.55, 11.0)),
         FaceView::Back => None,
     }
@@ -868,6 +869,8 @@ fn facing(name: &str) -> (FaceView, f64) {
     match name {
         "left" => (FaceView::Side, -1.0),
         "right" => (FaceView::Side, 1.0),
+        "three_quarter_left" => (FaceView::ThreeQuarter, -1.0),
+        "three_quarter_right" => (FaceView::ThreeQuarter, 1.0),
         "back" => (FaceView::Back, 1.0),
         _ => (FaceView::Front, 1.0),
     }

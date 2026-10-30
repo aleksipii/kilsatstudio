@@ -13,7 +13,7 @@ data drawn on it. All content comes from the rig definition:
 
 | Row | Source |
 | --- | --- |
-| Turnaround: front, side, back | `PreparedRig::evaluate_acting` with `FaceView::{Front, Side, Back}`, neutral emotion, rest pose; one shared scale and baseline |
+| Turnaround: front, three-quarter, side, back | `PreparedRig::evaluate_acting` with `FaceView::{Front, ThreeQuarter, Side, Back}`, neutral emotion, rest pose; one shared scale and baseline |
 | Silhouette | The front rest pose filled black, with the limb readings below it |
 | Head-height ruler | Lines every head height from the top of the figure; total in heads |
 | Expressions (6) | The five screenplay emotions (`EMOTION_NAMES`) and the rig's blink, cropped to the head joint's parts. An emotion the rig does not define is labelled `(ei omaa)` and shows the neutral face |

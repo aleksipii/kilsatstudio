@@ -80,23 +80,23 @@ fn posed(r: &RigDefinition, offsets: &[(&str, f64)]) -> Vec<motion_rig::Evaluate
 const PASMA_SHEETS: [(&str, &str); 5] = [
     (
         "default",
-        "8a4b53f26efa716fa1b53fdb46f19412afb5b9a151597dcf979d671bce260238",
+        "29be6b9cf4bd4c0479fcd3536eaee855d5c2e8d4b576abd60723a2b6e018e45c",
     ),
     (
         "stick",
-        "429f7290088d707abb2bef133e1e09ceb22428b25d679fb035b2678a9d4d007f",
+        "86bab2b286138a6b39dbc98037dbb2716bbe83fe65fba23da0e8cf92a983a0af",
     ),
     (
         "rubber_hose",
-        "b923c45504d2294d8ca9790ec9cb10f0b0897a9bb3aeebae8cf04c1573d7b025",
+        "c91e9eced4e9a78d51bada9b8c9053c6079ccfbfc0a43b1b4cea80bab6d5870e",
     ),
     (
         "flat_tv",
-        "9d0d15eac27c9359a65a0905b17e96e1638507e7631a20c2e5cf8ced1daf0486",
+        "e5b1a693a6c4335319ea2c08e42159b564817470c0063813286ebba149248b09",
     ),
     (
         "geometric",
-        "950354feb61fdbcf03eee7c7b3083052219374831c2b79543f3b4282889923e6",
+        "7489b25cd3e7a377f83b4dc48c377a354596040b0c755f04a45f3f209cbc5a10",
     ),
 ];
 
