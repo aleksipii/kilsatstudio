@@ -1,8 +1,8 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
 pub mod editable_timeline;
 use motion_animation::HumanoidState;
-use motion_animation::Transform2;
 pub use motion_animation::{Gait, GAITS, GESTURES, POSTURE_BLEND_SECONDS};
+use motion_animation::{Interpolation, Transform2};
 pub use motion_animation::{Vec2, CHEST, HEAD, HIP, LEFT_FOOT, LEFT_HAND, RIGHT_FOOT, RIGHT_HAND};
 use motion_lipsync::Viseme;
 pub use motion_rig::FaceView;
@@ -549,6 +549,7 @@ impl PreparedAnimation {
         script: &Script,
         instances: &[motion_script::ClipInstance],
         time: f64,
+        interpolation: Interpolation,
         values: &mut [Option<motion_animation::Transform2>; 7],
     ) -> Result<(), Error> {
         // Stable IDs fix floating-point sum order independently of row order.
@@ -563,7 +564,7 @@ impl PreparedAnimation {
                 }
                 let (tracks, clip_time) = self.instance_tracks(script, instance, time)?;
                 if let Some(track) = &tracks[joint] {
-                    samples.push((weight, track.sample(clip_time)?));
+                    samples.push((weight, track.sample_with(clip_time, interpolation)?));
                 }
             }
             if samples.is_empty() {
@@ -609,12 +610,13 @@ impl PreparedAnimation {
         scene_index: usize,
         actor: &str,
         time: f64,
+        interpolation: Interpolation,
     ) -> Result<Vec<(usize, motion_animation::Transform2)>, Error> {
         let mut values = [None; 7];
         if let Some(tracks) = self.scenes[scene_index].get(actor) {
             for (value, track) in values.iter_mut().zip(tracks) {
                 if let Some(track) = track {
-                    *value = Some(track.sample(time)?);
+                    *value = Some(track.sample_with(time, interpolation)?);
                 }
             }
         }
@@ -627,7 +629,13 @@ impl PreparedAnimation {
                     + instances[index..]
                         .partition_point(|row| row.normalized_group.as_ref() == Some(group));
                 if instance.actor == actor {
-                    self.normalized_offsets(script, &instances[index..end], time, &mut values)?;
+                    self.normalized_offsets(
+                        script,
+                        &instances[index..end],
+                        time,
+                        interpolation,
+                        &mut values,
+                    )?;
                 }
                 index = end;
                 continue;
@@ -646,7 +654,7 @@ impl PreparedAnimation {
                     continue;
                 }
                 if let Some(track) = track {
-                    let sampled = track.sample(clip_time)?;
+                    let sampled = track.sample_with(clip_time, interpolation)?;
                     let base = value.unwrap_or_default();
                     *value = Some(match instance.blend_mode {
                         motion_script::ClipBlendMode::Override => {
@@ -739,7 +747,7 @@ fn apply_gaze(
     actors: &mut [ActorPose],
     scene: &motion_script::Scene,
     prepared: &PreparedAnimation,
-    time: f64,
+    actor_time: impl Fn(&str) -> f64,
 ) {
     if scene.composition.gaze_tracks.is_empty() {
         return;
@@ -790,6 +798,7 @@ fn apply_gaze(
             let strength = (length / GAZE_FULL_DISTANCE).min(1.0) / length;
             [dx * strength, dy * strength]
         };
+        let time = actor_time(&actor.id);
         let next = keys.partition_point(|key| key.at <= time);
         let gaze = match (next.checked_sub(1).map(|i| &keys[i]), keys.get(next)) {
             (Some(a), Some(b)) => {
@@ -915,6 +924,11 @@ fn evaluate_validated(
                 .is_none_or(|layer| layer.visible)
         })
         .map(|id| {
+            // Exposure and blocking apply per actor; the scene clock, camera,
+            // fades and speech mouths stay on ones.
+            let timing = script.actor_timing(scene_index, id);
+            let interpolation = timing.interpolation;
+            let time_seconds = time::exposed_seconds(time_seconds, script.project.fps, timing.on)?;
             let base = actor_base(script);
             let mut pose = ActorPose {
                 id: id.clone(),
@@ -1010,7 +1024,7 @@ fn evaluate_validated(
                 .iter()
                 .map(|(emotion, since)| (emotion.as_str(), *since))
                 .collect();
-            let offsets = prepared.offsets(script, scene_index, id, time_seconds)?;
+            let offsets = prepared.offsets(script, scene_index, id, time_seconds, interpolation)?;
             let weights = scene.composition.sample_clip_weights(id, time_seconds);
             pose.wave *= weights.gesture;
             pose.skeleton = motion_animation::evaluate_humanoid_with_weights_and_offsets(
@@ -1030,7 +1044,9 @@ fn evaluate_validated(
                     .map(|tracks| {
                         tracks
                             .iter()
-                            .map(|(joint, track)| Ok((*joint, track.sample(time_seconds)?)))
+                            .map(|(joint, track)| {
+                                Ok((*joint, track.sample_with(time_seconds, interpolation)?))
+                            })
                             .collect::<Result<Vec<_>, Error>>()
                     })
                     .transpose()?
@@ -1094,7 +1110,7 @@ fn evaluate_validated(
                         .collect(),
                 )
                 .expect("validated actor track")
-                .sample(time_seconds)
+                .sample_with(time_seconds, interpolation)
                 .expect("validated scene time");
                 pose.x += value.translation.x;
                 pose.y += value.translation.y;
@@ -1105,7 +1121,11 @@ fn evaluate_validated(
             Ok(pose)
         })
         .collect::<Result<Vec<_>, Error>>()?;
-    apply_gaze(&mut actors, scene, prepared, time_seconds);
+    apply_gaze(&mut actors, scene, prepared, |id| {
+        let on = script.actor_timing(scene_index, id).on;
+        // Already computed successfully for every visible actor above.
+        time::exposed_seconds(time_seconds, script.project.fps, on).unwrap_or(time_seconds)
+    });
     actors.sort_by_key(|actor| {
         scene
             .composition
@@ -1625,7 +1645,7 @@ mod live_instance_tests {
         script.validate().unwrap();
         PreparedAnimation::new(script)
             .unwrap()
-            .offsets(script, 0, "A", time)
+            .offsets(script, 0, "A", time, Interpolation::Spline)
             .unwrap()
     }
     fn bone(offsets: &[(usize, Transform2)], name: &str) -> Transform2 {
@@ -1754,7 +1774,9 @@ mod live_instance_tests {
             (0.0, 8.0),
             (3.0, 11.0),
         ] {
-            let actual = prepared.offsets(&script, 0, "A", time).unwrap();
+            let actual = prepared
+                .offsets(&script, 0, "A", time, Interpolation::Spline)
+                .unwrap();
             assert!(
                 (bone(&actual, "head").translation.x - x).abs() < 1e-12,
                 "{time}"

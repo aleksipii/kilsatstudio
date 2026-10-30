@@ -18,7 +18,13 @@ composition:
 
 Unspecified translation/rotation values default to zero, scales to one, and easing
 to `linear`. The easing on a key controls the interval to the next key:
-`linear`, `smoothstep` (3t²−2t³), or `hold` (keep the value until the next key).
+`linear`, `smoothstep` (3t²−2t³), `hold` (keep the value until the next key),
+`ease_in` (t³), `ease_out` (1−(1−t)³), `ease_in_out` (cubic in, cubic out), or
+`back(<overshoot>)`, an ease-out that passes the next key and settles back onto
+it. The overshoot must be finite and within 0–10; plain `back` uses 1.70158
+(about 10 %). The same curves apply to bone and clip keys. Scene and character
+`timing` (on twos/threes, stepped blocking) is described in
+[MotionScript timing](motionscript.md#timing-exposure-and-blocking).
 Rotations interpolate by the shortest angular route. Before/after the track's
 endpoints, the first/last value is held. Sampling uses the scene's seconds clock,
 so seeking, preview and exports evaluate the same pose without accumulating state.
