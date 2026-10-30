@@ -2,6 +2,7 @@
 pub mod auto_direction;
 mod camera_presets;
 pub mod compiler;
+mod continuity;
 pub mod event_log;
 mod holds;
 pub mod intent;
@@ -12,6 +13,10 @@ pub mod story;
 #[cfg(test)]
 mod story_tests;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
+pub use continuity::{
+    check_continuity, ContinuityCheck, ContinuityNote, ContinuityRules, ContinuitySeverity,
+    AXIS_NEUTRAL_TOLERANCE, CUT_ON_ACTION_WINDOW, JUMP_CUT_MAX_SHIFT, JUMP_CUT_MAX_ZOOM_RATIO,
+};
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use holds::{held_rig, HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};

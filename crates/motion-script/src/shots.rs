@@ -15,6 +15,7 @@
 //!
 //! Line durations are supplied by the author (the imported or placeholder audio
 //! length); this module reads no files and synthesizes nothing.
+use crate::continuity::{check_continuity, ContinuityNote, ContinuityRules};
 use crate::{CameraKey, Composition, Error, Event, Scene, Script, Transition};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -166,6 +167,10 @@ pub struct ShotSpec {
     /// Background, layers and other composition; `camera` must stay empty and
     /// the transition must be `cut`.
     pub composition: Composition,
+    /// Continuity notes acknowledged for the cuts into this shot and into its
+    /// reaction shot, for example `continuity: {allow: [axis_cross]}`.
+    #[serde(skip_serializing_if = "ContinuityRules::is_empty")]
+    pub continuity: ContinuityRules,
 }
 
 impl Default for ShotSpec {
@@ -186,6 +191,7 @@ impl Default for ShotSpec {
             off_stage: vec![],
             events: vec![],
             composition: Composition::default(),
+            continuity: ContinuityRules::default(),
         }
     }
 }
@@ -269,6 +275,9 @@ pub struct PlannedShot {
 pub struct ShotExpansion {
     pub script: Script,
     pub plan: Vec<PlannedShot>,
+    /// Film-grammar warnings and hints for the cuts (see `crate::continuity`).
+    /// They never block the expansion; acknowledged notes are left out.
+    pub continuity: Vec<ContinuityNote>,
 }
 
 fn finite_in(shot: &str, name: &str, value: f64, lo: f64, hi: f64) -> Result<f64, ShotError> {
@@ -282,18 +291,18 @@ fn finite_in(shot: &str, name: &str, value: f64, lo: f64, hi: f64) -> Result<f64
     }
 }
 
-struct Stage<'a> {
-    width: f64,
-    height: f64,
-    place: &'a BTreeMap<String, [f64; 2]>,
-    events: &'a [Event],
+pub(crate) struct Stage<'a> {
+    pub(crate) width: f64,
+    pub(crate) height: f64,
+    pub(crate) place: &'a BTreeMap<String, [f64; 2]>,
+    pub(crate) events: &'a [Event],
 }
 
 impl Stage<'_> {
     /// Actor root position at `time`, mirroring the scene evaluator: default
     /// position, then completed/partial moves in time order, plus the held
     /// `place` offset (an actor track).
-    fn position(&self, actor: &str, time: f64) -> (f64, f64) {
+    pub(crate) fn position(&self, actor: &str, time: f64) -> (f64, f64) {
         let default = (self.width / 2.0, self.height * 0.7);
         let (mut x, mut y) = default;
         let mut moves: Vec<_> = self
@@ -773,7 +782,13 @@ pub fn expand_shots(base: &Script, list: &ShotList) -> Result<ShotExpansion, Sho
     script
         .validate()
         .map_err(|e| ShotError::Conflict(format!("expanded screenplay rejected: {e}")))?;
-    Ok(ShotExpansion { script, plan })
+    let mut expansion = ShotExpansion {
+        script,
+        plan,
+        continuity: Vec::new(),
+    };
+    expansion.continuity = check_continuity(list, &expansion);
+    Ok(expansion)
 }
 
 #[cfg(test)]
