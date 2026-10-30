@@ -25,6 +25,34 @@ jobs:
         run: |
           cargo test --locked -p motion-export --test g2_export
           cargo test --locked -p motion-export --lib export_preview_parity
+      - name: OTIO timeline, colour tags and ProRes guards (P07)
+        run: |
+          cargo test --locked -p motion-export --lib -- otio:: color:: prores::
+      - name: Real ProRes 422 HQ / 4444 encode with ffprobe (P07)
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install ffmpeg
+          REAL_FFMPEG="$(brew --prefix)/bin/ffmpeg" \
+            cargo test --locked -p motion-export --lib prores::tests::real -- --ignored --nocapture
+      - name: OpenTimelineIO validation of the golden file (optional)
+        shell: bash
+        run: |
+          set -uo pipefail
+          python3 -m venv "$RUNNER_TEMP/otio"
+          if ! "$RUNNER_TEMP/otio/bin/pip" install -q opentimelineio; then
+            echo "::notice::opentimelineio unavailable for $(python3 --version); OTIO validation SKIPPED (not passed)"
+            exit 0
+          fi
+          "$RUNNER_TEMP/otio/bin/python" - <<'PY'
+          import opentimelineio as otio
+          t = otio.adapters.read_from_file("crates/motion-export/tests/golden/two_scene_crossfade.otio")
+          video = t.video_tracks()[0]
+          assert [c.name for c in video] == ["intro", "second"], video
+          assert video.duration().to_frames() == 6, video.duration()
+          assert len(t.audio_tracks()) == 4
+          print("opentimelineio", otio.__version__, "read the golden timeline")
+          PY
       - name: Full disk on a 2 MiB RAM disk
         shell: bash
         run: |

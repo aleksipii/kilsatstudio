@@ -2,6 +2,7 @@
 pub mod auto_direction;
 mod camera_presets;
 pub mod compiler;
+mod continuity;
 pub mod event_log;
 mod holds;
 pub mod intent;
@@ -12,7 +13,12 @@ mod shots;
 pub mod story;
 #[cfg(test)]
 mod story_tests;
+pub mod timing;
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
+pub use continuity::{
+    check_continuity, ContinuityCheck, ContinuityNote, ContinuityRules, ContinuitySeverity,
+    AXIS_NEUTRAL_TOLERANCE, CUT_ON_ACTION_WINDOW, JUMP_CUT_MAX_SHIFT, JUMP_CUT_MAX_ZOOM_RATIO,
+};
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use holds::{held_rig, HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
@@ -38,6 +44,7 @@ pub use shots::{
     OVER_THE_SHOULDER_SHIFT,
 };
 use std::collections::BTreeMap;
+pub use timing::{ActorEasing, ResolvedTiming, Timing, EASINGS};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct VoiceConfig {
@@ -60,6 +67,9 @@ pub struct Character {
     /// `Character::resolved_rig`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub holds: Option<HeldProp>,
+    /// Exposure and blocking for this character; overrides the scene's.
+    #[serde(default, skip_serializing_if = "Timing::is_unset")]
+    pub timing: Timing,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
@@ -149,6 +159,10 @@ pub struct Composition {
     /// What actors' rig screen slots show over scene time.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub screens: Vec<ScreenCue>,
+    /// Exposure (`on: 2`) and blocking (`interpolation: stepped`) for the
+    /// scene's characters; see `timing`.
+    #[serde(skip_serializing_if = "Timing::is_unset")]
+    pub timing: Timing,
     /// Named scene points props can be set down on (see `prop_cues`).
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub anchors: BTreeMap<String, PropAnchor>,
@@ -252,6 +266,7 @@ impl Default for Composition {
             fade_out: 0.0,
             audio_cues: Vec::new(),
             screens: Vec::new(),
+            timing: Timing::default(),
             anchors: BTreeMap::new(),
             props: Vec::new(),
         }
@@ -329,11 +344,7 @@ impl ClipInstance {
             let left = &self.weight_keys[upper - 1];
             if let Some(right) = self.weight_keys.get(upper) {
                 let t = (local - left.time) / (right.time - left.time);
-                let t = match left.easing {
-                    ActorEasing::Linear => t,
-                    ActorEasing::Smoothstep => t * t * (3.0 - 2.0 * t),
-                    ActorEasing::Hold => 0.0,
-                };
+                let t = left.easing.apply(t);
                 left.weight + (right.weight - left.weight) * t
             } else {
                 left.weight
@@ -388,11 +399,7 @@ impl Composition {
             return left.weights;
         };
         let t = (time - left.time) / (right.time - left.time);
-        let t = match left.easing {
-            ActorEasing::Linear => t,
-            ActorEasing::Smoothstep => t * t * (3.0 - 2.0 * t),
-            ActorEasing::Hold => 0.0,
-        };
+        let t = left.easing.apply(t);
         let blend = |a: f64, b: f64| a + (b - a) * t;
         ClipWeights {
             posture: blend(left.weights.posture, right.weights.posture),
@@ -464,15 +471,6 @@ impl Default for ActorKey {
         }
     }
 }
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ActorEasing {
-    #[default]
-    Linear,
-    #[serde(rename = "smoothstep")]
-    Smoothstep,
-    Hold,
-}
 impl ActorKey {
     pub fn animation_key(&self) -> motion_animation::Keyframe {
         motion_animation::Keyframe {
@@ -482,11 +480,7 @@ impl ActorKey {
                 rotation: self.rotation,
                 scale: motion_animation::Vec2::new(self.scale_x, self.scale_y),
             },
-            easing: match self.easing {
-                ActorEasing::Linear => motion_animation::Easing::Linear,
-                ActorEasing::Smoothstep => motion_animation::Easing::SmoothStep,
-                ActorEasing::Hold => motion_animation::Easing::Hold,
-            },
+            easing: self.easing.animation_easing(),
         }
     }
 }
@@ -746,6 +740,7 @@ pub fn parse(source: &str) -> Result<Script, Error> {
         }
     }
     rules::precheck(&document)?;
+    timing::precheck(&document)?;
     let script: Script = serde_yaml::from_value(document)?;
     script.validate()?;
     Ok(script)
@@ -1586,6 +1581,7 @@ impl Script {
     pub fn validate(&self) -> Result<(), Error> {
         motion_lipsync::english::Pronunciations::from_map(&self.pronunciations)
             .map_err(|e| Error::Validation(e.to_string()))?;
+        timing::validate(self)?;
         if !self.rules.is_empty() {
             // Expansion validates the rule-free result, which covers all base content.
             return self.expand_rules().map(|_| ()).map_err(Error::from);

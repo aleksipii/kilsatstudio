@@ -31,9 +31,10 @@ pub(super) fn rasterize(svg: &str) -> Result<Vec<u8>, Error> {
     rasterize_scaled(svg, None)
 }
 pub(super) fn rasterize_scaled(svg: &str, max_side: Option<u32>) -> Result<Vec<u8>, Error> {
-    rasterize_scaled_pixmap(svg, max_side)?
+    let png = rasterize_scaled_pixmap(svg, max_side)?
         .encode_png()
-        .map_err(|e| invalid(format!("PNG encoding: {e}")))
+        .map_err(|e| invalid(format!("PNG encoding: {e}")))?;
+    crate::color::tag_png_srgb(png).map_err(invalid)
 }
 pub(super) fn rasterize_scaled_pixmap(
     svg: &str,
@@ -249,17 +250,13 @@ fn encode_files(
 ) -> Result<(), Error> {
     check(cancel)?;
     let directory = fs::canonicalize(destination)?;
-    let used = fs::read_dir(&directory)?.try_fold(0u64, |sum, entry| {
-        let length = entry?.metadata()?.len();
-        sum.checked_add(length)
-            .ok_or_else(|| std::io::Error::other("export byte overflow"))
-    })?;
+    let used = directory_bytes(&directory)?;
     let remaining = MAX_BYTES.saturating_sub(used);
     if remaining < 1024 {
         return Err(invalid("insufficient remaining video byte budget"));
     }
     // Closed stdio prevents prompts and unbounded stderr pipe accumulation.
-    let mut child = Command::new(ffmpeg)
+    let child = Command::new(ffmpeg)
         .args([
             "-nostdin",
             "-v",
@@ -295,30 +292,7 @@ fn encode_files(
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()?;
-    let started = Instant::now();
-    let status = loop {
-        let stop = if cancel.is_cancelled() {
-            Some(Error::Cancelled)
-        } else if started.elapsed() > timeout {
-            Some(invalid("FFmpeg exceeded five minute timeout"))
-        } else {
-            None
-        };
-        if let Some(error) = stop {
-            let _ = child.kill();
-            let _ = child.wait();
-            return Err(error);
-        }
-        match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) => std::thread::sleep(Duration::from_millis(25)),
-            Err(error) => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(error.into());
-            }
-        }
-    };
+    let status = wait_encoder(child, cancel, timeout)?;
     check(cancel)?;
     if !status.success() {
         return Err(invalid(format!(
@@ -344,6 +318,50 @@ fn encode_files(
     }
     fs::write(path, bytes)?;
     Ok(())
+}
+
+/// Wait for a spawned encoder, killing and reaping it on cancellation or timeout.
+pub(super) fn wait_encoder(
+    mut child: std::process::Child,
+    cancel: &CancellationToken,
+    timeout: Duration,
+) -> Result<std::process::ExitStatus, Error> {
+    let started = Instant::now();
+    loop {
+        let stop = if cancel.is_cancelled() {
+            Some(Error::Cancelled)
+        } else if started.elapsed() > timeout {
+            Some(invalid(format!(
+                "FFmpeg exceeded {} second timeout",
+                timeout.as_secs()
+            )))
+        } else {
+            None
+        };
+        if let Some(error) = stop {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(error);
+        }
+        match child.try_wait() {
+            Ok(Some(status)) => return Ok(status),
+            Ok(None) => std::thread::sleep(Duration::from_millis(25)),
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(error.into());
+            }
+        }
+    }
+}
+
+/// Bytes already used in an export directory, for the shared output budget.
+pub(super) fn directory_bytes(directory: &Path) -> Result<u64, Error> {
+    Ok(fs::read_dir(directory)?.try_fold(0u64, |sum, entry| {
+        let length = entry?.metadata()?.len();
+        sum.checked_add(length)
+            .ok_or_else(|| std::io::Error::other("export byte overflow"))
+    })?)
 }
 
 #[cfg(all(test, unix))]
