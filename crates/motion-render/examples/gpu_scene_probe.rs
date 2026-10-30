@@ -336,6 +336,7 @@ mod tests {
             clip: None,
             clip_shape: None,
             blend: BlendMode::Normal,
+            angle: None,
             content: Content::Image {
                 asset_id: "i".into(),
                 rect: Rect {
