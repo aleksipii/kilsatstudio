@@ -1136,6 +1136,14 @@ fn evaluate_validated(
                     } else {
                         span.distance_progress(time_seconds) * span.duration
                     });
+                    // A curved route is longer than the straight distance the
+                    // gait and pace were chosen for: step in proportion.
+                    if span.path != motion_animation::MovePath::Line {
+                        let chord = (span.to.x - span.from.x).hypot(span.to.y - span.from.y);
+                        if let Some(seconds) = walk_seconds.as_mut() {
+                            *seconds *= span.path.length(span.from, span.to) / chord;
+                        }
+                    }
                     move_progress = Some(span.progress(time_seconds));
                     if let Some(Event::Move {
                         gait: name, pace, ..

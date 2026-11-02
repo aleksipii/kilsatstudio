@@ -91,7 +91,7 @@ pub struct PathPoint {
 }
 
 /// Largest arc bulge of a move, as a fraction of its straight distance.
-pub const MAX_MOVE_ARC: f64 = 0.5;
+pub const MAX_MOVE_ARC: f64 = motion_animation::MAX_ARC;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]

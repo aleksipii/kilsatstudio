@@ -227,3 +227,31 @@ fn arc_moves_travel_on_a_curve_and_seek_like_playback() {
         );
     }
 }
+
+#[test]
+fn walks_on_an_arc_step_in_proportion_to_the_longer_route() {
+    // A half circle is π/2 times the straight distance, so it steps like a
+    // straight walk at pace π/2.
+    let walk = |extra: Value| {
+        let mut event = json!({ "type": "move", "actor": "VEIKKO", "at": 0.5, "x": 1300,
+                                "y": 756, "duration": 3, "gait": "walk" });
+        event
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        script(None, json!([event]))
+    };
+    let arced = walk(json!({ "arc": 0.5 }));
+    let paced = walk(json!({ "pace": std::f64::consts::FRAC_PI_2 }));
+    let plain = walk(json!({}));
+    let mut differs = false;
+    for i in 13..=84 {
+        let t = i as f64 / 24.0;
+        let (a, p) = (actor(&arced, t), actor(&paced, t));
+        for (x, y) in a.skeleton.iter().zip(&p.skeleton) {
+            assert!((x.x - y.x).abs() < 1e-6 && (x.y - y.y).abs() < 1e-6, "{t}");
+        }
+        differs |= a.skeleton != actor(&plain, t).skeleton;
+    }
+    assert!(differs, "the arc changes the step rate");
+}

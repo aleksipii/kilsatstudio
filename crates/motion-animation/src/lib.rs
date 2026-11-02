@@ -6,6 +6,8 @@ pub use clips::{
     MoveEase, GAITS, GESTURES, HUMANOID_BONES, JOG_CYCLE_SECONDS, MOVE_EASES,
     POSTURE_BLEND_SECONDS, RUN_CYCLE_SECONDS, WALK_CYCLE_SECONDS,
 };
+mod path;
+pub use path::{arc_length_ratio, MovePath, MAX_ARC};
 mod principles;
 pub use principles::{
     Principles, PrinciplesError, MAX_ANTICIPATION_LENGTH, MAX_OVERLAP, MIN_ANTICIPATION_LENGTH,

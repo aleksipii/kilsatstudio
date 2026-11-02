@@ -19,6 +19,7 @@
 use crate::time::seconds_to_sample;
 use crate::{Error, Vec2};
 use motion_animation::MoveEase;
+pub use motion_animation::MovePath;
 
 /// Upper bound on spans per track, so resolution work stays bounded.
 pub const MAX_TRACK_SPANS: usize = 4096;
@@ -32,104 +33,6 @@ pub enum TrackTarget {
     Rel(Vec2),
     /// The track's base value, explicitly.
     Revert,
-}
-
-/// The way a span travels from `from` to `to`.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub enum MovePath {
-    /// A straight line (the default).
-    #[default]
-    Line,
-    /// A circular arc whose bulge (sagitta) is this fraction of the straight
-    /// distance, in `-0.5..=0.5`. Positive bulges toward screen up (`-y`); for
-    /// a vertical chord, toward screen right (`+x`).
-    Arc(f64),
-    /// A quadratic Bézier curve with one control point.
-    Quadratic(Vec2),
-    /// A cubic Bézier curve with two control points.
-    Cubic(Vec2, Vec2),
-}
-
-impl MovePath {
-    fn finite(&self) -> bool {
-        let ok = |v: Vec2| v.x.is_finite() && v.y.is_finite();
-        match *self {
-            Self::Line => true,
-            Self::Arc(h) => h.is_finite() && h.abs() <= 0.5,
-            Self::Quadratic(c) => ok(c),
-            Self::Cubic(a, b) => ok(a) && ok(b),
-        }
-    }
-
-    /// Point at curve parameter `t` in `[0, 1]` between `from` and `to`.
-    /// Arcs travel at constant speed; Bézier curves speed up where control
-    /// points are far apart, as with any Bézier parameterization.
-    pub fn point(&self, from: Vec2, to: Vec2, t: f64) -> Vec2 {
-        let lerp = |a: f64, b: f64| a + (b - a) * t;
-        match *self {
-            Self::Line => Vec2::new(lerp(from.x, to.x), lerp(from.y, to.y)),
-            Self::Arc(h) => arc_point(from, to, h, t),
-            Self::Quadratic(c) => {
-                let u = 1.0 - t;
-                let (a, b, d) = (u * u, 2.0 * u * t, t * t);
-                Vec2::new(
-                    a * from.x + b * c.x + d * to.x,
-                    a * from.y + b * c.y + d * to.y,
-                )
-            }
-            Self::Cubic(c1, c2) => {
-                let u = 1.0 - t;
-                let (a, b, c, d) = (u * u * u, 3.0 * u * u * t, 3.0 * u * t * t, t * t * t);
-                Vec2::new(
-                    a * from.x + b * c1.x + c * c2.x + d * to.x,
-                    a * from.y + b * c1.y + c * c2.y + d * to.y,
-                )
-            }
-        }
-    }
-}
-
-/// Circular arc through `from` and `to` with sagitta `bulge * |to - from|`.
-fn arc_point(from: Vec2, to: Vec2, bulge: f64, t: f64) -> Vec2 {
-    let (cx, cy) = (to.x - from.x, to.y - from.y);
-    let length = cx.hypot(cy);
-    if length == 0.0 || bulge == 0.0 {
-        return MovePath::Line.point(from, to, t);
-    }
-    // Unit normal toward screen up, or screen right for a vertical chord.
-    let (mut nx, mut ny) = (cy / length, -cx / length);
-    if ny > 0.0 || (ny == 0.0 && nx < 0.0) {
-        (nx, ny) = (-nx, -ny);
-    }
-    let sagitta = bulge * length;
-    let half = length / 2.0;
-    let radius = (sagitta * sagitta + half * half) / (2.0 * sagitta.abs());
-    // Centre lies on the far side of the chord from the bulge.
-    let side = sagitta.signum();
-    let offset = side * (radius - sagitta.abs());
-    let centre = Vec2::new(
-        from.x + cx / 2.0 - nx * offset,
-        from.y + cy / 2.0 - ny * offset,
-    );
-    let sweep = 4.0 * (sagitta.abs() / half).atan();
-    let (sx, sy) = (from.x - centre.x, from.y - centre.y);
-    // Turn the way that passes the bulge: the arc's midpoint lies on the
-    // normal's side given by `side`.
-    let (sin, cos) = (sweep / 2.0).sin_cos();
-    let mid_x = sx * cos - sy * sin;
-    let mid_y = sx * sin + sy * cos;
-    let toward_bulge =
-        (mid_x + centre.x - from.x - cx / 2.0) * nx + (mid_y + centre.y - from.y - cy / 2.0) * ny;
-    let direction = if toward_bulge * side >= 0.0 {
-        1.0
-    } else {
-        -1.0
-    };
-    let (sin, cos) = (direction * sweep * t).sin_cos();
-    Vec2::new(
-        centre.x + sx * cos - sy * sin,
-        centre.y + sx * sin + sy * cos,
-    )
 }
 
 /// One authored change of a single `(entity, property)` value.
@@ -225,7 +128,7 @@ impl ResolvedTrack {
                 || span.duration <= 0.0
                 || !end.is_finite()
                 || !target_ok
-                || !span.path.finite()
+                || !span.path.is_valid()
             {
                 return Err(Error::InvalidAnimation(format!(
                     "track span {}: start must be finite and non-negative, duration finite and positive, target finite",
@@ -524,14 +427,15 @@ mod tests {
     fn bezier_paths_follow_their_control_points() {
         let to = Vec2::new(500.0, 400.0);
         let quad = path_span(MovePath::Quadratic(Vec2::new(400.0, 200.0)), to);
-        // B(0.5) = (P0 + 2C + P1) / 4.
-        assert_eq!(quad.value_at(0.5), Vec2::new(400.0, 300.0));
+        // A symmetric curve is halfway at its apex, B(0.5) = (P0 + 2C + P1) / 4.
+        let close = |a: Vec2, b: Vec2| (a.x - b.x).abs() < 1e-6 && (a.y - b.y).abs() < 1e-6;
+        assert!(close(quad.value_at(0.5), Vec2::new(400.0, 300.0)));
         let cubic = path_span(
             MovePath::Cubic(Vec2::new(300.0, 200.0), Vec2::new(500.0, 200.0)),
             to,
         );
         // B(0.5) = (P0 + 3C1 + 3C2 + P1) / 8.
-        assert_eq!(cubic.value_at(0.5), Vec2::new(400.0, 250.0));
+        assert!(close(cubic.value_at(0.5), Vec2::new(400.0, 250.0)));
         assert_eq!(cubic.value_at(1.0), to);
         assert_eq!(cubic.value_at(0.0), BASE);
     }

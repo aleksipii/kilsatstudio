@@ -898,6 +898,52 @@ fn pace_look_back_and_carrying_shape_the_walk() {
 }
 
 #[test]
+fn arced_walks_take_longer_by_the_extra_distance() {
+    let walk = |extra: &str| {
+        let source = minimal(&format!(
+            "      - do: VEIKKO\n        move_to: far_right\n{extra}"
+        ))
+        .replace(
+            "{VEIKKO: left, SISU: right}",
+            "{VEIKKO: far_left, SISU: offscreen_right}",
+        );
+        compile_story(&source, &catalog(), None).unwrap()
+    };
+    let straight = walk("");
+    let arced = walk("        arc: 0.5\n");
+    let straight_span = move_spans(&straight.script, "VEIKKO")[0].1;
+    let arced_span = move_spans(&arced.script, "VEIKKO")[0].1;
+    // A half circle is π/2 longer; durations are rounded up to whole frames.
+    let ratio = arced_span / straight_span;
+    assert!(
+        (ratio - std::f64::consts::FRAC_PI_2).abs() < 0.05,
+        "{ratio}"
+    );
+    assert!(arced.script.scenes[0]
+        .events
+        .iter()
+        .any(|e| matches!(e, Event::Move { arc: Some(h), .. } if *h == 0.5)));
+    // The compiled screenplay is valid MotionScript.
+    crate::parse(&crate::to_source(&arced.script).unwrap()).unwrap();
+    for (beats, path) in [
+        (
+            "      - do: VEIKKO\n        move_to: center\n        arc: 0.7\n",
+            "scenes[0].beats[0].arc",
+        ),
+        (
+            "      - do: VEIKKO\n        arc: 0.2\n",
+            "scenes[0].beats[0].arc",
+        ),
+    ] {
+        let issues = errors(&minimal(beats));
+        assert!(
+            issues.iter().any(|i| i.path == path),
+            "{beats}: {issues:#?}"
+        );
+    }
+}
+
+#[test]
 fn travel_fields_are_validated() {
     for (beats, path) in [
         (
