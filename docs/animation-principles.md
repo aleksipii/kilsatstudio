@@ -20,6 +20,8 @@ characters:
       preset: subtle               # optional starting point
       overshoot: 1.6               # explicit fields override the preset
       moving_hold: off             # on, off or a strength 0..1
+      anticipation_frames: 5       # anticipation lasts 5 frames
+      overlap_frames: 3            # forearms and head trail by 3 frames
 scenes:
   - id: s
     duration: 4
@@ -36,6 +38,8 @@ scenes:
 | `overlap` | 0–0.3 | 0.08 | progress lag of forearms and head behind the joints that drive them |
 | `squash_stretch` | 0–0.3 | 0 (off) | largest torso stretch or squash; the torso keeps its area (`sx·sy = 1`) |
 | `moving_hold` | 0–1, `on`, `off` | 0 (off) | breathing and head sway during long holds |
+| `anticipation_frames` | whole frames 1–24 | unset | length of the anticipation in frames, whatever the gesture's length |
+| `overlap_frames` | whole frames 0–12 | unset | lag of forearms and head in frames; exclusive with `overlap` in one block |
 
 | preset | anticipation | overshoot | follow_through | overlap | squash_stretch | moving_hold |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -49,6 +53,56 @@ Values come from the defaults, then the character's block, then the gesture's
 block. A `preset` restarts from that preset, and explicit fields override it.
 A gesture block may not set `moving_hold`, because the moving hold plays
 between actions. The character's value is kept.
+
+Frame counts follow the same order: a gesture's own `anticipation_frames` or
+`overlap_frames` wins; otherwise the character's applies, unless the gesture
+block sets a `preset` (or, for the overlap, a fractional `overlap`).
+
+## Timing in frames
+
+Without frame counts the anticipation is 12 % and the overlap 8 % of the
+gesture, so in frames they grow with the gesture: a 1 s gesture at 24 fps
+anticipates for about 3 frames and a 2 s gesture for about 6. With
+`anticipation_frames: 5` every gesture anticipates for 5 frames at the project
+frame rate (the common 4–6 frame rule). The attack keeps its length (26 % of
+the curve) and starts after the anticipation. The anticipation is fitted into
+2–30 % of the curve, so a 5-frame anticipation in a 0.5 s gesture at 24 fps is
+shortened; the staging hints report that. `overlap_frames` sets the lag of
+child joints the same way and is at most 30 % of the gesture.
+
+## Paths and staging
+
+- **Arcs**: a move travels in a straight line unless it sets `arc` (a circular
+  arc) or `bezier` (one or two control points). Every route is travelled at
+  constant speed along the curve (Bézier curves through a 64-segment
+  arc-length table), and the move's `ease` applies along it. A curved route is
+  longer than the straight distance, so a walking or running gait steps faster
+  in the same proportion and the feet keep pace with the ground. Arcs read best
+  on leaps and jumps; a walk on a high arc looks like stepping in the air, and
+  the staging hints flag it.
+- **Story beats** take `arc` too: every leg of the walk bends by it and takes
+  longer by the extra distance. Beats have no `bezier`, because stage marks are
+  resolved to pixels only during compilation. The step-aside check for other
+  characters still assumes a straight path.
+- **Stagger**: `op: stagger` in the schedule format offsets children by
+  `delay`, which may be whole frames (`delay: 3f`).
+- **Staging hints** (`motion_script::check_staging`, shown in the desktop app
+  under "Animaatioperiaatteiden vihjeet"): two or more moves or gestures in one
+  scene that start on the same frame *and* stop on the same frame get a hint to
+  offset them by 2–4 frames. A gesture whose `anticipation_frames` does not fit
+  gets a hint too, and so does a move with a ground gait (anything but `leap`;
+  `walk` when unset) whose `arc` or `bezier` route strays more than 3 % of the
+  frame height from the straight line. A curve that stands for a path through
+  depth may keep its hint. Hints never change the script or block rendering.
+
+## How strong the default anticipation is
+
+The default depth (0.12) turns the driving joint against the action by 12 %
+of the full pose before the attack; on `wave` that is about 17° of the upper
+arm, peaking halfway through the anticipation. The gesture's
+fade-in envelope does not scale the rig layer, so the whole depth is
+applied. For a broader anticipation raise `anticipation` (for example 0.25 in
+`cartoon`, about 36° on `wave`) or use a preset.
 
 ## Behavior
 
@@ -66,7 +120,7 @@ between actions. The character's value is kept.
 - All layers are pure functions of scene time, so a seek equals frame-by-frame
   playback, and preview and export match.
 
-Not covered yet: the timing fractions of the curve (end of anticipation and
-attack, start of release) stay fixed. P01's shared easings (`Back`,
+Not covered yet: the attack length and the start of the release stay fixed
+fractions of the curve; only the anticipation length is adjustable. P01's shared easings (`Back`,
 `EaseInOut`) were not in `main` when this was written. The curve keeps its own
 "back" formula, whose overshoot constant is `overshoot`.

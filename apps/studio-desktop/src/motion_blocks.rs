@@ -227,6 +227,8 @@ pub fn events(
                 gait: (*gait != "walk").then(|| (*gait).into()),
                 ease: None,
                 pace: None,
+                arc: None,
+                bezier: None,
             });
             events
         }

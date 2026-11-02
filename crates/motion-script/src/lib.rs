@@ -11,6 +11,7 @@ mod prop_cues;
 mod rules;
 mod screens;
 mod shots;
+mod staging;
 pub mod story;
 #[cfg(test)]
 mod story_tests;
@@ -23,7 +24,10 @@ pub use continuity::{
 pub use event_log::{EventLog, EventLogError, EventSource, ExternalEvent, LoggedEvent};
 pub use holds::{held_rig, HeldProp, HoldsError};
 pub use motion_animation::{ClipWeights, HUMANOID_BONES};
-pub use principles::{character_principles, gesture_principles, PrinciplesSpec};
+pub use principles::{
+    anticipation_fits, character_principles, gesture_principles, timed_gesture_principles,
+    PrinciplesSpec,
+};
 pub use prop_cues::{
     HandOff, PropAction, PropAnchor, PropCue, PropCueError, ResolvedPropCue, SetDown,
     MAX_PROP_ACTIONS, MAX_PROP_ANCHORS, MAX_PROP_ANCHOR_COORD, MAX_PROP_CUES,
@@ -44,6 +48,9 @@ pub use shots::{
     ShotLine, ShotList, ShotPreset, ShotSpec, ShoulderSide, MAX_HOLD, MAX_LEAD_IN,
     MAX_LINE_SECONDS, MAX_SHOTS, MAX_SHOT_EVENTS, MAX_SHOT_SECONDS, MAX_TAIL,
     OVER_THE_SHOULDER_SHIFT,
+};
+pub use staging::{
+    check_staging, StagedAction, StagingCheck, StagingNote, GROUNDED_ARC_LIFT, STAGGER_HINT_FRAMES,
 };
 use std::collections::BTreeMap;
 pub use timing::{ActorEasing, ResolvedTiming, Timing, EASINGS};
@@ -77,6 +84,17 @@ pub struct Character {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub principles: Option<PrinciplesSpec>,
 }
+/// A point on the canvas in pixels, such as a Bézier control point.
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PathPoint {
+    pub x: f64,
+    pub y: f64,
+}
+
+/// Largest arc bulge of a move, as a fraction of its straight distance.
+pub const MAX_MOVE_ARC: f64 = motion_animation::MAX_ARC;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Event {
@@ -99,6 +117,16 @@ pub enum Event {
         /// feet keep pace with the ground. Default 1.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pace: Option<f64>,
+        /// Travel along a circular arc instead of a straight line: the bulge
+        /// (sagitta) as a fraction of the straight distance, -0.5–0.5.
+        /// Positive bulges up on screen (right for a vertical move); 0.5 is a
+        /// half circle. Exclusive with `bezier`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        arc: Option<f64>,
+        /// Travel along a Bézier curve: one control point (quadratic) or two
+        /// (cubic), in canvas pixels. Exclusive with `arc`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bezier: Option<Vec<PathPoint>>,
     },
     Emotion {
         at: f64,
@@ -574,6 +602,13 @@ pub struct Project {
     /// Opt-in captions derived from `speak` events. Absent: no captions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub captions: Option<CaptionStyle>,
+}
+impl Project {
+    /// Where every actor stands before its first move: centred, at 70 % of
+    /// the height.
+    pub fn actor_start(&self) -> (f64, f64) {
+        (self.width as f64 / 2.0, self.height as f64 * 0.7)
+    }
 }
 impl Default for Project {
     fn default() -> Self {
@@ -2160,6 +2195,8 @@ impl Script {
                         gait,
                         ease,
                         pace,
+                        arc,
+                        bezier,
                         ..
                     } => {
                         if let Some(pace) = pace {
@@ -2186,16 +2223,43 @@ impl Script {
                         // Up to one frame beyond each edge, so actors can
                         // enter from and exit to outside the frame.
                         let (w, h) = (self.project.width as f64, self.project.height as f64);
-                        if !x.is_finite()
-                            || !y.is_finite()
-                            || *x < -w
-                            || *y < -h
-                            || *x > 2.0 * w
-                            || *y > 2.0 * h
-                        {
+                        let on_stage = |x: f64, y: f64| {
+                            x.is_finite()
+                                && y.is_finite()
+                                && x >= -w
+                                && y >= -h
+                                && x <= 2.0 * w
+                                && y <= 2.0 * h
+                        };
+                        if !on_stage(*x, *y) {
                             return Err(fail(format!(
                                 "{actor}: move coordinates must be finite and at most one frame width or height outside the frame"
                             )));
+                        }
+                        if arc.is_some() && bezier.is_some() {
+                            return Err(fail(format!(
+                                "{actor}: a move takes either arc or bezier, not both"
+                            )));
+                        }
+                        if let Some(arc) = arc {
+                            if !arc.is_finite() || arc.abs() > MAX_MOVE_ARC {
+                                return Err(fail(format!(
+                                    "{actor}: move arc must be a finite number in -{MAX_MOVE_ARC}..={MAX_MOVE_ARC}, got {arc}"
+                                )));
+                            }
+                        }
+                        if let Some(points) = bezier {
+                            if !(1..=2).contains(&points.len()) {
+                                return Err(fail(format!(
+                                    "{actor}: move bezier takes one control point (quadratic) or two (cubic), got {}",
+                                    points.len()
+                                )));
+                            }
+                            if points.iter().any(|p| !on_stage(p.x, p.y)) {
+                                return Err(fail(format!(
+                                    "{actor}: move bezier control points must be finite and at most one frame width or height outside the frame"
+                                )));
+                            }
                         }
                         validate_duration(*duration, at, s.duration)?;
                         moves.entry(actor).or_default().push((at, at + duration));
@@ -2405,8 +2469,47 @@ mod edit_tests {
             gait: None,
             ease: None,
             pace: None,
+            arc: None,
+            bezier: None,
         }
     }
+    #[test]
+    fn move_arcs_and_bezier_paths_parse_validate_and_roundtrip() {
+        let script = |extra: &str| {
+            format!("characters:\n  EMMA:\n    asset: characters/emma\nscenes:\n  - id: intro\n    duration: 5\n    events:\n      - {{type: move, actor: EMMA, at: 0, x: 10, y: 20, duration: 1{extra}}}\n")
+        };
+        let arc = parse(&script(", arc: 0.3")).unwrap();
+        assert!(matches!(&arc.scenes[0].events[0], Event::Move { arc: Some(h), .. } if *h == 0.3));
+        let cubic = parse(&script(", bezier: [{x: 0, y: 0}, {x: 5, y: -10}]")).unwrap();
+        assert!(
+            matches!(&cubic.scenes[0].events[0], Event::Move { bezier: Some(p), .. } if p.len() == 2)
+        );
+        for parsed in [&arc, &cubic] {
+            let yaml = serde_yaml::to_string(parsed).unwrap();
+            assert_eq!(
+                parse(&yaml).unwrap().scenes[0].events,
+                parsed.scenes[0].events
+            );
+        }
+        let plain = serde_yaml::to_string(&parse(&script("")).unwrap()).unwrap();
+        assert!(!plain.contains("arc") && !plain.contains("bezier"));
+        for (extra, needle) in [
+            (", arc: 0.6", "-0.5..=0.5"),
+            (", arc: .nan", "arc"),
+            (", bezier: []", "one control point"),
+            (
+                ", bezier: [{x: 1, y: 1}, {x: 2, y: 2}, {x: 3, y: 3}]",
+                "got 3",
+            ),
+            (", bezier: [{x: 1e9, y: 1}]", "control points"),
+            (", arc: 0.2, bezier: [{x: 1, y: 1}]", "not both"),
+        ] {
+            let error = parse(&script(extra)).unwrap_err().to_string();
+            assert!(error.contains(needle), "{extra}: {error}");
+        }
+        assert!(parse(&script(", bezier: [{x: 1, y: 1, z: 2}]")).is_err());
+    }
+
     #[test]
     fn gait_and_facing_parse_validate_and_roundtrip() {
         let script = |events: &str| {

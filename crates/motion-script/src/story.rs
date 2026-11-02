@@ -214,6 +214,10 @@ pub struct Beat {
     pub depth: Option<String>,
     /// Speed multiplier for the walk, 0.5–1.5.
     pub pace: Option<f64>,
+    /// Travel each leg of the walk on a circular arc: the bulge as a fraction
+    /// of the leg's distance, -0.5–0.5, positive up on screen. The walk takes
+    /// longer by the extra distance.
+    pub arc: Option<f64>,
     /// Stop half way through `move_to` and look back.
     pub look_back: Option<bool>,
     pub gait: Option<String>,
@@ -896,6 +900,7 @@ fn validate_beat(
             || beat.face.is_some()
             || beat.travels()
             || beat.pace.is_some()
+            || beat.arc.is_some()
             || beat.look_back.is_some()
             || beat.gait.is_some()
             || beat.holds.is_some()
@@ -1019,6 +1024,22 @@ fn validate_beat(
                 Schema,
                 format!("{path}.pace"),
                 "pace needs move_to, path, follow or depth",
+            ));
+        }
+    }
+    if let Some(arc) = beat.arc {
+        if !arc.is_finite() || arc.abs() > crate::MAX_MOVE_ARC {
+            out.push(issue(
+                Bound,
+                format!("{path}.arc"),
+                format!("arc must be -{0}–{0}", crate::MAX_MOVE_ARC),
+            ));
+        }
+        if !beat.travels() {
+            out.push(issue(
+                Schema,
+                format!("{path}.arc"),
+                "arc needs move_to, path, follow or depth",
             ));
         }
     }
@@ -2234,6 +2255,8 @@ impl<'a> Builder<'a> {
             .cloned()
             .unwrap_or_else(|| "front".into());
         let offset = stage.start[actor] - w / 2.0;
+        let arc = beat.arc.filter(|h| *h != 0.0);
+        let arc_ratio = motion_animation::arc_length_ratio(arc.unwrap_or(0.0));
         let mut at = t;
         let mut covered = 0.0;
         let mut busy_until = t;
@@ -2246,7 +2269,7 @@ impl<'a> Builder<'a> {
                 1.0
             };
             covered += share;
-            let distance = dx.hypot(depth_px * share);
+            let distance = dx.hypot(depth_px * share) * arc_ratio;
             let duration = frame_ceil((distance / speed).max(0.6));
             // One continuous journey speeds up once and slows down once;
             // a look back stops half way. A leap keeps its momentum.
@@ -2270,6 +2293,8 @@ impl<'a> Builder<'a> {
                 duration,
                 ease: (ease != MoveEase::Linear).then(|| ease.name().to_string()),
                 pace: (pace != 1.0).then_some(pace),
+                arc,
+                bezier: None,
                 gait: Some(gait.clone()),
             });
             if beat.face.is_none() {
@@ -2399,9 +2424,11 @@ impl<'a> Builder<'a> {
             .or(leader_gait.filter(|g| g != "leap"))
             .unwrap_or_else(|| default_gait.into());
         let speed = gait_speed(&gait) * beat.pace.unwrap_or(1.0);
+        let arc = beat.arc.filter(|h| *h != 0.0);
+        let arc_ratio = motion_animation::arc_length_ratio(arc.unwrap_or(0.0));
         // Never overtake: arrive after the leader has stopped.
         let duration = frame_ceil(
-            ((to - from).abs() / speed)
+            ((to - from).abs() * arc_ratio / speed)
                 .max(0.6)
                 .max(last.1 + FOLLOW_DELAY - start),
         );
@@ -2416,6 +2443,8 @@ impl<'a> Builder<'a> {
             duration,
             ease: Some(MoveEase::InOut.name().to_string()),
             pace: beat.pace.filter(|p| *p != 1.0),
+            arc,
+            bezier: None,
             gait: Some(gait.clone()),
         });
         if beat.face.is_none() {
@@ -2515,6 +2544,8 @@ impl<'a> Builder<'a> {
                     duration: STEP_ASIDE_SECONDS,
                     ease: Some(MoveEase::InOut.name().to_string()),
                     pace: None,
+                    arc: None,
+                    bezier: None,
                     gait: Some("walk".into()),
                 });
                 push_move(

@@ -46,7 +46,7 @@ what this implementation actually accepts.
 
 | type | Required additional fields | Behavior |
 | --- | --- | --- |
-| move | x, y, duration | Linear movement to project-space coordinates, from the last completed pose; positive duration, ending inside the scene |
+| move | x, y, duration (optional gait, ease, pace, arc or bezier) | Movement to project-space coordinates, from the last completed pose; positive duration, ending inside the scene. Straight by default; `arc` (-0.5–0.5) bends the path into a circular arc whose bulge is that fraction of the distance (positive is up on screen, right for a vertical move), and `bezier` takes one (quadratic) or two (cubic) control points `{x, y}`. `arc` and `bezier` are exclusive |
 | emotion | value | neutral, happy, sad, surprised or angry; also eases the body posture over 0.25 s |
 | gesture | value, duration (optional principles) | wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap or think; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
 | speak | text | Dialogue job; requires character voice or event audio; optional emotion and audio |
@@ -168,7 +168,7 @@ schedules:
     children:
       - {op: wait, duration: 1}
       - op: stagger
-        delay: 0.5
+        delay: 3f              # 3 frames at the project fps; or seconds, e.g. 0.5
         children:
           - {op: event, span: 1, event: {type: emotion, actor: EMMA, at: 0, value: happy}}
           - {op: event, span: 1, event: {type: emotion, actor: EMMA, at: 0, value: sad}}
@@ -190,6 +190,8 @@ intervals are half-open `[start, end)`. With node start `S` and child duration `
 | `event`, `span`, `event` | event at `S + event.at` | `span` |
 
 - `children` is nonempty; `delay ≥ 0`; `duration` and `span` are positive and finite.
+- `delay`, `duration` and `span` are seconds, or whole frames at the project frame
+  rate written as `<n>f` (`3f` is 0.125 s at 24 fps). Other strings are schema errors.
 - `event.at` is a local offset in `[0, span)`; a move/gesture `duration` must fit the span.
 - Every node must end at or before the scene duration; the scene is never extended.
   Overflow and precision collapse (a positive interval rounding to zero) are rejected.

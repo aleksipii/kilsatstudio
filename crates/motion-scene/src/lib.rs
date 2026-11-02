@@ -432,10 +432,8 @@ fn still_seconds(events: &[&Event], actor: &str, time: f64) -> Option<f64> {
 }
 /// Where every actor stands before its first move.
 fn actor_base(script: &Script) -> Vec2 {
-    Vec2::new(
-        script.project.width as f64 / 2.0,
-        script.project.height as f64 * 0.7,
-    )
+    let (x, y) = script.project.actor_start();
+    Vec2::new(x, y)
 }
 fn prepare_bones(
     tracks: &std::collections::BTreeMap<String, Vec<motion_script::ActorKey>>,
@@ -1074,6 +1072,7 @@ fn evaluate_validated(
             let mut emotion_changes = Vec::new();
             let mut gesture = None;
             let mut gesture_principles = None;
+            let mut gesture_seconds = 0.0;
             let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
                 if pose.emotion != *value {
                     pose.emotion = value.clone();
@@ -1106,6 +1105,7 @@ fn evaluate_validated(
                         if weight > pose.wave {
                             pose.wave = weight;
                             gesture_principles = principles.as_ref();
+                            gesture_seconds = *duration;
                             gesture = motion_animation::Gesture::parse(value)
                                 .map(|g| (g, progress, weight));
                         }
@@ -1134,6 +1134,14 @@ fn evaluate_validated(
                     } else {
                         span.distance_progress(time_seconds) * span.duration
                     });
+                    // A curved route is longer than the straight distance the
+                    // gait and pace were chosen for: step in proportion.
+                    if span.path != motion_animation::MovePath::Line {
+                        let chord = (span.to.x - span.from.x).hypot(span.to.y - span.from.y);
+                        if let Some(seconds) = walk_seconds.as_mut() {
+                            *seconds *= span.path.length(span.from, span.to) / chord;
+                        }
+                    }
                     move_progress = Some(span.progress(time_seconds));
                     if let Some(Event::Move {
                         gait: name, pace, ..
@@ -1230,9 +1238,14 @@ fn evaluate_validated(
                 .map_err(invalid_principles)?;
                 if let Some((gesture, progress, _)) = gesture {
                     // The rig layer shapes its own timing from progress.
-                    let principles =
-                        motion_script::gesture_principles(principles, gesture_principles, id)
-                            .map_err(invalid_principles)?;
+                    let principles = motion_script::timed_gesture_principles(
+                        character.and_then(|c| c.principles.as_ref()),
+                        gesture_principles,
+                        id,
+                        gesture_seconds,
+                        script.project.fps,
+                    )
+                    .map_err(invalid_principles)?;
                     let motion = motion_animation::rig_gesture_with(
                         gesture,
                         progress,

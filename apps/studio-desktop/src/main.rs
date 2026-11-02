@@ -31,6 +31,7 @@ mod model_sheet_panel;
 mod motion_blocks;
 mod native_compositor;
 mod playback;
+mod principle_hints;
 mod project_history;
 mod quick_start;
 mod rig_clip_editor;
@@ -5549,6 +5550,7 @@ impl Studio {
                     }
                     if level.shows(Tool::EventInspector) {
                         self.event_inspector_ui(ui);
+                        principle_hints::ui(ui, self.script.as_ref(), self.scene_index);
                     }
                     if level.shows(Tool::VisemeCheck) {
                         self.viseme_check_ui(ui);

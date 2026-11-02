@@ -182,6 +182,9 @@ struct Compiler<'a> {
     origins: &'a mut Vec<String>,
 }
 impl Compiler<'_> {
+    fn fps(&self) -> u32 {
+        self.script.project.fps
+    }
     fn node(
         &mut self,
         node: &Value,
@@ -230,9 +233,9 @@ impl Compiler<'_> {
             }
         }
         let duration = match op {
-            "wait" => number(node, "duration", path, true)?,
+            "wait" => number(node, "duration", path, true, self.fps())?,
             "event" => {
-                let span = number(node, "span", path, true)?;
+                let span = number(node, "span", path, true, self.fps())?;
                 let event_path = format!("{path}.event");
                 let value = node
                     .get("event")
@@ -333,7 +336,7 @@ impl Compiler<'_> {
                     ));
                 }
                 let delay = if op == "stagger" {
-                    number(node, "delay", path, false)?
+                    number(node, "delay", path, false, self.fps())?
                 } else {
                     0.0
                 };
@@ -377,14 +380,45 @@ impl Compiler<'_> {
         Ok(duration)
     }
 }
-fn number(node: &Value, key: &str, path: &str, positive: bool) -> Result<f64, Diagnostic> {
-    let value = node.get(key).and_then(Value::as_f64).ok_or_else(|| {
-        fail(
-            DiagnosticCode::Schema,
-            &format!("{path}.{key}"),
-            "expected number",
-        )
-    })?;
+/// A schedule time in seconds, or in frames at the project rate (`3f`).
+fn number(
+    node: &Value,
+    key: &str,
+    path: &str,
+    positive: bool,
+    fps: u32,
+) -> Result<f64, Diagnostic> {
+    let field = format!("{path}.{key}");
+    let value = match node.get(key) {
+        Some(Value::String(text)) => {
+            let frames = text
+                .strip_suffix('f')
+                .filter(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
+                .and_then(|digits| digits.parse::<u32>().ok())
+                .ok_or_else(|| {
+                    fail(
+                        DiagnosticCode::Schema,
+                        &field,
+                        format!("expected seconds or whole frames such as 3f, got {text:?}"),
+                    )
+                })?;
+            if fps == 0 {
+                return Err(fail(
+                    DiagnosticCode::Time,
+                    &field,
+                    "frames need a project fps",
+                ));
+            }
+            frames as f64 / fps as f64
+        }
+        other => other.and_then(Value::as_f64).ok_or_else(|| {
+            fail(
+                DiagnosticCode::Schema,
+                &field,
+                "expected number of seconds or whole frames such as 3f",
+            )
+        })?,
+    };
     if !value.is_finite() || value < 0.0 || (positive && value == 0.0) {
         return Err(fail(
             DiagnosticCode::Time,

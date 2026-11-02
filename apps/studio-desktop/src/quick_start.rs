@@ -69,6 +69,8 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
             gait: None,
             ease: None,
             pace: None,
+            arc: None,
+            bezier: None,
         });
         events.push(Event::Emotion {
             at: 0.0,

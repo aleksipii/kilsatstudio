@@ -143,3 +143,115 @@ fn invalid_or_unsupported_principles_are_rejected() {
     let error = legacy.validate().unwrap_err().to_string();
     assert!(error.contains("custom-rig"), "{error}");
 }
+
+fn actor(script: &Script, time: f64) -> motion_scene::ActorPose {
+    evaluate(script, 0, time).unwrap().actors.remove(0)
+}
+
+#[test]
+fn overlap_frames_equal_the_matching_fraction() {
+    // 3 frames of a 2 s gesture at 24 fps is exactly 3/48 = 0.0625.
+    let frames = script(Some(json!({ "overlap_frames": 3 })), wave(None));
+    let fraction = script(Some(json!({ "overlap": 0.0625 })), wave(None));
+    for i in 0..=144 {
+        let t = i as f64 / 24.0;
+        assert_eq!(parts(&frames, t), parts(&fraction, t), "{t}");
+    }
+}
+
+#[test]
+fn anticipation_frames_keep_their_length_across_gesture_lengths() {
+    let gesture = |duration: f64, principles: Option<Value>| {
+        script(
+            principles,
+            json!([{ "type": "gesture", "actor": "VEIKKO", "at": 0.5,
+                     "value": "wave", "duration": duration }]),
+        )
+    };
+    let block = json!({ "anticipation_frames": 5 });
+    let rest = parts(&gesture(2.0, None), 0.0);
+    for duration in [1.0, 2.0, 4.0] {
+        let timed = gesture(duration, Some(block.clone()));
+        // Mid-anticipation (frame 2.5 of 5) the pose already moves.
+        assert_ne!(parts(&timed, 0.5 + 2.5 / 24.0), rest, "{duration}");
+        // A different frame count changes the curve; the rest after the
+        // gesture is the same.
+        let longer = gesture(duration, Some(json!({ "anticipation_frames": 12 })));
+        assert_ne!(
+            parts(&timed, 0.5 + 4.0 / 24.0),
+            parts(&longer, 0.5 + 4.0 / 24.0),
+            "{duration}"
+        );
+        assert_eq!(parts(&timed, 0.6 + duration), rest, "{duration}");
+    }
+    let error = try_script(Some(json!({ "anticipation_frames": 0 })), json!([])).unwrap_err();
+    assert!(error.contains("anticipation_frames"), "{error}");
+}
+
+#[test]
+fn arc_moves_travel_on_a_curve_and_seek_like_playback() {
+    let straight = script(
+        None,
+        json!([{ "type": "move", "actor": "VEIKKO", "at": 0.5, "x": 1400, "y": 756,
+                 "duration": 2 }]),
+    );
+    let arced = script(
+        None,
+        json!([{ "type": "move", "actor": "VEIKKO", "at": 0.5, "x": 1400, "y": 756,
+                 "duration": 2, "arc": 0.2 }]),
+    );
+    let start = actor(&straight, 0.0);
+    let end = actor(&straight, 2.5);
+    assert_eq!(
+        (actor(&arced, 0.0).x, actor(&arced, 0.0).y),
+        (start.x, start.y)
+    );
+    assert_eq!((actor(&arced, 2.5).x, actor(&arced, 2.5).y), (end.x, end.y));
+    // Halfway the arc is 0.2 of the distance above the straight path.
+    let (line, arc) = (actor(&straight, 1.5), actor(&arced, 1.5));
+    let distance = (end.x - start.x).hypot(end.y - start.y);
+    assert!(
+        (line.y - arc.y - 0.2 * distance).abs() < 1e-6,
+        "{} {}",
+        line.y,
+        arc.y
+    );
+    let validated = ValidatedScript::new(Arc::new(arced)).unwrap();
+    let played: Vec<_> = (0..=72)
+        .map(|frame| validated.evaluate(0, frame as f64 / 24.0).unwrap())
+        .collect();
+    for frame in [72, 13, 40, 0, 36, 59] {
+        assert_eq!(
+            validated.evaluate(0, frame as f64 / 24.0).unwrap(),
+            played[frame]
+        );
+    }
+}
+
+#[test]
+fn walks_on_an_arc_step_in_proportion_to_the_longer_route() {
+    // A half circle is π/2 times the straight distance, so it steps like a
+    // straight walk at pace π/2.
+    let walk = |extra: Value| {
+        let mut event = json!({ "type": "move", "actor": "VEIKKO", "at": 0.5, "x": 1300,
+                                "y": 756, "duration": 3, "gait": "walk" });
+        event
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        script(None, json!([event]))
+    };
+    let arced = walk(json!({ "arc": 0.5 }));
+    let paced = walk(json!({ "pace": std::f64::consts::FRAC_PI_2 }));
+    let plain = walk(json!({}));
+    let mut differs = false;
+    for i in 13..=84 {
+        let t = i as f64 / 24.0;
+        let (a, p) = (actor(&arced, t), actor(&paced, t));
+        for (x, y) in a.skeleton.iter().zip(&p.skeleton) {
+            assert!((x.x - y.x).abs() < 1e-6 && (x.y - y.y).abs() < 1e-6, "{t}");
+        }
+        differs |= a.skeleton != actor(&plain, t).skeleton;
+    }
+    assert!(differs, "the arc changes the step rate");
+}
