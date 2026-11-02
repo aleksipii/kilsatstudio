@@ -535,6 +535,12 @@ mod tests {
             composition["joint_tracks"] = json!({"VEIKKO":offsets.iter().map(|(joint,rotation)| ((*joint).to_owned(),json!([{"at":0,"rotation":rotation}]))).collect::<serde_json::Map<_,_>>()});
             composition["actor_tracks"] = json!({"VEIKKO":[{"at":0,"x":-80,"y":-75,"rotation":root_rotation,"scale_x":sx,"scale_y":sy}]});
             value["scenes"][0]["events"] = json!([]);
+            // The expectation below is pure FK from the joint keys; the acting
+            // profile's standing posture is a separate layer.
+            value["characters"]["VEIKKO"]
+                .as_object_mut()
+                .unwrap()
+                .remove("acting");
             let script = motion_script::parse(&value.to_string()).unwrap();
             let rig = script.characters["VEIKKO"].rig.as_ref().unwrap();
             let held: Vec<_> = rig

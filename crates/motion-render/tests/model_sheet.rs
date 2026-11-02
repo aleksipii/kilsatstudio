@@ -67,6 +67,7 @@ fn posed(r: &RigDefinition, offsets: &[(&str, f64)]) -> Vec<motion_rig::Evaluate
                 emotion: "neutral",
                 blink: false,
                 view: FaceView::Front,
+                hands: Default::default(),
             },
         )
         .unwrap()
@@ -259,6 +260,7 @@ fn in_view(r: &RigDefinition, view: FaceView) -> Vec<motion_rig::EvaluatedPart> 
                 emotion: "neutral",
                 blink: false,
                 view,
+                hands: Default::default(),
             },
         )
         .unwrap()

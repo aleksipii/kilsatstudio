@@ -102,6 +102,7 @@ fn cutout_characters_turn_by_swapping_drawings() {
                     emotion: "neutral",
                     blink: false,
                     view,
+                    hands: Default::default(),
                 },
             )
             .unwrap()

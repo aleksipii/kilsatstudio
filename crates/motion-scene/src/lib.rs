@@ -12,6 +12,7 @@ mod sequence;
 pub use sequence::{SceneContribution, SceneSpan, SequenceTimeline};
 pub mod time;
 pub use time::SEQUENCE_SAMPLE_RATE;
+mod hands;
 mod props;
 mod taps;
 pub mod tracks;
@@ -1076,15 +1077,27 @@ fn evaluate_validated(
             let mut gait = motion_animation::Gait::Walk;
             let mut world_travel = 0.0;
             let mut emotion_changes = Vec::new();
+            // Emotion and intensity changes for the rig posture layer.
+            let mut acting_changes: Vec<(String, f64, f64)> = Vec::new();
+            let mut intensity = motion_script::DEFAULT_INTENSITY;
             let mut gesture = None;
             let mut gesture_principles = None;
             let mut gesture_seconds = 0.0;
-            let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
-                if pose.emotion != *value {
-                    pose.emotion = value.clone();
-                    emotion_changes.push((value.clone(), time_seconds - at));
-                }
-            };
+            let mut set_emotion =
+                |pose: &mut ActorPose, value: &String, at: f64, level: Option<f64>| {
+                    let level = level.unwrap_or(motion_script::DEFAULT_INTENSITY);
+                    if pose.emotion != *value {
+                        pose.emotion = value.clone();
+                        emotion_changes.push((value.clone(), time_seconds - at));
+                    }
+                    if acting_changes
+                        .last()
+                        .is_none_or(|(e, _, i)| e != value || *i != level)
+                    {
+                        acting_changes.push((value.clone(), time_seconds - at, level));
+                    }
+                    intensity = level;
+                };
             for event in &events {
                 let (at, actor) = event.actor_time();
                 if actor != id || at > time_seconds {
@@ -1093,11 +1106,14 @@ fn evaluate_validated(
                 match event {
                     // Positions come from the resolved move track below.
                     Event::Move { .. } => {}
-                    Event::Emotion { value, .. } => set_emotion(&mut pose, value, at),
+                    Event::Emotion {
+                        value, intensity, ..
+                    } => set_emotion(&mut pose, value, at, *intensity),
                     Event::Speak {
                         emotion: Some(value),
+                        intensity,
                         ..
-                    } => set_emotion(&mut pose, value, at),
+                    } => set_emotion(&mut pose, value, at, *intensity),
                     Event::Gesture {
                         value,
                         duration,
@@ -1199,6 +1215,23 @@ fn evaluate_validated(
                 weights,
             )?;
             if let Some((rig, _)) = prepared.rig_at(script, &events, id, time_seconds) {
+                // Validation already accepted the profile.
+                let acting = motion_script::character_acting(
+                    script.characters.get(id).and_then(|c| c.acting.as_ref()),
+                    id,
+                )
+                .map_err(|error| Error::InvalidAnimation(error.to_string()))?;
+                let felt = |level: f64| {
+                    (level * acting.expressiveness)
+                        .clamp(0.0, motion_animation::MAX_ACTING_INTENSITY)
+                };
+                let effective = felt(intensity);
+                // A hint of an emotion shows in the body; the face stays neutral.
+                let shown_emotion = if effective < motion_animation::FACE_INTENSITY_THRESHOLD {
+                    "neutral"
+                } else {
+                    pose.emotion.as_str()
+                };
                 let tracks = prepared.joint_tracks[scene_index].get(id);
                 let mut offsets = tracks
                     .map(|tracks| {
@@ -1228,11 +1261,20 @@ fn evaluate_validated(
                             seconds,
                             travel,
                             weights.walk,
-                            motion_animation::GaitMood::from_emotion(&pose.emotion),
+                            motion_animation::GaitMood::from_emotion(shown_emotion),
                         )
                     };
                     add_rig_motion(rig, &mut offsets, &motion);
                 }
+                // The character's own posture and the emotion's, both additive.
+                let posture = motion_animation::rig_character_posture(acting.posture);
+                add_rig_motion(rig, &mut offsets, &posture);
+                let changes: Vec<_> = acting_changes
+                    .iter()
+                    .map(|(emotion, since, level)| (emotion.as_str(), *since, felt(*level)))
+                    .collect();
+                let motion = motion_animation::rig_emotion_posture(&changes);
+                add_rig_motion(rig, &mut offsets, &motion);
                 // Validation already accepted these principles.
                 let invalid_principles =
                     |error: motion_script::Error| Error::InvalidAnimation(error.to_string());
@@ -1258,6 +1300,8 @@ fn evaluate_validated(
                         weights.gesture,
                         &principles,
                     );
+                    // Energy sizes the gesture; squash and stretch stay as set.
+                    let motion = motion_animation::scale_rig_motion(&motion, acting.energy);
                     add_rig_motion(rig, &mut offsets, &motion);
                 } else if principles.moving_hold > 0.0 && walk_seconds.is_none() {
                     // Moving hold: a long hold keeps breathing instead of freezing.
@@ -1284,10 +1328,31 @@ fn evaluate_validated(
                 }
                 let invalid = |error: motion_rig::Error| Error::InvalidAnimation(error.to_string());
                 if rig.has_acting() {
+                    let mut holding = [false; 2];
+                    if let Some(character) = script.characters.get(id) {
+                        let state = hands_at(&events, id, time_seconds, &initial_hands(character));
+                        for (slot, item) in holding.iter_mut().zip(&state) {
+                            *slot = item.is_some();
+                        }
+                    }
+                    if let Some(cue) = prop_cue {
+                        for carrier in cue.track.occupies(time_seconds).into_iter().flatten() {
+                            if let motion_rig::PropCarrier::Hand(side) = carrier {
+                                holding[hand_slot(side)] = true;
+                            }
+                        }
+                    }
                     let input = motion_rig::ActingInput {
-                        emotion: &pose.emotion,
+                        emotion: shown_emotion,
                         blink: rig.blink_active(id, time_seconds),
                         view: pose.view,
+                        hands: hands::hand_shapes(
+                            rig,
+                            gesture.map(|(g, _, weight)| (g, weight)),
+                            &pose.emotion,
+                            effective,
+                            holding,
+                        ),
                     };
                     let (parts, mouth) = rig.evaluate_acting(&offsets, input).map_err(invalid)?;
                     pose.rigid_parts = parts;
@@ -1388,6 +1453,8 @@ fn evaluate_validated(
     })
 }
 
+#[cfg(test)]
+mod acting_profile_tests;
 #[cfg(test)]
 mod acting_tests;
 #[cfg(test)]

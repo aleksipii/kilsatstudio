@@ -1,4 +1,5 @@
 //! Strict MotionScript scene and dialogue schema.
+mod acting;
 pub mod auto_direction;
 mod camera_presets;
 pub mod compiler;
@@ -16,6 +17,10 @@ pub mod story;
 #[cfg(test)]
 mod story_tests;
 pub mod timing;
+pub use acting::{
+    character_acting, validate_intensity, ActingProfile, ActingSpec, ACTING_PRESETS,
+    DEFAULT_INTENSITY,
+};
 pub use camera_presets::{apply_camera_preset, camera_preset_keys, CameraPreset};
 pub use continuity::{
     check_continuity, ContinuityCheck, ContinuityNote, ContinuityRules, ContinuitySeverity,
@@ -83,6 +88,10 @@ pub struct Character {
     /// `principles.rs`. Requires a custom rig.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub principles: Option<PrinciplesSpec>,
+    /// Acting profile (`acting: proud`): posture, gesture energy, emotional
+    /// expressiveness and tempo; see `acting.rs`. Requires a custom rig.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acting: Option<ActingSpec>,
 }
 /// A point on the canvas in pixels, such as a Bézier control point.
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -132,6 +141,10 @@ pub enum Event {
         at: f64,
         actor: String,
         value: String,
+        /// How strongly the emotion shows, 0–1 (default 1, the full
+        /// expression). Below 0.3 only the body shows it, not the face.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        intensity: Option<f64>,
     },
     Gesture {
         at: f64,
@@ -148,6 +161,9 @@ pub enum Event {
         text: String,
         emotion: Option<String>,
         audio: Option<String>,
+        /// Intensity of `emotion`, 0–1 (default 1); see `Event::Emotion`.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        intensity: Option<f64>,
     },
     /// Turn the character to face the viewer (`front`), away (`back`), or in
     /// profile toward screen `left` or `right`. Holds until the next face event.
@@ -1692,6 +1708,10 @@ impl Script {
                 return Err(Error::Unsupported(format!("principles for character {id}: animation principles drive custom-rig characters; add a rig")));
             }
             character_principles(character.principles.as_ref(), id)?;
+            if character.acting.is_some() && character.rig.is_none() {
+                return Err(Error::Unsupported(format!("acting profile for character {id}: posture, energy and expressiveness drive custom-rig characters; add a rig")));
+            }
+            character_acting(character.acting.as_ref(), id)?;
         }
         if let Some(captions) = &self.project.captions {
             captions.validate(&self.characters)?;
@@ -2172,8 +2192,16 @@ impl Script {
                         text,
                         audio,
                         emotion,
+                        intensity,
                         ..
                     } => {
+                        validate_intensity(*intensity, &format!("{}: speak of {actor}", s.id))?;
+                        if intensity.is_some() && emotion.is_none() {
+                            return Err(fail(format!(
+                                "{}: speak of {actor}: intensity needs an emotion",
+                                s.id
+                            )));
+                        }
                         if text.trim().is_empty()
                             || audio.as_ref().is_some_and(|a| a.trim().is_empty())
                         {
@@ -2264,7 +2292,12 @@ impl Script {
                         validate_duration(*duration, at, s.duration)?;
                         moves.entry(actor).or_default().push((at, at + duration));
                     }
-                    Event::Emotion { value, .. } => validate_emotion(value)?,
+                    Event::Emotion {
+                        value, intensity, ..
+                    } => {
+                        validate_emotion(value)?;
+                        validate_intensity(*intensity, &format!("{}: emotion of {actor}", s.id))?;
+                    }
                     Event::Gesture {
                         value,
                         duration,
@@ -2575,6 +2608,7 @@ mod edit_tests {
                 text: "Hello, studio!".into(),
                 emotion: Some("happy".into()),
                 audio: Some("voice.wav".into()),
+                intensity: None,
             },
         )
         .unwrap();
@@ -2593,6 +2627,7 @@ mod edit_tests {
                 actor: "EMMA".into(),
                 at: 0.0,
                 value: "unsupported".into(),
+                intensity: None,
             },
         ] {
             assert!(apply_event(&original, 0, 0, event).is_err());
@@ -2611,6 +2646,7 @@ mod edit_tests {
             text: "a".repeat(1_048_577),
             emotion: None,
             audio: Some("voice.wav".into()),
+            intensity: None,
         };
         assert!(apply_event(SOURCE, 0, 0, event).is_err());
     }
@@ -2627,6 +2663,7 @@ mod edit_tests {
                 text: "Hello!".into(),
                 emotion: Some("happy".into()),
                 audio: Some("dialogue.wav".into()),
+                intensity: None,
             },
         )
         .unwrap();
@@ -2682,6 +2719,7 @@ mod edit_tests {
             text: "a".repeat(1_048_577),
             emotion: None,
             audio: Some("voice.wav".into()),
+            intensity: None,
         };
         assert!(insert_event(SOURCE, 0, 1, huge).is_err());
     }
@@ -2976,6 +3014,7 @@ mod composition_tests {
                 at: 0.0,
                 actor: "EMMA".into(),
                 value: "happy".into(),
+                intensity: None,
             },
         )
         .unwrap();

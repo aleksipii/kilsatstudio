@@ -54,6 +54,7 @@ pub(super) fn apply_acting(
             at: 0.0,
             actor: timed.line.actor.clone(),
             value: value.into(),
+            intensity: None,
         };
         // Do not replace or compete with an existing authored initial expression.
         if let Some(existing) = shot.events.iter().find(|event| {

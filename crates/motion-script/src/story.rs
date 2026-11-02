@@ -176,6 +176,9 @@ pub struct CastMember {
     pub speed: Option<f64>,
     /// Animation principles: a preset (`subtle`, `cartoon`, `snappy`) or a block.
     pub principles: Option<crate::PrinciplesSpec>,
+    /// Acting profile (`calm`, `lively`, `nervous`, `proud`, `tired`, `stoic`
+    /// or a block); replaces the catalog character's own profile.
+    pub acting: Option<crate::ActingSpec>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -201,6 +204,8 @@ pub struct Beat {
     pub act: Option<String>,
     pub pause: Option<f64>,
     pub emotion: Option<String>,
+    /// How strongly `emotion` shows, 0–1 (default 1).
+    pub intensity: Option<f64>,
     pub gesture: Option<String>,
     pub look: Option<String>,
     pub face: Option<String>,
@@ -254,6 +259,8 @@ impl Beat {
 pub struct Reaction {
     pub by: String,
     pub emotion: Option<String>,
+    /// How strongly the reaction's `emotion` shows, 0–1 (default 1).
+    pub intensity: Option<f64>,
     pub gesture: Option<String>,
     pub hold: Option<f64>,
 }
@@ -650,6 +657,9 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
                 error.to_string(),
             ));
         }
+        if let Err(error) = crate::character_acting(member.acting.as_ref(), id) {
+            out.push(issue(Bound, format!("{path}.acting"), error.to_string()));
+        }
         if member.hand.is_some() && member.holds.is_none() {
             out.push(issue(
                 Schema,
@@ -852,8 +862,28 @@ fn validate_beat(
             }
         }
     };
+    let intensity_check =
+        |out: &mut Vec<StoryIssue>, field: &str, value: Option<f64>, has_emotion: bool| {
+            let Some(value) = value else {
+                return;
+            };
+            if !value.is_finite() || !(0.0..=1.0).contains(&value) {
+                out.push(issue(
+                    Bound,
+                    format!("{path}.{field}"),
+                    format!("{field} must be 0–1 (0.3 subtle, 0.6 clear, 1 full)"),
+                ));
+            } else if !has_emotion {
+                out.push(issue(
+                    Schema,
+                    format!("{path}.{field}"),
+                    format!("{field} sets how strongly an emotion shows; add the emotion"),
+                ));
+            }
+        };
     let positions = POSITIONS.map(|(n, _)| n);
     vocabulary(out, "emotion", &beat.emotion, &EMOTIONS);
+    intensity_check(out, "intensity", beat.intensity, beat.emotion.is_some());
     vocabulary(out, "gesture", &beat.gesture, &motion_animation::GESTURES);
     vocabulary(out, "face", &beat.face, &FACINGS);
 
@@ -1106,6 +1136,12 @@ fn validate_beat(
                 ));
             }
             vocabulary(out, "reaction.emotion", &reaction.emotion, &EMOTIONS);
+            intensity_check(
+                out,
+                "reaction.intensity",
+                reaction.intensity,
+                reaction.emotion.is_some(),
+            );
             vocabulary(
                 out,
                 "reaction.gesture",
@@ -1482,6 +1518,9 @@ impl<'a> Builder<'a> {
             if member.principles.is_some() {
                 character.principles = member.principles.clone();
             }
+            if member.acting.is_some() {
+                character.acting = member.acting.clone();
+            }
             character.voice = Some(VoiceConfig {
                 provider: provider.into(),
                 preset,
@@ -1491,6 +1530,18 @@ impl<'a> Builder<'a> {
             characters.insert(id.clone(), character);
         }
         Ok(characters)
+    }
+
+    /// The actor's acting tempo (1 when the cast and catalog give none).
+    fn tempo(&self, actor: &str) -> f64 {
+        let member = self.story.cast.get(actor).cloned().flatten();
+        let spec = member.and_then(|m| m.acting).or_else(|| {
+            self.catalog
+                .characters
+                .get(actor)
+                .and_then(|entry| entry.character.acting.clone())
+        });
+        crate::character_acting(spec.as_ref(), actor).map_or(1.0, |profile| profile.tempo)
     }
 
     fn catalog_held(&self, actor: &str) -> Option<HeldProp> {
@@ -1793,6 +1844,7 @@ impl<'a> Builder<'a> {
                     text: text.clone(),
                     emotion: beat.emotion.clone(),
                     audio: audio.clone(),
+                    intensity: beat.intensity,
                 });
                 self.lines.push(CompiledLine {
                     scene: scene.id.clone(),
@@ -1835,7 +1887,8 @@ impl<'a> Builder<'a> {
                 }
                 if let Some(gesture) = &beat.gesture {
                     let start = frame_ceil(t + 0.15);
-                    let duration = gesture_seconds(Some(seconds - 0.15));
+                    // A quicker character gestures in less of the line.
+                    let duration = gesture_seconds(Some((seconds - 0.15) / self.tempo(&actor)));
                     events.push(Event::Gesture {
                         at: start,
                         actor: actor.clone(),
@@ -1875,6 +1928,7 @@ impl<'a> Builder<'a> {
                             at,
                             actor: reaction.by.clone(),
                             value: emotion.clone(),
+                            intensity: reaction.intensity,
                         });
                     }
                     if let Some(gesture) = &reaction.gesture {
@@ -1903,18 +1957,20 @@ impl<'a> Builder<'a> {
                         at: t,
                         actor: actor.clone(),
                         value: emotion.clone(),
+                        intensity: beat.intensity,
                     });
                 }
                 let mut length: f64 = 0.0;
                 if let Some(gesture) = &beat.gesture {
+                    let duration = GESTURE_SECONDS / self.tempo(&actor);
                     events.push(Event::Gesture {
                         at: t,
                         actor: actor.clone(),
                         value: gesture.clone(),
-                        duration: GESTURE_SECONDS,
+                        duration,
                         principles: beat.principles.clone(),
                     });
-                    length = length.max(GESTURE_SECONDS);
+                    length = length.max(duration);
                 }
                 let mut moved = false;
                 if beat.travels() {
@@ -2173,7 +2229,8 @@ impl<'a> Builder<'a> {
             .get(actor)
             .is_some_and(|hands| hands.iter().all(Option::is_some));
         let default_gait = if loaded { "carry" } else { "walk" };
-        let pace = beat.pace.unwrap_or(1.0);
+        // The beat's pace on top of the character's own tempo.
+        let pace = beat.pace.unwrap_or(1.0) * self.tempo(actor);
         if let Some(leader) = &beat.follow {
             return self.follow(
                 &path,
@@ -2423,7 +2480,8 @@ impl<'a> Builder<'a> {
             .clone()
             .or(leader_gait.filter(|g| g != "leap"))
             .unwrap_or_else(|| default_gait.into());
-        let speed = gait_speed(&gait) * beat.pace.unwrap_or(1.0);
+        let pace = beat.pace.unwrap_or(1.0) * self.tempo(actor);
+        let speed = gait_speed(&gait) * pace;
         let arc = beat.arc.filter(|h| *h != 0.0);
         let arc_ratio = motion_animation::arc_length_ratio(arc.unwrap_or(0.0));
         // Never overtake: arrive after the leader has stopped.
@@ -2442,7 +2500,7 @@ impl<'a> Builder<'a> {
             y: root_y + dy,
             duration,
             ease: Some(MoveEase::InOut.name().to_string()),
-            pace: beat.pace.filter(|p| *p != 1.0),
+            pace: (pace != 1.0).then_some(pace),
             arc,
             bezier: None,
             gait: Some(gait.clone()),
@@ -2738,6 +2796,8 @@ RULES
 - Bystanders step aside automatically when someone walks past them.
 - To enter, start an actor at offscreen_left or offscreen_right and move_to a position; to exit, move_to offscreen_left or offscreen_right.
 - Short film: 1–6 scenes, 4–20 beats per scene, 30 seconds to 5 minutes in total.
+- Vary emotional intensity: a hint (0.3) for subtext, clear (0.6) for most lines, full (1) only for big moments.
+- Each character already has its own way of moving (see CHARACTERS); give acting only to change it.
 
 FORMAT
 kilsat_story: 1
@@ -2745,7 +2805,7 @@ title: <title>
 language: fi | en | en-gb
 captions: true            # optional, default true
 cast:                     # characters used in the film
-  <CHARACTER>: {}         # or {voice: <preset>, speed: 0.7–1.4, holds: <hand prop>, hand: left|right}
+  <CHARACTER>: {}         # or {voice: <preset>, speed: 0.7–1.4, holds: <hand prop>, hand: left|right, acting: <acting>}
 scenes:
   - id: <scene_id>        # a-z, 0-9, _
     set: <set>
@@ -2755,6 +2815,7 @@ scenes:
       - say: <CHARACTER>
         line: <spoken words>
         emotion: <emotion>          # optional
+        intensity: <0–1>            # optional, with emotion: 0.3 hint, 0.6 clear, 1 full (default)
         gesture: <gesture>          # optional, played while speaking
         look: <CHARACTER>           # optional, whom the speaker looks at
         shot: <shot>                # optional, default auto
@@ -2764,9 +2825,10 @@ scenes:
         hold: <seconds>             # optional pause after the line, 0–10
         move_to: <position or CHARACTER>  # optional, walks while talking
         gait: <gait>                # optional, with move_to
-        reaction: {by: <CHARACTER>, emotion: <emotion>, gesture: <gesture>, hold: <seconds>}
+        reaction: {by: <CHARACTER>, emotion: <emotion>, intensity: <0–1>, gesture: <gesture>, hold: <seconds>}
       - do: <CHARACTER>
         emotion: <emotion>          # any of these, all optional
+        intensity: <0–1>            # with emotion
         gesture: <gesture>
         look: <CHARACTER>
         face: <facing>
@@ -2791,6 +2853,10 @@ scenes:
         POSITIONS.map(|(n, _)| n).join(", ")
     ));
     text.push_str(&format!("- emotion: {}\n", list(&EMOTIONS)));
+    text.push_str(&format!(
+        "- acting: {} (calm: unhurried; lively: big and quick; nervous: hunched, every feeling shows; proud: chest out; tired: slumped and slow; stoic: still)\n",
+        list(&crate::ACTING_PRESETS)
+    ));
     text.push_str(&format!(
         "- camera move: {} (push_in/pull_out for emphasis, pan for reveals, shake for impacts)\n",
         list(&CAMERA_MOVES)
@@ -2819,7 +2885,16 @@ scenes:
     }
     text.push_str("- voice: optional; English Kokoro presets such as am_michael, af_heart, bf_emma, bm_george; Finnish Piper presets such as piper_harri\n\nCHARACTERS\n");
     for (id, entry) in &catalog.characters {
-        text.push_str(&format!("- {id} ({}): {}\n", entry.name, entry.description));
+        let acting = entry
+            .character
+            .acting
+            .as_ref()
+            .and_then(|a| a.preset.as_deref())
+            .map_or(String::new(), |preset| format!(" Acting: {preset}."));
+        text.push_str(&format!(
+            "- {id} ({}): {}{acting}\n",
+            entry.name, entry.description
+        ));
     }
     text.push_str("\nSETS\n");
     for (id, set) in &catalog.sets {
@@ -2856,6 +2931,7 @@ scenes:
       - say: {a}
         line: You're late. Again.
         emotion: angry
+        intensity: 0.6
         look: {b}
       - say: {b}
         line: Late? I was early for tomorrow.

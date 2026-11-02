@@ -622,6 +622,7 @@ pub fn render_model_sheet(
                 emotion,
                 blink,
                 view,
+                hands: Default::default(),
             },
         )
     };
@@ -902,6 +903,7 @@ pub fn rest_pose(
                 emotion: "neutral",
                 blink: false,
                 view: FaceView::Front,
+                hands: Default::default(),
             },
         )?
         .0;

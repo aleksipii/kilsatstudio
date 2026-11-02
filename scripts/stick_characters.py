@@ -34,6 +34,17 @@ CAST = [
     {"id": "KIIRE", "name": "Kiire", "role": "Aina liikkeellä oleva lähetti", "accent": "#9CA95F"},
     {"id": "SISU", "name": "Sisu", "role": "Neuvokas, rauhallinen mummo", "accent": "#9F7E9B"},
 ]
+# Each character's acting profile (MotionScript `acting:` preset): how it
+# stands, how big its gestures are, how much its feelings show and its tempo.
+ACTING = {
+    "NOUTAJA": "stoic",   # laconic: still, contained
+    "VEIKKO": "tired",    # the commuter: slumped, small and slow
+    "PASMA": "proud",     # the boss: chest out, measured
+    "KIPINA": "lively",   # the inventor: big, quick and open
+    "KIIRE": "nervous",   # the courier: hunched, quick, every feeling shows
+    "SISU": "calm",       # the grandmother: upright and unhurried
+}
+HAND_SHAPES = ("fist", "open", "point", "grip", "thumbs_up")
 
 
 def _rgba(hex_color):
@@ -125,9 +136,50 @@ def _body(reaper=False):
         parts.extend([
             _capsule("upper_arm_" + side, "upper_arm_" + side, (0, 0), (0, 58), 4.5),
             _capsule("forearm_" + side, "forearm_" + side, (0, 0), (0, 54), 4),
-            _ellipse("hand_" + side, "hand_" + side, 0, 2, 6, 8, INK),
+            dict(_ellipse("hand_" + side, "hand_" + side, 0, 2, 6, 8, INK),
+                 variants=_hand_variants(side)),
         ])
     return parts
+
+
+def _star(bumps, base, center=(0.0, 3.0)):
+    """A star-shaped hand outline around `center` in hand-joint space.
+
+    `bumps` are (angle in degrees, length, half-width in degrees): a finger
+    block, a single finger or a thumb sticking out of a round palm of radius
+    `base`. +y (90 degrees) runs from the wrist toward the fingertips. Each
+    bump has a flat, rounded end (profile sqrt(1 - u^4)) sampled at seven
+    angles; the palm is sampled every 45 degrees. Star-shaped about its
+    centre, so the outline never crosses itself.
+    """
+    angles = {float(a) for a in range(0, 360, 45)}
+    for angle, _, half in bumps:
+        angles.update((angle + f * half) % 360 for f in (-1, -0.75, -0.4, 0, 0.4, 0.75, 1))
+    points = []
+    for degrees in sorted(angles):
+        radius = base
+        for angle, length, half in bumps:
+            u = ((degrees - angle + 180) % 360 - 180) / half
+            if abs(u) < 1:
+                radius = max(radius, base + length * math.sqrt(1 - u ** 4))
+        theta = math.radians(degrees)
+        points.append([round(center[0] + radius * math.cos(theta), 1),
+                       round(center[1] + radius * math.sin(theta), 1)])
+    return points
+
+
+def _hand_variants(side):
+    """Drawn hand shapes in the cartoon mitten style: the fingers as one block,
+    the thumb apart. The thumb sits on the side toward the body's centre."""
+    inward = 1 if side == "l" else -1  # +x for the left hand, -x for the right
+    thumb = 90 - inward * 60
+    return {
+        "fist": {"ellipse": {"cx": 0, "cy": 3, "rx": 7.5, "ry": 7}},
+        "grip": {"ellipse": {"cx": 0, "cy": 2.5, "rx": 7.8, "ry": 6.4}},
+        "open": {"points": _star([(90, 7.5, 40), (thumb - inward * 25, 6, 16)], 6.2), "smooth": 2},
+        "point": {"points": _star([(90 + inward * 8, 10, 11), (thumb, 3, 18)], 6.6), "smooth": 2},
+        "thumbs_up": {"points": _star([(90 + inward * 10, 7.5, 14)], 7.0), "smooth": 2},
+    }
 
 
 def _face():
@@ -386,12 +438,16 @@ def characters():
                 "visemes": {"part": "mouth", "map": {name: name for name in VISEME_NAMES}},
                 "expressions": {emotion: [{"part": part, "variant": variant} for part, variant in entries]
                                 for emotion, entries in expressions.items()},
+                "hands": {side: {"part": "hand_" + side[0],
+                                 "shapes": {name: name for name in HAND_SHAPES}}
+                          for side in ("left", "right")},
                 "eyes": {"pupils": ["pupil_l", "pupil_r"], "travel": 3.4,
                          "blink": {"parts": ["eye_l", "eye_r", "pupil_l", "pupil_r"],
                                    "variant": "blink", "interval": 3.4 + CAST.index(cast) * 0.17,
                                    "duration": 0.12}},
             },
             "voice": {"provider": "piper", "preset": "piper_harri", "language": "fi-fi", "speed": 1.0},
+            "acting": ACTING[identifier],
         }
     return result
 
@@ -400,8 +456,9 @@ def _check():
     """Check declaration bounds and references without claiming native acceptance."""
     definitions = characters()
     size = len(json.dumps(definitions, ensure_ascii=False, separators=(",", ":")).encode())
-    # Per-view accessory drawings added ~1.3 KB; the starter project keeps its own 100 KB check.
-    assert size < 64_000, size
+    # Per-view accessory drawings added ~1.3 KB and the five drawn hand shapes
+    # ~12 KB; the starter project keeps its own 100 KB check.
+    assert size < 76_000, size
     assert list(definitions) == [cast["id"] for cast in CAST]
     counts = {}
     for identifier, character in definitions.items():
@@ -436,6 +493,11 @@ def _check():
         for entries in rig["expressions"].values():
             for entry in entries:
                 assert entry["variant"] in parts[entry["part"]]["variants"]
+        for side, hand in rig["hands"].items():
+            assert set(hand["shapes"]) == set(HAND_SHAPES), side
+            for variant in hand["shapes"].values():
+                assert variant in parts[hand["part"]]["variants"], (side, variant)
+        assert character["acting"] in ("calm", "lively", "nervous", "proud", "tired", "stoic")
         for name in rig["eyes"]["blink"]["parts"]:
             assert "blink" in parts[name]["variants"]
         counts[identifier] = len(parts)

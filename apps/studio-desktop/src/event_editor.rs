@@ -90,7 +90,12 @@ impl Draft {
                         }
                     });
             }
-            Event::Emotion { value, .. } => emotion(ui, "Ilme", value),
+            Event::Emotion {
+                value, intensity, ..
+            } => {
+                emotion(ui, "Ilme", value);
+                strength(ui, intensity);
+            }
             Event::Pose { value, .. } => {
                 egui::ComboBox::from_label("Asento")
                     .selected_text(pose_label(value))
@@ -138,6 +143,7 @@ impl Draft {
                 text,
                 emotion: style,
                 audio,
+                intensity,
                 ..
             } => {
                 ui.label("Vuorosana");
@@ -152,9 +158,13 @@ impl Draft {
                     .changed()
                 {
                     *style = enabled.then(|| "neutral".into());
+                    if !enabled {
+                        *intensity = None;
+                    }
                 }
                 if let Some(style) = style {
                     emotion(ui, "Repliikin ilme", style);
+                    strength(ui, intensity);
                 }
                 ui.small("Ilmemerkintä ei ohjaa Kokoro-puheen äänen ilmaisua.");
                 let mut imported = audio.is_some();
@@ -176,6 +186,20 @@ fn number(ui: &mut egui::Ui, label: &str, value: &mut f64) {
         ui.label(label);
         ui.add(egui::DragValue::new(value).speed(0.1));
     });
+}
+/// Emotion intensity: unset is the full expression (1).
+fn strength(ui: &mut egui::Ui, intensity: &mut Option<f64>) {
+    let mut value = intensity.unwrap_or(motion_script::DEFAULT_INTENSITY);
+    ui.horizontal(|ui| {
+        ui.label("Voimakkuus");
+        if ui
+            .add(egui::Slider::new(&mut value, 0.0..=1.0).step_by(0.05))
+            .changed()
+        {
+            *intensity = (value != motion_script::DEFAULT_INTENSITY).then_some(value);
+        }
+    });
+    ui.small("Alle 0,3: tunne näkyy vain asennossa, kasvot pysyvät neutraaleina.");
 }
 fn emotion(ui: &mut egui::Ui, label: &str, value: &mut String) {
     egui::ComboBox::from_label(label)
