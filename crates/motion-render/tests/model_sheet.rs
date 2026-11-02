@@ -77,7 +77,7 @@ fn posed(r: &RigDefinition, offsets: &[(&str, f64)]) -> Vec<motion_rig::Evaluate
 /// images: any change to sheet layout, rig evaluation or a preset changes them.
 /// Regenerate with `MODEL_SHEET_PRINT=1 cargo test -p motion-render --test model_sheet`
 /// after checking the rendered SVGs (`MODEL_SHEET_OUT=<dir>` writes them).
-const PASMA_SHEETS: [(&str, &str); 5] = [
+const PASMA_SHEETS: [(&str, &str); 6] = [
     (
         "default",
         "8e4e44e70d7c7133a5201fe1b9e8eba906c901eda4f91f67b63d83c7a5ff38da",
@@ -97,6 +97,10 @@ const PASMA_SHEETS: [(&str, &str); 5] = [
     (
         "geometric",
         "fdaefa60758f5eeea8b6e0454e2acf92b9cdc4884b7e183e0cfb2230b73c96c7",
+    ),
+    (
+        "cutout",
+        "2e6221f32b7353412bb82804ff34adb3a938b156881fbf25b683cf6e1ffb4133",
     ),
 ];
 
@@ -188,6 +192,13 @@ fn preset_settings_reach_the_rig() {
         let s = apply_character_style(&r, style);
         assert!(s.parts.iter().all(|p| p.outline.is_none()));
     }
+    // Cutout: every piece keeps its own heavy outline (behind mode), so
+    // overlapping pieces read as layered paper; nothing squashes.
+    let cutout = apply_character_style(&r, CharacterStyle::Cutout);
+    assert!(cutout.parts.iter().all(|p| p
+        .outline
+        .is_some_and(|o| o.mode == motion_rig::OutlineMode::Behind && o.width == 3.5)));
+    assert_eq!(CharacterStyle::Cutout.preset().squash_stretch, 0.0);
     let geo = apply_character_style(&r, CharacterStyle::Geometric);
     assert!(geo
         .parts

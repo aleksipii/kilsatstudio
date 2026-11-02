@@ -156,6 +156,7 @@ pub enum CharacterStyle {
     RubberHose,
     FlatTv,
     Geometric,
+    Cutout,
 }
 
 /// What a preset does with part outlines.
@@ -165,6 +166,9 @@ pub enum OutlineChoice {
     Keep,
     /// One shared outer outline (silhouette mode) on every visible part.
     On { color: Color, width: f64 },
+    /// An outline round each part on its own (behind mode), so overlapping
+    /// pieces keep their edges like layered paper.
+    PerPart { color: Color, width: f64 },
     /// Remove every outline.
     Off,
 }
@@ -226,12 +230,13 @@ const fn rgb(r: u8, g: u8, b: u8) -> Color {
 }
 
 impl CharacterStyle {
-    pub const ALL: [CharacterStyle; 5] = [
+    pub const ALL: [CharacterStyle; 6] = [
         CharacterStyle::Default,
         CharacterStyle::Stick,
         CharacterStyle::RubberHose,
         CharacterStyle::FlatTv,
         CharacterStyle::Geometric,
+        CharacterStyle::Cutout,
     ];
 
     /// The snake_case name (`rubber_hose`, `flat_tv`, ...).
@@ -242,6 +247,7 @@ impl CharacterStyle {
             CharacterStyle::RubberHose => "rubber_hose",
             CharacterStyle::FlatTv => "flat_tv",
             CharacterStyle::Geometric => "geometric",
+            CharacterStyle::Cutout => "cutout",
         }
     }
 
@@ -313,6 +319,23 @@ impl CharacterStyle {
                     ink: rgb(28, 54, 78),
                     paper: rgb(236, 244, 248),
                     accents: [rgb(38, 166, 154), rgb(255, 183, 77), rgb(92, 107, 192)],
+                }),
+                ..base
+            },
+            // Construction-paper cut-outs: a heavy dark outline round every
+            // rigid piece, lightly softened corners, flat bright paper colours
+            // and no squash (paper does not stretch).
+            CharacterStyle::Cutout => CharacterStylePreset {
+                line_width_scale: 1.0,
+                outline: OutlineChoice::PerPart {
+                    color: rgb(22, 20, 24),
+                    width: 3.5,
+                },
+                joint_rounding: Some(2),
+                palette: Some(StylePalette {
+                    ink: rgb(22, 20, 24),
+                    paper: rgb(252, 244, 228),
+                    accents: [rgb(222, 72, 56), rgb(58, 124, 200), rgb(244, 190, 52)],
                 }),
                 ..base
             },
