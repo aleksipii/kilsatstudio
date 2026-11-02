@@ -91,6 +91,28 @@ class CutoutCastTest(unittest.TestCase):
         self.assertGreater(max(x for x, _ in bib["points"]), hem)
         self.assertIn([0, 7], bib["points"])
 
+    def test_the_cap_is_fitted_to_the_head(self):
+        rx, ry = cast.BUILD["TOPI"]["head"]
+        parts = {p["id"]: p for p in cast.characters()["TOPI"]["rig"]["parts"]}
+        crown = parts["cap_crown"]["points"]
+        # The lower corners of the crown sit on the skull outline (fabric
+        # thickness only), not out in the air beside the head.
+        for x, y in (crown[0], crown[-1]):
+            self.assertLess(math.hypot(x / rx, y / ry), 1.08)
+        # Nothing of the cap reaches far past the head except the brim when turned.
+        for name in ("cap_crown", "cap_brim"):
+            reach = max(math.hypot(x / rx, y / ry) for x, y in parts[name]["points"])
+            self.assertLess(reach, 1.25, name)
+
+    def test_overalls_have_a_back(self):
+        parts = {p["id"]: p for p in cast.characters()["RAUNO"]["rig"]["parts"]}
+        # No bib from behind, and the straps cross to the opposite hip.
+        self.assertGreaterEqual(min(y for _, y in parts["overall_bib"]["views"]["back"]["points"]),
+                                -20)
+        left = parts["strap_l"]["views"]["back"]["points"]
+        self.assertLess(left[0][0], 0)
+        self.assertGreater(left[2][0], 0)
+
     def test_check_rejects_shapes_the_rig_validator_would_refuse(self):
         def broken(change):
             definitions = cast.characters()

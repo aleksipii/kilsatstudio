@@ -65,7 +65,11 @@ Asettelu noudattaa paperinukkeanimaation käytäntöjä:
   kaulus ja resorihelma. Topin hupparissa on niskaan laskettu huppu,
   kengurutasku, nauhat ja resorihelma. Raunon paidassa on terävä kaulus
   henkselien alla, ja haalarin housuosa peittää paidan helman ja jakautuu
-  lahkeiksi jalkojen välissä. Lapasissa on peukalo vartalon puolella.
+  lahkeiksi jalkojen välissä. Takaa katsottuna rintalappua ei näy, ja
+  henkselit menevät selässä ristiin. Lapasissa on peukalo vartalon puolella.
+- Päähineet on sovitettu kalloon: Topin lakin alareuna on kohdassa, jossa pää
+  on lakin levyinen, joten kulmat eivät jää ilmaan. Lippa ulottuu kasvojen
+  eteen vasta käännetyssä kuvassa.
 - Eleet tukevat tunnetta: Rauno ristii kätensä vihaisena, Ilonan
   hätkähdys on ennakoiva kyykky, ponnahdus ja alastulo, ja Topi kohauttaa
   olkiaan surullisena.

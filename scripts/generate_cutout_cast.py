@@ -121,9 +121,11 @@ def _face_views(part, half, back=None):
 
 
 def _body_views(part, back=None):
-    """Bodies read flatter from the side: narrow the piece about its centre."""
+    """Bodies read flatter from the side: narrow the piece about its centre.
+    Only to 0.8: the shoulder pivots do not move per view, so a narrower
+    torso would leave the sleeves hanging off its sides."""
     views = {"three_quarter": {"points": _scale_x(part["points"], 0.88)},
-             "side": {"points": _scale_x(part["points"], 0.7)}}
+             "side": {"points": _scale_x(part["points"], 0.8)}}
     if back is not None:
         views["back"] = back
     return views
@@ -397,15 +399,25 @@ def _topi(build):
     tufts[0]["views"] = {"side": {"points": [[-50, -40], [-70, -30], [-62, -20], [-70, -10],
                                              [-56, -4], [-46, -22]]}}
     tufts[1]["views"] = {"side": HIDDEN, "back": {"points": tufts[1]["points"]}}
-    # The cap sits high so the brows stay readable just under the brim.
-    crown_points = _arc(0, -47, 60, 32, 180, 360, 12)
+    # The cap is fitted to the skull: its lower edge sits where the head is
+    # about as wide as the cap (a few units of fabric thickness either side),
+    # so no corner hangs in the air. Brows draw over it and stay readable.
+    rx, ry = build["head"]
+    edge_y = -40
+    head_half = rx * math.sqrt(1 - (edge_y / ry) ** 2)
+    crown_half = round(head_half + 4, 1)
+    crown_points = _arc(0, edge_y, crown_half, 24, 180, 360, 12)
     crown = _polygon("cap_crown", "head", crown_points, purple, 2.6, 2)
-    band = _polygon("cap_button", "head", _box(-5, -83, 5, -77), purple, 1.6, 0)
-    brim = _polygon("cap_brim", "head", [[-52, -49], [52, -49], [60, -43], [-60, -43]], purple,
-                    2.4, 0)
+    band = _polygon("cap_button", "head", _box(-5, edge_y - 28, 5, edge_y - 22), purple, 1.6, 0)
+    # Seen from the front the brim is a short band just wider than the crown;
+    # turned, it reaches forward past the face.
+    brim = _polygon("cap_brim", "head", [[-crown_half - 2, -45], [crown_half + 2, -45],
+                                         [crown_half + 6, -39], [-crown_half - 6, -39]],
+                    purple, 2.4, 0)
     brim["views"] = {
-        "three_quarter": {"points": [[-36, -49], [56, -49], [80, -43], [-30, -43]]},
-        "side": {"points": [[10, -49], [60, -49], [96, -42], [10, -43]]},
+        "three_quarter": {"points": [[-30, -45], [crown_half + 4, -45], [crown_half + 26, -39],
+                                     [-26, -39]]},
+        "side": {"points": [[10, -45], [crown_half + 8, -45], [crown_half + 44, -38], [10, -39]]},
         "back": HIDDEN,
     }
     freckles = []
@@ -431,13 +443,18 @@ def _rauno(build):
                                             [35, 6], [30, 13], [5, 13], [0, 7], [-5, 13],
                                             [-30, 13], [-35, 6], [-34, -20], [-21, -22]],
                    overalls, 2.4, 0)
-    bib["views"] = _body_views(bib)
+    # From behind there is no bib: only the trouser seat up to the waist.
+    bib["views"] = _body_views(bib, {"points": [[-34, -20], [34, -20], [35, 6], [30, 13],
+                                                [5, 13], [0, 7], [-5, 13], [-30, 13],
+                                                [-35, 6]]})
     straps = []
     for side, sign in (("l", -1), ("r", 1)):
         s = _polygon("strap_" + side, "torso",
                      [[sign * 16, -50], [sign * 22, -50], [sign * 27, -body_h], [sign * 19, -body_h]],
                      strap, 1.6, 0)
-        s["views"] = _body_views(s)
+        # Across the back the straps cross from each shoulder to the far hip.
+        s["views"] = _body_views(s, {"points": [[sign * 19, -body_h], [sign * 27, -body_h],
+                                                [-sign * 12, -20], [-sign * 20, -20]]})
         straps.append(s)
     collar = []
     for side, sign in (("l", -1), ("r", 1)):
