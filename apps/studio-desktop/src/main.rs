@@ -4686,6 +4686,15 @@ impl Studio {
                             duration: scene.duration,
                             width: script.project.width,
                             height: script.project.height,
+                            angle: scene
+                                .composition
+                                .camera
+                                .iter()
+                                .rev()
+                                .find(|key| key.at <= self.playhead)
+                                .or(scene.composition.camera.first())
+                                .and_then(|key| motion_scene::CameraAngle::parse(key.angle()))
+                                .unwrap_or_default(),
                         },
                         &document.assets,
                         &script.characters.keys().cloned().collect::<Vec<_>>(),

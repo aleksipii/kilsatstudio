@@ -216,7 +216,10 @@ def main_project(cast, catalog):
         shot['events'] = [dict(type='emotion', actor=active[0], at=0,
                                value='surprised' if clip_name == 'reaktio' else 'happy')]
         scenes.append(shot)
-        layers.extend(place_layers(backdrop['layers'], identifier, 'tausta'))
+        # The starter's shots are filmed from the front; other angles stay in
+        # the separate background projects and the story importer.
+        front = [layer for layer in backdrop['layers'] if layer.get('angle') in (None, 'front')]
+        layers.extend(place_layers(front, identifier, 'tausta'))
     return document(source('Tikku-ukkostudio 2 – esineet ja kuvakoot', cast, scenes), layers)
 
 

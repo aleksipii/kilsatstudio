@@ -33,6 +33,14 @@ pub struct SceneContext<'a> {
     pub duration: f64,
     pub width: u32,
     pub height: u32,
+    /// Camera angle at the playhead; artwork added there is drawn for it.
+    pub angle: motion_scene::CameraAngle,
+}
+
+/// The `angle` for a new layer while previewing from `angle`: front artwork
+/// stays shared by every angle, other angles get their own drawing.
+pub(crate) fn new_layer_angle(angle: motion_scene::CameraAngle) -> Option<String> {
+    (angle != motion_scene::CameraAngle::Front).then(|| angle.name().to_string())
 }
 #[derive(Default, PartialEq, Clone, Copy)]
 pub enum Tool {
@@ -800,7 +808,7 @@ impl Editor {
       ui.push_id(&asset.id, |ui| {ui.horizontal(|ui| {
        asset_thumbnail(ui, textures.get(&asset.id));
        ui.vertical(|ui| {ui.add(egui::Label::new(&asset.id).truncate()).on_hover_text(&asset.path);
-        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Lisää etualalle"),(Plane::Background,"Lisää taustalle")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}, angle: None });}}});
+        ui.vertical(|ui| {for (plane,label) in [(Plane::Foreground,"Lisää etualalle"),(Plane::Background,"Lisää taustalle")] {if ui.button(label).clicked(){let id=self.id(&next);self.selected=Some(id.clone());next.layers.push(Layer{id,name:asset.id.clone(),scene_id:scene_id.into(),visible:true,plane,active:None,opacity:1.0,attachment:None,clip_shape: None, blend: motion_art::BlendMode::Normal, clip:None,content:Content::Image{asset_id:asset.id.clone(),rect:if plane==Plane::Background {Rect{x:0.0,y:0.0,width:scene.width as f64,height:scene.height as f64}}else{Rect{x:50.0,y:50.0,width:250.0,height:250.0}}}, angle: new_layer_angle(scene.angle) });}}});
        });
       });});
      }
@@ -1184,7 +1192,7 @@ impl Editor {
                 blend: motion_art::BlendMode::Normal,
                 clip: None,
                 content,
-                angle: None,
+                angle: new_layer_angle(scene.camera.angle),
             });
             self.commit(document, next);
             self.points.clear();
@@ -1446,6 +1454,47 @@ mod tests {
             phase,
             pos: egui::pos2(60.0, 60.0),
             force,
+        }
+    }
+    #[test]
+    fn shapes_drawn_in_a_reverse_shot_belong_to_the_reverse_angle() {
+        for (angle, expected) in [
+            (motion_scene::CameraAngle::Front, None),
+            (motion_scene::CameraAngle::Reverse, Some("reverse")),
+            (motion_scene::CameraAngle::High, Some("high")),
+        ] {
+            let ctx = egui::Context::default();
+            let mut editor = Editor {
+                tool: Tool::Rectangle,
+                ..Default::default()
+            };
+            let mut document = Document::default();
+            let mut scene = mask_scene();
+            scene.camera.angle = angle;
+            mask_frame(&ctx, &mut editor, &mut document, &scene, vec![]);
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(40.0, 40.0, true),
+            );
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                vec![egui::Event::PointerMoved(egui::pos2(90.0, 80.0))],
+            );
+            mask_frame(
+                &ctx,
+                &mut editor,
+                &mut document,
+                &scene,
+                mask_button(90.0, 80.0, false),
+            );
+            assert_eq!(document.layers.len(), 1, "{angle:?}");
+            assert_eq!(document.layers[0].angle.as_deref(), expected);
         }
     }
     #[test]
@@ -1924,6 +1973,7 @@ mod tests {
                         duration: 2.0,
                         width: 100,
                         height: 100,
+                        angle: Default::default(),
                     },
                     &assets,
                     &[],

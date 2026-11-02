@@ -201,6 +201,11 @@ fn migrate(pack: &Path, m: &Migration) -> Result<Manifest, String> {
         .as_array()
         .ok_or("art.layers missing")?
     {
+        // Library manifests have no camera angles yet: keep the front drawing
+        // (reverse/high/low layers would otherwise stack on top of it).
+        if layer["angle"].as_str().is_some_and(|a| a != "front") {
+            continue;
+        }
         let id = layer["id"].as_str().ok_or("layer id")?;
         let short = id.strip_prefix(&prefix).unwrap_or(id).to_owned();
         let mut content: Content =

@@ -27,7 +27,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor",
@@ -52,7 +53,8 @@
             "b": 165,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_seam_0",
@@ -82,7 +84,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_seam_1",
@@ -112,7 +115,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_seam_2",
@@ -142,7 +146,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_seam_3",
@@ -172,7 +177,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_seam_4",
@@ -202,7 +208,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_cross_0",
@@ -232,7 +239,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_floor_cross_1",
@@ -262,7 +270,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_skirting",
@@ -287,7 +296,8 @@
             "b": 120,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_window_outline",
@@ -312,7 +322,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_window_fill",
@@ -337,7 +348,8 @@
             "b": 185,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_skyline_far",
@@ -362,7 +374,8 @@
             "b": 154,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_skyline_near",
@@ -387,7 +400,8 @@
             "b": 136,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_mullion_v",
@@ -412,7 +426,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_mullion_h",
@@ -437,7 +452,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_clock_outline",
@@ -462,7 +478,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_clock_fill",
@@ -487,7 +504,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_clock_hour",
@@ -517,7 +535,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_clock_minute",
@@ -547,7 +566,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_clock_pin",
@@ -572,7 +592,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_door_outline",
@@ -597,7 +618,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_door_fill",
@@ -622,7 +644,8 @@
             "b": 145,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_door_glass",
@@ -647,7 +670,8 @@
             "b": 189,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_door_handle",
@@ -677,7 +701,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_side_desk",
@@ -702,7 +727,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_side_desk_front",
@@ -727,7 +753,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_desk_leg_left",
@@ -752,7 +779,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_desk_leg_right",
@@ -777,7 +805,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_pinboard_outline",
@@ -802,7 +831,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_pinboard_fill",
@@ -827,7 +857,8 @@
             "b": 137,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_pinboard_note_one",
@@ -852,7 +883,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_pinboard_note_two",
@@ -877,7 +909,8 @@
             "b": 198,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_pinboard_pin",
@@ -902,7 +935,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_pinboard_pin_two",
@@ -927,7 +961,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_note_rule",
@@ -957,7 +992,8 @@
             "b": 134,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_note_rule_two",
@@ -987,7 +1023,8 @@
             "b": 134,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_desk_books_0",
@@ -1012,7 +1049,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_desk_books_1",
@@ -1037,7 +1075,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_plant_stem",
@@ -1067,7 +1106,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_plant_leaf_left",
@@ -1092,7 +1132,8 @@
             "b": 122,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_plant_leaf_right",
@@ -1117,7 +1158,8 @@
             "b": 122,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "vuoron_alku_tausta_toimisto_plant_pot",
@@ -1142,7 +1184,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_wall",
@@ -1167,7 +1210,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor",
@@ -1192,7 +1236,8 @@
             "b": 165,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_seam_0",
@@ -1222,7 +1267,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_seam_1",
@@ -1252,7 +1298,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_seam_2",
@@ -1282,7 +1329,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_seam_3",
@@ -1312,7 +1360,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_seam_4",
@@ -1342,7 +1391,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_cross_0",
@@ -1372,7 +1422,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_floor_cross_1",
@@ -1402,7 +1453,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_skirting",
@@ -1427,7 +1479,8 @@
             "b": 120,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_window_outline",
@@ -1452,7 +1505,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_window_fill",
@@ -1477,7 +1531,8 @@
             "b": 185,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_skyline_far",
@@ -1502,7 +1557,8 @@
             "b": 154,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_skyline_near",
@@ -1527,7 +1583,8 @@
             "b": 136,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_mullion_v",
@@ -1552,7 +1609,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_mullion_h",
@@ -1577,7 +1635,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_clock_outline",
@@ -1602,7 +1661,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_clock_fill",
@@ -1627,7 +1687,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_clock_hour",
@@ -1657,7 +1718,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_clock_minute",
@@ -1687,7 +1749,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_clock_pin",
@@ -1712,7 +1775,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_door_outline",
@@ -1737,7 +1801,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_door_fill",
@@ -1762,7 +1827,8 @@
             "b": 145,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_door_glass",
@@ -1787,7 +1853,8 @@
             "b": 189,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_door_handle",
@@ -1817,7 +1884,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_side_desk",
@@ -1842,7 +1910,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_side_desk_front",
@@ -1867,7 +1936,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_desk_leg_left",
@@ -1892,7 +1962,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_desk_leg_right",
@@ -1917,7 +1988,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_pinboard_outline",
@@ -1942,7 +2014,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_pinboard_fill",
@@ -1967,7 +2040,8 @@
             "b": 137,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_pinboard_note_one",
@@ -1992,7 +2066,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_pinboard_note_two",
@@ -2017,7 +2092,8 @@
             "b": 198,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_pinboard_pin",
@@ -2042,7 +2118,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_pinboard_pin_two",
@@ -2067,7 +2144,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_note_rule",
@@ -2097,7 +2175,8 @@
             "b": 134,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_note_rule_two",
@@ -2127,7 +2206,8 @@
             "b": 134,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_desk_books_0",
@@ -2152,7 +2232,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_desk_books_1",
@@ -2177,7 +2258,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_plant_stem",
@@ -2207,7 +2289,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_plant_leaf_left",
@@ -2232,7 +2315,8 @@
             "b": 122,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_plant_leaf_right",
@@ -2257,7 +2341,8 @@
             "b": 122,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pomo_kutsuu_tausta_toimisto_plant_pot",
@@ -2282,7 +2367,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_night",
@@ -2307,7 +2393,8 @@
             "b": 164,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_pavement",
@@ -2332,7 +2419,8 @@
             "b": 167,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_curb",
@@ -2357,7 +2445,8 @@
             "b": 120,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_road_mark",
@@ -2382,7 +2471,8 @@
             "b": 158,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_distant_roof",
@@ -2407,7 +2497,8 @@
             "b": 63,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_distant_house",
@@ -2432,7 +2523,8 @@
             "b": 63,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_distant_window",
@@ -2457,7 +2549,8 @@
             "b": 91,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_distant_window_two",
@@ -2482,7 +2575,8 @@
             "b": 92,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_lamp_glow",
@@ -2507,7 +2601,8 @@
             "b": 134,
             "a": 24
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_lamp_post",
@@ -2541,7 +2636,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_lamp_shade",
@@ -2566,7 +2662,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_lamp_light",
@@ -2591,7 +2688,8 @@
             "b": 91,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bench_back",
@@ -2616,7 +2714,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bench_back_lower",
@@ -2641,7 +2740,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bench_seat",
@@ -2666,7 +2766,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bench_legs",
@@ -2704,7 +2805,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_sign_post",
@@ -2734,7 +2836,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_sign_outline",
@@ -2759,7 +2862,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_sign_fill",
@@ -2784,7 +2888,8 @@
             "b": 185,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bus_icon",
@@ -2809,7 +2914,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bus_windshield",
@@ -2834,7 +2940,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bus_wheel_left",
@@ -2859,7 +2966,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_bus_wheel_right",
@@ -2884,7 +2992,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_star_left",
@@ -2909,7 +3018,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_star_right",
@@ -2934,7 +3044,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_rear_curb",
@@ -2964,7 +3075,8 @@
             "b": 141,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_paving_seam_0",
@@ -2994,7 +3106,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_paving_seam_1",
@@ -3024,7 +3137,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_paving_cross",
@@ -3054,7 +3168,8 @@
             "b": 151,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_road",
@@ -3079,7 +3194,8 @@
             "b": 132,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_road_dash_0",
@@ -3104,7 +3220,8 @@
             "b": 198,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_road_dash_1",
@@ -3129,7 +3246,8 @@
             "b": 198,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_road_dash_2",
@@ -3154,7 +3272,8 @@
             "b": 198,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_timetable_outline",
@@ -3179,7 +3298,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_timetable_fill",
@@ -3204,7 +3324,8 @@
             "b": 211,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_timetable_rule_0",
@@ -3234,7 +3355,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_timetable_rule_1",
@@ -3264,7 +3386,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_timetable_rule_2",
@@ -3294,7 +3417,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "pysakkipaniikki_tausta_pysakki_timetable_rule_3",
@@ -3324,7 +3448,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_wall",
@@ -3349,7 +3474,8 @@
             "b": 201,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor",
@@ -3374,7 +3500,8 @@
             "b": 133,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_seam_0",
@@ -3404,7 +3531,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_seam_1",
@@ -3434,7 +3562,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_seam_2",
@@ -3464,7 +3593,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_seam_3",
@@ -3494,7 +3624,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_seam_4",
@@ -3524,7 +3655,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_cross_0",
@@ -3554,7 +3686,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_floor_cross_1",
@@ -3584,7 +3717,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_skirting",
@@ -3609,7 +3743,8 @@
             "b": 81,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_counter_outline",
@@ -3634,7 +3769,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_counter_fill",
@@ -3659,7 +3795,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_counter_panel",
@@ -3684,7 +3821,8 @@
             "b": 55,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_counter_top",
@@ -3709,7 +3847,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_machine_outline",
@@ -3734,7 +3873,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_machine_fill",
@@ -3759,7 +3899,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_machine_front",
@@ -3784,7 +3925,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_machine_dial",
@@ -3809,7 +3951,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_machine_spout",
@@ -3843,7 +3986,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_machine_cup",
@@ -3868,7 +4012,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_window_outline",
@@ -3893,7 +4038,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_window_fill",
@@ -3918,7 +4064,8 @@
             "b": 185,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_window_mullion",
@@ -3943,7 +4090,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_window_sill",
@@ -3968,7 +4116,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_pendant_left_cable",
@@ -3998,7 +4147,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_pendant_left_shade",
@@ -4023,7 +4173,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_pendant_left_bulb",
@@ -4048,7 +4199,8 @@
             "b": 91,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_pendant_right_cable",
@@ -4078,7 +4230,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_pendant_right_shade",
@@ -4103,7 +4256,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_pendant_right_bulb",
@@ -4128,7 +4282,8 @@
             "b": 91,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_window_street",
@@ -4153,7 +4308,8 @@
             "b": 154,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_window_reflection",
@@ -4187,7 +4343,8 @@
             "b": 203,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_shelf",
@@ -4212,7 +4369,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_cup_shelf_0",
@@ -4237,7 +4395,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_cup_shelf_1",
@@ -4262,7 +4421,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_cup_shelf_2",
@@ -4287,7 +4447,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_leg",
@@ -4312,7 +4473,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_feet",
@@ -4346,7 +4508,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_top_outline",
@@ -4371,7 +4534,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_top",
@@ -4396,7 +4560,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_cup",
@@ -4421,7 +4586,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_coffee",
@@ -4446,7 +4612,8 @@
             "b": 55,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_table_cup_handle",
@@ -4484,7 +4651,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_chair_back",
@@ -4518,7 +4686,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_chair_base",
@@ -4556,7 +4725,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "kahvitauko_tausta_kahvila_chair_seat",
@@ -4581,7 +4751,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_sky",
@@ -4606,7 +4777,8 @@
             "b": 162,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_ground",
@@ -4631,7 +4803,8 @@
             "b": 150,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_horizon",
@@ -4673,7 +4846,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_moon_halo",
@@ -4698,7 +4872,8 @@
             "b": 188,
             "a": 16
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_rail",
@@ -4728,7 +4903,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_0",
@@ -4758,7 +4934,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_1",
@@ -4788,7 +4965,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_2",
@@ -4818,7 +4996,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_3",
@@ -4848,7 +5027,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_4",
@@ -4878,7 +5058,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_5",
@@ -4908,7 +5089,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_6",
@@ -4938,7 +5120,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_7",
@@ -4968,7 +5151,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_8",
@@ -4998,7 +5182,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_9",
@@ -5028,7 +5213,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_fence_post_10",
@@ -5058,7 +5244,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_moon",
@@ -5083,7 +5270,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_moon_crater",
@@ -5108,7 +5296,8 @@
             "b": 182,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_moon_crater_small",
@@ -5133,7 +5322,8 @@
             "b": 182,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_tree_trunk",
@@ -5171,7 +5361,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_tree_left",
@@ -5209,7 +5400,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_tree_left_twig",
@@ -5243,7 +5435,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_tree_right",
@@ -5277,7 +5470,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_tree_right_twig",
@@ -5307,7 +5501,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_tree_top_twig",
@@ -5341,7 +5536,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_round_outline",
@@ -5366,7 +5562,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_round_fill",
@@ -5391,7 +5588,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_base_outline",
@@ -5416,7 +5614,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_base_fill",
@@ -5441,7 +5640,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_engraving",
@@ -5471,7 +5671,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_square_outline",
@@ -5496,7 +5697,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_square_fill",
@@ -5521,7 +5723,8 @@
             "b": 160,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_stone_small_engraving",
@@ -5551,7 +5754,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_grass_left",
@@ -5589,7 +5793,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_grass_right",
@@ -5627,7 +5832,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_star",
@@ -5652,7 +5858,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_path_left",
@@ -5682,7 +5889,8 @@
             "b": 137,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_path_right",
@@ -5712,7 +5920,8 @@
             "b": 137,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_moss_left",
@@ -5737,7 +5946,8 @@
             "b": 117,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "keksinto_tausta_hautausmaa_moss_right",
@@ -5762,7 +5972,8 @@
             "b": 127,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_wall",
@@ -5787,7 +5998,8 @@
             "b": 201,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor",
@@ -5812,7 +6024,8 @@
             "b": 133,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_seam_0",
@@ -5842,7 +6055,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_seam_1",
@@ -5872,7 +6086,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_seam_2",
@@ -5902,7 +6117,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_seam_3",
@@ -5932,7 +6148,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_seam_4",
@@ -5962,7 +6179,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_cross_0",
@@ -5992,7 +6210,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_floor_cross_1",
@@ -6022,7 +6241,8 @@
             "b": 118,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_skirting",
@@ -6047,7 +6267,8 @@
             "b": 81,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_counter_outline",
@@ -6072,7 +6293,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_counter_fill",
@@ -6097,7 +6319,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_counter_panel",
@@ -6122,7 +6345,8 @@
             "b": 55,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_counter_top",
@@ -6147,7 +6371,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_machine_outline",
@@ -6172,7 +6397,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_machine_fill",
@@ -6197,7 +6423,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_machine_front",
@@ -6222,7 +6449,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_machine_dial",
@@ -6247,7 +6475,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_machine_spout",
@@ -6281,7 +6510,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_machine_cup",
@@ -6306,7 +6536,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_window_outline",
@@ -6331,7 +6562,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_window_fill",
@@ -6356,7 +6588,8 @@
             "b": 185,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_window_mullion",
@@ -6381,7 +6614,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_window_sill",
@@ -6406,7 +6640,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_pendant_left_cable",
@@ -6436,7 +6671,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_pendant_left_shade",
@@ -6461,7 +6697,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_pendant_left_bulb",
@@ -6486,7 +6723,8 @@
             "b": 91,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_pendant_right_cable",
@@ -6516,7 +6754,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_pendant_right_shade",
@@ -6541,7 +6780,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_pendant_right_bulb",
@@ -6566,7 +6806,8 @@
             "b": 91,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_window_street",
@@ -6591,7 +6832,8 @@
             "b": 154,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_window_reflection",
@@ -6625,7 +6867,8 @@
             "b": 203,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_shelf",
@@ -6650,7 +6893,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_cup_shelf_0",
@@ -6675,7 +6919,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_cup_shelf_1",
@@ -6700,7 +6945,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_cup_shelf_2",
@@ -6725,7 +6971,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_leg",
@@ -6750,7 +6997,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_feet",
@@ -6784,7 +7032,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_top_outline",
@@ -6809,7 +7058,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_top",
@@ -6834,7 +7084,8 @@
             "b": 86,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_cup",
@@ -6859,7 +7110,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_coffee",
@@ -6884,7 +7136,8 @@
             "b": 55,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_table_cup_handle",
@@ -6922,7 +7175,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_chair_back",
@@ -6956,7 +7210,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_chair_base",
@@ -6994,7 +7249,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "mummo_paataa_tausta_kahvila_chair_seat",
@@ -7019,7 +7275,8 @@
             "b": 61,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       }
     ]
   }

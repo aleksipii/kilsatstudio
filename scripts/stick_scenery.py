@@ -258,13 +258,250 @@ def _backgrounds():
         _stroke("kahvila_chair_base", [(1816, 946), (1828, 842), (1882, 842), (1896, 946)], 9, INK, bg),
         _rect("kahvila_chair_seat", 1807, 829, 84, 16, RUST, bg),
     ])
-    return {
-        "toimisto": dict(name="Loputtoman palaverin toimisto", color="#f1ecdf", layers=office),
-        "pysakki": dict(name="Yövuoron pysäkki", color="#8399a4", layers=bus_stop),
-        "hautausmaa": dict(name="Kuunsirpin hautausmaa", color="#879ba2", layers=graveyard),
-        "kahvila": dict(name="Viimeisen kahvin kahvila", color="#eddec9", layers=cafe),
+    sets = {
+        "toimisto": dict(name="Loputtoman palaverin toimisto", color="#f1ecdf", layers=office,
+                         reverse=_office_reverse(), ceiling=(222, 214, 196, 255)),
+        "pysakki": dict(name="Yövuoron pysäkki", color="#8399a4", layers=bus_stop,
+                        reverse=_bus_stop_reverse(), ceiling=None),
+        "hautausmaa": dict(name="Kuunsirpin hautausmaa", color="#879ba2", layers=graveyard,
+                           reverse=_graveyard_reverse(), ceiling=None),
+        "kahvila": dict(name="Viimeisen kahvin kahvila", color="#eddec9", layers=cafe,
+                        reverse=_cafe_reverse(), ceiling=(214, 196, 172, 255)),
     }
+    return {name: _with_angles(name, spec) for name, spec in sets.items()}
 
+
+
+# ---------------------------------------------------------------------------
+# Camera angles (docs/camera-angles.md)
+#
+# Every set is drawn for four camera angles. `front` is the set above.
+# `reverse` is the opposite side of the room or street, drawn by hand. `high`
+# and `low` redraw the front with the horizon moved: looking down shows more
+# floor (horizon at y=640), looking up shows more wall and, indoors, the
+# ceiling (horizon at y=880). Round shapes on the wall stay round. Actors keep standing at y=960 in every angle.
+
+HORIZON = 810
+
+
+def _floor_seams(prefix, tone):
+    bg = "background"
+    seams = [_stroke(prefix + "_floor_seam_" + str(i),
+                     [(840 + i * 60, 810), (-260 + i * 480, 1080)], 2, tone, bg)
+             for i in range(5)]
+    seams.extend([
+        _stroke(prefix + "_floor_cross_0", [(0, 866), (1920, 866)], 2, tone, bg),
+        _stroke(prefix + "_floor_cross_1", [(0, 957), (1920, 957)], 2, tone, bg),
+    ])
+    return seams
+
+
+def _cafe_reverse():
+    """The café's entrance wall: door, menu board, coat rack and a plant."""
+    bg, p = "background", "kahvila_rev"
+    return [
+        _rect(p + "_wall", 0, 0, 1920, 1080, (237, 222, 201, 255), bg),
+        _rect(p + "_floor", 0, 810, 1920, 270, (201, 170, 133, 255), bg),
+        *_floor_seams(p, (181, 150, 118, 255)),
+        _rect(p + "_skirting", 0, 798, 1920, 12, (161, 105, 81, 255), bg),
+        *_panel(p + "_door", 760, 430, 236, 518, TEAL, 11, bg),
+        _rect(p + "_door_glass", 795, 470, 166, 250, TEAL_LIGHT, bg),
+        _rect(p + "_door_bar", 795, 760, 166, 14, METAL, bg),
+        _stroke(p + "_door_reflection", [(905, 495), (940, 530), (940, 560)], 6, (211, 225, 203, 255), bg),
+        _rect(p + "_doormat", 740, 948, 276, 22, RUST, bg),
+        *_panel(p + "_menu", 1190, 250, 380, 250, (52, 64, 61, 255), 10, bg),
+        _stroke(p + "_menu_rule_0", [(1225, 300), (1420, 300)], 5, PAPER, bg),
+        _stroke(p + "_menu_rule_1", [(1225, 345), (1500, 345)], 4, (219, 226, 198, 255), bg),
+        _stroke(p + "_menu_rule_2", [(1225, 390), (1460, 390)], 4, (219, 226, 198, 255), bg),
+        _stroke(p + "_menu_rule_3", [(1225, 435), (1490, 435)], 4, (219, 226, 198, 255), bg),
+        _ellipse(p + "_menu_cup", 1475, 280, 50, 38, AMBER, bg),
+        _stroke(p + "_rack_pole", [(250, 950), (250, 515)], 11, INK, bg),
+        _stroke(p + "_rack_hooks", [(205, 545), (250, 515), (295, 545)], 8, INK, bg),
+        _stroke(p + "_rack_feet", [(195, 950), (250, 925), (305, 950)], 9, INK, bg),
+        _rect(p + "_coat", 262, 548, 62, 190, (94, 145, 174, 255), bg),
+        _ellipse(p + "_scarf", 204, 545, 34, 120, RUST, bg),
+        _rect(p + "_plant_pot", 1660, 860, 96, 88, RUST, bg),
+        _stroke(p + "_plant_stem", [(1708, 862), (1700, 720)], 6, TEAL, bg),
+        _ellipse(p + "_plant_leaf_left", 1620, 730, 90, 34, (100, 143, 122, 255), bg),
+        _ellipse(p + "_plant_leaf_right", 1700, 690, 86, 32, (100, 143, 122, 255), bg),
+        _ellipse(p + "_plant_leaf_top", 1672, 640, 60, 70, (100, 143, 122, 255), bg),
+        _stroke(p + "_pendant_left_cable", [(722, 0), (722, 178)], 6, INK, bg),
+        _ellipse(p + "_pendant_left_shade", 664, 167, 116, 55, RUST, bg),
+        _ellipse(p + "_pendant_left_bulb", 696, 213, 52, 13, AMBER, bg),
+        _stroke(p + "_pendant_right_cable", [(1365, 0), (1365, 178)], 6, INK, bg),
+        _ellipse(p + "_pendant_right_shade", 1307, 167, 116, 55, RUST, bg),
+        _ellipse(p + "_pendant_right_bulb", 1339, 213, 52, 13, AMBER, bg),
+    ]
+
+
+def _office_reverse():
+    """The office's back wall: whiteboard, filing cabinet and printer."""
+    bg, p = "background", "toimisto_rev"
+    return [
+        _rect(p + "_wall", 0, 0, 1920, 1080, PAPER, bg),
+        _rect(p + "_floor", 0, 810, 1920, 270, (203, 190, 165, 255), bg),
+        *_floor_seams(p, (183, 173, 151, 255)),
+        _rect(p + "_skirting", 0, 798, 1920, 12, (103, 131, 120, 255), bg),
+        *_panel(p + "_whiteboard", 640, 220, 540, 300, (250, 250, 246, 255), 10, bg),
+        _stroke(p + "_chart", [(690, 470), (790, 420), (880, 445), (990, 330), (1120, 290)], 7, RUST, bg),
+        _stroke(p + "_chart_axis", [(690, 280), (690, 480), (1140, 480)], 4, INK, bg),
+        _rect(p + "_marker_tray", 700, 520, 420, 14, METAL, bg),
+        _rect(p + "_marker", 760, 510, 60, 10, TEAL, bg),
+        *_panel(p + "_cabinet", 1450, 560, 200, 390, METAL, 8, bg),
+        _rect(p + "_drawer_seam_0", 1458, 688, 184, 6, INK, bg),
+        _rect(p + "_drawer_seam_1", 1458, 818, 184, 6, INK, bg),
+        _rect(p + "_drawer_handle_0", 1520, 620, 60, 12, INK, bg),
+        _rect(p + "_drawer_handle_1", 1520, 750, 60, 12, INK, bg),
+        _rect(p + "_drawer_handle_2", 1520, 880, 60, 12, INK, bg),
+        _rect(p + "_cabinet_binders", 1470, 520, 110, 40, RUST, bg),
+        _rect(p + "_table", 120, 735, 320, 26, INK, bg),
+        _rect(p + "_table_leg_left", 140, 761, 16, 188, INK, bg),
+        _rect(p + "_table_leg_right", 404, 761, 16, 188, INK, bg),
+        *_panel(p + "_printer", 170, 630, 220, 105, (205, 210, 204, 255), 7, bg),
+        _rect(p + "_printer_slot", 200, 660, 160, 10, INK, bg),
+        _rect(p + "_printer_paper", 215, 600, 130, 34, (250, 250, 246, 255), bg),
+        _ellipse(p + "_printer_light", 360, 700, 12, 12, (100, 143, 122, 255), bg),
+        *_panel(p + "_poster", 1730, 200, 140, 190, (219, 226, 198, 255), 7, bg),
+        _ellipse(p + "_poster_sun", 1765, 240, 70, 70, AMBER, bg),
+        _stroke(p + "_poster_hill", [(1745, 370), (1800, 330), (1855, 370)], 8, TEAL, bg),
+    ]
+
+
+def _bus_stop_reverse():
+    """Across the street from the stop: houses, a lit kiosk and a lamp post."""
+    bg, p = "background", "pysakki_rev"
+    house = (35, 57, 63, 255)
+    house_two = (48, 70, 76, 255)
+    layers = [
+        _rect(p + "_night", 0, 0, 1920, 1080, NIGHT, bg),
+        _rect(p + "_pavement", 0, 810, 1920, 270, (150, 167, 167, 255), bg),
+        _stroke(p + "_rear_curb", [(0, 811), (1920, 811)], 4, (114, 138, 141, 255), bg),
+        _stroke(p + "_paving_cross", [(0, 900), (1920, 900)], 2, (129, 149, 151, 255), bg),
+        _rect(p + "_road", 0, 1030, 1920, 50, (104, 126, 132, 255), bg),
+        _rect(p + "_curb", 0, 1020, 1920, 10, (94, 117, 120, 255), bg),
+        _rect(p + "_house_left", 0, 430, 520, 380, house, bg),
+        _rect(p + "_house_left_roof", 0, 380, 560, 60, house_two, bg),
+        _rect(p + "_house_right", 1300, 360, 620, 450, house_two, bg),
+        _rect(p + "_house_right_roof", 1270, 320, 650, 50, house, bg),
+        *_panel(p + "_kiosk", 640, 560, 520, 250, (75, 94, 98, 255), 9, bg),
+        _rect(p + "_kiosk_window", 675, 600, 450, 130, AMBER, bg),
+        _stroke(p + "_kiosk_awning", [(620, 560), (1180, 560)], 18, RUST, bg),
+        _rect(p + "_kiosk_shelf", 690, 690, 420, 10, (146, 137, 92, 255), bg),
+        _stroke(p + "_lamp_post", [(1735, 942), (1735, 141), (1617, 141)], 15, INK, bg),
+        _rect(p + "_lamp_shade", 1564, 130, 90, 23, INK, bg),
+        _ellipse(p + "_lamp_light", 1572, 149, 74, 17, AMBER, bg),
+        _ellipse(p + "_lamp_glow", 1526, 111, 347, 480, (238, 211, 134, 24), bg),
+        _ellipse(p + "_star_left", 300, 160, 8, 8, PAPER, bg),
+        _ellipse(p + "_star_mid", 960, 120, 7, 7, PAPER, bg),
+        _rect(p + "_road_dash_0", 300, 1057, 220, 7, (218, 220, 198, 255), bg),
+        _rect(p + "_road_dash_1", 930, 1057, 220, 7, (218, 220, 198, 255), bg),
+        _rect(p + "_road_dash_2", 1560, 1057, 220, 7, (218, 220, 198, 255), bg),
+    ]
+    for i, (x, y, lit) in enumerate([(60, 500, True), (200, 500, False), (340, 500, True),
+                                     (60, 640, False), (200, 640, True), (340, 640, False),
+                                     (1360, 420, True), (1520, 420, False), (1680, 420, True),
+                                     (1360, 580, False), (1520, 580, True), (1680, 580, True)]):
+        color = AMBER if lit else (60, 84, 92, 255)
+        layers.append(_rect(p + "_window_" + str(i), x, y, 90, 80, color, bg))
+    return layers
+
+
+def _graveyard_reverse():
+    """Looking back from the graves: the chapel, its gate and older stones."""
+    bg, p = "background", "hautausmaa_rev"
+    stone = (112, 139, 139, 255)
+    layers = [
+        _rect(p + "_sky", 0, 0, 1920, 1080, (135, 155, 162, 255), bg),
+        _rect(p + "_ground", 0, 810, 1920, 270, (155, 170, 150, 255), bg),
+        _stroke(p + "_horizon", [(0, 814), (700, 808), (1300, 816), (1920, 812)], 8, TEAL, bg),
+        _rect(p + "_chapel", 760, 480, 380, 334, (74, 88, 92, 255), bg),
+        _stroke(p + "_chapel_roof", [(735, 495), (950, 340), (1165, 495)], 26, INK, bg),
+        _rect(p + "_tower", 905, 250, 90, 150, (74, 88, 92, 255), bg),
+        _stroke(p + "_cross", [(950, 250), (950, 170)], 10, INK, bg),
+        _stroke(p + "_cross_arm", [(925, 195), (975, 195)], 10, INK, bg),
+        _rect(p + "_chapel_door", 905, 690, 90, 124, INK, bg),
+        _ellipse(p + "_chapel_window_left", 815, 560, 60, 80, AMBER, bg),
+        _ellipse(p + "_chapel_window_right", 1025, 560, 60, 80, AMBER, bg),
+        _stroke(p + "_gate_arch", [(560, 820), (560, 640), (640, 590), (720, 640), (720, 820)], 12, INK, bg),
+        _stroke(p + "_fence_rail", [(0, 743), (540, 743)], 4, stone, bg),
+        _stroke(p + "_fence_rail_right", [(1180, 743), (1920, 743)], 4, stone, bg),
+        *_disc(p + "_stone_round", 1580, 690, 130, 150, METAL, 8, bg),
+        *_panel(p + "_stone_base", 1580, 760, 130, 190, METAL, 8, bg),
+        _stroke(p + "_stone_engraving", [(1615, 840), (1675, 840)], 6, TEAL, bg),
+        *_panel(p + "_stone_low", 150, 820, 150, 130, METAL, 8, bg),
+        _stroke(p + "_bush", [(1380, 945), (1360, 880), (1400, 900), (1420, 860), (1440, 945)], 9, INK, bg),
+        _ellipse(p + "_star_left", 300, 150, 8, 8, PAPER, bg),
+        _ellipse(p + "_star_right", 1500, 210, 9, 9, PAPER, bg),
+        _ellipse(p + "_star_top", 1200, 90, 7, 7, PAPER, bg),
+        _stroke(p + "_grass_left", [(437, 946), (424, 909), (449, 929), (463, 904)], 7, TEAL, bg),
+    ]
+    layers.extend(_stroke(p + "_fence_post_" + str(i), [(40 + i * 100, 715), (40 + i * 100, 809)], 4, stone, bg)
+                  for i in range(5))
+    layers.extend(_stroke(p + "_fence_post_right_" + str(i), [(1220 + i * 100, 715), (1220 + i * 100, 809)], 4, stone, bg)
+                  for i in range(7))
+    return layers
+
+
+def _remap_y(layer, f):
+    content = layer["content"]
+    if content["type"] in ("rectangle", "ellipse"):
+        r = content["rect"]
+        top, bottom = f(r["y"]), f(r["y"] + r["height"])
+        height = max(bottom - top, 1.0)
+        round_shape = (content["type"] == "ellipse" and r["y"] + r["height"] <= HORIZON
+                       and abs(r["width"] - r["height"]) <= 0.15 * max(r["width"], r["height"]))
+        if round_shape:
+            # Moons, clocks and lamps stay round: scale the width with the height.
+            width = r["width"] * height / r["height"]
+            r.update(x=round(r["x"] + (r["width"] - width) / 2, 2), width=round(width, 2))
+        r.update(y=round(top, 2), height=round(height, 2))
+    elif content["type"] == "stroke":
+        for point in content["points"]:
+            point["y"] = round(f(point["y"]), 2)
+    return layer
+
+
+def _horizon(top, horizon):
+    """Vertical remap putting the front's wall in `top..horizon` and its floor below."""
+    def f(y):
+        if y <= HORIZON:
+            return top + y * (horizon - top) / HORIZON
+        return horizon + (y - HORIZON) * (1080 - horizon) / (1080 - HORIZON)
+    return f
+
+
+def _tagged(layers, angle, suffix=""):
+    result = []
+    for layer in layers:
+        copy = {**layer, "content": {**layer["content"]}}
+        for key in ("rect",):
+            if key in copy["content"]:
+                copy["content"][key] = dict(copy["content"][key])
+        if "points" in copy["content"]:
+            copy["content"]["points"] = [dict(p) for p in copy["content"]["points"]]
+        copy["id"] = layer["id"] + suffix
+        copy["angle"] = angle
+        result.append(copy)
+    return result
+
+
+def _with_angles(name, spec):
+    """Tag the front drawing and add reverse, high and low drawings."""
+    front = _tagged(spec["layers"], "front")
+    high = [_remap_y(layer, _horizon(0, 640)) for layer in _tagged(spec["layers"], "high", "_high")]
+    ceiling = spec["ceiling"]
+    low_top = 140 if ceiling else 0
+    low = [_remap_y(layer, _horizon(low_top, 880)) for layer in _tagged(spec["layers"], "low", "_low")]
+    if ceiling:
+        bg = "background"
+        low[1:1] = _tagged([
+            _rect(name + "_ceiling", 0, 0, 1920, low_top, ceiling, bg),
+            _stroke(name + "_ceiling_edge", [(0, low_top), (1920, low_top)], 5, INK, bg),
+            *[_stroke(name + "_ceiling_beam_" + str(i), [(150 + i * 420, 0), (360 + i * 300, low_top)], 3,
+                      (190, 178, 158, 255), bg) for i in range(5)],
+        ], "low")
+    reverse = _tagged(spec["reverse"], "reverse")
+    return dict(name=spec["name"], color=spec["color"], layers=front + reverse + high + low)
 
 def _props():
     def prop(name, width, height, layers):

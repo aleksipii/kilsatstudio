@@ -61,7 +61,7 @@
   "starter_project": "stick-studio.kilsat",
   "hand_props_catalog": "hand-props.json",
   "hand_props_sha256": "b9cf0ce326aa609aa61a3c8e3c16ccaa51f6d2559bf5c68d26d5787fd532b910",
-  "starter_sha256": "6a4b26b861d4ab4038bb0c0af9b7c08bee2147314afd0acf51b5af0c4c5feee4",
+  "starter_sha256": "4607be31bd57a2efa110649fefba7cbc9ab6428970033f42ec13292f771a0079",
   "starter_source_bytes": 80182,
   "artistic_review": false,
   "physical_mac_review": false,
@@ -134,7 +134,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "ef0d52534236f00a9da29ead374b831df46af4f46558c648e0ce2b3083720aea"
+      "project_sha256": "d4100384b2a315907e33ab88e3b163a1b4e5a02da99657fa5d4a1c5dee7f8100"
     },
     {
       "id": "pysakki",
@@ -144,7 +144,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "2696732a593abde64fe8a62a3f69a38c98733ea2904d584ce05e796e5104e73c"
+      "project_sha256": "982b8f386e4f6ec918922d9a40f10f5228414d4ffb615c82d16ffab8429463ab"
     },
     {
       "id": "hautausmaa",
@@ -154,7 +154,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "e9369303613801f66a3ccece66f42c2d83fc7cbb9ea64d1d8762ceb119412575"
+      "project_sha256": "0f8e90dc8eedf5928ed461067673b0e137671d15a88a26fce4e20911348fa125"
     },
     {
       "id": "kahvila",
@@ -164,7 +164,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "0deffa6df1eeb9db040f76ef9d10750d1529a664bf33e96680f0d9824feb9b3c"
+      "project_sha256": "d1ddc56c0fe41ea84d6e76b38f861f9727ee932014151d0f0eb3bfa55ae1dba2"
     },
     {
       "id": "viikate",

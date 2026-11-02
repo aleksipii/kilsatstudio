@@ -155,9 +155,11 @@ alkuperäisellä seitsennivelrigillä.
 - Tunteita on viisi, koska ne vaativat rigiin piirretyt ilmevariantit.
 - Tuoli on aina toimistotuoli etunäkymästä piirrettynä; sivukuvassa se on tyylitelty.
 - Käsien ja istumisen tila alkaa jokaisessa kohtauksessa alusta (castin `holds`).
-- Vastakuva peilaa lavasteen: tekstit lukisivat väärin päin, ja piirtojärjestys ei muutu
+- Valmislavasteissa on piirretty vastakuva sekä ylä- ja alakulma. Omien lavasteiden
+  vastakuva peilataan, jos niihin ei ole piirretty `reverse`-tasoja: tekstit lukisivat
+  silloin väärin päin. Tuoli peilataan aina. Piirtojärjestys ei muutu kulman mukana
   (tuolin selkänoja jää hahmon taakse, käsiesine näkyy selän edessä). `high`/`low`
-  vaativat lavasteeseen piirretyt kulmatasot; valmislavasteissa niitä ei vielä ole.
+  vaativat lavasteeseen piirretyt kulmatasot.
 - Ajastettu esine ei voi olla `composition.screens`-näytön kohde (näyttö vaatii castin
   `holds`-esineen).
 - Laatu (rytmi, rajaukset, huulisynkka, ääni) vaatii ihmisen arvion; testit osoittavat vain
