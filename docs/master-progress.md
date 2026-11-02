@@ -1,11 +1,62 @@
 # Master prompt implementation and acceptance tracker
 
 Source of requirements: [master build prompt](master-build-prompt.md). Updated
-2026-10-30. A checked item identifies integrated, inspected implementation, not a
+2026-11-02. A checked item identifies integrated, inspected implementation, not a
 claim that every hardware or product acceptance test has passed. An unchecked
 item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
+
+## Release 1.0 integration: speech bundle, principles, cut-outs, city — PRs #163, #164, #162, #165 (2026-11-02)
+
+Merged by the master orchestrator (`docs/master-orchestrator.md`) with the user's
+authorisation, merge commits in this order: #163 `1e50666`, #164 `e24be08`, #162 `1f68ad7`,
+#165 `1f18c48`. No squash, no force-push, no branches deleted.
+- #163: optional bundled speech (`scripts/build_speech_bundle.py`, `package_macos.py
+  --speech-bundle`): relocatable CPython, Kokoro-82M with 28 English voices, Piper Finnish
+  `fi_FI-harri-medium`, Rhubarb 1.14.0; desktop resolves the bundle at startup. Without the
+  flag, packaging is unchanged.
+- #164: `move` arcs (`arc`, `bezier`) at constant speed, step sync on curved routes,
+  `anticipation_frames`/`overlap_frames`, frame units (`3f`) in schedules, and read-only
+  staging hints (`check_staging`, desktop panel).
+- #162: `timing: {turn: snap}`, the `cutout` character style (`OutlineChoice::PerPart`) and
+  the original cut-out cast Ilona, Topi and Rauno (`examples/cutout-cast`).
+- #165: nine city sets (four angles each), 22 city props, stick-studio pack revision 3,
+  9 city backgrounds and 22 city props in the anchored library.
+
+Fix made during integration (`edd6cf4` on #165): `generate_library_props.py` rejected the
+22 city rig props and would have deleted their manifests as stale; city props now belong
+only to `generate_city_library.py`. This was the only real CI failure.
+
+Checks actually run locally (macOS, Apple Silicon) on main + all four PRs merged (tree
+identical to main `1f18c48` except that Python fix): `cargo fmt --all --check`,
+`cargo check --workspace`, `cargo clippy --workspace --all-targets` (0 warnings),
+`cargo test --workspace` 1308 passed / 0 failed. After the fix: the full `library-macos` job
+locally (both generators, `generate_stick_library`, no diff; `clippy -p motion-library -D
+warnings`; `cargo test -p motion-library`; `validate_library --distribution` 0 warnings) and
+`tests/test_stick_studio_pack.py`. Also on main `1f18c48`: the `library-macos` steps,
+`tests` (159 OK) and `services/kokoro-runtime/tests` (55 OK, 5 skipped). CI: all PR checks
+green before each merge, and all seven workflows triggered on main `1f18c48` green (release
+app run 41480970816, artifact `kilsat-studio-release-arm64-1f18c48…`, ad-hoc signed, no speech
+bundle). macOS jobs were cancelled several times because GitHub could not acquire a macOS
+arm64 runner ("job was not acquired by Runner"); they were re-run until they passed, never
+skipped.
+
+`kilsatstudio1.0` advanced by fast-forward `80f7289..1f18c48` (no force-push) after main was
+green. On the branch: practical preview, Audio foundation and release app (run 41491467183, second
+attempt after a missing runner) all green, with the release ZIP artifact.
+
+Still open:
+- The ATM, vending machine and market-stall city props do not quite reach their ground line
+  (bottom 207/216, 224.2/228, 289.0/288 px) and the stall posts go 1 px outside bounds.
+  Found by the props generator's checks, which do not apply to city props. Owner: P06.
+- From the PRs: no hand-run desktop review of any of the four; Rhubarb (x86_64) not run;
+  bundled speech not tested offline; Developer ID signing and notarisation not done;
+  GPL-3.0 `piper-tts`/eSpeak NG source obligations and Kokoro/harri voice rights
+  undecided (`distribution_approved: false`).
+- `feat/night-room-grading` (local only, conflicts with main) left out of 1.0 by decision.
+- Three internal crates still carry version `0.1.0` (the app, workspace and `Info.plist` are 1.0.0).
+- No `v1.0.0` tag or GitHub release yet (needs separate user approval).
 
 ## Art angles 3–4: drawn character views and set angles — PRs #159, #160 (2026-11-02)
 
