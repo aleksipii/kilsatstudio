@@ -78,7 +78,8 @@ child joints the same way and is at most 30 % of the gesture.
   arc-length table), and the move's `ease` applies along it. A curved route is
   longer than the straight distance, so a walking or running gait steps faster
   in the same proportion and the feet keep pace with the ground. Arcs read best
-  on leaps and jumps; a walk on a high arc looks like stepping in the air.
+  on leaps and jumps; a walk on a high arc looks like stepping in the air, and
+  the staging hints flag it.
 - **Story beats** take `arc` too: every leg of the walk bends by it and takes
   longer by the extra distance. Beats have no `bezier`, because stage marks are
   resolved to pixels only during compilation. The step-aside check for other
@@ -89,7 +90,19 @@ child joints the same way and is at most 30 % of the gesture.
   under "Animaatioperiaatteiden vihjeet"): two or more moves or gestures in one
   scene that start on the same frame *and* stop on the same frame get a hint to
   offset them by 2–4 frames. A gesture whose `anticipation_frames` does not fit
-  gets a hint too. Hints never change the script or block rendering.
+  gets a hint too, and so does a move with a ground gait (anything but `leap`;
+  `walk` when unset) whose `arc` or `bezier` route strays more than 3 % of the
+  frame height from the straight line. A curve that stands for a path through
+  depth may keep its hint. Hints never change the script or block rendering.
+
+## How strong the default anticipation is
+
+The default depth (0.12) turns the driving joint against the action by 12 %
+of the full pose before the attack; on `wave` that is about 17° of the upper
+arm, peaking halfway through the anticipation. The gesture's
+fade-in envelope does not scale the rig layer, so the whole depth is
+applied. For a broader anticipation raise `anticipation` (for example 0.25 in
+`cartoon`, about 36° on `wave`) or use a preset.
 
 ## Behavior
 
