@@ -32,6 +32,12 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from generate_city_library import CATALOG as CITY_CATALOG  # noqa: E402
+
+# City props and their manifests belong to scripts/generate_city_library.py.
+CITY_IDS = {f"{spec[0]}.json" for spec in CITY_CATALOG.values()}
+
 ROOT = Path(__file__).resolve().parent.parent
 PACKAGE = ROOT / "examples" / "stick-studio"
 OUT_DIR = PACKAGE / "library" / "props"
@@ -1531,7 +1537,7 @@ def check(m: dict) -> list[str]:
 
 def build() -> dict[str, dict]:
     manifests: dict[str, dict] = {}
-    stems = sorted(p.stem for p in RIG_DIR.glob("*.kilsat"))
+    stems = sorted(p.stem for p in RIG_DIR.glob("*.kilsat") if p.stem not in CITY_CATALOG)
     missing = set(stems) ^ set(MIGRATED)
     if missing:
         raise SystemExit(f"rig prop list out of date: {sorted(missing)}")
@@ -1557,7 +1563,7 @@ def main(argv: list[str]) -> int:
         print("\n".join(errors), file=sys.stderr)
         return 1
     expected = {f"{pid}.json": render(m) for pid, m in sorted(manifests.items())}
-    stale = sorted(p.name for p in OUT_DIR.glob("prop.*.json") if p.name not in expected) if OUT_DIR.is_dir() else []
+    stale = sorted(p.name for p in OUT_DIR.glob("prop.*.json") if p.name not in expected and p.name not in CITY_IDS) if OUT_DIR.is_dir() else []
     if check_only:
         bad = [n for n, text in expected.items() if not (OUT_DIR / n).is_file() or (OUT_DIR / n).read_text(encoding="utf-8") != text]
         if bad or stale:
