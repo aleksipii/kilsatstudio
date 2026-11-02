@@ -1,0 +1,396 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.ambulance_v1",
+  "kind": "prop",
+  "name": "Ambulanssi",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 585.455,
+    "height": 276
+  },
+  "depth": "mid",
+  "tags": [
+    "ambulanssi",
+    "ambulance",
+    "sairasauto",
+    "rescue",
+    "pelastus",
+    "vehicle",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "light_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 468.364,
+            "y": 61.891,
+            "width": 41.818,
+            "height": 18.4
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "light_blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 510.182,
+            "y": 61.891,
+            "width": 41.818,
+            "height": 18.4
+          },
+          "color": {
+            "r": 70,
+            "g": 112,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cargo_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 13.382,
+            "y": 25.091,
+            "width": 396.436,
+            "height": 200.727
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cargo_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20.073,
+            "y": 31.782,
+            "width": 383.055,
+            "height": 187.345
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cab_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 393.091,
+            "y": 80.291,
+            "width": 175.636,
+            "height": 145.527
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cab_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 399.782,
+            "y": 86.982,
+            "width": 162.255,
+            "height": 132.145
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 414.836,
+            "y": 95.345,
+            "width": 135.491,
+            "height": 58.545
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pillar",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 468.364,
+              "y": 95.345
+            },
+            {
+              "x": 468.364,
+              "y": 153.891
+            }
+          ],
+          "width": 8.364,
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stripe",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20.073,
+            "y": 140.509,
+            "width": 541.964,
+            "height": 21.745
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cross_v",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 178.982,
+            "y": 55.2,
+            "width": 30.109,
+            "height": 80.291
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cross_h",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 153.891,
+            "y": 80.291,
+            "width": 80.291,
+            "height": 30.109
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_seam",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 250.909,
+              "y": 33.455
+            },
+            {
+              "x": 250.909,
+              "y": 219.127
+            }
+          ],
+          "width": 3.345,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bumper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10.036,
+            "y": 219.127,
+            "width": 562.036,
+            "height": 11.709
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "headlamp",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 545.309,
+            "y": 170.618,
+            "width": 18.4,
+            "height": 20.073
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tail_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.4,
+            "y": 167.273,
+            "width": 13.382,
+            "height": 25.091
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 75.273,
+            "y": 194.036,
+            "width": 81.964,
+            "height": 81.964
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 92,
+            "y": 210.764,
+            "width": 48.509,
+            "height": 48.509
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 434.909,
+            "y": 194.036,
+            "width": 81.964,
+            "height": 81.964
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 451.636,
+            "y": 210.764,
+            "width": 48.509,
+            "height": 48.509
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 276
+      },
+      "width": 585.455
+    }
+  ]
+}

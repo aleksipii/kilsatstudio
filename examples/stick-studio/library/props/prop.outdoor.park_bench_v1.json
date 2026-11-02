@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "id": "prop.outdoor.park_bench_v1",
+  "kind": "prop",
+  "name": "Puistonpenkki",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 207.36,
+    "height": 108
+  },
+  "depth": "mid",
+  "tags": [
+    "puistonpenkki",
+    "penkki",
+    "bench",
+    "park_bench",
+    "puisto",
+    "park",
+    "outdoor",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "back_top",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 17.28,
+            "y": 12.96,
+            "width": 172.8,
+            "height": 11.232
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "back_low",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 17.28,
+            "y": 31.968,
+            "width": 172.8,
+            "height": 11.232
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_left",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30.24,
+              "y": 8.64
+            },
+            {
+              "x": 30.24,
+              "y": 63.936
+            },
+            {
+              "x": 19.872,
+              "y": 105.408
+            }
+          ],
+          "width": 5.184,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_right",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 177.12,
+              "y": 8.64
+            },
+            {
+              "x": 177.12,
+              "y": 63.936
+            },
+            {
+              "x": 187.488,
+              "y": 105.408
+            }
+          ],
+          "width": 5.184,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "seat",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10.368,
+            "y": 56.16,
+            "width": 186.624,
+            "height": 11.232
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "leg_front",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38.88,
+              "y": 67.392
+            },
+            {
+              "x": 47.52,
+              "y": 105.408
+            }
+          ],
+          "width": 4.32,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 108
+      },
+      "width": 207.36
+    },
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 103.68,
+        "y": 56.16
+      }
+    }
+  ]
+}

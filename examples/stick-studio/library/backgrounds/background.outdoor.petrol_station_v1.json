@@ -1,0 +1,1434 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.petrol_station_v1",
+  "kind": "background",
+  "name": "Iltahuoltoasema",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "evening",
+    "petrol_station",
+    "huoltoasema",
+    "gas_station",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 226,
+            "g": 198,
+            "b": 172,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sun",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1500.0,
+            "y": 520.0,
+            "width": 170.0,
+            "height": 170.0
+          },
+          "color": {
+            "r": 238,
+            "g": 186,
+            "b": 110,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "forecourt",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 812.0,
+            "width": 1920.0,
+            "height": 268.0
+          },
+          "color": {
+            "r": 196,
+            "g": 194,
+            "b": 186,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "forecourt_seam",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 930.0
+            },
+            {
+              "x": 1920.0,
+              "y": 930.0
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "forecourt_seam_two",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 814.0
+            },
+            {
+              "x": 960.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "oil_stain",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1240.0,
+            "y": 980.0,
+            "width": 240.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 176,
+            "g": 174,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shop_wall",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1120.0,
+            "y": 420.0,
+            "width": 800.0,
+            "height": 390.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shop_roof",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1104.0,
+            "y": 404.0,
+            "width": 832.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shop_sign",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180.0,
+            "y": 444.0,
+            "width": 500.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shop_lettering",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1220.0,
+              "y": 476.0
+            },
+            {
+              "x": 1270.0,
+              "y": 462.0
+            },
+            {
+              "x": 1320.0,
+              "y": 490.0
+            },
+            {
+              "x": 1370.0,
+              "y": 462.0
+            },
+            {
+              "x": 1420.0,
+              "y": 490.0
+            },
+            {
+              "x": 1470.0,
+              "y": 462.0
+            },
+            {
+              "x": 1520.0,
+              "y": 488.0
+            },
+            {
+              "x": 1620.0,
+              "y": 470.0
+            }
+          ],
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          },
+          "width": 7.0
+        }
+      },
+      {
+        "id": "shop_window",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1160.0,
+            "y": 540.0,
+            "width": 520.0,
+            "height": 200.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shop_window_shelves",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180.0,
+              "y": 640.0
+            },
+            {
+              "x": 1660.0,
+              "y": 640.0
+            }
+          ],
+          "color": {
+            "r": 198,
+            "g": 150,
+            "b": 84,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "shop_door_outline",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1720.0,
+            "y": 560.0,
+            "width": 140.0,
+            "height": 250.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shop_door_fill",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1727.0,
+            "y": 567.0,
+            "width": 126.0,
+            "height": 236.0
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_body_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1065.0,
+            "y": 515.0,
+            "width": 150.0,
+            "height": 290.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_body_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1069.5,
+            "y": 519.5,
+            "width": 141.0,
+            "height": 281.0
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_row_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 545.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_row_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 593.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_row_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 641.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_row_3",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 689.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 214,
+            "g": 120,
+            "b": 96,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_glass",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1077.0,
+            "y": 530.0,
+            "width": 95.0,
+            "height": 210.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "vending_buttons",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1179.0,
+            "y": 530.0,
+            "width": 27.0,
+            "height": 100.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_coin",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1184.0,
+            "y": 645.0,
+            "width": 17.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "vending_flap",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1080.0,
+            "y": 755.0,
+            "width": 90.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy_pillar_left",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 270.0,
+              "y": 812.0
+            },
+            {
+              "x": 270.0,
+              "y": 300.0
+            }
+          ],
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "canopy_pillar_right",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000.0,
+              "y": 812.0
+            },
+            {
+              "x": 1000.0,
+              "y": 300.0
+            }
+          ],
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "canopy_outline",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 200.0,
+            "y": 230.0,
+            "width": 1000.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy_fill",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208.0,
+            "y": 238.0,
+            "width": 984.0,
+            "height": 64.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy_stripe",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208.0,
+            "y": 268.0,
+            "width": 984.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy_light_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330.0,
+            "y": 310.0,
+            "width": 120.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy_light_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630.0,
+            "y": 310.0,
+            "width": 120.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy_light_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 930.0,
+            "y": 310.0,
+            "width": 120.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "island",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270.0,
+            "y": 798.0,
+            "width": 700.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 168,
+            "g": 170,
+            "b": 162,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_left_body_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 310.0,
+            "y": 512.67,
+            "width": 120.0,
+            "height": 286.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_left_body_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 276.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_left_top",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 40.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_left_display",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330.0,
+            "y": 572.67,
+            "width": 80.0,
+            "height": 46.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_left_hose",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420.67,
+              "y": 660.67
+            },
+            {
+              "x": 444.67,
+              "y": 712.67
+            },
+            {
+              "x": 438.0,
+              "y": 766.0
+            },
+            {
+              "x": 423.33,
+              "y": 783.33
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 5.33
+        }
+      },
+      {
+        "id": "pump_left_holster",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 643.33,
+            "width": 26.67,
+            "height": 56.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_left_base",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 302.0,
+            "y": 794.0,
+            "width": 136.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_right_body_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 512.67,
+            "width": 120.0,
+            "height": 286.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_right_body_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 276.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_right_top",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 40.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_right_display",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 800.0,
+            "y": 572.67,
+            "width": 80.0,
+            "height": 46.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_right_hose",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 890.67,
+              "y": 660.67
+            },
+            {
+              "x": 914.67,
+              "y": 712.67
+            },
+            {
+              "x": 908.0,
+              "y": 766.0
+            },
+            {
+              "x": 893.33,
+              "y": 783.33
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 5.33
+        }
+      },
+      {
+        "id": "pump_right_holster",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880.0,
+            "y": 643.33,
+            "width": 26.67,
+            "height": 56.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pump_right_base",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 772.0,
+            "y": 794.0,
+            "width": 136.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_cabin_outline",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 517.59,
+            "y": 676.48,
+            "width": 170.69,
+            "height": 108.62
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_cabin_fill",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 522.24,
+            "y": 681.14,
+            "width": 161.38,
+            "height": 99.31
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_glass",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 533.1,
+            "y": 690.45,
+            "width": 139.66,
+            "height": 82.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_pillar",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 604.48,
+              "y": 692.0
+            },
+            {
+              "x": 604.48,
+              "y": 728.21
+            }
+          ],
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          },
+          "width": 6.21
+        }
+      },
+      {
+        "id": "car_body_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 449.31,
+            "y": 726.14,
+            "width": 312.41,
+            "height": 57.93
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_body_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 730.28,
+            "width": 304.14,
+            "height": 49.66
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_headlamp",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 745.17,
+            "y": 737.52,
+            "width": 12.41,
+            "height": 11.38
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_tail_light",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 737.52,
+            "width": 8.28,
+            "height": 13.45
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_wheel_back_outline",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 491.72,
+            "y": 761.31,
+            "width": 50.69,
+            "height": 50.69
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_wheel_back_fill",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 502.07,
+            "y": 771.66,
+            "width": 30.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_wheel_front_outline",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 668.62,
+            "y": 761.31,
+            "width": 50.69,
+            "height": 50.69
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "car_wheel_front_fill",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 678.97,
+            "y": 771.66,
+            "width": 30.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "price_post",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80.0,
+              "y": 812.0
+            },
+            {
+              "x": 80.0,
+              "y": 440.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "price_board_outline",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 200.0,
+            "width": 160.0,
+            "height": 250.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "price_board_fill",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 7.0,
+            "y": 207.0,
+            "width": 146.0,
+            "height": 236.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "price_logo",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10.0,
+            "y": 210.0,
+            "width": 140.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "price_digits_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30.0,
+              "y": 310.0
+            },
+            {
+              "x": 60.0,
+              "y": 300.0
+            },
+            {
+              "x": 90.0,
+              "y": 318.0
+            },
+            {
+              "x": 130.0,
+              "y": 302.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "price_digits_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30.0,
+              "y": 356.0
+            },
+            {
+              "x": 60.0,
+              "y": 346.0
+            },
+            {
+              "x": 90.0,
+              "y": 364.0
+            },
+            {
+              "x": 130.0,
+              "y": 348.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "price_digits_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30.0,
+              "y": 402.0
+            },
+            {
+              "x": 60.0,
+              "y": 392.0
+            },
+            {
+              "x": 90.0,
+              "y": 410.0
+            },
+            {
+              "x": 130.0,
+              "y": 394.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "stand",
+      "id": "pump",
+      "at": {
+        "x": 560.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

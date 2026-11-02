@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "id": "prop.building.skyscraper_v1",
+  "kind": "prop",
+  "name": "Pilvenpiirtäjä",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 264,
+    "height": 840
+  },
+  "depth": "far",
+  "tags": [
+    "pilvenpiirtäjä",
+    "torni",
+    "skyscraper",
+    "tower",
+    "office",
+    "building",
+    "rakennus",
+    "kiinteistö",
+    "property",
+    "skyline",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "spire",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 132,
+              "y": 57.6
+            },
+            {
+              "x": 132,
+              "y": 3.6
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "beacon",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 124.8,
+            "y": 0,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crown",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 46.8,
+            "y": 51.6,
+            "width": 170.4,
+            "height": 38.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 24,
+            "y": 84,
+            "width": 216,
+            "height": 756
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 28.8,
+            "y": 88.8,
+            "width": 206.4,
+            "height": 746.4
+          },
+          "color": {
+            "r": 128,
+            "g": 156,
+            "b": 166,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass_0",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58.8,
+              "y": 105.6
+            },
+            {
+              "x": 58.8,
+              "y": 822
+            }
+          ],
+          "width": 14.4,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass_1",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 108,
+              "y": 105.6
+            },
+            {
+              "x": 108,
+              "y": 822
+            }
+          ],
+          "width": 14.4,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass_2",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 157.2,
+              "y": 105.6
+            },
+            {
+              "x": 157.2,
+              "y": 822
+            }
+          ],
+          "width": 14.4,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass_3",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 206.4,
+              "y": 105.6
+            },
+            {
+              "x": 206.4,
+              "y": 822
+            }
+          ],
+          "width": 14.4,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lobby",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72,
+            "y": 780,
+            "width": 120,
+            "height": 60
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 840
+      },
+      "width": 264
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "id": "prop.street.fire_hydrant_v1",
+  "kind": "prop",
+  "name": "Paloposti",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 69.818,
+    "height": 96
+  },
+  "depth": "mid",
+  "tags": [
+    "paloposti",
+    "fire_hydrant",
+    "hydrant",
+    "katu",
+    "street",
+    "city",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "cap",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 17.455,
+            "y": 3.491,
+            "width": 34.909,
+            "height": 19.2
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 19.2,
+            "y": 13.091,
+            "width": 31.418,
+            "height": 71.564
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "nozzle_left",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6.109,
+            "y": 35.782,
+            "width": 13.964,
+            "height": 14.836
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "nozzle_right",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 49.745,
+            "y": 35.782,
+            "width": 13.964,
+            "height": 14.836
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "band",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 15.709,
+            "y": 25.309,
+            "width": 38.4,
+            "height": 6.109
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12.218,
+            "y": 82.909,
+            "width": 45.382,
+            "height": 13.091
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 96
+      },
+      "width": 69.818
+    }
+  ]
+}

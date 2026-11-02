@@ -203,7 +203,22 @@ regenerates backgrounds, locations and sets deterministically:
   nothing `near` (preserving the original stacking behind actors). The cemetery
   tree trunk (28 px) is clamped to 18 px because the library style gate uses actor
   scale 1 (limb 9 px, lines ≤ 2 limbs); the original pack was tuned for 1.6.
+- The nine city sets of pack revision 3 (`scripts/stick_city.py`) migrated the
+  same way, front drawing only: `background.outdoor.city_street_v1`,
+  `residential_street_v1`, `market_square_v1`, `petrol_station_v1`,
+  `city_park_v1`, `rooftop_night_v1`, `back_alley_night_v1` and
+  `background.interior.corner_shop_v1`, `metro_platform_v1`, each with a ground
+  anchor plus stand, seat or doorway anchors. Clipped layers (car cabins) lose
+  their clip, which is hidden by the body drawn after them.
 - New backgrounds: yard, street and a stairs piece for kit-bashing.
+
+`python3 scripts/generate_city_library.py` writes the 22 city props of
+`scripts/stick_city.py` as art manifests (`prop.vehicle.*`, `prop.street.*`,
+`prop.building.*`, `prop.shop.*`, `prop.outdoor.*`) with Finnish and English
+tags and a ground anchor (plus a bench seat and an ATM screen). Vehicles and
+street furniture are scaled to 120 px per metre; buildings are 0.6 of their
+drawing size and are meant to be placed with a part `scale`. Strokes are
+clamped to 18 px. Run it before `generate_stick_library` when the city changes.
 - Room-generated and kit-bashed locations and one set per location (cameras
   `wide`, `two_shot`, `medium`, `close`; stand/sit marks). Prop placement reads the
   A05 prop manifests (bounds, seat anchor); a missing prop falls back to an

@@ -3,7 +3,8 @@
 //! Usage (from the workspace root):
 //! `cargo run -p motion-library --example generate_stick_library -- examples/stick-studio`
 //!
-//! * Migrates `backgrounds/*.kilsat` (art layers) to background manifests.
+//! * Migrates `backgrounds/*.kilsat` (art layers) to background manifests,
+//!   including the city sets of pack revision 3.
 //! * Writes three new hand-authored backgrounds (yard, street, stairs).
 //! * Writes room-generated and kit-bashed locations and one set per location.
 //!
@@ -180,6 +181,146 @@ const MIGRATIONS: &[Migration] = &[
                 },
             ]
         },
+    },
+];
+
+fn stand(id: &str, x: f64) -> Anchor {
+    Anchor::Stand {
+        id: id.into(),
+        at: pt(x, 950.0),
+    }
+}
+
+/// The city sets of pack revision 3 (scripts/stick_city.py), front drawing only.
+const CITY_MIGRATIONS: &[Migration] = &[
+    Migration {
+        file: "keskusta",
+        id: "background.outdoor.city_street_v1",
+        tags: &[
+            "outdoor", "day", "city", "kaupunki", "street", "katu", "shops", "kauppa", "keskusta",
+        ],
+        mid: &["tree_", "traffic_light_", "hydrant_"],
+        anchors: || {
+            vec![
+                ground(950.0),
+                stand("bakery_door", 530.0),
+                stand("pharmacy_door", 1790.0),
+            ]
+        },
+    },
+    Migration {
+        file: "asuinalue",
+        id: "background.outdoor.residential_street_v1",
+        tags: &[
+            "outdoor",
+            "day",
+            "city",
+            "residential",
+            "asuinalue",
+            "house",
+            "talo",
+            "street",
+            "katu",
+        ],
+        mid: &["car_", "maple_", "mailbox", "fence_"],
+        anchors: || vec![ground(950.0), stand("driveway", 840.0)],
+    },
+    Migration {
+        file: "tori",
+        id: "background.outdoor.market_square_v1",
+        tags: &[
+            "outdoor",
+            "day",
+            "city",
+            "market",
+            "tori",
+            "square",
+            "town_hall",
+            "raatihuone",
+        ],
+        mid: &["stall_", "lamp_", "pigeon_"],
+        anchors: || {
+            vec![
+                ground(950.0),
+                stand("stall", 300.0),
+                stand("town_hall", 960.0),
+            ]
+        },
+    },
+    Migration {
+        file: "lahikauppa",
+        id: "background.interior.corner_shop_v1",
+        tags: &[
+            "interior",
+            "shop",
+            "kauppa",
+            "grocery",
+            "lähikauppa",
+            "store",
+            "city",
+        ],
+        mid: &["shelf_", "fridge"],
+        anchors: || vec![ground(950.0), stand("fridge", 960.0)],
+    },
+    Migration {
+        file: "huoltoasema",
+        id: "background.outdoor.petrol_station_v1",
+        tags: &[
+            "outdoor",
+            "evening",
+            "petrol_station",
+            "huoltoasema",
+            "gas_station",
+            "city",
+        ],
+        mid: &["pump_", "car_", "island", "canopy_pillar", "vending_"],
+        anchors: || vec![ground(950.0), stand("pump", 560.0)],
+    },
+    Migration {
+        file: "puisto",
+        id: "background.outdoor.city_park_v1",
+        tags: &["outdoor", "day", "park", "puisto", "city", "pond", "lampi"],
+        mid: &["oak_", "bench_", "lamp_", "pond", "duck_", "flowers_"],
+        anchors: || {
+            vec![
+                ground(950.0),
+                Anchor::Seat {
+                    id: "bench".into(),
+                    at: pt(1305.0, 718.0),
+                },
+            ]
+        },
+    },
+    Migration {
+        file: "katto",
+        id: "background.outdoor.rooftop_night_v1",
+        tags: &["outdoor", "night", "rooftop", "katto", "skyline", "city"],
+        mid: &["tank", "antenna", "vent"],
+        anchors: || vec![ground(950.0), stand("ledge", 960.0)],
+    },
+    Migration {
+        file: "kuja",
+        id: "background.outdoor.back_alley_night_v1",
+        tags: &["outdoor", "night", "alley", "kuja", "city"],
+        mid: &["dumpster", "bag", "crate", "cat_"],
+        anchors: || {
+            vec![
+                ground(950.0),
+                Anchor::Doorway {
+                    id: "back_door".into(),
+                    rect: rect(370.0, 510.0, 200.0, 290.0),
+                },
+            ]
+        },
+    },
+    Migration {
+        file: "metroasema",
+        id: "background.interior.metro_platform_v1",
+        tags: &[
+            "interior", "metro", "station", "asema", "train", "juna", "city",
+        ],
+        mid: &[],
+        anchors: || vec![ground(950.0), stand("train_door", 1060.0)],
     },
 ];
 
@@ -1294,7 +1435,7 @@ fn run(pack: &Path) -> Result<(), String> {
     for d in &dirs {
         std::fs::create_dir_all(d).map_err(|e| format!("{}: {e}", d.display()))?;
     }
-    for m in MIGRATIONS {
+    for m in MIGRATIONS.iter().chain(CITY_MIGRATIONS) {
         write(&dirs[0], &migrate(pack, m)?)?;
     }
     for m in [yard(), street(), stairs()] {

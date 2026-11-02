@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "id": "prop.building.corner_shop_v1",
+  "kind": "prop",
+  "name": "Kulmakauppa",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 432,
+    "height": 456
+  },
+  "depth": "far",
+  "tags": [
+    "kulmakauppa",
+    "kauppa",
+    "shop",
+    "store",
+    "grocery",
+    "liike",
+    "building",
+    "rakennus",
+    "kiinteistö",
+    "property",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12,
+            "y": 14.4,
+            "width": 408,
+            "height": 441.6
+          },
+          "color": {
+            "r": 198,
+            "g": 158,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cornice",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4.8,
+            "y": 7.2,
+            "width": 422.4,
+            "height": 16.8
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "upper_window_0",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44.4,
+            "y": 51.6,
+            "width": 88.8,
+            "height": 90
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "upper_window_1",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 172.8,
+            "y": 51.6,
+            "width": 88.8,
+            "height": 90
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "upper_window_2",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 301.2,
+            "y": 51.6,
+            "width": 88.8,
+            "height": 90
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 24,
+            "y": 174,
+            "width": 384,
+            "height": 44.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 28.2,
+            "y": 178.2,
+            "width": 375.6,
+            "height": 36
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign_lettering",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 66,
+              "y": 198
+            },
+            {
+              "x": 90,
+              "y": 187.2
+            },
+            {
+              "x": 114,
+              "y": 205.2
+            },
+            {
+              "x": 144,
+              "y": 187.2
+            },
+            {
+              "x": 174,
+              "y": 204
+            },
+            {
+              "x": 204,
+              "y": 188.4
+            },
+            {
+              "x": 234,
+              "y": 205.2
+            },
+            {
+              "x": 264,
+              "y": 189.6
+            },
+            {
+              "x": 294,
+              "y": 202.8
+            }
+          ],
+          "width": 4.8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 225.6,
+            "width": 396,
+            "height": 38.4
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_stripe_0",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 57.6,
+            "y": 225.6,
+            "width": 38.4,
+            "height": 38.4
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_stripe_1",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 189.6,
+            "y": 225.6,
+            "width": 38.4,
+            "height": 38.4
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_stripe_2",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 321.6,
+            "y": 225.6,
+            "width": 38.4,
+            "height": 38.4
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 33.6,
+            "y": 282,
+            "width": 234,
+            "height": 162
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 38.4,
+            "y": 286.8,
+            "width": 224.4,
+            "height": 152.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fruit_one",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 54,
+            "y": 408,
+            "width": 54,
+            "height": 30
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fruit_two",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 117.6,
+            "y": 410.4,
+            "width": 51.6,
+            "height": 27.6
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fruit_three",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 180,
+            "y": 409.2,
+            "width": 60,
+            "height": 28.8
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 291.6,
+            "y": 280.8,
+            "width": 102,
+            "height": 175.2
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 296.4,
+            "y": 285.6,
+            "width": 92.4,
+            "height": 165.6
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 307.2,
+            "y": 297.6,
+            "width": 70.8,
+            "height": 86.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 456
+      },
+      "width": 432
+    }
+  ]
+}

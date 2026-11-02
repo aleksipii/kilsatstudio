@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "id": "prop.street.atm_v1",
+  "kind": "prop",
+  "name": "Pankkiautomaatti",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 135,
+    "height": 216
+  },
+  "depth": "mid",
+  "tags": [
+    "pankkiautomaatti",
+    "atm",
+    "cash_machine",
+    "pankki",
+    "bank",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "unit_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 9,
+            "y": 9,
+            "width": 117,
+            "height": 198
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "unit_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12.6,
+            "y": 12.6,
+            "width": 109.8,
+            "height": 190.8
+          },
+          "color": {
+            "r": 206,
+            "g": 202,
+            "b": 190,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 18,
+            "width": 99,
+            "height": 22.5
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sign_lettering",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 31.5,
+              "y": 29.7
+            },
+            {
+              "x": 45,
+              "y": 26.1
+            },
+            {
+              "x": 58.5,
+              "y": 32.4
+            },
+            {
+              "x": 72,
+              "y": 26.1
+            },
+            {
+              "x": 85.5,
+              "y": 32.4
+            },
+            {
+              "x": 103.5,
+              "y": 27.9
+            }
+          ],
+          "width": 2.7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 31.5,
+            "y": 53.1,
+            "width": 72,
+            "height": 49.5
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ledge",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 108,
+            "width": 99,
+            "height": 6.3
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "keypad",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 43.2,
+            "y": 118.8,
+            "width": 43.2,
+            "height": 36
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "card_slot",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 93.6,
+            "y": 124.2,
+            "width": 18,
+            "height": 4.5
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cash_slot",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36,
+            "y": 167.4,
+            "width": 63,
+            "height": 6.3
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 216
+      },
+      "width": 135
+    },
+    {
+      "type": "screen",
+      "id": "screen",
+      "rect": {
+        "x": 31.5,
+        "y": 53.1,
+        "width": 72,
+        "height": 49.5
+      }
+    }
+  ]
+}

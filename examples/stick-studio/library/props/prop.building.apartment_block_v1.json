@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "id": "prop.building.apartment_block_v1",
+  "kind": "prop",
+  "name": "Kerrostalo",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 384,
+    "height": 600
+  },
+  "depth": "far",
+  "tags": [
+    "kerrostalo",
+    "talo",
+    "apartment",
+    "apartments",
+    "flats",
+    "building",
+    "rakennus",
+    "kiinteistö",
+    "property",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12,
+            "y": 24,
+            "width": 360,
+            "height": 576
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 17.4,
+            "y": 29.4,
+            "width": 349.2,
+            "height": 565.2
+          },
+          "color": {
+            "r": 206,
+            "g": 202,
+            "b": 190,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof_edge",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4.8,
+            "y": 16.8,
+            "width": 374.4,
+            "height": 14.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_0",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42,
+            "y": 57.6,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_1",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 156,
+            "y": 57.6,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_2",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 57.6,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_3",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42,
+            "y": 151.2,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_4",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 156,
+            "y": 151.2,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_5",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 151.2,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_6",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42,
+            "y": 244.8,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_7",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 156,
+            "y": 244.8,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_8",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 244.8,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_9",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42,
+            "y": 338.4,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_10",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 156,
+            "y": 338.4,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_11",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 338.4,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_12",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42,
+            "y": 432,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_13",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 156,
+            "y": 432,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_14",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 432,
+            "width": 72,
+            "height": 62.4
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "canopy",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 141.6,
+            "y": 513.6,
+            "width": 100.8,
+            "height": 10.8
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 157.2,
+            "y": 523.2,
+            "width": 69.6,
+            "height": 76.8
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 161.4,
+            "y": 527.4,
+            "width": 61.2,
+            "height": 68.4
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 600
+      },
+      "width": 384
+    }
+  ]
+}

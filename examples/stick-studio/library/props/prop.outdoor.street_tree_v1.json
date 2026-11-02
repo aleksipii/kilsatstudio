@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "id": "prop.outdoor.street_tree_v1",
+  "kind": "prop",
+  "name": "Katupuu",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 427.5,
+    "height": 720
+  },
+  "depth": "mid",
+  "tags": [
+    "katupuu",
+    "puu",
+    "tree",
+    "street_tree",
+    "puisto",
+    "park",
+    "street",
+    "outdoor",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "trunk",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 213.75,
+              "y": 711
+            },
+            {
+              "x": 216,
+              "y": 472.5
+            },
+            {
+              "x": 202.5,
+              "y": 337.5
+            }
+          ],
+          "width": 18,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "branch",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 213.75,
+              "y": 483.75
+            },
+            {
+              "x": 281.25,
+              "y": 371.25
+            }
+          ],
+          "width": 15.75,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crown_back",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 45,
+            "y": 78.75,
+            "width": 337.5,
+            "height": 315
+          },
+          "color": {
+            "r": 100,
+            "g": 143,
+            "b": 122,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crown_left",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 15.75,
+            "y": 202.5,
+            "width": 213.75,
+            "height": 191.25
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crown_right",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 209.25,
+            "y": 168.75,
+            "width": 202.5,
+            "height": 213.75
+          },
+          "color": {
+            "r": 76,
+            "g": 116,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crown_top",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 123.75,
+            "y": 27,
+            "width": 191.25,
+            "height": 168.75
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "grate",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 130.5,
+            "y": 704.25,
+            "width": 166.5,
+            "height": 15.75
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 720
+      },
+      "width": 427.5
+    }
+  ]
+}
