@@ -51,7 +51,8 @@ class CutoutCastTest(unittest.TestCase):
         for identifier, character in cast.characters().items():
             rig = character["rig"]
             order = [part["id"] for part in rig["parts"]]
-            self.assertEqual(order[-4:], ["arm_l", "hand_l", "arm_r", "hand_r"], identifier)
+            self.assertEqual(order[-8:], ["arm_l", "cuff_l", "thumb_l", "hand_l",
+                                          "arm_r", "cuff_r", "thumb_r", "hand_r"], identifier)
             self.assertEqual(rig["joint_limits"], cast.ARM_LIMITS)
             rest = {joint["id"]: joint.get("rotation", 0) for joint in rig["joints"]}
             for joint, limit in cast.ARM_LIMITS.items():
@@ -64,6 +65,31 @@ class CutoutCastTest(unittest.TestCase):
             self.assertTrue(top)
             for x, y in top:
                 self.assertAlmostEqual(math.hypot(x, y), 8, delta=0.05)
+
+    def test_soft_corners_keep_the_corner_and_stay_simple(self):
+        square = cast._soft(cast._box(0, 0, 20, 20), 4)
+        self.assertEqual(len(square), 12)
+        self.assertIn([20, 0], square)
+        self.assertIn([16.0, 0.0], square)
+        self.assertTrue(cast._simple(cast._rounded(square, 2)))
+
+    def test_clothes_sit_where_they_belong(self):
+        definitions = cast.characters()
+        def ids(identifier):
+            return [part["id"] for part in definitions[identifier]["rig"]["parts"]]
+        ilona, topi, rauno = ids("ILONA"), ids("TOPI"), ids("RAUNO")
+        # Bands and collars draw over the garment they belong to.
+        self.assertLess(ilona.index("body"), ilona.index("sweater_hem"))
+        self.assertLess(ilona.index("body"), ilona.index("collar"))
+        self.assertLess(topi.index("body"), topi.index("hood"))
+        self.assertLess(topi.index("hoodie_hem"), topi.index("hoodie_pocket"))
+        # Rauno's shirt collar sits under the overall straps.
+        self.assertLess(rauno.index("shirt_collar_l"), rauno.index("strap_l"))
+        bib = next(p for p in definitions["RAUNO"]["rig"]["parts"] if p["id"] == "overall_bib")
+        # The overalls cover the shirt hem and dip between the legs.
+        hem = cast.BUILD["RAUNO"]["hem"]
+        self.assertGreater(max(x for x, _ in bib["points"]), hem)
+        self.assertIn([0, 7], bib["points"])
 
     def test_check_rejects_shapes_the_rig_validator_would_refuse(self):
         def broken(change):

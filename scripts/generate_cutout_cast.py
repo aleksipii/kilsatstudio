@@ -53,7 +53,7 @@ CAST = [
 BUILD = {
     "ILONA": dict(body=62, top=25, hem=32, head=(56, 54), leg=16, mouth=27, skin=[255, 214, 172, 255]),
     "TOPI": dict(body=62, top=30, hem=38, head=(62, 54), leg=14, mouth=27, skin=[246, 198, 158, 255]),
-    "RAUNO": dict(body=86, top=30, hem=34, head=(56, 58), leg=22, mouth=34, skin=[238, 192, 156, 255]),
+    "RAUNO": dict(body=86, top=30, hem=31, head=(56, 58), leg=22, mouth=34, skin=[238, 192, 156, 255]),
 }
 
 
@@ -80,6 +80,24 @@ def _ellipse(name, joint, cx, cy, rx, ry, color, width=2.4):
 
 def _box(x0, y0, x1, y1):
     return [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]
+
+
+def _soft(points, r=5.0):
+    """Keep the outline's corners tight under rounding: add a point `r` along
+    each edge either side of every corner, so `smooth` rounds only a small
+    radius there instead of turning the whole shape into an onion."""
+    out = []
+    n = len(points)
+    for i, p in enumerate(points):
+        for q, keep in ((points[i - 1], False), (None, True), (points[(i + 1) % n], False)):
+            if keep:
+                out.append([p[0], p[1]])
+                continue
+            dx, dy = q[0] - p[0], q[1] - p[1]
+            length = math.hypot(dx, dy)
+            d = min(r, length / 3)
+            out.append([round(p[0] + dx * d / length, 2), round(p[1] + dy * d / length, 2)])
+    return out
 
 
 def _scale_x(points, factor, shift=0.0):
@@ -125,12 +143,13 @@ def _joints(build):
         {"id": "torso", "parent": "root", "y": -4},
         {"id": "head", "parent": "torso", "y": -(body + build["head"][1] - 6)},
     ]
-    # Relaxed arms: elbows just off the body, forearms tipped in so the
-    # mittens rest by the hips. The two sides differ slightly so the standing
-    # pose is not a mirror image ("twinning").
-    for side, sign, out, bend in (("l", -1, 0.30, 0.16), ("r", 1, 0.24, 0.22)):
+    # Relaxed arms: the shoulder pivot sits on the torso's shoulder corner so
+    # the arm hangs clear of the body and reads in silhouette, elbows slightly
+    # bent. The two sides differ a little so the standing pose is not a mirror
+    # image ("twinning").
+    for side, sign, out, bend in (("l", -1, 0.36, 0.08), ("r", 1, 0.31, 0.13)):
         joints.extend([
-            {"id": "upper_arm_" + side, "parent": "torso", "x": sign * (top - 2), "y": -body + 12,
+            {"id": "upper_arm_" + side, "parent": "torso", "x": sign * (top + 1), "y": -body + 11,
              "rotation": -sign * out},
             {"id": "forearm_" + side, "parent": "upper_arm_" + side, "y": 18,
              "rotation": sign * bend},
@@ -213,20 +232,42 @@ ARM_LIMITS = {"upper_arm_l": {"min_rotation": -2.6, "max_rotation": 2.15},
 
 def _torso(build, shirt):
     body, top, hem = build["body"], build["top"], build["hem"]
-    points = [[-top, -body], [top, -body], [hem, 8], [-hem, 8]]
+    points = _soft([[-top + 6, -body], [top - 6, -body], [top + 1, -body + 10], [hem, 8],
+                    [-hem, 8], [-top - 1, -body + 10]], 6)
     part = _polygon("body", "torso", points, shirt, width=2.6)
     part["views"] = _body_views(part)
     return part
 
 
-def _arms(sleeve, hand):
+def _torso_half(build, y):
+    """Half width of the torso piece at torso-local `y` (below the shoulders)."""
+    body, top, hem = build["body"], build["top"], build["hem"]
+    return top + 1 + (hem - top - 1) * (y + body - 10) / (body - 2)
+
+
+def _hem_band(name, build, color, height=8):
+    """A ribbed band along the bottom of a sweater or hoodie."""
+    y0 = 8 - height
+    h0, h1 = _torso_half(build, y0), build["hem"]
+    band = _polygon(name, "torso", _soft([[-h0, y0], [h0, y0], [h1, 8], [-h1, 8]], 4), color,
+                    2.2)
+    band["views"] = _body_views(band)
+    return band
+
+
+def _arms(sleeve, cuff, hand):
     parts = []
-    for side in ("l", "r"):
+    for side, sign in (("l", -1), ("r", 1)):
         parts.extend([
             # One sleeve from shoulder to wrist, bending at the elbow (y=18),
             # with a round cap centred on the shoulder pivot.
             _tube("arm_" + side, "upper_arm_" + side, "forearm_" + side, 18, 0, 33, 8, 7,
                   sleeve, cap=True),
+            # The cuff rides the forearm, where the sleeve is fully forearm-weighted.
+            _polygon("cuff_" + side, "forearm_" + side, _soft(_box(-7.8, 4, 7.8, 11), 2.5),
+                     cuff, 2.2),
+            # Mitten with a thumb nub on the body side, tucked behind the palm.
+            _ellipse("thumb_" + side, "hand_" + side, -sign * 8.5, 1, 4.4, 5.6, hand, 2.2),
             _ellipse("hand_" + side, "hand_" + side, 0, 6, 8.5, 9.5, hand),
         ])
     return parts
@@ -293,9 +334,11 @@ def _ilona(build):
     rx, ry = build["head"]
     legs = _legs(build, navy, red)
     body = _torso(build, teal)
-    collar = _polygon("collar", "torso", [[-14, -62], [14, -62], [9, -52], [0, -48], [-9, -52]],
-                      WHITE, 2)
+    # Two rounded collar flaps either side of the chin; the head hides the neck.
+    collar = _polygon("collar", "torso", [[-24, -62], [24, -62], [24, -54], [16, -46], [6, -47],
+                                          [0, -52], [-6, -47], [-16, -46], [-24, -54]], WHITE, 2)
     collar["views"] = _body_views(collar, HIDDEN)
+    hem_band = _hem_band("sweater_hem", build, [30, 132, 122, 255])
     hair_back = _polygon("hair_back", "head", [[-64, 36], [-66, -10], [-56, -44], [-30, -60],
                                                [30, -60], [56, -44], [66, -10], [64, 36]],
                          hair, 2.6, 2)
@@ -324,7 +367,7 @@ def _ilona(build):
     clip["views"] = {"three_quarter": {"points": _scale_x(clip["points"], 0.8, -6)},
                      "side": {"points": _scale_x(clip["points"], 0.6, -10)},
                      "back": HIDDEN}
-    return legs + [body, collar], [hair_back], [bangs, clip], []
+    return legs + [body, hem_band, collar], [hair_back], [bangs, clip], []
 
 
 def _topi(build):
@@ -333,7 +376,12 @@ def _topi(build):
     purple, ginger = [118, 78, 188, 255], [204, 108, 48, 255]
     legs = _legs(build, brown, sneaker)
     body = _torso(build, mustard)
-    pouch = _polygon("hoodie_pocket", "torso", [[-22, -18], [22, -18], [27, 2], [-27, 2]], pocket, 2)
+    # The hood lies folded behind the neck; it shows as a roll on each shoulder.
+    hood = _ellipse("hood", "torso", 0, -build["body"] + 4, build["top"] + 1, 12, pocket, 2.4)
+    hood["views"] = {"side": {"ellipse": {"cx": -8, "cy": -build["body"] + 2, "rx": 18, "ry": 10}}}
+    hem_band = _hem_band("hoodie_hem", build, pocket)
+    pouch = _polygon("hoodie_pocket", "torso",
+                     _soft([[-20, -22], [20, -22], [26, -2], [-26, -2]], 5), pocket, 2)
     pouch["views"] = _body_views(pouch, HIDDEN)
     strings = []
     for side, x in (("l", -7), ("r", 7)):
@@ -367,7 +415,7 @@ def _topi(build):
                            [190, 110, 80, 255], 0)
             dot["views"] = _face_views(dot, FEATURE_HALF)
             freckles.append(dot)
-    return legs + [body, pouch] + strings, tufts, [crown, band, brim], freckles
+    return legs + [body, hood, hem_band, pouch] + strings, tufts, [crown, band, brim], freckles
 
 
 def _rauno(build):
@@ -377,8 +425,12 @@ def _rauno(build):
     legs = _legs(build, overalls, boots)
     body = _torso(build, shirt)
     body_h = build["body"]
-    bib = _polygon("overall_bib", "torso", [[-20, -50], [20, -50], [22, -20], [33, -16],
-                                            [34, 8], [-34, 8], [-33, -16], [-22, -20]], overalls, 2.4, 0)
+    # Bib on the chest, waist at the hips, and a crotch notch between the
+    # legs, so the overalls read as trousers rather than a skirt.
+    bib = _polygon("overall_bib", "torso", [[-20, -50], [20, -50], [21, -22], [34, -20],
+                                            [35, 6], [30, 13], [5, 13], [0, 7], [-5, 13],
+                                            [-30, 13], [-35, 6], [-34, -20], [-21, -22]],
+                   overalls, 2.4, 0)
     bib["views"] = _body_views(bib)
     straps = []
     for side, sign in (("l", -1), ("r", 1)):
@@ -387,6 +439,13 @@ def _rauno(build):
                      strap, 1.6, 0)
         s["views"] = _body_views(s)
         straps.append(s)
+    collar = []
+    for side, sign in (("l", -1), ("r", 1)):
+        flap = _polygon("shirt_collar_" + side, "torso",
+                        [[sign * 4, -body_h], [sign * 26, -body_h], [sign * 12, -body_h + 14]],
+                        [168, 46, 38, 255], 1.8, 0)
+        flap["views"] = _body_views(flap, HIDDEN)
+        collar.append(flap)
     pocket = _polygon("bib_pocket", "torso", _box(-11, -42, 11, -26), strap, 1.6, 0)
     pocket["views"] = _body_views(pocket, HIDDEN)
     buttons = []
@@ -419,7 +478,8 @@ def _rauno(build):
                           [16, mouth_y - 14], [26, mouth_y - 4], [14, mouth_y - 6],
                           [0, mouth_y - 4], [-14, mouth_y - 6]], hair, 2, 2)
     moustache["views"] = _face_views(moustache, FEATURE_HALF)
-    return legs + [body, bib] + straps + [pocket] + buttons, [], sides, [moustache, back_patch]
+    return (legs + [body] + collar + [bib] + straps + [pocket] + buttons, [], sides,
+            [moustache, back_patch])
 
 
 def _rgba(hex_color):
@@ -428,6 +488,8 @@ def _rgba(hex_color):
 
 SPECIFIC = {"ILONA": _ilona, "TOPI": _topi, "RAUNO": _rauno}
 SLEEVES = {"ILONA": "#2AA096", "TOPI": "#ECB034", "RAUNO": "#C43E32"}
+# Ribbed cuffs a shade darker; Rauno's sleeves are rolled up, a shade lighter.
+CUFFS = {"ILONA": "#1E847A", "TOPI": "#D29222", "RAUNO": "#D85A4C"}
 
 
 def characters():
@@ -438,7 +500,7 @@ def characters():
         build = BUILD[identifier]
         body, behind_head, over_head, on_face = SPECIFIC[identifier](build)
         face = _face(build, brow=4.6 if identifier == "RAUNO" else 3.2)
-        arms = _arms(_rgba(SLEEVES[identifier]), build["skin"])
+        arms = _arms(_rgba(SLEEVES[identifier]), _rgba(CUFFS[identifier]), build["skin"])
         # Paper order: legs and body, then the head with its hair/hat over
         # the face shape but under eyes, brows and mouth, and the arms on top
         # so a raised or folded arm stays in front of the head and chest. At

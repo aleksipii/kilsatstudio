@@ -59,6 +59,13 @@ Asettelu noudattaa paperinukkeanimaation käytäntöjä:
   hahmo vilkuttaa siksi pään vieressä eikä käsi katoa pään taakse.
   Kyynärvarren rajat pitävät ristityt kädet rinnalla eikä leuan alla.
 - Käännöksissä kengät osoittavat katsomissuuntaan.
+- Vaatteet istuvat paikoillaan: paidoilla on suorat olkapäät ja vain
+  pienesti pyöristetyt kulmat, olkanivel on vartalon kulmassa, ja hihansuut
+  ovat kyynärvarressa juuri lapasen yläpuolella. Ilonan neuleessa on valkoinen
+  kaulus ja resorihelma. Topin hupparissa on niskaan laskettu huppu,
+  kengurutasku, nauhat ja resorihelma. Raunon paidassa on terävä kaulus
+  henkselien alla, ja haalarin housuosa peittää paidan helman ja jakautuu
+  lahkeiksi jalkojen välissä. Lapasissa on peukalo vartalon puolella.
 - Eleet tukevat tunnetta: Rauno ristii kätensä vihaisena, Ilonan
   hätkähdys on ennakoiva kyykky, ponnahdus ja alastulo, ja Topi kohauttaa
   olkiaan surullisena.
