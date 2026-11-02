@@ -2,17 +2,18 @@
 
 Kolme omaperäistä hahmoa paperileikkotyyliin: iso pyöreä pää suoraan pienen
 vartalon päällä, töpöt lapaskädet ja -jalat, tasaiset värit ja paksu tumma
-ääriviiva jokaisen palan ympärillä. Mikään pala ei taivu: jokainen on erillinen
-jäykkä osa, suu ja silmät vaihtuvat valmiista piirroksista, ja pää kääntyy
-vaihtamalla piirrosta. Mukana on lyhyt, **äänetön** katukohtaus. Mitään ei
+ääriviiva jokaisen palan ympärillä. Hihat ja lahkeet taipuvat yhtenä palana,
+muut osat ovat jäykkiä. Suu ja silmät vaihtuvat valmiista piirroksista, ja pää
+kääntyy vaihtamalla piirrosta. Mukana on lyhyt, **äänetön** katukohtaus. Mitään ei
 ladata verkosta.
 
 ## Avaa sovelluksessa
 
 1. Avaa `cutout-cast.kilsat` projektin avauskentästä.
 2. Valitse kohtaus **katu** ja paina **Toista**. Kahdeksan sekunnin aikana
-   Ilona vilkuttaa ja hätkähtää, Topi kääntyy sivuttain ja nyökkää kahdesti,
-   ja Rauno kääntää selkänsä ja palaa takaisin.
+   Ilona vilkuttaa ja hätkähtää, Topi kääntyy sivuttain, nyökkää kahdesti ja
+   kohauttaa olkiaan, ja Rauno ristii kätensä, kääntää selkänsä ja palaa
+   takaisin.
 3. `characters/` sisältää jokaisen hahmon omana projektinaan.
    **Model sheet ja hahmotyyli** -paneeli piirtää niistä kääntökuvan, ilmeet,
    suun muodot, päänkorkeusviivaimen ja siluettitarkistuksen.
@@ -46,6 +47,21 @@ Hiha on yksi saumaton pala olkapäästä ranteeseen. Se on sidottu sekä olka- e
 kyynärniveleen (kahden nivelen skinning), joten käsi taipuu kyynärpäästä ilman
 saumaa. Lahje taipuu samalla tavalla polvesta. Lapaset ja kengät ovat erillisiä
 paloja.
+
+Asettelu noudattaa paperinukkeanimaation käytäntöjä:
+
+- Hihan olkapään pää on puoliympyrä nivelen ympärillä, joten kulma ei pilkistä
+  vartalon reunasta käden kääntyessä.
+- Lepoasennossa kädet roikkuvat rentoina vartalon vieressä, kyynärpäät hieman
+  koukussa. Puolet eroavat hieman, jotta asento ei ole peilikuva.
+- Kädet piirretään pään päälle, ja olkanivelen rajat (`joint_limits`)
+  pysäyttävät nostetun käden noin 30 astetta vaakatason yläpuolelle. Isopäinen
+  hahmo vilkuttaa siksi pään vieressä eikä käsi katoa pään taakse.
+  Kyynärvarren rajat pitävät ristityt kädet rinnalla eikä leuan alla.
+- Käännöksissä kengät osoittavat katsomissuuntaan.
+- Eleet tukevat tunnetta: Rauno ristii kätensä vihaisena, Ilonan
+  hätkähdys on ennakoiva kyykky, ponnahdus ja alastulo, ja Topi kohauttaa
+  olkiaan surullisena.
 
 Hiuksilla, lakeilla, viiksillä ja vaatteiden yksityiskohdilla on omat
 piirroksensa jokaiseen näkymään (`views`). Silmät, kulmakarvat ja suu

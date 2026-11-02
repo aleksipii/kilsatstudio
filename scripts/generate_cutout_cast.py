@@ -3,9 +3,9 @@
 
 Three project-owned characters in a construction-paper style: a big round
 head sitting straight on a small body, stubby mitten arms and legs, flat
-colours and a dark outline round every rigid piece. Nothing bends: each piece
-is a separate rigid part, mouths and eyes are swapped drawings, and head turns
-swap per-view drawings (`views`).
+colours and a dark outline round every piece. Sleeves and trouser legs are
+single pieces skinned to two joints; everything else is rigid. Mouths and eyes
+are swapped drawings, and head turns swap per-view drawings (`views`).
 
 The rigs use the same 15 joint ids as the stick-studio cast, so gestures,
 gaits and joint clips that name those joints also drive these figures.
@@ -125,11 +125,15 @@ def _joints(build):
         {"id": "torso", "parent": "root", "y": -4},
         {"id": "head", "parent": "torso", "y": -(body + build["head"][1] - 6)},
     ]
-    for side, sign in (("l", -1), ("r", 1)):
+    # Relaxed arms: elbows just off the body, forearms tipped in so the
+    # mittens rest by the hips. The two sides differ slightly so the standing
+    # pose is not a mirror image ("twinning").
+    for side, sign, out, bend in (("l", -1, 0.30, 0.16), ("r", 1, 0.24, 0.22)):
         joints.extend([
             {"id": "upper_arm_" + side, "parent": "torso", "x": sign * (top - 2), "y": -body + 12,
-             "rotation": -sign * 0.42},
-            {"id": "forearm_" + side, "parent": "upper_arm_" + side, "y": 18},
+             "rotation": -sign * out},
+            {"id": "forearm_" + side, "parent": "upper_arm_" + side, "y": 18,
+             "rotation": sign * bend},
             {"id": "hand_" + side, "parent": "forearm_" + side, "y": 14},
         ])
     for side, sign in (("l", -1), ("r", 1)):
@@ -141,10 +145,13 @@ def _joints(build):
     return joints
 
 
-def _tube(name, upper, lower, bend, top, bottom, half_top, half_bottom, color):
+def _tube(name, upper, lower, bend, top, bottom, half_top, half_bottom, color, cap=False):
     """One seamless piece from `top` to `bottom` (upper-joint local y) skinned
     to two joints, so it bends smoothly at `bend` (the lower joint) with no
-    seam. Weights blend linearly over the rows either side of the bend."""
+    seam. Weights blend linearly over the rows either side of the bend.
+
+    With `cap`, the top end is a half circle round the pivot (top must be 0):
+    the cut-out rule that a piece rotating over another shows no corner."""
     rows = sorted({y for y in (top, (top + bend) / 2, bend - 6, bend, bend + 6,
                                (bend + bottom) / 2, bottom) if top <= y <= bottom})
     def half(y):
@@ -153,6 +160,11 @@ def _tube(name, upper, lower, bend, top, bottom, half_top, half_bottom, color):
         return min(max((y - (bend - 8)) / 16, 0.0), 1.0)
     left = [[-round(half(y), 2), round(y, 2)] for y in rows]
     right = [[round(half(y), 2), round(y, 2)] for y in reversed(rows)]
+    if cap:
+        assert top == 0
+        arc = [[round(half_top * math.cos(math.radians(a)), 2),
+                round(-half_top * math.sin(math.radians(a)), 2)] for a in (30, 60, 90, 120, 150)]
+        right += arc
     points = left + right
     skin = []
     for _, y in points:
@@ -179,7 +191,24 @@ def _legs(build, pants, shoes):
                   pants),
             _ellipse("shoe_" + side, "foot_" + side, sign * 4, 3, 16, 7.5, shoes),
         ])
+        # Turned views point both toes the way the figure faces (+x; facing
+        # left mirrors the whole figure).
+        parts[-1]["views"] = {
+            "three_quarter": {"ellipse": {"cx": sign * 2 + 4, "cy": 3, "rx": 15, "ry": 7.5}},
+            "side": {"ellipse": {"cx": 7, "cy": 3, "rx": 14, "ry": 7.5}},
+        }
     return parts
+
+
+# Raised arms swing out beside the big head instead of straight up behind it:
+# the shoulders stop about 30 degrees above horizontal, the other way they can
+# still fold across the chest. Elbows fold inward only to about horizontal,
+# so crossed arms rest on the chest of these short-armed figures rather than
+# under the chin.
+ARM_LIMITS = {"upper_arm_l": {"min_rotation": -2.6, "max_rotation": 2.15},
+              "upper_arm_r": {"min_rotation": -2.15, "max_rotation": 2.6},
+              "forearm_l": {"min_rotation": -1.7, "max_rotation": 2.9},
+              "forearm_r": {"min_rotation": -2.9, "max_rotation": 1.7}}
 
 
 def _torso(build, shirt):
@@ -194,9 +223,10 @@ def _arms(sleeve, hand):
     parts = []
     for side in ("l", "r"):
         parts.extend([
-            # One sleeve from shoulder to wrist, bending at the elbow (y=18).
-            _tube("arm_" + side, "upper_arm_" + side, "forearm_" + side, 18, -8, 33, 8, 7,
-                  sleeve),
+            # One sleeve from shoulder to wrist, bending at the elbow (y=18),
+            # with a round cap centred on the shoulder pivot.
+            _tube("arm_" + side, "upper_arm_" + side, "forearm_" + side, 18, 0, 33, 8, 7,
+                  sleeve, cap=True),
             _ellipse("hand_" + side, "hand_" + side, 0, 6, 8.5, 9.5, hand),
         ])
     return parts
@@ -409,9 +439,11 @@ def characters():
         body, behind_head, over_head, on_face = SPECIFIC[identifier](build)
         face = _face(build, brow=4.6 if identifier == "RAUNO" else 3.2)
         arms = _arms(_rgba(SLEEVES[identifier]), build["skin"])
-        # Paper order: legs and body, then arms in front, then the head with
-        # its hair/hat over the face shape but under eyes, brows and mouth.
-        parts = body + arms + behind_head + face[:1] + over_head + face[1:] + on_face
+        # Paper order: legs and body, then the head with its hair/hat over
+        # the face shape but under eyes, brows and mouth, and the arms on top
+        # so a raised or folded arm stays in front of the head and chest. At
+        # rest the round shoulder caps sit below the chin line.
+        parts = body + behind_head + face[:1] + over_head + face[1:] + on_face + arms
         expressions = {
             "happy": [("brow_l", "happy"), ("brow_r", "happy"), ("mouth", "smile")],
             "sad": [("brow_l", "worried"), ("brow_r", "worried"), ("mouth", "frown")],
@@ -425,7 +457,7 @@ def characters():
             "timing": {"on": 2, "turn": "snap"},
             "rig": {
                 "version": 1, "id": identifier.lower() + "_cutout_original",
-                "joints": _joints(build), "parts": parts,
+                "joints": _joints(build), "parts": parts, "joint_limits": ARM_LIMITS,
                 "visemes": {"part": "mouth", "map": {name: name for name in VISEME_NAMES}},
                 "expressions": {emotion: [{"part": part, "variant": variant}
                                           for part, variant in entries]
@@ -591,10 +623,16 @@ def demo_scene():
         {"type": "emotion", "actor": "TOPI", "at": 2.5, "value": "surprised"},
         {"type": "face", "actor": "TOPI", "at": 2.5, "value": "front"},
         {"type": "emotion", "actor": "RAUNO", "at": 3.0, "value": "angry"},
+        # The body acts the emotion too: arms fold while Rauno is cross...
+        {"type": "gesture", "actor": "RAUNO", "at": 3.0, "value": "arms_crossed", "duration": 1.8},
+        # ...Ilona's startle is a take (crouch, pop up, land) as she turns...
+        {"type": "gesture", "actor": "ILONA", "at": 3.7, "value": "jump", "duration": 0.8},
         {"type": "face", "actor": "ILONA", "at": 4.0, "value": "right"},
         {"type": "emotion", "actor": "ILONA", "at": 4.0, "value": "surprised"},
         {"type": "face", "actor": "RAUNO", "at": 5.0, "value": "back"},
         {"type": "emotion", "actor": "TOPI", "at": 5.0, "value": "sad"},
+        # ...and Topi shrugs once he is sad.
+        {"type": "gesture", "actor": "TOPI", "at": 5.1, "value": "shrug", "duration": 1.2},
         {"type": "face", "actor": "ILONA", "at": 6.0, "value": "front"},
         {"type": "emotion", "actor": "ILONA", "at": 6.0, "value": "happy"},
         {"type": "face", "actor": "RAUNO", "at": 6.5, "value": "front"},

@@ -157,8 +157,26 @@ fn demo_plays_on_twos_with_snap_turns_and_renders() {
     assert_eq!(part("moustache").color[3], 0);
     assert!(part("hair_back_patch").color[3] > 0);
 
+    // ILONA's wave swings the arm out beside her big head (joint limits stop
+    // it going straight up behind it), and arms draw over the head, so the
+    // raised mitten is above the chin and in front of the face.
+    let waving = frame(&script, 44);
+    let ilona = actor(&waving, "ILONA");
+    let index = |id: &str| ilona.rigid_parts.iter().position(|p| p.id == id).unwrap();
+    assert!(index("hand_r") > index("face"), "arms draw over the head");
+    let mean_y = |id: &str| {
+        let points = &ilona.rigid_parts[index(id)].points;
+        points.iter().map(|p| p.y).sum::<f64>() / points.len() as f64
+    };
+    let chin = ilona.rigid_parts[index("face")]
+        .points
+        .iter()
+        .map(|p| p.y)
+        .fold(f64::MIN, f64::max);
+    assert!(mean_y("hand_r") < chin, "the waving mitten is raised");
+
     let images = BTreeMap::new();
-    for f in [0, 30, 66, 100, 126, 160] {
+    for f in [0, 30, 44, 66, 92, 100, 106, 126, 140, 160] {
         let scene = frame(&script, f);
         let svg =
             motion_render::render_svg_with_art(&scene, 1920, 1080, &[], "katu", &art, &images)

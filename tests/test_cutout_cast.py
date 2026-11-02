@@ -1,6 +1,7 @@
 """The committed cut-out cast matches its generator; no network or model needed."""
 import importlib.util
 import json
+import math
 from pathlib import Path
 import tempfile
 import unittest
@@ -45,6 +46,24 @@ class CutoutCastTest(unittest.TestCase):
                     self.assertEqual(joints, {upper, lower}, (identifier, name))
                     for weights in part["skin"]:
                         self.assertAlmostEqual(sum(w["weight"] for w in weights), 1.0)
+
+    def test_arms_draw_last_with_round_shoulders_and_limited_reach(self):
+        for identifier, character in cast.characters().items():
+            rig = character["rig"]
+            order = [part["id"] for part in rig["parts"]]
+            self.assertEqual(order[-4:], ["arm_l", "hand_l", "arm_r", "hand_r"], identifier)
+            self.assertEqual(rig["joint_limits"], cast.ARM_LIMITS)
+            rest = {joint["id"]: joint.get("rotation", 0) for joint in rig["joints"]}
+            for joint, limit in cast.ARM_LIMITS.items():
+                self.assertTrue(limit["min_rotation"] <= rest[joint] <= limit["max_rotation"])
+            # Not a mirror image at rest.
+            self.assertNotEqual(rest["upper_arm_l"], -rest["upper_arm_r"])
+            # The sleeve's shoulder end is a half circle round the pivot.
+            arm = next(part for part in rig["parts"] if part["id"] == "arm_r")
+            top = [p for p in arm["points"] if p[1] < 0]
+            self.assertTrue(top)
+            for x, y in top:
+                self.assertAlmostEqual(math.hypot(x, y), 8, delta=0.05)
 
     def test_check_rejects_shapes_the_rig_validator_would_refuse(self):
         def broken(change):
