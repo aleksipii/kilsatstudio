@@ -61,14 +61,14 @@ Rigs without the stick limb joints get an empty report.
 ## Character style presets
 
 `motion_art::style::CharacterStyle` serializes as `default`, `stick`,
-`rubber_hose`, `flat_tv` or `geometric`. `CharacterStyle::preset()` gives the
+`rubber_hose`, `flat_tv`, `geometric` or `cutout`. `CharacterStyle::preset()` gives the
 measurable settings, and `motion_render::model_sheet::apply_character_style(rig, style)`
 returns a restyled copy:
 
 | Setting | How it is applied |
 | --- | --- |
 | `line_width_scale` | Parts with a polygon at least 2.5× longer than wide (limb lines) are scaled across their principal axis about the centroid. Parts with point-replacing variants are left alone |
-| `outline` | `Keep`; `Off` removes all part and variant outlines; `On` gives every part one silhouette-mode outline of the preset colour and width |
+| `outline` | `Keep`; `Off` removes all part and variant outlines; `On` gives every part one silhouette-mode outline of the preset colour and width; `PerPart` gives every part its own behind-mode outline, so overlapping pieces keep their edges |
 | `joint_rounding` | Sets `smooth` on polygon parts, capped so a rounded polygon stays within the 64 vertices rig validation accepts (a 14-point limb gets at most 4) |
 | `palette` | Colours are mapped by relative luminance: below 0.08 to ink, above 0.6 to paper, mid tones to the three accents in first-appearance order; alpha is kept |
 | `squash_stretch` | Default amount recorded for P03's squash-and-stretch field. **No evaluator reads it yet** |
@@ -80,6 +80,7 @@ returns a restyled copy:
 | `rubber_hose` | 1.6× | on, 2.0 | 8 (capped) | ink, cream, red/yellow/green | 0.35 |
 | `flat_tv` | 1.25× | on, 3.0 | 3 | plum ink, warm skin, blue/orange/green | 0.1 |
 | `geometric` | 1.0× | off | 0 (sharp) | navy, pale blue, teal/amber/indigo | 0 |
+| `cutout` | 1.0× | per part, 3.5 | 2 | near-black, paper white, red/blue/yellow | 0 |
 
 The directions are generic and original; no existing production's characters or
 graphics are copied. `default` is the identity: the restyled rig equals the
@@ -102,14 +103,18 @@ panel previews the style only; the project's rig is not modified.
 ## Tests
 
 - `crates/motion-render/tests/model_sheet.rs`: every stick character in every
-  style renders twice to identical bytes, with 6 expressions, 13 mouth shapes,
+  style (six, including `cutout`) renders twice to identical bytes, with 6 expressions, 13 mouth shapes,
   3–5 head heights, opaque swatches and 4 limb readings; SHA-256 reference hashes
-  of Päsmä's sheet in all five styles; `default` is the identity and every preset
+  of Päsmä's sheet in all six styles; `default` is the identity and every preset
   keeps rigs valid and structurally identical; preset settings reach the rig;
   rest poses do not warn while a folded arm does; limbless rigs give an empty
   report and a sheet without face rows.
 - `crates/motion-art/src/style.rs`: style names round-trip through serde; the
   default preset changes nothing; luminance-role palette mapping keeps alpha.
+- `crates/motion-export/tests/cutout_cast.rs`: the three cut-out characters
+  ([examples/cutout-cast](../examples/cutout-cast/README.md)) give complete,
+  byte-stable sheets in `default` and `cutout` (about two heads tall, no limb
+  warnings at rest). `CUTOUT_OUT=<dir>` writes them and demo frames as PNG.
 - `apps/studio-desktop/src/model_sheet_panel.rs`: the panel job writes SVG and a
   PNG, measures proportions, and reports a missing folder as an error.
 
