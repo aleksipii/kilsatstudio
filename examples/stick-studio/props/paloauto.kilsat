@@ -1,0 +1,602 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Paloauto\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_paloauto_light_bar",
+        "name": "paloauto light bar",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 388.0,
+            "y": 182.96,
+            "width": 66.0,
+            "height": 7.92
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_cab_outline",
+        "name": "paloauto cab outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 370.4,
+            "y": 190.0,
+            "width": 101.2,
+            "height": 114.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_cab_fill",
+        "name": "paloauto cab fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 374.36,
+            "y": 193.96,
+            "width": 93.28,
+            "height": 106.48
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_windshield",
+        "name": "paloauto windshield",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 199.68,
+            "width": 51.92,
+            "height": 40.48
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_body_outline",
+        "name": "paloauto body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40.4,
+            "y": 234.0,
+            "width": 338.8,
+            "height": 70.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_body_fill",
+        "name": "paloauto body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44.36,
+            "y": 237.96,
+            "width": 330.88,
+            "height": 62.48
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_lockers",
+        "name": "paloauto lockers",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 53.6,
+            "y": 247.2,
+            "width": 308.0,
+            "height": 33.44
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_locker_seams",
+        "name": "paloauto locker seams",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 154.8,
+              "y": 248.08
+            },
+            {
+              "x": 154.8,
+              "y": 279.76
+            }
+          ],
+          "width": 2.2,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_locker_seams_two",
+        "name": "paloauto locker seams two",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 248.08
+            },
+            {
+              "x": 256.0,
+              "y": 279.76
+            }
+          ],
+          "width": 2.2,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_ladder_rail_top",
+        "name": "paloauto ladder rail top",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 53.6,
+              "y": 218.16
+            },
+            {
+              "x": 370.4,
+              "y": 218.16
+            }
+          ],
+          "width": 3.96,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_ladder_rail_bottom",
+        "name": "paloauto ladder rail bottom",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 53.6,
+              "y": 231.36
+            },
+            {
+              "x": 370.4,
+              "y": 231.36
+            }
+          ],
+          "width": 3.96,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_ladder_rungs",
+        "name": "paloauto ladder rungs",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 53.6,
+              "y": 231.36
+            },
+            {
+              "x": 71.2,
+              "y": 218.16
+            },
+            {
+              "x": 88.8,
+              "y": 231.36
+            },
+            {
+              "x": 106.4,
+              "y": 218.16
+            },
+            {
+              "x": 124.0,
+              "y": 231.36
+            },
+            {
+              "x": 141.6,
+              "y": 218.16
+            },
+            {
+              "x": 159.2,
+              "y": 231.36
+            },
+            {
+              "x": 176.8,
+              "y": 218.16
+            },
+            {
+              "x": 194.4,
+              "y": 231.36
+            },
+            {
+              "x": 212.0,
+              "y": 218.16
+            },
+            {
+              "x": 229.6,
+              "y": 231.36
+            },
+            {
+              "x": 247.2,
+              "y": 218.16
+            },
+            {
+              "x": 264.8,
+              "y": 231.36
+            },
+            {
+              "x": 282.4,
+              "y": 218.16
+            },
+            {
+              "x": 300.0,
+              "y": 231.36
+            },
+            {
+              "x": 317.6,
+              "y": 218.16
+            },
+            {
+              "x": 335.2,
+              "y": 231.36
+            },
+            {
+              "x": 352.8,
+              "y": 218.16
+            },
+            {
+              "x": 370.4,
+              "y": 231.36
+            }
+          ],
+          "width": 2.64,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_stripe",
+        "name": "paloauto stripe",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 43.92,
+            "y": 291.2,
+            "width": 424.16,
+            "height": 6.16
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_headlamp",
+        "name": "paloauto headlamp",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 461.04,
+            "y": 269.2,
+            "width": 7.92,
+            "height": 13.2
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_wheel_back_outline",
+        "name": "paloauto wheel back outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 80.0,
+            "y": 296.48,
+            "width": 43.12,
+            "height": 43.12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_wheel_back_fill",
+        "name": "paloauto wheel back fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 88.8,
+            "y": 305.28,
+            "width": 25.52,
+            "height": 25.52
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_wheel_middle_outline",
+        "name": "paloauto wheel middle outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 220.8,
+            "y": 296.48,
+            "width": 43.12,
+            "height": 43.12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_wheel_middle_fill",
+        "name": "paloauto wheel middle fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 229.6,
+            "y": 305.28,
+            "width": 25.52,
+            "height": 25.52
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_wheel_front_outline",
+        "name": "paloauto wheel front outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 396.8,
+            "y": 296.48,
+            "width": 43.12,
+            "height": 43.12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloauto_wheel_front_fill",
+        "name": "paloauto wheel front fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 405.6,
+            "y": 305.28,
+            "width": 25.52,
+            "height": 25.52
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

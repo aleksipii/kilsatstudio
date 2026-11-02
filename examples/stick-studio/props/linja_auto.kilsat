@@ -1,0 +1,464 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kaupunkibussi\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_linja_auto_body_outline",
+        "name": "linja auto body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 39.728813559322035,
+            "y": 190.7457627118644,
+            "width": 432.54237288135596,
+            "height": 119.32203389830508
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_body_fill",
+        "name": "linja auto body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 43.45762711864407,
+            "y": 194.4745762711864,
+            "width": 425.08474576271186,
+            "height": 111.86440677966102
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_window_band",
+        "name": "linja auto window band",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 46.440677966101696,
+            "y": 204.9152542372881,
+            "width": 419.1186440677966,
+            "height": 47.728813559322035
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_window_0",
+        "name": "linja auto window 0",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 50.91525423728814,
+            "y": 208.64406779661016,
+            "width": 64.13559322033899,
+            "height": 40.271186440677965
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_window_1",
+        "name": "linja auto window 1",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 122.50847457627118,
+            "y": 208.64406779661016,
+            "width": 64.13559322033899,
+            "height": 40.271186440677965
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_window_2",
+        "name": "linja auto window 2",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 194.10169491525423,
+            "y": 208.64406779661016,
+            "width": 64.13559322033899,
+            "height": 40.271186440677965
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_window_3",
+        "name": "linja auto window 3",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 265.6949152542373,
+            "y": 208.64406779661016,
+            "width": 64.13559322033899,
+            "height": 40.271186440677965
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_window_4",
+        "name": "linja auto window 4",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 337.2881355932203,
+            "y": 208.64406779661016,
+            "width": 64.13559322033899,
+            "height": 40.271186440677965
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_door",
+        "name": "linja auto door",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 408.8813559322034,
+            "y": 208.64406779661016,
+            "width": 52.20338983050848,
+            "height": 93.96610169491525
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_door_seam",
+        "name": "linja auto door seam",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 434.9830508474576,
+              "y": 211.62711864406776
+            },
+            {
+              "x": 434.9830508474576,
+              "y": 299.62711864406776
+            }
+          ],
+          "width": 2.2372881355932206,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_destination",
+        "name": "linja auto destination",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.37288135593224,
+            "y": 193.72881355932202,
+            "width": 49.22033898305085,
+            "height": 10.440677966101696
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_stripe",
+        "name": "linja auto stripe",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 43.45762711864407,
+            "y": 271.2881355932203,
+            "width": 361.6949152542373,
+            "height": 8.203389830508474
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_skirt",
+        "name": "linja auto skirt",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 43.45762711864407,
+            "y": 295.1525423728813,
+            "width": 425.08474576271186,
+            "height": 12.677966101694915
+          },
+          "color": {
+            "r": 51,
+            "g": 87,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_headlamp",
+        "name": "linja auto headlamp",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 463.3220338983051,
+            "y": 280.9830508474576,
+            "width": 5.966101694915254,
+            "height": 11.186440677966102
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_wheel_back_outline",
+        "name": "linja auto wheel back outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 91.9322033898305,
+            "y": 291.4237288135593,
+            "width": 37.28813559322034,
+            "height": 37.28813559322034
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_wheel_back_fill",
+        "name": "linja auto wheel back fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 99.38983050847457,
+            "y": 298.8813559322034,
+            "width": 22.372881355932204,
+            "height": 22.372881355932204
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_wheel_front_outline",
+        "name": "linja auto wheel front outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 364.135593220339,
+            "y": 291.4237288135593,
+            "width": 37.28813559322034,
+            "height": 37.28813559322034
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_linja_auto_wheel_front_fill",
+        "name": "linja auto wheel front fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 371.59322033898303,
+            "y": 298.8813559322034,
+            "width": 22.372881355932204,
+            "height": 22.372881355932204
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

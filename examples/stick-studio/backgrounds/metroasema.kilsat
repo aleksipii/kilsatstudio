@@ -1,0 +1,4018 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Metroasema\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#d6ded6\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "tausta_tausta_metroasema_wall",
+        "name": "metroasema wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 214,
+            "g": 222,
+            "b": 214,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_tile_row_0",
+        "name": "metroasema tile row 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 150
+            },
+            {
+              "x": 1920,
+              "y": 150
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_tile_row_1",
+        "name": "metroasema tile row 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 260
+            },
+            {
+              "x": 1920,
+              "y": 260
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_light_strip",
+        "name": "metroasema light strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 30,
+            "width": 1920,
+            "height": 16
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_sign_outline",
+        "name": "metroasema station sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 700,
+            "y": 90,
+            "width": 520,
+            "height": 100
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_sign_fill",
+        "name": "metroasema station sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 708,
+            "y": 98,
+            "width": 504,
+            "height": 84
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_lettering",
+        "name": "metroasema station lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 760,
+              "y": 140
+            },
+            {
+              "x": 830,
+              "y": 122
+            },
+            {
+              "x": 900,
+              "y": 156
+            },
+            {
+              "x": 970,
+              "y": 122
+            },
+            {
+              "x": 1040,
+              "y": 156
+            },
+            {
+              "x": 1160,
+              "y": 132
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_cable",
+        "name": "metroasema clock cable",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 0
+            },
+            {
+              "x": 330,
+              "y": 70
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_outline",
+        "name": "metroasema clock outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 270,
+            "y": 70,
+            "width": 120,
+            "height": 120
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_fill",
+        "name": "metroasema clock fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 278,
+            "y": 78,
+            "width": 104,
+            "height": 104
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_hands",
+        "name": "metroasema clock hands",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 98
+            },
+            {
+              "x": 330,
+              "y": 130
+            },
+            {
+              "x": 356,
+              "y": 142
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train",
+        "name": "metroasema train",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 360,
+            "width": 1960,
+            "height": 440
+          },
+          "color": {
+            "r": 214,
+            "g": 212,
+            "b": 202,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_roof",
+        "name": "metroasema train roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 344,
+            "width": 1960,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_stripe",
+        "name": "metroasema train stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 660,
+            "width": 1960,
+            "height": 34
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_0",
+        "name": "metroasema train window 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60,
+            "y": 430,
+            "width": 200,
+            "height": 150
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_1",
+        "name": "metroasema train window 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 520,
+            "y": 430,
+            "width": 300,
+            "height": 150
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_2",
+        "name": "metroasema train window 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1300,
+            "y": 430,
+            "width": 300,
+            "height": 150
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_3",
+        "name": "metroasema train window 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1700,
+            "y": 430,
+            "width": 200,
+            "height": 150
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_outline",
+        "name": "metroasema train door 0 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 870,
+            "y": 410,
+            "width": 180,
+            "height": 390
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_fill",
+        "name": "metroasema train door 0 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 877,
+            "y": 417,
+            "width": 166,
+            "height": 376
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_glass",
+        "name": "metroasema train door 0 glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 904,
+            "y": 440,
+            "width": 112,
+            "height": 150
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_outline",
+        "name": "metroasema train door 1 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1060,
+            "y": 410,
+            "width": 180,
+            "height": 390
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_fill",
+        "name": "metroasema train door 1 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1067,
+            "y": 417,
+            "width": 166,
+            "height": 376
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_glass",
+        "name": "metroasema train door 1 glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1094,
+            "y": 440,
+            "width": 112,
+            "height": 150
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_destination",
+        "name": "metroasema train destination",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 860,
+            "y": 372,
+            "width": 380,
+            "height": 30
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_skirt",
+        "name": "metroasema train skirt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 760,
+            "width": 1960,
+            "height": 40
+          },
+          "color": {
+            "r": 110,
+            "g": 120,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_edge",
+        "name": "metroasema platform edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 800,
+            "width": 1920,
+            "height": 22
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform",
+        "name": "metroasema platform",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 822,
+            "width": 1920,
+            "height": 258
+          },
+          "color": {
+            "r": 200,
+            "g": 198,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam",
+        "name": "metroasema platform seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 920
+            },
+            {
+              "x": 1920,
+              "y": 920
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_two",
+        "name": "metroasema platform seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 560,
+              "y": 824
+            },
+            {
+              "x": 300,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_three",
+        "name": "metroasema platform seam three",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1360,
+              "y": 824
+            },
+            {
+              "x": 1620,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_wall",
+        "name": "metroasema rev wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 214,
+            "g": 222,
+            "b": 214,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_tile_row",
+        "name": "metroasema rev tile row",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 150
+            },
+            {
+              "x": 1920,
+              "y": 150
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_light_strip",
+        "name": "metroasema rev light strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 30,
+            "width": 1920,
+            "height": 16
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_outline",
+        "name": "metroasema rev map outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160,
+            "y": 180,
+            "width": 620,
+            "height": 340
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_fill",
+        "name": "metroasema rev map fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 168,
+            "y": 188,
+            "width": 604,
+            "height": 324
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_line_red",
+        "name": "metroasema rev map line red",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 200,
+              "y": 440
+            },
+            {
+              "x": 360,
+              "y": 300
+            },
+            {
+              "x": 560,
+              "y": 300
+            },
+            {
+              "x": 740,
+              "y": 220
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_line_blue",
+        "name": "metroasema rev map line blue",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 200,
+              "y": 260
+            },
+            {
+              "x": 400,
+              "y": 380
+            },
+            {
+              "x": 740,
+              "y": 400
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 70,
+            "g": 112,
+            "b": 156,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_line_green",
+        "name": "metroasema rev map line green",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 460,
+              "y": 200
+            },
+            {
+              "x": 460,
+              "y": 500
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 84,
+            "g": 146,
+            "b": 104,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_stop_0",
+        "name": "metroasema rev map stop 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 348,
+            "y": 288,
+            "width": 24,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_stop_1",
+        "name": "metroasema rev map stop 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 448,
+            "y": 288,
+            "width": 24,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_stop_2",
+        "name": "metroasema rev map stop 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 448,
+            "y": 368,
+            "width": 24,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_map_stop_3",
+        "name": "metroasema rev map stop 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 588,
+            "y": 286,
+            "width": 24,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_ticket_machine_0_outline",
+        "name": "metroasema rev ticket machine 0 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880,
+            "y": 520,
+            "width": 120,
+            "height": 290
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_ticket_machine_0_fill",
+        "name": "metroasema rev ticket machine 0 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 887,
+            "y": 527,
+            "width": 106,
+            "height": 276
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_ticket_machine_0_screen",
+        "name": "metroasema rev ticket machine 0 screen",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 900,
+            "y": 560,
+            "width": 80,
+            "height": 60
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_ticket_machine_1_outline",
+        "name": "metroasema rev ticket machine 1 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1020,
+            "y": 520,
+            "width": 120,
+            "height": 290
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_ticket_machine_1_fill",
+        "name": "metroasema rev ticket machine 1 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1027,
+            "y": 527,
+            "width": 106,
+            "height": 276
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_ticket_machine_1_screen",
+        "name": "metroasema rev ticket machine 1 screen",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1040,
+            "y": 560,
+            "width": 80,
+            "height": 60
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_escalator_opening",
+        "name": "metroasema rev escalator opening",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1560,
+            "y": 80,
+            "width": 360,
+            "height": 220
+          },
+          "color": {
+            "r": 118,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_escalator_daylight",
+        "name": "metroasema rev escalator daylight",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1600,
+            "y": 100,
+            "width": 320,
+            "height": 120
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 212,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_escalator_side",
+        "name": "metroasema rev escalator side",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 810
+            },
+            {
+              "x": 1840,
+              "y": 250
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 140,
+            "g": 150,
+            "b": 150,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_escalator_steps",
+        "name": "metroasema rev escalator steps",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1200,
+              "y": 790
+            },
+            {
+              "x": 1240,
+              "y": 790
+            },
+            {
+              "x": 1240,
+              "y": 756
+            },
+            {
+              "x": 1240,
+              "y": 756
+            },
+            {
+              "x": 1280,
+              "y": 756
+            },
+            {
+              "x": 1280,
+              "y": 722
+            },
+            {
+              "x": 1280,
+              "y": 722
+            },
+            {
+              "x": 1320,
+              "y": 722
+            },
+            {
+              "x": 1320,
+              "y": 688
+            },
+            {
+              "x": 1320,
+              "y": 688
+            },
+            {
+              "x": 1360,
+              "y": 688
+            },
+            {
+              "x": 1360,
+              "y": 654
+            },
+            {
+              "x": 1360,
+              "y": 654
+            },
+            {
+              "x": 1400,
+              "y": 654
+            },
+            {
+              "x": 1400,
+              "y": 620
+            },
+            {
+              "x": 1400,
+              "y": 620
+            },
+            {
+              "x": 1440,
+              "y": 620
+            },
+            {
+              "x": 1440,
+              "y": 586
+            },
+            {
+              "x": 1440,
+              "y": 586
+            },
+            {
+              "x": 1480,
+              "y": 586
+            },
+            {
+              "x": 1480,
+              "y": 552
+            },
+            {
+              "x": 1480,
+              "y": 552
+            },
+            {
+              "x": 1520,
+              "y": 552
+            },
+            {
+              "x": 1520,
+              "y": 518
+            },
+            {
+              "x": 1520,
+              "y": 518
+            },
+            {
+              "x": 1560,
+              "y": 518
+            },
+            {
+              "x": 1560,
+              "y": 484
+            },
+            {
+              "x": 1560,
+              "y": 484
+            },
+            {
+              "x": 1600,
+              "y": 484
+            },
+            {
+              "x": 1600,
+              "y": 450
+            },
+            {
+              "x": 1600,
+              "y": 450
+            },
+            {
+              "x": 1640,
+              "y": 450
+            },
+            {
+              "x": 1640,
+              "y": 416
+            },
+            {
+              "x": 1640,
+              "y": 416
+            },
+            {
+              "x": 1680,
+              "y": 416
+            },
+            {
+              "x": 1680,
+              "y": 382
+            },
+            {
+              "x": 1680,
+              "y": 382
+            },
+            {
+              "x": 1720,
+              "y": 382
+            },
+            {
+              "x": 1720,
+              "y": 348
+            },
+            {
+              "x": 1720,
+              "y": 348
+            },
+            {
+              "x": 1760,
+              "y": 348
+            },
+            {
+              "x": 1760,
+              "y": 314
+            },
+            {
+              "x": 1760,
+              "y": 314
+            },
+            {
+              "x": 1800,
+              "y": 314
+            },
+            {
+              "x": 1800,
+              "y": 280
+            },
+            {
+              "x": 1800,
+              "y": 280
+            },
+            {
+              "x": 1840,
+              "y": 280
+            },
+            {
+              "x": 1840,
+              "y": 246
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_escalator_rail",
+        "name": "metroasema rev escalator rail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1170,
+              "y": 690
+            },
+            {
+              "x": 1830,
+              "y": 130
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_escalator_posts",
+        "name": "metroasema rev escalator posts",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1190,
+              "y": 800
+            },
+            {
+              "x": 1180,
+              "y": 684
+            },
+            {
+              "x": 1830,
+              "y": 130
+            },
+            {
+              "x": 1840,
+              "y": 250
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_exit_sign_outline",
+        "name": "metroasema rev exit sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1240,
+            "y": 110,
+            "width": 260,
+            "height": 80
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_exit_sign_fill",
+        "name": "metroasema rev exit sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1247,
+            "y": 117,
+            "width": 246,
+            "height": 66
+          },
+          "color": {
+            "r": 84,
+            "g": 146,
+            "b": 104,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_exit_arrow",
+        "name": "metroasema rev exit arrow",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1300,
+              "y": 150
+            },
+            {
+              "x": 1440,
+              "y": 150
+            },
+            {
+              "x": 1410,
+              "y": 126
+            },
+            {
+              "x": 1440,
+              "y": 150
+            },
+            {
+              "x": 1410,
+              "y": 174
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_floor",
+        "name": "metroasema rev floor",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 200,
+            "g": 198,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_floor_seam",
+        "name": "metroasema rev floor seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 920
+            },
+            {
+              "x": 1920,
+              "y": 920
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_floor_seam_two",
+        "name": "metroasema rev floor seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 700,
+              "y": 812
+            },
+            {
+              "x": 460,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_bench_back_top",
+        "name": "puistonpenkki back top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 242.4,
+            "y": 736.8,
+            "width": 224.0,
+            "height": 14.56
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_bench_back_low",
+        "name": "puistonpenkki back low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 242.4,
+            "y": 761.44,
+            "width": 224.0,
+            "height": 14.56
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_bench_frame_left",
+        "name": "puistonpenkki frame left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 259.2,
+              "y": 731.2
+            },
+            {
+              "x": 259.2,
+              "y": 802.88
+            },
+            {
+              "x": 245.76,
+              "y": 856.64
+            }
+          ],
+          "width": 6.72,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_bench_frame_right",
+        "name": "puistonpenkki frame right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 449.6,
+              "y": 731.2
+            },
+            {
+              "x": 449.6,
+              "y": 802.88
+            },
+            {
+              "x": 463.04,
+              "y": 856.64
+            }
+          ],
+          "width": 6.72,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_rev_bench_seat",
+        "name": "puistonpenkki seat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 233.44,
+            "y": 792.8,
+            "width": 241.92,
+            "height": 14.56
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_metroasema_wall_high",
+        "name": "metroasema wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 214,
+            "g": 222,
+            "b": 214,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_tile_row_0_high",
+        "name": "metroasema tile row 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 118.52
+            },
+            {
+              "x": 1920,
+              "y": 118.52
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_tile_row_1_high",
+        "name": "metroasema tile row 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 205.43
+            },
+            {
+              "x": 1920,
+              "y": 205.43
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_light_strip_high",
+        "name": "metroasema light strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 23.7,
+            "width": 1920,
+            "height": 12.64
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_sign_outline_high",
+        "name": "metroasema station sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 700,
+            "y": 71.11,
+            "width": 520,
+            "height": 79.01
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_sign_fill_high",
+        "name": "metroasema station sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 708,
+            "y": 77.43,
+            "width": 504,
+            "height": 66.37
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_lettering_high",
+        "name": "metroasema station lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 760,
+              "y": 110.62
+            },
+            {
+              "x": 830,
+              "y": 96.4
+            },
+            {
+              "x": 900,
+              "y": 123.26
+            },
+            {
+              "x": 970,
+              "y": 96.4
+            },
+            {
+              "x": 1040,
+              "y": 123.26
+            },
+            {
+              "x": 1160,
+              "y": 104.3
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_cable_high",
+        "name": "metroasema clock cable",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 0.0
+            },
+            {
+              "x": 330,
+              "y": 55.31
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_outline_high",
+        "name": "metroasema clock outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 282.59,
+            "y": 55.31,
+            "width": 94.81,
+            "height": 94.81
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_fill_high",
+        "name": "metroasema clock fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 288.91,
+            "y": 61.63,
+            "width": 82.17,
+            "height": 82.17
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_hands_high",
+        "name": "metroasema clock hands",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 77.43
+            },
+            {
+              "x": 330,
+              "y": 102.72
+            },
+            {
+              "x": 356,
+              "y": 112.2
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_high",
+        "name": "metroasema train",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 284.44,
+            "width": 1960,
+            "height": 347.65
+          },
+          "color": {
+            "r": 214,
+            "g": 212,
+            "b": 202,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_roof_high",
+        "name": "metroasema train roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 271.8,
+            "width": 1960,
+            "height": 18.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_stripe_high",
+        "name": "metroasema train stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 521.48,
+            "width": 1960,
+            "height": 26.86
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_0_high",
+        "name": "metroasema train window 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60,
+            "y": 339.75,
+            "width": 200,
+            "height": 118.52
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_1_high",
+        "name": "metroasema train window 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 520,
+            "y": 339.75,
+            "width": 300,
+            "height": 118.52
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_2_high",
+        "name": "metroasema train window 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1300,
+            "y": 339.75,
+            "width": 300,
+            "height": 118.52
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_3_high",
+        "name": "metroasema train window 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1700,
+            "y": 339.75,
+            "width": 200,
+            "height": 118.52
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_outline_high",
+        "name": "metroasema train door 0 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 870,
+            "y": 323.95,
+            "width": 180,
+            "height": 308.15
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_fill_high",
+        "name": "metroasema train door 0 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 877,
+            "y": 329.48,
+            "width": 166,
+            "height": 297.09
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_glass_high",
+        "name": "metroasema train door 0 glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 904,
+            "y": 347.65,
+            "width": 112,
+            "height": 118.52
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_outline_high",
+        "name": "metroasema train door 1 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1060,
+            "y": 323.95,
+            "width": 180,
+            "height": 308.15
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_fill_high",
+        "name": "metroasema train door 1 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1067,
+            "y": 329.48,
+            "width": 166,
+            "height": 297.09
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_glass_high",
+        "name": "metroasema train door 1 glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1094,
+            "y": 347.65,
+            "width": 112,
+            "height": 118.52
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_destination_high",
+        "name": "metroasema train destination",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 860,
+            "y": 293.93,
+            "width": 380,
+            "height": 23.7
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_skirt_high",
+        "name": "metroasema train skirt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 600.49,
+            "width": 1960,
+            "height": 31.6
+          },
+          "color": {
+            "r": 110,
+            "g": 120,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_edge_high",
+        "name": "metroasema platform edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 632.1,
+            "width": 1920,
+            "height": 27.46
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_high",
+        "name": "metroasema platform",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 659.56,
+            "width": 1920,
+            "height": 420.44
+          },
+          "color": {
+            "r": 200,
+            "g": 198,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_high",
+        "name": "metroasema platform seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 819.26
+            },
+            {
+              "x": 1920,
+              "y": 819.26
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_two_high",
+        "name": "metroasema platform seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 560,
+              "y": 662.81
+            },
+            {
+              "x": 300,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_three_high",
+        "name": "metroasema platform seam three",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1360,
+              "y": 662.81
+            },
+            {
+              "x": 1620,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_metroasema_wall_low",
+        "name": "metroasema wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 140.0,
+            "width": 1920,
+            "height": 940.0
+          },
+          "color": {
+            "r": 214,
+            "g": 222,
+            "b": 214,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling",
+        "name": "metroasema ceiling",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 140
+          },
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling_edge",
+        "name": "metroasema ceiling edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 140
+            },
+            {
+              "x": 1920,
+              "y": 140
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling_beam_0",
+        "name": "metroasema ceiling beam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 0
+            },
+            {
+              "x": 360,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling_beam_1",
+        "name": "metroasema ceiling beam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 570,
+              "y": 0
+            },
+            {
+              "x": 660,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling_beam_2",
+        "name": "metroasema ceiling beam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 990,
+              "y": 0
+            },
+            {
+              "x": 960,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling_beam_3",
+        "name": "metroasema ceiling beam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1410,
+              "y": 0
+            },
+            {
+              "x": 1260,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_ceiling_beam_4",
+        "name": "metroasema ceiling beam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1830,
+              "y": 0
+            },
+            {
+              "x": 1560,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_tile_row_0_low",
+        "name": "metroasema tile row 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 277.04
+            },
+            {
+              "x": 1920,
+              "y": 277.04
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_tile_row_1_low",
+        "name": "metroasema tile row 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 377.53
+            },
+            {
+              "x": 1920,
+              "y": 377.53
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 190,
+            "g": 200,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_light_strip_low",
+        "name": "metroasema light strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 167.41,
+            "width": 1920,
+            "height": 14.62
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_sign_outline_low",
+        "name": "metroasema station sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 700,
+            "y": 222.22,
+            "width": 520,
+            "height": 91.36
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_sign_fill_low",
+        "name": "metroasema station sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 708,
+            "y": 229.53,
+            "width": 504,
+            "height": 76.74
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_station_lettering_low",
+        "name": "metroasema station lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 760,
+              "y": 267.9
+            },
+            {
+              "x": 830,
+              "y": 251.46
+            },
+            {
+              "x": 900,
+              "y": 282.52
+            },
+            {
+              "x": 970,
+              "y": 251.46
+            },
+            {
+              "x": 1040,
+              "y": 282.52
+            },
+            {
+              "x": 1160,
+              "y": 260.59
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_cable_low",
+        "name": "metroasema clock cable",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 140.0
+            },
+            {
+              "x": 330,
+              "y": 203.95
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_outline_low",
+        "name": "metroasema clock outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 275.19,
+            "y": 203.95,
+            "width": 109.63,
+            "height": 109.63
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_fill_low",
+        "name": "metroasema clock fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 282.49,
+            "y": 211.26,
+            "width": 95.01,
+            "height": 95.01
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_clock_hands_low",
+        "name": "metroasema clock hands",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330,
+              "y": 229.53
+            },
+            {
+              "x": 330,
+              "y": 258.77
+            },
+            {
+              "x": 356,
+              "y": 269.73
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_low",
+        "name": "metroasema train",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 468.89,
+            "width": 1960,
+            "height": 401.98
+          },
+          "color": {
+            "r": 214,
+            "g": 212,
+            "b": 202,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_roof_low",
+        "name": "metroasema train roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 454.27,
+            "width": 1960,
+            "height": 21.93
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_stripe_low",
+        "name": "metroasema train stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 742.96,
+            "width": 1960,
+            "height": 31.06
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_0_low",
+        "name": "metroasema train window 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60,
+            "y": 532.84,
+            "width": 200,
+            "height": 137.04
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_1_low",
+        "name": "metroasema train window 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 520,
+            "y": 532.84,
+            "width": 300,
+            "height": 137.04
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_2_low",
+        "name": "metroasema train window 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1300,
+            "y": 532.84,
+            "width": 300,
+            "height": 137.04
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_window_3_low",
+        "name": "metroasema train window 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1700,
+            "y": 532.84,
+            "width": 200,
+            "height": 137.04
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_outline_low",
+        "name": "metroasema train door 0 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 870,
+            "y": 514.57,
+            "width": 180,
+            "height": 356.3
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_fill_low",
+        "name": "metroasema train door 0 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 877,
+            "y": 520.96,
+            "width": 166,
+            "height": 343.51
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_0_glass_low",
+        "name": "metroasema train door 0 glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 904,
+            "y": 541.98,
+            "width": 112,
+            "height": 137.04
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_outline_low",
+        "name": "metroasema train door 1 outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1060,
+            "y": 514.57,
+            "width": 180,
+            "height": 356.3
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_fill_low",
+        "name": "metroasema train door 1 fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1067,
+            "y": 520.96,
+            "width": 166,
+            "height": 343.51
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_door_1_glass_low",
+        "name": "metroasema train door 1 glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1094,
+            "y": 541.98,
+            "width": 112,
+            "height": 137.04
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_destination_low",
+        "name": "metroasema train destination",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 860,
+            "y": 479.85,
+            "width": 380,
+            "height": 27.41
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_train_skirt_low",
+        "name": "metroasema train skirt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": -20,
+            "y": 834.32,
+            "width": 1960,
+            "height": 36.54
+          },
+          "color": {
+            "r": 110,
+            "g": 120,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_edge_low",
+        "name": "metroasema platform edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 870.86,
+            "width": 1920,
+            "height": 18.02
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_low",
+        "name": "metroasema platform",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 888.89,
+            "width": 1920,
+            "height": 191.11
+          },
+          "color": {
+            "r": 200,
+            "g": 198,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_low",
+        "name": "metroasema platform seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 961.48
+            },
+            {
+              "x": 1920,
+              "y": 961.48
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_two_low",
+        "name": "metroasema platform seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 560,
+              "y": 890.37
+            },
+            {
+              "x": 300,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_metroasema_platform_seam_three_low",
+        "name": "metroasema platform seam three",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1360,
+              "y": 890.37
+            },
+            {
+              "x": 1620,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      }
+    ]
+  }
+}

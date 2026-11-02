@@ -1,0 +1,284 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Pilvenpiirtäjä\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_pilvenpiirtaja_spire",
+        "name": "pilvenpiirtaja spire",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 66.17142857142858
+            },
+            {
+              "x": 256.0,
+              "y": 37.885714285714286
+            }
+          ],
+          "width": 3.142857142857143,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_beacon",
+        "name": "pilvenpiirtaja beacon",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 252.22857142857143,
+            "y": 36.0,
+            "width": 7.542857142857143,
+            "height": 7.542857142857143
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_crown",
+        "name": "pilvenpiirtaja crown",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 211.37142857142857,
+            "y": 63.028571428571425,
+            "width": 89.25714285714285,
+            "height": 20.114285714285714
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_body_outline",
+        "name": "pilvenpiirtaja body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 199.42857142857144,
+            "y": 80.0,
+            "width": 113.14285714285714,
+            "height": 396.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_body_fill",
+        "name": "pilvenpiirtaja body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 201.94285714285715,
+            "y": 82.5142857142857,
+            "width": 108.11428571428571,
+            "height": 390.9714285714286
+          },
+          "color": {
+            "r": 128,
+            "g": 156,
+            "b": 166,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_glass_0",
+        "name": "pilvenpiirtaja glass 0",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 217.65714285714287,
+              "y": 91.31428571428572
+            },
+            {
+              "x": 217.65714285714287,
+              "y": 466.57142857142856
+            }
+          ],
+          "width": 7.542857142857143,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_glass_1",
+        "name": "pilvenpiirtaja glass 1",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 243.42857142857144,
+              "y": 91.31428571428572
+            },
+            {
+              "x": 243.42857142857144,
+              "y": 466.57142857142856
+            }
+          ],
+          "width": 7.542857142857143,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_glass_2",
+        "name": "pilvenpiirtaja glass 2",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 269.2,
+              "y": 91.31428571428572
+            },
+            {
+              "x": 269.2,
+              "y": 466.57142857142856
+            }
+          ],
+          "width": 7.542857142857143,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_glass_3",
+        "name": "pilvenpiirtaja glass 3",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 294.9714285714286,
+              "y": 91.31428571428572
+            },
+            {
+              "x": 294.9714285714286,
+              "y": 466.57142857142856
+            }
+          ],
+          "width": 7.542857142857143,
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pilvenpiirtaja_lobby",
+        "name": "pilvenpiirtaja lobby",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 224.57142857142858,
+            "y": 444.57142857142856,
+            "width": 62.857142857142854,
+            "height": 31.428571428571427
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 //! Desktop side of the high-level story format (`kilsat_story: 1`): the
-//! embedded stick-studio catalog (six characters, four painted sets) and the
+//! embedded stick-studio catalog (six characters, thirteen painted sets) and the
 //! assembly of a compiled story into a project with per-scene set artwork.
 //! Everything is embedded; building a project performs no I/O.
 use crate::project_history::MAX_SOURCE_BYTES;
@@ -11,7 +11,8 @@ use std::collections::{BTreeMap, BTreeSet};
 const MANIFEST: &str = include_str!("../../../examples/stick-studio/manifest.json");
 
 /// `(id, description for the assistant, project)` for each painted set.
-const SETS: [(&str, &str, &str); 4] = [
+/// The first four are the original sets; the rest are the city (pack revision 3).
+const SETS: [(&str, &str, &str); 13] = [
     (
         "toimisto",
         "office interior with desks, daytime",
@@ -31,6 +32,50 @@ const SETS: [(&str, &str, &str); 4] = [
         "hautausmaa",
         "cemetery under a crescent moon, outdoors",
         include_str!("../../../examples/stick-studio/backgrounds/hautausmaa.kilsat"),
+    ),    (
+        "keskusta",
+        "city shopping street by day: bakery, boutique and pharmacy with a traffic light; reverse looks across the road at a bus, a taxi, a bank and a cinema, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/keskusta.kilsat"),
+    ),
+    (
+        "asuinalue",
+        "residential street by day: two family houses with picket fences, a car in the driveway and an autumn maple; reverse looks across the road at apartment blocks and a playground, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/asuinalue.kilsat"),
+    ),
+    (
+        "tori",
+        "market square by day: town hall with a clock tower and two market stalls; reverse shows a department store, a passing tram and a statue, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/tori.kilsat"),
+    ),
+    (
+        "lahikauppa",
+        "corner grocery shop interior: shelves of goods and a drinks fridge; reverse shows the checkout, sliding entrance doors and shopping carts",
+        include_str!("../../../examples/stick-studio/backgrounds/lahikauppa.kilsat"),
+    ),
+    (
+        "huoltoasema",
+        "petrol station at sunset: canopy, fuel pumps, a car filling up and the station shop; reverse shows a car wash and the road, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/huoltoasema.kilsat"),
+    ),
+    (
+        "puisto",
+        "city park by day: path, duck pond, bench and trees with the skyline beyond; reverse shows a playground and an ice-cream stall, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/puisto.kilsat"),
+    ),
+    (
+        "katto",
+        "city rooftop at night: water tank, antenna and the lit skyline under the moon, good for hero moments; reverse shows the stairwell door, a billboard and a bridge, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/katto.kilsat"),
+    ),
+    (
+        "kuja",
+        "back alley at night: brick walls, a lit back door, fire escape, dumpster and an alley cat; reverse looks out of the alley to a lit street with a taxi, outdoors",
+        include_str!("../../../examples/stick-studio/backgrounds/kuja.kilsat"),
+    ),
+    (
+        "metroasema",
+        "metro station platform: a train waiting with open doors and a station clock; reverse shows the route map, ticket machines and the escalator up",
+        include_str!("../../../examples/stick-studio/backgrounds/metroasema.kilsat"),
     ),
 ];
 
@@ -505,6 +550,19 @@ pub(crate) fn build_with(
         };
         document.art.layers.extend(layers);
     }
+    let layers = document.art.layers.len();
+    if layers > motion_art::MAX_LAYERS {
+        return Err(vec![StoryIssue {
+            kind: IssueKind::Bound,
+            path: "scenes".into(),
+            message: format!(
+                "the sets of this story need {layers} artwork layers; the limit is {} — use fewer scenes, fewer camera angles per scene or simpler sets",
+                motion_art::MAX_LAYERS
+            ),
+            line: None,
+            column: None,
+        }]);
+    }
     document
         .validate()
         .map_err(|e| catalog_error(e.to_string()))?;
@@ -523,7 +581,7 @@ mod tests {
     fn catalog_matches_the_embedded_pack() {
         let catalog = catalog().unwrap();
         assert_eq!(catalog.characters.len(), 6);
-        assert_eq!(catalog.sets.len(), 4);
+        assert_eq!(catalog.sets.len(), 13);
         assert!(catalog.characters.values().all(|c| c
             .character
             .rig
@@ -531,6 +589,60 @@ mod tests {
             .is_some_and(|r| r.eyes.is_some())));
         let guide = guide(&ProjectContent::default()).unwrap();
         assert!(guide.contains("SISU") && guide.contains("hautausmaa"));
+        for city in [
+            "keskusta",
+            "asuinalue",
+            "tori",
+            "lahikauppa",
+            "huoltoasema",
+            "puisto",
+            "katto",
+            "kuja",
+            "metroasema",
+        ] {
+            assert!(catalog.sets.contains_key(city), "{city}");
+            assert!(guide.contains(city), "{city} is offered to the assistant");
+        }
+    }
+
+    /// Every pack set has its own reverse drawing, and twelve scenes filmed
+    /// only from the front stay inside the 1024-layer artwork limit.
+    #[test]
+    fn every_pack_set_draws_its_reverse_and_fits_a_long_story() {
+        let library = pack_library().unwrap();
+        for (set, layers) in &library.set_layers {
+            let front = layers
+                .iter()
+                .filter(|l| l.angle.as_deref() == Some("front"))
+                .count();
+            assert!(drawn_for(layers, "reverse"), "{set}");
+            assert!(front > 20, "{set} has {front} front layers");
+            assert!(
+                front * motion_script::story::MAX_STORY_SCENES <= motion_art::MAX_LAYERS,
+                "{set}: {front} front layers"
+            );
+        }
+        let scenes: String = (0..12)
+            .map(|i| format!("  - id: s{i}\n    set: keskusta\n    positions: {{VEIKKO: left}}\n    beats:\n      - say: VEIKKO\n        line: Hi.\n"))
+            .collect();
+        let text = format!(
+            "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {{}}\nscenes:\n{scenes}"
+        );
+        assert!(build(&text, None).unwrap().document.art.layers.len() <= 1024);
+    }
+
+    #[test]
+    fn a_story_over_the_layer_limit_is_reported_as_a_bound() {
+        // Twelve scenes cutting to the reverse need both drawings of the street.
+        let scenes: String = (0..12)
+            .map(|i| format!("  - id: s{i}\n    set: keskusta\n    positions: {{VEIKKO: left}}\n    beats:\n      - say: VEIKKO\n        line: Hi.\n        angle: reverse\n"))
+            .collect();
+        let text = format!(
+            "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {{}}\nscenes:\n{scenes}"
+        );
+        let issues = build(&text, None).err().unwrap();
+        assert_eq!(issues[0].kind, IssueKind::Bound);
+        assert!(issues[0].message.contains("1024"), "{}", issues[0].message);
     }
 
     #[test]

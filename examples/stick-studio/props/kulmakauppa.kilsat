@@ -1,0 +1,542 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kulmakauppa\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_kulmakauppa_body",
+        "name": "kulmakauppa body",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 59.157894736842096,
+            "y": 49.89473684210526,
+            "width": 393.6842105263158,
+            "height": 426.10526315789474
+          },
+          "color": {
+            "r": 198,
+            "g": 158,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_cornice",
+        "name": "kulmakauppa cornice",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 52.210526315789465,
+            "y": 42.94736842105263,
+            "width": 407.57894736842104,
+            "height": 16.210526315789473
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_upper_window_0",
+        "name": "kulmakauppa upper window 0",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 90.42105263157893,
+            "y": 85.78947368421052,
+            "width": 85.6842105263158,
+            "height": 86.8421052631579
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_upper_window_1",
+        "name": "kulmakauppa upper window 1",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 214.31578947368422,
+            "y": 85.78947368421052,
+            "width": 85.6842105263158,
+            "height": 86.8421052631579
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_upper_window_2",
+        "name": "kulmakauppa upper window 2",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 338.2105263157895,
+            "y": 85.78947368421052,
+            "width": 85.6842105263158,
+            "height": 86.8421052631579
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_sign_outline",
+        "name": "kulmakauppa sign outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70.73684210526315,
+            "y": 203.89473684210526,
+            "width": 370.5263157894737,
+            "height": 42.8421052631579
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_sign_fill",
+        "name": "kulmakauppa sign fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 74.78947368421052,
+            "y": 207.94736842105263,
+            "width": 362.42105263157896,
+            "height": 34.73684210526316
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_sign_lettering",
+        "name": "kulmakauppa sign lettering",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 111.26315789473684,
+              "y": 227.05263157894737
+            },
+            {
+              "x": 134.42105263157896,
+              "y": 216.63157894736844
+            },
+            {
+              "x": 157.57894736842104,
+              "y": 234.0
+            },
+            {
+              "x": 186.52631578947367,
+              "y": 216.63157894736844
+            },
+            {
+              "x": 215.4736842105263,
+              "y": 232.8421052631579
+            },
+            {
+              "x": 244.42105263157893,
+              "y": 217.78947368421052
+            },
+            {
+              "x": 273.36842105263156,
+              "y": 234.0
+            },
+            {
+              "x": 302.3157894736842,
+              "y": 218.94736842105263
+            },
+            {
+              "x": 331.2631578947368,
+              "y": 231.6842105263158
+            }
+          ],
+          "width": 4.631578947368421,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_awning",
+        "name": "kulmakauppa awning",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 64.94736842105262,
+            "y": 253.6842105263158,
+            "width": 382.10526315789474,
+            "height": 37.05263157894737
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_awning_stripe_0",
+        "name": "kulmakauppa awning stripe 0",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 103.1578947368421,
+            "y": 253.6842105263158,
+            "width": 37.05263157894737,
+            "height": 37.05263157894737
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_awning_stripe_1",
+        "name": "kulmakauppa awning stripe 1",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 230.52631578947367,
+            "y": 253.6842105263158,
+            "width": 37.05263157894737,
+            "height": 37.05263157894737
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_awning_stripe_2",
+        "name": "kulmakauppa awning stripe 2",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 357.89473684210526,
+            "y": 253.6842105263158,
+            "width": 37.05263157894737,
+            "height": 37.05263157894737
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_window_outline",
+        "name": "kulmakauppa window outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 79.99999999999999,
+            "y": 308.10526315789474,
+            "width": 225.78947368421055,
+            "height": 156.31578947368422
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_window_fill",
+        "name": "kulmakauppa window fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 84.63157894736841,
+            "y": 312.7368421052632,
+            "width": 216.5263157894737,
+            "height": 147.05263157894737
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_fruit_one",
+        "name": "kulmakauppa fruit one",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 99.68421052631578,
+            "y": 429.6842105263158,
+            "width": 52.10526315789474,
+            "height": 28.947368421052634
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_fruit_two",
+        "name": "kulmakauppa fruit two",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 161.05263157894734,
+            "y": 432.0,
+            "width": 49.78947368421053,
+            "height": 26.63157894736842
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_fruit_three",
+        "name": "kulmakauppa fruit three",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 221.26315789473685,
+            "y": 430.8421052631579,
+            "width": 57.89473684210527,
+            "height": 27.789473684210527
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_door_outline",
+        "name": "kulmakauppa door outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 328.94736842105266,
+            "y": 306.94736842105266,
+            "width": 98.42105263157895,
+            "height": 169.05263157894737
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_door_fill",
+        "name": "kulmakauppa door fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 333.57894736842104,
+            "y": 311.57894736842104,
+            "width": 89.15789473684211,
+            "height": 159.78947368421052
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kulmakauppa_door_glass",
+        "name": "kulmakauppa door glass",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 344.0,
+            "y": 323.15789473684214,
+            "width": 68.31578947368422,
+            "height": 83.36842105263159
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

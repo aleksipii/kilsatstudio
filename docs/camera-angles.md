@@ -71,7 +71,10 @@ added by `pose: sit` are always mirrored.
 
 ### Bundled sets
 
-All four bundled sets are drawn for all four angles (`scripts/stick_scenery.py`):
+All thirteen bundled sets are drawn for all four angles: the original four in
+`scripts/stick_scenery.py` and the nine city sets in `scripts/stick_city.py`
+(reverse drawn by hand, high/low by the same horizon move, which also moves clip
+rectangles). The original four:
 
 - `reverse` is the opposite side, drawn by hand. The café shows its entrance, menu
   board and coat rack. The office shows a whiteboard, filing cabinet and printer.

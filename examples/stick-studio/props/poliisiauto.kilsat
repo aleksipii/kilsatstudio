@@ -1,0 +1,489 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Poliisiauto\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_poliisiauto_light_blue",
+        "name": "poliisiauto light blue",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 220.25,
+            "y": 163.1875,
+            "width": 34.375,
+            "height": 15.125
+          },
+          "color": {
+            "r": 70,
+            "g": 112,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_light_red",
+        "name": "poliisiauto light red",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 254.625,
+            "y": 163.1875,
+            "width": 34.375,
+            "height": 15.125
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_cabin_outline",
+        "name": "poliisiauto cabin outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 139.125,
+          "y": 175.5625,
+          "width": 226.875,
+          "height": 71.5
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 139.125,
+            "y": 175.5625,
+            "width": 226.875,
+            "height": 144.375
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_cabin_fill",
+        "name": "poliisiauto cabin fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 145.3125,
+          "y": 181.75,
+          "width": 214.5,
+          "height": 65.3125
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 145.3125,
+            "y": 181.75,
+            "width": 214.5,
+            "height": 132.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_glass",
+        "name": "poliisiauto glass",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 159.75,
+          "y": 194.125,
+          "width": 185.625,
+          "height": 49.5
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 159.75,
+            "y": 194.125,
+            "width": 185.625,
+            "height": 110.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_pillar",
+        "name": "poliisiauto pillar",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 254.625,
+              "y": 196.1875
+            },
+            {
+              "x": 254.625,
+              "y": 244.3125
+            }
+          ],
+          "width": 8.25,
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_body_outline",
+        "name": "poliisiauto body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 48.375,
+            "y": 241.5625,
+            "width": 415.25,
+            "height": 77.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_body_fill",
+        "name": "poliisiauto body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 53.875,
+            "y": 247.0625,
+            "width": 404.25,
+            "height": 66.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_sill",
+        "name": "poliisiauto sill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 53.875,
+            "y": 297.9375,
+            "width": 404.25,
+            "height": 15.125
+          },
+          "color": {
+            "r": 187,
+            "g": 187,
+            "b": 181,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_stripe",
+        "name": "poliisiauto stripe",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 53.875,
+            "y": 269.0625,
+            "width": 404.25,
+            "height": 16.5
+          },
+          "color": {
+            "r": 70,
+            "g": 112,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_door_seam",
+        "name": "poliisiauto door seam",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 254.625,
+              "y": 249.8125
+            },
+            {
+              "x": 254.625,
+              "y": 296.5625
+            }
+          ],
+          "width": 2.75,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_handle",
+        "name": "poliisiauto handle",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 265.625,
+              "y": 260.8125
+            },
+            {
+              "x": 284.875,
+              "y": 260.8125
+            }
+          ],
+          "width": 4.125,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_headlamp",
+        "name": "poliisiauto headlamp",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 441.625,
+            "y": 256.6875,
+            "width": 16.5,
+            "height": 15.125
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_tail_light",
+        "name": "poliisiauto tail light",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 53.875,
+            "y": 256.6875,
+            "width": 11.0,
+            "height": 17.875
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_wheel_back_outline",
+        "name": "poliisiauto wheel back outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 104.75,
+            "y": 288.3125,
+            "width": 67.375,
+            "height": 67.375
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_wheel_back_fill",
+        "name": "poliisiauto wheel back fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 118.5,
+            "y": 302.0625,
+            "width": 39.875,
+            "height": 39.875
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_wheel_front_outline",
+        "name": "poliisiauto wheel front outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 339.875,
+            "y": 288.3125,
+            "width": 67.375,
+            "height": 67.375
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_poliisiauto_wheel_front_fill",
+        "name": "poliisiauto wheel front fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 353.625,
+            "y": 302.0625,
+            "width": 39.875,
+            "height": 39.875
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

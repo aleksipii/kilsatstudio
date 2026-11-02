@@ -26,7 +26,10 @@ from render_kilsat_season import (MAX_JSON, file_hash, inspect_media, probe,
                                   read_json, run_bounded, write_json)
 
 REPO = Path(__file__).resolve().parents[1]
-COUNTS = {'character': 6, 'background': 4, 'prop': 20}
+# Pack revision 3 adds the city: nine sets and 22 props.
+PACK_REVISION = 3
+COUNTS = {'character': 6, 'background': 13, 'prop': 42}
+TOTAL_ITEMS = sum(COUNTS.values())
 HAND_PROP_IDS = ('puhelin', 'puhelin_takana', 'puhelin_vino', 'kahvikuppi', 'kirja',
                  'avain', 'tabletti', 'kyna', 'tyokaluavain')
 DIRECTORIES = {'character': 'characters', 'background': 'backgrounds', 'prop': 'props'}
@@ -158,16 +161,16 @@ def source_identity(root: Path, roadmap: Path) -> tuple[dict, dict]:
     root, roadmap = safe_path(root), safe_path(roadmap)
     manifest = read_json(root / 'manifest.json')
     if (manifest.get('schema_version') != 1
-            or type(manifest.get('pack_revision')) is not int or manifest['pack_revision'] != 2
+            or type(manifest.get('pack_revision')) is not int or manifest['pack_revision'] != PACK_REVISION
             or manifest.get('artistic_review') is not False
             or manifest.get('physical_mac_review') is not False
             or manifest.get('starter_project') != 'stick-studio.kilsat'):
-        raise ValueError('expected an unreviewed schema-one revision-two stick-studio manifest')
+        raise ValueError('expected an unreviewed schema-one revision-three stick-studio manifest')
     items = manifest.get('items')
-    if (not isinstance(items, list) or len(items) != 30
+    if (not isinstance(items, list) or len(items) != TOTAL_ITEMS
             or any(not isinstance(item, dict) for item in items)
             or Counter(item.get('kind') for item in items) != COUNTS):
-        raise ValueError('stick pack requires exactly six characters, four backgrounds and 20 props')
+        raise ValueError('stick pack requires exactly six characters, 13 backgrounds and 42 props')
     hashes = {'manifest.json': file_hash(root / 'manifest.json', MAX_JSON)}
     if manifest.get('hand_props_catalog') != 'hand-props.json':
         raise ValueError('hand-prop catalog path must be hand-props.json')
@@ -210,7 +213,7 @@ def source_identity(root: Path, roadmap: Path) -> tuple[dict, dict]:
             or len(read_json(starter)['source'].encode()) != manifest.get('starter_source_bytes')):
         raise ValueError('starter must retain six characters and six five-second Full HD scenes')
     hashes['README.md'] = file_hash(root / 'README.md', MAX_JSON)
-    return manifest, {'schema_version': 1, 'pack_revision': 2, 'source_sha256': hashes,
+    return manifest, {'schema_version': 1, 'pack_revision': PACK_REVISION, 'source_sha256': hashes,
                       'roadmap': {'path': str(roadmap), 'sha256': file_hash(roadmap, MAX_JSON)},
                       'license_notices': {name: file_hash(REPO/name, MAX_JSON) for name in ('LICENSE','NOTICE')},
                       'profile': PROFILE, 'artistic_review': False, 'physical_mac_review': False,
@@ -247,11 +250,11 @@ def validate_images(directory: Path, manifest: dict) -> dict:
     hashes = {}
     report = read_json(directory / 'export-report.json')
     exported = report.get('items')
-    if (report.get('schema_version') != 1 or report.get('pack_revision') != 2 or not isinstance(exported, list)
+    if (report.get('schema_version') != 1 or report.get('pack_revision') != PACK_REVISION or not isinstance(exported, list)
             or len(exported) != len(manifest['items'])):
         raise ValueError('native asset exporter report is incomplete')
     observed = {(item.get('kind'),item.get('id')): item for item in exported}
-    if len(observed) != 30:
+    if len(observed) != TOTAL_ITEMS:
         raise ValueError('native asset exporter report has duplicate items')
     for item in manifest['items']:
         actual = observed.get((item['kind'],item['id']), {})

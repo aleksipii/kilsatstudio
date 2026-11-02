@@ -1,0 +1,251 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Polttoainemittari\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_polttoainemittari_body_outline",
+        "name": "polttoainemittari body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 173.5,
+            "y": 72.66666666666666,
+            "width": 165.0,
+            "height": 394.16666666666663
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_body_fill",
+        "name": "polttoainemittari body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 180.83333333333331,
+            "y": 80.0,
+            "width": 150.33333333333331,
+            "height": 379.5
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_top",
+        "name": "polttoainemittari top",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 180.83333333333331,
+            "y": 80.0,
+            "width": 150.33333333333331,
+            "height": 55.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_display",
+        "name": "polttoainemittari display",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 201.0,
+            "y": 155.16666666666666,
+            "width": 110.0,
+            "height": 64.16666666666666
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_digits",
+        "name": "polttoainemittari digits",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 215.66666666666666,
+              "y": 173.5
+            },
+            {
+              "x": 234.0,
+              "y": 173.5
+            },
+            {
+              "x": 234.0,
+              "y": 201.0
+            },
+            {
+              "x": 215.66666666666666,
+              "y": 201.0
+            },
+            {
+              "x": 256.0,
+              "y": 201.0
+            },
+            {
+              "x": 256.0,
+              "y": 173.5
+            },
+            {
+              "x": 292.66666666666663,
+              "y": 173.5
+            },
+            {
+              "x": 292.66666666666663,
+              "y": 201.0
+            }
+          ],
+          "width": 4.583333333333333,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_hose",
+        "name": "polttoainemittari hose",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 325.66666666666663,
+              "y": 276.16666666666663
+            },
+            {
+              "x": 358.66666666666663,
+              "y": 347.66666666666663
+            },
+            {
+              "x": 349.5,
+              "y": 421.0
+            },
+            {
+              "x": 329.3333333333333,
+              "y": 444.8333333333333
+            }
+          ],
+          "width": 7.333333333333333,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_holster",
+        "name": "polttoainemittari holster",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 311.0,
+            "y": 252.33333333333331,
+            "width": 36.666666666666664,
+            "height": 77.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_polttoainemittari_base",
+        "name": "polttoainemittari base",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 162.5,
+            "y": 459.5,
+            "width": 187.0,
+            "height": 16.5
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

@@ -283,7 +283,21 @@ fn stick_studio_backgrounds_and_g2_scene_follow_background_style() {
     // Stick-studio scenes place characters at actor scale 1.6 on 1920x1080.
     let style = BackgroundStyle::stick_studio(1920.0, 1080.0, 1.6);
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
-    for name in ["toimisto", "pysakki", "hautausmaa", "kahvila"] {
+    for name in [
+        "toimisto",
+        "pysakki",
+        "hautausmaa",
+        "kahvila",
+        "keskusta",
+        "asuinalue",
+        "tori",
+        "lahikauppa",
+        "huoltoasema",
+        "puisto",
+        "katto",
+        "kuja",
+        "metroasema",
+    ] {
         let path = root.join(format!("stick-studio/backgrounds/{name}.kilsat"));
         let project = motion_project::load(&path).unwrap();
         assert!(project.art.layers.len() > 10, "{name} has its layers");

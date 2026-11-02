@@ -9,7 +9,13 @@ import json
 from pathlib import Path
 
 from stick_characters import CAST, JOINT_IDS, characters
+from stick_city import CITY_PROPS, CITY_SETS
 from stick_scenery import BACKGROUNDS, PROPS
+
+# Pack revision 3 adds the city: nine sets after the original four and the
+# city props after the original props, so earlier items keep their order.
+BACKGROUNDS = {**BACKGROUNDS, **CITY_SETS}
+PROPS = {**PROPS, **CITY_PROPS}
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ROOT / 'examples/stick-studio'
@@ -235,7 +241,7 @@ def generate(destination=DEFAULT):
     if len(starter['source'].encode()) > 100_000:
         raise ValueError('compact starter source must remain below 100 KB')
     (destination / 'stick-studio.kilsat').write_bytes(starter_bytes)
-    manifest = dict(schema_version=1, pack_revision=2, title='Tikku-ukkostudio 2',
+    manifest = dict(schema_version=1, pack_revision=3, title='Tikku-ukkostudio 3',
                     authorship='Original independently authored editable geometric artwork; no third-party artwork or model assets.',
                     cast=CAST, joint_ids=JOINT_IDS, starter_project='stick-studio.kilsat',
                     hand_props_catalog='hand-props.json', hand_props_sha256=sha(catalog_bytes),

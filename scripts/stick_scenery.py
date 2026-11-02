@@ -458,6 +458,10 @@ def _remap_y(layer, f):
     elif content["type"] == "stroke":
         for point in content["points"]:
             point["y"] = round(f(point["y"]), 2)
+    if layer.get("clip"):
+        clip = layer["clip"]
+        top, bottom = f(clip["y"]), f(clip["y"] + clip["height"])
+        layer["clip"] = {**clip, "y": round(top, 2), "height": round(max(bottom - top, 1.0), 2)}
     return layer
 
 

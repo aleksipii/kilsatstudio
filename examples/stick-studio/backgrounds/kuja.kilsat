@@ -1,0 +1,5479 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Takakuja\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#b2988c\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "tausta_tausta_kuja_wall",
+        "name": "kuja wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 178,
+            "g": 152,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_0",
+        "name": "kuja brick course 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 140
+            },
+            {
+              "x": 1920,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_1",
+        "name": "kuja brick course 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 330
+            },
+            {
+              "x": 1920,
+              "y": 330
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_2",
+        "name": "kuja brick course 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 560
+            },
+            {
+              "x": 1920,
+              "y": 560
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_0",
+        "name": "kuja brick patch 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120,
+            "y": 200,
+            "width": 120,
+            "height": 44
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_1",
+        "name": "kuja brick patch 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 760,
+            "y": 420,
+            "width": 120,
+            "height": 44
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_2",
+        "name": "kuja brick patch 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1640,
+            "y": 260,
+            "width": 120,
+            "height": 44
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_ground",
+        "name": "kuja ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 152,
+            "g": 156,
+            "b": 154,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_ground_drain",
+        "name": "kuja ground drain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 812
+            },
+            {
+              "x": 900,
+              "y": 1080
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 128,
+            "g": 132,
+            "b": 130,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_outline",
+        "name": "kuja window outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 110,
+            "width": 210,
+            "height": 170
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_fill",
+        "name": "kuja window fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 649,
+            "y": 119,
+            "width": 192,
+            "height": 152
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_mullion",
+        "name": "kuja window mullion",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 745,
+              "y": 118
+            },
+            {
+              "x": 745,
+              "y": 272
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_pipe",
+        "name": "kuja pipe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 920,
+              "y": 0
+            },
+            {
+              "x": 920,
+              "y": 700
+            },
+            {
+              "x": 980,
+              "y": 790
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_glow",
+        "name": "kuja door glow",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 300,
+            "y": 360,
+            "width": 340,
+            "height": 380
+          },
+          "color": {
+            "r": 238,
+            "g": 211,
+            "b": 134,
+            "a": 40
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_lamp",
+        "name": "kuja door lamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 430,
+            "y": 450,
+            "width": 70,
+            "height": 26
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_outline",
+        "name": "kuja door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 360,
+            "y": 500,
+            "width": 220,
+            "height": 310
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_fill",
+        "name": "kuja door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 369,
+            "y": 509,
+            "width": 202,
+            "height": 292
+          },
+          "color": {
+            "r": 88,
+            "g": 118,
+            "b": 116,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_step",
+        "name": "kuja door step",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 340,
+            "y": 800,
+            "width": 260,
+            "height": 16
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_platform_top",
+        "name": "kuja escape platform top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 230,
+            "width": 560,
+            "height": 16
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_rail_top",
+        "name": "kuja escape rail top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 160
+            },
+            {
+              "x": 1180,
+              "y": 230
+            },
+            {
+              "x": 1220,
+              "y": 230
+            },
+            {
+              "x": 1220,
+              "y": 160
+            },
+            {
+              "x": 1260,
+              "y": 160
+            },
+            {
+              "x": 1260,
+              "y": 230
+            },
+            {
+              "x": 1300,
+              "y": 230
+            },
+            {
+              "x": 1300,
+              "y": 160
+            },
+            {
+              "x": 1340,
+              "y": 160
+            },
+            {
+              "x": 1340,
+              "y": 230
+            },
+            {
+              "x": 1380,
+              "y": 230
+            },
+            {
+              "x": 1380,
+              "y": 160
+            },
+            {
+              "x": 1420,
+              "y": 160
+            },
+            {
+              "x": 1420,
+              "y": 230
+            },
+            {
+              "x": 1460,
+              "y": 230
+            },
+            {
+              "x": 1460,
+              "y": 160
+            },
+            {
+              "x": 1500,
+              "y": 160
+            },
+            {
+              "x": 1500,
+              "y": 230
+            },
+            {
+              "x": 1540,
+              "y": 230
+            },
+            {
+              "x": 1540,
+              "y": 160
+            },
+            {
+              "x": 1580,
+              "y": 160
+            },
+            {
+              "x": 1580,
+              "y": 230
+            },
+            {
+              "x": 1620,
+              "y": 230
+            },
+            {
+              "x": 1620,
+              "y": 160
+            },
+            {
+              "x": 1660,
+              "y": 160
+            },
+            {
+              "x": 1660,
+              "y": 230
+            },
+            {
+              "x": 1700,
+              "y": 230
+            },
+            {
+              "x": 1700,
+              "y": 160
+            },
+            {
+              "x": 1740,
+              "y": 160
+            },
+            {
+              "x": 1740,
+              "y": 230
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_platform_low",
+        "name": "kuja escape platform low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 500,
+            "width": 560,
+            "height": 16
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_rail_low",
+        "name": "kuja escape rail low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 430
+            },
+            {
+              "x": 1180,
+              "y": 500
+            },
+            {
+              "x": 1220,
+              "y": 500
+            },
+            {
+              "x": 1220,
+              "y": 430
+            },
+            {
+              "x": 1260,
+              "y": 430
+            },
+            {
+              "x": 1260,
+              "y": 500
+            },
+            {
+              "x": 1300,
+              "y": 500
+            },
+            {
+              "x": 1300,
+              "y": 430
+            },
+            {
+              "x": 1340,
+              "y": 430
+            },
+            {
+              "x": 1340,
+              "y": 500
+            },
+            {
+              "x": 1380,
+              "y": 500
+            },
+            {
+              "x": 1380,
+              "y": 430
+            },
+            {
+              "x": 1420,
+              "y": 430
+            },
+            {
+              "x": 1420,
+              "y": 500
+            },
+            {
+              "x": 1460,
+              "y": 500
+            },
+            {
+              "x": 1460,
+              "y": 430
+            },
+            {
+              "x": 1500,
+              "y": 430
+            },
+            {
+              "x": 1500,
+              "y": 500
+            },
+            {
+              "x": 1540,
+              "y": 500
+            },
+            {
+              "x": 1540,
+              "y": 430
+            },
+            {
+              "x": 1580,
+              "y": 430
+            },
+            {
+              "x": 1580,
+              "y": 500
+            },
+            {
+              "x": 1620,
+              "y": 500
+            },
+            {
+              "x": 1620,
+              "y": 430
+            },
+            {
+              "x": 1660,
+              "y": 430
+            },
+            {
+              "x": 1660,
+              "y": 500
+            },
+            {
+              "x": 1700,
+              "y": 500
+            },
+            {
+              "x": 1700,
+              "y": 430
+            },
+            {
+              "x": 1740,
+              "y": 430
+            },
+            {
+              "x": 1740,
+              "y": 500
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_stairs",
+        "name": "kuja escape stairs",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1260,
+              "y": 500
+            },
+            {
+              "x": 1640,
+              "y": 246
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_ladder",
+        "name": "kuja escape ladder",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1660,
+              "y": 516
+            },
+            {
+              "x": 1660,
+              "y": 760
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_ladder_right",
+        "name": "kuja escape ladder right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1700,
+              "y": 516
+            },
+            {
+              "x": 1700,
+              "y": 760
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_outline",
+        "name": "kuja dumpster outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 690,
+            "width": 320,
+            "height": 200
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_fill",
+        "name": "kuja dumpster fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 49,
+            "y": 699,
+            "width": 302,
+            "height": 182
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_lid",
+        "name": "kuja dumpster lid",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 674,
+            "width": 340,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_wheel_left",
+        "name": "kuja dumpster wheel left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 70,
+            "y": 880,
+            "width": 34,
+            "height": 34
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_wheel_right",
+        "name": "kuja dumpster wheel right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 296,
+            "y": 880,
+            "width": 34,
+            "height": 34
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_bag",
+        "name": "kuja bag",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 340,
+            "y": 820,
+            "width": 130,
+            "height": 100
+          },
+          "color": {
+            "r": 78,
+            "g": 86,
+            "b": 90,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_bag_two",
+        "name": "kuja bag two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 420,
+            "y": 850,
+            "width": 110,
+            "height": 80
+          },
+          "color": {
+            "r": 98,
+            "g": 104,
+            "b": 104,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_outline",
+        "name": "kuja crate outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1460,
+            "y": 780,
+            "width": 180,
+            "height": 140
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_fill",
+        "name": "kuja crate fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1468,
+            "y": 788,
+            "width": 164,
+            "height": 124
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_slat",
+        "name": "kuja crate slat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1468,
+              "y": 850
+            },
+            {
+              "x": 1632,
+              "y": 850
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_top_outline",
+        "name": "kuja crate top outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1490,
+            "y": 660,
+            "width": 140,
+            "height": 120
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_top_fill",
+        "name": "kuja crate top fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1498,
+            "y": 668,
+            "width": 124,
+            "height": 104
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_body",
+        "name": "kuja cat body",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1520,
+            "y": 610,
+            "width": 80,
+            "height": 56
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_head",
+        "name": "kuja cat head",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1580,
+            "y": 586,
+            "width": 44,
+            "height": 40
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_ears",
+        "name": "kuja cat ears",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1586,
+              "y": 594
+            },
+            {
+              "x": 1590,
+              "y": 576
+            },
+            {
+              "x": 1600,
+              "y": 590
+            },
+            {
+              "x": 1612,
+              "y": 576
+            },
+            {
+              "x": 1618,
+              "y": 594
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_tail",
+        "name": "kuja cat tail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1524,
+              "y": 646
+            },
+            {
+              "x": 1490,
+              "y": 640
+            },
+            {
+              "x": 1478,
+              "y": 600
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_puddle",
+        "name": "kuja puddle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 900,
+            "y": 980,
+            "width": 340,
+            "height": 40
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_sky",
+        "name": "kuja rev street sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 128,
+            "g": 150,
+            "b": 172,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_house",
+        "name": "kuja rev street house",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 180,
+            "width": 640,
+            "height": 460
+          },
+          "color": {
+            "r": 160,
+            "g": 150,
+            "b": 150,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_shop",
+        "name": "kuja rev street shop",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 700,
+            "y": 420,
+            "width": 240,
+            "height": 160
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_shop_two",
+        "name": "kuja rev street shop two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1000,
+            "y": 420,
+            "width": 220,
+            "height": 160
+          },
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_windows",
+        "name": "kuja rev street windows",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 720,
+            "y": 240,
+            "width": 500,
+            "height": 80
+          },
+          "color": {
+            "r": 110,
+            "g": 124,
+            "b": 128,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_road",
+        "name": "kuja rev street road",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 640,
+            "width": 640,
+            "height": 170
+          },
+          "color": {
+            "r": 104,
+            "g": 114,
+            "b": 118,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_kerb",
+        "name": "kuja rev street kerb",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 630,
+            "width": 640,
+            "height": 12
+          },
+          "color": {
+            "r": 168,
+            "g": 170,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_roof_sign_outline",
+        "name": "taksi roof sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 875.86,
+            "y": 650.83,
+            "width": 30.62,
+            "height": 14.07
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_roof_sign_fill",
+        "name": "taksi roof sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 877.93,
+            "y": 652.9,
+            "width": 26.48,
+            "height": 9.93
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_cabin_outline",
+        "name": "taksi cabin outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 826.21,
+          "y": 661.59,
+          "width": 136.55,
+          "height": 43.03
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 826.21,
+            "y": 661.59,
+            "width": 136.55,
+            "height": 86.9
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_cabin_fill",
+        "name": "taksi cabin fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 829.93,
+          "y": 665.31,
+          "width": 129.1,
+          "height": 39.31
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 829.93,
+            "y": 665.31,
+            "width": 129.1,
+            "height": 79.45
+          },
+          "color": {
+            "r": 228,
+            "g": 188,
+            "b": 88,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_glass",
+        "name": "taksi glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 838.62,
+          "y": 672.76,
+          "width": 111.72,
+          "height": 29.79
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 838.62,
+            "y": 672.76,
+            "width": 111.72,
+            "height": 66.21
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_pillar",
+        "name": "taksi pillar",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 893.24,
+              "y": 674.0
+            },
+            {
+              "x": 893.24,
+              "y": 702.97
+            }
+          ],
+          "width": 4.97,
+          "color": {
+            "r": 228,
+            "g": 188,
+            "b": 88,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_body_outline",
+        "name": "taksi body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 767.45,
+            "y": 701.31,
+            "width": 249.93,
+            "height": 46.34
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_body_fill",
+        "name": "taksi body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 770.76,
+            "y": 704.62,
+            "width": 243.31,
+            "height": 39.72
+          },
+          "color": {
+            "r": 228,
+            "g": 188,
+            "b": 88,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_checker",
+        "name": "taksi checker",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 770.76,
+            "y": 721.17,
+            "width": 243.31,
+            "height": 4.14
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_headlamp",
+        "name": "taksi headlamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 770.76,
+            "y": 710.41,
+            "width": 9.93,
+            "height": 9.1
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_tail_light",
+        "name": "taksi tail light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1007.45,
+            "y": 710.41,
+            "width": 6.62,
+            "height": 10.76
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_wheel_back_outline",
+        "name": "taksi wheel back outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 942.9,
+            "y": 729.45,
+            "width": 40.55,
+            "height": 40.55
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_wheel_back_fill",
+        "name": "taksi wheel back fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 951.17,
+            "y": 737.72,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_wheel_front_outline",
+        "name": "taksi wheel front outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 801.38,
+            "y": 729.45,
+            "width": 40.55,
+            "height": 40.55
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_taxi_wheel_front_fill",
+        "name": "taksi wheel front fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 809.66,
+            "y": 737.72,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_lamp_post",
+        "name": "kuja rev street lamp post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1240,
+              "y": 640
+            },
+            {
+              "x": 1240,
+              "y": 240
+            },
+            {
+              "x": 1130,
+              "y": 240
+            }
+          ],
+          "width": 12,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_lamp_shade",
+        "name": "kuja rev street lamp shade",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1090,
+            "y": 232,
+            "width": 80,
+            "height": 22
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_lamp_glow",
+        "name": "kuja rev street lamp glow",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 960,
+            "y": 180,
+            "width": 340,
+            "height": 420
+          },
+          "color": {
+            "r": 238,
+            "g": 211,
+            "b": 134,
+            "a": 40
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_street_lamp_light",
+        "name": "kuja rev street lamp light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1098,
+            "y": 250,
+            "width": 64,
+            "height": 16
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_wall_left",
+        "name": "kuja rev wall left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 660,
+            "height": 820
+          },
+          "color": {
+            "r": 178,
+            "g": 152,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_wall_right",
+        "name": "kuja rev wall right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1260,
+            "y": 0,
+            "width": 660,
+            "height": 820
+          },
+          "color": {
+            "r": 178,
+            "g": 152,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_wall_left_edge",
+        "name": "kuja rev wall left edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 660,
+              "y": 0
+            },
+            {
+              "x": 660,
+              "y": 820
+            }
+          ],
+          "width": 12,
+          "color": {
+            "r": 150,
+            "g": 126,
+            "b": 116,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_wall_right_edge",
+        "name": "kuja rev wall right edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1260,
+              "y": 0
+            },
+            {
+              "x": 1260,
+              "y": 820
+            }
+          ],
+          "width": 12,
+          "color": {
+            "r": 150,
+            "g": 126,
+            "b": 116,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_brick_course_left_0",
+        "name": "kuja rev brick course left 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 200
+            },
+            {
+              "x": 650,
+              "y": 200
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_brick_course_right_0",
+        "name": "kuja rev brick course right 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1270,
+              "y": 200
+            },
+            {
+              "x": 1920,
+              "y": 200
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_brick_course_left_1",
+        "name": "kuja rev brick course left 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 480
+            },
+            {
+              "x": 650,
+              "y": 480
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_brick_course_right_1",
+        "name": "kuja rev brick course right 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1270,
+              "y": 480
+            },
+            {
+              "x": 1920,
+              "y": 480
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_poster_outline",
+        "name": "kuja rev poster outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 220,
+            "y": 320,
+            "width": 240,
+            "height": 300
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_poster_fill",
+        "name": "kuja rev poster fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 228,
+            "y": 328,
+            "width": 224,
+            "height": 284
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_poster_mask",
+        "name": "kuja rev poster mask",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 290,
+            "y": 370,
+            "width": 100,
+            "height": 70
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_poster_lines",
+        "name": "kuja rev poster lines",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 260,
+              "y": 500
+            },
+            {
+              "x": 420,
+              "y": 500
+            },
+            {
+              "x": 420,
+              "y": 540
+            },
+            {
+              "x": 260,
+              "y": 540
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_drainpipe",
+        "name": "kuja rev drainpipe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1500,
+              "y": 0
+            },
+            {
+              "x": 1500,
+              "y": 790
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_ground",
+        "name": "kuja rev ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 152,
+            "g": 156,
+            "b": 154,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_ground_drain",
+        "name": "kuja rev ground drain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 812
+            },
+            {
+              "x": 1010,
+              "y": 1080
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 128,
+            "g": 132,
+            "b": 130,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_reflection",
+        "name": "kuja rev reflection",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 760,
+            "y": 900,
+            "width": 400,
+            "height": 46
+          },
+          "color": {
+            "r": 190,
+            "g": 186,
+            "b": 160,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_bin_outline",
+        "name": "kuja rev bin outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1640,
+            "y": 660,
+            "width": 150,
+            "height": 230
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_bin_fill",
+        "name": "kuja rev bin fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1648,
+            "y": 668,
+            "width": 134,
+            "height": 214
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_rev_bin_lid",
+        "name": "kuja rev bin lid",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1626,
+            "y": 646,
+            "width": 178,
+            "height": 22
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_kuja_wall_high",
+        "name": "kuja wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 178,
+            "g": 152,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_0_high",
+        "name": "kuja brick course 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 110.62
+            },
+            {
+              "x": 1920,
+              "y": 110.62
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_1_high",
+        "name": "kuja brick course 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 260.74
+            },
+            {
+              "x": 1920,
+              "y": 260.74
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_2_high",
+        "name": "kuja brick course 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 442.47
+            },
+            {
+              "x": 1920,
+              "y": 442.47
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_0_high",
+        "name": "kuja brick patch 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120,
+            "y": 158.02,
+            "width": 120,
+            "height": 34.77
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_1_high",
+        "name": "kuja brick patch 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 760,
+            "y": 331.85,
+            "width": 120,
+            "height": 34.77
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_2_high",
+        "name": "kuja brick patch 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1640,
+            "y": 205.43,
+            "width": 120,
+            "height": 34.77
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_ground_high",
+        "name": "kuja ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 640.0,
+            "width": 1920,
+            "height": 440.0
+          },
+          "color": {
+            "r": 152,
+            "g": 156,
+            "b": 154,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_ground_drain_high",
+        "name": "kuja ground drain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 643.26
+            },
+            {
+              "x": 900,
+              "y": 1080.0
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 128,
+            "g": 132,
+            "b": 130,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_outline_high",
+        "name": "kuja window outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 86.91,
+            "width": 210,
+            "height": 134.32
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_fill_high",
+        "name": "kuja window fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 649,
+            "y": 94.02,
+            "width": 192,
+            "height": 120.1
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_mullion_high",
+        "name": "kuja window mullion",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 745,
+              "y": 93.23
+            },
+            {
+              "x": 745,
+              "y": 214.91
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_pipe_high",
+        "name": "kuja pipe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 920,
+              "y": 0.0
+            },
+            {
+              "x": 920,
+              "y": 553.09
+            },
+            {
+              "x": 980,
+              "y": 624.2
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_glow_high",
+        "name": "kuja door glow",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 335.68,
+            "y": 284.44,
+            "width": 268.64,
+            "height": 300.25
+          },
+          "color": {
+            "r": 238,
+            "g": 211,
+            "b": 134,
+            "a": 40
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_lamp_high",
+        "name": "kuja door lamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 430,
+            "y": 355.56,
+            "width": 70,
+            "height": 20.54
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_outline_high",
+        "name": "kuja door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 360,
+            "y": 395.06,
+            "width": 220,
+            "height": 244.94
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_fill_high",
+        "name": "kuja door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 369,
+            "y": 402.17,
+            "width": 202,
+            "height": 230.72
+          },
+          "color": {
+            "r": 88,
+            "g": 118,
+            "b": 116,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_step_high",
+        "name": "kuja door step",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 340,
+            "y": 632.1,
+            "width": 260,
+            "height": 17.68
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_platform_top_high",
+        "name": "kuja escape platform top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 181.73,
+            "width": 560,
+            "height": 12.64
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_rail_top_high",
+        "name": "kuja escape rail top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 126.42
+            },
+            {
+              "x": 1180,
+              "y": 181.73
+            },
+            {
+              "x": 1220,
+              "y": 181.73
+            },
+            {
+              "x": 1220,
+              "y": 126.42
+            },
+            {
+              "x": 1260,
+              "y": 126.42
+            },
+            {
+              "x": 1260,
+              "y": 181.73
+            },
+            {
+              "x": 1300,
+              "y": 181.73
+            },
+            {
+              "x": 1300,
+              "y": 126.42
+            },
+            {
+              "x": 1340,
+              "y": 126.42
+            },
+            {
+              "x": 1340,
+              "y": 181.73
+            },
+            {
+              "x": 1380,
+              "y": 181.73
+            },
+            {
+              "x": 1380,
+              "y": 126.42
+            },
+            {
+              "x": 1420,
+              "y": 126.42
+            },
+            {
+              "x": 1420,
+              "y": 181.73
+            },
+            {
+              "x": 1460,
+              "y": 181.73
+            },
+            {
+              "x": 1460,
+              "y": 126.42
+            },
+            {
+              "x": 1500,
+              "y": 126.42
+            },
+            {
+              "x": 1500,
+              "y": 181.73
+            },
+            {
+              "x": 1540,
+              "y": 181.73
+            },
+            {
+              "x": 1540,
+              "y": 126.42
+            },
+            {
+              "x": 1580,
+              "y": 126.42
+            },
+            {
+              "x": 1580,
+              "y": 181.73
+            },
+            {
+              "x": 1620,
+              "y": 181.73
+            },
+            {
+              "x": 1620,
+              "y": 126.42
+            },
+            {
+              "x": 1660,
+              "y": 126.42
+            },
+            {
+              "x": 1660,
+              "y": 181.73
+            },
+            {
+              "x": 1700,
+              "y": 181.73
+            },
+            {
+              "x": 1700,
+              "y": 126.42
+            },
+            {
+              "x": 1740,
+              "y": 126.42
+            },
+            {
+              "x": 1740,
+              "y": 181.73
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_platform_low_high",
+        "name": "kuja escape platform low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 395.06,
+            "width": 560,
+            "height": 12.64
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_rail_low_high",
+        "name": "kuja escape rail low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 339.75
+            },
+            {
+              "x": 1180,
+              "y": 395.06
+            },
+            {
+              "x": 1220,
+              "y": 395.06
+            },
+            {
+              "x": 1220,
+              "y": 339.75
+            },
+            {
+              "x": 1260,
+              "y": 339.75
+            },
+            {
+              "x": 1260,
+              "y": 395.06
+            },
+            {
+              "x": 1300,
+              "y": 395.06
+            },
+            {
+              "x": 1300,
+              "y": 339.75
+            },
+            {
+              "x": 1340,
+              "y": 339.75
+            },
+            {
+              "x": 1340,
+              "y": 395.06
+            },
+            {
+              "x": 1380,
+              "y": 395.06
+            },
+            {
+              "x": 1380,
+              "y": 339.75
+            },
+            {
+              "x": 1420,
+              "y": 339.75
+            },
+            {
+              "x": 1420,
+              "y": 395.06
+            },
+            {
+              "x": 1460,
+              "y": 395.06
+            },
+            {
+              "x": 1460,
+              "y": 339.75
+            },
+            {
+              "x": 1500,
+              "y": 339.75
+            },
+            {
+              "x": 1500,
+              "y": 395.06
+            },
+            {
+              "x": 1540,
+              "y": 395.06
+            },
+            {
+              "x": 1540,
+              "y": 339.75
+            },
+            {
+              "x": 1580,
+              "y": 339.75
+            },
+            {
+              "x": 1580,
+              "y": 395.06
+            },
+            {
+              "x": 1620,
+              "y": 395.06
+            },
+            {
+              "x": 1620,
+              "y": 339.75
+            },
+            {
+              "x": 1660,
+              "y": 339.75
+            },
+            {
+              "x": 1660,
+              "y": 395.06
+            },
+            {
+              "x": 1700,
+              "y": 395.06
+            },
+            {
+              "x": 1700,
+              "y": 339.75
+            },
+            {
+              "x": 1740,
+              "y": 339.75
+            },
+            {
+              "x": 1740,
+              "y": 395.06
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_stairs_high",
+        "name": "kuja escape stairs",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1260,
+              "y": 395.06
+            },
+            {
+              "x": 1640,
+              "y": 194.37
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_ladder_high",
+        "name": "kuja escape ladder",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1660,
+              "y": 407.7
+            },
+            {
+              "x": 1660,
+              "y": 600.49
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_ladder_right_high",
+        "name": "kuja escape ladder right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1700,
+              "y": 407.7
+            },
+            {
+              "x": 1700,
+              "y": 600.49
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_outline_high",
+        "name": "kuja dumpster outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 545.19,
+            "width": 320,
+            "height": 225.19
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_fill_high",
+        "name": "kuja dumpster fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 49,
+            "y": 552.3,
+            "width": 302,
+            "height": 203.41
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_lid_high",
+        "name": "kuja dumpster lid",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 532.54,
+            "width": 340,
+            "height": 18.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_wheel_left_high",
+        "name": "kuja dumpster wheel left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 70,
+            "y": 754.07,
+            "width": 34,
+            "height": 55.41
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_wheel_right_high",
+        "name": "kuja dumpster wheel right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 296,
+            "y": 754.07,
+            "width": 34,
+            "height": 55.41
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_bag_high",
+        "name": "kuja bag",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 340,
+            "y": 656.3,
+            "width": 130,
+            "height": 162.96
+          },
+          "color": {
+            "r": 78,
+            "g": 86,
+            "b": 90,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_bag_two_high",
+        "name": "kuja bag two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 420,
+            "y": 705.19,
+            "width": 110,
+            "height": 130.37
+          },
+          "color": {
+            "r": 98,
+            "g": 104,
+            "b": 104,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_outline_high",
+        "name": "kuja crate outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1460,
+            "y": 616.3,
+            "width": 180,
+            "height": 202.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_fill_high",
+        "name": "kuja crate fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1468,
+            "y": 622.62,
+            "width": 164,
+            "height": 183.6
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_slat_high",
+        "name": "kuja crate slat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1468,
+              "y": 705.19
+            },
+            {
+              "x": 1632,
+              "y": 705.19
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_top_outline_high",
+        "name": "kuja crate top outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1490,
+            "y": 521.48,
+            "width": 140,
+            "height": 94.81
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_top_fill_high",
+        "name": "kuja crate top fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1498,
+            "y": 527.8,
+            "width": 124,
+            "height": 82.17
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_body_high",
+        "name": "kuja cat body",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1520,
+            "y": 481.98,
+            "width": 80,
+            "height": 44.25
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_head_high",
+        "name": "kuja cat head",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1584.62,
+            "y": 463.01,
+            "width": 34.77,
+            "height": 31.6
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_ears_high",
+        "name": "kuja cat ears",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1586,
+              "y": 469.33
+            },
+            {
+              "x": 1590,
+              "y": 455.11
+            },
+            {
+              "x": 1600,
+              "y": 466.17
+            },
+            {
+              "x": 1612,
+              "y": 455.11
+            },
+            {
+              "x": 1618,
+              "y": 469.33
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_tail_high",
+        "name": "kuja cat tail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1524,
+              "y": 510.42
+            },
+            {
+              "x": 1490,
+              "y": 505.68
+            },
+            {
+              "x": 1478,
+              "y": 474.07
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_puddle_high",
+        "name": "kuja puddle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 900,
+            "y": 917.04,
+            "width": 340,
+            "height": 65.19
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_kuja_wall_low",
+        "name": "kuja wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 178,
+            "g": 152,
+            "b": 140,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_0_low",
+        "name": "kuja brick course 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 152.1
+            },
+            {
+              "x": 1920,
+              "y": 152.1
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_1_low",
+        "name": "kuja brick course 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 358.52
+            },
+            {
+              "x": 1920,
+              "y": 358.52
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_course_2_low",
+        "name": "kuja brick course 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 608.4
+            },
+            {
+              "x": 1920,
+              "y": 608.4
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 160,
+            "g": 134,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_0_low",
+        "name": "kuja brick patch 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120,
+            "y": 217.28,
+            "width": 120,
+            "height": 47.8
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_1_low",
+        "name": "kuja brick patch 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 760,
+            "y": 456.3,
+            "width": 120,
+            "height": 47.8
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_brick_patch_2_low",
+        "name": "kuja brick patch 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1640,
+            "y": 282.47,
+            "width": 120,
+            "height": 47.8
+          },
+          "color": {
+            "r": 164,
+            "g": 136,
+            "b": 124,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_ground_low",
+        "name": "kuja ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 880.0,
+            "width": 1920,
+            "height": 200.0
+          },
+          "color": {
+            "r": 152,
+            "g": 156,
+            "b": 154,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_ground_drain_low",
+        "name": "kuja ground drain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 881.48
+            },
+            {
+              "x": 900,
+              "y": 1080.0
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 128,
+            "g": 132,
+            "b": 130,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_outline_low",
+        "name": "kuja window outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 119.51,
+            "width": 210,
+            "height": 184.69
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_fill_low",
+        "name": "kuja window fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 649,
+            "y": 129.28,
+            "width": 192,
+            "height": 165.14
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_window_mullion_low",
+        "name": "kuja window mullion",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 745,
+              "y": 128.2
+            },
+            {
+              "x": 745,
+              "y": 295.51
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_pipe_low",
+        "name": "kuja pipe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 920,
+              "y": 0.0
+            },
+            {
+              "x": 920,
+              "y": 760.49
+            },
+            {
+              "x": 980,
+              "y": 858.27
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_glow_low",
+        "name": "kuja door glow",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 285.31,
+            "y": 391.11,
+            "width": 369.38,
+            "height": 412.84
+          },
+          "color": {
+            "r": 238,
+            "g": 211,
+            "b": 134,
+            "a": 40
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_lamp_low",
+        "name": "kuja door lamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 430,
+            "y": 488.89,
+            "width": 70,
+            "height": 28.25
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_outline_low",
+        "name": "kuja door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 360,
+            "y": 543.21,
+            "width": 220,
+            "height": 336.79
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_fill_low",
+        "name": "kuja door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 369,
+            "y": 552.99,
+            "width": 202,
+            "height": 317.23
+          },
+          "color": {
+            "r": 88,
+            "g": 118,
+            "b": 116,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_door_step_low",
+        "name": "kuja door step",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 340,
+            "y": 869.14,
+            "width": 260,
+            "height": 15.31
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_platform_top_low",
+        "name": "kuja escape platform top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 249.88,
+            "width": 560,
+            "height": 17.38
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_rail_top_low",
+        "name": "kuja escape rail top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 173.83
+            },
+            {
+              "x": 1180,
+              "y": 249.88
+            },
+            {
+              "x": 1220,
+              "y": 249.88
+            },
+            {
+              "x": 1220,
+              "y": 173.83
+            },
+            {
+              "x": 1260,
+              "y": 173.83
+            },
+            {
+              "x": 1260,
+              "y": 249.88
+            },
+            {
+              "x": 1300,
+              "y": 249.88
+            },
+            {
+              "x": 1300,
+              "y": 173.83
+            },
+            {
+              "x": 1340,
+              "y": 173.83
+            },
+            {
+              "x": 1340,
+              "y": 249.88
+            },
+            {
+              "x": 1380,
+              "y": 249.88
+            },
+            {
+              "x": 1380,
+              "y": 173.83
+            },
+            {
+              "x": 1420,
+              "y": 173.83
+            },
+            {
+              "x": 1420,
+              "y": 249.88
+            },
+            {
+              "x": 1460,
+              "y": 249.88
+            },
+            {
+              "x": 1460,
+              "y": 173.83
+            },
+            {
+              "x": 1500,
+              "y": 173.83
+            },
+            {
+              "x": 1500,
+              "y": 249.88
+            },
+            {
+              "x": 1540,
+              "y": 249.88
+            },
+            {
+              "x": 1540,
+              "y": 173.83
+            },
+            {
+              "x": 1580,
+              "y": 173.83
+            },
+            {
+              "x": 1580,
+              "y": 249.88
+            },
+            {
+              "x": 1620,
+              "y": 249.88
+            },
+            {
+              "x": 1620,
+              "y": 173.83
+            },
+            {
+              "x": 1660,
+              "y": 173.83
+            },
+            {
+              "x": 1660,
+              "y": 249.88
+            },
+            {
+              "x": 1700,
+              "y": 249.88
+            },
+            {
+              "x": 1700,
+              "y": 173.83
+            },
+            {
+              "x": 1740,
+              "y": 173.83
+            },
+            {
+              "x": 1740,
+              "y": 249.88
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_platform_low_low",
+        "name": "kuja escape platform low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 543.21,
+            "width": 560,
+            "height": 17.38
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_rail_low_low",
+        "name": "kuja escape rail low",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 467.16
+            },
+            {
+              "x": 1180,
+              "y": 543.21
+            },
+            {
+              "x": 1220,
+              "y": 543.21
+            },
+            {
+              "x": 1220,
+              "y": 467.16
+            },
+            {
+              "x": 1260,
+              "y": 467.16
+            },
+            {
+              "x": 1260,
+              "y": 543.21
+            },
+            {
+              "x": 1300,
+              "y": 543.21
+            },
+            {
+              "x": 1300,
+              "y": 467.16
+            },
+            {
+              "x": 1340,
+              "y": 467.16
+            },
+            {
+              "x": 1340,
+              "y": 543.21
+            },
+            {
+              "x": 1380,
+              "y": 543.21
+            },
+            {
+              "x": 1380,
+              "y": 467.16
+            },
+            {
+              "x": 1420,
+              "y": 467.16
+            },
+            {
+              "x": 1420,
+              "y": 543.21
+            },
+            {
+              "x": 1460,
+              "y": 543.21
+            },
+            {
+              "x": 1460,
+              "y": 467.16
+            },
+            {
+              "x": 1500,
+              "y": 467.16
+            },
+            {
+              "x": 1500,
+              "y": 543.21
+            },
+            {
+              "x": 1540,
+              "y": 543.21
+            },
+            {
+              "x": 1540,
+              "y": 467.16
+            },
+            {
+              "x": 1580,
+              "y": 467.16
+            },
+            {
+              "x": 1580,
+              "y": 543.21
+            },
+            {
+              "x": 1620,
+              "y": 543.21
+            },
+            {
+              "x": 1620,
+              "y": 467.16
+            },
+            {
+              "x": 1660,
+              "y": 467.16
+            },
+            {
+              "x": 1660,
+              "y": 543.21
+            },
+            {
+              "x": 1700,
+              "y": 543.21
+            },
+            {
+              "x": 1700,
+              "y": 467.16
+            },
+            {
+              "x": 1740,
+              "y": 467.16
+            },
+            {
+              "x": 1740,
+              "y": 543.21
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_stairs_low",
+        "name": "kuja escape stairs",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1260,
+              "y": 543.21
+            },
+            {
+              "x": 1640,
+              "y": 267.26
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_ladder_low",
+        "name": "kuja escape ladder",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1660,
+              "y": 560.59
+            },
+            {
+              "x": 1660,
+              "y": 825.68
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_escape_ladder_right_low",
+        "name": "kuja escape ladder right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1700,
+              "y": 560.59
+            },
+            {
+              "x": 1700,
+              "y": 825.68
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_outline_low",
+        "name": "kuja dumpster outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 749.63,
+            "width": 320,
+            "height": 189.63
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_fill_low",
+        "name": "kuja dumpster fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 49,
+            "y": 759.41,
+            "width": 302,
+            "height": 173.19
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_lid_low",
+        "name": "kuja dumpster lid",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 30,
+            "y": 732.25,
+            "width": 340,
+            "height": 26.07
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_wheel_left_low",
+        "name": "kuja dumpster wheel left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 70,
+            "y": 931.85,
+            "width": 34,
+            "height": 25.19
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_dumpster_wheel_right_low",
+        "name": "kuja dumpster wheel right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 296,
+            "y": 931.85,
+            "width": 34,
+            "height": 25.19
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_bag_low",
+        "name": "kuja bag",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 340,
+            "y": 887.41,
+            "width": 130,
+            "height": 74.07
+          },
+          "color": {
+            "r": 78,
+            "g": 86,
+            "b": 90,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_bag_two_low",
+        "name": "kuja bag two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 420,
+            "y": 909.63,
+            "width": 110,
+            "height": 59.26
+          },
+          "color": {
+            "r": 98,
+            "g": 104,
+            "b": 104,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_outline_low",
+        "name": "kuja crate outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1460,
+            "y": 847.41,
+            "width": 180,
+            "height": 114.07
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_fill_low",
+        "name": "kuja crate fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1468,
+            "y": 856.1,
+            "width": 164,
+            "height": 99.46
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_slat_low",
+        "name": "kuja crate slat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1468,
+              "y": 909.63
+            },
+            {
+              "x": 1632,
+              "y": 909.63
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_top_outline_low",
+        "name": "kuja crate top outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1490,
+            "y": 717.04,
+            "width": 140,
+            "height": 130.37
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_crate_top_fill_low",
+        "name": "kuja crate top fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1498,
+            "y": 725.73,
+            "width": 124,
+            "height": 112.99
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_body_low",
+        "name": "kuja cat body",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1520,
+            "y": 662.72,
+            "width": 80,
+            "height": 60.84
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_head_low",
+        "name": "kuja cat head",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1578.1,
+            "y": 636.64,
+            "width": 47.8,
+            "height": 43.46
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_ears_low",
+        "name": "kuja cat ears",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1586,
+              "y": 645.33
+            },
+            {
+              "x": 1590,
+              "y": 625.78
+            },
+            {
+              "x": 1600,
+              "y": 640.99
+            },
+            {
+              "x": 1612,
+              "y": 625.78
+            },
+            {
+              "x": 1618,
+              "y": 645.33
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_cat_tail_low",
+        "name": "kuja cat tail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1524,
+              "y": 701.83
+            },
+            {
+              "x": 1490,
+              "y": 695.31
+            },
+            {
+              "x": 1478,
+              "y": 651.85
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_kuja_puddle_low",
+        "name": "kuja puddle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 900,
+            "y": 1005.93,
+            "width": 340,
+            "height": 29.63
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 192,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      }
+    ]
+  }
+}

@@ -1,0 +1,7026 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Iltahuoltoasema\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#e2c6ac\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "tausta_tausta_huoltoasema_sky",
+        "name": "huoltoasema sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 226,
+            "g": 198,
+            "b": 172,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_sun",
+        "name": "huoltoasema sun",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1500,
+            "y": 520,
+            "width": 170,
+            "height": 170
+          },
+          "color": {
+            "r": 238,
+            "g": 186,
+            "b": 110,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt",
+        "name": "huoltoasema forecourt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 812,
+            "width": 1920,
+            "height": 268
+          },
+          "color": {
+            "r": 196,
+            "g": 194,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_seam",
+        "name": "huoltoasema forecourt seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 930
+            },
+            {
+              "x": 1920,
+              "y": 930
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_seam_two",
+        "name": "huoltoasema forecourt seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 814
+            },
+            {
+              "x": 960,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_oil_stain",
+        "name": "huoltoasema oil stain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1240,
+            "y": 980,
+            "width": 240,
+            "height": 40
+          },
+          "color": {
+            "r": 176,
+            "g": 174,
+            "b": 168,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_wall",
+        "name": "huoltoasema shop wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1120,
+            "y": 420,
+            "width": 800,
+            "height": 390
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_roof",
+        "name": "huoltoasema shop roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1104,
+            "y": 404,
+            "width": 832,
+            "height": 24
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_sign",
+        "name": "huoltoasema shop sign",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 444,
+            "width": 500,
+            "height": 60
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_lettering",
+        "name": "huoltoasema shop lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1220,
+              "y": 476
+            },
+            {
+              "x": 1270,
+              "y": 462
+            },
+            {
+              "x": 1320,
+              "y": 490
+            },
+            {
+              "x": 1370,
+              "y": 462
+            },
+            {
+              "x": 1420,
+              "y": 490
+            },
+            {
+              "x": 1470,
+              "y": 462
+            },
+            {
+              "x": 1520,
+              "y": 488
+            },
+            {
+              "x": 1620,
+              "y": 470
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_window",
+        "name": "huoltoasema shop window",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1160,
+            "y": 540,
+            "width": 520,
+            "height": 200
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_window_shelves",
+        "name": "huoltoasema shop window shelves",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 640
+            },
+            {
+              "x": 1660,
+              "y": 640
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 198,
+            "g": 150,
+            "b": 84,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_door_outline",
+        "name": "huoltoasema shop door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1720,
+            "y": 560,
+            "width": 140,
+            "height": 250
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_door_fill",
+        "name": "huoltoasema shop door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1727,
+            "y": 567,
+            "width": 126,
+            "height": 236
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_body_outline",
+        "name": "juoma automaatti body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1065.0,
+            "y": 515.0,
+            "width": 150.0,
+            "height": 290.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_body_fill",
+        "name": "juoma automaatti body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1069.5,
+            "y": 519.5,
+            "width": 141.0,
+            "height": 281.0
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_0",
+        "name": "juoma automaatti row 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 545.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_1",
+        "name": "juoma automaatti row 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 593.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_2",
+        "name": "juoma automaatti row 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 641.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_3",
+        "name": "juoma automaatti row 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 689.0,
+            "width": 85.0,
+            "height": 25.0
+          },
+          "color": {
+            "r": 214,
+            "g": 120,
+            "b": 96,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_glass",
+        "name": "juoma automaatti glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1077.0,
+            "y": 530.0,
+            "width": 95.0,
+            "height": 210.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_buttons",
+        "name": "juoma automaatti buttons",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1179.0,
+            "y": 530.0,
+            "width": 27.0,
+            "height": 100.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_coin",
+        "name": "juoma automaatti coin",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1184.0,
+            "y": 645.0,
+            "width": 17.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_flap",
+        "name": "juoma automaatti flap",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1080.0,
+            "y": 755.0,
+            "width": 90.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_pillar_left",
+        "name": "huoltoasema canopy pillar left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 270,
+              "y": 812
+            },
+            {
+              "x": 270,
+              "y": 300
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_pillar_right",
+        "name": "huoltoasema canopy pillar right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 812
+            },
+            {
+              "x": 1000,
+              "y": 300
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_outline",
+        "name": "huoltoasema canopy outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 200,
+            "y": 230,
+            "width": 1000,
+            "height": 80
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_fill",
+        "name": "huoltoasema canopy fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208,
+            "y": 238,
+            "width": 984,
+            "height": 64
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_stripe",
+        "name": "huoltoasema canopy stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208,
+            "y": 268,
+            "width": 984,
+            "height": 20
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_0",
+        "name": "huoltoasema canopy light 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330,
+            "y": 310,
+            "width": 120,
+            "height": 12
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_1",
+        "name": "huoltoasema canopy light 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630,
+            "y": 310,
+            "width": 120,
+            "height": 12
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_2",
+        "name": "huoltoasema canopy light 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 930,
+            "y": 310,
+            "width": 120,
+            "height": 12
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_island",
+        "name": "huoltoasema island",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 798,
+            "width": 700,
+            "height": 16
+          },
+          "color": {
+            "r": 168,
+            "g": 170,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_body_outline",
+        "name": "polttoainemittari body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 310.0,
+            "y": 512.67,
+            "width": 120.0,
+            "height": 286.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_body_fill",
+        "name": "polttoainemittari body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 276.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_top",
+        "name": "polttoainemittari top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 40.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_display",
+        "name": "polttoainemittari display",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330.0,
+            "y": 572.67,
+            "width": 80.0,
+            "height": 46.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_hose",
+        "name": "polttoainemittari hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420.67,
+              "y": 660.67
+            },
+            {
+              "x": 444.67,
+              "y": 712.67
+            },
+            {
+              "x": 438.0,
+              "y": 766.0
+            },
+            {
+              "x": 423.33,
+              "y": 783.33
+            }
+          ],
+          "width": 5.33,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_holster",
+        "name": "polttoainemittari holster",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 643.33,
+            "width": 26.67,
+            "height": 56.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_base",
+        "name": "polttoainemittari base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 302.0,
+            "y": 794.0,
+            "width": 136.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_body_outline",
+        "name": "polttoainemittari body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 512.67,
+            "width": 120.0,
+            "height": 286.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_body_fill",
+        "name": "polttoainemittari body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 276.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_top",
+        "name": "polttoainemittari top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 518.0,
+            "width": 109.33,
+            "height": 40.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_display",
+        "name": "polttoainemittari display",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 800.0,
+            "y": 572.67,
+            "width": 80.0,
+            "height": 46.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_hose",
+        "name": "polttoainemittari hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 890.67,
+              "y": 660.67
+            },
+            {
+              "x": 914.67,
+              "y": 712.67
+            },
+            {
+              "x": 908.0,
+              "y": 766.0
+            },
+            {
+              "x": 893.33,
+              "y": 783.33
+            }
+          ],
+          "width": 5.33,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_holster",
+        "name": "polttoainemittari holster",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880.0,
+            "y": 643.33,
+            "width": 26.67,
+            "height": 56.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_base",
+        "name": "polttoainemittari base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 772.0,
+            "y": 794.0,
+            "width": 136.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_cabin_outline",
+        "name": "henkiloauto cabin outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 517.59,
+          "y": 676.48,
+          "width": 170.69,
+          "height": 53.79
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 517.59,
+            "y": 676.48,
+            "width": 170.69,
+            "height": 108.62
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_cabin_fill",
+        "name": "henkiloauto cabin fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 522.24,
+          "y": 681.14,
+          "width": 161.38,
+          "height": 49.14
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 522.24,
+            "y": 681.14,
+            "width": 161.38,
+            "height": 99.31
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_glass",
+        "name": "henkiloauto glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 533.1,
+          "y": 690.45,
+          "width": 139.66,
+          "height": 37.24
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 533.1,
+            "y": 690.45,
+            "width": 139.66,
+            "height": 82.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_pillar",
+        "name": "henkiloauto pillar",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 604.48,
+              "y": 692.0
+            },
+            {
+              "x": 604.48,
+              "y": 728.21
+            }
+          ],
+          "width": 6.21,
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_body_outline",
+        "name": "henkiloauto body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 449.31,
+            "y": 726.14,
+            "width": 312.41,
+            "height": 57.93
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_body_fill",
+        "name": "henkiloauto body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 730.28,
+            "width": 304.14,
+            "height": 49.66
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_headlamp",
+        "name": "henkiloauto headlamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 745.17,
+            "y": 737.52,
+            "width": 12.41,
+            "height": 11.38
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_tail_light",
+        "name": "henkiloauto tail light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 737.52,
+            "width": 8.28,
+            "height": 13.45
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_back_outline",
+        "name": "henkiloauto wheel back outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 491.72,
+            "y": 761.31,
+            "width": 50.69,
+            "height": 50.69
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_back_fill",
+        "name": "henkiloauto wheel back fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 502.07,
+            "y": 771.66,
+            "width": 30.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_front_outline",
+        "name": "henkiloauto wheel front outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 668.62,
+            "y": 761.31,
+            "width": 50.69,
+            "height": 50.69
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_front_fill",
+        "name": "henkiloauto wheel front fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 678.97,
+            "y": 771.66,
+            "width": 30.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_post",
+        "name": "huoltoasema price post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 812
+            },
+            {
+              "x": 80,
+              "y": 440
+            }
+          ],
+          "width": 16,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_board_outline",
+        "name": "huoltoasema price board outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 200,
+            "width": 160,
+            "height": 250
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_board_fill",
+        "name": "huoltoasema price board fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 7,
+            "y": 207,
+            "width": 146,
+            "height": 236
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_logo",
+        "name": "huoltoasema price logo",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 210,
+            "width": 140,
+            "height": 60
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_0",
+        "name": "huoltoasema price digits 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 310
+            },
+            {
+              "x": 60,
+              "y": 300
+            },
+            {
+              "x": 90,
+              "y": 318
+            },
+            {
+              "x": 130,
+              "y": 302
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_1",
+        "name": "huoltoasema price digits 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 356
+            },
+            {
+              "x": 60,
+              "y": 346
+            },
+            {
+              "x": 90,
+              "y": 364
+            },
+            {
+              "x": 130,
+              "y": 348
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_2",
+        "name": "huoltoasema price digits 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 402
+            },
+            {
+              "x": 60,
+              "y": 392
+            },
+            {
+              "x": 90,
+              "y": 410
+            },
+            {
+              "x": 130,
+              "y": 394
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_sky",
+        "name": "huoltoasema rev sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 226,
+            "g": 198,
+            "b": 172,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hills",
+        "name": "huoltoasema rev hills",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 560,
+            "width": 1920,
+            "height": 100
+          },
+          "color": {
+            "r": 176,
+            "g": 178,
+            "b": 150,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_left_trunk",
+        "name": "katupuu trunk",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 949.06,
+              "y": 660.25
+            },
+            {
+              "x": 950.0,
+              "y": 560.88
+            },
+            {
+              "x": 944.38,
+              "y": 504.62
+            }
+          ],
+          "width": 11.25,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_left_crown_back",
+        "name": "katupuu crown back",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 878.75,
+            "y": 396.81,
+            "width": 140.62,
+            "height": 131.25
+          },
+          "color": {
+            "r": 100,
+            "g": 143,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_left_crown_left",
+        "name": "katupuu crown left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 866.56,
+            "y": 448.38,
+            "width": 89.06,
+            "height": 79.69
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_left_crown_right",
+        "name": "katupuu crown right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 947.19,
+            "y": 434.31,
+            "width": 84.38,
+            "height": 89.06
+          },
+          "color": {
+            "r": 76,
+            "g": 116,
+            "b": 100,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_right_trunk",
+        "name": "katupuu trunk",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1257.19,
+              "y": 660.75
+            },
+            {
+              "x": 1258.0,
+              "y": 574.62
+            },
+            {
+              "x": 1253.12,
+              "y": 525.88
+            }
+          ],
+          "width": 9.75,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_right_crown_back",
+        "name": "katupuu crown back",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1196.25,
+            "y": 432.44,
+            "width": 121.88,
+            "height": 113.75
+          },
+          "color": {
+            "r": 100,
+            "g": 143,
+            "b": 122,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_right_crown_left",
+        "name": "katupuu crown left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1185.69,
+            "y": 477.12,
+            "width": 77.19,
+            "height": 69.06
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_tree_right_crown_right",
+        "name": "katupuu crown right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1255.56,
+            "y": 464.94,
+            "width": 73.12,
+            "height": 77.19
+          },
+          "color": {
+            "r": 76,
+            "g": 116,
+            "b": 100,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_far_pavement",
+        "name": "huoltoasema rev far pavement",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 660,
+            "width": 1920,
+            "height": 26
+          },
+          "color": {
+            "r": 200,
+            "g": 198,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_road",
+        "name": "huoltoasema rev road",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 686,
+            "width": 1920,
+            "height": 114
+          },
+          "color": {
+            "r": 104,
+            "g": 114,
+            "b": 118,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_lane_0",
+        "name": "huoltoasema rev lane 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 80,
+            "y": 739.0,
+            "width": 240,
+            "height": 8
+          },
+          "color": {
+            "r": 226,
+            "g": 224,
+            "b": 204,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_lane_1",
+        "name": "huoltoasema rev lane 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 580,
+            "y": 739.0,
+            "width": 240,
+            "height": 8
+          },
+          "color": {
+            "r": 226,
+            "g": 224,
+            "b": 204,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_lane_2",
+        "name": "huoltoasema rev lane 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1080,
+            "y": 739.0,
+            "width": 240,
+            "height": 8
+          },
+          "color": {
+            "r": 226,
+            "g": 224,
+            "b": 204,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_lane_3",
+        "name": "huoltoasema rev lane 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1580,
+            "y": 739.0,
+            "width": 240,
+            "height": 8
+          },
+          "color": {
+            "r": 226,
+            "g": 224,
+            "b": 204,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_kerb",
+        "name": "huoltoasema rev kerb",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 798,
+            "width": 1920,
+            "height": 14
+          },
+          "color": {
+            "r": 168,
+            "g": 170,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_near_ground",
+        "name": "huoltoasema rev near ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 812,
+            "width": 1920,
+            "height": 268
+          },
+          "color": {
+            "r": 196,
+            "g": 194,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_near_seam_0",
+        "name": "huoltoasema rev near seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 520,
+              "y": 814
+            },
+            {
+              "x": 220,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_near_seam_1",
+        "name": "huoltoasema rev near seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 920
+            },
+            {
+              "x": 1920,
+              "y": 920
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_cargo_outline",
+        "name": "pakettiauto cargo outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1086.3,
+            "y": 671.82,
+            "width": 186.73,
+            "height": 94.55
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_cargo_fill",
+        "name": "pakettiauto cargo fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1089.45,
+            "y": 674.97,
+            "width": 180.42,
+            "height": 88.24
+          },
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_cab_outline",
+        "name": "pakettiauto cab outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1265.15,
+            "y": 697.82,
+            "width": 82.73,
+            "height": 68.55
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_cab_fill",
+        "name": "pakettiauto cab fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1268.3,
+            "y": 700.97,
+            "width": 76.42,
+            "height": 62.24
+          },
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_glass",
+        "name": "pakettiauto glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1275.39,
+            "y": 704.91,
+            "width": 63.82,
+            "height": 27.58
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_pillar",
+        "name": "pakettiauto pillar",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1300.61,
+              "y": 704.91
+            },
+            {
+              "x": 1300.61,
+              "y": 732.48
+            }
+          ],
+          "width": 3.94,
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_stripe",
+        "name": "pakettiauto stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1089.45,
+            "y": 726.18,
+            "width": 255.27,
+            "height": 10.24
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_bumper",
+        "name": "pakettiauto bumper",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1084.73,
+            "y": 763.21,
+            "width": 264.73,
+            "height": 5.52
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_headlamp",
+        "name": "pakettiauto headlamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1336.85,
+            "y": 740.36,
+            "width": 8.67,
+            "height": 9.45
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_wheel_back_outline",
+        "name": "pakettiauto wheel back outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1115.45,
+            "y": 751.39,
+            "width": 38.61,
+            "height": 38.61
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_wheel_back_fill",
+        "name": "pakettiauto wheel back fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1123.33,
+            "y": 759.27,
+            "width": 22.85,
+            "height": 22.85
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_wheel_front_outline",
+        "name": "pakettiauto wheel front outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1284.85,
+            "y": 751.39,
+            "width": 38.61,
+            "height": 38.61
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_van_wheel_front_fill",
+        "name": "pakettiauto wheel front fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1292.73,
+            "y": 759.27,
+            "width": 22.85,
+            "height": 22.85
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_wall",
+        "name": "huoltoasema rev wash wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 360,
+            "width": 720,
+            "height": 452
+          },
+          "color": {
+            "r": 214,
+            "g": 214,
+            "b": 204,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_roof",
+        "name": "huoltoasema rev wash roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 24,
+            "y": 344,
+            "width": 752,
+            "height": 26
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_bay",
+        "name": "huoltoasema rev wash bay",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 140,
+            "y": 470,
+            "width": 420,
+            "height": 342
+          },
+          "color": {
+            "r": 110,
+            "g": 124,
+            "b": 128,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_brush_left",
+        "name": "huoltoasema rev wash brush left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 170,
+            "y": 500,
+            "width": 110,
+            "height": 300
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_brush_right",
+        "name": "huoltoasema rev wash brush right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 420,
+            "y": 500,
+            "width": 110,
+            "height": 300
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_bubbles",
+        "name": "huoltoasema rev wash bubbles",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 300,
+              "y": 600
+            },
+            {
+              "x": 320,
+              "y": 580
+            },
+            {
+              "x": 340,
+              "y": 610
+            },
+            {
+              "x": 360,
+              "y": 585
+            },
+            {
+              "x": 380,
+              "y": 612
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_sign_outline",
+        "name": "huoltoasema rev wash sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 140,
+            "y": 390,
+            "width": 420,
+            "height": 60
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_sign_fill",
+        "name": "huoltoasema rev wash sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146,
+            "y": 396,
+            "width": 408,
+            "height": 48
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_wash_lettering",
+        "name": "huoltoasema rev wash lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 180,
+              "y": 420
+            },
+            {
+              "x": 240,
+              "y": 406
+            },
+            {
+              "x": 300,
+              "y": 432
+            },
+            {
+              "x": 360,
+              "y": 406
+            },
+            {
+              "x": 420,
+              "y": 430
+            },
+            {
+              "x": 510,
+              "y": 414
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_air_post",
+        "name": "huoltoasema rev air post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1580,
+              "y": 812
+            },
+            {
+              "x": 1580,
+              "y": 620
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_air_unit_outline",
+        "name": "huoltoasema rev air unit outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1540,
+            "y": 560,
+            "width": 80,
+            "height": 110
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_air_unit_fill",
+        "name": "huoltoasema rev air unit fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1546,
+            "y": 566,
+            "width": 68,
+            "height": 98
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_air_hose",
+        "name": "huoltoasema rev air hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1600,
+              "y": 640
+            },
+            {
+              "x": 1650,
+              "y": 700
+            },
+            {
+              "x": 1630,
+              "y": 780
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hydrant_cap",
+        "name": "paloposti cap",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1741.82,
+            "y": 696.36,
+            "width": 43.64,
+            "height": 24.0
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hydrant_body",
+        "name": "paloposti body",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1744.0,
+            "y": 708.36,
+            "width": 39.27,
+            "height": 89.45
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hydrant_nozzle_left",
+        "name": "paloposti nozzle left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1727.64,
+            "y": 736.73,
+            "width": 17.45,
+            "height": 18.55
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hydrant_nozzle_right",
+        "name": "paloposti nozzle right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1782.18,
+            "y": 736.73,
+            "width": 17.45,
+            "height": 18.55
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hydrant_band",
+        "name": "paloposti band",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1739.64,
+            "y": 723.64,
+            "width": 48.0,
+            "height": 7.64
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_rev_hydrant_base",
+        "name": "paloposti base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1735.27,
+            "y": 795.64,
+            "width": 56.73,
+            "height": 16.36
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_sky_high",
+        "name": "huoltoasema sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 226,
+            "g": 198,
+            "b": 172,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_sun_high",
+        "name": "huoltoasema sun",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1517.84,
+            "y": 410.86,
+            "width": 134.32,
+            "height": 134.32
+          },
+          "color": {
+            "r": 238,
+            "g": 186,
+            "b": 110,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_high",
+        "name": "huoltoasema forecourt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 643.26,
+            "width": 1920,
+            "height": 436.74
+          },
+          "color": {
+            "r": 196,
+            "g": 194,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_seam_high",
+        "name": "huoltoasema forecourt seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 835.56
+            },
+            {
+              "x": 1920,
+              "y": 835.56
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_seam_two_high",
+        "name": "huoltoasema forecourt seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 646.52
+            },
+            {
+              "x": 960,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_oil_stain_high",
+        "name": "huoltoasema oil stain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1240,
+            "y": 917.04,
+            "width": 240,
+            "height": 65.19
+          },
+          "color": {
+            "r": 176,
+            "g": 174,
+            "b": 168,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_wall_high",
+        "name": "huoltoasema shop wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1120,
+            "y": 331.85,
+            "width": 800,
+            "height": 308.15
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_roof_high",
+        "name": "huoltoasema shop roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1104,
+            "y": 319.21,
+            "width": 832,
+            "height": 18.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_sign_high",
+        "name": "huoltoasema shop sign",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 350.81,
+            "width": 500,
+            "height": 47.41
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_lettering_high",
+        "name": "huoltoasema shop lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1220,
+              "y": 376.1
+            },
+            {
+              "x": 1270,
+              "y": 365.04
+            },
+            {
+              "x": 1320,
+              "y": 387.16
+            },
+            {
+              "x": 1370,
+              "y": 365.04
+            },
+            {
+              "x": 1420,
+              "y": 387.16
+            },
+            {
+              "x": 1470,
+              "y": 365.04
+            },
+            {
+              "x": 1520,
+              "y": 385.58
+            },
+            {
+              "x": 1620,
+              "y": 371.36
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_window_high",
+        "name": "huoltoasema shop window",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1160,
+            "y": 426.67,
+            "width": 520,
+            "height": 158.02
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_window_shelves_high",
+        "name": "huoltoasema shop window shelves",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 505.68
+            },
+            {
+              "x": 1660,
+              "y": 505.68
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 198,
+            "g": 150,
+            "b": 84,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_door_outline_high",
+        "name": "huoltoasema shop door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1720,
+            "y": 442.47,
+            "width": 140,
+            "height": 197.53
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_door_fill_high",
+        "name": "huoltoasema shop door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1727,
+            "y": 448.0,
+            "width": 126,
+            "height": 186.47
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_body_outline_high",
+        "name": "juoma automaatti body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1065.0,
+            "y": 406.91,
+            "width": 150.0,
+            "height": 229.14
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_body_fill_high",
+        "name": "juoma automaatti body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1069.5,
+            "y": 410.47,
+            "width": 141.0,
+            "height": 222.02
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_0_high",
+        "name": "juoma automaatti row 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 430.62,
+            "width": 85.0,
+            "height": 19.75
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_1_high",
+        "name": "juoma automaatti row 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 468.54,
+            "width": 85.0,
+            "height": 19.75
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_2_high",
+        "name": "juoma automaatti row 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 506.47,
+            "width": 85.0,
+            "height": 19.75
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_3_high",
+        "name": "juoma automaatti row 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 544.4,
+            "width": 85.0,
+            "height": 19.75
+          },
+          "color": {
+            "r": 214,
+            "g": 120,
+            "b": 96,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_glass_high",
+        "name": "juoma automaatti glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1077.0,
+            "y": 418.77,
+            "width": 95.0,
+            "height": 165.93
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_buttons_high",
+        "name": "juoma automaatti buttons",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1179.0,
+            "y": 418.77,
+            "width": 27.0,
+            "height": 79.01
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_coin_high",
+        "name": "juoma automaatti coin",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1184.0,
+            "y": 509.63,
+            "width": 17.0,
+            "height": 17.38
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_flap_high",
+        "name": "juoma automaatti flap",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1080.0,
+            "y": 596.54,
+            "width": 90.0,
+            "height": 23.7
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_pillar_left_high",
+        "name": "huoltoasema canopy pillar left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 270,
+              "y": 643.26
+            },
+            {
+              "x": 270,
+              "y": 237.04
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_pillar_right_high",
+        "name": "huoltoasema canopy pillar right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 643.26
+            },
+            {
+              "x": 1000,
+              "y": 237.04
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_outline_high",
+        "name": "huoltoasema canopy outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 200,
+            "y": 181.73,
+            "width": 1000,
+            "height": 63.21
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_fill_high",
+        "name": "huoltoasema canopy fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208,
+            "y": 188.05,
+            "width": 984,
+            "height": 50.57
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_stripe_high",
+        "name": "huoltoasema canopy stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208,
+            "y": 211.75,
+            "width": 984,
+            "height": 15.8
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_0_high",
+        "name": "huoltoasema canopy light 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330,
+            "y": 244.94,
+            "width": 120,
+            "height": 9.48
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_1_high",
+        "name": "huoltoasema canopy light 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630,
+            "y": 244.94,
+            "width": 120,
+            "height": 9.48
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_2_high",
+        "name": "huoltoasema canopy light 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 930,
+            "y": 244.94,
+            "width": 120,
+            "height": 9.48
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_island_high",
+        "name": "huoltoasema island",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 630.52,
+            "width": 700,
+            "height": 16.0
+          },
+          "color": {
+            "r": 168,
+            "g": 170,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_body_outline_high",
+        "name": "polttoainemittari body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 310.0,
+            "y": 405.07,
+            "width": 120.0,
+            "height": 226.5
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_body_fill_high",
+        "name": "polttoainemittari body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 409.28,
+            "width": 109.33,
+            "height": 218.07
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_top_high",
+        "name": "polttoainemittari top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 409.28,
+            "width": 109.33,
+            "height": 31.6
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_display_high",
+        "name": "polttoainemittari display",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330.0,
+            "y": 452.48,
+            "width": 80.0,
+            "height": 36.88
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_hose_high",
+        "name": "polttoainemittari hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420.67,
+              "y": 522.01
+            },
+            {
+              "x": 444.67,
+              "y": 563.1
+            },
+            {
+              "x": 438.0,
+              "y": 605.23
+            },
+            {
+              "x": 423.33,
+              "y": 618.93
+            }
+          ],
+          "width": 5.33,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_holster_high",
+        "name": "polttoainemittari holster",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 508.31,
+            "width": 26.67,
+            "height": 44.25
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_base_high",
+        "name": "polttoainemittari base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 302.0,
+            "y": 627.36,
+            "width": 136.0,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_body_outline_high",
+        "name": "polttoainemittari body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 405.07,
+            "width": 120.0,
+            "height": 226.5
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_body_fill_high",
+        "name": "polttoainemittari body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 409.28,
+            "width": 109.33,
+            "height": 218.07
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_top_high",
+        "name": "polttoainemittari top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 409.28,
+            "width": 109.33,
+            "height": 31.6
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_display_high",
+        "name": "polttoainemittari display",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 800.0,
+            "y": 452.48,
+            "width": 80.0,
+            "height": 36.88
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_hose_high",
+        "name": "polttoainemittari hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 890.67,
+              "y": 522.01
+            },
+            {
+              "x": 914.67,
+              "y": 563.1
+            },
+            {
+              "x": 908.0,
+              "y": 605.23
+            },
+            {
+              "x": 893.33,
+              "y": 618.93
+            }
+          ],
+          "width": 5.33,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_holster_high",
+        "name": "polttoainemittari holster",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880.0,
+            "y": 508.31,
+            "width": 26.67,
+            "height": 44.25
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_base_high",
+        "name": "polttoainemittari base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 772.0,
+            "y": 627.36,
+            "width": 136.0,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_cabin_outline_high",
+        "name": "henkiloauto cabin outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 517.59,
+          "y": 534.5,
+          "width": 170.69,
+          "height": 42.5
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 517.59,
+            "y": 534.5,
+            "width": 170.69,
+            "height": 85.82
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_cabin_fill_high",
+        "name": "henkiloauto cabin fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 522.24,
+          "y": 538.18,
+          "width": 161.38,
+          "height": 38.83
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 522.24,
+            "y": 538.18,
+            "width": 161.38,
+            "height": 78.47
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_glass_high",
+        "name": "henkiloauto glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 533.1,
+          "y": 545.54,
+          "width": 139.66,
+          "height": 29.42
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 533.1,
+            "y": 545.54,
+            "width": 139.66,
+            "height": 65.39
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_pillar_high",
+        "name": "henkiloauto pillar",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 604.48,
+              "y": 546.77
+            },
+            {
+              "x": 604.48,
+              "y": 575.38
+            }
+          ],
+          "width": 6.21,
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_body_outline_high",
+        "name": "henkiloauto body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 449.31,
+            "y": 573.74,
+            "width": 312.41,
+            "height": 45.77
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_body_fill_high",
+        "name": "henkiloauto body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 577.01,
+            "width": 304.14,
+            "height": 39.24
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_headlamp_high",
+        "name": "henkiloauto headlamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 745.17,
+            "y": 582.73,
+            "width": 12.41,
+            "height": 8.99
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_tail_light_high",
+        "name": "henkiloauto tail light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 582.73,
+            "width": 8.28,
+            "height": 10.63
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_back_outline_high",
+        "name": "henkiloauto wheel back outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 491.72,
+            "y": 601.53,
+            "width": 50.69,
+            "height": 41.73
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_back_fill_high",
+        "name": "henkiloauto wheel back fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 505.22,
+            "y": 609.71,
+            "width": 23.7,
+            "height": 23.7
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_front_outline_high",
+        "name": "henkiloauto wheel front outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 668.62,
+            "y": 601.53,
+            "width": 50.69,
+            "height": 41.73
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_front_fill_high",
+        "name": "henkiloauto wheel front fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 682.12,
+            "y": 609.71,
+            "width": 23.7,
+            "height": 23.7
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_post_high",
+        "name": "huoltoasema price post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 643.26
+            },
+            {
+              "x": 80,
+              "y": 347.65
+            }
+          ],
+          "width": 16,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_board_outline_high",
+        "name": "huoltoasema price board outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 158.02,
+            "width": 160,
+            "height": 197.53
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_board_fill_high",
+        "name": "huoltoasema price board fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 7,
+            "y": 163.56,
+            "width": 146,
+            "height": 186.47
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_logo_high",
+        "name": "huoltoasema price logo",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 165.93,
+            "width": 140,
+            "height": 47.41
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_0_high",
+        "name": "huoltoasema price digits 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 244.94
+            },
+            {
+              "x": 60,
+              "y": 237.04
+            },
+            {
+              "x": 90,
+              "y": 251.26
+            },
+            {
+              "x": 130,
+              "y": 238.62
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_1_high",
+        "name": "huoltoasema price digits 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 281.28
+            },
+            {
+              "x": 60,
+              "y": 273.38
+            },
+            {
+              "x": 90,
+              "y": 287.6
+            },
+            {
+              "x": 130,
+              "y": 274.96
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_2_high",
+        "name": "huoltoasema price digits 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 317.63
+            },
+            {
+              "x": 60,
+              "y": 309.73
+            },
+            {
+              "x": 90,
+              "y": 323.95
+            },
+            {
+              "x": 130,
+              "y": 311.31
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_sky_low",
+        "name": "huoltoasema sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 226,
+            "g": 198,
+            "b": 172,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_sun_low",
+        "name": "huoltoasema sun",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1492.65,
+            "y": 564.94,
+            "width": 184.69,
+            "height": 184.69
+          },
+          "color": {
+            "r": 238,
+            "g": 186,
+            "b": 110,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_low",
+        "name": "huoltoasema forecourt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 881.48,
+            "width": 1920,
+            "height": 198.52
+          },
+          "color": {
+            "r": 196,
+            "g": 194,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_seam_low",
+        "name": "huoltoasema forecourt seam",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 968.89
+            },
+            {
+              "x": 1920,
+              "y": 968.89
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_forecourt_seam_two_low",
+        "name": "huoltoasema forecourt seam two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 882.96
+            },
+            {
+              "x": 960,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_oil_stain_low",
+        "name": "huoltoasema oil stain",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1240,
+            "y": 1005.93,
+            "width": 240,
+            "height": 29.63
+          },
+          "color": {
+            "r": 176,
+            "g": 174,
+            "b": 168,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_wall_low",
+        "name": "huoltoasema shop wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1120,
+            "y": 456.3,
+            "width": 800,
+            "height": 423.7
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_roof_low",
+        "name": "huoltoasema shop roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1104,
+            "y": 438.91,
+            "width": 832,
+            "height": 26.07
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_sign_low",
+        "name": "huoltoasema shop sign",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 482.37,
+            "width": 500,
+            "height": 65.19
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_lettering_low",
+        "name": "huoltoasema shop lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1220,
+              "y": 517.14
+            },
+            {
+              "x": 1270,
+              "y": 501.93
+            },
+            {
+              "x": 1320,
+              "y": 532.35
+            },
+            {
+              "x": 1370,
+              "y": 501.93
+            },
+            {
+              "x": 1420,
+              "y": 532.35
+            },
+            {
+              "x": 1470,
+              "y": 501.93
+            },
+            {
+              "x": 1520,
+              "y": 530.17
+            },
+            {
+              "x": 1620,
+              "y": 510.62
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_window_low",
+        "name": "huoltoasema shop window",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1160,
+            "y": 586.67,
+            "width": 520,
+            "height": 217.28
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_window_shelves_low",
+        "name": "huoltoasema shop window shelves",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 695.31
+            },
+            {
+              "x": 1660,
+              "y": 695.31
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 198,
+            "g": 150,
+            "b": 84,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_door_outline_low",
+        "name": "huoltoasema shop door outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1720,
+            "y": 608.4,
+            "width": 140,
+            "height": 271.6
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_shop_door_fill_low",
+        "name": "huoltoasema shop door fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1727,
+            "y": 616.0,
+            "width": 126,
+            "height": 256.4
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_body_outline_low",
+        "name": "juoma automaatti body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1065.0,
+            "y": 559.51,
+            "width": 150.0,
+            "height": 315.06
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_body_fill_low",
+        "name": "juoma automaatti body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1069.5,
+            "y": 564.4,
+            "width": 141.0,
+            "height": 305.28
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_0_low",
+        "name": "juoma automaatti row 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 592.1,
+            "width": 85.0,
+            "height": 27.16
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_1_low",
+        "name": "juoma automaatti row 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 644.25,
+            "width": 85.0,
+            "height": 27.16
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_2_low",
+        "name": "juoma automaatti row 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 696.4,
+            "width": 85.0,
+            "height": 27.16
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_row_3_low",
+        "name": "juoma automaatti row 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 748.54,
+            "width": 85.0,
+            "height": 27.16
+          },
+          "color": {
+            "r": 214,
+            "g": 120,
+            "b": 96,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_glass_low",
+        "name": "juoma automaatti glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1077.0,
+            "y": 575.8,
+            "width": 95.0,
+            "height": 228.15
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_buttons_low",
+        "name": "juoma automaatti buttons",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1179.0,
+            "y": 575.8,
+            "width": 27.0,
+            "height": 108.64
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_coin_low",
+        "name": "juoma automaatti coin",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1184.0,
+            "y": 700.74,
+            "width": 17.0,
+            "height": 23.9
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_vending_flap_low",
+        "name": "juoma automaatti flap",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1080.0,
+            "y": 820.25,
+            "width": 90.0,
+            "height": 32.59
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_pillar_left_low",
+        "name": "huoltoasema canopy pillar left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 270,
+              "y": 881.48
+            },
+            {
+              "x": 270,
+              "y": 325.93
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_pillar_right_low",
+        "name": "huoltoasema canopy pillar right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 881.48
+            },
+            {
+              "x": 1000,
+              "y": 325.93
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_outline_low",
+        "name": "huoltoasema canopy outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 200,
+            "y": 249.88,
+            "width": 1000,
+            "height": 86.91
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_fill_low",
+        "name": "huoltoasema canopy fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208,
+            "y": 258.57,
+            "width": 984,
+            "height": 69.53
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_stripe_low",
+        "name": "huoltoasema canopy stripe",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 208,
+            "y": 291.16,
+            "width": 984,
+            "height": 21.73
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_0_low",
+        "name": "huoltoasema canopy light 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330,
+            "y": 336.79,
+            "width": 120,
+            "height": 13.04
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_1_low",
+        "name": "huoltoasema canopy light 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630,
+            "y": 336.79,
+            "width": 120,
+            "height": 13.04
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_canopy_light_2_low",
+        "name": "huoltoasema canopy light 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 930,
+            "y": 336.79,
+            "width": 120,
+            "height": 13.04
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_island_low",
+        "name": "huoltoasema island",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 270,
+            "y": 866.96,
+            "width": 700,
+            "height": 16.0
+          },
+          "color": {
+            "r": 168,
+            "g": 170,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_body_outline_low",
+        "name": "polttoainemittari body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 310.0,
+            "y": 556.97,
+            "width": 120.0,
+            "height": 311.44
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_body_fill_low",
+        "name": "polttoainemittari body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 562.77,
+            "width": 109.33,
+            "height": 299.85
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_top_low",
+        "name": "polttoainemittari top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 315.33,
+            "y": 562.77,
+            "width": 109.33,
+            "height": 43.46
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_display_low",
+        "name": "polttoainemittari display",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 330.0,
+            "y": 622.16,
+            "width": 80.0,
+            "height": 50.7
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_hose_low",
+        "name": "polttoainemittari hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420.67,
+              "y": 717.76
+            },
+            {
+              "x": 444.67,
+              "y": 774.26
+            },
+            {
+              "x": 438.0,
+              "y": 832.2
+            },
+            {
+              "x": 423.33,
+              "y": 851.03
+            }
+          ],
+          "width": 5.33,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_holster_low",
+        "name": "polttoainemittari holster",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 698.93,
+            "width": 26.67,
+            "height": 60.84
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_left_base_low",
+        "name": "polttoainemittari base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 302.0,
+            "y": 862.62,
+            "width": 136.0,
+            "height": 13.04
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_body_outline_low",
+        "name": "polttoainemittari body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 556.97,
+            "width": 120.0,
+            "height": 311.44
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_body_fill_low",
+        "name": "polttoainemittari body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 562.77,
+            "width": 109.33,
+            "height": 299.85
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_top_low",
+        "name": "polttoainemittari top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 785.33,
+            "y": 562.77,
+            "width": 109.33,
+            "height": 43.46
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_display_low",
+        "name": "polttoainemittari display",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 800.0,
+            "y": 622.16,
+            "width": 80.0,
+            "height": 50.7
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_hose_low",
+        "name": "polttoainemittari hose",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 890.67,
+              "y": 717.76
+            },
+            {
+              "x": 914.67,
+              "y": 774.26
+            },
+            {
+              "x": 908.0,
+              "y": 832.2
+            },
+            {
+              "x": 893.33,
+              "y": 851.03
+            }
+          ],
+          "width": 5.33,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_holster_low",
+        "name": "polttoainemittari holster",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880.0,
+            "y": 698.93,
+            "width": 26.67,
+            "height": 60.84
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_pump_right_base_low",
+        "name": "polttoainemittari base",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 772.0,
+            "y": 862.62,
+            "width": 136.0,
+            "height": 13.04
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_cabin_outline_low",
+        "name": "henkiloauto cabin outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 517.59,
+          "y": 734.94,
+          "width": 170.69,
+          "height": 58.44
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 517.59,
+            "y": 734.94,
+            "width": 170.69,
+            "height": 118.01
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_cabin_fill_low",
+        "name": "henkiloauto cabin fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 522.24,
+          "y": 740.0,
+          "width": 161.38,
+          "height": 53.39
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 522.24,
+            "y": 740.0,
+            "width": 161.38,
+            "height": 107.89
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_glass_low",
+        "name": "henkiloauto glass",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": {
+          "x": 533.1,
+          "y": 750.12,
+          "width": 139.66,
+          "height": 40.46
+        },
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 533.1,
+            "y": 750.12,
+            "width": 139.66,
+            "height": 89.91
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_pillar_low",
+        "name": "henkiloauto pillar",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 604.48,
+              "y": 751.8
+            },
+            {
+              "x": 604.48,
+              "y": 791.14
+            }
+          ],
+          "width": 6.21,
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_body_outline_low",
+        "name": "henkiloauto body outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 449.31,
+            "y": 788.89,
+            "width": 312.41,
+            "height": 62.94
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_body_fill_low",
+        "name": "henkiloauto body fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 793.39,
+            "width": 304.14,
+            "height": 53.95
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_headlamp_low",
+        "name": "henkiloauto headlamp",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 745.17,
+            "y": 801.26,
+            "width": 12.41,
+            "height": 12.36
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_tail_light_low",
+        "name": "henkiloauto tail light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 453.45,
+            "y": 801.26,
+            "width": 8.28,
+            "height": 14.61
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_back_outline_low",
+        "name": "henkiloauto wheel back outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 491.72,
+            "y": 827.1,
+            "width": 50.69,
+            "height": 54.38
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_back_fill_low",
+        "name": "henkiloauto wheel back fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 500.77,
+            "y": 838.35,
+            "width": 32.59,
+            "height": 32.59
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_front_outline_low",
+        "name": "henkiloauto wheel front outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 668.62,
+            "y": 827.1,
+            "width": 50.69,
+            "height": 54.38
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_car_wheel_front_fill_low",
+        "name": "henkiloauto wheel front fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 677.67,
+            "y": 838.35,
+            "width": 32.59,
+            "height": 32.59
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_post_low",
+        "name": "huoltoasema price post",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 881.48
+            },
+            {
+              "x": 80,
+              "y": 478.02
+            }
+          ],
+          "width": 16,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_board_outline_low",
+        "name": "huoltoasema price board outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 217.28,
+            "width": 160,
+            "height": 271.6
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_board_fill_low",
+        "name": "huoltoasema price board fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 7,
+            "y": 224.89,
+            "width": 146,
+            "height": 256.4
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_logo_low",
+        "name": "huoltoasema price logo",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 228.15,
+            "width": 140,
+            "height": 65.19
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_0_low",
+        "name": "huoltoasema price digits 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 336.79
+            },
+            {
+              "x": 60,
+              "y": 325.93
+            },
+            {
+              "x": 90,
+              "y": 345.48
+            },
+            {
+              "x": 130,
+              "y": 328.1
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_1_low",
+        "name": "huoltoasema price digits 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 386.77
+            },
+            {
+              "x": 60,
+              "y": 375.9
+            },
+            {
+              "x": 90,
+              "y": 395.46
+            },
+            {
+              "x": 130,
+              "y": 378.07
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_huoltoasema_price_digits_2_low",
+        "name": "huoltoasema price digits 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 436.74
+            },
+            {
+              "x": 60,
+              "y": 425.88
+            },
+            {
+              "x": 90,
+              "y": 445.43
+            },
+            {
+              "x": 130,
+              "y": 428.05
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      }
+    ]
+  }
+}
