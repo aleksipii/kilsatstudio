@@ -1,15 +1,23 @@
 #!/bin/sh
 # Build, package and audit the Kilsat Studio release app for Apple Silicon.
 #
-# Usage: scripts/build_release_app.sh OUTPUT_DIRECTORY
+# Usage: scripts/build_release_app.sh OUTPUT_DIRECTORY [SPEECH_BUNDLE_DIRECTORY]
 # Produces OUTPUT_DIRECTORY/Kilsat-Studio-1.0.0-arm64.zip and an audit report.
+# With SPEECH_BUNDLE_DIRECTORY (built by scripts/build_speech_bundle.py) the app
+# ships Kokoro, Piper and Rhubarb ready to use, with no download or setup.
 # The app is ad-hoc signed; Developer ID signing and notarization are a
 # separate, explicit step (scripts/developer_release.py, docs/mac-production-release.md).
 set -eu
 
-if [ "$#" -ne 1 ]; then
-    echo "usage: $0 OUTPUT_DIRECTORY" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+    echo "usage: $0 OUTPUT_DIRECTORY [SPEECH_BUNDLE_DIRECTORY]" >&2
     exit 2
+fi
+speech_args=
+if [ "$#" -eq 2 ]; then
+    speech=$(cd "$2" && pwd)
+    test -f "$speech/speech-bundle.json" || { echo "not a speech bundle: $2" >&2; exit 2; }
+    speech_args="--speech-bundle $speech"
 fi
 repo=$(cd "$(dirname "$0")/.." && pwd)
 output=$1
@@ -48,8 +56,10 @@ done
 
 archive="$output/Kilsat-Studio-$version-arm64.zip"
 python3 "$repo/scripts/package_macos.py" --repo "$repo" --binary "$binary" --gpu-probe "$helper" \
-    --head-pose "$output/build/head_pose" --output "$archive" --commit "$commit" --arch arm64 --profile release
+    --head-pose "$output/build/head_pose" --output "$archive" --commit "$commit" --arch arm64 --profile release \
+    ${speech_args:+--speech-bundle "$speech"}
 python3 "$repo/scripts/package_audit.py" --archive "$archive" --repo "$repo" --commit "$commit" \
-    --target "$triple" --profile release --output "$output/package-audit.json" --require-signature-metadata
+    --target "$triple" --profile release --output "$output/package-audit.json" --require-signature-metadata \
+    ${speech_args:+--speech-bundle "$speech"}
 shasum -a 256 "$archive" > "$archive.sha256"
 echo "$archive"

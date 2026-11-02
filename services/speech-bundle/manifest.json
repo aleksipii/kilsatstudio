@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "bundle_id": "kilsat-speech-bundle-1",
+  "python": {
+    "version": "3.12.16",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-aarch64-apple-darwin-install_only_stripped.tar.gz",
+    "sha256": "353d5f1b4fd2715e7053f12f068435d5bbad16b91e057006b5d01e0925709a7e",
+    "size_bytes": 25035343,
+    "license": "PSF-2.0 (CPython) plus bundled third-party notices; see python/lib/python3.12/LICENSE.txt"
+  },
+  "kokoro_manifest": "services/kokoro-runtime/setup-manifest.json",
+  "kokoro_voice_catalog": "services/kokoro-runtime/english-voices.json",
+  "packages": [
+    "piper-tts==1.8.0"
+  ],
+  "piper": {
+    "preset": "piper_harri",
+    "repository": "rhasspy/piper-voices",
+    "revision": "b4e358ffcb232591bf73a540e70f7de528e4174a",
+    "files": [
+      {
+        "path": "fi_FI-harri-medium.onnx",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fi/fi_FI/harri/medium/fi_FI-harri-medium.onnx",
+        "sha256": "a44167faa34caed940e4fcad139fcc35922266b2593bcebe77701774c0fb2389",
+        "size_bytes": 63201294
+      },
+      {
+        "path": "fi_FI-harri-medium.onnx.json",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fi/fi_FI/harri/medium/fi_FI-harri-medium.onnx.json",
+        "sha256": "3f9c9f76f74adf1fbe7279e41eea17d6610757e45effd6808bbea6be74b8916d",
+        "size_bytes": 4873
+      },
+      {
+        "path": "MODEL_CARD",
+        "url": "https://huggingface.co/rhasspy/piper-voices/resolve/b4e358ffcb232591bf73a540e70f7de528e4174a/fi/fi_FI/harri/medium/MODEL_CARD",
+        "sha256": "a0a7fa3f046f1e582689db76f93099735530343a3126f3f40ed64380c419a0b2",
+        "size_bytes": 304
+      }
+    ]
+  },
+  "rhubarb": {
+    "version": "1.14.0",
+    "url": "https://github.com/DanielSWolf/rhubarb-lip-sync/releases/download/v1.14.0/Rhubarb-Lip-Sync-1.14.0-macOS.zip",
+    "sha256": "f991deacac6c973a14a4431a16a58b842f436531e120cfaea142c87c0d3ab4c5",
+    "size_bytes": 86870942,
+    "archive_root": "Rhubarb-Lip-Sync-1.14.0-macOS",
+    "keep": ["rhubarb", "res", "LICENSE.md"]
+  },
+  "notes": [
+    "Pins checked 2026-11-02. The Rhubarb macOS 1.14.0 executable is x86_64 only and needs Rosetta 2 on Apple Silicon.",
+    "piper-tts 1.8.0 (OHF-Voice/piper1-gpl) is GPL-3.0-or-later and embeds eSpeak NG; it runs as a separate process. Distributing the app requires shipping its license text and a source offer.",
+    "The harri voice card names a CC0 dataset fine-tuned from the lessac voice; the piper-voices repository is tagged MIT. Review both before public distribution.",
+    "Direct package pins only; pip resolves transitive wheels and the exact freeze is recorded in the bundle. This is not a completed redistribution audit."
+  ]
+}

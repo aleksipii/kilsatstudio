@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
-"""Create an ad-hoc signed macOS preview; no models or Python environment bundled."""
+"""Create an ad-hoc signed macOS app; optionally with the prebuilt speech bundle.
+
+Without --speech-bundle no models or Python environment are bundled. With it, the
+directory made by scripts/build_speech_bundle.py is copied unchanged to
+Contents/Resources/speech so Kokoro, Piper and Rhubarb work without any download.
+"""
+import hashlib
 import argparse
+import json
 import os
 from pathlib import Path
 import plistlib
@@ -69,14 +76,38 @@ def bundle_info():
                                {'public.filename-extension': ['kilsat']}}]}
 
 
-def build_info(commit, arch, profile):
-    """BUILD-INFO.txt contents, shared with the offline audit."""
+SPEECH_DESCRIPTOR = 'speech-bundle.json'
+
+
+def speech_identity(bundle):
+    """(bundle_id, descriptor SHA-256) of a built speech bundle directory."""
+    descriptor = Path(bundle) / SPEECH_DESCRIPTOR
+    if descriptor.is_symlink() or not descriptor.is_file():
+        raise ValueError('speech bundle lacks ' + SPEECH_DESCRIPTOR)
+    raw = descriptor.read_bytes()
+    if len(raw) > 1024 * 1024:
+        raise ValueError('speech bundle descriptor exceeds 1 MiB')
+    document = json.loads(raw)
+    if document.get('schema_version') != 1 or not isinstance(document.get('bundle_id'), str):
+        raise ValueError('unsupported speech bundle descriptor')
+    return document['bundle_id'], hashlib.sha256(raw).hexdigest()
+
+
+def build_info(commit, arch, profile, speech=None):
+    """BUILD-INFO.txt contents, shared with the offline audit.
+
+    speech is None or the (bundle_id, descriptor sha256) pair from speech_identity.
+    """
+    contents = ('No model weights, voice assets, Python runtime or Python dependencies included.\n'
+                if speech is None else
+                f'Bundled speech {speech[0]}: Python runtime, Kokoro model and English voices, '
+                f'Piper with the Finnish harri voice and Rhubarb; descriptor sha256 {speech[1]}.\n')
     return (f'Commit: {commit}\nArchitecture: {arch}\nProfile: {profile}\n'
-            f'Kilsat Studio {VERSION}; ad-hoc signed, not notarized.\n'
-            'No model weights, voice assets, Python runtime or Python dependencies included.\n')
+            f'Kilsat Studio {VERSION}; ad-hoc signed, not notarized.\n' + contents)
 
 
-def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None, head_pose=None):
+def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None, head_pose=None,
+                 speech_bundle=None):
     repo, binary, destination = Path(repo).resolve(), Path(binary).resolve(), Path(destination)
     if not binary.is_file() or not os.access(binary, os.X_OK):
         raise ValueError('binary must be an existing executable file')
@@ -90,6 +121,15 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
         head_pose = Path(head_pose)
         if head_pose.is_symlink() or not head_pose.is_file() or not os.access(head_pose, os.X_OK):
             raise ValueError('head pose helper must be a non-symlink executable file')
+    speech = None
+    if speech_bundle is not None:
+        speech_bundle = Path(speech_bundle)
+        if speech_bundle.is_symlink() or not speech_bundle.is_dir():
+            raise ValueError('speech bundle must be a non-symlink directory')
+        speech = speech_identity(speech_bundle)
+        for path in speech_bundle.rglob('*'):
+            if path.is_symlink() or not (path.is_file() or path.is_dir()):
+                raise ValueError('speech bundle may contain only regular files and directories')
     license_path = repo / 'LICENSE'
     if license_path.is_symlink() or not license_path.is_file() or not license_path.stat().st_size:
         raise ValueError('missing or unsafe LICENSE: provide the non-empty repository source license')
@@ -127,17 +167,21 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
                 shutil.copy2(screenplay, target / screenplay.name)
         else:
             shutil.copy2(source, target)
+    if speech_bundle is not None:
+        shutil.copytree(speech_bundle, resources / 'speech', symlinks=True)
     (resources / 'KilsatStudio.icns').write_bytes(app_icon())
     with (destination / 'Contents/Info.plist').open('wb') as handle:
         plistlib.dump(bundle_info(), handle)
-    (resources / 'BUILD-INFO.txt').write_text(build_info(commit, arch, profile), encoding='utf-8')
+    (resources / 'BUILD-INFO.txt').write_text(build_info(commit, arch, profile, speech), encoding='utf-8')
     return destination
 
 
-def stage_distribution(repo, binary, directory, commit, arch, profile, gpu_probe=None, head_pose=None):
+def stage_distribution(repo, binary, directory, commit, arch, profile, gpu_probe=None, head_pose=None,
+                       speech_bundle=None):
     """Stage the app and a source license readable without opening its bundle."""
     directory = Path(directory)
-    bundle = stage_bundle(repo, binary, directory / APP_NAME, commit, arch, profile, gpu_probe, head_pose)
+    bundle = stage_bundle(repo, binary, directory / APP_NAME, commit, arch, profile, gpu_probe, head_pose,
+                          speech_bundle)
     shutil.copy2(bundle / 'Contents/Resources/LICENSE', directory / 'LICENSE')
     return bundle
 
@@ -148,6 +192,8 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--gpu-probe', type=Path, help='Optional native GPU fixture helper')
     parser.add_argument('--head-pose', type=Path, help='Optional native local camera pose helper')
+    parser.add_argument('--speech-bundle', type=Path,
+                        help='Directory built by scripts/build_speech_bundle.py to ship inside the app')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--commit', required=True)
     parser.add_argument('--arch', choices=['arm64', 'x86_64'], required=True)
@@ -161,7 +207,8 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='kilsat-package-') as temporary:
         bundle = stage_distribution(args.repo, args.binary, temporary,
-                                    args.commit, args.arch, args.profile, args.gpu_probe, args.head_pose)
+                                    args.commit, args.arch, args.profile, args.gpu_probe, args.head_pose,
+                                    args.speech_bundle)
         if args.gpu_probe is not None:
             helper = bundle / 'Contents/Resources/bin/gpu_probe'
             subprocess.run(['codesign', '--force', '--sign', '-', str(helper)], check=True)
@@ -174,7 +221,11 @@ def main():
         subprocess.run(['codesign', '--verify', '--deep', '--strict', str(bundle)], check=True)
         # Archive the staging directory's contents: the app and adjacent LICENSE.
         # ditto preserves executable permissions and the app's directory layout.
-        subprocess.run(['ditto', '-c', '-k', '--sequesterRsrc',
+        # With the speech bundle, extended attributes (download provenance) would add
+        # an AppleDouble entry per file; the app needs none of them.
+        attributes = (['--norsrc', '--noextattr', '--noacl'] if args.speech_bundle is not None
+                      else ['--sequesterRsrc'])
+        subprocess.run(['ditto', '-c', '-k', *attributes,
                         temporary, str(output)], check=True)
     print(output)
 
