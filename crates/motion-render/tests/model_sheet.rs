@@ -80,23 +80,23 @@ fn posed(r: &RigDefinition, offsets: &[(&str, f64)]) -> Vec<motion_rig::Evaluate
 const PASMA_SHEETS: [(&str, &str); 5] = [
     (
         "default",
-        "29be6b9cf4bd4c0479fcd3536eaee855d5c2e8d4b576abd60723a2b6e018e45c",
+        "8e4e44e70d7c7133a5201fe1b9e8eba906c901eda4f91f67b63d83c7a5ff38da",
     ),
     (
         "stick",
-        "86bab2b286138a6b39dbc98037dbb2716bbe83fe65fba23da0e8cf92a983a0af",
+        "c8d59c92af52ec23e1ef2893fb136d2b9eb117882993a0449dac3a46a286c149",
     ),
     (
         "rubber_hose",
-        "c91e9eced4e9a78d51bada9b8c9053c6079ccfbfc0a43b1b4cea80bab6d5870e",
+        "4ae07b05528945ab4f376c2de60dc122874293159e517879c1580c87f7449da0",
     ),
     (
         "flat_tv",
-        "e5b1a693a6c4335319ea2c08e42159b564817470c0063813286ebba149248b09",
+        "bdf9f54af30b512f95e26d8be9b8e22c8215b974f662d628c9a8b76cbaf4f390",
     ),
     (
         "geometric",
-        "7489b25cd3e7a377f83b4dc48c377a354596040b0c755f04a45f3f209cbc5a10",
+        "fdaefa60758f5eeea8b6e0454e2acf92b9cdc4884b7e183e0cfb2230b73c96c7",
     ),
 ];
 
@@ -237,4 +237,69 @@ fn silhouette_of_a_rig_without_stick_limbs_is_empty() {
     // Without a head joint the sheet still renders, with no ruler or face rows.
     let s = sheet(&r, CharacterStyle::FlatTv);
     assert!(s.proportions.is_none() && s.expressions.is_empty() && s.mouths.is_empty());
+}
+
+fn in_view(r: &RigDefinition, view: FaceView) -> Vec<motion_rig::EvaluatedPart> {
+    let prepared = r.prepare().unwrap();
+    prepared
+        .evaluate_acting(
+            &[],
+            ActingInput {
+                emotion: "neutral",
+                blink: false,
+                view,
+            },
+        )
+        .unwrap()
+        .0
+}
+
+fn centre_x(parts: &[motion_rig::EvaluatedPart], id: &str) -> (f64, u8) {
+    let part = parts.iter().find(|p| p.id == id).unwrap();
+    let x = part.points.iter().map(|p| p.x).sum::<f64>() / part.points.len() as f64;
+    (x, part.color[3])
+}
+
+#[test]
+fn face_accessories_follow_the_eyes_and_hide_from_behind() {
+    for (file, id, accessory, eye) in [
+        ("sisu", "SISU", "glasses_l", "pupil_l"),
+        ("sisu", "SISU", "glasses_r", "pupil_r"),
+        ("kipina", "KIPINA", "goggle_l", "pupil_l"),
+    ] {
+        let r = rig(file, id);
+        for view in [FaceView::Front, FaceView::ThreeQuarter, FaceView::Side] {
+            let parts = in_view(&r, view);
+            let (lens, alpha) = centre_x(&parts, accessory);
+            let (pupil, _) = centre_x(&parts, eye);
+            assert!(alpha > 0, "{id} {accessory} visible in {view:?}");
+            // The lens stays over its eye as the head turns.
+            assert!(
+                (lens - pupil).abs() < 2.0,
+                "{id} {accessory} {view:?}: {lens} vs {pupil}"
+            );
+        }
+        let back = in_view(&r, FaceView::Back);
+        assert_eq!(
+            centre_x(&back, accessory).1,
+            0,
+            "{id} {accessory} hidden from behind"
+        );
+    }
+    // Front-only clothing disappears from behind; back drawings replace it.
+    let hidden = [
+        ("pasma", "PASMA", "tie"),
+        ("kiire", "KIIRE", "vest_zip"),
+        ("veikko", "VEIKKO", "cap_brim"),
+        ("noutaja", "NOUTAJA", "face"),
+    ];
+    for (file, id, part) in hidden {
+        let back = in_view(&rig(file, id), FaceView::Back);
+        assert_eq!(centre_x(&back, part).1, 0, "{id} {part}");
+    }
+    // Sisu's bun sits behind the face as she turns toward +x.
+    let sisu = rig("sisu", "SISU");
+    let bun = |view| centre_x(&in_view(&sisu, view), "bun").0;
+    assert!(bun(FaceView::Front) > 0.0);
+    assert!(bun(FaceView::ThreeQuarter) < 0.0 && bun(FaceView::Side) < bun(FaceView::ThreeQuarter));
 }

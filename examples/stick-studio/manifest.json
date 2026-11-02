@@ -61,8 +61,8 @@
   "starter_project": "stick-studio.kilsat",
   "hand_props_catalog": "hand-props.json",
   "hand_props_sha256": "b9cf0ce326aa609aa61a3c8e3c16ccaa51f6d2559bf5c68d26d5787fd532b910",
-  "starter_sha256": "6f33bdb199a287f646d94c939530f579dadf0c4d1b579bb0918f460ad223fb35",
-  "starter_source_bytes": 76257,
+  "starter_sha256": "6a4b26b861d4ab4038bb0c0af9b7c08bee2147314afd0acf51b5af0c4c5feee4",
+  "starter_source_bytes": 80182,
   "artistic_review": false,
   "physical_mac_review": false,
   "items": [
@@ -74,7 +74,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "2d8875cd6c2db39e529cdd28d96fb987429af36bab12d7f997c37e8dfff78e03"
+      "project_sha256": "81970d22a4facfa1bf7a2b2747c399af57447850d847983dbc10685abd5a208b"
     },
     {
       "id": "veikko",
@@ -84,7 +84,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "f13ed3d9e132c64ac0eb75b013efabb32283b67ad8e67126fa2cbf681dbe11ee"
+      "project_sha256": "9b1698eac34dabe2236979ee700b91fc9b3809033c1235e38b77c8471b428d82"
     },
     {
       "id": "pasma",
@@ -94,7 +94,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "9eb70d3541b4423e891bf625609857dfbee4e892df85e1af2eec5f6b62522335"
+      "project_sha256": "ec91047da6f02997c68085e8fd0615f7622f43d9dc579e8073a7b94d0bce54c9"
     },
     {
       "id": "kipina",
@@ -104,7 +104,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "cbbb57d484c8da987fdec74433d474cf6bb6aa724d5b225d7644748b5f4583d0"
+      "project_sha256": "b38e3dd6078ae01d48bc8f1eda48f2a18e8a3327a7cc3c004d4778ddf28eb2a8"
     },
     {
       "id": "kiire",
@@ -114,7 +114,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "2a6bd860adea7d6bc50d43cf264eb4f31dcef00e0ac9f0c671d48baeaa134307"
+      "project_sha256": "0067c52811026bd248dc88c910c169fde43afeefe205384475ee1d4598626cb4"
     },
     {
       "id": "sisu",
@@ -124,7 +124,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "d11d20b038ceaea57f14b257b1416b66682878c91f2ff8facdb12ad6d610b687"
+      "project_sha256": "2ad0d673873979224a78f9c0ec71ba1a09843b7427e2ed00b90db6d916c7a350"
     },
     {
       "id": "toimisto",
