@@ -7,6 +7,35 @@ item includes work in progress until integration and relevant checks succeed.
 The parent integrator owns completion marking and evidence. Never replace a
 hardware, real-model or perceptual gate with mocked success.
 
+## Art angles 3–4: drawn character views and set angles — PRs #159, #160 (2026-11-02)
+
+Merged with the user's authorisation (merge commits `e930ab9` and `5627dc3`, no force-push).
+- #159: the six bundled characters' accessories have drawn `views` (three_quarter, side,
+  back). Glasses and goggles stay on the eyes and hide from behind; front-only clothing hides
+  from behind, with back drawings (collar band, vest panel, goggle strap, hood, Sisu's hair
+  and bun). Character styles restyle view drawings like variants. Also fixed a real race:
+  scene-preparation progress could be reported out of order with several workers.
+- #160: all four bundled sets are drawn for `reverse` (by hand) and `high`/`low` (front
+  redrawn with the horizon at y=640/880; indoor low adds a ceiling; circles stay round).
+  Story import copies only the angles a scene films (stays under 1024 layers). Desktop:
+  shapes drawn and images added at the playhead take its camera angle. The generated
+  asset library keeps only the front drawing, since library manifests have no angles.
+
+Checks actually run locally (macOS, Apple Silicon): fmt, `clippy --workspace --all-targets
+-D warnings` (0), `cargo test --workspace --all-targets` 1282 passed / 0 failed / 13 ignored
+on #160, pack generator, `tests/test_stick_studio_pack.py`, `stick_studio_assets`,
+`gpu_scene_probe`, and the motion-library steps after the library fix. CI first failed on
+#159 (the progress race; 1/30 locally before the fix, 40/40 after) and on #160
+(`library-macos`, stale generated library); both were fixed and all checks were green before
+each merge. Model sheets of all six characters and all four sets from all four angles were
+rendered and inspected. Fixes from that review: Sisu's hair in profile, oval wall circles in
+high/low, and a graveyard stone that blended into the ground.
+
+Still open: no hand-run desktop review; hand props are the same in every view; draw order
+does not change with the angle; high/low are redraws of the front, not new layouts; no
+desktop UI for per-view character-part images; camera angles in motion-library manifests.
+`kilsatstudio1.0` not advanced.
+
 ## Art angles 2: camera angles front/reverse/high/low — PR #156 (2026-10-30)
 
 Merged with the user's authorisation (merge commit `5ca9d29`, no force-push). See
