@@ -37,8 +37,9 @@ pub const LIMB_ASPECT: f64 = 2.5;
 pub const MAX_ROUNDED_POINTS: usize = 64;
 
 /// A restyled copy of `rig`. `CharacterStyle::Default` returns it unchanged.
-/// Joints, part ids, variants and the viseme/expression/eye maps are kept, so
-/// a styled rig animates exactly like the original.
+/// Joints, part ids, variants, view drawings and the viseme/expression/eye maps
+/// are kept, so a styled rig animates exactly like the original. View drawings
+/// are restyled like variants.
 pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigDefinition {
     let preset = style.preset();
     let mut out = rig.clone();
@@ -47,7 +48,11 @@ pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigD
             // Variant polygons must keep matching the base; leave swapped parts.
             if part.ellipse.is_none()
                 && part.points.len() >= 3
-                && part.variants.values().all(|v| v.points.is_none())
+                && part
+                    .variants
+                    .values()
+                    .chain(part.views.values())
+                    .all(|v| v.points.is_none())
             {
                 scale_limb_width(&mut part.points, preset.line_width_scale);
             }
@@ -58,7 +63,7 @@ pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigD
         OutlineChoice::Off => {
             for part in &mut out.parts {
                 part.outline = None;
-                for variant in part.variants.values_mut() {
+                for variant in part.variants.values_mut().chain(part.views.values_mut()) {
                     variant.outline = None;
                 }
             }
@@ -70,7 +75,7 @@ pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigD
                     width,
                     mode: OutlineMode::Silhouette,
                 });
-                for variant in part.variants.values_mut() {
+                for variant in part.variants.values_mut().chain(part.views.values_mut()) {
                     variant.outline = None;
                 }
             }
@@ -86,6 +91,7 @@ pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigD
             let control = part
                 .variants
                 .values()
+                .chain(part.views.values())
                 .filter(|v| v.smooth.is_none())
                 .filter_map(|v| v.points.as_ref().map(Vec::len))
                 .fold(part.points.len(), usize::max);
@@ -114,7 +120,7 @@ pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigD
             if let Some(o) = &mut part.outline {
                 swap(&mut o.color);
             }
-            for variant in part.variants.values_mut() {
+            for variant in part.variants.values_mut().chain(part.views.values_mut()) {
                 if let Some(c) = &mut variant.color {
                     swap(c);
                 }
@@ -131,7 +137,7 @@ fn rgba(c: Color) -> [u8; 4] {
     [c.r, c.g, c.b, c.a]
 }
 
-/// Unique part, variant and outline colours in first-appearance (part) order.
+/// Unique part, variant, view and outline colours in first-appearance (part) order.
 fn rig_colors(rig: &RigDefinition) -> Vec<Color> {
     let mut seen = BTreeSet::new();
     let mut colors = Vec::new();
@@ -150,7 +156,7 @@ fn rig_colors(rig: &RigDefinition) -> Vec<Color> {
         if let Some(o) = part.outline {
             push(o.color);
         }
-        for variant in part.variants.values() {
+        for variant in part.variants.values().chain(part.views.values()) {
             if let Some(c) = variant.color {
                 push(c);
             }

@@ -263,6 +263,105 @@ def _accessories(identifier, accent):
     return clothes, behind, front
 
 
+# Facial features (eyes, brows, mouth) span x = -25..25 on the head; the rig
+# turns them by squashing toward x = 0 and shifting toward +x. Accessories that
+# sit on the face use the same turn so they stay on the eyes. The torso uses a
+# narrower spread for ties, collars and vests.
+TURNS = {"three_quarter": 0.8, "side": 0.55}
+HEAD_HALF, TORSO_HALF = 25.0, 20.0
+HIDDEN = {"color": [0, 0, 0, 0]}
+
+
+def _turned(part, squash, half):
+    """The part's shape turned like the facial features (squash about x=0)."""
+    shift = (1.0 - squash) * half
+    if "ellipse" in part:
+        e = part["ellipse"]
+        return {"ellipse": {"cx": round(e["cx"] * squash + shift, 1), "cy": e["cy"],
+                            "rx": round(e["rx"] * squash, 1), "ry": e["ry"]}}
+    return {"points": [[round(x * squash + shift, 1), y] for x, y in part["points"]]}
+
+
+def _turn_views(part, half, back=None):
+    views = {name: _turned(part, squash, half) for name, squash in TURNS.items()}
+    if back is not None:
+        views["back"] = back
+    return views
+
+
+def _head_back(top=-43.0, nape=22.0):
+    """Hair covering the back of the head (radius 43 about the head centre)."""
+    points = []
+    for k in range(20):
+        a = 2 * math.pi * k / 20
+        points.append([round(43 * math.sin(a)), round(max(-43 * math.cos(a), top)) if -43 * math.cos(a) < nape else nape])
+    return points
+
+
+def _brim(front, side_reach):
+    """Cap brim drawn longer toward the facing side as the head turns."""
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3), (x4, y4) = front
+    def at(reach, narrow):
+        return [[x0 + narrow, y0], [x1, y1], [x2 + reach, y2], [x3 + reach, y3], [x4 + narrow, y4]]
+    return {"three_quarter": {"points": at(side_reach * 0.45, 3)},
+            "side": {"points": at(side_reach, 9)},
+            "back": HIDDEN}
+
+
+def _views(identifier, parts):
+    """Per-view drawings for accessories the automatic face turn does not move.
+
+    Without them, glasses, goggles and ties stay where the front view put them:
+    on the back of the head from behind, and off the eyes in profile.
+    """
+    by_id = {part["id"]: part for part in parts}
+    def head(name, back=HIDDEN):
+        by_id[name]["views"] = _turn_views(by_id[name], HEAD_HALF, back)
+    def torso(name, back=HIDDEN):
+        by_id[name]["views"] = _turn_views(by_id[name], TORSO_HALF, back)
+    def only_back(name, back=HIDDEN):
+        by_id[name]["views"] = {"back": back}
+    if identifier == "NOUTAJA":
+        head("hood_seam")
+        only_back("face")  # the hood covers the back of the head
+        torso("clasp")
+    elif identifier == "VEIKKO":
+        by_id["cap_brim"]["views"] = _brim(by_id["cap_brim"]["points"], 14)
+    elif identifier == "PASMA":
+        torso("tie")
+        torso("collar_l", {"points": [[-20, -63], [20, -63], [17, -56], [-17, -56]]})
+        torso("collar_r")
+    elif identifier == "KIPINA":
+        for name in ("goggle_l", "goggle_r"):
+            head(name)
+        head("goggle_bridge", {"points": [[-44, -32], [44, -32], [44, -26], [-44, -26]]})
+        torso("spanner")
+    elif identifier == "KIIRE":
+        torso("vest_l", {"points": [[-20, -61], [20, -61], [22, -9], [-22, -9]]})
+        torso("vest_r")
+        torso("vest_zip")
+        by_id["courier_brim"]["views"] = _brim(by_id["courier_brim"]["points"], 14)
+    elif identifier == "SISU":
+        for name in ("glasses_l", "glasses_r", "glasses_bridge"):
+            head(name)
+        # Hair is drawn per view: in profile it covers the back of the head
+        # (toward -x) and leaves the turned face clear.
+        by_id["hair_cap"]["views"] = {
+            "three_quarter": {"points": [[-40, -8], [-37, -27], [-22, -40], [0, -44], [22, -39],
+                                         [36, -25], [24, -27], [11, -32], [-5, -28], [-19, -24],
+                                         [-29, -10]]},
+            "side": {"points": [[-42, 6], [-41, -18], [-32, -35], [-14, -43], [8, -43], [26, -36],
+                                [33, -26], [19, -30], [4, -33], [-11, -27], [-23, -14], [-29, 6]]},
+            "back": {"points": _head_back()},
+        }
+        by_id["bun"]["views"] = {
+            "three_quarter": {"ellipse": {"cx": -24, "cy": -31, "rx": 17, "ry": 19}},
+            "side": {"ellipse": {"cx": -40, "cy": -24, "rx": 16, "ry": 19}},
+            "back": {"ellipse": {"cx": 0, "cy": -50, "rx": 18, "ry": 15}},
+        }
+        torso("scarf_tail")
+
+
 def characters():
     """Return fresh MotionScript character declarations keyed by CAST's ids."""
     result = {}
@@ -271,6 +370,7 @@ def characters():
         clothes, behind, front = _accessories(identifier, _rgba(cast["accent"]))
         body = _body(identifier == "NOUTAJA")
         parts = body[:11] + clothes + body[11:] + behind + _face() + front
+        _views(identifier, parts)
         expressions = {
             "happy": [("brow_l", "happy"), ("brow_r", "happy"), ("mouth", "smile")],
             "sad": [("brow_l", "worried"), ("brow_r", "worried"), ("mouth", "frown")],
@@ -300,7 +400,8 @@ def _check():
     """Check declaration bounds and references without claiming native acceptance."""
     definitions = characters()
     size = len(json.dumps(definitions, ensure_ascii=False, separators=(",", ":")).encode())
-    assert size < 60_000, size
+    # Per-view accessory drawings added ~1.3 KB; the starter project keeps its own 100 KB check.
+    assert size < 64_000, size
     assert list(definitions) == [cast["id"] for cast in CAST]
     counts = {}
     for identifier, character in definitions.items():
@@ -315,7 +416,8 @@ def _check():
         for part in parts.values():
             assert part["joint"] in parents
             assert len(part.get("variants", {})) <= 16
-            for shape in [part, *part.get("variants", {}).values()]:
+            assert set(part.get("views", {})) <= {"three_quarter", "side", "back"}
+            for shape in [part, *part.get("variants", {}).values(), *part.get("views", {}).values()]:
                 assert not ("ellipse" in shape and "points" in shape)
                 if "ellipse" in shape:
                     ellipse = shape["ellipse"]
@@ -337,8 +439,12 @@ def _check():
         for name in rig["eyes"]["blink"]["parts"]:
             assert "blink" in parts[name]["variants"]
         counts[identifier] = len(parts)
+    drawn = {identifier: sum(1 for part in character["rig"]["parts"] if part.get("views"))
+             for identifier, character in definitions.items()}
+    assert all(drawn.values()), drawn
     print(json.dumps({"characters": len(definitions), "joints_each": len(JOINT_IDS),
-                      "parts": counts, "compact_character_bytes": size}, ensure_ascii=False))
+                      "parts": counts, "parts_with_views": drawn,
+                      "compact_character_bytes": size}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

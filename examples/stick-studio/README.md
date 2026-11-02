@@ -51,6 +51,13 @@ Viisi uudelleenkäytettävää nivelklippiä ovat `odotus`, `vilkutus`, `osoitus
 `reaktio` ja `askel`. Ne löytyvät projektin nivelklippityökalusta.
 Askelklippi on liikeluonnos; siinä ei ole lattiaan lukittuvaa IK-jalkakontaktia.
 
+Hahmojen asusteilla on omat piirroksensa puolisivulta, sivulta ja takaa
+(`views`, ks. [custom-rigid-characters.md](../../docs/custom-rigid-characters.md)).
+Silmälasit ja suojalasit pysyvät silmien kohdalla hahmon kääntyessä ja
+katoavat takaa katsottuna. Solmio, liivin vetoketju ja lipan reuna piilotetaan
+takaa, ja Sisun hiukset ja nuttura piirretään pään taakse. Piirrokset tehdään
+skriptillä `scripts/stick_characters.py`.
+
 ## Ympäristöt ja rekvisiitta
 
 **Taustat:** toimisto, bussipysäkki, hautausmaa ja kahvila.
