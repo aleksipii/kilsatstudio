@@ -32,6 +32,11 @@ what this implementation actually accepts.
   `moving_hold`. Without a block the rig moves exactly as before. Out-of-range
   values are validation errors naming the field and range; unknown presets
   are unsupported. See [animation principles](animation-principles.md).
+- A character with a custom `rig` may add `acting:` (a preset `calm`, `lively`,
+  `nervous`, `proud`, `tired`, `stoic`, or a block of `posture`, `energy`,
+  `expressiveness`, `tempo`); a rig may draw `hands:` shapes (fist, open,
+  point, grip, thumbs up) chosen from gestures, emotions and held props.
+  See [acting profiles](acting-profiles.md).
 - `scenes` contain unique IDs, positive finite durations, optional background names,
   and events. Background names are metadata; `composition.background_color` and
   timed `composition.background_keys` control the rendered solid backdrop. See
@@ -47,9 +52,9 @@ what this implementation actually accepts.
 | type | Required additional fields | Behavior |
 | --- | --- | --- |
 | move | x, y, duration (optional gait, ease, pace, arc or bezier) | Movement to project-space coordinates, from the last completed pose; positive duration, ending inside the scene. Straight by default; `arc` (-0.5–0.5) bends the path into a circular arc whose bulge is that fraction of the distance (positive is up on screen, right for a vertical move), and `bezier` takes one (quadratic) or two (cubic) control points `{x, y}`. `arc` and `bezier` are exclusive |
-| emotion | value | neutral, happy, sad, surprised or angry; also eases the body posture over 0.25 s |
+| emotion | value (optional intensity) | neutral, happy, sad, surprised or angry; also eases the body posture over 0.25 s. `intensity` 0–1 (default 1) scales a custom rig's posture; below 0.3 (after the character's expressiveness) the face stays neutral |
 | gesture | value, duration (optional principles) | wave, point, nod, shrug, shake_head, facepalm, arms_crossed, thumbs_up, bow, jump, clap or think; the clip plays over the duration with a smooth in/out envelope. Other names fail as unsupported |
-| speak | text | Dialogue job; requires character voice or event audio; optional emotion and audio |
+| speak | text | Dialogue job; requires character voice or event audio; optional emotion, intensity (needs emotion) and audio |
 | face | value | front, three_quarter_left, three_quarter_right, left, right or back; holds until the next face event |
 | hold | hand | Custom rig only: from `at` the hand holds the catalog `item`, or nothing without `item` |
 | pose | value | Custom rig with leg joints: `sit` or `stand`, eased over 0.4 s, lasts until the next pose |
