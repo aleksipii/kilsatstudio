@@ -42,6 +42,7 @@ mod screen_cues;
 mod screen_video_worker;
 mod sequence_panel;
 mod sequence_worker;
+mod shot_board;
 mod stick_studio;
 mod story_import;
 mod studio_help;
@@ -193,6 +194,7 @@ struct Studio {
     gpu_check: gpu_check_panel::Panel,
     model_sheet: model_sheet_panel::Panel,
     sequence_panel: sequence_panel::Panel,
+    shot_board: shot_board::ShotBoard,
     sequence_revision: u64,
     document_revision: u64,
     sequence_images: Option<Arc<std::collections::BTreeMap<String, motion_art::ImageResource>>>,
@@ -251,6 +253,9 @@ struct Studio {
     /// sequence preview and every export. Not screenplay text and not in undo history;
     /// persisted only in `.kilsat` project documents.
     caption_mode: motion_script::CaptionMode,
+    /// Shot statuses and notes. Like `caption_mode`, kept outside undo history and
+    /// persisted only in `.kilsat` project documents.
+    production: motion_project::ProductionDocument,
     /// Progressive-disclosure level. UI state only: never in the screenplay or project.
     ui_level: ui_levels::UiLevel,
     /// Project model policy (ADR-A01-09), persisted in `.kilsat` documents.
@@ -373,6 +378,7 @@ impl Default for Studio {
             gpu_check: Default::default(),
             model_sheet: Default::default(),
             sequence_panel: Default::default(),
+            shot_board: Default::default(),
             sequence_revision: 0,
             document_revision: 0,
             sequence_images: None,
@@ -508,6 +514,7 @@ impl Default for Studio {
             export_path: String::new(),
             export_format: Default::default(),
             caption_mode: Default::default(),
+            production: Default::default(),
             ui_level: Default::default(),
             model_policy: Default::default(),
             drag_recorder: Default::default(),
@@ -1363,6 +1370,8 @@ impl Studio {
             Ok(assets) => {
                 self.art_editor.reset();
                 self.project_document = None;
+                self.production = Default::default();
+                self.shot_board.reset();
                 self.asset_dirty = false;
                 self.source = assets.source.clone();
                 self.document_changed();
@@ -1534,6 +1543,8 @@ impl Studio {
                     self.source = doc.source.clone();
                     let timing = doc.timing.clone();
                     self.caption_mode = doc.caption_mode;
+                    self.production = doc.production.clone();
+                    self.shot_board.reset();
                     self.set_model_policy(doc.model_policy);
                     self.load_event_log(&mut doc);
                     self.document_changed();
@@ -1572,6 +1583,8 @@ impl Studio {
             Ok(source) => {
                 self.art_editor.reset();
                 self.project_document = None;
+                self.production = Default::default();
+                self.shot_board.reset();
                 self.asset_dirty = false;
                 // A plain screenplay has no recorded input. The model policy is kept,
                 // so a strict session never silently becomes model-enabled.
@@ -1624,6 +1637,7 @@ impl Studio {
                     scene: self.scene_alignment.clone(),
                 };
                 doc.caption_mode = self.caption_mode;
+                doc.production = self.production.clone();
                 doc.model_policy = self.model_policy;
                 doc.event_log = self.drag_recorder.project_log();
                 motion_project::save_atomic(Path::new(&self.script_path), &doc)
@@ -2030,6 +2044,8 @@ impl Studio {
                 self.stop_playback();
                 self.source = source;
                 self.project_document = None;
+                self.production = Default::default();
+                self.shot_board.reset();
                 self.script_path.clear();
                 self.asset_dirty = false;
                 self.art_editor.reset();
@@ -2064,6 +2080,8 @@ impl Studio {
         self.stop_playback();
         self.source = document.source.clone();
         self.caption_mode = document.caption_mode;
+        self.production = document.production.clone();
+        self.shot_board.reset();
         self.set_model_policy(document.model_policy);
         self.load_event_log(&mut document);
         self.project_document = Some(document);
@@ -2120,6 +2138,8 @@ impl Studio {
         self.stop_playback();
         self.source = document.source.clone();
         self.caption_mode = document.caption_mode;
+        self.production = document.production.clone();
+        self.shot_board.reset();
         self.set_model_policy(document.model_policy);
         self.load_event_log(&mut document);
         self.project_document = Some(document);
@@ -5533,6 +5553,7 @@ impl Studio {
             );
         }
         self.sequence_panel.set_caption_mode(self.caption_mode);
+        self.sequence_panel.set_production(&self.production);
         ui.separator();
         match self.inspector_tab {
             InspectorTab::Edit => {
@@ -5685,6 +5706,14 @@ impl Studio {
                 ui.heading("Vie video");
                 ui.weak("Valittu kohtaus: valitse muoto ja uusi tuloskansio. Kaikki kohtaukset: avaa alempana Koko projekti / kohtauskooste.");
                 self.export_ui(ui);
+                ui.separator();
+                let enabled = !self.busy && !self.export_busy && !self.diagnostics_busy;
+                if let Some(message) =
+                    self.shot_board
+                        .ui(ui, self.script.as_ref(), &mut self.production, enabled)
+                {
+                    self.status = message;
+                }
                 ui.separator();
                 self.sequence_ui(ui);
             }

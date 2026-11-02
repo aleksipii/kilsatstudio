@@ -1,8 +1,10 @@
 //! Versioned project documents and explicit, bounded local asset management.
 mod assets;
 pub mod model_policy;
+pub mod production;
 pub use assets::{import_asset, relink_asset, remove_asset, MAX_IMPORT_BYTES};
 pub use model_policy::{ModelBackedStep, ModelPolicy, PolicyViolation};
+pub use production::{ProductionDocument, ShotRecord, ShotStatus, TrackedShot};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeSet,
@@ -88,6 +90,10 @@ pub struct ProjectDocument {
     /// releases. Absent when nothing was recorded. Validated against the screenplay.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub event_log: Option<motion_script::event_log::EventLog>,
+    /// Shot statuses and notes. Never written while empty, so older projects
+    /// stay byte-compatible.
+    #[serde(default, skip_serializing_if = "ProductionDocument::is_empty")]
+    pub production: ProductionDocument,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -115,6 +121,7 @@ impl ProjectDocument {
             caption_mode: motion_script::CaptionMode::default(),
             model_policy: ModelPolicy::default(),
             event_log: None,
+            production: ProductionDocument::default(),
         };
         document.validate()?;
         Ok(document)
@@ -130,6 +137,7 @@ impl ProjectDocument {
             return invalid("more than 4096 asset references");
         }
         self.timing.validate()?;
+        self.production.validate()?;
         let script = motion_script::parse(&self.source)?;
         if let Some(log) = &self.event_log {
             log.validate_for(&script)
@@ -337,6 +345,7 @@ pub fn decode(bytes: &[u8]) -> Result<ProjectDocument, Error> {
             caption_mode: motion_script::CaptionMode::default(),
             model_policy: ModelPolicy::default(),
             event_log: None,
+            production: Default::default(),
         }
     } else if version == u64::from(FORMAT_VERSION) {
         serde_json::from_slice(bytes)?

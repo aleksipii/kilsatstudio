@@ -492,6 +492,14 @@ impl SequencePreview {
             validated,
         })
     }
+    /// The prepared screenplay.
+    pub fn script(&self) -> &Script {
+        &self.script
+    }
+    /// The sequence clock the frames are sampled on.
+    pub fn timeline(&self) -> &SequenceTimeline {
+        &self.timeline
+    }
     pub fn render_frame(
         &self,
         sample: u64,
