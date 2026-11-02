@@ -34,6 +34,104 @@ pub enum TrackTarget {
     Revert,
 }
 
+/// The way a span travels from `from` to `to`.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub enum MovePath {
+    /// A straight line (the default).
+    #[default]
+    Line,
+    /// A circular arc whose bulge (sagitta) is this fraction of the straight
+    /// distance, in `-0.5..=0.5`. Positive bulges toward screen up (`-y`); for
+    /// a vertical chord, toward screen right (`+x`).
+    Arc(f64),
+    /// A quadratic Bézier curve with one control point.
+    Quadratic(Vec2),
+    /// A cubic Bézier curve with two control points.
+    Cubic(Vec2, Vec2),
+}
+
+impl MovePath {
+    fn finite(&self) -> bool {
+        let ok = |v: Vec2| v.x.is_finite() && v.y.is_finite();
+        match *self {
+            Self::Line => true,
+            Self::Arc(h) => h.is_finite() && h.abs() <= 0.5,
+            Self::Quadratic(c) => ok(c),
+            Self::Cubic(a, b) => ok(a) && ok(b),
+        }
+    }
+
+    /// Point at curve parameter `t` in `[0, 1]` between `from` and `to`.
+    /// Arcs travel at constant speed; Bézier curves speed up where control
+    /// points are far apart, as with any Bézier parameterization.
+    pub fn point(&self, from: Vec2, to: Vec2, t: f64) -> Vec2 {
+        let lerp = |a: f64, b: f64| a + (b - a) * t;
+        match *self {
+            Self::Line => Vec2::new(lerp(from.x, to.x), lerp(from.y, to.y)),
+            Self::Arc(h) => arc_point(from, to, h, t),
+            Self::Quadratic(c) => {
+                let u = 1.0 - t;
+                let (a, b, d) = (u * u, 2.0 * u * t, t * t);
+                Vec2::new(
+                    a * from.x + b * c.x + d * to.x,
+                    a * from.y + b * c.y + d * to.y,
+                )
+            }
+            Self::Cubic(c1, c2) => {
+                let u = 1.0 - t;
+                let (a, b, c, d) = (u * u * u, 3.0 * u * u * t, 3.0 * u * t * t, t * t * t);
+                Vec2::new(
+                    a * from.x + b * c1.x + c * c2.x + d * to.x,
+                    a * from.y + b * c1.y + c * c2.y + d * to.y,
+                )
+            }
+        }
+    }
+}
+
+/// Circular arc through `from` and `to` with sagitta `bulge * |to - from|`.
+fn arc_point(from: Vec2, to: Vec2, bulge: f64, t: f64) -> Vec2 {
+    let (cx, cy) = (to.x - from.x, to.y - from.y);
+    let length = cx.hypot(cy);
+    if length == 0.0 || bulge == 0.0 {
+        return MovePath::Line.point(from, to, t);
+    }
+    // Unit normal toward screen up, or screen right for a vertical chord.
+    let (mut nx, mut ny) = (cy / length, -cx / length);
+    if ny > 0.0 || (ny == 0.0 && nx < 0.0) {
+        (nx, ny) = (-nx, -ny);
+    }
+    let sagitta = bulge * length;
+    let half = length / 2.0;
+    let radius = (sagitta * sagitta + half * half) / (2.0 * sagitta.abs());
+    // Centre lies on the far side of the chord from the bulge.
+    let side = sagitta.signum();
+    let offset = side * (radius - sagitta.abs());
+    let centre = Vec2::new(
+        from.x + cx / 2.0 - nx * offset,
+        from.y + cy / 2.0 - ny * offset,
+    );
+    let sweep = 4.0 * (sagitta.abs() / half).atan();
+    let (sx, sy) = (from.x - centre.x, from.y - centre.y);
+    // Turn the way that passes the bulge: the arc's midpoint lies on the
+    // normal's side given by `side`.
+    let (sin, cos) = (sweep / 2.0).sin_cos();
+    let mid_x = sx * cos - sy * sin;
+    let mid_y = sx * sin + sy * cos;
+    let toward_bulge =
+        (mid_x + centre.x - from.x - cx / 2.0) * nx + (mid_y + centre.y - from.y - cy / 2.0) * ny;
+    let direction = if toward_bulge * side >= 0.0 {
+        1.0
+    } else {
+        -1.0
+    };
+    let (sin, cos) = (direction * sweep * t).sin_cos();
+    Vec2::new(
+        centre.x + sx * cos - sy * sin,
+        centre.y + sx * sin + sy * cos,
+    )
+}
+
 /// One authored change of a single `(entity, property)` value.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AuthoredSpan {
@@ -46,6 +144,8 @@ pub struct AuthoredSpan {
     pub target: TrackTarget,
     /// Speed profile from `from` to `to`.
     pub ease: MoveEase,
+    /// Route from `from` to `to`.
+    pub path: MovePath,
 }
 
 /// A concrete interval: playback only interpolates `from → to`.
@@ -60,6 +160,7 @@ pub struct ResolvedSpan {
     pub from: Vec2,
     pub to: Vec2,
     pub ease: MoveEase,
+    pub path: MovePath,
 }
 
 impl ResolvedSpan {
@@ -82,10 +183,10 @@ impl ResolvedSpan {
         if progress == 1.0 {
             return self.to;
         }
-        Vec2::new(
-            self.from.x + (self.to.x - self.from.x) * progress,
-            self.from.y + (self.to.y - self.from.y) * progress,
-        )
+        if progress == 0.0 {
+            return self.from;
+        }
+        self.path.point(self.from, self.to, progress)
     }
 }
 
@@ -124,6 +225,7 @@ impl ResolvedTrack {
                 || span.duration <= 0.0
                 || !end.is_finite()
                 || !target_ok
+                || !span.path.finite()
             {
                 return Err(Error::InvalidAnimation(format!(
                     "track span {}: start must be finite and non-negative, duration finite and positive, target finite",
@@ -151,6 +253,7 @@ impl ResolvedTrack {
                 from,
                 to,
                 ease: span.ease,
+                path: span.path,
             });
         }
         Ok(track)
@@ -196,6 +299,8 @@ pub fn resolve_moves(
                 y,
                 duration,
                 ease,
+                arc,
+                bezier,
                 ..
             } if id == actor => Some(AuthoredSpan {
                 order,
@@ -207,11 +312,23 @@ pub fn resolve_moves(
                     .as_deref()
                     .and_then(MoveEase::parse)
                     .unwrap_or_default(),
+                path: move_path(*arc, bezier.as_deref()),
             }),
             _ => None,
         })
         .collect::<Vec<_>>();
     ResolvedTrack::resolve(base, &spans)
+}
+
+/// The authored route of a move; validation allows at most one of the two.
+fn move_path(arc: Option<f64>, bezier: Option<&[motion_script::PathPoint]>) -> MovePath {
+    let point = |p: &motion_script::PathPoint| Vec2::new(p.x, p.y);
+    match (arc, bezier) {
+        (_, Some([c])) => MovePath::Quadratic(point(c)),
+        (_, Some([c1, c2])) => MovePath::Cubic(point(c1), point(c2)),
+        (Some(h), _) if h != 0.0 => MovePath::Arc(h),
+        _ => MovePath::Line,
+    }
 }
 
 #[cfg(test)]
@@ -225,6 +342,7 @@ mod tests {
             duration,
             target,
             ease: MoveEase::Linear,
+            path: MovePath::Line,
         }
     }
     const BASE: Vec2 = Vec2::new(300.0, 400.0);
@@ -353,5 +471,86 @@ mod tests {
         assert!(ResolvedTrack::resolve(Vec2::new(f64::NAN, 0.0), &[]).is_err());
         let many = vec![span(0, 0.0, 1.0, ok); MAX_TRACK_SPANS + 1];
         assert!(ResolvedTrack::resolve(BASE, &many).is_err());
+    }
+
+    fn path_span(path: MovePath, to: Vec2) -> ResolvedTrack {
+        let mut authored = span(0, 0.0, 1.0, TrackTarget::Abs(to));
+        authored.path = path;
+        ResolvedTrack::resolve(BASE, &[authored]).unwrap()
+    }
+
+    #[test]
+    fn arcs_bulge_up_by_the_sagitta_and_keep_exact_ends() {
+        let right = Vec2::new(500.0, 400.0);
+        for to in [right, Vec2::new(100.0, 400.0)] {
+            let track = path_span(MovePath::Arc(0.25), to);
+            assert_eq!(track.value_at(0.0), BASE);
+            assert_eq!(track.value_at(1.0), to);
+            // Chord 200 px, sagitta 0.25 * 200 = 50 px above the chord's middle.
+            let apex = track.value_at(0.5);
+            assert!(
+                (apex.x - 300.0 - (to.x - 300.0) / 2.0).abs() < 1e-9,
+                "{apex:?}"
+            );
+            assert!((apex.y - 350.0).abs() < 1e-9, "{apex:?}");
+            // Every sample stays on the circle and above the chord.
+            for i in 1..10 {
+                assert!(track.value_at(i as f64 / 10.0).y < 400.0);
+            }
+        }
+        let down = path_span(MovePath::Arc(-0.5), right).value_at(0.5);
+        assert!((down.y - 500.0).abs() < 1e-9, "half circle below: {down:?}");
+        let vertical = path_span(MovePath::Arc(0.25), Vec2::new(300.0, 200.0)).value_at(0.5);
+        assert!(
+            (vertical.x - 350.0).abs() < 1e-9,
+            "vertical bulges right: {vertical:?}"
+        );
+    }
+
+    #[test]
+    fn arc_speed_is_constant_along_the_curve() {
+        let track = path_span(MovePath::Arc(0.4), Vec2::new(700.0, 300.0));
+        let step = |t: f64| {
+            let (a, b) = (track.value_at(t), track.value_at(t + 0.05));
+            (b.x - a.x).hypot(b.y - a.y)
+        };
+        let first = step(0.0);
+        for i in 1..19 {
+            assert!((step(i as f64 * 0.05) - first).abs() < 1e-6);
+        }
+    }
+
+    #[test]
+    fn bezier_paths_follow_their_control_points() {
+        let to = Vec2::new(500.0, 400.0);
+        let quad = path_span(MovePath::Quadratic(Vec2::new(400.0, 200.0)), to);
+        // B(0.5) = (P0 + 2C + P1) / 4.
+        assert_eq!(quad.value_at(0.5), Vec2::new(400.0, 300.0));
+        let cubic = path_span(
+            MovePath::Cubic(Vec2::new(300.0, 200.0), Vec2::new(500.0, 200.0)),
+            to,
+        );
+        // B(0.5) = (P0 + 3C1 + 3C2 + P1) / 8.
+        assert_eq!(cubic.value_at(0.5), Vec2::new(400.0, 250.0));
+        assert_eq!(cubic.value_at(1.0), to);
+        assert_eq!(cubic.value_at(0.0), BASE);
+    }
+
+    #[test]
+    fn straight_and_zero_arc_paths_match_the_line() {
+        let to = Vec2::new(512.5, 333.25);
+        let line = path_span(MovePath::Line, to);
+        let flat = path_span(MovePath::Arc(0.0), to);
+        let degenerate = path_span(MovePath::Arc(0.3), BASE);
+        for i in 0..=20 {
+            let t = i as f64 / 20.0;
+            assert_eq!(line.value_at(t), flat.value_at(t));
+            assert_eq!(degenerate.value_at(t), BASE);
+        }
+        let mut bad = span(0, 0.0, 1.0, TrackTarget::Abs(to));
+        bad.path = MovePath::Arc(0.6);
+        assert!(ResolvedTrack::resolve(BASE, &[bad]).is_err());
+        bad.path = MovePath::Quadratic(Vec2::new(f64::NAN, 0.0));
+        assert!(ResolvedTrack::resolve(BASE, &[bad]).is_err());
     }
 }

@@ -217,6 +217,32 @@ fn stagger_offsets_each_child_by_index_times_delay() {
 }
 
 #[test]
+fn schedule_times_accept_whole_frames_at_the_project_rate() {
+    // The default project runs at 24 fps: 3f = 0.125 s, 12f = 0.5 s.
+    let stagger = format!(
+        "{{op: stagger, delay: 3f, children: [{}, {}, {}]}}",
+        emote("A", 1.0),
+        emote("B", 1.0),
+        emote("A", 1.0)
+    );
+    let outer = format!("{{op: seq, children: [{{op: wait, duration: 12f}}, {stagger}]}}");
+    assert_eq!(starts(&doc(&outer)), vec![0.5, 0.625, 0.75]);
+    let fast = doc(&stagger).replace(
+        "characters:",
+        "project: {title: T, fps: 60, width: 64, height: 64}, characters:",
+    );
+    assert_eq!(starts(&fast), vec![0.0, 0.05, 0.1]);
+    for bad in ["3.5f", "f", "3 f", "-3f", "3F", "three"] {
+        let source = doc(&stagger.replace("3f", bad));
+        let error = compile(&source).unwrap_err();
+        assert_eq!(error.code, DiagnosticCode::Schema, "{bad}: {error}");
+        assert!(error.path.ends_with(".delay"), "{error}");
+    }
+    let zero_wait = doc("{op: wait, duration: 0f}");
+    assert_eq!(compile(&zero_wait).unwrap_err().code, DiagnosticCode::Time);
+}
+
+#[test]
 fn nested_groups_compose_start_offsets() {
     let inner = format!(
         "{{op: stagger, delay: 1, children: [{}, {}]}}",

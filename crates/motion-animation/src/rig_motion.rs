@@ -545,10 +545,12 @@ pub fn rig_moving_hold(still_seconds: f64, strength: f64) -> RigMotion {
     motion
 }
 
-/// End of the anticipation (a small move against the action).
+/// End of the default anticipation (a small move against the action); the
+/// length comes from `Principles::anticipation_length`.
+#[cfg(test)]
 const ANTICIPATION_END: f64 = 0.12;
-/// End of the attack, which overshoots and settles into the held pose.
-const ATTACK_END: f64 = 0.38;
+/// Length of the attack, which overshoots and settles into the held pose.
+const ATTACK_LENGTH: f64 = 0.26;
 /// Start of the release back to rest.
 const RELEASE_START: f64 = 0.7;
 // Anticipation depth, overshoot, follow-through and overlap are tunable; see
@@ -569,12 +571,15 @@ pub fn acting_curve_with(progress: f64, principles: &Principles) -> f64 {
     if !p.is_finite() || p <= 0.0 || p >= 1.0 {
         return 0.0;
     }
-    if p < ANTICIPATION_END {
-        return -principles.anticipation * (std::f64::consts::PI * p / ANTICIPATION_END).sin();
+    let anticipation_end = principles.anticipation_length;
+    if p < anticipation_end {
+        return -principles.anticipation * (std::f64::consts::PI * p / anticipation_end).sin();
     }
-    if p < ATTACK_END {
+    // With the default length this is exactly the old fixed bound, 0.38.
+    let attack_end = anticipation_end + ATTACK_LENGTH;
+    if p < attack_end {
         let overshoot = principles.overshoot;
-        let u = (p - ANTICIPATION_END) / (ATTACK_END - ANTICIPATION_END) - 1.0;
+        let u = (p - anticipation_end) / (attack_end - anticipation_end) - 1.0;
         return 1.0 + (overshoot + 1.0) * u * u * u + overshoot * u * u;
     }
     if p < RELEASE_START {
@@ -961,6 +966,32 @@ mod tests {
             rig_gesture_with(Gesture::Point, 0.3, 1.0, &bad),
             rig_gesture(Gesture::Point, 0.3, 1.0)
         );
+    }
+
+    #[test]
+    fn anticipation_length_moves_the_attack_and_keeps_the_curve_continuous() {
+        for length in [0.02, 0.05, 0.12, 0.3] {
+            let p = Principles {
+                anticipation_length: length,
+                ..Principles::DEFAULT
+            };
+            // Against the action throughout the anticipation, deepest halfway.
+            assert!(acting_curve_with(length / 2.0, &p) < 0.0, "{length}");
+            assert!(
+                (acting_curve_with(length / 2.0, &p) + p.anticipation).abs() < 1e-12,
+                "{length}"
+            );
+            // The attack starts at zero and settles at the pose 0.26 later.
+            let eps = 1e-9;
+            assert!(acting_curve_with(length + eps, &p).abs() < 1e-6, "{length}");
+            assert!((acting_curve_with(length + 0.26 - eps, &p) - 1.0).abs() < 1e-6);
+            assert!(acting_curve_with(length + 0.26 + eps, &p) == 1.0);
+        }
+        // The default length is the old fixed curve.
+        for i in 0..=1000 {
+            let t = i as f64 / 1000.0;
+            assert_eq!(acting_curve_with(t, &Principles::DEFAULT), acting_curve(t));
+        }
     }
 
     #[test]

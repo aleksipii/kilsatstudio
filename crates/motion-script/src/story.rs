@@ -2270,6 +2270,8 @@ impl<'a> Builder<'a> {
                 duration,
                 ease: (ease != MoveEase::Linear).then(|| ease.name().to_string()),
                 pace: (pace != 1.0).then_some(pace),
+                arc: None,
+                bezier: None,
                 gait: Some(gait.clone()),
             });
             if beat.face.is_none() {
@@ -2416,6 +2418,8 @@ impl<'a> Builder<'a> {
             duration,
             ease: Some(MoveEase::InOut.name().to_string()),
             pace: beat.pace.filter(|p| *p != 1.0),
+            arc: None,
+            bezier: None,
             gait: Some(gait.clone()),
         });
         if beat.face.is_none() {
@@ -2515,6 +2519,8 @@ impl<'a> Builder<'a> {
                     duration: STEP_ASIDE_SECONDS,
                     ease: Some(MoveEase::InOut.name().to_string()),
                     pace: None,
+                    arc: None,
+                    bezier: None,
                     gait: Some("walk".into()),
                 });
                 push_move(

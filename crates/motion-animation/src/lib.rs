@@ -7,7 +7,10 @@ pub use clips::{
     POSTURE_BLEND_SECONDS, RUN_CYCLE_SECONDS, WALK_CYCLE_SECONDS,
 };
 mod principles;
-pub use principles::{Principles, PrinciplesError, PRINCIPLE_PRESETS};
+pub use principles::{
+    Principles, PrinciplesError, MAX_ANTICIPATION_LENGTH, MAX_OVERLAP, MIN_ANTICIPATION_LENGTH,
+    PRINCIPLE_PRESETS,
+};
 mod rig_motion;
 pub use rig_motion::{
     acting_curve, acting_curve_with, blend_rig_motion, rig_body_pose, rig_gait, rig_gait_with_mood,

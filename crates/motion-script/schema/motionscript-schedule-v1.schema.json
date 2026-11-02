@@ -83,8 +83,17 @@
               }
             },
             "delay": {
-              "type": "number",
-              "minimum": 0
+              "oneOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+f$",
+                  "description": "Whole frames at the project fps, such as 3f."
+                }
+              ]
             }
           },
           "required": [
@@ -101,8 +110,17 @@
               "const": "wait"
             },
             "duration": {
-              "type": "number",
-              "exclusiveMinimum": 0
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+f$",
+                  "description": "Whole frames at the project fps, such as 3f."
+                }
+              ]
             }
           },
           "required": [
@@ -118,8 +136,17 @@
               "const": "event"
             },
             "span": {
-              "type": "number",
-              "exclusiveMinimum": 0
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]+f$",
+                  "description": "Whole frames at the project fps, such as 3f."
+                }
+              ]
             },
             "event": {
               "oneOf": [
@@ -146,6 +173,34 @@
                     },
                     "y": {
                       "type": "number"
+                    },
+                    "arc": {
+                      "type": "number",
+                      "minimum": -0.5,
+                      "maximum": 0.5,
+                      "description": "Circular-arc bulge as a fraction of the straight distance; positive bulges up on screen."
+                    },
+                    "bezier": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 2,
+                      "description": "One (quadratic) or two (cubic) Bezier control points in canvas pixels.",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "x": {
+                            "type": "number"
+                          },
+                          "y": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "x",
+                          "y"
+                        ]
+                      }
                     }
                   },
                   "required": [
@@ -155,7 +210,13 @@
                     "duration",
                     "x",
                     "y"
-                  ]
+                  ],
+                  "not": {
+                    "required": [
+                      "arc",
+                      "bezier"
+                    ]
+                  }
                 },
                 {
                   "type": "object",

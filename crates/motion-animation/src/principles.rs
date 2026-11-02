@@ -12,6 +12,10 @@ pub struct Principles {
     /// Depth of the move against the action before it starts, as a fraction of
     /// the full pose.
     pub anticipation: f64,
+    /// Length of the anticipation as a fraction of the acting curve, in
+    /// `0.02..=0.3`. The attack keeps its length and starts after it.
+    /// MotionScript sets it from `anticipation_frames` per gesture.
+    pub anticipation_length: f64,
     /// Overshoot strength of the attack ("back" easing constant). Zero settles
     /// without passing the pose.
     pub overshoot: f64,
@@ -34,12 +38,18 @@ struct Field {
     get: fn(&Principles) -> f64,
 }
 
-const FIELDS: [Field; 6] = [
+const FIELDS: [Field; 7] = [
     Field {
         name: "anticipation",
         min: 0.0,
         max: 0.5,
         get: |p| p.anticipation,
+    },
+    Field {
+        name: "anticipation_length",
+        min: MIN_ANTICIPATION_LENGTH,
+        max: MAX_ANTICIPATION_LENGTH,
+        get: |p| p.anticipation_length,
     },
     Field {
         name: "overshoot",
@@ -56,7 +66,7 @@ const FIELDS: [Field; 6] = [
     Field {
         name: "overlap",
         min: 0.0,
-        max: 0.3,
+        max: MAX_OVERLAP,
         get: |p| p.overlap,
     },
     Field {
@@ -83,6 +93,12 @@ pub struct PrinciplesError {
     pub max: f64,
 }
 
+/// Shortest and longest anticipation, as fractions of the acting curve.
+pub const MIN_ANTICIPATION_LENGTH: f64 = 0.02;
+pub const MAX_ANTICIPATION_LENGTH: f64 = 0.3;
+/// Largest `overlap`, as a fraction of the gesture.
+pub const MAX_OVERLAP: f64 = 0.3;
+
 /// Names of the built-in presets, in [`Principles::preset`] order.
 pub const PRINCIPLE_PRESETS: [&str; 3] = ["subtle", "cartoon", "snappy"];
 
@@ -91,6 +107,7 @@ impl Principles {
     /// moving hold off.
     pub const DEFAULT: Self = Self {
         anticipation: 0.12,
+        anticipation_length: 0.12,
         overshoot: 1.3,
         follow_through: 0.25,
         overlap: 0.08,
@@ -104,6 +121,7 @@ impl Principles {
         Some(match name {
             "subtle" => Self {
                 anticipation: 0.06,
+                anticipation_length: 0.12,
                 overshoot: 0.6,
                 follow_through: 0.12,
                 overlap: 0.05,
@@ -112,6 +130,7 @@ impl Principles {
             },
             "cartoon" => Self {
                 anticipation: 0.25,
+                anticipation_length: 0.12,
                 overshoot: 2.2,
                 follow_through: 0.45,
                 overlap: 0.14,
@@ -120,6 +139,7 @@ impl Principles {
             },
             "snappy" => Self {
                 anticipation: 0.08,
+                anticipation_length: 0.12,
                 overshoot: 1.8,
                 follow_through: 0.15,
                 overlap: 0.04,
@@ -208,6 +228,7 @@ mod tests {
             ("overlap", 0.31),
             ("squash_stretch", f64::INFINITY),
             ("moving_hold", 1.5),
+            ("anticipation_length", 0.01),
         ] {
             let mut p = Principles::DEFAULT;
             match field {
@@ -215,6 +236,7 @@ mod tests {
                 "follow_through" => p.follow_through = bad,
                 "overlap" => p.overlap = bad,
                 "squash_stretch" => p.squash_stretch = bad,
+                "anticipation_length" => p.anticipation_length = bad,
                 _ => p.moving_hold = bad,
             }
             assert_eq!(p.validate().unwrap_err().field, field);
@@ -222,6 +244,7 @@ mod tests {
         // Range ends are allowed.
         let edges = Principles {
             anticipation: 0.5,
+            anticipation_length: 0.3,
             overshoot: 0.0,
             follow_through: 1.0,
             overlap: 0.3,

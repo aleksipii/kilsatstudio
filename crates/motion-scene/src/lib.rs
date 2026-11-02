@@ -1074,6 +1074,7 @@ fn evaluate_validated(
             let mut emotion_changes = Vec::new();
             let mut gesture = None;
             let mut gesture_principles = None;
+            let mut gesture_seconds = 0.0;
             let mut set_emotion = |pose: &mut ActorPose, value: &String, at: f64| {
                 if pose.emotion != *value {
                     pose.emotion = value.clone();
@@ -1106,6 +1107,7 @@ fn evaluate_validated(
                         if weight > pose.wave {
                             pose.wave = weight;
                             gesture_principles = principles.as_ref();
+                            gesture_seconds = *duration;
                             gesture = motion_animation::Gesture::parse(value)
                                 .map(|g| (g, progress, weight));
                         }
@@ -1230,9 +1232,14 @@ fn evaluate_validated(
                 .map_err(invalid_principles)?;
                 if let Some((gesture, progress, _)) = gesture {
                     // The rig layer shapes its own timing from progress.
-                    let principles =
-                        motion_script::gesture_principles(principles, gesture_principles, id)
-                            .map_err(invalid_principles)?;
+                    let principles = motion_script::timed_gesture_principles(
+                        character.and_then(|c| c.principles.as_ref()),
+                        gesture_principles,
+                        id,
+                        gesture_seconds,
+                        script.project.fps,
+                    )
+                    .map_err(invalid_principles)?;
                     let motion = motion_animation::rig_gesture_with(
                         gesture,
                         progress,
