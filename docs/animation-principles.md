@@ -73,10 +73,16 @@ child joints the same way and is at most 30 % of the gesture.
 ## Paths and staging
 
 - **Arcs**: a move travels in a straight line unless it sets `arc` (a circular
-  arc, at constant speed with a linear ease) or `bezier` (one or two control points). The
-  move's `ease` applies along the curve. Bézier curves are parameterized, not
-  arc-length normalized, so their speed varies with the control points. The
-  feet keep the gait's step rate, so a long arc on a walk can slide slightly.
+  arc) or `bezier` (one or two control points). Every route is travelled at
+  constant speed along the curve (Bézier curves through a 64-segment
+  arc-length table), and the move's `ease` applies along it. A curved route is
+  longer than the straight distance, so a walking or running gait steps faster
+  in the same proportion and the feet keep pace with the ground. Arcs read best
+  on leaps and jumps; a walk on a high arc looks like stepping in the air.
+- **Story beats** take `arc` too: every leg of the walk bends by it and takes
+  longer by the extra distance. Beats have no `bezier`, because stage marks are
+  resolved to pixels only during compilation. The step-aside check for other
+  characters still assumes a straight path.
 - **Stagger**: `op: stagger` in the schedule format offsets children by
   `delay`, which may be whole frames (`delay: 3f`).
 - **Staging hints** (`motion_script::check_staging`, shown in the desktop app
