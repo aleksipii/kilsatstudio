@@ -27,12 +27,25 @@ MAX_ENTRIES = 4096
 MAX_REPORT_BYTES = 8 * 1024 * 1024
 MAX_DIRECTORY_BYTES = 4 * 1024 * 1024
 CHUNK = 64 * 1024
+
+
+def _limits():
+    # Read at call time so the module constants stay the single source of truth.
+    return dict(archive=MAX_ARCHIVE_BYTES, member=MAX_MEMBER_BYTES, total=MAX_TOTAL_BYTES,
+                entries=MAX_ENTRIES, directory=MAX_DIRECTORY_BYTES)
+
+
+# Only an app that ships the prebuilt speech bundle gets these larger budgets.
+SPEECH_LIMITS = dict(archive=3 * 1024 ** 3, member=1024 ** 3, total=4 * 1024 ** 3,
+                     entries=65534, directory=64 * 1024 * 1024)
+SPEECH_REPORT_BYTES = 64 * 1024 * 1024
 APP = 'Kilsat Studio.app'
 CONTENTS = APP + '/Contents/'
 RESOURCES = CONTENTS + 'Resources/'
 DESKTOP = CONTENTS + 'MacOS/studio-desktop'
 HELPER = RESOURCES + 'bin/gpu_probe'
 HEAD_HELPER = RESOURCES + 'bin/head_pose'
+SPEECH = RESOURCES + 'speech/'
 SIGNATURE = CONTENTS + '_CodeSignature/CodeResources'
 SOURCE_FILES = (
     'LICENSE', 'NOTICE', 'services/kokoro-runtime/runtime.py',
@@ -86,12 +99,32 @@ def _ancestors(paths):
     return {str(p) for name in paths for p in Path(name).parents if str(p) != '.'}
 
 
-def _directory_budget(stream):
+def _speech_expected(bundle, limit):
+    """Exact bytes of every file in the speech bundle directory, keyed by ZIP path."""
+    bundle = Path(bundle)
+    if bundle.is_symlink() or not bundle.is_dir():
+        raise ValueError('speech bundle must be a non-symlink directory')
+    files, directories = {}, {SPEECH[:-1]}
+    for path in sorted(bundle.rglob('*')):
+        name = SPEECH + path.relative_to(bundle).as_posix()
+        if path.is_symlink():
+            raise ValueError('symlink in speech bundle: ' + name)
+        if path.is_dir():
+            directories.add(name)
+            continue
+        _regular(path)
+        with path.open('rb') as stream:
+            files[name] = _hash_stream(stream, limit)
+    return files, directories
+
+
+def _directory_budget(stream, limits=None):
+    limits = limits or _limits()
     # Bound central-directory allocation before ZipFile reads it. Preview ZIPs
     # are small, single-volume, non-ZIP64 archives; larger formats fail closed.
     stream.seek(0, 2)
     size = stream.tell()
-    if size > MAX_ARCHIVE_BYTES:
+    if size > limits['archive']:
         raise ValueError('archive byte budget exceeded')
     stream.seek(max(0, size - 65557))
     tail = stream.read(65557)
@@ -102,22 +135,30 @@ def _directory_budget(stream):
     _, disk, start_disk, local_count, count, directory_size, directory_at, comment = fields
     if disk or start_disk or local_count != count or count == 65535:
         raise ValueError('multi-volume/ZIP64 archive unsupported')
-    if count > MAX_ENTRIES or directory_size > MAX_DIRECTORY_BYTES:
+    if count > limits['entries'] or directory_size > limits['directory']:
         raise ValueError('ZIP entry/central-directory budget exceeded')
     end_at = size - len(tail) + offset
     if directory_at + directory_size != end_at or offset + 22 + comment != len(tail):
         raise ValueError('noncanonical ZIP directory/end record')
 
 
-def audit_package(archive, repo, commit, target, profile):
-    """Return a bounded fact report; invalid input remains visible as errors."""
+def audit_package(archive, repo, commit, target, profile, speech_bundle=None):
+    """Return a bounded fact report; invalid input remains visible as errors.
+
+    speech_bundle is the directory the packager shipped as Resources/speech; each
+    packaged speech file must match it byte for byte.
+    """
     archive, repo = Path(archive), Path(repo)
+    limits = _limits() if speech_bundle is None else SPEECH_LIMITS
+    bundled = ('Host Python', 'Kokoro Python dependencies', 'Model/config/voices',
+               'Language data', 'Rhubarb', 'eSpeak') if speech_bundle is not None else ()
     report = dict(schema_version=1, distribution_approved=False, package_valid=False,
                   artifact=dict(filename=archive.name, sha256=None, size_bytes=None,
                                 commit=commit, target=target, profile=profile),
                   files=[], components=[], build_evidence=[], errors=[],
                   external_requirements=[
-                      dict(component=name, boundary='external-not-bundled', review_status='unreviewed')
+                      dict(component=name, review_status='unreviewed',
+                           boundary='bundled-speech' if name in bundled else 'external-not-bundled')
                       for name in ('Host Python', 'Kokoro Python dependencies', 'Model/config/voices',
                                    'Language data', 'FFmpeg', 'Rhubarb', 'eSpeak')],
                   unresolved=[
@@ -150,21 +191,25 @@ def audit_package(archive, repo, commit, target, profile):
         for source in sorted(examples.glob('*.yaml')):
             relative = 'examples/' + source.name
             expected[RESOURCES + relative] = _source_identity(repo, relative)
-        required = set(expected) | {DESKTOP, CONTENTS + 'Info.plist',
-                                    RESOURCES + 'KilsatStudio.icns', RESOURCES + 'BUILD-INFO.txt'}
+        speech_files, speech_dirs, speech = {}, set(), None
+        if speech_bundle is not None:
+            speech_files, speech_dirs = _speech_expected(speech_bundle, limits['member'])
+            speech = layout.speech_identity(speech_bundle)
+        required = set(expected) | set(speech_files) | {
+            DESKTOP, CONTENTS + 'Info.plist', RESOURCES + 'KilsatStudio.icns', RESOURCES + 'BUILD-INFO.txt'}
         admitted = required | {HELPER, HEAD_HELPER, SIGNATURE}
-        parents = _ancestors(admitted)
+        parents = _ancestors(admitted) | speech_dirs
         observed, total = {}, 0
         small = {}
         with archive.open('rb') as raw:
             before = os.fstat(raw.fileno())
             report['artifact']['sha256'], report['artifact']['size_bytes'] = _hash_stream(
-                raw, MAX_ARCHIVE_BYTES)
-            _directory_budget(raw)
+                raw, limits['archive'])
+            _directory_budget(raw, limits)
             raw.seek(0)
             with zipfile.ZipFile(raw) as package:
                 members = package.infolist()
-                if len(members) > MAX_ENTRIES:
+                if len(members) > limits['entries']:
                     raise ValueError('ZIP entry count budget exceeded')
                 names = set()
                 for member in members:
@@ -181,7 +226,7 @@ def audit_package(archive, repo, commit, target, profile):
                     if member.flag_bits & 1 or member.compress_type not in (
                             zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED):
                         raise ValueError('encrypted/unsupported ZIP member: ' + name)
-                    if member.file_size > MAX_MEMBER_BYTES or total + member.file_size > MAX_TOTAL_BYTES:
+                    if member.file_size > limits['member'] or total + member.file_size > limits['total']:
                         raise ValueError('member/aggregate byte budget exceeded: ' + name)
                     total += member.file_size
                     if member.is_dir():
@@ -193,7 +238,7 @@ def audit_package(archive, repo, commit, target, profile):
                             errors.append('directory has data: ' + name)
                         continue
                     with package.open(member) as stream:
-                        digest, size = _hash_stream(stream, min(MAX_MEMBER_BYTES, member.file_size))
+                        digest, size = _hash_stream(stream, min(limits['member'], member.file_size))
                     if size != member.file_size:
                         raise ValueError('ZIP member size mismatch: ' + name)
                     classification = 'unknown'
@@ -201,6 +246,10 @@ def audit_package(archive, repo, commit, target, profile):
                         classification = 'notice' if name.endswith('/LICENSE') or name == 'LICENSE' else 'resource'
                         if (digest, size) != expected[name]:
                             errors.append('source bytes differ: ' + name)
+                    elif name in speech_files:
+                        classification = 'speech-bundle'
+                        if (digest, size) != speech_files[name]:
+                            errors.append('speech bundle bytes differ: ' + name)
                     elif name in (DESKTOP, HELPER, HEAD_HELPER):
                         classification = 'executable'
                         if not mode & 0o111 or size == 0:
@@ -236,13 +285,13 @@ def audit_package(archive, repo, commit, target, profile):
                             errors.append('orphan AppleDouble metadata: ' + row['path'])
             after = os.fstat(raw.fileno())
             raw.seek(0)
-            final_digest, final_size = _hash_stream(raw, MAX_ARCHIVE_BYTES)
+            final_digest, final_size = _hash_stream(raw, limits['archive'])
             if (before.st_size, before.st_mtime_ns, before.st_ctime_ns) != (
                     after.st_size, after.st_mtime_ns, after.st_ctime_ns) or (
                     final_digest, final_size) != (report['artifact']['sha256'], report['artifact']['size_bytes']):
                 raise ValueError('archive changed during inspection')
         info = small.get(RESOURCES + 'BUILD-INFO.txt')
-        expected_info = layout.build_info(commit, arch, profile).encode()
+        expected_info = layout.build_info(commit, arch, profile, speech).encode()
         if info is not None and info != expected_info:
             errors.append('BUILD-INFO fields differ from expected commit/target/profile')
         plist = small.get(CONTENTS + 'Info.plist')
@@ -258,6 +307,9 @@ def audit_package(archive, repo, commit, target, profile):
                                      native_linkage_status='not-verified', review_status='unreviewed')
                                 for name in (DESKTOP, HELPER) if name in observed]
         report['gpu_helper_present'] = HELPER in observed
+        report['speech_bundle'] = None if speech is None else dict(
+            bundle_id=speech[0], descriptor_sha256=speech[1], file_count=len(speech_files),
+            size_bytes=sum(size for _, size in speech_files.values()), review_status='unreviewed')
         report['signature_metadata_present'] = SIGNATURE in observed
     except (OSError, ValueError, RuntimeError, zipfile.BadZipFile, EOFError,
             NotImplementedError, plistlib.InvalidFileException, ExpatError,
@@ -273,7 +325,8 @@ def write_report(report, output):
     """Replace a regular sidecar atomically; never follow an output symlink."""
     output = Path(output)
     payload = (json.dumps(report, sort_keys=True, indent=2, ensure_ascii=True) + '\n').encode()
-    if len(payload) > MAX_REPORT_BYTES:
+    limit = SPEECH_REPORT_BYTES if report.get('speech_bundle') else MAX_REPORT_BYTES
+    if len(payload) > limit:
         raise ValueError('report byte budget exceeded')
     if output.exists() or output.is_symlink():
         _regular(output)
@@ -298,6 +351,8 @@ def main(argv=None):
     parser.add_argument('--target', required=True)
     parser.add_argument('--profile', choices=('debug', 'release'), required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--speech-bundle', type=Path,
+                        help='Speech bundle directory the app was packaged with')
     parser.add_argument('--strict', action='store_true', help='Exit 1 while legal review remains unresolved')
     parser.add_argument('--require-signature-metadata', action='store_true',
                         help='Require CodeResources presence; does not verify a signature')
@@ -306,7 +361,8 @@ def main(argv=None):
         if args.archive.resolve() == args.output.resolve() or (
                 args.output.exists() and args.archive.exists() and args.output.samefile(args.archive)):
             raise ValueError('audit output must differ from the input archive')
-        report = audit_package(args.archive, args.repo, args.commit, args.target, args.profile)
+        report = audit_package(args.archive, args.repo, args.commit, args.target, args.profile,
+                               args.speech_bundle)
         if args.require_signature_metadata and not report.get('signature_metadata_present'):
             report['errors'].append('required CodeResources signature metadata is missing')
             report['package_valid'] = False

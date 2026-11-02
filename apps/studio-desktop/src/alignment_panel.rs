@@ -40,6 +40,13 @@ impl Panel {
             timing_draft: None,
         }
     }
+    /// Use the Rhubarb shipped inside the app unless the user already chose one.
+    pub fn use_executable(&mut self, executable: &std::path::Path) {
+        if self.executable.trim().is_empty() {
+            self.executable = executable.to_string_lossy().into_owned();
+            self.invalidate();
+        }
+    }
     /// Returns true only on an explicit Estimate, Load or Review click. The caller constructs the
     /// identity/audio request then; painting performs no file access or hashing.
     pub fn ui(&mut self, ui: &mut egui::Ui, can_run: bool) -> bool {

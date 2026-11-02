@@ -319,6 +319,8 @@ impl SpeechProvider for KokoroProvider {
                 .env("HF_HUB_OFFLINE", "1")
                 .env("TRANSFORMERS_OFFLINE", "1")
                 .env("HF_HUB_DISABLE_TELEMETRY", "1")
+                // A bundled Python lives inside the signed app: never write .pyc there.
+                .env("PYTHONDONTWRITEBYTECODE", "1")
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())

@@ -364,3 +364,64 @@ class PackageAuditTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SpeechBundleAuditTests(unittest.TestCase):
+    """The optional prebuilt speech bundle is admitted only byte for byte."""
+
+    def setUp(self):
+        fixture = PackageAuditTests('test_valid_inventory_binds_exact_archive_and_every_file')
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        self.fixture = fixture
+        self.speech = fixture.root / 'speech'
+        (self.speech / 'kokoro/voices').mkdir(parents=True)
+        (self.speech / 'kokoro/voices/af_heart.pt').write_bytes(b'fake voice tensor')
+        (self.speech / 'bin').mkdir()
+        (self.speech / 'bin/piper').write_text('#!/bin/sh\n')
+        (self.speech / 'bin/piper').chmod(0o755)
+        (self.speech / 'empty').mkdir()
+        (self.speech / 'speech-bundle.json').write_text(json.dumps(
+            dict(schema_version=1, bundle_id='test-bundle')))
+        package.stage_distribution(REPO, fixture.binary, fixture.distribution, COMMIT, 'arm64',
+                                   'debug', speech_bundle=self.speech)
+
+    def collect(self, speech=True):
+        return audit.audit_package(self.fixture.archive, REPO, COMMIT, TARGET, 'debug',
+                                   self.speech if speech else None)
+
+    def test_matching_speech_bundle_is_inventoried_but_not_approved(self):
+        self.fixture.write_zip()
+        report = self.collect()
+        self.assertEqual(report['errors'], [])
+        self.assertTrue(report['package_valid'])
+        self.assertFalse(report['distribution_approved'])
+        self.assertEqual(report['speech_bundle']['bundle_id'], 'test-bundle')
+        self.assertEqual(report['speech_bundle']['file_count'], 3)
+        kinds = {r['path']: r['classification'] for r in report['files']}
+        self.assertEqual(kinds[RESOURCES + 'speech/kokoro/voices/af_heart.pt'], 'speech-bundle')
+        boundaries = {r['component']: r['boundary'] for r in report['external_requirements']}
+        self.assertEqual(boundaries['Rhubarb'], 'bundled-speech')
+        self.assertEqual(boundaries['FFmpeg'], 'external-not-bundled')
+        info = (self.fixture.distribution / APP / 'Contents/Resources/BUILD-INFO.txt').read_text()
+        self.assertIn('Bundled speech test-bundle', info)
+
+    def test_changed_extra_or_unexpected_speech_files_are_invalid(self):
+        name = RESOURCES + 'speech/kokoro/voices/af_heart.pt'
+        self.fixture.write_zip(replacements={name: b'tampered tensor!!'})
+        self.assertIn('speech bundle bytes differ: ' + name, self.collect()['errors'])
+        info = zipfile.ZipInfo(RESOURCES + 'speech/kokoro/voices/extra.pt')
+        self.fixture.write_zip(extras=[(info, b'not in the built bundle')])
+        self.assertIn('unexpected file: ' + info.filename, self.collect()['errors'])
+        self.fixture.write_zip()
+        self.assert_invalid(self.collect(speech=False))
+
+    def test_symlinked_speech_content_is_refused_by_packager(self):
+        (self.speech / 'link').symlink_to(self.speech / 'speech-bundle.json')
+        with self.assertRaises(ValueError):
+            package.stage_distribution(REPO, self.fixture.binary, self.fixture.root / 'other',
+                                       COMMIT, 'arm64', 'debug', speech_bundle=self.speech)
+
+    def assert_invalid(self, report):
+        self.assertFalse(report['package_valid'])
+        self.assertTrue(report['errors'])

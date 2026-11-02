@@ -5,6 +5,7 @@ mod art_editor;
 mod art_resources;
 mod asset_worker;
 mod bone_editor;
+mod bundled_speech;
 mod camera_framing;
 mod clip_editor;
 mod clip_library;
@@ -79,6 +80,7 @@ fn main() -> eframe::Result {
         Box::new(|cc| {
             studio_theme(&cc.egui_ctx);
             let mut studio = Studio::default();
+            studio.use_bundled_speech();
             if let Some(path) = std::env::args().nth(1) {
                 studio.script_path = path;
                 studio.open_script();
@@ -303,6 +305,8 @@ struct Studio {
     setup_voice: String,
     setup_status: String,
     setup_profile: Option<kokoro_setup::Profile>,
+    /// Engines shipped inside the app; None for unpackaged developer builds.
+    bundled_speech: Option<bundled_speech::BundledSpeech>,
     test_audio: Option<Arc<motion_audio::AudioBuffer>>,
     test_player: Option<playback::Playback>,
     diagnostics: runtime_check::Worker,
@@ -492,6 +496,7 @@ impl Default for Studio {
             setup_voice: "af_heart".into(),
             setup_status: String::new(),
             setup_profile: None,
+            bundled_speech: None,
             test_audio: None,
             test_player: None,
             diagnostics: runtime_check::Worker::new(),
@@ -3982,23 +3987,72 @@ impl Studio {
             }
         }
     }
+    /// Point Kokoro, Piper and Rhubarb at the engines shipped inside the app.
+    /// Runs once before the event loop starts; it reads one small JSON file and
+    /// writes the small Piper profile, never model data.
+    fn use_bundled_speech(&mut self) {
+        let executable = std::env::current_exe().ok();
+        let override_dir = std::env::var_os(bundled_speech::ENV_OVERRIDE).map(Into::into);
+        let Some(root) = bundled_speech::locate(executable.as_deref(), override_dir) else {
+            return;
+        };
+        match bundled_speech::load(&root, &bundled_speech::data_dir()) {
+            Ok(speech) => self.apply_bundled_speech(speech),
+            Err(error) => {
+                self.setup_status =
+                    format!("Sovelluksen mukana tulevaa puhetta ei voitu ottaa käyttöön: {error}")
+            }
+        }
+    }
+    fn apply_bundled_speech(&mut self, speech: bundled_speech::BundledSpeech) {
+        self.python = speech.python.to_string_lossy().into_owned();
+        self.config = speech.kokoro_config.to_string_lossy().into_owned();
+        self.weights = speech.kokoro_model.to_string_lossy().into_owned();
+        self.voices = speech.kokoro_voices.to_string_lossy().into_owned();
+        self.cache = speech.kokoro_cache.to_string_lossy().into_owned();
+        self.revision = speech.kokoro_revision.clone();
+        self.piper_config_path = speech.piper_profile.to_string_lossy().into_owned();
+        self.native_alignment.use_executable(&speech.rhubarb);
+        self.setup_profile = Some(kokoro_setup::Profile {
+            python: speech.python.clone(),
+            config: speech.kokoro_config.clone(),
+            model: speech.kokoro_model.clone(),
+            voices: speech.kokoro_voices.clone(),
+            cache: speech.kokoro_cache.clone(),
+            revision: speech.kokoro_revision.clone(),
+        });
+        self.setup_status = "Puhe on valmiina: Kokoro (englanti), Piper (suomi) ja Rhubarb tulevat sovelluksen mukana. Mitään ei tarvitse ladata.".into();
+        self.bundled_speech = Some(speech);
+    }
     fn kokoro_setup_ui(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Kokoro · englanninkielisen puheen asennus");
-        ui.label("Asenna ja testaa englanninkielinen puhe. Python 3.10–3.12 on oltava asennettuna. Malli toimii paikallisessa taustaprosessissa.");
+        if let Some(speech) = &self.bundled_speech {
+            ui.heading("Puhe · valmiina sovelluksessa");
+            ui.label("Kokoro (englanti), Piper ja harri-ääni (suomi) sekä Rhubarb-suuajoitus tulevat sovelluksen mukana. Asennusta tai latauksia ei tarvita; kaikki toimii paikallisesti ilman verkkoa.");
+            ui.weak(format!(
+                "Paketti {} · Rhubarb {}",
+                speech.bundle_id, speech.rhubarb_version
+            ));
+        } else {
+            ui.heading("Kokoro · englanninkielisen puheen asennus");
+            ui.label("Asenna ja testaa englanninkielinen puhe. Python 3.10–3.12 on oltava asennettuna. Malli toimii paikallisessa taustaprosessissa.");
+        }
+        let bundled = self.bundled_speech.is_some();
         let idle = !self.busy && !self.diagnostics_busy && !self.export_busy;
         ui.add_enabled_ui(idle, |ui| {
-            field(ui, "Asennuskansio", &mut self.setup_root);
-            field(ui, "Python 3.10–3.12 -ohjelma (tyhjä: etsi automaattisesti)", &mut self.setup_python);
-            ui.checkbox(&mut self.setup_downloads, "Sallin Python-riippuvuuksien, Kokoro-mallin, äänten ja englannin kieliresurssien lataamisen tätä asennusta varten.");
-            ui.weak("Asennus tarvitsee verkkoyhteyden ja levytilaa. Asennettu puhe toimii paikallisesti. Voit yhdistää olemassa olevat resurssit ilman latauksia.");
-            let root = std::path::PathBuf::from(self.setup_root.trim());
-            let (installer, manifest) = kokoro_setup::helper_paths(Path::new(&self.runtime));
-            if ui.add_enabled(self.setup_downloads && !self.setup_root.trim().is_empty(), egui::Button::new("Asenna paikallinen Kokoro")).clicked() {
-                let python = (!self.setup_python.trim().is_empty()).then(|| self.setup_python.trim().into());
-                self.submit_kokoro(kokoro_setup::Task::Setup { python, root: root.clone(), installer, manifest, allow_downloads: self.setup_downloads });
-            }
-            if ui.add_enabled(!self.setup_root.trim().is_empty(), egui::Button::new("Yhdistä olemassa oleva asennus")).clicked() {
-                self.submit_kokoro(kokoro_setup::Task::ConnectExisting { root: root.clone() });
+            if !bundled {
+                field(ui, "Asennuskansio", &mut self.setup_root);
+                field(ui, "Python 3.10–3.12 -ohjelma (tyhjä: etsi automaattisesti)", &mut self.setup_python);
+                ui.checkbox(&mut self.setup_downloads, "Sallin Python-riippuvuuksien, Kokoro-mallin, äänten ja englannin kieliresurssien lataamisen tätä asennusta varten.");
+                ui.weak("Asennus tarvitsee verkkoyhteyden ja levytilaa. Asennettu puhe toimii paikallisesti. Voit yhdistää olemassa olevat resurssit ilman latauksia.");
+                let root = std::path::PathBuf::from(self.setup_root.trim());
+                let (installer, manifest) = kokoro_setup::helper_paths(Path::new(&self.runtime));
+                if ui.add_enabled(self.setup_downloads && !self.setup_root.trim().is_empty(), egui::Button::new("Asenna paikallinen Kokoro")).clicked() {
+                    let python = (!self.setup_python.trim().is_empty()).then(|| self.setup_python.trim().into());
+                    self.submit_kokoro(kokoro_setup::Task::Setup { python, root: root.clone(), installer, manifest, allow_downloads: self.setup_downloads });
+                }
+                if ui.add_enabled(!self.setup_root.trim().is_empty(), egui::Button::new("Yhdistä olemassa oleva asennus")).clicked() {
+                    self.submit_kokoro(kokoro_setup::Task::ConnectExisting { root: root.clone() });
+                }
             }
             let previous_voice = self.setup_voice.clone();
             ui.horizontal(|ui| {
@@ -8197,6 +8251,42 @@ mod scene_preview_tests {
         assert!(!studio.setup_busy);
         assert!(!studio.setup_downloads);
         assert!(studio.setup_profile.is_none());
+    }
+
+    #[test]
+    fn bundled_speech_configures_every_engine_without_setup() {
+        let mut studio = Studio::default();
+        let speech = bundled_speech::BundledSpeech {
+            bundle_id: "test-bundle".into(),
+            python: "/App/speech/python/bin/python3.12".into(),
+            kokoro_config: "/App/speech/kokoro/config.json".into(),
+            kokoro_model: "/App/speech/kokoro/kokoro-v1_0.pth".into(),
+            kokoro_voices: "/App/speech/kokoro/voices".into(),
+            kokoro_revision: "rev:freeze".into(),
+            kokoro_cache: "/Support/kokoro-cache".into(),
+            piper_profile: "/Support/piper-profile.json".into(),
+            rhubarb: "/App/speech/rhubarb/rhubarb".into(),
+            rhubarb_version: "1.14.0".into(),
+        };
+        studio.apply_bundled_speech(speech);
+        let config = studio.kokoro_config();
+        assert_eq!(
+            config.python,
+            Path::new("/App/speech/python/bin/python3.12")
+        );
+        assert_eq!(config.model_version, "rev:freeze");
+        assert_eq!(config.cache_directory, Path::new("/Support/kokoro-cache"));
+        assert_eq!(
+            studio.piper_profile().as_deref(),
+            Some(Path::new("/Support/piper-profile.json"))
+        );
+        assert!(studio.setup_profile.is_some(), "speech test works at once");
+        let ctx = egui::Context::default();
+        let _ = ctx.run(egui::RawInput::default(), |ctx| {
+            egui::CentralPanel::default().show(ctx, |ui| studio.runtime_ui(ui));
+        });
+        assert!(!studio.setup_busy);
+        assert!(!studio.setup_downloads);
     }
 
     #[test]

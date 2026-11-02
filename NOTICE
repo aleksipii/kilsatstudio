@@ -111,3 +111,34 @@ INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
 DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
+
+-----------------------------------------------------------------------------
+Bundled speech engines (only in apps packaged with --speech-bundle)
+-----------------------------------------------------------------------------
+An app built with scripts/build_speech_bundle.py ships these unmodified
+third-party components in Contents/Resources/speech. Each runs as a separate
+process. Exact pins are in services/speech-bundle/manifest.json; the installed
+Python distributions and their license files are recorded in
+speech/evidence/freeze.txt and speech/evidence/distributions.json.
+
+- CPython 3.12 (python-build-standalone): PSF License 2.0 and bundled
+  third-party notices, speech/python/lib/python3.12/LICENSE.txt.
+- Kokoro-82M model and English voices (hexgrad/Kokoro-82M, revision
+  f3ff3571791e39611d31c381e3a41a3af07b4987): Apache-2.0 per the model card.
+  The kokoro, misaki, torch, numpy, spaCy and en_core_web_sm packages keep
+  their own licenses in their installed dist-info folders.
+- Piper (piper-tts 1.8.0, https://github.com/OHF-voice/piper1-gpl):
+  GPL-3.0-or-later, embedding eSpeak NG (GPL-3.0-or-later). License text:
+  piper_tts-1.8.0.data/data/COPYING in the installed package. Corresponding
+  source: the upstream repository at tag v1.8.0 and the PyPI sdist
+  piper_tts-1.8.0.tar.gz. Public distribution must also meet GPL-3.0 source
+  obligations (see docs/bundled-speech.md).
+- Finnish voice fi_FI-harri-medium (rhasspy/piper-voices, revision
+  b4e358ffcb232591bf73a540e70f7de528e4174a): repository tagged MIT; the voice
+  card names a CC0 dataset; speech/piper/MODEL_CARD.
+- Rhubarb Lip Sync 1.14.0 (https://github.com/DanielSWolf/rhubarb-lip-sync):
+  MIT, with CMU PocketSphinx/Sphinxbase (BSD-style) acoustic and language
+  models; speech/rhubarb/LICENSE.md.
+
+These entries record what is shipped. They are not a completed legal review
+of every transitive dependency; see docs/bundled-speech.md.

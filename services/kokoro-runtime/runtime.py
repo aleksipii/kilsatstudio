@@ -78,6 +78,13 @@ def synthesize(payload):
     if not spacy.util.is_package('en_core_web_sm'):
         raise RuntimeError('missing local en_core_web_sm; install compatible English G2P assets explicitly')
     from kokoro import KModel, KPipeline
+    # The app's bundled Python keeps eSpeak NG data at a short path (speech/espeak/
+    # kokoro): eSpeak ignores data paths of 160+ characters.
+    parents = Path(sys.executable).parents
+    bundled_espeak = parents[2] / 'espeak' / 'kokoro' if len(parents) > 2 else None
+    if bundled_espeak is not None and (bundled_espeak / 'phontab').is_file():
+        from phonemizer.backend.espeak.wrapper import EspeakWrapper
+        EspeakWrapper.set_data_path(str(bundled_espeak))
     model = KModel(repo_id='hexgrad/Kokoro-82M', config=payload['config_path'], model=payload['model_path']).to('cpu').eval()
     pipeline = KPipeline(lang_code={'en-us': 'a', 'en-gb': 'b'}[request['voice']['language']],
                          repo_id='hexgrad/Kokoro-82M', model=model, device='cpu')
