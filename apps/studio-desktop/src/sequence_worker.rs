@@ -406,8 +406,9 @@ fn run_stages(
     progress: &(impl Fn(Update) + Sync),
 ) -> Result<Stages, String> {
     use motion_jobs::{Graph, Outcome};
-    use std::sync::atomic::{AtomicUsize, Ordering};
-    let completed = AtomicUsize::new(0);
+    // Counting and reporting under one lock keeps progress monotonic when
+    // several scene workers finish lines at the same time.
+    let completed = std::sync::Mutex::new(0usize);
     let mut graph: Graph<'_, Stage, String> = Graph::new();
     let mut scene_names = Vec::with_capacity(request.script.scenes.len());
     for (index, scene) in request.script.scenes.iter().enumerate() {
@@ -425,10 +426,11 @@ fn run_stages(
                 let mut report = |done: usize| {
                     let delta = done.saturating_sub(last);
                     last = last.max(done);
-                    let total_done = completed.fetch_add(delta, Ordering::AcqRel) + delta;
+                    let mut done = completed.lock().unwrap_or_else(|e| e.into_inner());
+                    *done += delta;
                     progress(Update::PrepareProgress {
                         generation: request.generation,
-                        completed: total_done,
+                        completed: *done,
                         total: jobs.len(),
                     });
                 };
