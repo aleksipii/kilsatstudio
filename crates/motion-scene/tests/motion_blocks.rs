@@ -217,3 +217,52 @@ mod timed_props_and_sitting {
         assert!(banana.validate().is_err(), "unknown prop");
     }
 }
+
+#[test]
+fn snap_turns_swap_the_view_on_the_event_frame() {
+    let events = json!([{ "type": "face", "actor": "VEIKKO", "at": 1, "value": "left" }]);
+    let smooth = script(events.clone());
+    let mut snap = script(events);
+    snap.characters.get_mut("VEIKKO").unwrap().timing.turn =
+        Some(motion_script::timing::Turn::Snap);
+    let mid = 1.0 + TURN_SECONDS * 0.25;
+    // Smooth: still the front drawing, narrowed.
+    let narrowing = veikko(&smooth, mid);
+    assert_eq!(narrowing.view, FaceView::Front);
+    assert!(narrowing.scale.x.abs() < 1.0);
+    // Snap: the profile drawing at full width from the event on.
+    for at in [1.0, mid] {
+        let pose = veikko(&snap, at);
+        assert_eq!((pose.view, pose.scale.x), (FaceView::Side, -1.0), "{at}");
+    }
+    assert_eq!(veikko(&snap, 0.99).view, FaceView::Front);
+    // Once a smooth turn has finished both agree.
+    let after = 1.0 + TURN_SECONDS;
+    assert_eq!(veikko(&snap, after), veikko(&smooth, after));
+}
+
+#[test]
+fn turn_style_parses_and_unknown_values_are_unsupported() {
+    let source = |turn: &str| {
+        format!(
+            "project: {{title: T}}\ncharacters:\n  A: {{asset: characters/a, timing: {{turn: {turn}}}}}\nscenes:\n  - {{id: s, duration: 1, events: []}}\n"
+        )
+    };
+    let parsed = motion_script::parse(&source("snap")).unwrap();
+    assert_eq!(
+        parsed.characters["A"].timing.turn,
+        Some(motion_script::timing::Turn::Snap)
+    );
+    let round_trip = motion_script::parse(&motion_script::to_source(&parsed).unwrap()).unwrap();
+    assert_eq!(
+        round_trip.characters["A"].timing,
+        parsed.characters["A"].timing
+    );
+    let error = motion_script::parse(&source("spin"))
+        .unwrap_err()
+        .to_string();
+    assert!(
+        error.contains("characters.A.timing.turn") && error.contains("smooth, snap"),
+        "{error}"
+    );
+}

@@ -6,7 +6,7 @@
 //! scenes:
 //!   - id: intro
 //!     composition:
-//!       timing: {on: 2, interpolation: stepped}
+//!       timing: {on: 2, interpolation: stepped, turn: snap}
 //!       actor_tracks:
 //!         EMMA:
 //!           - {at: 0.0, x: 0, easing: ease_in_out}
@@ -136,6 +136,18 @@ impl<'de> Deserialize<'de> for ActorEasing {
     }
 }
 
+/// How a change of facing (a `face` event) is drawn.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Turn {
+    /// The figure narrows, swaps view at the midpoint and widens again.
+    #[default]
+    Smooth,
+    /// The new view replaces the old one at the event: a drawing swap, as in
+    /// cut-out animation.
+    Snap,
+}
+
 /// Exposure and blocking for a scene or a character; unset fields inherit.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -146,20 +158,25 @@ pub struct Timing {
     /// `stepped` evaluates every key as `hold` for blocking.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub interpolation: Option<Interpolation>,
+    /// `snap` swaps views on a `face` event instead of narrowing through it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub turn: Option<Turn>,
 }
 
-/// The exposure and interpolation one actor is evaluated with.
+/// The exposure, interpolation and turn style one actor is evaluated with.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct ResolvedTiming {
     pub on: Exposure,
     pub interpolation: Interpolation,
+    pub turn: Turn,
 }
 
 impl Timing {
     pub fn is_unset(&self) -> bool {
-        self.on.is_none() && self.interpolation.is_none()
+        self.on.is_none() && self.interpolation.is_none() && self.turn.is_none()
     }
-    /// Character fields override scene fields; unset means on ones, spline.
+    /// Character fields override scene fields; unset means on ones, spline,
+    /// smooth turns.
     pub fn resolve(scene: &Timing, character: &Timing) -> ResolvedTiming {
         ResolvedTiming {
             on: character.on.or(scene.on).unwrap_or_default(),
@@ -167,6 +184,7 @@ impl Timing {
                 .interpolation
                 .or(scene.interpolation)
                 .unwrap_or_default(),
+            turn: character.turn.or(scene.turn).unwrap_or_default(),
         }
     }
 }
@@ -297,9 +315,18 @@ fn check_timing(timing: &serde_yaml::Value, path: &str) -> Result<(), Error> {
                     )));
                 }
             }
+            "turn" => {
+                let name = value.as_str().unwrap_or_default();
+                if !["smooth", "snap"].contains(&name) {
+                    return Err(Error::Unsupported(format!(
+                        "{path}.turn: unknown turn `{}`; supported: smooth, snap",
+                        key_text(value)
+                    )));
+                }
+            }
             other => {
                 return Err(Error::Unsupported(format!(
-                    "{path}.{other}: unknown timing key; supported: on, interpolation"
+                    "{path}.{other}: unknown timing key; supported: on, interpolation, turn"
                 )))
             }
         }
@@ -419,18 +446,26 @@ mod tests {
         let scene = Timing {
             on: Some(Exposure::TWOS),
             interpolation: Some(Interpolation::Stepped),
+            turn: Some(Turn::Snap),
         };
         let character = Timing {
             on: Some(Exposure::ONES),
             interpolation: None,
+            turn: None,
         };
         assert_eq!(
             Timing::resolve(&scene, &character),
             ResolvedTiming {
                 on: Exposure::ONES,
-                interpolation: Interpolation::Stepped
+                interpolation: Interpolation::Stepped,
+                turn: Turn::Snap,
             }
         );
+        let smooth = Timing {
+            turn: Some(Turn::Smooth),
+            ..Timing::default()
+        };
+        assert_eq!(Timing::resolve(&scene, &smooth).turn, Turn::Smooth);
         assert_eq!(
             Timing::resolve(&Timing::default(), &Timing::default()),
             ResolvedTiming::default()
