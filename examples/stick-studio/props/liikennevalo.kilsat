@@ -1,0 +1,214 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Liikennevalo\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_liikennevalo_pole",
+        "name": "liikennevalo pole",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 466.7368421052632
+            },
+            {
+              "x": 256.0,
+              "y": 209.6842105263158
+            }
+          ],
+          "width": 10.421052631578949,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_housing_outline",
+        "name": "liikennevalo housing outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 221.26315789473685,
+            "y": 47.578947368421055,
+            "width": 69.47368421052632,
+            "height": 173.6842105263158
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_housing_fill",
+        "name": "liikennevalo housing fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 225.89473684210526,
+            "y": 52.21052631578947,
+            "width": 60.21052631578948,
+            "height": 164.42105263157896
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_red",
+        "name": "liikennevalo red",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 236.31578947368422,
+            "y": 61.473684210526315,
+            "width": 39.36842105263158,
+            "height": 39.36842105263158
+          },
+          "color": {
+            "r": 222,
+            "g": 76,
+            "b": 62,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_amber",
+        "name": "liikennevalo amber",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 236.31578947368422,
+            "y": 107.78947368421053,
+            "width": 39.36842105263158,
+            "height": 39.36842105263158
+          },
+          "color": {
+            "r": 124,
+            "g": 108,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_green",
+        "name": "liikennevalo green",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 236.31578947368422,
+            "y": 154.10526315789474,
+            "width": 39.36842105263158,
+            "height": 39.36842105263158
+          },
+          "color": {
+            "r": 64,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_button",
+        "name": "liikennevalo button",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 244.42105263157896,
+            "y": 284.9473684210526,
+            "width": 23.157894736842106,
+            "height": 34.73684210526316
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_liikennevalo_base",
+        "name": "liikennevalo base",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 236.31578947368422,
+            "y": 464.42105263157896,
+            "width": 39.36842105263158,
+            "height": 11.578947368421053
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

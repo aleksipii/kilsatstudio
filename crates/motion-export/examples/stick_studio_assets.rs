@@ -85,12 +85,14 @@ fn expected_project(item: &Item) -> Result<String> {
 }
 
 fn validate_manifest(manifest: &Manifest) -> Result<()> {
-    let prop_count = match manifest.pack_revision {
-        1 => 14,
-        2 => 20,
+    // (backgrounds, props) per revision; revision 3 added the city.
+    let (background_count, prop_count) = match manifest.pack_revision {
+        1 => (4, 14),
+        2 => (4, 20),
+        3 => (13, 42),
         _ => return Err("unsupported stick-studio pack revision".into()),
     };
-    if manifest.schema_version != 1 || manifest.items.len() != 10 + prop_count {
+    if manifest.schema_version != 1 || manifest.items.len() != 6 + background_count + prop_count {
         return Err("asset manifest schema or revision item count differs".into());
     }
     let mut ids = BTreeSet::new();
@@ -127,9 +129,9 @@ fn validate_manifest(manifest: &Manifest) -> Result<()> {
         }
         counts[index] += 1;
     }
-    if counts != [6, 4, prop_count] {
+    if counts != [6, background_count, prop_count] {
         return Err(
-            "asset manifest must contain six characters, four backgrounds and its revision prop count"
+            "asset manifest must contain six characters and its revision background and prop counts"
                 .into(),
         );
     }
@@ -651,11 +653,14 @@ mod tests {
             serde_json::from_slice(&fs::read(pack().join("manifest.json")).unwrap()).unwrap();
         let mut legacy = original.clone();
         legacy.as_object_mut().unwrap().remove("pack_revision");
-        let mut props = 0;
+        let (mut backgrounds, mut props) = (0, 0);
         legacy["items"].as_array_mut().unwrap().retain(|item| {
             if item["kind"] == "prop" {
                 props += 1;
                 props <= 14
+            } else if item["kind"] == "background" {
+                backgrounds += 1;
+                backgrounds <= 4
             } else {
                 true
             }
@@ -663,7 +668,7 @@ mod tests {
         let parsed: Manifest = serde_json::from_value(legacy).unwrap();
         assert_eq!(parsed.pack_revision, 1);
         validate_manifest(&parsed).unwrap();
-        for revision in [0, 3, u32::MAX] {
+        for revision in [0, 2, 4, u32::MAX] {
             let mut invalid = original.clone();
             invalid["pack_revision"] = serde_json::json!(revision);
             assert!(validate_manifest(&serde_json::from_value(invalid).unwrap()).is_err());

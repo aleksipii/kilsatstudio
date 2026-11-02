@@ -1,0 +1,1214 @@
+{
+  "schema_version": 1,
+  "id": "background.interior.corner_shop_v1",
+  "kind": "background",
+  "name": "Kulmakaupan käytävä",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "shop",
+    "kauppa",
+    "grocery",
+    "lähikauppa",
+    "store",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "wall",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 234,
+            "g": 230,
+            "b": 216,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "floor",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 810.0,
+            "width": 1920.0,
+            "height": 270.0
+          },
+          "color": {
+            "r": 208,
+            "g": 206,
+            "b": 194,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "floor_seam_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840.0,
+              "y": 810.0
+            },
+            {
+              "x": -260.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "floor_seam_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900.0,
+              "y": 810.0
+            },
+            {
+              "x": 220.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "floor_seam_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 810.0
+            },
+            {
+              "x": 700.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "floor_seam_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020.0,
+              "y": 810.0
+            },
+            {
+              "x": 1180.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "floor_seam_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080.0,
+              "y": 810.0
+            },
+            {
+              "x": 1660.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "floor_cross_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 866.0
+            },
+            {
+              "x": 1920.0,
+              "y": 866.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "floor_cross_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 957.0
+            },
+            {
+              "x": 1920.0,
+              "y": 957.0
+            }
+          ],
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "skirting",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 798.0,
+            "width": 1920.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70.0,
+            "y": 330.0,
+            "width": 700.0,
+            "height": 480.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78.0,
+            "y": 338.0,
+            "width": 684.0,
+            "height": 464.0
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_goods_0_a",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94.0,
+            "y": 380.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_goods_0_b",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426.0,
+            "y": 380.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_board_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78.0,
+            "y": 464.0,
+            "width": 684.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_goods_1_a",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94.0,
+            "y": 520.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_goods_1_b",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426.0,
+            "y": 520.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_board_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78.0,
+            "y": 604.0,
+            "width": 684.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_goods_2_a",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94.0,
+            "y": 660.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_goods_2_b",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426.0,
+            "y": 660.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_board_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78.0,
+            "y": 744.0,
+            "width": 684.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_left_price_strip",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78.0,
+            "y": 338.0,
+            "width": 684.0,
+            "height": 18.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1150.0,
+            "y": 330.0,
+            "width": 700.0,
+            "height": 480.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158.0,
+            "y": 338.0,
+            "width": 684.0,
+            "height": 464.0
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_goods_0_a",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174.0,
+            "y": 380.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_goods_0_b",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506.0,
+            "y": 380.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_board_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158.0,
+            "y": 464.0,
+            "width": 684.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_goods_1_a",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174.0,
+            "y": 520.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_goods_1_b",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506.0,
+            "y": 520.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_board_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158.0,
+            "y": 604.0,
+            "width": 684.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_goods_2_a",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174.0,
+            "y": 660.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_goods_2_b",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506.0,
+            "y": 660.0,
+            "width": 320.0,
+            "height": 84.0
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_board_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158.0,
+            "y": 744.0,
+            "width": 684.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shelf_right_price_strip",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158.0,
+            "y": 338.0,
+            "width": 684.0,
+            "height": 18.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fridge_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 790.0,
+            "y": 300.0,
+            "width": 340.0,
+            "height": 510.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fridge_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 798.0,
+            "y": 308.0,
+            "width": 324.0,
+            "height": 494.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fridge_light",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806.0,
+            "y": 314.0,
+            "width": 308.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "fridge_bottles_0",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826.0,
+              "y": 400.0
+            },
+            {
+              "x": 1094.0,
+              "y": 400.0
+            }
+          ],
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "fridge_bottles_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826.0,
+              "y": 500.0
+            },
+            {
+              "x": 1094.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "fridge_bottles_2",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826.0,
+              "y": 600.0
+            },
+            {
+              "x": 1094.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "fridge_bottles_3",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826.0,
+              "y": 700.0
+            },
+            {
+              "x": 1094.0,
+              "y": 700.0
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "fridge_door_left",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806.0,
+            "y": 342.0,
+            "width": 150.0,
+            "height": 452.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "fridge_door_right",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 964.0,
+            "y": 342.0,
+            "width": 150.0,
+            "height": 452.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "fridge_handles",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 946.0,
+              "y": 520.0
+            },
+            {
+              "x": 946.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "fridge_handle_right",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 974.0,
+              "y": 520.0
+            },
+            {
+              "x": 974.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "sale_cables",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1330.0,
+              "y": 0.0
+            },
+            {
+              "x": 1330.0,
+              "y": 130.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 3.0
+        }
+      },
+      {
+        "id": "sale_badge_outline",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1260.0,
+            "y": 120.0,
+            "width": 140.0,
+            "height": 140.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sale_badge_fill",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1268.0,
+            "y": 128.0,
+            "width": 124.0,
+            "height": 124.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sale_lettering",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1290.0,
+              "y": 192.0
+            },
+            {
+              "x": 1312.0,
+              "y": 170.0
+            },
+            {
+              "x": 1334.0,
+              "y": 196.0
+            },
+            {
+              "x": 1356.0,
+              "y": 170.0
+            },
+            {
+              "x": 1372.0,
+              "y": 190.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 7.0
+        }
+      },
+      {
+        "id": "aisle_cables",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880.0,
+              "y": 0.0
+            },
+            {
+              "x": 880.0,
+              "y": 150.0
+            },
+            {
+              "x": 1040.0,
+              "y": 150.0
+            },
+            {
+              "x": 1040.0,
+              "y": 0.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 3.0
+        }
+      },
+      {
+        "id": "aisle_sign_outline",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 840.0,
+            "y": 150.0,
+            "width": 240.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "aisle_sign_fill",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 847.0,
+            "y": 157.0,
+            "width": 226.0,
+            "height": 66.0
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "aisle_lettering",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880.0,
+              "y": 190.0
+            },
+            {
+              "x": 920.0,
+              "y": 178.0
+            },
+            {
+              "x": 960.0,
+              "y": 200.0
+            },
+            {
+              "x": 1000.0,
+              "y": 178.0
+            },
+            {
+              "x": 1040.0,
+              "y": 196.0
+            }
+          ],
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          },
+          "width": 7.0
+        }
+      },
+      {
+        "id": "ceiling_light_left",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160.0,
+            "y": 46.0,
+            "width": 480.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_right",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1280.0,
+            "y": 46.0,
+            "width": 480.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "stand",
+      "id": "fridge",
+      "at": {
+        "x": 960.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

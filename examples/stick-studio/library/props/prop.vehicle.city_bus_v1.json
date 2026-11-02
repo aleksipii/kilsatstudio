@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.city_bus_v1",
+  "kind": "prop",
+  "name": "Kaupunkibussi",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 1089.231,
+    "height": 360
+  },
+  "depth": "mid",
+  "tags": [
+    "linja_auto",
+    "bussi",
+    "bus",
+    "joukkoliikenne",
+    "transit",
+    "vehicle",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 9.231,
+            "y": 18.462,
+            "width": 1070.769,
+            "height": 295.385
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.462,
+            "y": 27.692,
+            "width": 1052.308,
+            "height": 276.923
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_band",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 25.846,
+            "y": 53.538,
+            "width": 1037.538,
+            "height": 118.154
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_0",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 36.923,
+            "y": 62.769,
+            "width": 158.769,
+            "height": 99.692
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_1",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 214.154,
+            "y": 62.769,
+            "width": 158.769,
+            "height": 99.692
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_2",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 391.385,
+            "y": 62.769,
+            "width": 158.769,
+            "height": 99.692
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_3",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 568.615,
+            "y": 62.769,
+            "width": 158.769,
+            "height": 99.692
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_4",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 745.846,
+            "y": 62.769,
+            "width": 158.769,
+            "height": 99.692
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 923.077,
+            "y": 62.769,
+            "width": 129.231,
+            "height": 232.615
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_seam",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 987.692,
+              "y": 70.154
+            },
+            {
+              "x": 987.692,
+              "y": 288
+            }
+          ],
+          "width": 5.538,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "destination",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 926.769,
+            "y": 25.846,
+            "width": 121.846,
+            "height": 25.846
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stripe",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.462,
+            "y": 217.846,
+            "width": 895.385,
+            "height": 20.308
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "skirt",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.462,
+            "y": 276.923,
+            "width": 1052.308,
+            "height": 31.385
+          },
+          "color": {
+            "r": 51,
+            "g": 87,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "headlamp",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1057.846,
+            "y": 241.846,
+            "width": 14.769,
+            "height": 27.692
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 138.462,
+            "y": 267.692,
+            "width": 92.308,
+            "height": 92.308
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 156.923,
+            "y": 286.154,
+            "width": 55.385,
+            "height": 55.385
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 812.308,
+            "y": 267.692,
+            "width": 92.308,
+            "height": 92.308
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 830.769,
+            "y": 286.154,
+            "width": 55.385,
+            "height": 55.385
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 360
+      },
+      "width": 1089.231
+    }
+  ]
+}

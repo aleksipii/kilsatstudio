@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.van_v1",
+  "kind": "prop",
+  "name": "Pakettiauto",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 534.545,
+    "height": 252
+  },
+  "depth": "mid",
+  "tags": [
+    "pakettiauto",
+    "van",
+    "delivery",
+    "auto",
+    "ajoneuvo",
+    "vehicle",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "cargo_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12.218,
+            "y": 22.909,
+            "width": 361.964,
+            "height": 183.273
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cargo_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.327,
+            "y": 29.018,
+            "width": 349.745,
+            "height": 171.055
+          },
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cab_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 358.909,
+            "y": 73.309,
+            "width": 160.364,
+            "height": 132.873
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cab_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 365.018,
+            "y": 79.418,
+            "width": 148.145,
+            "height": 120.655
+          },
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 378.764,
+            "y": 87.055,
+            "width": 123.709,
+            "height": 53.455
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pillar",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 427.636,
+              "y": 87.055
+            },
+            {
+              "x": 427.636,
+              "y": 140.509
+            }
+          ],
+          "width": 7.636,
+          "color": {
+            "r": 196,
+            "g": 204,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stripe",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.327,
+            "y": 128.291,
+            "width": 494.836,
+            "height": 19.855
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_seam",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 229.091,
+              "y": 30.545
+            },
+            {
+              "x": 229.091,
+              "y": 200.073
+            }
+          ],
+          "width": 3.055,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bumper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 9.164,
+            "y": 200.073,
+            "width": 513.164,
+            "height": 10.691
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "headlamp",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 497.891,
+            "y": 155.782,
+            "width": 16.8,
+            "height": 18.327
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tail_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.8,
+            "y": 152.727,
+            "width": 12.218,
+            "height": 22.909
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 68.727,
+            "y": 177.164,
+            "width": 74.836,
+            "height": 74.836
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 84,
+            "y": 192.436,
+            "width": 44.291,
+            "height": 44.291
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 397.091,
+            "y": 177.164,
+            "width": 74.836,
+            "height": 74.836
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 412.364,
+            "y": 192.436,
+            "width": 44.291,
+            "height": 44.291
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 252
+      },
+      "width": 534.545
+    }
+  ]
+}

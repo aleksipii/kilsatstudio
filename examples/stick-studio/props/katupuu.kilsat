@@ -1,0 +1,198 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Katupuu\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_katupuu_trunk",
+        "name": "katupuu trunk",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 470.5
+            },
+            {
+              "x": 257.375,
+              "y": 324.75
+            },
+            {
+              "x": 249.125,
+              "y": 242.25
+            }
+          ],
+          "width": 16.5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_katupuu_branch",
+        "name": "katupuu branch",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 331.625
+            },
+            {
+              "x": 297.25,
+              "y": 262.875
+            }
+          ],
+          "width": 9.625,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_katupuu_crown_back",
+        "name": "katupuu crown back",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 152.875,
+            "y": 84.125,
+            "width": 206.25,
+            "height": 192.5
+          },
+          "color": {
+            "r": 100,
+            "g": 143,
+            "b": 122,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_katupuu_crown_left",
+        "name": "katupuu crown left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 135.0,
+            "y": 159.75,
+            "width": 130.625,
+            "height": 116.875
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_katupuu_crown_right",
+        "name": "katupuu crown right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 253.25,
+            "y": 139.125,
+            "width": 123.75,
+            "height": 130.625
+          },
+          "color": {
+            "r": 76,
+            "g": 116,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_katupuu_crown_top",
+        "name": "katupuu crown top",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 201.0,
+            "y": 52.5,
+            "width": 116.875,
+            "height": 103.125
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_katupuu_grate",
+        "name": "katupuu grate",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 205.125,
+            "y": 466.375,
+            "width": 101.75,
+            "height": 9.625
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

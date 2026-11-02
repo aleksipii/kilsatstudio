@@ -1,0 +1,385 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.taxi_v1",
+  "kind": "prop",
+  "name": "Taksi",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 410.483,
+    "height": 186
+  },
+  "depth": "mid",
+  "tags": [
+    "taksi",
+    "taxi",
+    "auto",
+    "car",
+    "ajoneuvo",
+    "vehicle",
+    "katu",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "roof_sign_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 183.434,
+            "y": 1.283,
+            "width": 47.462,
+            "height": 21.807
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof_sign_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 186.641,
+            "y": 4.49,
+            "width": 41.048,
+            "height": 15.393
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cabin_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 96.207,
+            "y": 17.959,
+            "width": 211.655,
+            "height": 134.69
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cabin_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 101.979,
+            "y": 23.731,
+            "width": 200.11,
+            "height": 123.145
+          },
+          "color": {
+            "r": 228,
+            "g": 188,
+            "b": 88,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 115.448,
+            "y": 35.276,
+            "width": 173.172,
+            "height": 102.621
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pillar",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 203.959,
+              "y": 37.2
+            },
+            {
+              "x": 203.959,
+              "y": 82.097
+            }
+          ],
+          "width": 7.697,
+          "color": {
+            "r": 228,
+            "g": 188,
+            "b": 88,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 11.545,
+            "y": 79.531,
+            "width": 387.393,
+            "height": 71.834
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.676,
+            "y": 84.662,
+            "width": 377.131,
+            "height": 61.572
+          },
+          "color": {
+            "r": 228,
+            "g": 188,
+            "b": 88,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.676,
+            "y": 132.124,
+            "width": 377.131,
+            "height": 14.11
+          },
+          "color": {
+            "r": 178,
+            "g": 147,
+            "b": 69,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "checker",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.676,
+            "y": 110.317,
+            "width": 377.131,
+            "height": 6.414
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_seam",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 203.959,
+              "y": 87.228
+            },
+            {
+              "x": 203.959,
+              "y": 130.841
+            }
+          ],
+          "width": 2.566,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "handle",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 214.221,
+              "y": 97.49
+            },
+            {
+              "x": 232.179,
+              "y": 97.49
+            }
+          ],
+          "width": 3.848,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "headlamp",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 378.414,
+            "y": 93.641,
+            "width": 15.393,
+            "height": 14.11
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tail_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.676,
+            "y": 93.641,
+            "width": 10.262,
+            "height": 16.676
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 64.138,
+            "y": 123.145,
+            "width": 62.855,
+            "height": 62.855
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 76.966,
+            "y": 135.972,
+            "width": 37.2,
+            "height": 37.2
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 283.49,
+            "y": 123.145,
+            "width": 62.855,
+            "height": 62.855
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 296.317,
+            "y": 135.972,
+            "width": 37.2,
+            "height": 37.2
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 186
+      },
+      "width": 410.483
+    }
+  ]
+}

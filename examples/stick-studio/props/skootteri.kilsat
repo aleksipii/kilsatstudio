@@ -1,0 +1,256 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Skootteri\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_skootteri_box",
+        "name": "skootteri box",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82.75,
+            "y": 213.375,
+            "width": 101.75,
+            "height": 85.25
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_frame",
+        "name": "skootteri frame",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 126.75,
+              "y": 375.625
+            },
+            {
+              "x": 256.0,
+              "y": 375.625
+            },
+            {
+              "x": 355.0,
+              "y": 276.625
+            },
+            {
+              "x": 379.75,
+              "y": 172.125
+            }
+          ],
+          "width": 30.25,
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_seat",
+        "name": "skootteri seat",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 148.75,
+            "y": 276.625,
+            "width": 162.25,
+            "height": 35.75
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_handlebar",
+        "name": "skootteri handlebar",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 379.75,
+              "y": 172.125
+            },
+            {
+              "x": 410.0,
+              "y": 147.375
+            },
+            {
+              "x": 448.5,
+              "y": 147.375
+            }
+          ],
+          "width": 12.375,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_headlamp",
+        "name": "skootteri headlamp",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 385.25,
+            "y": 185.875,
+            "width": 44.0,
+            "height": 33.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_wheel_back_outline",
+        "name": "skootteri wheel back outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 71.75,
+            "y": 331.625,
+            "width": 110.0,
+            "height": 110.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_wheel_back_fill",
+        "name": "skootteri wheel back fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 93.75,
+            "y": 353.625,
+            "width": 66.0,
+            "height": 66.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_wheel_front_outline",
+        "name": "skootteri wheel front outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 330.25,
+            "y": 331.625,
+            "width": 110.0,
+            "height": 110.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_skootteri_wheel_front_fill",
+        "name": "skootteri wheel front fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 352.25,
+            "y": 353.625,
+            "width": 66.0,
+            "height": 66.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

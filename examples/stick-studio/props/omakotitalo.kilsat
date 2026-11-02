@@ -1,0 +1,644 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Omakotitalo\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_omakotitalo_chimney",
+        "name": "omakotitalo chimney",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 323.2222222222222,
+            "y": 119.1111111111111,
+            "width": 33.0,
+            "height": 79.44444444444446
+          },
+          "color": {
+            "r": 198,
+            "g": 158,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_body_outline",
+        "name": "omakotitalo body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72.66666666666664,
+            "y": 219.33333333333334,
+            "width": 366.6666666666667,
+            "height": 232.22222222222223
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_body_fill",
+        "name": "omakotitalo body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 77.55555555555553,
+            "y": 224.22222222222223,
+            "width": 356.8888888888889,
+            "height": 222.44444444444446
+          },
+          "color": {
+            "r": 214,
+            "g": 196,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_gable",
+        "name": "omakotitalo gable",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 109.63888888888889
+            },
+            {
+              "x": 256.0,
+              "y": 109.63888888888889
+            },
+            {
+              "x": 265.22777777777776,
+              "y": 115.8722222222222
+            },
+            {
+              "x": 246.77222222222218,
+              "y": 115.8722222222222
+            },
+            {
+              "x": 237.54444444444445,
+              "y": 122.10555555555555
+            },
+            {
+              "x": 274.4555555555555,
+              "y": 122.10555555555555
+            },
+            {
+              "x": 283.68333333333334,
+              "y": 128.33888888888887
+            },
+            {
+              "x": 228.31666666666663,
+              "y": 128.33888888888887
+            },
+            {
+              "x": 219.0888888888889,
+              "y": 134.5722222222222
+            },
+            {
+              "x": 292.91111111111104,
+              "y": 134.5722222222222
+            },
+            {
+              "x": 302.1388888888889,
+              "y": 140.80555555555554
+            },
+            {
+              "x": 209.8611111111111,
+              "y": 140.80555555555554
+            },
+            {
+              "x": 200.6333333333333,
+              "y": 147.0388888888889
+            },
+            {
+              "x": 311.3666666666667,
+              "y": 147.0388888888889
+            },
+            {
+              "x": 320.59444444444443,
+              "y": 153.2722222222222
+            },
+            {
+              "x": 191.40555555555554,
+              "y": 153.2722222222222
+            },
+            {
+              "x": 182.17777777777775,
+              "y": 159.50555555555553
+            },
+            {
+              "x": 329.8222222222222,
+              "y": 159.50555555555553
+            },
+            {
+              "x": 339.1111111111111,
+              "y": 165.73888888888888
+            },
+            {
+              "x": 172.88888888888889,
+              "y": 165.73888888888888
+            },
+            {
+              "x": 163.6611111111111,
+              "y": 172.0333333333333
+            },
+            {
+              "x": 348.33888888888885,
+              "y": 172.0333333333333
+            },
+            {
+              "x": 357.5666666666667,
+              "y": 178.26666666666665
+            },
+            {
+              "x": 154.43333333333334,
+              "y": 178.26666666666665
+            },
+            {
+              "x": 145.20555555555552,
+              "y": 184.5
+            },
+            {
+              "x": 366.79444444444437,
+              "y": 184.5
+            },
+            {
+              "x": 376.02222222222224,
+              "y": 190.73333333333332
+            },
+            {
+              "x": 135.97777777777776,
+              "y": 190.73333333333332
+            },
+            {
+              "x": 126.74999999999999,
+              "y": 196.96666666666667
+            },
+            {
+              "x": 385.25,
+              "y": 196.96666666666667
+            },
+            {
+              "x": 394.47777777777776,
+              "y": 203.2
+            },
+            {
+              "x": 117.5222222222222,
+              "y": 203.2
+            },
+            {
+              "x": 108.29444444444442,
+              "y": 209.43333333333334
+            },
+            {
+              "x": 403.70555555555563,
+              "y": 209.43333333333334
+            },
+            {
+              "x": 412.9333333333333,
+              "y": 215.66666666666666
+            },
+            {
+              "x": 99.06666666666663,
+              "y": 215.66666666666666
+            },
+            {
+              "x": 99.06666666666663,
+              "y": 215.66666666666666
+            },
+            {
+              "x": 256.0,
+              "y": 109.63888888888889
+            },
+            {
+              "x": 412.9333333333333,
+              "y": 215.66666666666666
+            },
+            {
+              "x": 99.06666666666663,
+              "y": 215.66666666666666
+            }
+          ],
+          "width": 14.666666666666668,
+          "color": {
+            "r": 214,
+            "g": 196,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_roof_outline",
+        "name": "omakotitalo roof outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 57.99999999999997,
+              "y": 232.77777777777777
+            },
+            {
+              "x": 256.0,
+              "y": 90.99999999999999
+            },
+            {
+              "x": 454.0,
+              "y": 232.77777777777777
+            }
+          ],
+          "width": 17.111111111111114,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_roof",
+        "name": "omakotitalo roof",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60.444444444444414,
+              "y": 230.94444444444443
+            },
+            {
+              "x": 256.0,
+              "y": 94.66666666666666
+            },
+            {
+              "x": 451.55555555555554,
+              "y": 230.94444444444443
+            }
+          ],
+          "width": 9.777777777777779,
+          "color": {
+            "r": 150,
+            "g": 82,
+            "b": 64,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_attic_window_outline",
+        "name": "omakotitalo attic window outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 237.66666666666666,
+            "y": 152.1111111111111,
+            "width": 36.66666666666667,
+            "height": 36.66666666666667
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_attic_window_fill",
+        "name": "omakotitalo attic window fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 241.33333333333331,
+            "y": 155.77777777777777,
+            "width": 29.333333333333336,
+            "height": 29.333333333333336
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_window_left_outline",
+        "name": "omakotitalo window left outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 106.88888888888887,
+            "y": 262.1111111111111,
+            "width": 91.66666666666667,
+            "height": 79.44444444444446
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_window_left_fill",
+        "name": "omakotitalo window left fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 111.77777777777776,
+            "y": 267.0,
+            "width": 81.8888888888889,
+            "height": 69.66666666666667
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_window_left_mullion",
+        "name": "omakotitalo window left mullion",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 152.7222222222222,
+              "y": 267.0
+            },
+            {
+              "x": 152.7222222222222,
+              "y": 336.66666666666663
+            }
+          ],
+          "width": 3.666666666666667,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_window_right_outline",
+        "name": "omakotitalo window right outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 313.44444444444446,
+            "y": 262.1111111111111,
+            "width": 91.66666666666667,
+            "height": 79.44444444444446
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_window_right_fill",
+        "name": "omakotitalo window right fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 318.33333333333337,
+            "y": 267.0,
+            "width": 81.8888888888889,
+            "height": 69.66666666666667
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_window_right_mullion",
+        "name": "omakotitalo window right mullion",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 359.2777777777778,
+              "y": 267.0
+            },
+            {
+              "x": 359.2777777777778,
+              "y": 336.66666666666663
+            }
+          ],
+          "width": 3.666666666666667,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_door_outline",
+        "name": "omakotitalo door outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 223.0,
+            "y": 317.1111111111111,
+            "width": 67.22222222222223,
+            "height": 134.44444444444446
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_door_fill",
+        "name": "omakotitalo door fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 227.88888888888889,
+            "y": 322.0,
+            "width": 57.44444444444445,
+            "height": 124.66666666666667
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_knob",
+        "name": "omakotitalo knob",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 275.55555555555554,
+            "y": 383.1111111111111,
+            "width": 7.333333333333334,
+            "height": 7.333333333333334
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_omakotitalo_step",
+        "name": "omakotitalo step",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 213.2222222222222,
+            "y": 443.0,
+            "width": 86.77777777777779,
+            "height": 8.555555555555557
+          },
+          "color": {
+            "r": 206,
+            "g": 202,
+            "b": 190,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

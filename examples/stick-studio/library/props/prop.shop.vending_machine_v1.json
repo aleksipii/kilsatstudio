@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "id": "prop.shop.vending_machine_v1",
+  "kind": "prop",
+  "name": "Juoma-automaatti",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 121.6,
+    "height": 228
+  },
+  "depth": "mid",
+  "tags": [
+    "juoma_automaatti",
+    "automaatti",
+    "vending_machine",
+    "juoma",
+    "drink",
+    "shop",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 3.8,
+            "y": 3.8,
+            "width": 114,
+            "height": 220.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 7.22,
+            "y": 7.22,
+            "width": 107.16,
+            "height": 213.56
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "row_0",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.72,
+            "y": 26.6,
+            "width": 64.6,
+            "height": 19
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "row_1",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.72,
+            "y": 63.08,
+            "width": 64.6,
+            "height": 19
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "row_2",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.72,
+            "y": 99.56,
+            "width": 64.6,
+            "height": 19
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "row_3",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16.72,
+            "y": 136.04,
+            "width": 64.6,
+            "height": 19
+          },
+          "color": {
+            "r": 214,
+            "g": 120,
+            "b": 96,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12.92,
+            "y": 15.2,
+            "width": 72.2,
+            "height": 159.6
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "buttons",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 90.44,
+            "y": 15.2,
+            "width": 20.52,
+            "height": 76
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "coin",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94.24,
+            "y": 102.6,
+            "width": 12.92,
+            "height": 16.72
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flap",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 15.2,
+            "y": 186.2,
+            "width": 68.4,
+            "height": 22.8
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 228
+      },
+      "width": 121.6
+    }
+  ]
+}

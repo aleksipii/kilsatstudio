@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "id": "prop.street.parking_meter_v1",
+  "kind": "prop",
+  "name": "Pysäköintimittari",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 45.818,
+    "height": 168
+  },
+  "depth": "mid",
+  "tags": [
+    "pysäköintimittari",
+    "parkkimittari",
+    "parking_meter",
+    "parking",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "post",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22.909,
+              "y": 164.182
+            },
+            {
+              "x": 22.909,
+              "y": 67.2
+            }
+          ],
+          "width": 5.345,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "head_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6.873,
+            "y": 10.691,
+            "width": 32.073,
+            "height": 58.036
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "head_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 9.164,
+            "y": 12.982,
+            "width": 27.491,
+            "height": 53.455
+          },
+          "color": {
+            "r": 96,
+            "g": 112,
+            "b": 116,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "display",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 12.218,
+            "y": 19.855,
+            "width": 21.382,
+            "height": 13.745
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slot",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 19.091,
+            "y": 41.236,
+            "width": 7.636,
+            "height": 3.055
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "card",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 15.273,
+            "y": 51.164,
+            "width": 15.273,
+            "height": 3.818
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14.509,
+            "y": 161.891,
+            "width": 16.8,
+            "height": 6.109
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 168
+      },
+      "width": 45.818
+    }
+  ]
+}

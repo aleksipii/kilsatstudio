@@ -1,0 +1,189 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Pysäköintimittari\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_pysakointimittari_post",
+        "name": "pysakointimittari post",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 466.0
+            },
+            {
+              "x": 256.0,
+              "y": 212.0
+            }
+          ],
+          "width": 14.0,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pysakointimittari_head_outline",
+        "name": "pysakointimittari head outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 214.0,
+            "y": 64.0,
+            "width": 84.0,
+            "height": 152.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pysakointimittari_head_fill",
+        "name": "pysakointimittari head fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 220.0,
+            "y": 70.0,
+            "width": 72.0,
+            "height": 140.0
+          },
+          "color": {
+            "r": 96,
+            "g": 112,
+            "b": 116,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pysakointimittari_display",
+        "name": "pysakointimittari display",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 228.0,
+            "y": 88.0,
+            "width": 56.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pysakointimittari_slot",
+        "name": "pysakointimittari slot",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 246.0,
+            "y": 144.0,
+            "width": 20.0,
+            "height": 8.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pysakointimittari_card",
+        "name": "pysakointimittari card",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 236.0,
+            "y": 170.0,
+            "width": 40.0,
+            "height": 10.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pysakointimittari_base",
+        "name": "pysakointimittari base",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 234.0,
+            "y": 460.0,
+            "width": 44.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

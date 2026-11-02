@@ -1,0 +1,331 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.sedan_v1",
+  "kind": "prop",
+  "name": "Henkilöauto",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 384,
+    "height": 174
+  },
+  "depth": "mid",
+  "tags": [
+    "henkilöauto",
+    "auto",
+    "car",
+    "sedan",
+    "ajoneuvo",
+    "vehicle",
+    "katu",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "cabin_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 90,
+            "y": 16.8,
+            "width": 198,
+            "height": 126
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cabin_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 95.4,
+            "y": 22.2,
+            "width": 187.2,
+            "height": 115.2
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 108,
+            "y": 33,
+            "width": 162,
+            "height": 96
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pillar",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 190.8,
+              "y": 34.8
+            },
+            {
+              "x": 190.8,
+              "y": 76.8
+            }
+          ],
+          "width": 7.2,
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10.8,
+            "y": 74.4,
+            "width": 362.4,
+            "height": 67.2
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 15.6,
+            "y": 79.2,
+            "width": 352.8,
+            "height": 57.6
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 15.6,
+            "y": 123.6,
+            "width": 352.8,
+            "height": 13.2
+          },
+          "color": {
+            "r": 73,
+            "g": 113,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_seam",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 190.8,
+              "y": 81.6
+            },
+            {
+              "x": 190.8,
+              "y": 122.4
+            }
+          ],
+          "width": 2.4,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "handle",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 200.4,
+              "y": 91.2
+            },
+            {
+              "x": 217.2,
+              "y": 91.2
+            }
+          ],
+          "width": 3.6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "headlamp",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 354,
+            "y": 87.6,
+            "width": 14.4,
+            "height": 13.2
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tail_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 15.6,
+            "y": 87.6,
+            "width": 9.6,
+            "height": 15.6
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 60,
+            "y": 115.2,
+            "width": 58.8,
+            "height": 58.8
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 72,
+            "y": 127.2,
+            "width": 34.8,
+            "height": 34.8
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 265.2,
+            "y": 115.2,
+            "width": 58.8,
+            "height": 58.8
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 277.2,
+            "y": 127.2,
+            "width": 34.8,
+            "height": 34.8
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 174
+      },
+      "width": 384
+    }
+  ]
+}

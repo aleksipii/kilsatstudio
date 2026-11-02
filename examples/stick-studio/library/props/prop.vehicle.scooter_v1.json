@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.scooter_v1",
+  "kind": "prop",
+  "name": "Skootteri",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 163.556,
+    "height": 138
+  },
+  "depth": "mid",
+  "tags": [
+    "skootteri",
+    "mopo",
+    "scooter",
+    "moped",
+    "ajoneuvo",
+    "vehicle",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "box",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 17.378,
+            "y": 53.156,
+            "width": 37.822,
+            "height": 31.689
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 33.733,
+              "y": 113.467
+            },
+            {
+              "x": 81.778,
+              "y": 113.467
+            },
+            {
+              "x": 118.578,
+              "y": 76.667
+            },
+            {
+              "x": 127.778,
+              "y": 37.822
+            }
+          ],
+          "width": 11.244,
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "seat",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 41.911,
+            "y": 76.667,
+            "width": 60.311,
+            "height": 13.289
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "handlebar",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 127.778,
+              "y": 37.822
+            },
+            {
+              "x": 139.022,
+              "y": 28.622
+            },
+            {
+              "x": 153.333,
+              "y": 28.622
+            }
+          ],
+          "width": 4.6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "headlamp",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 129.822,
+            "y": 42.933,
+            "width": 16.356,
+            "height": 12.267
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 13.289,
+            "y": 97.111,
+            "width": 40.889,
+            "height": 40.889
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_back_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 21.467,
+            "y": 105.289,
+            "width": 24.533,
+            "height": 24.533
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_outline",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 109.378,
+            "y": 97.111,
+            "width": 40.889,
+            "height": 40.889
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wheel_front_fill",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 117.556,
+            "y": 105.289,
+            "width": 24.533,
+            "height": 24.533
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 138
+      },
+      "width": 163.556
+    }
+  ]
+}

@@ -1,0 +1,534 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kerrostalo\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_kerrostalo_body_outline",
+        "name": "kerrostalo body outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 123.99999999999999,
+            "y": 53.6,
+            "width": 264.0,
+            "height": 422.4
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_body_fill",
+        "name": "kerrostalo body fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 127.96,
+            "y": 57.56,
+            "width": 256.08,
+            "height": 414.48
+          },
+          "color": {
+            "r": 206,
+            "g": 202,
+            "b": 190,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_roof_edge",
+        "name": "kerrostalo roof edge",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 118.71999999999998,
+            "y": 48.32,
+            "width": 274.56,
+            "height": 10.56
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_0",
+        "name": "kerrostalo window 0",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146.0,
+            "y": 78.24000000000001,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_1",
+        "name": "kerrostalo window 1",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 229.6,
+            "y": 78.24000000000001,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_2",
+        "name": "kerrostalo window 2",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 313.2,
+            "y": 78.24000000000001,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_3",
+        "name": "kerrostalo window 3",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146.0,
+            "y": 146.88,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_4",
+        "name": "kerrostalo window 4",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 229.6,
+            "y": 146.88,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_5",
+        "name": "kerrostalo window 5",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 313.2,
+            "y": 146.88,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_6",
+        "name": "kerrostalo window 6",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146.0,
+            "y": 215.52,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_7",
+        "name": "kerrostalo window 7",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 229.6,
+            "y": 215.52,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_8",
+        "name": "kerrostalo window 8",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 313.2,
+            "y": 215.52,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_9",
+        "name": "kerrostalo window 9",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146.0,
+            "y": 284.15999999999997,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_10",
+        "name": "kerrostalo window 10",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 229.6,
+            "y": 284.15999999999997,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_11",
+        "name": "kerrostalo window 11",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 313.2,
+            "y": 284.15999999999997,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_12",
+        "name": "kerrostalo window 12",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 146.0,
+            "y": 352.8,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_13",
+        "name": "kerrostalo window 13",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 229.6,
+            "y": 352.8,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_window_14",
+        "name": "kerrostalo window 14",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 313.2,
+            "y": 352.8,
+            "width": 52.8,
+            "height": 45.76
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_canopy",
+        "name": "kerrostalo canopy",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 219.04,
+            "y": 412.64,
+            "width": 73.92,
+            "height": 7.92
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_door_outline",
+        "name": "kerrostalo door outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 230.48,
+            "y": 419.68,
+            "width": 51.04,
+            "height": 56.32
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_kerrostalo_door_fill",
+        "name": "kerrostalo door fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 233.56,
+            "y": 422.76,
+            "width": 44.88,
+            "height": 50.160000000000004
+          },
+          "color": {
+            "r": 96,
+            "g": 128,
+            "b": 132,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

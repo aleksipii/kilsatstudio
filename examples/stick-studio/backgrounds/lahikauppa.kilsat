@@ -1,0 +1,6203 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Kulmakaupan käytävä\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#eae6d8\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "tausta_tausta_lahikauppa_wall",
+        "name": "lahikauppa wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 234,
+            "g": 230,
+            "b": 216,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor",
+        "name": "lahikauppa floor",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 208,
+            "g": 206,
+            "b": 194,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_0",
+        "name": "lahikauppa floor seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840,
+              "y": 810
+            },
+            {
+              "x": -260,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_1",
+        "name": "lahikauppa floor seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900,
+              "y": 810
+            },
+            {
+              "x": 220,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_2",
+        "name": "lahikauppa floor seam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 810
+            },
+            {
+              "x": 700,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_3",
+        "name": "lahikauppa floor seam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020,
+              "y": 810
+            },
+            {
+              "x": 1180,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_4",
+        "name": "lahikauppa floor seam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080,
+              "y": 810
+            },
+            {
+              "x": 1660,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_cross_0",
+        "name": "lahikauppa floor cross 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 866
+            },
+            {
+              "x": 1920,
+              "y": 866
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_cross_1",
+        "name": "lahikauppa floor cross 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 957
+            },
+            {
+              "x": 1920,
+              "y": 957
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_skirting",
+        "name": "lahikauppa skirting",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 798,
+            "width": 1920,
+            "height": 12
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_outline",
+        "name": "lahikauppa shelf left outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70,
+            "y": 330,
+            "width": 700,
+            "height": 480
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_fill",
+        "name": "lahikauppa shelf left fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 338,
+            "width": 684,
+            "height": 464
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_0_a",
+        "name": "lahikauppa shelf left goods 0 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 380,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_0_b",
+        "name": "lahikauppa shelf left goods 0 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 380,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_0",
+        "name": "lahikauppa shelf left board 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 464,
+            "width": 684,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_1_a",
+        "name": "lahikauppa shelf left goods 1 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 520,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_1_b",
+        "name": "lahikauppa shelf left goods 1 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 520,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_1",
+        "name": "lahikauppa shelf left board 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 604,
+            "width": 684,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_2_a",
+        "name": "lahikauppa shelf left goods 2 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 660,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_2_b",
+        "name": "lahikauppa shelf left goods 2 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 660,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_2",
+        "name": "lahikauppa shelf left board 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 744,
+            "width": 684,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_price_strip",
+        "name": "lahikauppa shelf left price strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 338,
+            "width": 684,
+            "height": 18
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_outline",
+        "name": "lahikauppa shelf right outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1150,
+            "y": 330,
+            "width": 700,
+            "height": 480
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_fill",
+        "name": "lahikauppa shelf right fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 338,
+            "width": 684,
+            "height": 464
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_0_a",
+        "name": "lahikauppa shelf right goods 0 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 380,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_0_b",
+        "name": "lahikauppa shelf right goods 0 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 380,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_0",
+        "name": "lahikauppa shelf right board 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 464,
+            "width": 684,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_1_a",
+        "name": "lahikauppa shelf right goods 1 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 520,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_1_b",
+        "name": "lahikauppa shelf right goods 1 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 520,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_1",
+        "name": "lahikauppa shelf right board 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 604,
+            "width": 684,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_2_a",
+        "name": "lahikauppa shelf right goods 2 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 660,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_2_b",
+        "name": "lahikauppa shelf right goods 2 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 660,
+            "width": 320,
+            "height": 84
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_2",
+        "name": "lahikauppa shelf right board 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 744,
+            "width": 684,
+            "height": 12
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_price_strip",
+        "name": "lahikauppa shelf right price strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 338,
+            "width": 684,
+            "height": 18
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_outline",
+        "name": "lahikauppa fridge outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 790,
+            "y": 300,
+            "width": 340,
+            "height": 510
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_fill",
+        "name": "lahikauppa fridge fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 798,
+            "y": 308,
+            "width": 324,
+            "height": 494
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_light",
+        "name": "lahikauppa fridge light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806,
+            "y": 314,
+            "width": 308,
+            "height": 20
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_0",
+        "name": "lahikauppa fridge bottles 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 400
+            },
+            {
+              "x": 1094,
+              "y": 400
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_1",
+        "name": "lahikauppa fridge bottles 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 500
+            },
+            {
+              "x": 1094,
+              "y": 500
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_2",
+        "name": "lahikauppa fridge bottles 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 600
+            },
+            {
+              "x": 1094,
+              "y": 600
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_3",
+        "name": "lahikauppa fridge bottles 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 700
+            },
+            {
+              "x": 1094,
+              "y": 700
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_door_left",
+        "name": "lahikauppa fridge door left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806,
+            "y": 342,
+            "width": 150,
+            "height": 452
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_door_right",
+        "name": "lahikauppa fridge door right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 964,
+            "y": 342,
+            "width": 150,
+            "height": 452
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_handles",
+        "name": "lahikauppa fridge handles",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 946,
+              "y": 520
+            },
+            {
+              "x": 946,
+              "y": 600
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_handle_right",
+        "name": "lahikauppa fridge handle right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 974,
+              "y": 520
+            },
+            {
+              "x": 974,
+              "y": 600
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_cables",
+        "name": "lahikauppa sale cables",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1330,
+              "y": 0
+            },
+            {
+              "x": 1330,
+              "y": 130
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_badge_outline",
+        "name": "lahikauppa sale badge outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1260,
+            "y": 120,
+            "width": 140,
+            "height": 140
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_badge_fill",
+        "name": "lahikauppa sale badge fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1268,
+            "y": 128,
+            "width": 124,
+            "height": 124
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_lettering",
+        "name": "lahikauppa sale lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1290,
+              "y": 192
+            },
+            {
+              "x": 1312,
+              "y": 170
+            },
+            {
+              "x": 1334,
+              "y": 196
+            },
+            {
+              "x": 1356,
+              "y": 170
+            },
+            {
+              "x": 1372,
+              "y": 190
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_cables",
+        "name": "lahikauppa aisle cables",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880,
+              "y": 0
+            },
+            {
+              "x": 880,
+              "y": 150
+            },
+            {
+              "x": 1040,
+              "y": 150
+            },
+            {
+              "x": 1040,
+              "y": 0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_sign_outline",
+        "name": "lahikauppa aisle sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 840,
+            "y": 150,
+            "width": 240,
+            "height": 80
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_sign_fill",
+        "name": "lahikauppa aisle sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 847,
+            "y": 157,
+            "width": 226,
+            "height": 66
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_lettering",
+        "name": "lahikauppa aisle lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880,
+              "y": 190
+            },
+            {
+              "x": 920,
+              "y": 178
+            },
+            {
+              "x": 960,
+              "y": 200
+            },
+            {
+              "x": 1000,
+              "y": 178
+            },
+            {
+              "x": 1040,
+              "y": 196
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_light_left",
+        "name": "lahikauppa ceiling light left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160,
+            "y": 46,
+            "width": 480,
+            "height": 20
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_light_right",
+        "name": "lahikauppa ceiling light right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1280,
+            "y": 46,
+            "width": 480,
+            "height": 20
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_wall",
+        "name": "lahikauppa rev wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 234,
+            "g": 230,
+            "b": 216,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor",
+        "name": "lahikauppa rev floor",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 208,
+            "g": 206,
+            "b": 194,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_seam_0",
+        "name": "lahikauppa rev floor seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840,
+              "y": 810
+            },
+            {
+              "x": -260,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_seam_1",
+        "name": "lahikauppa rev floor seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900,
+              "y": 810
+            },
+            {
+              "x": 220,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_seam_2",
+        "name": "lahikauppa rev floor seam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 810
+            },
+            {
+              "x": 700,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_seam_3",
+        "name": "lahikauppa rev floor seam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020,
+              "y": 810
+            },
+            {
+              "x": 1180,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_seam_4",
+        "name": "lahikauppa rev floor seam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080,
+              "y": 810
+            },
+            {
+              "x": 1660,
+              "y": 1080
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_cross_0",
+        "name": "lahikauppa rev floor cross 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 866
+            },
+            {
+              "x": 1920,
+              "y": 866
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_floor_cross_1",
+        "name": "lahikauppa rev floor cross 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 957
+            },
+            {
+              "x": 1920,
+              "y": 957
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_skirting",
+        "name": "lahikauppa rev skirting",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 798,
+            "width": 1920,
+            "height": 12
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_outside_sky",
+        "name": "lahikauppa rev outside sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1100,
+            "y": 380,
+            "width": 500,
+            "height": 200
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 212,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_outside_house",
+        "name": "lahikauppa rev outside house",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1100,
+            "y": 470,
+            "width": 500,
+            "height": 250
+          },
+          "color": {
+            "r": 224,
+            "g": 208,
+            "b": 178,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_outside_house_window",
+        "name": "lahikauppa rev outside house window",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180,
+            "y": 520,
+            "width": 110,
+            "height": 90
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_outside_pavement",
+        "name": "lahikauppa rev outside pavement",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1100,
+            "y": 720,
+            "width": 500,
+            "height": 90
+          },
+          "color": {
+            "r": 200,
+            "g": 198,
+            "b": 186,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_door_frame",
+        "name": "lahikauppa rev door frame",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1084,
+            "y": 364,
+            "width": 532,
+            "height": 16
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_door_left",
+        "name": "lahikauppa rev door left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1100,
+            "y": 380,
+            "width": 250,
+            "height": 430
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_door_right",
+        "name": "lahikauppa rev door right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1350,
+            "y": 380,
+            "width": 250,
+            "height": 430
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_door_frames",
+        "name": "lahikauppa rev door frames",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1092,
+              "y": 810
+            },
+            {
+              "x": 1092,
+              "y": 372
+            },
+            {
+              "x": 1608,
+              "y": 372
+            },
+            {
+              "x": 1608,
+              "y": 810
+            }
+          ],
+          "width": 14,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_door_gap",
+        "name": "lahikauppa rev door gap",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1350,
+              "y": 380
+            },
+            {
+              "x": 1350,
+              "y": 810
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_open_sign_outline",
+        "name": "lahikauppa rev open sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1400,
+            "y": 280,
+            "width": 160,
+            "height": 60
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_open_sign_fill",
+        "name": "lahikauppa rev open sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1406,
+            "y": 286,
+            "width": 148,
+            "height": 48
+          },
+          "color": {
+            "r": 84,
+            "g": 146,
+            "b": 104,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_doormat",
+        "name": "lahikauppa rev doormat",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1110,
+            "y": 812,
+            "width": 480,
+            "height": 20
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_counter_outline",
+        "name": "lahikauppa rev counter outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 90,
+            "y": 620,
+            "width": 720,
+            "height": 190
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_counter_fill",
+        "name": "lahikauppa rev counter fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 98,
+            "y": 628,
+            "width": 704,
+            "height": 174
+          },
+          "color": {
+            "r": 180,
+            "g": 186,
+            "b": 182,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_belt",
+        "name": "lahikauppa rev belt",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 104,
+            "y": 596,
+            "width": 480,
+            "height": 28
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_belt_goods",
+        "name": "lahikauppa rev belt goods",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 180,
+            "y": 566,
+            "width": 70,
+            "height": 36
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_belt_goods_two",
+        "name": "lahikauppa rev belt goods two",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 290,
+            "y": 572,
+            "width": 90,
+            "height": 30
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_register_outline",
+        "name": "lahikauppa rev register outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 620,
+            "y": 500,
+            "width": 160,
+            "height": 120
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_register_fill",
+        "name": "lahikauppa rev register fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 627,
+            "y": 507,
+            "width": 146,
+            "height": 106
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_register_screen",
+        "name": "lahikauppa rev register screen",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640,
+            "y": 460,
+            "width": 110,
+            "height": 50
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_card_terminal",
+        "name": "lahikauppa rev card terminal",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 560,
+            "y": 560,
+            "width": 40,
+            "height": 50
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_candy_rack_outline",
+        "name": "lahikauppa rev candy rack outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40,
+            "y": 660,
+            "width": 40,
+            "height": 150
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_candy_rack_fill",
+        "name": "lahikauppa rev candy rack fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 45,
+            "y": 665,
+            "width": 30,
+            "height": 140
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_poster_outline",
+        "name": "lahikauppa rev poster outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 260,
+            "y": 200,
+            "width": 260,
+            "height": 180
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_poster_fill",
+        "name": "lahikauppa rev poster fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 267,
+            "y": 207,
+            "width": 246,
+            "height": 166
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_poster_sun",
+        "name": "lahikauppa rev poster sun",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 300,
+            "y": 230,
+            "width": 70,
+            "height": 70
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_poster_wave",
+        "name": "lahikauppa rev poster wave",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 290,
+              "y": 340
+            },
+            {
+              "x": 350,
+              "y": 310
+            },
+            {
+              "x": 410,
+              "y": 340
+            },
+            {
+              "x": 480,
+              "y": 310
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_clock_outline",
+        "name": "lahikauppa rev clock outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 820,
+            "y": 180,
+            "width": 110,
+            "height": 110
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_clock_fill",
+        "name": "lahikauppa rev clock fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 827,
+            "y": 187,
+            "width": 96,
+            "height": 96
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_clock_hands",
+        "name": "lahikauppa rev clock hands",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 875,
+              "y": 205
+            },
+            {
+              "x": 875,
+              "y": 235
+            },
+            {
+              "x": 900,
+              "y": 248
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_cart_0_basket",
+        "name": "lahikauppa rev cart 0 basket",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1660,
+              "y": 700
+            },
+            {
+              "x": 1680,
+              "y": 820
+            },
+            {
+              "x": 1780,
+              "y": 820
+            },
+            {
+              "x": 1800,
+              "y": 700
+            },
+            {
+              "x": 1660,
+              "y": 700
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_cart_0_handle",
+        "name": "lahikauppa rev cart 0 handle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1800,
+              "y": 700
+            },
+            {
+              "x": 1830,
+              "y": 680
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_cart_0_wheels",
+        "name": "lahikauppa rev cart 0 wheels",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680,
+              "y": 820
+            },
+            {
+              "x": 1690,
+              "y": 870
+            },
+            {
+              "x": 1780,
+              "y": 870
+            },
+            {
+              "x": 1772,
+              "y": 820
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_cart_1_basket",
+        "name": "lahikauppa rev cart 1 basket",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1760,
+              "y": 700
+            },
+            {
+              "x": 1780,
+              "y": 820
+            },
+            {
+              "x": 1880,
+              "y": 820
+            },
+            {
+              "x": 1900,
+              "y": 700
+            },
+            {
+              "x": 1760,
+              "y": 700
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_cart_1_handle",
+        "name": "lahikauppa rev cart 1 handle",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1900,
+              "y": 700
+            },
+            {
+              "x": 1930,
+              "y": 680
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_rev_cart_1_wheels",
+        "name": "lahikauppa rev cart 1 wheels",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1780,
+              "y": 820
+            },
+            {
+              "x": 1790,
+              "y": 870
+            },
+            {
+              "x": 1880,
+              "y": 870
+            },
+            {
+              "x": 1872,
+              "y": 820
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_wall_high",
+        "name": "lahikauppa wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 234,
+            "g": 230,
+            "b": 216,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_high",
+        "name": "lahikauppa floor",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 640.0,
+            "width": 1920,
+            "height": 440.0
+          },
+          "color": {
+            "r": 208,
+            "g": 206,
+            "b": 194,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_0_high",
+        "name": "lahikauppa floor seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840,
+              "y": 640.0
+            },
+            {
+              "x": -260,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_1_high",
+        "name": "lahikauppa floor seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900,
+              "y": 640.0
+            },
+            {
+              "x": 220,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_2_high",
+        "name": "lahikauppa floor seam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 640.0
+            },
+            {
+              "x": 700,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_3_high",
+        "name": "lahikauppa floor seam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020,
+              "y": 640.0
+            },
+            {
+              "x": 1180,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_4_high",
+        "name": "lahikauppa floor seam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080,
+              "y": 640.0
+            },
+            {
+              "x": 1660,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_cross_0_high",
+        "name": "lahikauppa floor cross 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 731.26
+            },
+            {
+              "x": 1920,
+              "y": 731.26
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_cross_1_high",
+        "name": "lahikauppa floor cross 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 879.56
+            },
+            {
+              "x": 1920,
+              "y": 879.56
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_skirting_high",
+        "name": "lahikauppa skirting",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 630.52,
+            "width": 1920,
+            "height": 9.48
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_outline_high",
+        "name": "lahikauppa shelf left outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70,
+            "y": 260.74,
+            "width": 700,
+            "height": 379.26
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_fill_high",
+        "name": "lahikauppa shelf left fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 267.06,
+            "width": 684,
+            "height": 366.62
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_0_a_high",
+        "name": "lahikauppa shelf left goods 0 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 300.25,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_0_b_high",
+        "name": "lahikauppa shelf left goods 0 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 300.25,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_0_high",
+        "name": "lahikauppa shelf left board 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 366.62,
+            "width": 684,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_1_a_high",
+        "name": "lahikauppa shelf left goods 1 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 410.86,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_1_b_high",
+        "name": "lahikauppa shelf left goods 1 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 410.86,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_1_high",
+        "name": "lahikauppa shelf left board 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 477.23,
+            "width": 684,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_2_a_high",
+        "name": "lahikauppa shelf left goods 2 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 521.48,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_2_b_high",
+        "name": "lahikauppa shelf left goods 2 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 521.48,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_2_high",
+        "name": "lahikauppa shelf left board 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 587.85,
+            "width": 684,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_price_strip_high",
+        "name": "lahikauppa shelf left price strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 267.06,
+            "width": 684,
+            "height": 14.22
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_outline_high",
+        "name": "lahikauppa shelf right outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1150,
+            "y": 260.74,
+            "width": 700,
+            "height": 379.26
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_fill_high",
+        "name": "lahikauppa shelf right fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 267.06,
+            "width": 684,
+            "height": 366.62
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_0_a_high",
+        "name": "lahikauppa shelf right goods 0 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 300.25,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_0_b_high",
+        "name": "lahikauppa shelf right goods 0 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 300.25,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_0_high",
+        "name": "lahikauppa shelf right board 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 366.62,
+            "width": 684,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_1_a_high",
+        "name": "lahikauppa shelf right goods 1 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 410.86,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_1_b_high",
+        "name": "lahikauppa shelf right goods 1 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 410.86,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_1_high",
+        "name": "lahikauppa shelf right board 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 477.23,
+            "width": 684,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_2_a_high",
+        "name": "lahikauppa shelf right goods 2 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 521.48,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_2_b_high",
+        "name": "lahikauppa shelf right goods 2 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 521.48,
+            "width": 320,
+            "height": 66.37
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_2_high",
+        "name": "lahikauppa shelf right board 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 587.85,
+            "width": 684,
+            "height": 9.48
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_price_strip_high",
+        "name": "lahikauppa shelf right price strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 267.06,
+            "width": 684,
+            "height": 14.22
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_outline_high",
+        "name": "lahikauppa fridge outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 790,
+            "y": 237.04,
+            "width": 340,
+            "height": 402.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_fill_high",
+        "name": "lahikauppa fridge fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 798,
+            "y": 243.36,
+            "width": 324,
+            "height": 390.32
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_light_high",
+        "name": "lahikauppa fridge light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806,
+            "y": 248.1,
+            "width": 308,
+            "height": 15.8
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_0_high",
+        "name": "lahikauppa fridge bottles 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 316.05
+            },
+            {
+              "x": 1094,
+              "y": 316.05
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_1_high",
+        "name": "lahikauppa fridge bottles 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 395.06
+            },
+            {
+              "x": 1094,
+              "y": 395.06
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_2_high",
+        "name": "lahikauppa fridge bottles 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 474.07
+            },
+            {
+              "x": 1094,
+              "y": 474.07
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_3_high",
+        "name": "lahikauppa fridge bottles 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 553.09
+            },
+            {
+              "x": 1094,
+              "y": 553.09
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_door_left_high",
+        "name": "lahikauppa fridge door left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806,
+            "y": 270.22,
+            "width": 150,
+            "height": 357.14
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_door_right_high",
+        "name": "lahikauppa fridge door right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 964,
+            "y": 270.22,
+            "width": 150,
+            "height": 357.14
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_handles_high",
+        "name": "lahikauppa fridge handles",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 946,
+              "y": 410.86
+            },
+            {
+              "x": 946,
+              "y": 474.07
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_handle_right_high",
+        "name": "lahikauppa fridge handle right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 974,
+              "y": 410.86
+            },
+            {
+              "x": 974,
+              "y": 474.07
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_cables_high",
+        "name": "lahikauppa sale cables",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1330,
+              "y": 0.0
+            },
+            {
+              "x": 1330,
+              "y": 102.72
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_badge_outline_high",
+        "name": "lahikauppa sale badge outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1274.69,
+            "y": 94.81,
+            "width": 110.62,
+            "height": 110.62
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_badge_fill_high",
+        "name": "lahikauppa sale badge fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1281.01,
+            "y": 101.14,
+            "width": 97.98,
+            "height": 97.98
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_lettering_high",
+        "name": "lahikauppa sale lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1290,
+              "y": 151.7
+            },
+            {
+              "x": 1312,
+              "y": 134.32
+            },
+            {
+              "x": 1334,
+              "y": 154.86
+            },
+            {
+              "x": 1356,
+              "y": 134.32
+            },
+            {
+              "x": 1372,
+              "y": 150.12
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_cables_high",
+        "name": "lahikauppa aisle cables",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880,
+              "y": 0.0
+            },
+            {
+              "x": 880,
+              "y": 118.52
+            },
+            {
+              "x": 1040,
+              "y": 118.52
+            },
+            {
+              "x": 1040,
+              "y": 0.0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_sign_outline_high",
+        "name": "lahikauppa aisle sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 840,
+            "y": 118.52,
+            "width": 240,
+            "height": 63.21
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_sign_fill_high",
+        "name": "lahikauppa aisle sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 847,
+            "y": 124.05,
+            "width": 226,
+            "height": 52.15
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_lettering_high",
+        "name": "lahikauppa aisle lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880,
+              "y": 150.12
+            },
+            {
+              "x": 920,
+              "y": 140.64
+            },
+            {
+              "x": 960,
+              "y": 158.02
+            },
+            {
+              "x": 1000,
+              "y": 140.64
+            },
+            {
+              "x": 1040,
+              "y": 154.86
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_light_left_high",
+        "name": "lahikauppa ceiling light left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160,
+            "y": 36.35,
+            "width": 480,
+            "height": 15.8
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_light_right_high",
+        "name": "lahikauppa ceiling light right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1280,
+            "y": 36.35,
+            "width": 480,
+            "height": 15.8
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_wall_low",
+        "name": "lahikauppa wall",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 140.0,
+            "width": 1920,
+            "height": 940.0
+          },
+          "color": {
+            "r": 234,
+            "g": 230,
+            "b": 216,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling",
+        "name": "lahikauppa ceiling",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 140
+          },
+          "color": {
+            "r": 214,
+            "g": 214,
+            "b": 202,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_edge",
+        "name": "lahikauppa ceiling edge",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 140
+            },
+            {
+              "x": 1920,
+              "y": 140
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_beam_0",
+        "name": "lahikauppa ceiling beam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 0
+            },
+            {
+              "x": 360,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_beam_1",
+        "name": "lahikauppa ceiling beam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 570,
+              "y": 0
+            },
+            {
+              "x": 660,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_beam_2",
+        "name": "lahikauppa ceiling beam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 990,
+              "y": 0
+            },
+            {
+              "x": 960,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_beam_3",
+        "name": "lahikauppa ceiling beam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1410,
+              "y": 0
+            },
+            {
+              "x": 1260,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_beam_4",
+        "name": "lahikauppa ceiling beam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1830,
+              "y": 0
+            },
+            {
+              "x": 1560,
+              "y": 140
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 190,
+            "g": 178,
+            "b": 158,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_low",
+        "name": "lahikauppa floor",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 880.0,
+            "width": 1920,
+            "height": 200.0
+          },
+          "color": {
+            "r": 208,
+            "g": 206,
+            "b": 194,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_0_low",
+        "name": "lahikauppa floor seam 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840,
+              "y": 880.0
+            },
+            {
+              "x": -260,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_1_low",
+        "name": "lahikauppa floor seam 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900,
+              "y": 880.0
+            },
+            {
+              "x": 220,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_2_low",
+        "name": "lahikauppa floor seam 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960,
+              "y": 880.0
+            },
+            {
+              "x": 700,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_3_low",
+        "name": "lahikauppa floor seam 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020,
+              "y": 880.0
+            },
+            {
+              "x": 1180,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_seam_4_low",
+        "name": "lahikauppa floor seam 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080,
+              "y": 880.0
+            },
+            {
+              "x": 1660,
+              "y": 1080.0
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_cross_0_low",
+        "name": "lahikauppa floor cross 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 921.48
+            },
+            {
+              "x": 1920,
+              "y": 921.48
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_floor_cross_1_low",
+        "name": "lahikauppa floor cross 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 988.89
+            },
+            {
+              "x": 1920,
+              "y": 988.89
+            }
+          ],
+          "width": 2,
+          "color": {
+            "r": 188,
+            "g": 186,
+            "b": 174,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_skirting_low",
+        "name": "lahikauppa skirting",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 869.04,
+            "width": 1920,
+            "height": 10.96
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_outline_low",
+        "name": "lahikauppa shelf left outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70,
+            "y": 441.48,
+            "width": 700,
+            "height": 438.52
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_fill_low",
+        "name": "lahikauppa shelf left fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 448.79,
+            "width": 684,
+            "height": 423.9
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_0_a_low",
+        "name": "lahikauppa shelf left goods 0 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 487.16,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_0_b_low",
+        "name": "lahikauppa shelf left goods 0 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 487.16,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_0_low",
+        "name": "lahikauppa shelf left board 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 563.9,
+            "width": 684,
+            "height": 10.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_1_a_low",
+        "name": "lahikauppa shelf left goods 1 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 615.06,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_1_b_low",
+        "name": "lahikauppa shelf left goods 1 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 615.06,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_1_low",
+        "name": "lahikauppa shelf left board 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 691.8,
+            "width": 684,
+            "height": 10.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_2_a_low",
+        "name": "lahikauppa shelf left goods 2 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 94,
+            "y": 742.96,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_goods_2_b_low",
+        "name": "lahikauppa shelf left goods 2 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 426,
+            "y": 742.96,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_board_2_low",
+        "name": "lahikauppa shelf left board 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 819.7,
+            "width": 684,
+            "height": 10.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_left_price_strip_low",
+        "name": "lahikauppa shelf left price strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 78,
+            "y": 448.79,
+            "width": 684,
+            "height": 16.44
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_outline_low",
+        "name": "lahikauppa shelf right outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1150,
+            "y": 441.48,
+            "width": 700,
+            "height": 438.52
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_fill_low",
+        "name": "lahikauppa shelf right fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 448.79,
+            "width": 684,
+            "height": 423.9
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 184,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_0_a_low",
+        "name": "lahikauppa shelf right goods 0 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 487.16,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_0_b_low",
+        "name": "lahikauppa shelf right goods 0 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 487.16,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_0_low",
+        "name": "lahikauppa shelf right board 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 563.9,
+            "width": 684,
+            "height": 10.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_1_a_low",
+        "name": "lahikauppa shelf right goods 1 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 615.06,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 150,
+            "g": 104,
+            "b": 120,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_1_b_low",
+        "name": "lahikauppa shelf right goods 1 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 615.06,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_1_low",
+        "name": "lahikauppa shelf right board 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 691.8,
+            "width": 684,
+            "height": 10.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_2_a_low",
+        "name": "lahikauppa shelf right goods 2 a",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1174,
+            "y": 742.96,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_goods_2_b_low",
+        "name": "lahikauppa shelf right goods 2 b",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1506,
+            "y": 742.96,
+            "width": 320,
+            "height": 76.74
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_board_2_low",
+        "name": "lahikauppa shelf right board 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 819.7,
+            "width": 684,
+            "height": 10.96
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_shelf_right_price_strip_low",
+        "name": "lahikauppa shelf right price strip",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1158,
+            "y": 448.79,
+            "width": 684,
+            "height": 16.44
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_outline_low",
+        "name": "lahikauppa fridge outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 790,
+            "y": 414.07,
+            "width": 340,
+            "height": 465.93
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_fill_low",
+        "name": "lahikauppa fridge fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 798,
+            "y": 421.38,
+            "width": 324,
+            "height": 451.31
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_light_low",
+        "name": "lahikauppa fridge light",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806,
+            "y": 426.86,
+            "width": 308,
+            "height": 18.27
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_0_low",
+        "name": "lahikauppa fridge bottles 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 505.43
+            },
+            {
+              "x": 1094,
+              "y": 505.43
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_1_low",
+        "name": "lahikauppa fridge bottles 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 596.79
+            },
+            {
+              "x": 1094,
+              "y": 596.79
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 232,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_2_low",
+        "name": "lahikauppa fridge bottles 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 688.15
+            },
+            {
+              "x": 1094,
+              "y": 688.15
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_bottles_3_low",
+        "name": "lahikauppa fridge bottles 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 826,
+              "y": 779.51
+            },
+            {
+              "x": 1094,
+              "y": 779.51
+            }
+          ],
+          "width": 24,
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_door_left_low",
+        "name": "lahikauppa fridge door left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 806,
+            "y": 452.44,
+            "width": 150,
+            "height": 412.94
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_door_right_low",
+        "name": "lahikauppa fridge door right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 964,
+            "y": 452.44,
+            "width": 150,
+            "height": 412.94
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 150
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_handles_low",
+        "name": "lahikauppa fridge handles",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 946,
+              "y": 615.06
+            },
+            {
+              "x": 946,
+              "y": 688.15
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_fridge_handle_right_low",
+        "name": "lahikauppa fridge handle right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 974,
+              "y": 615.06
+            },
+            {
+              "x": 974,
+              "y": 688.15
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_cables_low",
+        "name": "lahikauppa sale cables",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1330,
+              "y": 140.0
+            },
+            {
+              "x": 1330,
+              "y": 258.77
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_badge_outline_low",
+        "name": "lahikauppa sale badge outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1266.05,
+            "y": 249.63,
+            "width": 127.9,
+            "height": 127.9
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_badge_fill_low",
+        "name": "lahikauppa sale badge fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1273.36,
+            "y": 256.94,
+            "width": 113.28,
+            "height": 113.28
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_sale_lettering_low",
+        "name": "lahikauppa sale lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1290,
+              "y": 315.41
+            },
+            {
+              "x": 1312,
+              "y": 295.31
+            },
+            {
+              "x": 1334,
+              "y": 319.06
+            },
+            {
+              "x": 1356,
+              "y": 295.31
+            },
+            {
+              "x": 1372,
+              "y": 313.58
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_cables_low",
+        "name": "lahikauppa aisle cables",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880,
+              "y": 140.0
+            },
+            {
+              "x": 880,
+              "y": 277.04
+            },
+            {
+              "x": 1040,
+              "y": 277.04
+            },
+            {
+              "x": 1040,
+              "y": 140.0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_sign_outline_low",
+        "name": "lahikauppa aisle sign outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 840,
+            "y": 277.04,
+            "width": 240,
+            "height": 73.09
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_sign_fill_low",
+        "name": "lahikauppa aisle sign fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 847,
+            "y": 283.43,
+            "width": 226,
+            "height": 60.3
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_aisle_lettering_low",
+        "name": "lahikauppa aisle lettering",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880,
+              "y": 313.58
+            },
+            {
+              "x": 920,
+              "y": 302.62
+            },
+            {
+              "x": 960,
+              "y": 322.72
+            },
+            {
+              "x": 1000,
+              "y": 302.62
+            },
+            {
+              "x": 1040,
+              "y": 319.06
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_light_left_low",
+        "name": "lahikauppa ceiling light left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160,
+            "y": 182.02,
+            "width": 480,
+            "height": 18.27
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_lahikauppa_ceiling_light_right_low",
+        "name": "lahikauppa ceiling light right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1280,
+            "y": 182.02,
+            "width": 480,
+            "height": 18.27
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      }
+    ]
+  }
+}

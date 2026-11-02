@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "id": "prop.street.fuel_pump_v1",
+  "kind": "prop",
+  "name": "Polttoainemittari",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 114,
+    "height": 228
+  },
+  "depth": "mid",
+  "tags": [
+    "polttoainemittari",
+    "bensapumppu",
+    "fuel_pump",
+    "petrol",
+    "huoltoasema",
+    "gas_station",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14.25,
+            "y": 19,
+            "width": 85.5,
+            "height": 204.25
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.05,
+            "y": 22.8,
+            "width": 77.9,
+            "height": 196.65
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18.05,
+            "y": 22.8,
+            "width": 77.9,
+            "height": 28.5
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "display",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 28.5,
+            "y": 61.75,
+            "width": 57,
+            "height": 33.25
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "digits",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36.1,
+              "y": 71.25
+            },
+            {
+              "x": 45.6,
+              "y": 71.25
+            },
+            {
+              "x": 45.6,
+              "y": 85.5
+            },
+            {
+              "x": 36.1,
+              "y": 85.5
+            },
+            {
+              "x": 57,
+              "y": 85.5
+            },
+            {
+              "x": 57,
+              "y": 71.25
+            },
+            {
+              "x": 76,
+              "y": 71.25
+            },
+            {
+              "x": 76,
+              "y": 85.5
+            }
+          ],
+          "width": 2.375,
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hose",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 93.1,
+              "y": 124.45
+            },
+            {
+              "x": 110.2,
+              "y": 161.5
+            },
+            {
+              "x": 105.45,
+              "y": 199.5
+            },
+            {
+              "x": 95,
+              "y": 211.85
+            }
+          ],
+          "width": 3.8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "holster",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 85.5,
+            "y": 112.1,
+            "width": 19,
+            "height": 39.9
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8.55,
+            "y": 219.45,
+            "width": 96.9,
+            "height": 8.55
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 228
+      },
+      "width": 114
+    }
+  ]
+}

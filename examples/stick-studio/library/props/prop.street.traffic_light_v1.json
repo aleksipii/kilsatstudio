@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "id": "prop.street.traffic_light_v1",
+  "kind": "prop",
+  "name": "Liikennevalo",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 107.368,
+    "height": 408
+  },
+  "depth": "mid",
+  "tags": [
+    "liikennevalo",
+    "liikennevalot",
+    "traffic_light",
+    "risteys",
+    "crossing",
+    "street",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "pole",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 53.684,
+              "y": 399.411
+            },
+            {
+              "x": 53.684,
+              "y": 161.053
+            }
+          ],
+          "width": 9.663,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "housing_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 21.474,
+            "y": 10.737,
+            "width": 64.421,
+            "height": 161.053
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "housing_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 25.768,
+            "y": 15.032,
+            "width": 55.832,
+            "height": 152.463
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "red",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 35.432,
+            "y": 23.621,
+            "width": 36.505,
+            "height": 36.505
+          },
+          "color": {
+            "r": 222,
+            "g": 76,
+            "b": 62,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "amber",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 35.432,
+            "y": 66.568,
+            "width": 36.505,
+            "height": 36.505
+          },
+          "color": {
+            "r": 124,
+            "g": 108,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "green",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 35.432,
+            "y": 109.516,
+            "width": 36.505,
+            "height": 36.505
+          },
+          "color": {
+            "r": 64,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "button",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 42.947,
+            "y": 230.842,
+            "width": 21.474,
+            "height": 32.211
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 35.432,
+            "y": 397.263,
+            "width": 36.505,
+            "height": 10.737
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 408
+      },
+      "width": 107.368
+    }
+  ]
+}

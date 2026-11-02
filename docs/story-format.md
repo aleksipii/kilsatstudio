@@ -36,6 +36,21 @@ rigatut hahmot ja kuvitetut kohtaukset** (kohtaus → lavaste, tunnus pienaakkos
 `oma_`-etuliite jos se peittäisi paketin lavasteen). Kopioi ohje uudelleen, kun lisäät
 omia hahmoja tai taustoja.
 
+## Paketin lavasteet
+
+`set:` hyväksyy Tikku-ukkostudion 13 lavastetta: `toimisto`, `kahvila`, `pysakki`,
+`hautausmaa` sekä kaupunki: `keskusta` (kauppakatu), `asuinalue` (omakotitalokatu),
+`tori`, `lahikauppa`, `huoltoasema`, `puisto`, `katto` (katto yöllä), `kuja`
+(takakuja yöllä) ja `metroasema`. Jokaisella on piirretty etu-, vasta-, ylä- ja
+alakuva (`angle: front | reverse | high | low`). Tekoälyohje kuvaa jokaisen lavasteen
+englanniksi, jotta tarina voi kulkea kaupungin paikasta toiseen. Lista lavasteista
+kuvineen: [stick-studio README](../examples/stick-studio/README.md#kaupunki).
+
+Kaikkien kohtausten lavastekuvitus lasketaan yhteen: yli 1024 taiteen tason tarina
+hylätään rajavirheenä (`scenes`), joka kertoo tarvittavan määrän. Kaksitoista
+etukuvasta kuvattua kohtausta mahtuu aina; vähennä kohtauksia tai kamerakulmia,
+jos raja ylittyy.
+
 ## Muoto
 
 ```yaml

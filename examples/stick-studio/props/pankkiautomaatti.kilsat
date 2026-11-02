@@ -1,0 +1,255 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Pankkiautomaatti\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_pankkiautomaatti_unit_outline",
+        "name": "pankkiautomaatti unit outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 136.83333333333334,
+            "y": 54.33333333333333,
+            "width": 238.33333333333331,
+            "height": 403.3333333333333
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_unit_fill",
+        "name": "pankkiautomaatti unit fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 144.16666666666666,
+            "y": 61.666666666666664,
+            "width": 223.66666666666666,
+            "height": 388.66666666666663
+          },
+          "color": {
+            "r": 206,
+            "g": 202,
+            "b": 190,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_sign",
+        "name": "pankkiautomaatti sign",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 155.16666666666666,
+            "y": 72.66666666666666,
+            "width": 201.66666666666666,
+            "height": 45.83333333333333
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_sign_lettering",
+        "name": "pankkiautomaatti sign lettering",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 182.66666666666666,
+              "y": 96.5
+            },
+            {
+              "x": 210.16666666666666,
+              "y": 89.16666666666666
+            },
+            {
+              "x": 237.66666666666666,
+              "y": 102.0
+            },
+            {
+              "x": 265.16666666666663,
+              "y": 89.16666666666666
+            },
+            {
+              "x": 292.66666666666663,
+              "y": 102.0
+            },
+            {
+              "x": 329.3333333333333,
+              "y": 92.83333333333333
+            }
+          ],
+          "width": 5.5,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_screen",
+        "name": "pankkiautomaatti screen",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 182.66666666666666,
+            "y": 144.16666666666666,
+            "width": 146.66666666666666,
+            "height": 100.83333333333333
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_ledge",
+        "name": "pankkiautomaatti ledge",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 155.16666666666666,
+            "y": 256.0,
+            "width": 201.66666666666666,
+            "height": 12.833333333333332
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_keypad",
+        "name": "pankkiautomaatti keypad",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 206.5,
+            "y": 278.0,
+            "width": 88.0,
+            "height": 73.33333333333333
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_card_slot",
+        "name": "pankkiautomaatti card slot",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 309.16666666666663,
+            "y": 289.0,
+            "width": 36.666666666666664,
+            "height": 9.166666666666666
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_pankkiautomaatti_cash_slot",
+        "name": "pankkiautomaatti cash slot",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 191.83333333333331,
+            "y": 377.0,
+            "width": 128.33333333333331,
+            "height": 12.833333333333332
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

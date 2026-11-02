@@ -1,0 +1,514 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Torikoju\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_torikoju_post_left",
+        "name": "torikoju post left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 67.42857142857143,
+              "y": 472.85714285714283
+            },
+            {
+              "x": 67.42857142857143,
+              "y": 153.85714285714286
+            }
+          ],
+          "width": 9.428571428571429,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_post_right",
+        "name": "torikoju post right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 444.57142857142856,
+              "y": 472.85714285714283
+            },
+            {
+              "x": 444.57142857142856,
+              "y": 153.85714285714286
+            }
+          ],
+          "width": 9.428571428571429,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_roof",
+        "name": "torikoju roof",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 59.885714285714286
+            },
+            {
+              "x": 256.0,
+              "y": 59.885714285714286
+            },
+            {
+              "x": 278.7071428571428,
+              "y": 66.09285714285714
+            },
+            {
+              "x": 233.29285714285714,
+              "y": 66.09285714285714
+            },
+            {
+              "x": 210.6642857142857,
+              "y": 72.37857142857143
+            },
+            {
+              "x": 301.3357142857143,
+              "y": 72.37857142857143
+            },
+            {
+              "x": 324.04285714285714,
+              "y": 78.58571428571429
+            },
+            {
+              "x": 187.95714285714286,
+              "y": 78.58571428571429
+            },
+            {
+              "x": 165.32857142857142,
+              "y": 84.87142857142857
+            },
+            {
+              "x": 346.6714285714285,
+              "y": 84.87142857142857
+            },
+            {
+              "x": 369.37857142857143,
+              "y": 91.07857142857142
+            },
+            {
+              "x": 142.62142857142857,
+              "y": 91.07857142857142
+            },
+            {
+              "x": 119.91428571428571,
+              "y": 97.3642857142857
+            },
+            {
+              "x": 392.0857142857143,
+              "y": 97.3642857142857
+            },
+            {
+              "x": 414.7142857142857,
+              "y": 103.57142857142857
+            },
+            {
+              "x": 97.28571428571428,
+              "y": 103.57142857142857
+            },
+            {
+              "x": 97.28571428571428,
+              "y": 103.57142857142857
+            },
+            {
+              "x": 256.0,
+              "y": 59.885714285714286
+            },
+            {
+              "x": 414.7142857142857,
+              "y": 103.57142857142857
+            },
+            {
+              "x": 97.28571428571428,
+              "y": 103.57142857142857
+            }
+          ],
+          "width": 15.714285714285714,
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_awning",
+        "name": "torikoju awning",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 43.857142857142854,
+            "y": 108.28571428571428,
+            "width": 424.2857142857143,
+            "height": 70.71428571428571
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_awning_stripe_0",
+        "name": "torikoju awning stripe 0",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 98.85714285714286,
+            "y": 108.28571428571428,
+            "width": 62.857142857142854,
+            "height": 70.71428571428571
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_awning_stripe_1",
+        "name": "torikoju awning stripe 1",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 224.57142857142856,
+            "y": 108.28571428571428,
+            "width": 62.857142857142854,
+            "height": 70.71428571428571
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_awning_stripe_2",
+        "name": "torikoju awning stripe 2",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 350.2857142857143,
+            "y": 108.28571428571428,
+            "width": 62.857142857142854,
+            "height": 70.71428571428571
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_awning_edge",
+        "name": "torikoju awning edge",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 43.857142857142854,
+              "y": 179.0
+            },
+            {
+              "x": 468.1428571428571,
+              "y": 179.0
+            }
+          ],
+          "width": 4.714285714285714,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_price",
+        "name": "torikoju price",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 201.0,
+            "y": 224.57142857142856,
+            "width": 110.0,
+            "height": 50.285714285714285
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_price_mark",
+        "name": "torikoju price mark",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 218.28571428571428,
+              "y": 249.71428571428572
+            },
+            {
+              "x": 240.28571428571428,
+              "y": 238.71428571428572
+            },
+            {
+              "x": 263.8571428571429,
+              "y": 259.1428571428571
+            },
+            {
+              "x": 292.1428571428571,
+              "y": 241.85714285714286
+            }
+          ],
+          "width": 4.714285714285714,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_goods_one",
+        "name": "torikoju goods one",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 94.14285714285714,
+            "y": 284.2857142857143,
+            "width": 94.28571428571428,
+            "height": 47.14285714285714
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_goods_two",
+        "name": "torikoju goods two",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 177.42857142857142,
+            "y": 281.1428571428571,
+            "width": 86.42857142857143,
+            "height": 50.285714285714285
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_goods_three",
+        "name": "torikoju goods three",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 256.0,
+            "y": 285.8571428571429,
+            "width": 86.42857142857143,
+            "height": 45.57142857142857
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_goods_four",
+        "name": "torikoju goods four",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 331.42857142857144,
+            "y": 282.7142857142857,
+            "width": 86.42857142857143,
+            "height": 48.714285714285715
+          },
+          "color": {
+            "r": 218,
+            "g": 196,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_counter_outline",
+        "name": "torikoju counter outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 80.0,
+            "y": 315.7142857142857,
+            "width": 352.0,
+            "height": 157.14285714285714
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_torikoju_counter_fill",
+        "name": "torikoju counter fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 86.28571428571428,
+            "y": 322.0,
+            "width": 339.42857142857144,
+            "height": 144.57142857142856
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

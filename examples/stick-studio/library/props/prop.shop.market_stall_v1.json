@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "id": "prop.shop.market_stall_v1",
+  "kind": "prop",
+  "name": "Torikoju",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 288,
+    "height": 288
+  },
+  "depth": "mid",
+  "tags": [
+    "torikoju",
+    "koju",
+    "market_stall",
+    "stall",
+    "tori",
+    "market",
+    "kauppa",
+    "shop",
+    "city"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "post_left",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20.571,
+              "y": 285.943
+            },
+            {
+              "x": 20.571,
+              "y": 77.143
+            }
+          ],
+          "width": 6.171,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "post_right",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 267.429,
+              "y": 285.943
+            },
+            {
+              "x": 267.429,
+              "y": 77.143
+            }
+          ],
+          "width": 6.171,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 144,
+              "y": 15.634
+            },
+            {
+              "x": 144,
+              "y": 15.634
+            },
+            {
+              "x": 158.863,
+              "y": 19.697
+            },
+            {
+              "x": 129.137,
+              "y": 19.697
+            },
+            {
+              "x": 114.326,
+              "y": 23.811
+            },
+            {
+              "x": 173.674,
+              "y": 23.811
+            },
+            {
+              "x": 188.537,
+              "y": 27.874
+            },
+            {
+              "x": 99.463,
+              "y": 27.874
+            },
+            {
+              "x": 84.651,
+              "y": 31.989
+            },
+            {
+              "x": 203.349,
+              "y": 31.989
+            },
+            {
+              "x": 218.211,
+              "y": 36.051
+            },
+            {
+              "x": 69.789,
+              "y": 36.051
+            },
+            {
+              "x": 54.926,
+              "y": 40.166
+            },
+            {
+              "x": 233.074,
+              "y": 40.166
+            },
+            {
+              "x": 247.886,
+              "y": 44.229
+            },
+            {
+              "x": 40.114,
+              "y": 44.229
+            },
+            {
+              "x": 40.114,
+              "y": 44.229
+            },
+            {
+              "x": 144,
+              "y": 15.634
+            },
+            {
+              "x": 247.886,
+              "y": 44.229
+            },
+            {
+              "x": 40.114,
+              "y": 44.229
+            }
+          ],
+          "width": 10.286,
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 5.143,
+            "y": 47.314,
+            "width": 277.714,
+            "height": 46.286
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_stripe_0",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 41.143,
+            "y": 47.314,
+            "width": 41.143,
+            "height": 46.286
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_stripe_1",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 123.429,
+            "y": 47.314,
+            "width": 41.143,
+            "height": 46.286
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_stripe_2",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 205.714,
+            "y": 47.314,
+            "width": 41.143,
+            "height": 46.286
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "awning_edge",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 5.143,
+              "y": 93.6
+            },
+            {
+              "x": 282.857,
+              "y": 93.6
+            }
+          ],
+          "width": 3.086,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "price",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 108,
+            "y": 123.429,
+            "width": 72,
+            "height": 32.914
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "price_mark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 119.314,
+              "y": 139.886
+            },
+            {
+              "x": 133.714,
+              "y": 132.686
+            },
+            {
+              "x": 149.143,
+              "y": 146.057
+            },
+            {
+              "x": 167.657,
+              "y": 134.743
+            }
+          ],
+          "width": 3.086,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "goods_one",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 38.057,
+            "y": 162.514,
+            "width": 61.714,
+            "height": 30.857
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "goods_two",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 92.571,
+            "y": 160.457,
+            "width": 56.571,
+            "height": 32.914
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "goods_three",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 144,
+            "y": 163.543,
+            "width": 56.571,
+            "height": 29.829
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "goods_four",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 193.371,
+            "y": 161.486,
+            "width": 56.571,
+            "height": 31.886
+          },
+          "color": {
+            "r": 218,
+            "g": 196,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "counter_outline",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 28.8,
+            "y": 183.086,
+            "width": 230.4,
+            "height": 102.857
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "counter_fill",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 32.914,
+            "y": 187.2,
+            "width": 222.171,
+            "height": 94.629
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 288
+      },
+      "width": 288
+    }
+  ]
+}

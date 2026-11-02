@@ -38,7 +38,7 @@ def fixture(root):
                                     'characters':{str(i):{} for i in range(6)},
                                     'scenes':[{'id':str(i),'duration':5,'events':[]} for i in range(6)]})}
     write(source/'stick-studio.kilsat',starter)
-    manifest = {'schema_version':1,'pack_revision':2,'artistic_review':False,'physical_mac_review':False,
+    manifest = {'schema_version':1,'pack_revision':packer.PACK_REVISION,'artistic_review':False,'physical_mac_review':False,
                 'hand_props_catalog':'hand-props.json','hand_props_sha256':packer.file_hash(source/'hand-props.json'),
                 'starter_project':'stick-studio.kilsat','starter_sha256':packer.file_hash(source/'stick-studio.kilsat'),
                 'starter_source_bytes':len(starter['source'].encode()),'items':[]}
@@ -130,8 +130,8 @@ class StickPackTests(unittest.TestCase):
             source,roadmap,manifest = fixture(Path(temporary).resolve())
             actual,identity = packer.source_identity(source,roadmap)
             self.assertEqual(actual,manifest)
-            self.assertEqual(len(identity['source_sha256']),34)
-            self.assertEqual(identity['pack_revision'],2)
+            self.assertEqual(len(identity['source_sha256']),packer.TOTAL_ITEMS + 4)
+            self.assertEqual(identity['pack_revision'],3)
             self.assertFalse(identity['artistic_review'])
             self.assertFalse(identity['physical_mac_review'])
             self.assertFalse(identity['publication_approved'])
@@ -158,14 +158,14 @@ class StickPackTests(unittest.TestCase):
     def test_pack_revision_must_explicitly_select_current_geometry(self):
         with tempfile.TemporaryDirectory() as temporary:
             source,roadmap,original = fixture(Path(temporary).resolve())
-            for revision in (None, 0, 1, 3, True, '2'):
+            for revision in (None, 0, 1, 2, 4, True, '3'):
                 manifest = copy.deepcopy(original)
                 if revision is None:
                     manifest.pop('pack_revision')
                 else:
                     manifest['pack_revision'] = revision
                 write(source/'manifest.json',manifest)
-                with self.assertRaisesRegex(ValueError,'revision-two'):
+                with self.assertRaisesRegex(ValueError,'revision-three'):
                     packer.source_identity(source,roadmap)
 
     def test_hand_catalog_bytes_are_hash_bound_and_its_path_is_fixed(self):

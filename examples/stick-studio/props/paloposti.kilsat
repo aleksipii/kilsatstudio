@@ -1,0 +1,159 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Paloposti\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_paloposti_cap",
+        "name": "paloposti cap",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 176.0,
+            "y": 52.0,
+            "width": 160.0,
+            "height": 88.0
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloposti_body",
+        "name": "paloposti body",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 184.0,
+            "y": 96.0,
+            "width": 144.0,
+            "height": 328.0
+          },
+          "color": {
+            "r": 184,
+            "g": 70,
+            "b": 60,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloposti_nozzle_left",
+        "name": "paloposti nozzle left",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 124.0,
+            "y": 200.0,
+            "width": 64.0,
+            "height": 68.0
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloposti_nozzle_right",
+        "name": "paloposti nozzle right",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 324.0,
+            "y": 200.0,
+            "width": 64.0,
+            "height": 68.0
+          },
+          "color": {
+            "r": 140,
+            "g": 52,
+            "b": 46,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloposti_band",
+        "name": "paloposti band",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 168.0,
+            "y": 152.0,
+            "width": 176.0,
+            "height": 28.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_paloposti_base",
+        "name": "paloposti base",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 152.0,
+            "y": 416.0,
+            "width": 208.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

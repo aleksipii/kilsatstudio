@@ -1,0 +1,1555 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.market_square_v1",
+  "kind": "background",
+  "name": "Kauppatori",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "city",
+    "market",
+    "tori",
+    "square",
+    "town_hall",
+    "raatihuone"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Kilsat Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 212,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_tower",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 860.0,
+            "y": 70.0,
+            "width": 200.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 224,
+            "g": 208,
+            "b": 178,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_tower_roof",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 11.0
+            },
+            {
+              "x": 960.0,
+              "y": 11.0
+            },
+            {
+              "x": 970.7,
+              "y": 18.5
+            },
+            {
+              "x": 949.3,
+              "y": 18.5
+            },
+            {
+              "x": 938.6,
+              "y": 26.0
+            },
+            {
+              "x": 981.4,
+              "y": 26.0
+            },
+            {
+              "x": 992.1,
+              "y": 33.5
+            },
+            {
+              "x": 927.9,
+              "y": 33.5
+            },
+            {
+              "x": 917.2,
+              "y": 41.0
+            },
+            {
+              "x": 1002.8,
+              "y": 41.0
+            },
+            {
+              "x": 1013.4,
+              "y": 48.5
+            },
+            {
+              "x": 906.6,
+              "y": 48.5
+            },
+            {
+              "x": 895.9,
+              "y": 56.0
+            },
+            {
+              "x": 1024.1,
+              "y": 56.0
+            },
+            {
+              "x": 1034.8,
+              "y": 63.5
+            },
+            {
+              "x": 885.2,
+              "y": 63.5
+            },
+            {
+              "x": 874.5,
+              "y": 71.0
+            },
+            {
+              "x": 1045.5,
+              "y": 71.0
+            },
+            {
+              "x": 874.5,
+              "y": 71.0
+            },
+            {
+              "x": 960.0,
+              "y": 11.0
+            },
+            {
+              "x": 1045.5,
+              "y": 71.0
+            },
+            {
+              "x": 874.5,
+              "y": 71.0
+            }
+          ],
+          "color": {
+            "r": 110,
+            "g": 128,
+            "b": 120,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "hall_tower_roof_edge",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 838.0,
+              "y": 86.0
+            },
+            {
+              "x": 960.0,
+              "y": -6.0
+            },
+            {
+              "x": 1082.0,
+              "y": 86.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "hall_clock_outline",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 910.0,
+            "y": 120.0,
+            "width": 100.0,
+            "height": 100.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_clock_fill",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 917.0,
+            "y": 127.0,
+            "width": 86.0,
+            "height": 86.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_clock_hands",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 140.0
+            },
+            {
+              "x": 960.0,
+              "y": 170.0
+            },
+            {
+              "x": 985.0,
+              "y": 182.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "hall_body",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 540.0,
+            "y": 300.0,
+            "width": 840.0,
+            "height": 400.0
+          },
+          "color": {
+            "r": 224,
+            "g": 208,
+            "b": 178,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_cornice",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 530.0,
+            "y": 288.0,
+            "width": 860.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_window_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 590.0,
+            "y": 380.0,
+            "width": 90.0,
+            "height": 150.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_window_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 750.0,
+            "y": 380.0,
+            "width": 90.0,
+            "height": 150.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_window_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1070.0,
+            "y": 380.0,
+            "width": 90.0,
+            "height": 150.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_window_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1230.0,
+            "y": 380.0,
+            "width": 90.0,
+            "height": 150.0
+          },
+          "color": {
+            "r": 157,
+            "g": 194,
+            "b": 185,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_arch",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 900.0,
+            "y": 520.0,
+            "width": 120.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_door",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 900.0,
+            "y": 565.0,
+            "width": 120.0,
+            "height": 135.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hall_steps",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 850.0,
+            "y": 690.0,
+            "width": 220.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flag_left_pole",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 600.0,
+              "y": 300.0
+            },
+            {
+              "x": 600.0,
+              "y": 170.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "flag_left",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 603.0,
+            "y": 172.0,
+            "width": 70.0,
+            "height": 44.0
+          },
+          "color": {
+            "r": 70,
+            "g": 112,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flag_right_pole",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1300.0,
+              "y": 300.0
+            },
+            {
+              "x": 1300.0,
+              "y": 170.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "flag_right",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1303.0,
+            "y": 172.0,
+            "width": 70.0,
+            "height": 44.0
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "square",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 700.0,
+            "width": 1920.0,
+            "height": 380.0
+          },
+          "color": {
+            "r": 208,
+            "g": 200,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "square_seam_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 700.0,
+              "y": 702.0
+            },
+            {
+              "x": 260.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "square_seam_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1220.0,
+              "y": 702.0
+            },
+            {
+              "x": 1660.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "square_cross_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 780.0
+            },
+            {
+              "x": 1920.0,
+              "y": 780.0
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "square_cross_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 900.0
+            },
+            {
+              "x": 1920.0,
+              "y": 900.0
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 176,
+            "b": 164,
+            "a": 255
+          },
+          "width": 2.0
+        }
+      },
+      {
+        "id": "stall_left_post_left",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 61.43,
+              "y": 836.86
+            },
+            {
+              "x": 61.43,
+              "y": 517.86
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 9.43
+        }
+      },
+      {
+        "id": "stall_left_post_right",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 438.57,
+              "y": 836.86
+            },
+            {
+              "x": 438.57,
+              "y": 517.86
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 9.43
+        }
+      },
+      {
+        "id": "stall_left_roof",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 250.0,
+              "y": 423.89
+            },
+            {
+              "x": 250.0,
+              "y": 423.89
+            },
+            {
+              "x": 272.71,
+              "y": 430.09
+            },
+            {
+              "x": 227.29,
+              "y": 430.09
+            },
+            {
+              "x": 204.66,
+              "y": 436.38
+            },
+            {
+              "x": 295.34,
+              "y": 436.38
+            },
+            {
+              "x": 318.04,
+              "y": 442.59
+            },
+            {
+              "x": 181.96,
+              "y": 442.59
+            },
+            {
+              "x": 159.33,
+              "y": 448.87
+            },
+            {
+              "x": 340.67,
+              "y": 448.87
+            },
+            {
+              "x": 363.38,
+              "y": 455.08
+            },
+            {
+              "x": 136.62,
+              "y": 455.08
+            },
+            {
+              "x": 113.91,
+              "y": 461.36
+            },
+            {
+              "x": 386.09,
+              "y": 461.36
+            },
+            {
+              "x": 408.71,
+              "y": 467.57
+            },
+            {
+              "x": 91.29,
+              "y": 467.57
+            },
+            {
+              "x": 91.29,
+              "y": 467.57
+            },
+            {
+              "x": 250.0,
+              "y": 423.89
+            },
+            {
+              "x": 408.71,
+              "y": 467.57
+            },
+            {
+              "x": 91.29,
+              "y": 467.57
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          },
+          "width": 15.71
+        }
+      },
+      {
+        "id": "stall_left_awning",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 37.86,
+            "y": 472.29,
+            "width": 424.29,
+            "height": 70.71
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_awning_stripe_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 92.86,
+            "y": 472.29,
+            "width": 62.86,
+            "height": 70.71
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_awning_stripe_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 218.57,
+            "y": 472.29,
+            "width": 62.86,
+            "height": 70.71
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_awning_stripe_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 344.29,
+            "y": 472.29,
+            "width": 62.86,
+            "height": 70.71
+          },
+          "color": {
+            "r": 170,
+            "g": 90,
+            "b": 61,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_awning_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37.86,
+              "y": 543.0
+            },
+            {
+              "x": 462.14,
+              "y": 543.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 4.71
+        }
+      },
+      {
+        "id": "stall_left_price",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 195.0,
+            "y": 588.57,
+            "width": 110.0,
+            "height": 50.29
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_goods_one",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 88.14,
+            "y": 648.29,
+            "width": 94.29,
+            "height": 47.14
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_goods_two",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 171.43,
+            "y": 645.14,
+            "width": 86.43,
+            "height": 50.29
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_goods_three",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 250.0,
+            "y": 649.86,
+            "width": 86.43,
+            "height": 45.57
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_counter_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 74.0,
+            "y": 679.71,
+            "width": 352.0,
+            "height": 157.14
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_left_counter_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 80.29,
+            "y": 686.0,
+            "width": 339.43,
+            "height": 144.57
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_post_left",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1481.43,
+              "y": 836.86
+            },
+            {
+              "x": 1481.43,
+              "y": 517.86
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 9.43
+        }
+      },
+      {
+        "id": "stall_right_post_right",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1858.57,
+              "y": 836.86
+            },
+            {
+              "x": 1858.57,
+              "y": 517.86
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 9.43
+        }
+      },
+      {
+        "id": "stall_right_roof",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1670.0,
+              "y": 423.89
+            },
+            {
+              "x": 1670.0,
+              "y": 423.89
+            },
+            {
+              "x": 1692.71,
+              "y": 430.09
+            },
+            {
+              "x": 1647.29,
+              "y": 430.09
+            },
+            {
+              "x": 1624.66,
+              "y": 436.38
+            },
+            {
+              "x": 1715.34,
+              "y": 436.38
+            },
+            {
+              "x": 1738.04,
+              "y": 442.59
+            },
+            {
+              "x": 1601.96,
+              "y": 442.59
+            },
+            {
+              "x": 1579.33,
+              "y": 448.87
+            },
+            {
+              "x": 1760.67,
+              "y": 448.87
+            },
+            {
+              "x": 1783.38,
+              "y": 455.08
+            },
+            {
+              "x": 1556.62,
+              "y": 455.08
+            },
+            {
+              "x": 1533.91,
+              "y": 461.36
+            },
+            {
+              "x": 1806.09,
+              "y": 461.36
+            },
+            {
+              "x": 1828.71,
+              "y": 467.57
+            },
+            {
+              "x": 1511.29,
+              "y": 467.57
+            },
+            {
+              "x": 1511.29,
+              "y": 467.57
+            },
+            {
+              "x": 1670.0,
+              "y": 423.89
+            },
+            {
+              "x": 1828.71,
+              "y": 467.57
+            },
+            {
+              "x": 1511.29,
+              "y": 467.57
+            }
+          ],
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          },
+          "width": 15.71
+        }
+      },
+      {
+        "id": "stall_right_awning",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1457.86,
+            "y": 472.29,
+            "width": 424.29,
+            "height": 70.71
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_awning_stripe_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1512.86,
+            "y": 472.29,
+            "width": 62.86,
+            "height": 70.71
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_awning_stripe_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1638.57,
+            "y": 472.29,
+            "width": 62.86,
+            "height": 70.71
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_awning_stripe_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1764.29,
+            "y": 472.29,
+            "width": 62.86,
+            "height": 70.71
+          },
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_awning_edge",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1457.86,
+              "y": 543.0
+            },
+            {
+              "x": 1882.14,
+              "y": 543.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 4.71
+        }
+      },
+      {
+        "id": "stall_right_price",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1615.0,
+            "y": 588.57,
+            "width": 110.0,
+            "height": 50.29
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_goods_one",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1508.14,
+            "y": 648.29,
+            "width": 94.29,
+            "height": 47.14
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_goods_two",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1591.43,
+            "y": 645.14,
+            "width": 86.43,
+            "height": 50.29
+          },
+          "color": {
+            "r": 184,
+            "g": 96,
+            "b": 72,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_goods_three",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1670.0,
+            "y": 649.86,
+            "width": 86.43,
+            "height": 45.57
+          },
+          "color": {
+            "r": 128,
+            "g": 166,
+            "b": 126,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_counter_outline",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1494.0,
+            "y": 679.71,
+            "width": 352.0,
+            "height": 157.14
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "stall_right_counter_fill",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1500.29,
+            "y": 686.0,
+            "width": 339.43,
+            "height": 144.57
+          },
+          "color": {
+            "r": 161,
+            "g": 125,
+            "b": 86,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lamp_left_post",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 500.0,
+              "y": 830.0
+            },
+            {
+              "x": 500.0,
+              "y": 410.0
+            },
+            {
+              "x": 610.0,
+              "y": 410.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 12.0
+        }
+      },
+      {
+        "id": "lamp_left_shade",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 570.0,
+            "y": 402.0,
+            "width": 80.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lamp_left_light",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 578.0,
+            "y": 420.0,
+            "width": 64.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lamp_right_post",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1420.0,
+              "y": 830.0
+            },
+            {
+              "x": 1420.0,
+              "y": 410.0
+            },
+            {
+              "x": 1310.0,
+              "y": 410.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 12.0
+        }
+      },
+      {
+        "id": "lamp_right_shade",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1270.0,
+            "y": 402.0,
+            "width": 80.0,
+            "height": 22.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lamp_right_light",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1278.0,
+            "y": 420.0,
+            "width": 64.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pigeon_body",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 620.0,
+            "y": 900.0,
+            "width": 36.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pigeon_head",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 648.0,
+            "y": 892.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "stand",
+      "id": "stall",
+      "at": {
+        "x": 300.0,
+        "y": 950.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "town_hall",
+      "at": {
+        "x": 960.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

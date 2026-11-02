@@ -1,0 +1,370 @@
+{
+  "format_version": 2,
+  "source": "{\"project\":{\"title\":\"Suojatiemerkki\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "assets": [],
+  "art": {
+    "layers": [
+      {
+        "id": "esine_esine_suojatiemerkki_post",
+        "name": "suojatiemerkki post",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 470.5
+            },
+            {
+              "x": 256.0,
+              "y": 166.625
+            }
+          ],
+          "width": 11.0,
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_plate_outline",
+        "name": "suojatiemerkki plate outline",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 201.0,
+            "y": 49.75,
+            "width": 110.0,
+            "height": 110.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_plate_fill",
+        "name": "suojatiemerkki plate fill",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 206.5,
+            "y": 55.25,
+            "width": 99.0,
+            "height": 99.0
+          },
+          "color": {
+            "r": 70,
+            "g": 112,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_triangle",
+        "name": "suojatiemerkki triangle",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 79.3125
+            },
+            {
+              "x": 256.0,
+              "y": 79.3125
+            },
+            {
+              "x": 258.26875,
+              "y": 83.64375
+            },
+            {
+              "x": 253.73125,
+              "y": 83.64375
+            },
+            {
+              "x": 251.4625,
+              "y": 87.975
+            },
+            {
+              "x": 260.5375,
+              "y": 87.975
+            },
+            {
+              "x": 262.80625,
+              "y": 92.30625
+            },
+            {
+              "x": 249.19375,
+              "y": 92.30625
+            },
+            {
+              "x": 246.85625,
+              "y": 96.56875
+            },
+            {
+              "x": 265.14375,
+              "y": 96.56875
+            },
+            {
+              "x": 267.4125,
+              "y": 100.9
+            },
+            {
+              "x": 244.5875,
+              "y": 100.9
+            },
+            {
+              "x": 242.31875,
+              "y": 105.23125
+            },
+            {
+              "x": 269.68125,
+              "y": 105.23125
+            },
+            {
+              "x": 271.95,
+              "y": 109.5625
+            },
+            {
+              "x": 240.05,
+              "y": 109.5625
+            },
+            {
+              "x": 237.78125,
+              "y": 113.89375
+            },
+            {
+              "x": 274.21875,
+              "y": 113.89375
+            },
+            {
+              "x": 276.4875,
+              "y": 118.225
+            },
+            {
+              "x": 235.5125,
+              "y": 118.225
+            },
+            {
+              "x": 233.24375,
+              "y": 122.55625
+            },
+            {
+              "x": 278.75625,
+              "y": 122.55625
+            },
+            {
+              "x": 281.09375,
+              "y": 126.81875
+            },
+            {
+              "x": 230.90625,
+              "y": 126.81875
+            },
+            {
+              "x": 228.6375,
+              "y": 131.15
+            },
+            {
+              "x": 283.3625,
+              "y": 131.15
+            },
+            {
+              "x": 285.63125,
+              "y": 135.48125
+            },
+            {
+              "x": 226.36875,
+              "y": 135.48125
+            },
+            {
+              "x": 224.1,
+              "y": 139.8125
+            },
+            {
+              "x": 287.9,
+              "y": 139.8125
+            },
+            {
+              "x": 224.1,
+              "y": 139.8125
+            },
+            {
+              "x": 256.0,
+              "y": 79.3125
+            },
+            {
+              "x": 287.9,
+              "y": 139.8125
+            },
+            {
+              "x": 224.1,
+              "y": 139.8125
+            }
+          ],
+          "width": 9.625,
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_walker_head",
+        "name": "suojatiemerkki walker head",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 251.875,
+            "y": 89.625,
+            "width": 11.0,
+            "height": 11.0
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_walker_body",
+        "name": "suojatiemerkki walker body",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 256.0,
+              "y": 102.0
+            },
+            {
+              "x": 253.25,
+              "y": 119.875
+            },
+            {
+              "x": 243.625,
+              "y": 136.375
+            }
+          ],
+          "width": 4.125,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_walker_step",
+        "name": "suojatiemerkki walker step",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 253.25,
+              "y": 119.875
+            },
+            {
+              "x": 265.625,
+              "y": 136.375
+            }
+          ],
+          "width": 4.125,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "esine_esine_suojatiemerkki_walker_arms",
+        "name": "suojatiemerkki walker arms",
+        "scene_id": "esine",
+        "visible": true,
+        "plane": "foreground",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 246.375,
+              "y": 113.0
+            },
+            {
+              "x": 256.0,
+              "y": 106.125
+            },
+            {
+              "x": 265.625,
+              "y": 111.625
+            }
+          ],
+          "width": 3.4375,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        }
+      }
+    ]
+  }
+}

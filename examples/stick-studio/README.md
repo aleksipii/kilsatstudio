@@ -1,10 +1,11 @@
-# Tikku-ukkostudio 2
+# Tikku-ukkostudio 3
 
-Kuusi omaperäistä nivelhahmoa, neljä taustaa, 20 rekvisiittaesinettä ja
-30 sekunnin muokattava malliprojekti. Kaikki projektit toimivat ilman ulkoisia
+Kuusi omaperäistä nivelhahmoa, 13 taustaa (niistä yhdeksän kaupunkia),
+42 rekvisiittaesinettä ja 30 sekunnin muokattava malliprojekti. Kaikki projektit toimivat ilman ulkoisia
 kuva-, puhe- tai mallilatauksia. Esittely on tarkoituksella **äänetön**.
 Toinen sisältöversio korjaa nivelten näkyvät aukot, lisää käteen kiinnitettävän
-rekvisiitan ja vaihtelee mallikohtausten kuvakokoja.
+rekvisiitan ja vaihtelee mallikohtausten kuvakokoja. Kolmas sisältöversio
+lisää kaupungin, jossa hahmot voivat seikkailla (ks. **Kaupunki** alla).
 
 ## Aloita sovelluksessa
 
@@ -60,9 +61,10 @@ skriptillä `scripts/stick_characters.py`.
 
 ## Ympäristöt ja rekvisiitta
 
-**Taustat:** toimisto, bussipysäkki, hautausmaa ja kahvila.
+**Taustat:** toimisto, bussipysäkki, hautausmaa ja kahvila sekä yhdeksän
+kaupunkilavastetta (alla).
 
-**20 erillistä esinettä:** viikate, kahvikuppi, toimistotuoli, työpöytä,
+**20 alkuperäistä erillistä esinettä:** viikate, kahvikuppi, toimistotuoli, työpöytä,
 kannettava tietokone, puhelin näyttöpuolelta, ajopäiväkirja, kello,
 liikennemerkki, paketti, työkaluavain, sateenvarjo, auto, vuoronumerolaite,
 puhelin takaa, puhelin vinosta, kirja, avain, tabletti ja kynä.
@@ -83,12 +85,51 @@ Pysäkin ja hautausmaan yhtenäinen siniharmaa tausta erottaa tummat raajat.
 Malliprojektin vanha suuri harmaa soikio on poistettu.
 
 Taustat ovat 1920 × 1080, yksittäiset hahmokuvat 768 × 1024 ja esinekuvat
-512 × 512 pikseliä. Jaeltavassa kuvapaketissa on yhteensä 60 PNG/SVG-kuvaa.
+512 × 512 pikseliä. Jaeltavassa kuvapaketissa on yhteensä 122 PNG/SVG-kuvaa.
 Hahmot ja esineet ovat
 läpinäkyviä PNG- ja SVG-kuvia. Taustat ovat peittäviä. SVG säilyttää
 vektorigrafiikan, `.kilsat` lisäksi nivelrakenteet ja animaatiotiedot.
 Kuvat ovat Kilsat Studion omasta renderöijästä, eivät tyylikonseptin kuvituskuvia.
-Mukana on 30 erillistä sisältöprojektia ja lisäksi kuuden kohtauksen malliprojekti.
+Mukana on 61 erillistä sisältöprojektia ja lisäksi kuuden kohtauksen malliprojekti.
+
+## Kaupunki
+
+Yhdeksän kaupunkilavastetta, jotka tarinatyökalu tarjoaa tunnisteillaan
+(`set: keskusta` jne.). Jokainen on piirretty neljästä kamerakulmasta:
+edestä ja vastakuvana käsin, ylhäältä ja alhaalta horisonttia siirtämällä.
+
+| Tunniste | Lavaste | Vastakuva |
+| --- | --- | --- |
+| `keskusta` | Kauppakatu: leipomo, vaatekauppa, apteekki, liikennevalo | Kadun toinen puoli: bussi, taksi, pankki, elokuvateatteri |
+| `asuinalue` | Vaahterakuja: kaksi omakotitaloa, aidat, auto pihassa | Kerrostalot ja leikkipuisto kadun takana |
+| `tori` | Kauppatori: raatihuone kellotorneineen, torikojut | Tavaratalo, raitiovaunu ja patsas |
+| `lahikauppa` | Kulmakaupan hyllyt ja juomakaappi | Kassa, liukuovet ja ostoskärryt |
+| `huoltoasema` | Iltahuoltoasema: katos, mittarit, tankkaava auto | Autopesula ja maantie |
+| `puisto` | Kaupunginpuisto: polku, ankkalampi, penkki | Leikkipuisto ja jäätelökoju |
+| `katto` | Katto yöllä: vesisäiliö, antenni, valaistu siluetti | Porraskopin ovi, mainostaulu ja silta |
+| `kuja` | Takakuja yöllä: takaovi, paloportaat, jäteastia, kissa | Kujan suu ja valaistu katu, jolla taksi |
+| `metroasema` | Laituri ja odottava juna | Linjakartta, lippuautomaatit, liukuportaat |
+
+**22 kaupunkiesinettä:** henkilöauto, taksi, poliisiauto, pakettiauto,
+ambulanssi, kaupunkibussi, paloauto, skootteri, liikennevalo, paloposti,
+pysäköintimittari, pankkiautomaatti, juoma-automaatti, katupuu, puistonpenkki,
+suojatiemerkki, omakotitalo, kerrostalo, kulmakauppa, pilvenpiirtäjä,
+polttoainemittari ja torikoju. Lavasteet käyttävät samoja piirroksia, joten
+lavasteen auto on kirjaston auto skaalattuna ja peilattuna.
+
+Kaupunki on mukana myös ankkurikirjastossa (`library/`): 22 esinettä
+(`prop.vehicle.*`, `prop.street.*`, `prop.building.*` …) suomen- ja
+englanninkielisin hakusanoin sekä yhdeksän taustaa (`background.*.city_street_v1`
+jne., etukuva). Kaikki on alkuperäistä geometriaa (MIT, Kilsat Studio), ilman
+fontteja, kuvia tai latauksia; kylttien teksti on abstraktia viivaa.
+
+Pitkä tarina: 12 kohtausta mahtuu taiteen 1024 tason rajaan, kun kohtaukset
+kuvataan edestä. Jos jokainen kohtaus leikkaa myös vastakuvaan, raja voi
+ylittyä; tarinatyökalu kertoo silloin, montako tasoa tarvittaisiin.
+
+Piirrokset tehdään skriptillä `scripts/stick_city.py`; paketti generoidaan
+`scripts/generate_stick_studio.py`:llä ja kirjaston esineet
+`scripts/generate_city_library.py`:llä.
 
 ## Kuvakoot ja puhelimen näkymät
 

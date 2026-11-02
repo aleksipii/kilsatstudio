@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "pack_revision": 2,
-  "title": "Tikku-ukkostudio 2",
+  "pack_revision": 3,
+  "title": "Tikku-ukkostudio 3",
   "authorship": "Original independently authored editable geometric artwork; no third-party artwork or model assets.",
   "cast": [
     {
@@ -167,6 +167,96 @@
       "project_sha256": "d1ddc56c0fe41ea84d6e76b38f861f9727ee932014151d0f0eb3bfa55ae1dba2"
     },
     {
+      "id": "keskusta",
+      "name": "Kauppakatu",
+      "kind": "background",
+      "project": "backgrounds/keskusta.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "b104ebf0244e9a454f46645c5573c43290d56d472f6cda0d78dca502131d6f9b"
+    },
+    {
+      "id": "asuinalue",
+      "name": "Vaahterakuja",
+      "kind": "background",
+      "project": "backgrounds/asuinalue.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "3447e0b96ef25d37a6ad93c3680d6760ae76c900f7da00febf31d83812febe00"
+    },
+    {
+      "id": "tori",
+      "name": "Kauppatori",
+      "kind": "background",
+      "project": "backgrounds/tori.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "ab421b566bc78a25e6f3d4c4daade62d02ae1b437afc2d526347eb1a15267570"
+    },
+    {
+      "id": "lahikauppa",
+      "name": "Kulmakaupan käytävä",
+      "kind": "background",
+      "project": "backgrounds/lahikauppa.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "79e090148463df8aa29516c1b4f6f9407d82abc2ecc6d7e999715ab6a48aeb82"
+    },
+    {
+      "id": "huoltoasema",
+      "name": "Iltahuoltoasema",
+      "kind": "background",
+      "project": "backgrounds/huoltoasema.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "56b3835e69c7c0e2cc43fe04dcf494924a84938ef249d2e39b209196029ae80f"
+    },
+    {
+      "id": "puisto",
+      "name": "Kaupunginpuisto",
+      "kind": "background",
+      "project": "backgrounds/puisto.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "70e4a9ff0e3940eb0922738155780cace0003a6cd9c5637b8ce2c3c4763b77f7"
+    },
+    {
+      "id": "katto",
+      "name": "Kattojen yllä",
+      "kind": "background",
+      "project": "backgrounds/katto.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "4ec836e97743bf669fb4d88c2a23ad61aa1708206c4fba51eb4eb3fcb6a60c65"
+    },
+    {
+      "id": "kuja",
+      "name": "Takakuja",
+      "kind": "background",
+      "project": "backgrounds/kuja.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "511bc425affef3d82aa79b584e0ed6937c0fe2a5fa0e27541f00407ef542c864"
+    },
+    {
+      "id": "metroasema",
+      "name": "Metroasema",
+      "kind": "background",
+      "project": "backgrounds/metroasema.kilsat",
+      "transparent": false,
+      "export_width": 1920,
+      "export_height": 1080,
+      "project_sha256": "321bac3c62baf491d513f52f3730b031015d94276f633015822284e31f039b22"
+    },
+    {
       "id": "viikate",
       "name": "Noutajan viikate",
       "kind": "prop",
@@ -305,6 +395,226 @@
       "export_width": 512,
       "export_height": 512,
       "project_sha256": "f8381fd4e3bbf423f6165aba94c92b6858d4cf9935fd77573e041124d9db6e3a"
+    },
+    {
+      "id": "henkiloauto",
+      "name": "Henkilöauto",
+      "kind": "prop",
+      "project": "props/henkiloauto.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "96f24b2a5c0ce8fde416954371bc23b7933fea5a56c19b7b2b5adf7ed2e424b1"
+    },
+    {
+      "id": "taksi",
+      "name": "Taksi",
+      "kind": "prop",
+      "project": "props/taksi.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "4b3524e850c5d19cb9b2f0bb84b2fd0c4bfb14d00a21b9072b75040348c991ce"
+    },
+    {
+      "id": "poliisiauto",
+      "name": "Poliisiauto",
+      "kind": "prop",
+      "project": "props/poliisiauto.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "79f04590b93c7442c9dc46ced348ccf639f777399c34a11e836f8f9ab8b78ef0"
+    },
+    {
+      "id": "pakettiauto",
+      "name": "Pakettiauto",
+      "kind": "prop",
+      "project": "props/pakettiauto.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "8aefcf6a8900ed1bc4b6a8305ecd88fdb3f7afb953f15db0ca679f864eea41f3"
+    },
+    {
+      "id": "ambulanssi",
+      "name": "Ambulanssi",
+      "kind": "prop",
+      "project": "props/ambulanssi.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "a0a081e4885f4b20d3f0beb20e183d7f227668eeaa00c20d3f4e6f3ef255d74c"
+    },
+    {
+      "id": "linja_auto",
+      "name": "Kaupunkibussi",
+      "kind": "prop",
+      "project": "props/linja_auto.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "7696ce34646e7490607a2c6d4211661004615770d8cbe38b8e7ae96bc6acc8c2"
+    },
+    {
+      "id": "paloauto",
+      "name": "Paloauto",
+      "kind": "prop",
+      "project": "props/paloauto.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "fba148140024df0e2f6ea2e604a315d76f1981e3f6db864831a53fe90e81b3a6"
+    },
+    {
+      "id": "skootteri",
+      "name": "Skootteri",
+      "kind": "prop",
+      "project": "props/skootteri.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "1b09e1b3fc22b55a72c527e9bb336a6353f74b353fe5de6dfd91edc8e4775cd3"
+    },
+    {
+      "id": "liikennevalo",
+      "name": "Liikennevalo",
+      "kind": "prop",
+      "project": "props/liikennevalo.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "a8602c9977186b461026f8258b10b98be0ee3ffd0f691d7f91cc1cb329fb665c"
+    },
+    {
+      "id": "paloposti",
+      "name": "Paloposti",
+      "kind": "prop",
+      "project": "props/paloposti.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "7f56acfcbf4ec2980e6d4935c876444a8c936692ea2a2dc116f0aa64ce3597a0"
+    },
+    {
+      "id": "pysakointimittari",
+      "name": "Pysäköintimittari",
+      "kind": "prop",
+      "project": "props/pysakointimittari.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "3fac2cea2c5c76c758a0f9138e5b9a65c176d1f8a56601bc8f2450698edfe08b"
+    },
+    {
+      "id": "pankkiautomaatti",
+      "name": "Pankkiautomaatti",
+      "kind": "prop",
+      "project": "props/pankkiautomaatti.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "021ab5c297c03122a83dc27b29b7f16f961e10cc5c6fa3727ee9ff5a2ad979b1"
+    },
+    {
+      "id": "juoma_automaatti",
+      "name": "Juoma-automaatti",
+      "kind": "prop",
+      "project": "props/juoma_automaatti.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "482d17f1393c9a81ad8e4cfd0624d2a4bfd6339018cacc4e8a2a66ab6b38c6e2"
+    },
+    {
+      "id": "katupuu",
+      "name": "Katupuu",
+      "kind": "prop",
+      "project": "props/katupuu.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "51fcdb7c006a26f77b39f46ed570245321a28e9cad9bbb7f4e360f45afa4ad34"
+    },
+    {
+      "id": "puistonpenkki",
+      "name": "Puistonpenkki",
+      "kind": "prop",
+      "project": "props/puistonpenkki.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "d645a655f52069fb39b18c514027704273b5e4534287908528db1d2d3ebe0481"
+    },
+    {
+      "id": "suojatiemerkki",
+      "name": "Suojatiemerkki",
+      "kind": "prop",
+      "project": "props/suojatiemerkki.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "bb00b196946632b811c7bd8900fce008824db9c3fd127b8d0947f460bdc79a9d"
+    },
+    {
+      "id": "omakotitalo",
+      "name": "Omakotitalo",
+      "kind": "prop",
+      "project": "props/omakotitalo.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "76c74c309aa27fddbe56010788baddb9623742f050b70f5172a6d2256b75f9a5"
+    },
+    {
+      "id": "kerrostalo",
+      "name": "Kerrostalo",
+      "kind": "prop",
+      "project": "props/kerrostalo.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "a33a44ee877c2f2d289b8e6c27d85b8be2995c3f633ff1c3082df82e0da9f97d"
+    },
+    {
+      "id": "kulmakauppa",
+      "name": "Kulmakauppa",
+      "kind": "prop",
+      "project": "props/kulmakauppa.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "67bacfd0685a58604b0726ccaa2129a1e0e9a61a8175e8bc59b353f0468785b6"
+    },
+    {
+      "id": "pilvenpiirtaja",
+      "name": "Pilvenpiirtäjä",
+      "kind": "prop",
+      "project": "props/pilvenpiirtaja.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "d98e5e2c7a15bd8668d0488d0bcb780dea725d560602a16b633254e1d1f32d1d"
+    },
+    {
+      "id": "polttoainemittari",
+      "name": "Polttoainemittari",
+      "kind": "prop",
+      "project": "props/polttoainemittari.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "f74842544c1e2b6cf5d57d9d4b0d6ec72d5e5759f757dc5cc539b4352a25e232"
+    },
+    {
+      "id": "torikoju",
+      "name": "Torikoju",
+      "kind": "prop",
+      "project": "props/torikoju.kilsat",
+      "transparent": true,
+      "export_width": 512,
+      "export_height": 512,
+      "project_sha256": "9d7a401630579f76ccb97467b9e94f54046e530a4d42427ce607b1da62476077"
     },
     {
       "id": "puhelin_takana",
