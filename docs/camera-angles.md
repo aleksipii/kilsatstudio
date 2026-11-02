@@ -62,12 +62,33 @@ A beat may set `angle`. It holds until changed and is a cut. Every scene starts
 at `front`. The catalog lists each set's angles in the authoring guide, and an angle a
 set does not offer is reported as unsupported at its beat path.
 
-The story importer offers `reverse` for every set whose shared layers can be
-mirrored. All four bundled sets are vector art, so they all offer it. For a scene
-that uses `reverse`, the importer keeps every shared layer for `front` and adds a
-mirrored copy for `reverse`. A set with its own drawn `reverse` layers is copied
-as drawn. Chairs added by `pose: sit` are always mirrored. `high` and `low` are
-offered only by sets that contain layers drawn for them. No bundled set does yet.
+A set offers every angle it has layers drawn for. It also offers `reverse` when
+its shared (untagged) layers can all be mirrored. The importer copies into each
+scene only the layers for the angles that scene films, so long stories stay under
+the 1024-layer limit. A scene that cuts to `reverse` uses the set's drawn reverse
+when it has one. Otherwise it gets a mirrored copy of every shared layer. Chairs
+added by `pose: sit` are always mirrored.
+
+### Bundled sets
+
+All four bundled sets are drawn for all four angles (`scripts/stick_scenery.py`):
+
+- `reverse` is the opposite side, drawn by hand. The café shows its entrance, menu
+  board and coat rack. The office shows a whiteboard, filing cabinet and printer.
+  The bus stop shows the houses and kiosk across the street. The graveyard shows
+  the chapel and its gate.
+- `high` and `low` redraw the front with the horizon moved: to y=640 looking down
+  (more floor) and to y=880 looking up (more wall; indoors also a ceiling band).
+  Round shapes such as the moon and the clock stay round. Actors keep standing at
+  y=960.
+
+## Desktop
+
+A layer drawn with the pen or shape tools, or an image added in the art panel,
+belongs to the camera angle at the playhead. At a `reverse` key it gets
+`angle: reverse`, for example. In front shots new layers stay shared by every
+angle. The inspector's angle picker changes this later. Importing an image while
+previewing an angle is therefore how a hand-drawn per-angle background is added.
 
 ## Limitations
 
@@ -77,5 +98,6 @@ offered only by sets that contain layers drawn for them. No bundled set does yet
   behind the actor, and a hand prop stays in front of the actor's body.
 - Lights and actor-attached artwork are not mirrored.
 - `high` and `low` do not change actors or perspective; they only select artwork.
+  The bundled high/low sets are a vertical redraw of the front, not a new layout.
 - The desktop camera-key editor and layer inspector have angle pickers, but they
   were not exercised by hand in the running application.

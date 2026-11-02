@@ -6,7 +6,7 @@ use crate::project_history::MAX_SOURCE_BYTES;
 use motion_script::story::{
     self, CatalogCharacter, CatalogSet, IssueKind, StoryCatalog, StoryCompilation, StoryIssue,
 };
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 const MANIFEST: &str = include_str!("../../../examples/stick-studio/manifest.json");
 
@@ -444,14 +444,25 @@ pub(crate) fn build_with(
     let mut document =
         motion_project::ProjectDocument::new(source).map_err(|e| catalog_error(e.to_string()))?;
     let axis = f64::from(compilation.script.project.width) / 2.0;
-    let reversed = |scene_id: &str| {
-        compilation
+    // Camera angles each scene cuts to; front is always filmed.
+    let angles = |scene_id: &str| -> BTreeSet<String> {
+        let mut used: BTreeSet<String> = compilation
             .script
             .scenes
             .iter()
             .find(|s| s.id == scene_id)
-            .is_some_and(|s| s.composition.camera.iter().any(|k| k.angle() == "reverse"))
+            .map(|s| {
+                s.composition
+                    .camera
+                    .iter()
+                    .map(|k| k.angle().to_string())
+                    .collect()
+            })
+            .unwrap_or_default();
+        used.insert("front".into());
+        used
     };
+    let reversed = |scene_id: &str| angles(scene_id).contains("reverse");
     for (scene_id, set_id) in &compilation.scene_sets {
         let layers = library
             .set_layers
@@ -459,8 +470,14 @@ pub(crate) fn build_with(
             .ok_or_else(|| catalog_error(format!("set {set_id} has no artwork")))?;
         // A set without its own reverse drawing is mirrored for the reverse angle.
         let mirror = reversed(scene_id) && !drawn_for(layers, "reverse");
+        // Only the angles this scene uses are copied: four drawn angles of a
+        // set in every scene would soon exceed the 1024-layer artwork limit.
+        let used = angles(scene_id);
         let mut placed = Vec::new();
         for (index, layer) in layers.iter().enumerate() {
+            if layer.angle.as_ref().is_some_and(|a| !used.contains(a)) {
+                continue;
+            }
             let mut layer = layer.clone();
             let suffix = layer
                 .id
@@ -542,16 +559,16 @@ mod tests {
     }
 
     #[test]
-    fn reverse_angle_mirrors_the_set_and_furniture_and_swaps_actor_sides() {
+    fn reverse_angle_uses_the_drawn_set_mirrors_furniture_and_swaps_actor_sides() {
         let text = "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {}\n  SISU: {}\nscenes:\n  - id: s\n    set: kahvila\n    positions: {VEIKKO: left, SISU: right}\n    beats:\n      - do: VEIKKO\n        pose: sit\n      - say: SISU\n        line: Hello there.\n      - say: VEIKKO\n        line: Over here.\n        angle: reverse\n";
         let catalog = catalog().unwrap();
         assert!(catalog
             .sets
             .values()
-            .all(|set| set.angles == ["front", "reverse"]));
+            .all(|set| set.angles == ["front", "reverse", "high", "low"]));
         assert!(guide(&ProjectContent::default())
             .unwrap()
-            .contains("angles: front, reverse"));
+            .contains("angles: front, reverse, high, low"));
         let built = build(text, None).unwrap();
         let art = &built.document.art;
         let tagged = |angle: &str| {
@@ -560,16 +577,20 @@ mod tests {
                 .filter(|l| l.angle.as_deref() == Some(angle))
                 .count()
         };
-        assert!(tagged("front") > 40, "set and chair kept for the front");
-        assert_eq!(tagged("front"), tagged("reverse"));
+        // The café's own reverse drawing is used; unused angles are not copied.
+        assert!(art.layers.iter().any(|l| l.id.contains("kahvila_rev_door")));
+        assert_eq!(tagged("high") + tagged("low"), 0);
+        assert!(tagged("front") > 40 && tagged("reverse") > 30);
         assert!(art.layers.iter().all(|l| l.angle.is_some()));
-        // Each mirrored copy reflects its front layer about the canvas centre.
+        // The chair has no drawn reverse, so it is mirrored about the centre.
         let width = 1920.0;
-        for layer in art
+        let chairs: Vec<_> = art
             .layers
             .iter()
-            .filter(|l| l.angle.as_deref() == Some("front"))
-        {
+            .filter(|l| l.angle.as_deref() == Some("front") && !l.id.contains("kahvila"))
+            .collect();
+        assert!(!chairs.is_empty());
+        for layer in chairs {
             let copy = art
                 .layers
                 .iter()
@@ -607,6 +628,87 @@ mod tests {
             if let Ok(dir) = std::env::var("STORY_ANGLE_OUT") {
                 let png = motion_export::rasterize_svg_png(&svg).unwrap();
                 std::fs::write(format!("{dir}/{name}.png"), png).unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn sets_without_drawn_angles_are_mirrored_for_reverse() {
+        let mut layers = pack_library().unwrap().set_layers["toimisto"].clone();
+        layers.retain(|l| l.angle.as_deref() == Some("front"));
+        for layer in &mut layers {
+            layer.angle = None;
+        }
+        assert_eq!(set_angles(&layers), ["front", "reverse"]);
+        let doubled = with_reverse(layers.clone(), 960.0).unwrap();
+        assert_eq!(doubled.len(), 2 * layers.len());
+        let mut image = layers[0].clone();
+        image.content = motion_art::Content::Image {
+            asset_id: "photo".into(),
+            rect: motion_art::Rect {
+                x: 0.0,
+                y: 0.0,
+                width: 10.0,
+                height: 10.0,
+            },
+        };
+        layers.push(image);
+        assert_eq!(
+            set_angles(&layers),
+            ["front"],
+            "an image cannot be mirrored"
+        );
+    }
+
+    #[test]
+    fn a_long_story_copies_only_the_angles_it_films() {
+        let scenes: String = (0..12)
+            .map(|i| format!("  - id: s{i}\n    set: kahvila\n    positions: {{VEIKKO: left}}\n    beats:\n      - say: VEIKKO\n        line: Hi.\n        angle: {}\n", ["front", "high", "low"][i % 3]))
+            .collect();
+        let text = format!(
+            "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {{}}\nscenes:\n{scenes}"
+        );
+        let built = build(&text, None).unwrap();
+        assert!(built.document.art.layers.len() <= 1024);
+        for scene in ["s1", "s2"] {
+            let angles: BTreeSet<_> = built
+                .document
+                .art
+                .layers
+                .iter()
+                .filter(|l| l.scene_id == scene)
+                .filter_map(|l| l.angle.clone())
+                .collect();
+            assert_eq!(angles.len(), 2, "{scene}: front plus its own angle");
+        }
+    }
+
+    /// Every set renders from every angle through the normal pipeline; set
+    /// STORY_ANGLE_OUT=<dir> to keep the frames for a visual check.
+    #[test]
+    fn every_set_renders_from_every_angle() {
+        for (set, _, _) in SETS {
+            for angle in motion_scene::CAMERA_ANGLES {
+                let text = format!("kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n  VEIKKO: {{}}\nscenes:\n  - id: s\n    set: {set}\n    positions: {{VEIKKO: center}}\n    beats:\n      - say: VEIKKO\n        line: Hello there.\n        angle: {angle}\n");
+                let built = build(&text, None).unwrap();
+                let script = motion_script::parse(&built.document.source).unwrap();
+                let at = built.compilation.lines[0].at + 0.2;
+                let scene = motion_scene::evaluate(&script, 0, at).unwrap();
+                assert_eq!(scene.camera.angle.name(), angle);
+                let svg = motion_render::render_svg_with_art(
+                    &scene,
+                    960,
+                    540,
+                    &[],
+                    "s",
+                    &built.document.art,
+                    &BTreeMap::new(),
+                )
+                .unwrap();
+                if let Ok(dir) = std::env::var("STORY_ANGLE_OUT") {
+                    let png = motion_export::rasterize_svg_png(&svg).unwrap();
+                    std::fs::write(format!("{dir}/{set}-{angle}.png"), png).unwrap();
+                }
             }
         }
     }

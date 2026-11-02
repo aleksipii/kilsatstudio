@@ -27,7 +27,8 @@
             "b": 162,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_ground",
@@ -52,7 +53,8 @@
             "b": 150,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_horizon",
@@ -94,7 +96,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_moon_halo",
@@ -119,7 +122,8 @@
             "b": 188,
             "a": 16
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_rail",
@@ -149,7 +153,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_0",
@@ -179,7 +184,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_1",
@@ -209,7 +215,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_2",
@@ -239,7 +246,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_3",
@@ -269,7 +277,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_4",
@@ -299,7 +308,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_5",
@@ -329,7 +339,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_6",
@@ -359,7 +370,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_7",
@@ -389,7 +401,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_8",
@@ -419,7 +432,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_9",
@@ -449,7 +463,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_fence_post_10",
@@ -479,7 +494,8 @@
             "b": 139,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_moon",
@@ -504,7 +520,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_moon_crater",
@@ -529,7 +546,8 @@
             "b": 182,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_moon_crater_small",
@@ -554,7 +572,8 @@
             "b": 182,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_tree_trunk",
@@ -592,7 +611,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_tree_left",
@@ -630,7 +650,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_tree_left_twig",
@@ -664,7 +685,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_tree_right",
@@ -698,7 +720,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_tree_right_twig",
@@ -728,7 +751,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_tree_top_twig",
@@ -762,7 +786,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_round_outline",
@@ -787,7 +812,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_round_fill",
@@ -812,7 +838,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_base_outline",
@@ -837,7 +864,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_base_fill",
@@ -862,7 +890,8 @@
             "b": 197,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_engraving",
@@ -892,7 +921,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_square_outline",
@@ -917,7 +947,8 @@
             "b": 48,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_square_fill",
@@ -942,7 +973,8 @@
             "b": 160,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_stone_small_engraving",
@@ -972,7 +1004,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_grass_left",
@@ -1010,7 +1043,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_grass_right",
@@ -1048,7 +1082,8 @@
             "b": 111,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_star",
@@ -1073,7 +1108,8 @@
             "b": 223,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_path_left",
@@ -1103,7 +1139,8 @@
             "b": 137,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_path_right",
@@ -1133,7 +1170,8 @@
             "b": 137,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_moss_left",
@@ -1158,7 +1196,8 @@
             "b": 117,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
       },
       {
         "id": "tausta_tausta_hautausmaa_moss_right",
@@ -1183,7 +1222,3592 @@
             "b": 127,
             "a": 255
           }
-        }
+        },
+        "angle": "front"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_sky",
+        "name": "hautausmaa rev sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 1920,
+            "height": 1080
+          },
+          "color": {
+            "r": 135,
+            "g": 155,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_ground",
+        "name": "hautausmaa rev ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 810,
+            "width": 1920,
+            "height": 270
+          },
+          "color": {
+            "r": 155,
+            "g": 170,
+            "b": 150,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_horizon",
+        "name": "hautausmaa rev horizon",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 814
+            },
+            {
+              "x": 700,
+              "y": 808
+            },
+            {
+              "x": 1300,
+              "y": 816
+            },
+            {
+              "x": 1920,
+              "y": 812
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_chapel",
+        "name": "hautausmaa rev chapel",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 760,
+            "y": 480,
+            "width": 380,
+            "height": 334
+          },
+          "color": {
+            "r": 74,
+            "g": 88,
+            "b": 92,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_chapel_roof",
+        "name": "hautausmaa rev chapel roof",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 735,
+              "y": 495
+            },
+            {
+              "x": 950,
+              "y": 340
+            },
+            {
+              "x": 1165,
+              "y": 495
+            }
+          ],
+          "width": 26,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_tower",
+        "name": "hautausmaa rev tower",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 905,
+            "y": 250,
+            "width": 90,
+            "height": 150
+          },
+          "color": {
+            "r": 74,
+            "g": 88,
+            "b": 92,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_cross",
+        "name": "hautausmaa rev cross",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 950,
+              "y": 250
+            },
+            {
+              "x": 950,
+              "y": 170
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_cross_arm",
+        "name": "hautausmaa rev cross arm",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 925,
+              "y": 195
+            },
+            {
+              "x": 975,
+              "y": 195
+            }
+          ],
+          "width": 10,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_chapel_door",
+        "name": "hautausmaa rev chapel door",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 905,
+            "y": 690,
+            "width": 90,
+            "height": 124
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_chapel_window_left",
+        "name": "hautausmaa rev chapel window left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 815,
+            "y": 560,
+            "width": 60,
+            "height": 80
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_chapel_window_right",
+        "name": "hautausmaa rev chapel window right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1025,
+            "y": 560,
+            "width": 60,
+            "height": 80
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_gate_arch",
+        "name": "hautausmaa rev gate arch",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 560,
+              "y": 820
+            },
+            {
+              "x": 560,
+              "y": 640
+            },
+            {
+              "x": 640,
+              "y": 590
+            },
+            {
+              "x": 720,
+              "y": 640
+            },
+            {
+              "x": 720,
+              "y": 820
+            }
+          ],
+          "width": 12,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_rail",
+        "name": "hautausmaa rev fence rail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 743
+            },
+            {
+              "x": 540,
+              "y": 743
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_rail_right",
+        "name": "hautausmaa rev fence rail right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1180,
+              "y": 743
+            },
+            {
+              "x": 1920,
+              "y": 743
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_round_outline",
+        "name": "hautausmaa rev stone round outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1580,
+            "y": 690,
+            "width": 130,
+            "height": 150
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_round_fill",
+        "name": "hautausmaa rev stone round fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1588,
+            "y": 698,
+            "width": 114,
+            "height": 134
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_base_outline",
+        "name": "hautausmaa rev stone base outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1580,
+            "y": 760,
+            "width": 130,
+            "height": 190
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_base_fill",
+        "name": "hautausmaa rev stone base fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1588,
+            "y": 768,
+            "width": 114,
+            "height": 174
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_engraving",
+        "name": "hautausmaa rev stone engraving",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1615,
+              "y": 840
+            },
+            {
+              "x": 1675,
+              "y": 840
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_low_outline",
+        "name": "hautausmaa rev stone low outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 150,
+            "y": 820,
+            "width": 150,
+            "height": 130
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_stone_low_fill",
+        "name": "hautausmaa rev stone low fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 158,
+            "y": 828,
+            "width": 134,
+            "height": 114
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_bush",
+        "name": "hautausmaa rev bush",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1380,
+              "y": 945
+            },
+            {
+              "x": 1360,
+              "y": 880
+            },
+            {
+              "x": 1400,
+              "y": 900
+            },
+            {
+              "x": 1420,
+              "y": 860
+            },
+            {
+              "x": 1440,
+              "y": 945
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_star_left",
+        "name": "hautausmaa rev star left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 300,
+            "y": 150,
+            "width": 8,
+            "height": 8
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_star_right",
+        "name": "hautausmaa rev star right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1500,
+            "y": 210,
+            "width": 9,
+            "height": 9
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_star_top",
+        "name": "hautausmaa rev star top",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1200,
+            "y": 90,
+            "width": 7,
+            "height": 7
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_grass_left",
+        "name": "hautausmaa rev grass left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 437,
+              "y": 946
+            },
+            {
+              "x": 424,
+              "y": 909
+            },
+            {
+              "x": 449,
+              "y": 929
+            },
+            {
+              "x": 463,
+              "y": 904
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_0",
+        "name": "hautausmaa rev fence post 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 715
+            },
+            {
+              "x": 40,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_1",
+        "name": "hautausmaa rev fence post 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 140,
+              "y": 715
+            },
+            {
+              "x": 140,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_2",
+        "name": "hautausmaa rev fence post 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 240,
+              "y": 715
+            },
+            {
+              "x": 240,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_3",
+        "name": "hautausmaa rev fence post 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 340,
+              "y": 715
+            },
+            {
+              "x": 340,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_4",
+        "name": "hautausmaa rev fence post 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 440,
+              "y": 715
+            },
+            {
+              "x": 440,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_0",
+        "name": "hautausmaa rev fence post right 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1220,
+              "y": 715
+            },
+            {
+              "x": 1220,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_1",
+        "name": "hautausmaa rev fence post right 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1320,
+              "y": 715
+            },
+            {
+              "x": 1320,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_2",
+        "name": "hautausmaa rev fence post right 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1420,
+              "y": 715
+            },
+            {
+              "x": 1420,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_3",
+        "name": "hautausmaa rev fence post right 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1520,
+              "y": 715
+            },
+            {
+              "x": 1520,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_4",
+        "name": "hautausmaa rev fence post right 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1620,
+              "y": 715
+            },
+            {
+              "x": 1620,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_5",
+        "name": "hautausmaa rev fence post right 5",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1720,
+              "y": 715
+            },
+            {
+              "x": 1720,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_rev_fence_post_right_6",
+        "name": "hautausmaa rev fence post right 6",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1820,
+              "y": 715
+            },
+            {
+              "x": 1820,
+              "y": 809
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "reverse"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_sky_high",
+        "name": "hautausmaa sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 135,
+            "g": 155,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_ground_high",
+        "name": "hautausmaa ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 640.0,
+            "width": 1920,
+            "height": 440.0
+          },
+          "color": {
+            "r": 155,
+            "g": 170,
+            "b": 150,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_horizon_high",
+        "name": "hautausmaa horizon",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 646.52
+            },
+            {
+              "x": 490,
+              "y": 646.52
+            },
+            {
+              "x": 770,
+              "y": 636.84
+            },
+            {
+              "x": 1210,
+              "y": 646.52
+            },
+            {
+              "x": 1914,
+              "y": 646.52
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_halo_high",
+        "name": "hautausmaa moon halo",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1454.59,
+            "y": 67.95,
+            "width": 222.81,
+            "height": 222.81
+          },
+          "color": {
+            "r": 215,
+            "g": 224,
+            "b": 188,
+            "a": 16
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_rail_high",
+        "name": "hautausmaa fence rail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 390,
+              "y": 587.06
+            },
+            {
+              "x": 1450,
+              "y": 587.06
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_0_high",
+        "name": "hautausmaa fence post 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 430,
+              "y": 564.94
+            },
+            {
+              "x": 430,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_1_high",
+        "name": "hautausmaa fence post 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 525,
+              "y": 564.94
+            },
+            {
+              "x": 525,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_2_high",
+        "name": "hautausmaa fence post 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 620,
+              "y": 564.94
+            },
+            {
+              "x": 620,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_3_high",
+        "name": "hautausmaa fence post 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 715,
+              "y": 564.94
+            },
+            {
+              "x": 715,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_4_high",
+        "name": "hautausmaa fence post 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 810,
+              "y": 564.94
+            },
+            {
+              "x": 810,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_5_high",
+        "name": "hautausmaa fence post 5",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 905,
+              "y": 564.94
+            },
+            {
+              "x": 905,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_6_high",
+        "name": "hautausmaa fence post 6",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 564.94
+            },
+            {
+              "x": 1000,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_7_high",
+        "name": "hautausmaa fence post 7",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1095,
+              "y": 564.94
+            },
+            {
+              "x": 1095,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_8_high",
+        "name": "hautausmaa fence post 8",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1190,
+              "y": 564.94
+            },
+            {
+              "x": 1190,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_9_high",
+        "name": "hautausmaa fence post 9",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1285,
+              "y": 564.94
+            },
+            {
+              "x": 1285,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_10_high",
+        "name": "hautausmaa fence post 10",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1380,
+              "y": 564.94
+            },
+            {
+              "x": 1380,
+              "y": 639.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_high",
+        "name": "hautausmaa moon",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1490.15,
+            "y": 103.51,
+            "width": 151.7,
+            "height": 151.7
+          },
+          "color": {
+            "r": 218,
+            "g": 224,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_crater_high",
+        "name": "hautausmaa moon crater",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1511.88,
+            "y": 134.32,
+            "width": 29.23,
+            "height": 29.23
+          },
+          "color": {
+            "r": 197,
+            "g": 208,
+            "b": 182,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_crater_small_high",
+        "name": "hautausmaa moon crater small",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1574.2,
+            "y": 191.21,
+            "width": 16.59,
+            "height": 16.59
+          },
+          "color": {
+            "r": 197,
+            "g": 208,
+            "b": 182,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_trunk_high",
+        "name": "hautausmaa tree trunk",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1739,
+              "y": 853.48
+            },
+            {
+              "x": 1714,
+              "y": 568.89
+            },
+            {
+              "x": 1730,
+              "y": 380.05
+            },
+            {
+              "x": 1692,
+              "y": 271.8
+            }
+          ],
+          "width": 28,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_left_high",
+        "name": "hautausmaa tree left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1720,
+              "y": 534.91
+            },
+            {
+              "x": 1643,
+              "y": 470.91
+            },
+            {
+              "x": 1585,
+              "y": 388.74
+            },
+            {
+              "x": 1516,
+              "y": 358.72
+            }
+          ],
+          "width": 18,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_left_twig_high",
+        "name": "hautausmaa tree left twig",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1643,
+              "y": 470.91
+            },
+            {
+              "x": 1599,
+              "y": 501.73
+            },
+            {
+              "x": 1554,
+              "y": 505.68
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_right_high",
+        "name": "hautausmaa tree right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1727,
+              "y": 421.14
+            },
+            {
+              "x": 1814,
+              "y": 363.46
+            },
+            {
+              "x": 1848,
+              "y": 285.23
+            }
+          ],
+          "width": 16,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_right_twig_high",
+        "name": "hautausmaa tree right twig",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1814,
+              "y": 363.46
+            },
+            {
+              "x": 1880,
+              "y": 353.98
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_top_twig_high",
+        "name": "hautausmaa tree top twig",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1692,
+              "y": 271.8
+            },
+            {
+              "x": 1712,
+              "y": 228.35
+            },
+            {
+              "x": 1750,
+              "y": 208.59
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_round_outline_high",
+        "name": "hautausmaa stone round outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 76,
+            "y": 527.8,
+            "width": 145,
+            "height": 146.42
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_round_fill_high",
+        "name": "hautausmaa stone round fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 84,
+            "y": 534.12,
+            "width": 129,
+            "height": 127.06
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_base_outline_high",
+        "name": "hautausmaa stone base outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 76,
+            "y": 587.85,
+            "width": 145,
+            "height": 278.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_base_fill_high",
+        "name": "hautausmaa stone base fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 84,
+            "y": 594.17,
+            "width": 129,
+            "height": 259.31
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_engraving_high",
+        "name": "hautausmaa stone engraving",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 116,
+              "y": 679.11
+            },
+            {
+              "x": 180,
+              "y": 679.11
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_square_outline_high",
+        "name": "hautausmaa stone square outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 268,
+            "y": 617.09,
+            "width": 111,
+            "height": 249.43
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_square_fill_high",
+        "name": "hautausmaa stone square fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 276,
+            "y": 623.41,
+            "width": 95,
+            "height": 230.07
+          },
+          "color": {
+            "r": 144,
+            "g": 165,
+            "b": 160,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_small_engraving_high",
+        "name": "hautausmaa stone small engraving",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 298,
+              "y": 680.74
+            },
+            {
+              "x": 349,
+              "y": 680.74
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_grass_left_high",
+        "name": "hautausmaa grass left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37,
+              "y": 861.63
+            },
+            {
+              "x": 24,
+              "y": 801.33
+            },
+            {
+              "x": 49,
+              "y": 833.93
+            },
+            {
+              "x": 63,
+              "y": 793.19
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_grass_right_high",
+        "name": "hautausmaa grass right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1815,
+              "y": 863.26
+            },
+            {
+              "x": 1804,
+              "y": 801.33
+            },
+            {
+              "x": 1828,
+              "y": 837.19
+            },
+            {
+              "x": 1847,
+              "y": 789.93
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_star_high",
+        "name": "hautausmaa star",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 633.84,
+            "y": 146.96,
+            "width": 6.32,
+            "height": 6.32
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_path_left_high",
+        "name": "hautausmaa path left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 905,
+              "y": 646.52
+            },
+            {
+              "x": 520,
+              "y": 1080.0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 136,
+            "g": 155,
+            "b": 137,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_path_right_high",
+        "name": "hautausmaa path right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 646.52
+            },
+            {
+              "x": 1450,
+              "y": 1080.0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 136,
+            "g": 155,
+            "b": 137,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moss_left_high",
+        "name": "hautausmaa moss left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 86,
+            "y": 835.56,
+            "width": 128,
+            "height": 27.7
+          },
+          "color": {
+            "r": 104,
+            "g": 134,
+            "b": 117,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moss_right_high",
+        "name": "hautausmaa moss right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1590,
+            "y": 864.89,
+            "width": 195,
+            "height": 21.19
+          },
+          "color": {
+            "r": 125,
+            "g": 148,
+            "b": 127,
+            "a": 255
+          }
+        },
+        "angle": "high"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_sky_low",
+        "name": "hautausmaa sky",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 0.0,
+            "width": 1920,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 135,
+            "g": 155,
+            "b": 162,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_ground_low",
+        "name": "hautausmaa ground",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0,
+            "y": 880.0,
+            "width": 1920,
+            "height": 200.0
+          },
+          "color": {
+            "r": 155,
+            "g": 170,
+            "b": 150,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_horizon_low",
+        "name": "hautausmaa horizon",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0,
+              "y": 882.96
+            },
+            {
+              "x": 490,
+              "y": 882.96
+            },
+            {
+              "x": 770,
+              "y": 875.65
+            },
+            {
+              "x": 1210,
+              "y": 882.96
+            },
+            {
+              "x": 1914,
+              "y": 882.96
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_halo_low",
+        "name": "hautausmaa moon halo",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1412.81,
+            "y": 93.43,
+            "width": 306.37,
+            "height": 306.37
+          },
+          "color": {
+            "r": 215,
+            "g": 224,
+            "b": 188,
+            "a": 16
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_rail_low",
+        "name": "hautausmaa fence rail",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 390,
+              "y": 807.21
+            },
+            {
+              "x": 1450,
+              "y": 807.21
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_0_low",
+        "name": "hautausmaa fence post 0",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 430,
+              "y": 776.79
+            },
+            {
+              "x": 430,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_1_low",
+        "name": "hautausmaa fence post 1",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 525,
+              "y": 776.79
+            },
+            {
+              "x": 525,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_2_low",
+        "name": "hautausmaa fence post 2",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 620,
+              "y": 776.79
+            },
+            {
+              "x": 620,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_3_low",
+        "name": "hautausmaa fence post 3",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 715,
+              "y": 776.79
+            },
+            {
+              "x": 715,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_4_low",
+        "name": "hautausmaa fence post 4",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 810,
+              "y": 776.79
+            },
+            {
+              "x": 810,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_5_low",
+        "name": "hautausmaa fence post 5",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 905,
+              "y": 776.79
+            },
+            {
+              "x": 905,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_6_low",
+        "name": "hautausmaa fence post 6",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 776.79
+            },
+            {
+              "x": 1000,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_7_low",
+        "name": "hautausmaa fence post 7",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1095,
+              "y": 776.79
+            },
+            {
+              "x": 1095,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_8_low",
+        "name": "hautausmaa fence post 8",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1190,
+              "y": 776.79
+            },
+            {
+              "x": 1190,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_9_low",
+        "name": "hautausmaa fence post 9",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1285,
+              "y": 776.79
+            },
+            {
+              "x": 1285,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_fence_post_10_low",
+        "name": "hautausmaa fence post 10",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1380,
+              "y": 776.79
+            },
+            {
+              "x": 1380,
+              "y": 878.91
+            }
+          ],
+          "width": 4,
+          "color": {
+            "r": 112,
+            "g": 139,
+            "b": 139,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_low",
+        "name": "hautausmaa moon",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1461.7,
+            "y": 142.32,
+            "width": 208.59,
+            "height": 208.59
+          },
+          "color": {
+            "r": 218,
+            "g": 224,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_crater_low",
+        "name": "hautausmaa moon crater",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1506.4,
+            "y": 184.69,
+            "width": 40.2,
+            "height": 40.2
+          },
+          "color": {
+            "r": 197,
+            "g": 208,
+            "b": 182,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moon_crater_small_low",
+        "name": "hautausmaa moon crater small",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1571.09,
+            "y": 262.91,
+            "width": 22.81,
+            "height": 22.81
+          },
+          "color": {
+            "r": 197,
+            "g": 208,
+            "b": 182,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_trunk_low",
+        "name": "hautausmaa tree trunk",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1739,
+              "y": 977.04
+            },
+            {
+              "x": 1714,
+              "y": 782.22
+            },
+            {
+              "x": 1730,
+              "y": 522.57
+            },
+            {
+              "x": 1692,
+              "y": 373.73
+            }
+          ],
+          "width": 28,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_left_low",
+        "name": "hautausmaa tree left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1720,
+              "y": 735.51
+            },
+            {
+              "x": 1643,
+              "y": 647.51
+            },
+            {
+              "x": 1585,
+              "y": 534.52
+            },
+            {
+              "x": 1516,
+              "y": 493.23
+            }
+          ],
+          "width": 18,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_left_twig_low",
+        "name": "hautausmaa tree left twig",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1643,
+              "y": 647.51
+            },
+            {
+              "x": 1599,
+              "y": 689.88
+            },
+            {
+              "x": 1554,
+              "y": 695.31
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_right_low",
+        "name": "hautausmaa tree right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1727,
+              "y": 579.06
+            },
+            {
+              "x": 1814,
+              "y": 499.75
+            },
+            {
+              "x": 1848,
+              "y": 392.2
+            }
+          ],
+          "width": 16,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_right_twig_low",
+        "name": "hautausmaa tree right twig",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1814,
+              "y": 499.75
+            },
+            {
+              "x": 1880,
+              "y": 486.72
+            }
+          ],
+          "width": 8,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_tree_top_twig_low",
+        "name": "hautausmaa tree top twig",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1692,
+              "y": 373.73
+            },
+            {
+              "x": 1712,
+              "y": 313.98
+            },
+            {
+              "x": 1750,
+              "y": 286.81
+            }
+          ],
+          "width": 9,
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_round_outline_low",
+        "name": "hautausmaa stone round outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 76,
+            "y": 725.73,
+            "width": 145,
+            "height": 169.83
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_round_fill_low",
+        "name": "hautausmaa stone round fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 84,
+            "y": 734.42,
+            "width": 129,
+            "height": 155.21
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_base_outline_low",
+        "name": "hautausmaa stone base outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 76,
+            "y": 808.3,
+            "width": 145,
+            "height": 174.67
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_base_fill_low",
+        "name": "hautausmaa stone base fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 84,
+            "y": 816.99,
+            "width": 129,
+            "height": 160.05
+          },
+          "color": {
+            "r": 185,
+            "g": 199,
+            "b": 197,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_engraving_low",
+        "name": "hautausmaa stone engraving",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 116,
+              "y": 897.78
+            },
+            {
+              "x": 180,
+              "y": 897.78
+            }
+          ],
+          "width": 6,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_square_outline_low",
+        "name": "hautausmaa stone square outline",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 268,
+            "y": 848.49,
+            "width": 111,
+            "height": 134.47
+          },
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_square_fill_low",
+        "name": "hautausmaa stone square fill",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 276,
+            "y": 857.19,
+            "width": 95,
+            "height": 119.85
+          },
+          "color": {
+            "r": 144,
+            "g": 165,
+            "b": 160,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_stone_small_engraving_low",
+        "name": "hautausmaa stone small engraving",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 298,
+              "y": 898.52
+            },
+            {
+              "x": 349,
+              "y": 898.52
+            }
+          ],
+          "width": 5,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_grass_left_low",
+        "name": "hautausmaa grass left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37,
+              "y": 980.74
+            },
+            {
+              "x": 24,
+              "y": 953.33
+            },
+            {
+              "x": 49,
+              "y": 968.15
+            },
+            {
+              "x": 63,
+              "y": 949.63
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_grass_right_low",
+        "name": "hautausmaa grass right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1815,
+              "y": 981.48
+            },
+            {
+              "x": 1804,
+              "y": 953.33
+            },
+            {
+              "x": 1828,
+              "y": 969.63
+            },
+            {
+              "x": 1847,
+              "y": 948.15
+            }
+          ],
+          "width": 7,
+          "color": {
+            "r": 65,
+            "g": 112,
+            "b": 111,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_star_low",
+        "name": "hautausmaa star",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 632.65,
+            "y": 202.07,
+            "width": 8.69,
+            "height": 8.69
+          },
+          "color": {
+            "r": 241,
+            "g": 236,
+            "b": 223,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_path_left_low",
+        "name": "hautausmaa path left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 905,
+              "y": 882.96
+            },
+            {
+              "x": 520,
+              "y": 1080.0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 136,
+            "g": 155,
+            "b": 137,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_path_right_low",
+        "name": "hautausmaa path right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1000,
+              "y": 882.96
+            },
+            {
+              "x": 1450,
+              "y": 1080.0
+            }
+          ],
+          "width": 3,
+          "color": {
+            "r": 136,
+            "g": 155,
+            "b": 137,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moss_left_low",
+        "name": "hautausmaa moss left",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 86,
+            "y": 968.89,
+            "width": 128,
+            "height": 12.59
+          },
+          "color": {
+            "r": 104,
+            "g": 134,
+            "b": 117,
+            "a": 255
+          }
+        },
+        "angle": "low"
+      },
+      {
+        "id": "tausta_tausta_hautausmaa_moss_right_low",
+        "name": "hautausmaa moss right",
+        "scene_id": "tausta",
+        "visible": true,
+        "plane": "background",
+        "opacity": 1.0,
+        "attachment": null,
+        "clip": null,
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1590,
+            "y": 982.22,
+            "width": 195,
+            "height": 9.63
+          },
+          "color": {
+            "r": 125,
+            "g": 148,
+            "b": 127,
+            "a": 255
+          }
+        },
+        "angle": "low"
       }
     ]
   }
