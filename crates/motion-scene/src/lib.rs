@@ -935,8 +935,8 @@ pub fn procedural_face(view: FaceView) -> Option<(f64, f64)> {
     }
 }
 
-/// Seconds a change of facing takes: the figure narrows, swaps side at the
-/// midpoint and widens again.
+/// Seconds a smooth change of facing takes: the figure narrows, swaps side at
+/// the midpoint and widens again. `timing: {turn: snap}` skips it.
 pub const TURN_SECONDS: f64 = 0.2;
 /// Narrowest width during a turn, as a fraction of the full width.
 const TURN_MIN_WIDTH: f64 = 0.2;
@@ -951,8 +951,14 @@ fn facing(name: &str) -> (FaceView, f64) {
     }
 }
 /// View and horizontal scale factor from the actor's face events up to `time`.
-/// `events` must be sorted by time; a pure function of its inputs.
-fn facing_at(events: &[&Event], actor: &str, time: f64) -> (FaceView, f64) {
+/// `events` must be sorted by time; a pure function of its inputs. A snap turn
+/// shows the new view from the event on, with no narrowing.
+fn facing_at(
+    events: &[&Event],
+    actor: &str,
+    time: f64,
+    turn: motion_script::timing::Turn,
+) -> (FaceView, f64) {
     let (mut previous, mut current, mut since) = ("front", "front", f64::INFINITY);
     for event in events {
         if let Event::Face {
@@ -970,7 +976,7 @@ fn facing_at(events: &[&Event], actor: &str, time: f64) -> (FaceView, f64) {
         }
     }
     let (from, to) = (facing(previous), facing(current));
-    if from == to || since >= TURN_SECONDS {
+    if from == to || since >= TURN_SECONDS || turn == motion_script::timing::Turn::Snap {
         return to;
     }
     let progress = since / TURN_SECONDS;
@@ -1116,7 +1122,7 @@ fn evaluate_validated(
                     | Event::Pose { .. } => {}
                 }
             }
-            let (view, mirror) = facing_at(&events, id, time_seconds);
+            let (view, mirror) = facing_at(&events, id, time_seconds, timing.turn);
             pose.view = if reversed { turned_around(view) } else { view };
             if let Some(track) = prepared.moves[scene_index].get(id) {
                 // Each move starts where the previous one ended (resolved once);

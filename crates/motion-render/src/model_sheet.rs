@@ -68,12 +68,17 @@ pub fn apply_character_style(rig: &RigDefinition, style: CharacterStyle) -> RigD
                 }
             }
         }
-        OutlineChoice::On { color, width } => {
+        OutlineChoice::On { color, width } | OutlineChoice::PerPart { color, width } => {
+            let mode = if matches!(preset.outline, OutlineChoice::On { .. }) {
+                OutlineMode::Silhouette
+            } else {
+                OutlineMode::Behind
+            };
             for part in &mut out.parts {
                 part.outline = Some(OutlineDefinition {
                     color: [color.r, color.g, color.b, color.a],
                     width,
-                    mode: OutlineMode::Silhouette,
+                    mode,
                 });
                 for variant in part.variants.values_mut().chain(part.views.values_mut()) {
                     variant.outline = None;

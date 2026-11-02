@@ -136,8 +136,13 @@ scenes:
 - `interpolation: stepped` evaluates every key as `hold` for blocking passes;
   `spline` (the default) uses each key's easing. The stored easings are not
   changed, so switching back to `spline` restores the in-betweens.
-- Timing affects character poses only (moves, actor/bone tracks, clips, gaze).
-  The scene clock, camera, fades, audio and speech mouths stay on ones.
+- `turn: snap` draws a `face` event as a drawing swap: the new view appears at
+  full width on the event's (exposed) frame. `smooth` (the default) narrows the
+  figure for `TURN_SECONDS` (0.2 s) and swaps at the midpoint. Unknown values
+  are reported as unsupported. Cut-out characters use `{on: 2, turn: snap}`
+  (see [examples/cutout-cast](../examples/cutout-cast/README.md)).
+- Timing affects character poses only (moves, actor/bone tracks, clips, gaze,
+  facing). The scene clock, camera, fades, audio and speech mouths stay on ones.
 - Other `on` values, unknown `interpolation` values and unknown easing names are
   rejected with their document path, for example
   ``scenes[0].composition.actor_tracks.EMMA[1].easing: unknown easing `bounce`; supported: …``.
