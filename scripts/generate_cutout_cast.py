@@ -141,11 +141,42 @@ def _joints(build):
     return joints
 
 
+def _tube(name, upper, lower, bend, top, bottom, half_top, half_bottom, color):
+    """One seamless piece from `top` to `bottom` (upper-joint local y) skinned
+    to two joints, so it bends smoothly at `bend` (the lower joint) with no
+    seam. Weights blend linearly over the rows either side of the bend."""
+    rows = sorted({y for y in (top, (top + bend) / 2, bend - 6, bend, bend + 6,
+                               (bend + bottom) / 2, bottom) if top <= y <= bottom})
+    def half(y):
+        return half_top + (half_bottom - half_top) * (y - top) / (bottom - top)
+    def weight(y):  # share of the lower joint
+        return min(max((y - (bend - 8)) / 16, 0.0), 1.0)
+    left = [[-round(half(y), 2), round(y, 2)] for y in rows]
+    right = [[round(half(y), 2), round(y, 2)] for y in reversed(rows)]
+    points = left + right
+    skin = []
+    for _, y in points:
+        w = round(weight(y), 4)
+        if w <= 0:
+            skin.append([{"joint": upper, "weight": 1}])
+        elif w >= 1:
+            skin.append([{"joint": lower, "weight": 1}])
+        else:
+            skin.append([{"joint": upper, "weight": round(1 - w, 4)},
+                         {"joint": lower, "weight": w}])
+    part = _polygon(name, upper, points, color)
+    part["skin"] = skin
+    return part
+
+
 def _legs(build, pants, shoes):
     parts = []
+    leg = build["leg"]
     for side, sign in (("l", -1), ("r", 1)):
         parts.extend([
-            _polygon("leg_" + side, "thigh_" + side, _box(-11, -8, 11, build["leg"] + 2), pants),
+            # Thigh and shin share one trouser leg that bends at the knee.
+            _tube("leg_" + side, "thigh_" + side, "shin_" + side, leg, -8, leg + 6, 11, 10.5,
+                  pants),
             _ellipse("shoe_" + side, "foot_" + side, sign * 4, 3, 16, 7.5, shoes),
         ])
     return parts
@@ -163,10 +194,9 @@ def _arms(sleeve, hand):
     parts = []
     for side in ("l", "r"):
         parts.extend([
-            _polygon("upper_arm_" + side, "upper_arm_" + side,
-                     [[-8, -8], [8, -8], [7.5, 21], [-7.5, 21]], sleeve),
-            _polygon("forearm_" + side, "forearm_" + side,
-                     [[-7.5, -3], [7.5, -3], [7, 15], [-7, 15]], sleeve),
+            # One sleeve from shoulder to wrist, bending at the elbow (y=18).
+            _tube("arm_" + side, "upper_arm_" + side, "forearm_" + side, 18, -8, 33, 8, 7,
+                  sleeve),
             _ellipse("hand_" + side, "hand_" + side, 0, 6, 8.5, 9.5, hand),
         ])
     return parts

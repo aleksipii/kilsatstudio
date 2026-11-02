@@ -31,6 +31,21 @@ class CutoutCastTest(unittest.TestCase):
             self.assertEqual(joints, cast.JOINT_IDS)
             self.assertEqual(tuple(character["rig"]["visemes"]["map"]), cast.VISEME_NAMES)
 
+    def test_sleeves_and_trouser_legs_are_single_seamless_skinned_pieces(self):
+        for identifier, character in cast.characters().items():
+            parts = {part["id"]: part for part in character["rig"]["parts"]}
+            for side in ("l", "r"):
+                self.assertNotIn("upper_arm_" + side, parts, identifier)
+                self.assertNotIn("forearm_" + side, parts, identifier)
+                for name, upper, lower in (("arm_" + side, "upper_arm_" + side, "forearm_" + side),
+                                           ("leg_" + side, "thigh_" + side, "shin_" + side)):
+                    part = parts[name]
+                    self.assertEqual(len(part["skin"]), len(part["points"]))
+                    joints = {w["joint"] for weights in part["skin"] for w in weights}
+                    self.assertEqual(joints, {upper, lower}, (identifier, name))
+                    for weights in part["skin"]:
+                        self.assertAlmostEqual(sum(w["weight"] for w in weights), 1.0)
+
     def test_check_rejects_shapes_the_rig_validator_would_refuse(self):
         def broken(change):
             definitions = cast.characters()

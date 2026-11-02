@@ -42,6 +42,11 @@ Jokaisella hahmolla on `timing: {on: 2, turn: snap}`:
 - `turn: snap` vaihtaa näkymän (edestä, puolisivulta, sivulta, takaa)
   heti `face`-tapahtuman ruudulla ilman pehmeää kapenemista.
 
+Hiha on yksi saumaton pala olkapäästä ranteeseen. Se on sidottu sekä olka- että
+kyynärniveleen (kahden nivelen skinning), joten käsi taipuu kyynärpäästä ilman
+saumaa. Lahje taipuu samalla tavalla polvesta. Lapaset ja kengät ovat erillisiä
+paloja.
+
 Hiuksilla, lakeilla, viiksillä ja vaatteiden yksityiskohdilla on omat
 piirroksensa jokaiseen näkymään (`views`). Silmät, kulmakarvat ja suu
 kääntyvät riggin omalla kasvojen käännöllä ja piiloutuvat takaa katsottuna.
