@@ -18,6 +18,12 @@ pub fn describe(note: &StagingNote) -> String {
             "Ruudut {}–{}: {actions} alkavat ja loppuvat samassa ruudussa. Porrasta 2–4 ruudulla, esimerkiksi stagger-operaatiolla ja viiveellä 3f.",
             note.start_frame, note.end_frame
         ),
+        StagingCheck::GroundedArc => format!(
+            "Ruudut {}–{}: {actions} kulkee askeltaen kaarella, joka poikkeaa suorasta radasta yli {} % kuvan korkeudesta, joten hahmo näyttää astelevan ilmassa. Käytä hyppyyn askellajia leap tai loivempaa kaarta. Jos kaari kuvaa kiertoa syvyyssuunnassa, vihjeen voi ohittaa.",
+            note.start_frame,
+            note.end_frame,
+            (motion_script::GROUNDED_ARC_LIFT * 100.0).round()
+        ),
         StagingCheck::AnticipationShortened => format!(
             "Ruutu {}: {actions}: anticipation_frames ei mahdu 30 prosenttiin eleestä, joten ennakointia lyhennetään. Pidennä elettä tai pienennä ruutumäärää.",
             note.start_frame
@@ -68,6 +74,20 @@ mod tests {
             })
             .collect::<Vec<_>>()
             .join("\n")
+    }
+
+    #[test]
+    fn a_walk_on_a_high_arc_is_described_in_finnish() {
+        let script = motion_script::parse("project: {title: T, fps: 24, width: 640, height: 360}\ncharacters:\n  A: {asset: a}\nscenes:\n  - id: s\n    duration: 4\n    events:\n      - {type: move, actor: A, at: 0, x: 600, y: 252, duration: 1, arc: 0.3}\n").unwrap();
+        let notes = check_staging(&script);
+        assert_eq!(notes.len(), 1);
+        let text = describe(&notes[0]);
+        assert!(
+            text.starts_with("Ruudut 0–24: A (liike) kulkee askeltaen kaarella"),
+            "{text}"
+        );
+        assert!(text.contains("yli 3 %"), "{text}");
+        assert!(text.contains("leap"), "{text}");
     }
 
     #[test]

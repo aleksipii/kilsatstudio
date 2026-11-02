@@ -49,7 +49,9 @@ pub use shots::{
     MAX_LINE_SECONDS, MAX_SHOTS, MAX_SHOT_EVENTS, MAX_SHOT_SECONDS, MAX_TAIL,
     OVER_THE_SHOULDER_SHIFT,
 };
-pub use staging::{check_staging, StagedAction, StagingCheck, StagingNote, STAGGER_HINT_FRAMES};
+pub use staging::{
+    check_staging, StagedAction, StagingCheck, StagingNote, GROUNDED_ARC_LIFT, STAGGER_HINT_FRAMES,
+};
 use std::collections::BTreeMap;
 pub use timing::{ActorEasing, ResolvedTiming, Timing, EASINGS};
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -600,6 +602,13 @@ pub struct Project {
     /// Opt-in captions derived from `speak` events. Absent: no captions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub captions: Option<CaptionStyle>,
+}
+impl Project {
+    /// Where every actor stands before its first move: centred, at 70 % of
+    /// the height.
+    pub fn actor_start(&self) -> (f64, f64) {
+        (self.width as f64 / 2.0, self.height as f64 * 0.7)
+    }
 }
 impl Default for Project {
     fn default() -> Self {

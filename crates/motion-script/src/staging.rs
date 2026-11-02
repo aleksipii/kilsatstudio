@@ -11,17 +11,29 @@
 //! * **Anticipation shortened** (`anticipation_shortened`). A gesture of a
 //!   rigged character asks for `anticipation_frames` that do not fit into 30 %
 //!   of the gesture, so the rig layer shortens the anticipation.
+//! * **Grounded arc** (`grounded_arc`). A move with a ground gait (anything but
+//!   `leap`; `walk` when no gait is given) whose `arc` or `bezier` route strays
+//!   more than [`GROUNDED_ARC_LIFT`] of the frame height from the straight
+//!   line. The feet keep stepping while the body rises or sinks, which reads as
+//!   stepping in the air. Use `gait: leap` for a jump, or a flatter route; a
+//!   curve that stands for a path through depth may be kept.
 use crate::{Event, Script};
+use motion_animation::{MovePath, Vec2};
 use std::collections::BTreeMap;
 
 /// Smallest and largest stagger offset the hint recommends, in frames.
 pub const STAGGER_HINT_FRAMES: (u32, u32) = (2, 4);
+
+/// Largest distance of a ground gait's route from the straight line, as a
+/// fraction of the frame height, before the grounded-arc hint.
+pub const GROUNDED_ARC_LIFT: f64 = 0.03;
 
 /// A staging hint kind.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StagingCheck {
     SimultaneousActions,
     AnticipationShortened,
+    GroundedArc,
 }
 
 impl StagingCheck {
@@ -30,6 +42,7 @@ impl StagingCheck {
         match self {
             Self::SimultaneousActions => "simultaneous_actions",
             Self::AnticipationShortened => "anticipation_shortened",
+            Self::GroundedArc => "grounded_arc",
         }
     }
 }
@@ -138,12 +151,107 @@ pub fn check_staging(script: &Script) -> Vec<StagingNote> {
             });
         }
     }
+    notes.extend(grounded_arcs(script));
     notes.sort_by(|a, b| {
         a.scene_index
             .cmp(&b.scene_index)
             .then(a.at.total_cmp(&b.at))
             .then(a.check.cmp(&b.check))
     });
+    notes
+}
+
+/// Largest distance of `path` from the straight line `from → to`, in pixels.
+fn route_deviation(path: MovePath, from: Vec2, to: Vec2) -> f64 {
+    let (cx, cy) = (to.x - from.x, to.y - from.y);
+    let length = cx.hypot(cy);
+    (1..32)
+        .map(|i| {
+            let p = path.point(from, to, i as f64 / 32.0);
+            let (dx, dy) = (p.x - from.x, p.y - from.y);
+            if length == 0.0 {
+                dx.hypot(dy)
+            } else {
+                (dx * cy - dy * cx).abs() / length
+            }
+        })
+        .fold(0.0, f64::max)
+}
+
+/// Moves with a ground gait on a route far from the straight line.
+fn grounded_arcs(script: &Script) -> Vec<StagingNote> {
+    let fps = script.project.fps.max(1);
+    let frame = |seconds: f64| (seconds * fps as f64).round() as i64;
+    let limit = GROUNDED_ARC_LIFT * script.project.height as f64;
+    let (start_x, start_y) = script.project.actor_start();
+    let mut notes = Vec::new();
+    for (scene_index, scene) in script.scenes.iter().enumerate() {
+        // Each actor's moves in time order: a move starts where the previous ended.
+        let mut moves: Vec<_> = scene
+            .events
+            .iter()
+            .enumerate()
+            .filter(|(_, e)| matches!(e, Event::Move { .. }))
+            .collect();
+        moves.sort_by(|a, b| {
+            a.1.actor_time()
+                .0
+                .total_cmp(&b.1.actor_time().0)
+                .then(a.0.cmp(&b.0))
+        });
+        let mut positions: BTreeMap<&str, Vec2> = BTreeMap::new();
+        for (event_index, event) in moves {
+            let Event::Move {
+                at,
+                actor,
+                x,
+                y,
+                duration,
+                gait,
+                arc,
+                bezier,
+                ..
+            } = event
+            else {
+                continue;
+            };
+            let to = Vec2::new(*x, *y);
+            let from = positions
+                .insert(actor, to)
+                .unwrap_or(Vec2::new(start_x, start_y));
+            let point = |p: &crate::PathPoint| Vec2::new(p.x, p.y);
+            let path = match (arc, bezier.as_deref()) {
+                (_, Some([c])) => MovePath::Quadratic(point(c)),
+                (_, Some([c1, c2])) => MovePath::Cubic(point(c1), point(c2)),
+                (Some(h), _) => MovePath::Arc(*h),
+                _ => continue,
+            };
+            let gait = gait.as_deref().unwrap_or("walk");
+            if gait == "leap" {
+                continue;
+            }
+            let deviation = route_deviation(path, from, to);
+            if deviation <= limit {
+                continue;
+            }
+            notes.push(StagingNote {
+                check: StagingCheck::GroundedArc,
+                scene_id: scene.id.clone(),
+                scene_index,
+                at: *at,
+                start_frame: frame(*at),
+                end_frame: frame(at + duration),
+                actions: vec![StagedAction {
+                    actor: actor.clone(),
+                    kind: "move",
+                    event_index,
+                }],
+                message: format!(
+                    "{actor} move: a {gait} on a route {deviation:.0} px from the straight line steps in the air; use gait: leap for a jump or keep the route within {limit:.0} px"
+                ),
+            });
+        }
+    }
     notes
 }
 
@@ -232,6 +340,47 @@ mod tests {
             );
             assert!(check_staging(&s).is_empty(), "{second}");
         }
+    }
+
+    #[test]
+    fn walks_far_off_the_straight_line_are_hinted_but_leaps_are_not() {
+        let mv = |extra: &str| {
+            script(
+                &format!(
+                    "      - {{type: move, actor: A, at: 0, x: 600, y: 252, duration: 1{extra}}}\n"
+                ),
+                "  A: {asset: a}\n",
+            )
+        };
+        // From (320, 252) to (600, 252): 280 px; the limit is 3 % of 360 = 10.8 px.
+        let high = check_staging(&mv(", arc: 0.2"));
+        assert_eq!(high.len(), 1, "{high:?}");
+        assert_eq!(high[0].check, StagingCheck::GroundedArc);
+        assert!(high[0].message.contains("walk"), "{}", high[0].message);
+        assert!(high[0].message.contains("56 px"), "{}", high[0].message);
+        assert!(check_staging(&mv(", arc: 0.2, gait: leap")).is_empty());
+        assert!(
+            check_staging(&mv(", arc: 0.03")).is_empty(),
+            "a low arc is fine"
+        );
+        assert!(check_staging(&mv("")).is_empty(), "straight");
+        let curve = check_staging(&mv(", gait: run, bezier: [{x: 460, y: 100}]"));
+        assert_eq!(curve.len(), 1);
+        assert!(curve[0].message.contains("run"), "{}", curve[0].message);
+    }
+
+    #[test]
+    fn grounded_arcs_start_where_the_previous_move_ended() {
+        // The second move goes straight up from (600, 252) to (600, 100); a
+        // small arc on that vertical chord bulges sideways by 0.2 * 152 px.
+        let s = script(
+            "      - {type: move, actor: A, at: 2, x: 600, y: 100, duration: 1, arc: 0.2}\n      - {type: move, actor: A, at: 0, x: 600, y: 252, duration: 1}\n",
+            "  A: {asset: a}\n",
+        );
+        let notes = check_staging(&s);
+        assert_eq!(notes.len(), 1, "{notes:?}");
+        assert!(notes[0].message.contains("30 px"), "{}", notes[0].message);
+        assert_eq!(notes[0].actions[0].event_index, 0);
     }
 
     #[test]

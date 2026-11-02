@@ -432,10 +432,8 @@ fn still_seconds(events: &[&Event], actor: &str, time: f64) -> Option<f64> {
 }
 /// Where every actor stands before its first move.
 fn actor_base(script: &Script) -> Vec2 {
-    Vec2::new(
-        script.project.width as f64 / 2.0,
-        script.project.height as f64 * 0.7,
-    )
+    let (x, y) = script.project.actor_start();
+    Vec2::new(x, y)
 }
 fn prepare_bones(
     tracks: &std::collections::BTreeMap<String, Vec<motion_script::ActorKey>>,
