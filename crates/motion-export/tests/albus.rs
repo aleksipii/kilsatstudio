@@ -53,7 +53,11 @@ fn albus_has_a_complete_model_sheet() {
         images: None,
     };
     let sheet = render_model_sheet(&r, &options).unwrap();
-    assert_eq!(sheet, render_model_sheet(&r, &options).unwrap(), "byte-stable");
+    assert_eq!(
+        sheet,
+        render_model_sheet(&r, &options).unwrap(),
+        "byte-stable"
+    );
     assert_eq!(
         sheet.expressions,
         ["neutral", "happy", "sad", "surprised", "angry", "blink"]
@@ -106,7 +110,14 @@ fn every_expression_changes_the_face_and_ears_stay_from_behind() {
 fn albus_scenes_play_and_render() {
     let (script, art) = demo();
     let images = BTreeMap::new();
-    let albus = |scene: &EvaluatedScene| scene.actors.iter().find(|a| a.id == "ALBUS").unwrap().clone();
+    let albus = |scene: &EvaluatedScene| {
+        scene
+            .actors
+            .iter()
+            .find(|a| a.id == "ALBUS")
+            .unwrap()
+            .clone()
+    };
     // The foot goes up on the amp in the middle of that move.
     let rest = albus(&at(&script, 0, 0.0));
     let up = albus(&at(&script, 0, 12.0));
@@ -114,7 +125,10 @@ fn albus_scenes_play_and_render() {
         let shoe = a.rigid_parts.iter().find(|p| p.id == "shoe_r").unwrap();
         shoe.points.iter().map(|p| p.y).sum::<f64>() / shoe.points.len() as f64
     };
-    assert!(shoe_y(&up) < shoe_y(&rest) - 15.0, "foot raised onto the amp");
+    assert!(
+        shoe_y(&up) < shoe_y(&rest) - 15.0,
+        "foot raised onto the amp"
+    );
     // While strumming, the right paw (screen left) stays over the guitar body
     // between keys; interpolated negative angles must not hit a joint limit.
     let centre = |a: &motion_scene::ActorPose, id: &str| {
@@ -131,7 +145,10 @@ fn albus_scenes_play_and_render() {
         let (gx, gy) = centre(&playing, "guitar_body");
         let reach = (px - gx).hypot(py - gy);
         let size = playing.scale.x.abs() * 30.0;
-        assert!(reach < size, "{seconds}s: strumming paw {reach:.1} from the guitar");
+        assert!(
+            reach < size,
+            "{seconds}s: strumming paw {reach:.1} from the guitar"
+        );
     }
     let moves = [
         ("soitto", 1.3),
