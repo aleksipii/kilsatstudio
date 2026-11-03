@@ -1,0 +1,39 @@
+name: iPad app
+on:
+  pull_request:
+    paths:
+      - 'apps/studio-ipad/**'
+      - 'crates/**'
+      - 'scripts/build_ipad_core.sh'
+      - 'Cargo.lock'
+      - '.github/workflows/ipad-app.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ipad-app-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ipad-build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios, aarch64-apple-ios-sim
+      - name: Test the C interface
+        run: cargo test --locked -p motion-ffi
+      - name: Build the Rust core for iPad and the iPad simulator
+        run: scripts/build_ipad_core.sh release
+      - name: Generate the Xcode project
+        run: |
+          brew install xcodegen
+          cd apps/studio-ipad && xcodegen generate
+      - name: Build the app for iPad devices and the simulator (unsigned)
+        run: |
+          cd apps/studio-ipad
+          for destination in 'generic/platform=iOS' 'generic/platform=iOS Simulator'; do
+            xcodebuild -project KoetaStudio.xcodeproj -scheme KoetaStudio -destination "$destination" \
+              -derivedDataPath DerivedData build CODE_SIGNING_ALLOWED=NO
+          done

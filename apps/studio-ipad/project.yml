@@ -1,0 +1,52 @@
+# XcodeGen spec for the Koeta Studio iPad app. Generate the Xcode project with
+#   scripts/build_ipad_core.sh && (cd apps/studio-ipad && xcodegen generate)
+# The generated KoetaStudio.xcodeproj and Build/ are not committed.
+name: KoetaStudio
+options:
+  bundleIdPrefix: studio.kilsat
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  KoetaStudio:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: ../../examples/hello-emma.yaml
+        buildPhase: resources
+      - path: ../../examples/studio-production-demo.kilsat
+        buildPhase: resources
+    dependencies:
+      - framework: Build/KoetaCore.xcframework
+        embed: false
+    info:
+      path: Build/Info.plist
+      properties:
+        CFBundleDisplayName: Koeta Studio
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: studio.kilsat.project
+            UTTypeDescription: Koeta Studio Project
+            UTTypeConformsTo: [public.json]
+            UTTypeTagSpecification:
+              public.filename-extension: [kilsat]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: studio.kilsat.studio.ipad
+        TARGETED_DEVICE_FAMILY: "2"
+        SUPPORTS_MACCATALYST: NO
+        CODE_SIGN_STYLE: Automatic
+        # The Rust core ships an arm64 simulator slice only (Apple Silicon Macs).
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
