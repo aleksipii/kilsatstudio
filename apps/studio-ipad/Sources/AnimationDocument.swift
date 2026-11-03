@@ -1,3 +1,4 @@
+import AVFoundation
 import CoreGraphics
 import Foundation
 import KoetaCore
@@ -17,9 +18,10 @@ private func takeString(_ pointer: UnsafeMutablePointer<CChar>?) -> String? {
 
 /// An opened MotionScript screenplay or .kilsat project.
 ///
-/// All parsing, evaluation and rendering happen in the shared Rust core, so the
-/// iPad shows the same frames as export on the Mac. The core locks its own
-/// preview cache, so rendering may run off the main thread.
+/// All parsing, evaluation, audio mixing and rendering happen in the shared Rust
+/// core, so the iPad shows the same frames and plays the same mix as export on
+/// the Mac. The core locks its own caches, so rendering and audio preparation
+/// may run on different background queues.
 final class AnimationDocument: @unchecked Sendable {
     struct Scene: Identifiable, Hashable {
         let index: UInt32
@@ -32,11 +34,11 @@ final class AnimationDocument: @unchecked Sendable {
     let fps: UInt32
     let scenes: [Scene]
 
-    init(data: Data) throws {
+    /// Opens a file by path. Image assets load here; imported audio is read
+    /// later from the same folder, so keep read access to it while open.
+    init(url: URL) throws {
         var error: UnsafeMutablePointer<CChar>?
-        let opened = data.withUnsafeBytes { bytes in
-            koeta_document_open(bytes.bindMemory(to: UInt8.self).baseAddress, bytes.count, &error)
-        }
+        let opened = url.path.withCString { koeta_document_open_path($0, &error) }
         guard let opened else {
             throw CoreError(message: takeString(error) ?? "Tiedostoa ei voitu avata.")
         }
@@ -81,5 +83,40 @@ final class AnimationDocument: @unchecked Sendable {
             throw CoreError(message: "Ruudun kuvaa ei voitu muodostaa.")
         }
         return image
+    }
+
+    /// The scene's mix of imported dialogue and audio cues as 24 kHz mono, or nil
+    /// when the scene has no audio. Never synthesizes speech: a line without its
+    /// WAV file throws. Blocking, so call it off the main thread. Afterwards the
+    /// scene's rendered frames show mouths from the same manifest as export.
+    func sceneAudio(scene: UInt32) throws -> AVAudioPCMBuffer? {
+        var audio = KoetaAudio(samples: nil, len: 0, sample_rate: 0)
+        var error: UnsafeMutablePointer<CChar>?
+        guard koeta_scene_audio(handle, scene, &audio, &error) else {
+            throw CoreError(message: takeString(error) ?? "Ääntä ei voitu valmistella.")
+        }
+        defer { koeta_audio_free(&audio) }
+        guard let samples = audio.samples, audio.len > 0 else { return nil }
+        guard let format = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32, sampleRate: Double(audio.sample_rate),
+                channels: 1, interleaved: false),
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(audio.len)),
+              let channel = buffer.floatChannelData?[0]
+        else {
+            throw CoreError(message: "Äänipuskuria ei voitu varata.")
+        }
+        channel.update(from: samples, count: audio.len)
+        buffer.frameLength = AVAudioFrameCount(audio.len)
+        return buffer
+    }
+
+    /// Frame that shows `sample` on the shared 24 kHz clock.
+    func frame(atSample sample: UInt64) -> UInt64 {
+        koeta_document_frame_at_sample(handle, sample)
+    }
+
+    /// First sample of `frame` on the shared 24 kHz clock.
+    func startSample(ofFrame frame: UInt64) -> UInt64 {
+        koeta_document_frame_start_sample(handle, frame)
     }
 }

@@ -14,11 +14,18 @@ struct KoetaStudioApp: App {
         }
     }
 
-    /// `--open-example NAME` opens a bundled example at launch (UI smoke tests).
+    /// `--open-example NAME [--scene N] [--play]` opens a bundled example, or a file in the
+    /// app's Files folder, at launch, selects scene N and plays (UI smoke tests).
     private func openLaunchExample() {
         let arguments = ProcessInfo.processInfo.arguments
-        if let flag = arguments.firstIndex(of: "--open-example"), arguments.indices.contains(flag + 1) {
-            player.openExample(named: arguments[flag + 1])
+        func value(_ flag: String) -> String? {
+            guard let index = arguments.firstIndex(of: flag), arguments.indices.contains(index + 1)
+            else { return nil }
+            return arguments[index + 1]
+        }
+        player.playWhenReady = arguments.contains("--play")
+        if let name = value("--open-example") {
+            player.openExample(named: name, scene: value("--scene").flatMap(Int.init))
         }
     }
 }

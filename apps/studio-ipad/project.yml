@@ -22,6 +22,10 @@ targets:
         buildPhase: resources
       - path: ../../examples/studio-production-demo.kilsat
         buildPhase: resources
+      # Folder reference keeps assets/ next to the episodes, as on disk.
+      - path: ../../examples/kilsat-season
+        type: folder
+        buildPhase: resources
     dependencies:
       - framework: Build/KoetaCore.xcframework
         embed: false
@@ -31,6 +35,10 @@ targets:
         CFBundleDisplayName: Koeta Studio
         UILaunchScreen: {}
         UIApplicationSupportsIndirectInputEvents: true
+        # The app's Documents folder appears in Files as "Koeta Studio", so whole
+        # project folders (with images and audio) can be copied onto the iPad.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown

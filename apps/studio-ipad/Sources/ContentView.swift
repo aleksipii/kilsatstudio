@@ -5,8 +5,13 @@ import UniformTypeIdentifiers
 /// NavigationSplitView collapses to one column in narrow Split View and
 /// Slide Over, so the same layout serves iPad mini to the 13-inch iPad Pro.
 struct ContentView: View {
+    /// What the one file importer picks. SwiftUI supports a single
+    /// `fileImporter` per view, so the mode selects its content types.
+    enum ImportMode { case file, folder }
+
     @EnvironmentObject private var player: PlayerModel
     @State private var importing = false
+    @State private var importMode = ImportMode.file
 
     var body: some View {
         NavigationSplitView {
@@ -15,14 +20,22 @@ struct ContentView: View {
         } detail: {
             Group {
                 if player.document == nil {
-                    Welcome(importing: $importing)
+                    Welcome(importing: $importing, importMode: $importMode)
                 } else {
                     PreviewScreen()
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
                     Button {
+                        importMode = .folder
+                        importing = true
+                    } label: {
+                        Label("Avaa kansio", systemImage: "folder.badge.plus")
+                    }
+                    .keyboardShortcut("o", modifiers: [.command, .shift])
+                    Button {
+                        importMode = .file
                         importing = true
                     } label: {
                         Label("Avaa", systemImage: "folder")
@@ -32,11 +45,19 @@ struct ContentView: View {
             }
         }
         .fileImporter(isPresented: $importing,
-                      allowedContentTypes: [.yaml, .koetaProject, .json, .plainText]) { result in
+                      allowedContentTypes: importMode == .folder
+                          ? [.folder] : [.yaml, .koetaProject, .json, .plainText]) { result in
             switch result {
-            case .success(let url): player.open(url: url)
+            case .success(let url):
+                importMode == .folder ? player.open(folder: url) : player.open(url: url)
             case .failure(let error): player.errorMessage = error.localizedDescription
             }
+        }
+        .sheet(isPresented: Binding(
+            get: { !player.folderChoices.isEmpty },
+            set: { if !$0 { player.cancelFolderChoice() } })
+        ) {
+            FolderChoice()
         }
         .alert("Koeta Studio", isPresented: Binding(
             get: { player.errorMessage != nil },
@@ -80,24 +101,55 @@ private struct SceneList: View {
     }
 }
 
+/// Several project files in an opened folder: pick the one to open.
+private struct FolderChoice: View {
+    @EnvironmentObject private var player: PlayerModel
+
+    var body: some View {
+        NavigationStack {
+            List(player.folderChoices, id: \.self) { url in
+                Button(url.lastPathComponent) { player.choose(url) }
+            }
+            .navigationTitle("Valitse projekti")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Peru") { player.cancelFolderChoice() }
+                }
+            }
+        }
+    }
+}
+
 private struct Welcome: View {
     @EnvironmentObject private var player: PlayerModel
     @Binding var importing: Bool
+    @Binding var importMode: ContentView.ImportMode
 
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "figure.wave").font(.system(size: 64)).foregroundStyle(.tint)
             Text("Koeta Studio").font(.largeTitle.bold())
-            Text("Avaa MotionScript-käsikirjoitus (.yaml) tai Koeta-projekti (.kilsat) Tiedostot-sovelluksesta.")
-                .multilineTextAlignment(.center).foregroundStyle(.secondary).frame(maxWidth: 420)
-            Button("Avaa tiedosto…") { importing = true }.buttonStyle(.borderedProminent)
+            Text("Avaa MotionScript-käsikirjoitus (.yaml) tai Koeta-projekti (.kilsat) Tiedostot-sovelluksesta. Jos projektissa on kuvia tai äänitiedostoja, avaa sen kansio, jotta sovellus saa luvan niihin.")
+                .multilineTextAlignment(.center).foregroundStyle(.secondary).frame(maxWidth: 460)
             HStack {
-                Button("Esimerkki: Hello Emma") { player.openExample(named: "hello-emma.yaml") }
-                Button("Esimerkki: tuotantodemo") { player.openExample(named: "studio-production-demo.kilsat") }
+                Button("Avaa kansio…") { importMode = .folder; importing = true }
+                Button("Avaa tiedosto…") { importMode = .file; importing = true }
+            }
+            .buttonStyle(.borderedProminent)
+            ViewThatFits {
+                HStack { examples }
+                VStack { examples }
             }
             .buttonStyle(.bordered)
         }
         .padding()
+    }
+
+    @ViewBuilder private var examples: some View {
+        Button("Esimerkki: Hello Emma") { player.openExample(named: "hello-emma.yaml") }
+        Button("Esimerkki: tuotantodemo") { player.openExample(named: "studio-production-demo.kilsat") }
+        Button("Esimerkki: kuvallinen jakso") { player.openExample(named: "kilsat-season/ep02.kilsat") }
     }
 }
 
@@ -168,8 +220,34 @@ private struct Transport: View {
             }
             .buttonStyle(.borderless)
             .imageScale(.large)
+            AudioStatusLine(status: player.audioStatus)
         }
         .padding()
         .background(.bar)
+    }
+}
+
+/// Whether the scene plays with sound, and why not when it cannot.
+private struct AudioStatusLine: View {
+    let status: PlayerModel.AudioStatus
+
+    var body: some View {
+        switch status {
+        case .none:
+            EmptyView()
+        case .loading:
+            Label("Ääntä valmistellaan…", systemImage: "hourglass")
+                .font(.footnote).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        case .ready:
+            Label("Ääni: tuodut äänitiedostot", systemImage: "speaker.wave.2")
+                .font(.footnote).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        case .unavailable(let message):
+            Label(message, systemImage: "speaker.slash")
+                .font(.footnote).foregroundStyle(.orange)
+                .lineLimit(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
