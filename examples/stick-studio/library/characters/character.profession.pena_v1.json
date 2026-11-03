@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.pena_v1",
+  "kind": "character",
+  "name": "Rakentaja Pena",
+  "bounds": {
+    "x": -57,
+    "y": -271,
+    "width": 125,
+    "height": 421
+  },
+  "depth": "mid",
+  "tags": [
+    "rakentaja",
+    "builder",
+    "työmaa",
+    "construction",
+    "aikuinen",
+    "adult",
+    "profession",
+    "broad",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/pena.kilsat",
+    "sha256": "04669ebc5aa0ac863582586a279129f3070ce5db5b3c971196011fc8919e3a85"
+  },
+  "character": {
+    "id": "PENA",
+    "role": "Jykevä rakennusmies / Sturdy builder",
+    "age": "adult",
+    "build": "broad",
+    "acting": "proud",
+    "height": 395.1
+  }
+}

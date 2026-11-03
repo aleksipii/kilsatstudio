@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.antti_v1",
+  "kind": "character",
+  "name": "Lentäjä Antti",
+  "bounds": {
+    "x": -51,
+    "y": -268,
+    "width": 102,
+    "height": 418
+  },
+  "depth": "mid",
+  "tags": [
+    "lentäjä",
+    "pilot",
+    "lento",
+    "flight",
+    "aikuinen",
+    "adult",
+    "profession",
+    "average",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/antti.kilsat",
+    "sha256": "24ab23543f596dd362c83d56ded4b48f4e6e0806fe6530e0728e317768fd60c0"
+  },
+  "character": {
+    "id": "ANTTI",
+    "role": "Varma lentäjä / Confident pilot",
+    "age": "adult",
+    "build": "average",
+    "acting": "proud",
+    "height": 395.1
+  }
+}

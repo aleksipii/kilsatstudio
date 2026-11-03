@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.family.sanna_v1",
+  "kind": "character",
+  "name": "Äiti Sanna",
+  "bounds": {
+    "x": -55,
+    "y": -251,
+    "width": 108,
+    "height": 395
+  },
+  "depth": "mid",
+  "tags": [
+    "äiti",
+    "mum",
+    "koti",
+    "home",
+    "aikuinen",
+    "adult",
+    "family",
+    "average",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/sanna.kilsat",
+    "sha256": "57569cb1ca52c7cda82cd2ce23e39de14c53cde6ceba354888a34fd8547a10fe"
+  },
+  "character": {
+    "id": "SANNA",
+    "role": "Järjestelmällinen äiti / Organised mum",
+    "age": "adult",
+    "build": "average",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

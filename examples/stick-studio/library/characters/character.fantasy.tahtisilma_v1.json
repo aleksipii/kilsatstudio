@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.fantasy.tahtisilma_v1",
+  "kind": "character",
+  "name": "Velho Tähtisilmä",
+  "bounds": {
+    "x": -65,
+    "y": -334,
+    "width": 139,
+    "height": 490
+  },
+  "depth": "mid",
+  "tags": [
+    "velho",
+    "wizard",
+    "taikuus",
+    "magic",
+    "vanhus",
+    "elder",
+    "fantasy",
+    "slim",
+    "stoic",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/tahtisilma.kilsat",
+    "sha256": "ff3c252bb307d915f64324b18ef60cb8e7a2808e80efd9ccb23a63d1661b1086"
+  },
+  "character": {
+    "id": "TAHTISILMA",
+    "role": "Unelias velho / Sleepy wizard",
+    "age": "elder",
+    "build": "slim",
+    "acting": "stoic",
+    "height": 375.5
+  }
+}

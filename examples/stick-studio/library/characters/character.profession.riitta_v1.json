@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.riitta_v1",
+  "kind": "character",
+  "name": "Siivooja Riitta",
+  "bounds": {
+    "x": -51,
+    "y": -251,
+    "width": 143,
+    "height": 401
+  },
+  "depth": "mid",
+  "tags": [
+    "siivous",
+    "cleaning",
+    "huolto",
+    "maintenance",
+    "aikuinen",
+    "adult",
+    "profession",
+    "average",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/riitta.kilsat",
+    "sha256": "c2a96c9564d990f3196412d8e6b026581e445ff78d795aeb13e3c421719a32c6"
+  },
+  "character": {
+    "id": "RIITTA",
+    "role": "Tehokas siivooja / Efficient cleaner",
+    "age": "adult",
+    "build": "average",
+    "acting": "lively",
+    "height": 378.8
+  }
+}

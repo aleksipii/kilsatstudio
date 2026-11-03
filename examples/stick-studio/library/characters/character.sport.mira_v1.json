@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "character.sport.mira_v1",
+  "kind": "character",
+  "name": "Urheilija Mira",
+  "bounds": {
+    "x": -49,
+    "y": -244,
+    "width": 116,
+    "height": 388
+  },
+  "depth": "mid",
+  "tags": [
+    "urheilu",
+    "sport",
+    "valmentaja",
+    "coach",
+    "aikuinen",
+    "adult",
+    "average",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/mira.kilsat",
+    "sha256": "8ca9a243bb25a21aa33890abd4ee01bff2fad76c1769c2e772cf872dd72c976b"
+  },
+  "character": {
+    "id": "MIRA",
+    "role": "Sinnikäs urheilija / Determined athlete",
+    "age": "adult",
+    "build": "average",
+    "acting": "lively",
+    "height": 378.8
+  }
+}

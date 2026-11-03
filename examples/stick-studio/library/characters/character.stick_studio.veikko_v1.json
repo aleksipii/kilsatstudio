@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.stick_studio.veikko_v1",
+  "kind": "character",
+  "name": "Veikko",
+  "bounds": {
+    "x": -49,
+    "y": -253,
+    "width": 104,
+    "height": 397
+  },
+  "depth": "mid",
+  "tags": [
+    "työmatka",
+    "commuter",
+    "arki",
+    "everyday",
+    "aikuinen",
+    "adult",
+    "stick_studio",
+    "average",
+    "tired",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "characters/veikko.kilsat",
+    "sha256": "0672fbb198d8b8b17e5edc5fb82f2196e25be376ec1011f7f2580662e2ff4f2b"
+  },
+  "character": {
+    "id": "VEIKKO",
+    "role": "Samaistuttava työmatkalainen / Relatable commuter",
+    "age": "adult",
+    "build": "average",
+    "acting": "tired",
+    "height": 378.8
+  }
+}

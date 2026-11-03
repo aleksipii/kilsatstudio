@@ -79,6 +79,7 @@ fn base(id: &str, kind: Kind, name: &str, bounds: Rect, depth: Depth, t: &[&str]
         cameras: Vec::new(),
         marks: Vec::new(),
         atmosphere: None,
+        character: None,
     }
 }
 

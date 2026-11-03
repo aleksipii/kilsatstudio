@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.fantasy.rautio_v1",
+  "kind": "character",
+  "name": "Ritari Rautio",
+  "bounds": {
+    "x": -56,
+    "y": -290,
+    "width": 129,
+    "height": 438
+  },
+  "depth": "mid",
+  "tags": [
+    "ritari",
+    "knight",
+    "linna",
+    "castle",
+    "aikuinen",
+    "adult",
+    "fantasy",
+    "broad",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/rautio.kilsat",
+    "sha256": "a2d88734fdcba92531b7e33776b1fb179d78c45df53e90809d534d3e144c4b80"
+  },
+  "character": {
+    "id": "RAUTIO",
+    "role": "Ylpeä ritari / Proud knight",
+    "age": "adult",
+    "build": "broad",
+    "acting": "proud",
+    "height": 388.6
+  }
+}

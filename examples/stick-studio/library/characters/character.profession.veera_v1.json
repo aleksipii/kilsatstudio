@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.veera_v1",
+  "kind": "character",
+  "name": "Tutkija Veera",
+  "bounds": {
+    "x": -63,
+    "y": -261,
+    "width": 119,
+    "height": 405
+  },
+  "depth": "mid",
+  "tags": [
+    "tiede",
+    "science",
+    "laboratorio",
+    "lab",
+    "aikuinen",
+    "adult",
+    "profession",
+    "average",
+    "nervous",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/veera.kilsat",
+    "sha256": "49417be8486f3f245ce7e1adf3b94b7f86b0909ac6c030c717cc9f4968f941f2"
+  },
+  "character": {
+    "id": "VEERA",
+    "role": "Hajamielinen tutkija / Absent-minded scientist",
+    "age": "adult",
+    "build": "average",
+    "acting": "nervous",
+    "height": 378.8
+  }
+}

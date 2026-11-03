@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.fantasy.ankkuri_v1",
+  "kind": "character",
+  "name": "Kapteeni Ankkuri",
+  "bounds": {
+    "x": -63,
+    "y": -258,
+    "width": 126,
+    "height": 402
+  },
+  "depth": "mid",
+  "tags": [
+    "merirosvo",
+    "pirate",
+    "laiva",
+    "ship",
+    "aikuinen",
+    "adult",
+    "fantasy",
+    "round",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/ankkuri.kilsat",
+    "sha256": "9d7dc5c5481ea9c87fa5e094b44548b28c2653d88f4dbef9c5cb3a26c55c4efa"
+  },
+  "character": {
+    "id": "ANKKURI",
+    "role": "Äänekäs merikapteeni / Loud sea captain",
+    "age": "adult",
+    "build": "round",
+    "acting": "proud",
+    "height": 378.8
+  }
+}

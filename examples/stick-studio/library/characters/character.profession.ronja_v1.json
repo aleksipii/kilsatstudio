@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.ronja_v1",
+  "kind": "character",
+  "name": "Taiteilija Ronja",
+  "bounds": {
+    "x": -83,
+    "y": -257,
+    "width": 131,
+    "height": 401
+  },
+  "depth": "mid",
+  "tags": [
+    "taide",
+    "art",
+    "maalari",
+    "painter",
+    "aikuinen",
+    "adult",
+    "profession",
+    "slim",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/ronja.kilsat",
+    "sha256": "b07a219dfe2d6659be6e90254614e6790e3cfa714cd33c36cb01257a969383a2"
+  },
+  "character": {
+    "id": "RONJA",
+    "role": "Haaveileva taiteilija / Dreamy artist",
+    "age": "adult",
+    "build": "slim",
+    "acting": "lively",
+    "height": 378.8
+  }
+}

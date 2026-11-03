@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.emil_v1",
+  "kind": "character",
+  "name": "Toimittaja Emil",
+  "bounds": {
+    "x": -72,
+    "y": -246,
+    "width": 120,
+    "height": 390
+  },
+  "depth": "mid",
+  "tags": [
+    "toimittaja",
+    "reporter",
+    "uutiset",
+    "news",
+    "aikuinen",
+    "adult",
+    "profession",
+    "slim",
+    "nervous",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/emil.kilsat",
+    "sha256": "973d4da5a16f3d856b1b880767f1ed06c87444e3d2455c245890f4a64a9b52d1"
+  },
+  "character": {
+    "id": "EMIL",
+    "role": "Utelias toimittaja / Inquisitive reporter",
+    "age": "adult",
+    "build": "slim",
+    "acting": "nervous",
+    "height": 378.8
+  }
+}

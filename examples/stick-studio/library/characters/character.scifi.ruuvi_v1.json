@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.scifi.ruuvi_v1",
+  "kind": "character",
+  "name": "Robotti Ruuvi",
+  "bounds": {
+    "x": -56,
+    "y": -271,
+    "width": 112,
+    "height": 415
+  },
+  "depth": "mid",
+  "tags": [
+    "robotti",
+    "robot",
+    "kone",
+    "machine",
+    "aikuinen",
+    "adult",
+    "scifi",
+    "broad",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/ruuvi.kilsat",
+    "sha256": "f83d96bd6942ab8496fb795f55e17f8877cb27051540b8a8a6353fc21ea9a679"
+  },
+  "character": {
+    "id": "RUUVI",
+    "role": "Avulias robotti / Helpful robot",
+    "age": "adult",
+    "build": "broad",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

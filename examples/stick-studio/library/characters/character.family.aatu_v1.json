@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.family.aatu_v1",
+  "kind": "character",
+  "name": "Vaari Aatu",
+  "bounds": {
+    "x": -47,
+    "y": -244,
+    "width": 107,
+    "height": 380
+  },
+  "depth": "mid",
+  "tags": [
+    "isoisä",
+    "grandpa",
+    "talvi",
+    "winter",
+    "vanhus",
+    "elder",
+    "family",
+    "average",
+    "stoic",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/aatu.kilsat",
+    "sha256": "fcd7e17e78ef33635483b543cc5f3d27ec0bd7fb21dffd46806f2ac8c266e4dd"
+  },
+  "character": {
+    "id": "AATU",
+    "role": "Harvasanainen vaari / Taciturn grandad",
+    "age": "elder",
+    "build": "average",
+    "acting": "stoic",
+    "height": 363.1
+  }
+}

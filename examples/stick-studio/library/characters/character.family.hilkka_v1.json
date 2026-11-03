@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "character.family.hilkka_v1",
+  "kind": "character",
+  "name": "Mummo Hilkka",
+  "bounds": {
+    "x": -74,
+    "y": -244,
+    "width": 135,
+    "height": 374
+  },
+  "depth": "mid",
+  "tags": [
+    "isoäiti",
+    "grandma",
+    "vanhus",
+    "elder",
+    "family",
+    "round",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/hilkka.kilsat",
+    "sha256": "dbd7e92cc56a61b1e5e7a606d77e2b9a0ca384f5489d4e138bbb128515775677"
+  },
+  "character": {
+    "id": "HILKKA",
+    "role": "Napakka mummo / Brisk grandma",
+    "age": "elder",
+    "build": "round",
+    "acting": "proud",
+    "height": 347.5
+  }
+}
