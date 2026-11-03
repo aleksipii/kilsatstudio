@@ -41,7 +41,7 @@ def validate(identity: str, team: str, profile: str, output: Path, report: Path,
 
 def run_release(repo: Path, binary: Path, gpu: Path, head: Path, commit: str, identity: str,
                 team: str, profile: str, output: Path, report: Path, consent: bool,
-                run=subprocess.run):
+                run=subprocess.run, arch="universal"):
     validate(identity,team,profile,output,report,consent)
     if not re.fullmatch(r"[0-9a-f]{40}",commit):
         raise ValueError("commit must be an exact lowercase SHA")
@@ -53,7 +53,7 @@ def run_release(repo: Path, binary: Path, gpu: Path, head: Path, commit: str, id
         raise ValueError("output and report parent directories must exist")
     with tempfile.TemporaryDirectory(prefix="kilsat-developer-release-") as temporary:
         staging=Path(temporary)/"distribution";staging.mkdir()
-        bundle=package_macos.stage_distribution(repo,binary,staging,commit,"arm64","release",gpu,head)
+        bundle=package_macos.stage_distribution(repo,binary,staging,commit,arch,"release",gpu,head)
         entitlement=Path(temporary)/"camera-entitlements.plist"
         entitlement.write_bytes(plistlib.dumps(CAMERA_ENTITLEMENTS))
         nested=[bundle/"Contents/Resources/bin/gpu_probe",bundle/"Contents/Resources/bin/head_pose"]
@@ -107,10 +107,11 @@ def main(argv=None):
     for key in ["binary","gpu-probe","head-pose","output","report"]:parser.add_argument("--"+key,type=Path,required=True)
     for key in ["commit","identity","team","notary-profile"]:parser.add_argument("--"+key,required=True)
     parser.add_argument("--allow-notarization",action="store_true")
+    parser.add_argument("--arch",choices=["universal","arm64","x86_64"],default="universal")
     args=parser.parse_args(argv)
     if sys.platform!="darwin":parser.error("Developer ID signing/notarization requires an operator-configured Mac")
     try:
-        result=run_release(args.repo,args.binary,args.gpu_probe,args.head_pose,args.commit,args.identity,args.team,args.notary_profile,args.output,args.report,args.allow_notarization)
+        result=run_release(args.repo,args.binary,args.gpu_probe,args.head_pose,args.commit,args.identity,args.team,args.notary_profile,args.output,args.report,args.allow_notarization,arch=args.arch)
     except (ValueError,OSError,subprocess.SubprocessError,json.JSONDecodeError) as error:
         parser.exit(1,f"Developer release failed: {error}\n")
     print(json.dumps(result));return 0

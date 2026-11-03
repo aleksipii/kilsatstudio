@@ -103,8 +103,20 @@ fn inside(root: &Path, relative: &str, directory: bool) -> Result<PathBuf, Strin
     Ok(joined)
 }
 
+/// The bundled Python runtime and Kokoro are arm64-only builds
+/// (`scripts/build_speech_bundle.py`); an Intel Mac cannot run them.
+fn require_apple_silicon(arch: &str) -> Result<(), String> {
+    if arch == "aarch64" {
+        return Ok(());
+    }
+    Err("Mukana tulevat puhemoottorit toimivat vain Apple Silicon -Maceissa (M1 tai uudempi). \
+         Tällä Macilla voit tuoda puheen äänitiedostona tai määrittää oman paikallisen puhemoottorin."
+        .into())
+}
+
 /// Resolve the bundle and write the Piper profile that points at it.
 pub fn load(root: &Path, data: &Path) -> Result<BundledSpeech, String> {
+    require_apple_silicon(std::env::consts::ARCH)?;
     let root = root
         .canonicalize()
         .map_err(|e| format!("Puhepaketti: {e}"))?;
@@ -287,6 +299,13 @@ mod tests {
         bundle(&root);
         let error = load(&root, &temp.path().join("data")).unwrap_err();
         assert!(error.contains("Ohjelmat-kansioon"), "{error}");
+    }
+
+    #[test]
+    fn intel_macs_get_a_clear_error_instead_of_launching_arm64_engines() {
+        assert!(require_apple_silicon("aarch64").is_ok());
+        let error = require_apple_silicon("x86_64").unwrap_err();
+        assert!(error.contains("Apple Silicon") && error.contains("äänitiedostona"));
     }
 
     #[test]

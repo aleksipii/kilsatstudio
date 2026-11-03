@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -27,15 +27,20 @@ jobs:
         run: scripts/build_release_app.sh dist
       - name: Launch smoke check (binary starts and reports its version)
         run: |
-          cd dist && ditto -x -k Koeta-Studio-*-arm64.zip unpacked
+          cd dist && ditto -x -k Koeta-Studio-*-universal.zip unpacked
           codesign --verify --deep --strict "unpacked/Koeta Studio.app"
           plutil -p "unpacked/Koeta Studio.app/Contents/Info.plist" | grep -E 'CFBundleShortVersionString|CFBundleName'
+          app="unpacked/Koeta Studio.app/Contents"
+          for executable in "$app/MacOS/"* "$app/Resources/bin/gpu_probe" "$app/Resources/bin/head_pose"; do
+            test "$(lipo -archs "$executable")" = "x86_64 arm64" || { echo "::error::$executable is not universal"; exit 1; }
+          done
+          plutil -extract LSMinimumSystemVersion raw "$app/Info.plist" | grep -qx '13.0'
       - uses: actions/upload-artifact@v4
         with:
-          name: koeta-studio-release-arm64-${{ github.sha }}
+          name: koeta-studio-release-universal-${{ github.sha }}
           path: |
-            dist/Koeta-Studio-*-arm64.zip
-            dist/Koeta-Studio-*-arm64.zip.sha256
+            dist/Koeta-Studio-*-universal.zip
+            dist/Koeta-Studio-*-universal.zip.sha256
             dist/package-audit.json
           if-no-files-found: error
           retention-days: 30

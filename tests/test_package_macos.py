@@ -51,6 +51,13 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(list(resources.rglob('*.pt')), [])
         self.assertIn('abc123', (resources / 'BUILD-INFO.txt').read_text())
 
+    def test_universal_bundle_records_arch_and_keeps_macos_13_floor(self):
+        package.stage_bundle(self.repo, self.binary, self.bundle, 'abc123', 'universal', 'release')
+        contents = self.bundle / 'Contents'
+        self.assertIn('Architecture: universal', (contents / 'Resources/BUILD-INFO.txt').read_text())
+        with (contents / 'Info.plist').open('rb') as handle:
+            self.assertEqual(plistlib.load(handle)['LSMinimumSystemVersion'], '13.0')
+
     def test_source_license_preserved_in_bundle_and_distribution(self):
         source = self.repo / 'LICENSE'
         source.write_bytes(b'source license fixture\r\nCopyright fixture\r\n')
