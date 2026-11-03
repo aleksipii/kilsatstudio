@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-03",
+  "kind": "finnish_voice_variants_measurement",
+  "text": "Hyvää huomenta! Kahvi on taas loppu, ja palaveri alkaa viiden minuutin päästä. Kuka unohti ostaa maitoa?",
+  "engine": {
+    "package": "piper-tts==1.8.0",
+    "model": "rhasspy/piper-voices b4e358ffcb232591bf73a540e70f7de528e4174a fi_FI-harri-medium",
+    "model_sha256": "a44167faa34caed940e4fcad139fcc35922266b2593bcebe77701774c0fb2389",
+    "path": "motion_tts::PiperProvider via finnish_speech --voice"
+  },
+  "method": "YIN F0 (50-350 Hz, 50 ms window, 10 ms hop, threshold 0.12) over voiced frames of the 24 kHz output",
+  "voices": [
+    {
+      "preset": "piper_harri",
+      "duration_seconds": 8.87,
+      "output_sha256": "6461e8626e32f0032bf69e1a380168d187e07d6669c3028f3464224a69f1c612",
+      "f0_median_hz": 104.3,
+      "shift_semitones": 0.0,
+      "real_time_factor": 0.41
+    },
+    {
+      "preset": "piper_harri_jykea",
+      "duration_seconds": 9.3,
+      "output_sha256": "864e263734f825308db80e031249df4ff4e6dce40491bd09f504ea0dbc96c593",
+      "f0_median_hz": 76.7,
+      "shift_semitones": -5.33,
+      "real_time_factor": 0.31
+    },
+    {
+      "preset": "piper_harri_matala",
+      "duration_seconds": 9.236,
+      "output_sha256": "eb2696944caa7d31d68081920f98bb29f7347492f06bb61f2792210676917040",
+      "f0_median_hz": 81.8,
+      "shift_semitones": -4.22,
+      "real_time_factor": 0.32
+    },
+    {
+      "preset": "piper_harri_korkea",
+      "duration_seconds": 8.417,
+      "output_sha256": "e75a5b736b3aae53e5ae677e9814c1d03b0514418367782f74112137ac419b5b",
+      "f0_median_hz": 119.4,
+      "shift_semitones": 2.33,
+      "real_time_factor": 0.36
+    },
+    {
+      "preset": "piper_harri_kirkas",
+      "duration_seconds": 7.966,
+      "output_sha256": "dd637fd686027ad1d95e53b58b777405007c5d79b60e186b26e2bf4dc224b83d",
+      "f0_median_hz": 132.2,
+      "shift_semitones": 4.1,
+      "real_time_factor": 0.39
+    }
+  ],
+  "perceptual_quality": "not listened to by a person",
+  "production_acceptance": "not_granted"
+}

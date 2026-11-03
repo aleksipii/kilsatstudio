@@ -60,9 +60,11 @@ ovat sen **sävelkorkeusmuunnelmia, eivät eri puhujia**:
 
 Toteutus: Piper syntetisoi puheen pidempänä tai lyhyempänä (`length_scale`
 kerrotaan sävelkertoimella), ja tulos uudelleennäytteistetään 24 kHz:iin
-kertoimen verran nopeammin tai hitaammin. Kesto pysyy samana, mutta
-sävelkorkeus ja formantit siirtyvät yhdessä, jolloin ääni kuulostaa
-isommalta tai pienemmältä puhujalta. Muunnelma käyttää samaa mallia ja
+kertoimen verran nopeammin tai hitaammin. Kesto pysyy lähes samana
+(mitattu ±10 %, koska Piper ei venytä taukoja samassa suhteessa kuin
+äänteitä), ja sävelkorkeus ja formantit siirtyvät yhdessä, jolloin ääni
+kuulostaa isommalta tai pienemmältä puhujalta. Tarinan ajoitus käyttää aina
+mitattua kestoa. Muunnelma käyttää samaa mallia ja
 profiilia kuin `piper_harri`, eikä uusia malleja ladata. Välimuistin avain
 sisältää sävelkertoimen. Äänieditori listaa äänet, ja tarina-asetuksessa
 jokaisella hahmolla on oma oletusäänensä.
@@ -77,11 +79,18 @@ jokaisella hahmolla on oma oletusäänensä.
   sävelkorkeuden muutoksen mitattuna testisignaalista (220 Hz → 262 / 165 Hz).
 - Iltavalaistu ja lavastettu kohtaus on katsottu kuvana: penkki on hahmon
   takana, taksi edessä, ja sävy kattaa koko kuvan.
-- **Oikeaa suomenkielistä Piper-puhetta ei syntetisoitu**, koska tässä
-  koneessa ei ole Piperiä eikä Harrin mallia, eikä niitä ladattu ilman lupaa.
-  Muunnelmien ymmärrettävyys ja luonnollisuus on kuunneltava, kun malli on
-  asennettu. Etenkin ±5 sävelaskeleen muutoksessa voi kuulua "orava-" tai
-  "jättiläisääni".
+- **Oikea suomenkielinen puhe syntetisoitiin 2026-11-03** kaikilla viidellä
+  äänellä sovelluksen omaa `PiperProvider`-polkua pitkin (piper-tts 1.8.0,
+  Harri medium, tiivisteet tarkistettu). Mitattu sävelkorkeuden mediaani (YIN):
+  perusääni 104 Hz, jykeä 77 Hz (−5,3 sävelaskelta), matala 82 Hz (−4,2),
+  korkea 119 Hz (+2,3) ja kirkas 132 Hz (+4,1). Toteutuneet muutokset
+  poikkeavat tavoitteesta noin sävelaskeleen, koska Piperin oma intonaatio
+  muuttuu puhenopeuden mukana. Järjestys ja erot säilyvät. Kestot olivat
+  7,97–9,30 s (perusääni 8,87 s). Mittaukset ja tiivisteet:
+  [evidence/finnish-voice-variants.json](evidence/finnish-voice-variants.json).
+- **Kukaan ei ole kuunnellut muunnelmia.** Mittaus ei arvioi
+  ymmärrettävyyttä eikä luonnollisuutta, ja etenkin jykeä ja kirkas on
+  kuunneltava ennen julkaisua.
 - Työpöydän lavastusta ei ole käytetty käsin hiirellä, eikä sitä ole testattu
   fyysisellä Macilla.
 - Vuorokaudenajat eivät lisää ikkunoihin tai lamppuihin omia valoja. Ne voi

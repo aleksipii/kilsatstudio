@@ -34,6 +34,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut text: Option<PathBuf> = None;
     let mut output: Option<PathBuf> = None;
     let mut speed = 1.0f32;
+    let mut voice: Option<String> = None;
     let mut allowed = false;
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -44,9 +45,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             "--text-file" => text = Some(args.next().ok_or("missing UTF-8 text path")?.into()),
             "--report" => output = Some(args.next().ok_or("missing new report path")?.into()),
             "--speed" => speed = args.next().ok_or("missing speed")?.parse()?,
+            "--voice" => voice = Some(args.next().ok_or("missing voice preset")?),
             "--allow-local-inference" => allowed = true,
             "--help" | "-h" => {
-                println!("finnish_speech --piper-config JSON --text-file UTF8 --report NEW_JSON --allow-local-inference [--speed 0.5..2]\nRuns configured local Piper only; no downloads, no production/rights acceptance.");
+                println!("finnish_speech --piper-config JSON --text-file UTF8 --report NEW_JSON --allow-local-inference [--speed 0.5..2] [--voice piper_harri_korkea]\nRuns configured local Piper only; no downloads, no production/rights acceptance.");
                 return Ok(());
             }
             _ => return Err(format!("unknown argument {arg}").into()),
@@ -66,7 +68,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let result = provider.synthesize(SpeechRequest {
         text,
         voice: VoiceSettings {
-            preset: provider.config.preset.clone(),
+            preset: voice
+                .clone()
+                .unwrap_or_else(|| provider.config.preset.clone()),
             language: "fi-fi".into(),
             speed,
             style: None,
@@ -87,7 +91,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let elapsed = started.elapsed().as_secs_f64();
     let duration = result.duration_seconds();
     let report = serde_json::json!({
-        "schema_version": 1, "provider": "piper", "language": "fi-fi", "voice_preset": provider.config.preset,
+        "schema_version": 1, "provider": "piper", "language": "fi-fi", "voice_preset": voice.as_deref().unwrap_or(&provider.config.preset),
         "audio_path": result.audio_path, "output_sha256": format!("{:x}",Sha256::digest(&wav)),
         "transcript_sha256": format!("{:x}",Sha256::digest(&text_bytes)),
         "audio": { "sample_rate": result.sample_rate, "channels":1, "bits_per_sample":16,
