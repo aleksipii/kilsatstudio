@@ -1685,11 +1685,14 @@ name = "motion-ffi"
 version = "1.0.0"
 dependencies = [
  "motion-art",
+ "motion-audio",
  "motion-export",
+ "motion-jobs",
  "motion-project",
  "motion-scene",
  "motion-script",
  "motion-tts",
+ "motion-voice",
 ]
 
 [[package]]
