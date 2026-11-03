@@ -1,0 +1,307 @@
+{
+  "schema_version": 1,
+  "id": "prop.tool.ladder_v1",
+  "kind": "prop",
+  "name": "Tikkaat",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 110,
+    "height": 417.5
+  },
+  "depth": "mid",
+  "tags": [
+    "tikkaat",
+    "ladder",
+    "työkalu",
+    "tool",
+    "korkealla",
+    "high",
+    "remontti",
+    "renovation"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "rail_left",
+        "paint": "wood",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 4
+            },
+            {
+              "x": 8,
+              "y": 414
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "rail_right",
+        "paint": "wood",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 4
+            },
+            {
+              "x": 102,
+              "y": 414
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "rung_0",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 27.854,
+              "y": 40
+            },
+            {
+              "x": 82.146,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_1",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25.278,
+              "y": 88
+            },
+            {
+              "x": 84.722,
+              "y": 88
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_2",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22.702,
+              "y": 136
+            },
+            {
+              "x": 87.298,
+              "y": 136
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_3",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20.127,
+              "y": 184
+            },
+            {
+              "x": 89.873,
+              "y": 184
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_4",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 17.551,
+              "y": 232
+            },
+            {
+              "x": 92.449,
+              "y": 232
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_5",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14.976,
+              "y": 280
+            },
+            {
+              "x": 95.024,
+              "y": 280
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_6",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12.4,
+              "y": 328
+            },
+            {
+              "x": 97.6,
+              "y": 328
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "rung_7",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 9.824,
+              "y": 376
+            },
+            {
+              "x": 100.176,
+              "y": 376
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "step",
+      "at": {
+        "x": 55,
+        "y": 136
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 417.5
+      },
+      "width": 110
+    }
+  ]
+}

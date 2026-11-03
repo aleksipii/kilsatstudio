@@ -1,0 +1,351 @@
+{
+  "schema_version": 1,
+  "id": "prop.farm.haystack_v1",
+  "kind": "prop",
+  "name": "Heinäpaali",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 160,
+    "height": 110
+  },
+  "depth": "mid",
+  "tags": [
+    "heinä",
+    "hay",
+    "paali",
+    "bale",
+    "maatila",
+    "farm",
+    "maaseutu",
+    "countryside",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "crust": {
+      "r": 160,
+      "g": 112,
+      "b": 70,
+      "a": 255
+    },
+    "hay": {
+      "r": 214,
+      "g": 184,
+      "b": 112,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "bale",
+        "paint": "hay",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 10,
+            "width": 148,
+            "height": 98.5
+          },
+          "color": {
+            "r": 214,
+            "g": 184,
+            "b": 112,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bale_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 10
+            },
+            {
+              "x": 154,
+              "y": 10
+            },
+            {
+              "x": 154,
+              "y": 108.5
+            },
+            {
+              "x": 6,
+              "y": 108.5
+            },
+            {
+              "x": 6,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "straw_1",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 24.5,
+              "y": 14
+            },
+            {
+              "x": 28.5,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "straw_2",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 43,
+              "y": 14
+            },
+            {
+              "x": 47,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "straw_3",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 61.5,
+              "y": 14
+            },
+            {
+              "x": 65.5,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "straw_4",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 14
+            },
+            {
+              "x": 84,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "straw_5",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 98.5,
+              "y": 14
+            },
+            {
+              "x": 102.5,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "straw_6",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 117,
+              "y": 14
+            },
+            {
+              "x": 121,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "straw_7",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 135.5,
+              "y": 14
+            },
+            {
+              "x": 139.5,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "twine_a",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 50,
+              "y": 10
+            },
+            {
+              "x": 50,
+              "y": 108
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "twine_b",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 110,
+              "y": 10
+            },
+            {
+              "x": 110,
+              "y": 108
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 80,
+        "y": 10
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 110
+      },
+      "width": 160
+    }
+  ]
+}

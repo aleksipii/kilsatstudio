@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "id": "prop.toy.toy_blocks_v1",
+  "kind": "prop",
+  "name": "Rakennuspalikat",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 100
+  },
+  "depth": "mid",
+  "tags": [
+    "palikat",
+    "blocks",
+    "lelu",
+    "toy",
+    "lastenhuone",
+    "kids_room",
+    "lapsi",
+    "child"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "toy_blue": {
+      "r": 92,
+      "g": 140,
+      "b": 188,
+      "a": 255
+    },
+    "toy_green": {
+      "r": 120,
+      "g": 170,
+      "b": 110,
+      "a": 255
+    },
+    "toy_red": {
+      "r": 204,
+      "g": 96,
+      "b": 80,
+      "a": 255
+    },
+    "toy_yellow": {
+      "r": 230,
+      "g": 196,
+      "b": 90,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "block_a",
+        "paint": "toy_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 60,
+            "width": 36,
+            "height": 38.5
+          },
+          "color": {
+            "r": 204,
+            "g": 96,
+            "b": 80,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "block_a_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 60
+            },
+            {
+              "x": 42,
+              "y": 60
+            },
+            {
+              "x": 42,
+              "y": 98.5
+            },
+            {
+              "x": 6,
+              "y": 98.5
+            },
+            {
+              "x": 6,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "block_b",
+        "paint": "toy_blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 60,
+            "width": 36,
+            "height": 38.5
+          },
+          "color": {
+            "r": 92,
+            "g": 140,
+            "b": 188,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "block_b_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 60
+            },
+            {
+              "x": 80,
+              "y": 60
+            },
+            {
+              "x": 80,
+              "y": 98.5
+            },
+            {
+              "x": 44,
+              "y": 98.5
+            },
+            {
+              "x": 44,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "block_c",
+        "paint": "toy_yellow",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 82,
+            "y": 60,
+            "width": 32,
+            "height": 38.5
+          },
+          "color": {
+            "r": 230,
+            "g": 196,
+            "b": 90,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "block_c_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 82,
+              "y": 60
+            },
+            {
+              "x": 114,
+              "y": 60
+            },
+            {
+              "x": 114,
+              "y": 98.5
+            },
+            {
+              "x": 82,
+              "y": 98.5
+            },
+            {
+              "x": 82,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "block_d",
+        "paint": "toy_green",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 26,
+            "y": 24,
+            "width": 36,
+            "height": 36
+          },
+          "color": {
+            "r": 120,
+            "g": 170,
+            "b": 110,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "block_d_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26,
+              "y": 24
+            },
+            {
+              "x": 62,
+              "y": 24
+            },
+            {
+              "x": 62,
+              "y": 60
+            },
+            {
+              "x": 26,
+              "y": 60
+            },
+            {
+              "x": 26,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "block_e",
+        "paint": "toy_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 64,
+            "y": 24,
+            "width": 32,
+            "height": 36
+          },
+          "color": {
+            "r": 204,
+            "g": 96,
+            "b": 80,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "block_e_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 64,
+              "y": 24
+            },
+            {
+              "x": 96,
+              "y": 24
+            },
+            {
+              "x": 96,
+              "y": 60
+            },
+            {
+              "x": 64,
+              "y": 60
+            },
+            {
+              "x": 64,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "roof_left",
+        "paint": "toy_blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38,
+              "y": 22
+            },
+            {
+              "x": 50,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 92,
+            "g": 140,
+            "b": 188,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "roof_right",
+        "paint": "toy_blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 62,
+              "y": 22
+            },
+            {
+              "x": 50,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 92,
+            "g": 140,
+            "b": 188,
+            "a": 255
+          },
+          "width": 6
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 100
+      },
+      "width": 120
+    }
+  ]
+}

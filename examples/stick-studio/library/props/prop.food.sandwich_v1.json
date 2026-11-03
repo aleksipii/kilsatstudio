@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "id": "prop.food.sandwich_v1",
+  "kind": "prop",
+  "name": "Voileipä",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 70,
+    "height": 34
+  },
+  "depth": "mid",
+  "tags": [
+    "voileipä",
+    "sandwich",
+    "eväs",
+    "lunch",
+    "ruoka",
+    "food",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "bread": {
+      "r": 204,
+      "g": 160,
+      "b": 108,
+      "a": 255
+    },
+    "cheese": {
+      "r": 230,
+      "g": 200,
+      "b": 120,
+      "a": 255
+    },
+    "leaf": {
+      "r": 118,
+      "g": 150,
+      "b": 106,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "bottom",
+        "paint": "bread",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 22,
+            "width": 62,
+            "height": 9
+          },
+          "color": {
+            "r": 204,
+            "g": 160,
+            "b": 108,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bottom_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 22
+            },
+            {
+              "x": 66,
+              "y": 22
+            },
+            {
+              "x": 66,
+              "y": 31
+            },
+            {
+              "x": 4,
+              "y": 31
+            },
+            {
+              "x": 4,
+              "y": 22
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "lettuce",
+        "paint": "leaf",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 2,
+            "y": 18,
+            "width": 66,
+            "height": 5
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cheese",
+        "paint": "cheese",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 14,
+            "width": 54,
+            "height": 5
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top",
+        "paint": "bread",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 62,
+            "height": 10
+          },
+          "color": {
+            "r": 204,
+            "g": 160,
+            "b": 108,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 66,
+              "y": 4
+            },
+            {
+              "x": 66,
+              "y": 14
+            },
+            {
+              "x": 4,
+              "y": 14
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 35,
+        "y": 18
+      }
+    }
+  ]
+}

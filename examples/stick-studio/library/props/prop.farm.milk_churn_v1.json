@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "id": "prop.farm.milk_churn_v1",
+  "kind": "prop",
+  "name": "Maitotonkka",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 60,
+    "height": 100
+  },
+  "depth": "mid",
+  "tags": [
+    "maitotonkka",
+    "milk_churn",
+    "maito",
+    "milk",
+    "maatila",
+    "farm",
+    "maaseutu",
+    "countryside"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "lid",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 4,
+            "width": 20,
+            "height": 10
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lid_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 4
+            },
+            {
+              "x": 40,
+              "y": 4
+            },
+            {
+              "x": 40,
+              "y": 14
+            },
+            {
+              "x": 20,
+              "y": 14
+            },
+            {
+              "x": 20,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "neck",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 14,
+            "width": 24,
+            "height": 18
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "neck_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 14
+            },
+            {
+              "x": 42,
+              "y": 14
+            },
+            {
+              "x": 42,
+              "y": 32
+            },
+            {
+              "x": 18,
+              "y": 32
+            },
+            {
+              "x": 18,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "body",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 30,
+            "width": 48,
+            "height": 68.5
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 30
+            },
+            {
+              "x": 54,
+              "y": 30
+            },
+            {
+              "x": 54,
+              "y": 98.5
+            },
+            {
+              "x": 6,
+              "y": 98.5
+            },
+            {
+              "x": 6,
+              "y": 30
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "band",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 60
+            },
+            {
+              "x": 54,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 30,
+        "y": 8
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 100
+      },
+      "width": 60
+    }
+  ]
+}
