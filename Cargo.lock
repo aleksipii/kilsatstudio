@@ -1681,6 +1681,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "motion-ffi"
+version = "1.0.0"
+dependencies = [
+ "motion-art",
+ "motion-export",
+ "motion-project",
+ "motion-scene",
+ "motion-script",
+ "motion-tts",
+]
+
+[[package]]
 name = "motion-jobs"
 version = "1.0.0"
 

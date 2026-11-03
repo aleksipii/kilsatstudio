@@ -1,0 +1,17 @@
+[package]
+name = "motion-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "C interface to the shared animation pipeline for the native iPad app"
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+motion-art = { path = "../motion-art" }
+motion-export = { path = "../motion-export" }
+motion-project = { path = "../motion-project" }
+motion-scene = { path = "../motion-scene" }
+motion-script = { path = "../motion-script" }
+motion-tts = { path = "../motion-tts" }
