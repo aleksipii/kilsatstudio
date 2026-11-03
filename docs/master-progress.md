@@ -2952,3 +2952,21 @@ Käyttäjän luvalla yhdistettiin mainiin tavallisilla merge-commiteilla (haaroj
   - iPad-sovellusta ei ole ajettu fyysisellä iPadilla. Simulaattoreissa (iPad mini A17 Pro, iPad Pro 13" M5) tarkistettiin vain käynnistys ja ensimmäinen ruutu; toistoa, liukusäädintä ja Pencil-kelausta ei käytetty. Muokkaus, äänen toisto ja vienti puuttuvat, `.kilsat`-projektien levykuvaresursseja ei vielä ladata, eikä Kokoroa ole iPadilla.
   - Albus-esimerkkiä ei avattu työpöytäsovelluksessa, eikä huulisynkan laatua mitattu (esimerkissä ei ole ääntä).
   - `kilsatstudio1.0`-haaraa ei siirretty tässä integraatiossa.
+
+## 2026-11-03 — iPad vaihe 2: projektin kuvat ja tuotu ääni, PR #176 yhdistetty
+
+Käyttäjän luvalla [#176](https://github.com/aleksipii/kilsatstudio/pull/176) yhdistettiin mainiin merge-commitilla `d1affdd`. Ennen sitä `kilsatstudio1.0` siirrettiin käyttäjän luvalla fast-forwardina `1259c4f` → `48e70c3` (PR:t #172–#175); haaran neljä työnkulkua olivat vihreinä.
+
+- Tehty:
+  - `motion-ffi`: tiedoston avaus polusta (`koeta_document_open_path`), projektin kuvaresurssit samalla tavalla kuin työpöydällä (`resolve_asset` → `load_image`, muistibudjetti, enintään 128 MiB), kohtauksen ääni tiukalla mallivapaalla polulla (`prepare_scene_model_free`, vain tuodut WAVit, ei synteesiä) ja yhteisen 24 kHz:n kellon muunnokset. Valmisteltu manifesti ohjaa kohtauksen suuliikkeitä kuten viennissä.
+  - iPad-sovellus: kansion avaus (tietoturvarajattu käyttöoikeus pidetään auki asiakirjan ajan), äänen toisto `AVAudioEngine`-moottorilla niin, että ääniasema valitsee näytettävän ruudun, äänen tilarivi, kuvallinen esimerkki `kilsat-season/` ja sovelluksen kansio näkyviin Tiedostot-sovelluksessa.
+  - Puuttuva äänitiedosto tai `audio:`-kenttä luetellaan käyttäjälle, ja kohtaus toistetaan äänettömänä. Puhetta ei koskaan syntetisoida iPadilla.
+- Tarkistettu:
+  - Paikallisesti: `cargo test -p motion-ffi` 9 läpi (muun muassa iPadin ääni on täsmälleen sama kuin viennin miksaus), `cargo fmt --all --check` ja `cargo clippy -p motion-ffi --all-targets -- -D warnings` puhtaat, `xcodebuild` iPadille ja simulaattorille ilman Swift-varoituksia.
+  - iPad mini -simulaattori kuvakaappauksin: ep02:n PNG-kuva piirtyy, puuttuvasta äänestä tulee ilmoitus, ja testikansiossa (kaksi siniääni-WAVia, ei puhetta) toisto eteni äänikellolla ruutuun 72/72 ja pysähtyi.
+  - GitHub CI: kaikki 15 tarkistusta vihreinä ennen yhdistämistä, mukaan lukien `ipad-build`.
+- Tekemättä:
+  - Ääntä ei kuunneltu, joten huulisynkkaa ja kuvan ja äänen tahdistusta ei ole arvioitu korvalla eikä mitattu. Ilman kohdistusta suuliikkeiden ajoitus on tekstistä arvioitu.
+  - Kansion valitsinta, tiedostolistaa ja Tiedostot-jakoa ei käytetty käsin; simulaattorissa avaus tehtiin käynnistysargumenteilla. Ei ajoa fyysisellä iPadilla.
+  - `cargo test --workspace` ajettiin vain CI:ssä tämän muutoksen osalta.
+  - iPadilta puuttuvat yhä muokkaus, Pencil-asennot, vienti ja näyttövideovihjeet.
