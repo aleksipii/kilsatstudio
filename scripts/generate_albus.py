@@ -763,7 +763,7 @@ def expressions_scene():
         "background_color": "#F4EFE4",
         "camera": [{"at": 0, "x": 0, "y": 0, "zoom": 1}],
         "layers": {ACTOR: {"z": 0, "visible": True}},
-        "actor_tracks": {ACTOR: [cc._key(0, x=0, y=560, scale_x=3.4, scale_y=3.4)]},
+        "actor_tracks": {ACTOR: [cc._key(0, x=0, y=140, scale_x=3.4, scale_y=3.4)]},
         # The head tilts a little with each feeling.
         "joint_tracks": {ACTOR: {
             "head": [_k(0), _k(2.2, rotation=0.06), _k(4.2, rotation=-0.08, y=3),
