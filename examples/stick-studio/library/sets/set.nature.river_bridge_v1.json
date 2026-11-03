@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "set.nature.river_bridge_v1",
+  "kind": "set",
+  "name": "Joenrannan silta (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "river",
+    "joki",
+    "bridge",
+    "silta",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.nature.river_bridge_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": -274.3,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": 0.0,
+      "y": 190.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": 0.0,
+      "y": 110.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "bridge",
+      "kind": "stand",
+      "anchor": "backdrop/bridge"
+    },
+    {
+      "id": "angler",
+      "kind": "sit",
+      "anchor": "stump/seat"
+    },
+    {
+      "id": "bank",
+      "kind": "stand",
+      "anchor": "backdrop/bank"
+    }
+  ]
+}

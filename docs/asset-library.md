@@ -22,6 +22,7 @@ and `sha2`; no existing crate depends on it yet, so the crate graph stays acycli
 <pack>/library/props/<id>.json
 <pack>/library/locations/<id>.json
 <pack>/library/sets/<id>.json
+<pack>/library/characters/<id>.json
 ```
 
 One manifest per file; the file name is the id plus `.json` and the directory
@@ -38,7 +39,7 @@ All structures deny unknown fields.
 | --- | --- |
 | `schema_version` | `1` |
 | `id` | `<kind>.<category>.<name>_v<N>`; segments `[a-z0-9]+(_[a-z0-9]+)*`; `N ≥ 1` without leading zeros. Parsed by `AssetId::parse` |
-| `kind` | `background` \| `prop` \| `location` \| `set`, equal to the id prefix |
+| `kind` | `background` \| `prop` \| `location` \| `set` \| `character`, equal to the id prefix |
 | `name` | non-empty display text (≤ 256 bytes) |
 | `bounds` | `motion_art::Rect` (local, y down), `Rect::validate`; art assets require `x = y = 0` |
 | `depth` | default depth `far` \| `mid` \| `near` |
@@ -51,6 +52,7 @@ All structures deny unknown fields.
 | `room` | location only |
 | `parts` | location and set: `[{instance, asset, at, scale?, flip_x?, depth?, variant?}]` |
 | `location`, `cameras`, `marks` | set only; `location` is required for a set |
+| `character` | character only, and required there (see below) |
 
 Geometry:
 
@@ -74,6 +76,25 @@ Variant palette slots must exist in the base palette (the manifest palette plus,
 for rooms, the generated room palette). Variant layer ids must not clash with base
 or room layer ids. A set declares no variants or anchors of its own: its variant
 argument selects the location variant, and marks play the role of anchors.
+
+## Characters
+
+A `character` manifest catalogues one rigged character. Its geometry must be
+`rig_project` (a `.kilsat` project inside the pack, checked by path and
+SHA-256); it declares no anchors or variants. `character` holds the casting data:
+
+| Field | Rules |
+| --- | --- |
+| `id` | MotionScript character id inside the project, `[A-Z][A-Z0-9_]{0,63}` |
+| `role` | display text (the shipped pack uses `Finnish / English`) |
+| `age` | `child` \| `teen` \| `adult` \| `elder` |
+| `build` | `slim` \| `average` \| `broad` \| `round` |
+| `height` | head top to sole at actor scale 1, scene pixels, 100–2000 |
+| `acting` | optional MotionScript `acting:` preset name |
+
+`bounds` is the rest-pose front view in rig units (hips at the origin), including
+hats and hand items. Characters load, count and search like other kinds; they
+are not kit-bashed into locations or sets.
 
 ## Anchors
 
@@ -230,6 +251,39 @@ warnings, assembles every location × variant and set, and exits non-zero on any
 error. `--preview-svg <dir>` writes flat SVG sketches with anchors (red) and marks
 (blue) for authoring review; it is not the production renderer.
 
+### Characters, more props and more backgrounds
+
+- `python3 scripts/generate_character_library.py` writes 39 original characters
+  to `cast/<slug>.kilsat` and a manifest for each, plus manifests for the six
+  `characters/*.kilsat` stick characters (45 in all): children, teens,
+  professions (doctor, police officer, firefighter, chef, teacher, nurse,
+  builder, mail carrier, clerk, business people, farmer, artist, singer,
+  scientist, pilot, driver, cleaner, reporter, athletes), family and elders,
+  and fantasy/sci-fi archetypes. All share the 15-joint interface, 13 visemes,
+  four expressions, blink and five hand shapes of `scripts/stick_characters.py`,
+  so the shared rig clips work on every one. Age group, build and height change
+  joint lengths; clothes, hair, headwear, face details and hand items are layered
+  parts with per-view drawings. The script mirrors motion-rig's polygon rules,
+  and `crates/motion-export/tests/character_library.rs` loads every character
+  through the real parser, prepares the rig, renders a byte-stable model sheet
+  and checks that every expression and view changes the drawing
+  (`CHARACTER_LIBRARY_OUT=<dir>` writes the sheets as PNG).
+- `scripts/library_props_more.py` (registered by `generate_library_props.py`)
+  adds 99 props: food and tableware, music, sport, health care, bathroom,
+  household, garden and farm, toys, workshop, camping and nature, containers,
+  lighting, animals, vehicles and small buildings. Grounded props fit their
+  height to the drawn bottom edge.
+- `python3 scripts/generate_library_backgrounds.py` writes 15 backgrounds:
+  forest, lake shore, beach, mountains, meadow, winter forest, autumn park,
+  river and bridge, farm, playground, harbour, train platform, castle courtyard,
+  space station and alien planet. `generate_stick_library` kit-bashes each into
+  a location and adds eight room locations (hospital ward, bathroom, kids' room,
+  music studio, garage workshop, laboratory, restaurant, gym), each with a set.
+
+The pack then holds 45 characters, 222 props, 31 backgrounds, 41 locations and
+41 sets; `stick_studio_library_is_valid_and_styled` guards these minimums and
+style-checks every location × variant.
+
 ## Adding an asset
 
 1. Pick an id `<kind>.<category>.<name>_v1` and write `library/<dir>/<id>.json`.
@@ -254,3 +308,9 @@ error. `--preview-svg <dir>` writes flat SVG sketches with anchors (red) and mar
 - `check_background` is a structural style rule, not a perceptual art review;
   generated layouts were only inspected as flat SVG sketches.
 - No thumbnails, no editor UI, no CAS garbage collection or download flow.
+- The desktop app does not browse the library yet: characters are added by
+  opening or copying their `.kilsat` project, and no MotionScript field refers
+  to a `character.*` id.
+- Library characters have no voice preset; assign one per project.
+- Generated art was reviewed only as flat model sheets and SVG sketches, not
+  animated in the desktop app; animal props are static drawings, not rigs.

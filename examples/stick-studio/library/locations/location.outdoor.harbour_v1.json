@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "location.outdoor.harbour_v1",
+  "kind": "location",
+  "name": "Satama",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "harbour",
+    "satama",
+    "sea",
+    "meri"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.outdoor.harbour_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "crates",
+      "asset": "prop.container.wooden_crate_v1",
+      "at": {
+        "x": 190.0,
+        "y": 850.0
+      }
+    },
+    {
+      "instance": "barrel",
+      "asset": "prop.container.barrel_v1",
+      "at": {
+        "x": 550.0,
+        "y": 821.0
+      }
+    },
+    {
+      "instance": "lighthouse",
+      "asset": "prop.building.lighthouse_v1",
+      "at": {
+        "x": 1720.0,
+        "y": 390.0
+      }
+    }
+  ]
+}

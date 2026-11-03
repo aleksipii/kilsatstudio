@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "location.rural.farm_v1",
+  "kind": "location",
+  "name": "Maatila",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "farm",
+    "maatila",
+    "countryside",
+    "maaseutu"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.rural.farm_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "hay",
+      "asset": "prop.farm.haystack_v1",
+      "at": {
+        "x": 880.0,
+        "y": 840.0
+      }
+    },
+    {
+      "instance": "tractor",
+      "asset": "prop.vehicle.tractor_v1",
+      "at": {
+        "x": 1410.0,
+        "y": 710.0
+      }
+    },
+    {
+      "instance": "churn",
+      "asset": "prop.farm.milk_churn_v1",
+      "at": {
+        "x": 190.0,
+        "y": 850.0
+      }
+    },
+    {
+      "instance": "cat",
+      "asset": "prop.animal.cat_sitting_v1",
+      "at": {
+        "x": 1060.0,
+        "y": 822.0
+      }
+    }
+  ]
+}

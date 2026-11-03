@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.beach_v1",
+  "kind": "location",
+  "name": "Hiekkaranta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "beach",
+    "ranta",
+    "summer",
+    "kesä"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.beach_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "ball",
+      "asset": "prop.toy.beach_ball_v1",
+      "at": {
+        "x": 1120.0,
+        "y": 892.0
+      }
+    },
+    {
+      "instance": "bucket",
+      "asset": "prop.sauna.bucket_v1",
+      "at": {
+        "x": 1244.0,
+        "y": 874.0
+      }
+    }
+  ]
+}

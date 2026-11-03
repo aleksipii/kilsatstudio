@@ -1321,11 +1321,15 @@ fn stick_studio_library_is_valid_and_styled() {
     let (lib, warnings) =
         Library::load(&root, Policy::Distribution).unwrap_or_else(|e| panic!("{e}"));
     assert!(warnings.is_empty(), "{warnings:?}");
-    assert!(
-        lib.count(Kind::Location) >= 15,
-        "{}",
-        lib.count(Kind::Location)
-    );
+    // The shipped pack is a broad library; guard against it shrinking unnoticed.
+    for (kind, at_least) in [
+        (Kind::Background, 30),
+        (Kind::Prop, 200),
+        (Kind::Location, 40),
+        (Kind::Character, 40),
+    ] {
+        assert!(lib.count(kind) >= at_least, "{kind}: {}", lib.count(kind));
+    }
     assert!(lib.count(Kind::Set) >= lib.count(Kind::Location));
     let mut checked = 0;
     for m in lib.iter() {
@@ -1362,7 +1366,7 @@ fn stick_studio_library_is_valid_and_styled() {
             _ => {}
         }
     }
-    assert!(checked >= 30, "{checked}");
+    assert!(checked >= 150, "{checked}");
 }
 
 #[test]

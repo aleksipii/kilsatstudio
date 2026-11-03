@@ -1,0 +1,1536 @@
+{
+  "schema_version": 1,
+  "id": "background.nature.river_bridge_v1",
+  "kind": "background",
+  "name": "Joki ja silta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "nature",
+    "luonto",
+    "river",
+    "joki",
+    "bridge",
+    "silta"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 198,
+            "g": 214,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1420.0,
+            "y": 124.0,
+            "width": 160.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1396.0,
+            "y": 141.6,
+            "width": 96.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1508.0,
+            "y": 140.0,
+            "width": 104.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1464.0,
+            "y": 104.0,
+            "width": 88.0,
+            "height": 64.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_0_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80.0,
+              "y": 640.0
+            },
+            {
+              "x": 80.0,
+              "y": 519.0
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 15.4
+        }
+      },
+      {
+        "id": "far_tree_0_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": -3.16,
+            "y": 460.48,
+            "width": 98.56,
+            "height": 86.24
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_0_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 64.6,
+            "y": 464.88,
+            "width": 98.56,
+            "height": 86.24
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_0_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 18.4,
+            "y": 419.12,
+            "width": 123.2,
+            "height": 98.56
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_1_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 280.0,
+              "y": 640.0
+            },
+            {
+              "x": 280.0,
+              "y": 503.05
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 17.43
+        }
+      },
+      {
+        "id": "far_tree_1_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 185.88,
+            "y": 436.82,
+            "width": 111.55,
+            "height": 97.61
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_1_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 262.57,
+            "y": 441.8,
+            "width": 111.55,
+            "height": 97.61
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_1_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 210.28,
+            "y": 390.0,
+            "width": 139.44,
+            "height": 111.55
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_2_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 480.0,
+              "y": 640.0
+            },
+            {
+              "x": 480.0,
+              "y": 487.1
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "far_tree_2_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 374.92,
+            "y": 413.15,
+            "width": 124.54,
+            "height": 108.98
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_2_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 460.54,
+            "y": 418.71,
+            "width": 124.54,
+            "height": 108.98
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_2_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 402.16,
+            "y": 360.89,
+            "width": 155.68,
+            "height": 124.54
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_3_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 680.0,
+              "y": 640.0
+            },
+            {
+              "x": 680.0,
+              "y": 504.15
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 17.29
+        }
+      },
+      {
+        "id": "far_tree_3_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 586.63,
+            "y": 438.45,
+            "width": 110.66,
+            "height": 96.82
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_3_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 662.71,
+            "y": 443.39,
+            "width": 110.66,
+            "height": 96.82
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_3_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 610.84,
+            "y": 392.01,
+            "width": 138.32,
+            "height": 110.66
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_4_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 880.0,
+              "y": 640.0
+            },
+            {
+              "x": 880.0,
+              "y": 488.2
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "far_tree_4_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 775.67,
+            "y": 414.78,
+            "width": 123.65,
+            "height": 108.19
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_4_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 860.68,
+            "y": 420.3,
+            "width": 123.65,
+            "height": 108.19
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_4_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 802.72,
+            "y": 362.9,
+            "width": 154.56,
+            "height": 123.65
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_5_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080.0,
+              "y": 640.0
+            },
+            {
+              "x": 1080.0,
+              "y": 505.25
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 17.15
+        }
+      },
+      {
+        "id": "far_tree_5_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 987.39,
+            "y": 440.08,
+            "width": 109.76,
+            "height": 96.04
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_5_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1062.85,
+            "y": 444.98,
+            "width": 109.76,
+            "height": 96.04
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_5_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1011.4,
+            "y": 394.02,
+            "width": 137.2,
+            "height": 109.76
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_6_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1280.0,
+              "y": 640.0
+            },
+            {
+              "x": 1280.0,
+              "y": 489.3
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "far_tree_6_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1176.43,
+            "y": 416.42,
+            "width": 122.75,
+            "height": 107.41
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_6_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1260.82,
+            "y": 421.9,
+            "width": 122.75,
+            "height": 107.41
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_6_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1203.28,
+            "y": 364.9,
+            "width": 153.44,
+            "height": 122.75
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_7_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1480.0,
+              "y": 640.0
+            },
+            {
+              "x": 1480.0,
+              "y": 506.35
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 17.01
+        }
+      },
+      {
+        "id": "far_tree_7_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1388.15,
+            "y": 441.71,
+            "width": 108.86,
+            "height": 95.26
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_7_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1462.99,
+            "y": 446.57,
+            "width": 108.86,
+            "height": 95.26
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_7_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1411.96,
+            "y": 396.03,
+            "width": 136.08,
+            "height": 108.86
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_8_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 640.0
+            },
+            {
+              "x": 1680.0,
+              "y": 490.4
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "far_tree_8_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1577.18,
+            "y": 418.05,
+            "width": 121.86,
+            "height": 106.62
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_8_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1660.96,
+            "y": 423.49,
+            "width": 121.86,
+            "height": 106.62
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_8_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1603.84,
+            "y": 366.91,
+            "width": 152.32,
+            "height": 121.86
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_9_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1880.0,
+              "y": 640.0
+            },
+            {
+              "x": 1880.0,
+              "y": 507.45
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 16.87
+        }
+      },
+      {
+        "id": "far_tree_9_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1788.9,
+            "y": 443.34,
+            "width": 107.97,
+            "height": 94.47
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_9_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1863.13,
+            "y": 448.16,
+            "width": 107.97,
+            "height": 94.47
+          },
+          "color": {
+            "r": 138,
+            "g": 160,
+            "b": 136,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "far_tree_9_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1812.52,
+            "y": 398.04,
+            "width": 134.96,
+            "height": 107.97
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bank_far",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 620.0,
+            "width": 1920.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 168,
+            "g": 186,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "river",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 690.0,
+            "width": 1920.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 172,
+            "g": 198,
+            "b": 206,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flow_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 120.0,
+              "y": 710.0
+            },
+            {
+              "x": 220.0,
+              "y": 710.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "flow_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 380.0,
+              "y": 750.0
+            },
+            {
+              "x": 480.0,
+              "y": 750.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "flow_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 640.0,
+              "y": 790.0
+            },
+            {
+              "x": 740.0,
+              "y": 790.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "flow_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900.0,
+              "y": 710.0
+            },
+            {
+              "x": 1000.0,
+              "y": 710.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "flow_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1160.0,
+              "y": 750.0
+            },
+            {
+              "x": 1260.0,
+              "y": 750.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "flow_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1420.0,
+              "y": 790.0
+            },
+            {
+              "x": 1520.0,
+              "y": 790.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "flow_6",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 710.0
+            },
+            {
+              "x": 1780.0,
+              "y": 710.0
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 222,
+            "b": 228,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "bank",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 840.0,
+            "width": 1920.0,
+            "height": 240.0
+          },
+          "color": {
+            "r": 178,
+            "g": 192,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "arch",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 630.0,
+            "y": 580.0,
+            "width": 660.0,
+            "height": 240.0
+          },
+          "color": {
+            "r": 170,
+            "g": 160,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "arch_hole",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 710.0,
+            "y": 650.0,
+            "width": 500.0,
+            "height": 180.0
+          },
+          "color": {
+            "r": 172,
+            "g": 198,
+            "b": 206,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "deck",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 560.0,
+            "y": 560.0,
+            "width": 800.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 176,
+            "g": 150,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "rail_post_0",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 580.0,
+              "y": 560.0
+            },
+            {
+              "x": 580.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 656.0,
+              "y": 560.0
+            },
+            {
+              "x": 656.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_2",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 732.0,
+              "y": 560.0
+            },
+            {
+              "x": 732.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_3",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 808.0,
+              "y": 560.0
+            },
+            {
+              "x": 808.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_4",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 884.0,
+              "y": 560.0
+            },
+            {
+              "x": 884.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_5",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 560.0
+            },
+            {
+              "x": 960.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_6",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1036.0,
+              "y": 560.0
+            },
+            {
+              "x": 1036.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_7",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1112.0,
+              "y": 560.0
+            },
+            {
+              "x": 1112.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_8",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1188.0,
+              "y": 560.0
+            },
+            {
+              "x": 1188.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_9",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1264.0,
+              "y": 560.0
+            },
+            {
+              "x": 1264.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail_post_10",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1340.0,
+              "y": 560.0
+            },
+            {
+              "x": 1340.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "rail",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 570.0,
+              "y": 500.0
+            },
+            {
+              "x": 1350.0,
+              "y": 500.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 10.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "stand",
+      "id": "bridge",
+      "at": {
+        "x": 960.0,
+        "y": 560.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "bank",
+      "at": {
+        "x": 300.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

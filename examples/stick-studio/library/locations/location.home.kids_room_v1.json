@@ -1,0 +1,345 @@
+{
+  "schema_version": 1,
+  "id": "location.home.kids_room_v1",
+  "kind": "location",
+  "name": "Lastenhuone",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "home",
+    "koti",
+    "kids_room",
+    "lastenhuone",
+    "children",
+    "lapset"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "variants": [
+    {
+      "name": "day",
+      "palette": {
+        "glass": {
+          "r": 176,
+          "g": 206,
+          "b": 214,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "evening",
+      "palette": {
+        "glass": {
+          "r": 222,
+          "g": 186,
+          "b": 146,
+          "a": 255
+        },
+        "wall": {
+          "r": 230,
+          "g": 218,
+          "b": 202,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "rain",
+      "palette": {
+        "glass": {
+          "r": 134,
+          "g": 150,
+          "b": 160,
+          "a": 255
+        }
+      },
+      "layers": [
+        {
+          "id": "rain_0_0",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1001.28,
+                "y": 211.68
+              },
+              {
+                "x": 975.36,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_0_1",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1053.12,
+                "y": 211.68
+              },
+              {
+                "x": 1027.1999999999998,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_0_2",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1104.96,
+                "y": 211.68
+              },
+              {
+                "x": 1079.04,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_0_3",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1156.8,
+                "y": 211.68
+              },
+              {
+                "x": 1130.8799999999999,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "messy",
+      "layers": [
+        {
+          "id": "mess_paper",
+          "depth": "mid",
+          "paint": "clutter_b",
+          "content": {
+            "type": "rectangle",
+            "rect": {
+              "x": 422.4,
+              "y": 977.4,
+              "width": 70.0,
+              "height": 10.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        },
+        {
+          "id": "mess_sock",
+          "depth": "mid",
+          "paint": "clutter_a",
+          "content": {
+            "type": "ellipse",
+            "rect": {
+              "x": 902.4,
+              "y": 1020.6,
+              "width": 46.0,
+              "height": 18.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        },
+        {
+          "id": "mess_book",
+          "depth": "mid",
+          "paint": "clutter_c",
+          "content": {
+            "type": "rectangle",
+            "rect": {
+              "x": 1363.1999999999998,
+              "y": 958.5,
+              "width": 60.0,
+              "height": 14.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        },
+        {
+          "id": "mess_crumple",
+          "depth": "mid",
+          "paint": "clutter_b",
+          "content": {
+            "type": "ellipse",
+            "rect": {
+              "x": 1651.2,
+              "y": 1039.5,
+              "width": 30.0,
+              "height": 22.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "room": {
+    "width": 1920.0,
+    "height": 1080.0,
+    "floor_y": 810.0,
+    "wall": {
+      "r": 228,
+      "g": 222,
+      "b": 210,
+      "a": 255
+    },
+    "floor": {
+      "r": 196,
+      "g": 176,
+      "b": 150,
+      "a": 255
+    },
+    "windows": 1,
+    "time_of_day": "day",
+    "door": "left"
+  },
+  "parts": [
+    {
+      "instance": "rug",
+      "asset": "prop.decor.rug_v1",
+      "at": {
+        "x": 800.0,
+        "y": 921.0
+      }
+    },
+    {
+      "instance": "bed",
+      "asset": "prop.furniture.bed_v1",
+      "at": {
+        "x": 1330.0,
+        "y": 775.0
+      }
+    },
+    {
+      "instance": "shelf",
+      "asset": "prop.furniture.bookshelf_v1",
+      "at": {
+        "x": 1075.0,
+        "y": 595.0
+      }
+    },
+    {
+      "instance": "picture",
+      "asset": "prop.decor.picture_frame_v1",
+      "at": {
+        "x": 1445.0,
+        "y": 300.0
+      }
+    },
+    {
+      "instance": "horse",
+      "asset": "prop.toy.rocking_horse_v1",
+      "at": {
+        "x": 615.0,
+        "y": 796.0
+      }
+    },
+    {
+      "instance": "blocks",
+      "asset": "prop.toy.toy_blocks_v1",
+      "at": {
+        "x": 900.0,
+        "y": 845.0
+      }
+    },
+    {
+      "instance": "teddy",
+      "asset": "prop.toy.teddy_bear_v1",
+      "at": {
+        "x": 1045.0,
+        "y": 857.0
+      }
+    },
+    {
+      "instance": "car",
+      "asset": "prop.toy.toy_car_v1",
+      "at": {
+        "x": 815.0,
+        "y": 901.0
+      }
+    }
+  ]
+}

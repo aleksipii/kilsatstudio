@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.river_bridge_v1",
+  "kind": "location",
+  "name": "Joenrannan silta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "river",
+    "joki",
+    "bridge",
+    "silta"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.river_bridge_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "rod",
+      "asset": "prop.nature.fishing_rod_v1",
+      "at": {
+        "x": 340.0,
+        "y": 710.0
+      }
+    },
+    {
+      "instance": "stump",
+      "asset": "prop.nature.stump_v1",
+      "at": {
+        "x": 165.0,
+        "y": 880.0
+      }
+    }
+  ]
+}
