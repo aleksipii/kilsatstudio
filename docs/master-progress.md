@@ -2905,3 +2905,28 @@ notarisointi ja lopullinen oikeustarkistus jäävät avoimiksi.
 - Tehty: korkean tason `kilsat_story: 1` -muoto ([story-format.md](story-format.md)), jonka Claude tai ChatGPT kirjoittaa sovelluksen kopioimasta ohjeesta. Kääntäjä tekee siitä tavallisen MotionScriptin: kohtaukset, lavasteet, kuvakoot, kovat leikkaukset, kameran ajot, katseet, 12 elettä, kävelyt, ajastetut käsiesineet (`hold`), istumisen (`pose`) tuoleineen ja tekstitykset. Työpöytäpaneeli tuottaa repliikit hahmojen äänillä taustatyönä ja ajoittaa tarinan mitattujen WAV-kestojen mukaan. Repliikkikohtaiset WAVit tallennetaan sisältötiivisteellä. Avoimen projektin omat rigatut hahmot ja kuvitetut kohtaukset ovat käytettävissä. Luonnin jälkeen näytetään automaattinen leikkaustarkastus.
 - Tarkistettu: paikallisesti `cargo fmt --check`, `check`, `clippy --all-targets` (0 varoitusta) ja `cargo test --workspace` (1120 läpi, 0 epäonnistui). GitHub CI oli vihreä molemmissa PR:issä: rust macOS/Ubuntu, gpu-contracts, media-encoding, g2-export-macos, real-asset-pack, screen-slots-macos ja apple-silicon-preview. Esimerkkitarina ja jokainen uusi ele renderöitiin CPU-polulla ja kuvat katsottiin.
 - Tekemättä: oikeaa Kokoro- tai Piper-synteesiä ei ajettu, ja puheajoitus testattiin valepuhepalvelulla. Työpöytäsovellusta ei käytetty käsin, eikä fyysisen Macin hyväksyntää ole. Suomessa on yksi Piper-ääni, joten hahmot erottuvat vain nopeudella. Tunteita on viisi, ja tuoli on etunäkymän piirros. Käsi- ja istumatila alkaa jokaisessa tarinakohtauksessa alusta. Komiikan, näyttelyn ja huulisynkan laatu vaatii ihmisen arvion.
+
+## 2026-11-03 — Näyttely, esituotanto, animaattorin työkalut ja lavastus: PR #167–#170 yhdistetty
+
+Käyttäjän luvalla yhdistettiin pino mainiin tavallisilla merge-commiteilla (haaroja ei poistettu):
+[#167](https://github.com/aleksipii/kilsatstudio/pull/167) `1514df5`,
+[#168](https://github.com/aleksipii/kilsatstudio/pull/168) `31b9b4a`,
+[#169](https://github.com/aleksipii/kilsatstudio/pull/169) `8487fc2` ja
+[#170](https://github.com/aleksipii/kilsatstudio/pull/170) `745f5a2`.
+`kilsatstudio1.0` siirrettiin fast-forwardina `1f18c48` → `745f5a2`.
+
+- Tehty:
+  - #167: näyttelijäprofiilit (`acting:`), tunteen voimakkuus (`intensity`) ja piirretyt käsimuodot ([acting-profiles.md](acting-profiles.md)).
+  - #168: otoslista, otosten tilat `.kilsat`-projektissa, kuvakäsikirjoitusarkki (HTML/PNG/JSON) ja animatiikki ([storyboard-animatic.md](storyboard-animatic.md)).
+  - #169: `bezier(x1, y1, x2, y2)` -easing, käyräeditori ja onion skin ([curve-editor-onion-skin.md](curve-editor-onion-skin.md)).
+  - #170: lavastuseditori, vuorokaudenajat valoina ja neljä Harrista johdettua suomenkielistä ääntä ([set-dressing-time-voices.md](set-dressing-time-voices.md)).
+- Tarkistettu:
+  - Paikallisesti mainilla `745f5a2`: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets` (0 varoitusta) ja `cargo test --workspace --all-targets --no-fail-fast` (1377 läpi, 0 epäonnistui, 14 ohitettu).
+  - Python: `tests` 159 OK, `scripts/tests` 31 OK ja `services/kokoro-runtime/tests` 55 OK (5 ohitettu).
+  - Oikealla FFmpegillä animatiikin ja virtaavan viennin testit.
+  - GitHub CI: jokaisen PR:n kaikki tarkistukset vihreinä ennen yhdistämistä (#167 ja #168: peruttu macOS-työ ajettiin uudelleen ja meni läpi). Mainin 7/7 työnkulkua vihreinä commitilla `745f5a2`, mukaan lukien Kilsat Studio release app -ajo 41609983358.
+- Puhe: kaikki viisi suomenkielistä ääntä syntetisoitiin oikeasti `PiperProvider`-polulla (piper-tts 1.8.0, Harri medium, tiivisteet tarkistettu). Mitattu sävelkorkeuden mediaani (YIN): 104 Hz perus, 77 Hz jykeä, 82 Hz matala, 119 Hz korkea ja 132 Hz kirkas ([todiste](evidence/finnish-voice-variants.json)). Kukaan ei ole kuunnellut niitä.
+- Tekemättä:
+  - Uusia työpöytänäkymiä (käyräeditori, onion skin, lavastus, otosten tilat) ei ole käytetty käsin hiirellä, eikä fyysisen Macin hyväksyntää ole.
+  - Developer ID -allekirjoitus ja notarisointi puuttuvat, koska repossa ei ole tunnuksia.
+  - `v1.0.0`-tagia ja GitHub-julkaisua ei tehty: ne vaativat erillisen luvan, ja puhepaketin GPL- ja äänioikeusselvitys on kesken.
