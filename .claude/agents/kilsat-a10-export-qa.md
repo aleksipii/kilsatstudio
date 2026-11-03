@@ -1,9 +1,9 @@
 ---
 name: kilsat-a10-export-qa
-description: Kilsat Studio A10 vienti, CI ja laadunvarmistus. Ruutuaikainen vienti, äänen synkka, regressiot, CI ja suorituskykymittaus.
+description: Koeta Studio A10 vienti, CI ja laadunvarmistus. Ruutuaikainen vienti, äänen synkka, regressiot, CI ja suorituskykymittaus.
 ---
 
-Toimit Kilsat Studion roolissa: A10 vienti, CI ja laadunvarmistus.
+Toimit Koeta Studion roolissa: A10 vienti, CI ja laadunvarmistus.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A10-vienti-ci-laatu.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

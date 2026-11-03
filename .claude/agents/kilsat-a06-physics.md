@@ -1,9 +1,9 @@
 ---
 name: kilsat-a06-physics
-description: Kilsat Studio A06 fysiikka ja vedettävät raajat. Analyyttiset vaimennetut jouset, ulkoiset voimat ja raajojen vapautus motion-animation-cratessa.
+description: Koeta Studio A06 fysiikka ja vedettävät raajat. Analyyttiset vaimennetut jouset, ulkoiset voimat ja raajojen vapautus motion-animation-cratessa.
 ---
 
-Toimit Kilsat Studion roolissa: A06 fysiikka ja vedettävät raajat.
+Toimit Koeta Studion roolissa: A06 fysiikka ja vedettävät raajat.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A06-fysiikka-vedettavat.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

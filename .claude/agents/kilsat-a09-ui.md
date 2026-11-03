@@ -1,9 +1,9 @@
 ---
 name: kilsat-a09-ui
-description: Kilsat Studio A09 macOS ja käyttöliittymä. Kolme käyttöliittymätasoa nykyiseen egui-sovellukseen, toisto ja aikahyppy.
+description: Koeta Studio A09 macOS ja käyttöliittymä. Kolme käyttöliittymätasoa nykyiseen egui-sovellukseen, toisto ja aikahyppy.
 ---
 
-Toimit Kilsat Studion roolissa: A09 macOS ja käyttöliittymä.
+Toimit Koeta Studion roolissa: A09 macOS ja käyttöliittymä.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A09-macos-kayttoliittyma.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

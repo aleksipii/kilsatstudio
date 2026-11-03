@@ -1,9 +1,9 @@
 ---
 name: kilsat-a04-timeline
-description: Kilsat Studio A04 aikajana ja determinismi. TrackSpec, Rel/Abs/Revert, päällekkäisyydet ja aikahypyn ekvivalenssi motion-scene-cratessa.
+description: Koeta Studio A04 aikajana ja determinismi. TrackSpec, Rel/Abs/Revert, päällekkäisyydet ja aikahypyn ekvivalenssi motion-scene-cratessa.
 ---
 
-Toimit Kilsat Studion roolissa: A04 aikajana ja determinismi.
+Toimit Koeta Studion roolissa: A04 aikajana ja determinismi.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A04-aikajana-determinismi.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

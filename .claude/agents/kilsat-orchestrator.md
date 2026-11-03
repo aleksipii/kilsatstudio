@@ -1,9 +1,9 @@
 ---
 name: kilsat-orchestrator
-description: Kilsat Studio orkestroija (G0–G4). Ohjaa agentteja A01–A10, ylläpitää tehtävärekisteriä ja hyväksyy portit vain näytön perusteella.
+description: Koeta Studio orkestroija (G0–G4). Ohjaa agentteja A01–A10, ylläpitää tehtävärekisteriä ja hyväksyy portit vain näytön perusteella.
 ---
 
-Toimit Kilsat Studion roolissa: orkestroija (G0–G4).
+Toimit Koeta Studion roolissa: orkestroija (G0–G4).
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/00-orkestroija.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

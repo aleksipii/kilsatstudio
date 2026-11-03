@@ -1,9 +1,9 @@
 ---
 name: kilsat-a03-rules
-description: Kilsat Studio A03 säännöt ja tapahtumat. Sääntöjen järjestys, prioriteetit, ketjutusraja ja toistettava EventLog.
+description: Koeta Studio A03 säännöt ja tapahtumat. Sääntöjen järjestys, prioriteetit, ketjutusraja ja toistettava EventLog.
 ---
 
-Toimit Kilsat Studion roolissa: A03 säännöt ja tapahtumat.
+Toimit Koeta Studion roolissa: A03 säännöt ja tapahtumat.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A03-saannot-tapahtumat.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

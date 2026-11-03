@@ -1,9 +1,9 @@
 ---
 name: kilsat-a05-rig
-description: Kilsat Studio A05 riggaus, IK ja esineet. Tikku-ukkojen kiinnitykset, nivelrajat, kahden luun IK ja käteen kiinnitetty puhelin.
+description: Koeta Studio A05 riggaus, IK ja esineet. Tikku-ukkojen kiinnitykset, nivelrajat, kahden luun IK ja käteen kiinnitetty puhelin.
 ---
 
-Toimit Kilsat Studion roolissa: A05 riggaus, IK ja esineet.
+Toimit Koeta Studion roolissa: A05 riggaus, IK ja esineet.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A05-riggaus-ik-esineet.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

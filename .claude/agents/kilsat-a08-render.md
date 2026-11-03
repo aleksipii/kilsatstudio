@@ -1,9 +1,9 @@
 ---
 name: kilsat-a08-render
-description: Kilsat Studio A08 renderöinti, kamera ja taustat. Renderöintisopimus, syvyysjärjestys, laaja- ja lähikuvat sekä vertailukuvat.
+description: Koeta Studio A08 renderöinti, kamera ja taustat. Renderöintisopimus, syvyysjärjestys, laaja- ja lähikuvat sekä vertailukuvat.
 ---
 
-Toimit Kilsat Studion roolissa: A08 renderöinti, kamera ja taustat.
+Toimit Koeta Studion roolissa: A08 renderöinti, kamera ja taustat.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A08-renderointi-kamera.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

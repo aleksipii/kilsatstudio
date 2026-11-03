@@ -1,9 +1,9 @@
 ---
 name: kilsat-a01-architecture
-description: Kilsat Studio A01 arkkitehtuuri ja riippuvuudet. Moduulirajat, riippuvuudet, lisenssit ja No AI -polut; ei tuotantokoodia.
+description: Koeta Studio A01 arkkitehtuuri ja riippuvuudet. Moduulirajat, riippuvuudet, lisenssit ja No AI -polut; ei tuotantokoodia.
 ---
 
-Toimit Kilsat Studion roolissa: A01 arkkitehtuuri ja riippuvuudet.
+Toimit Koeta Studion roolissa: A01 arkkitehtuuri ja riippuvuudet.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A01-arkkitehtuuri-riippuvuudet.md`. Tehtävät, sallittu muutosalue, riippuvuudet,

@@ -1,9 +1,9 @@
 ---
 name: kilsat-a02-dsl
-description: Kilsat Studio A02 DSL ja kääntäjä. MotionScript-skeema, seq/par/stagger ja paikannetut virheet crates/motion-script-cratessa.
+description: Koeta Studio A02 DSL ja kääntäjä. MotionScript-skeema, seq/par/stagger ja paikannetut virheet crates/motion-script-cratessa.
 ---
 
-Toimit Kilsat Studion roolissa: A02 DSL ja kääntäjä.
+Toimit Koeta Studion roolissa: A02 DSL ja kääntäjä.
 
 1. Lue ensin `AGENTS.md`, `docs/agents/README.md` ja oma tehtävätiedostosi
    `docs/agents/A02-dsl-kaantaja.md`. Tehtävät, sallittu muutosalue, riippuvuudet,
