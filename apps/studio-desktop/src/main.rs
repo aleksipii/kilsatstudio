@@ -43,6 +43,7 @@ mod scene_settings;
 mod scene_worker;
 mod screen_cues;
 mod screen_video_worker;
+mod script_editor;
 mod sequence_panel;
 mod sequence_worker;
 mod set_dressing;
@@ -258,6 +259,8 @@ struct Studio {
     timeline_seek_drag: bool,
     history: project_history::History,
     pending_text_edit: Option<String>,
+    /// Line and column of the last YAML syntax error found by Tarkista or Muotoile.
+    source_error: Option<(usize, usize)>,
     event_draft: Option<event_editor::Draft>,
     event_edit_error: Option<String>,
     exporter: export_worker::Worker,
@@ -463,6 +466,7 @@ impl Default for Studio {
                 "../../../examples/hello-emma.yaml"
             )),
             pending_text_edit: None,
+            source_error: None,
             event_draft: None,
             event_edit_error: None,
             selected_actor: None,
@@ -1734,7 +1738,33 @@ impl Studio {
                 self.invalidate_scene();
                 self.jobs.clear();
                 self.preview = None;
+                self.source_error = script_editor::syntax_error(&self.source);
                 self.status = format!("Käsikirjoituksen tarkistus epäonnistui: {e}");
+            }
+        }
+    }
+    /// Rewrite the screenplay in the canonical MotionScript layout. The data is
+    /// unchanged, so the parsed script and previews stay valid; Undo restores
+    /// the previous text.
+    fn format_source(&mut self) {
+        self.flush_text_edit();
+        match motion_script::format::format_source(&self.source) {
+            Ok(formatted) if formatted.text.len() > MAX_SOURCE_BYTES => {
+                self.status =
+                    "Muotoiltu käsikirjoitus ylittäisi kokorajan; teksti ei muuttunut.".into();
+            }
+            Ok(formatted) => {
+                let changed = formatted.text != self.source;
+                if changed {
+                    let before = std::mem::replace(&mut self.source, formatted.text.clone());
+                    self.record_source_edit(&before, &formatted.text);
+                }
+                self.source_error = None;
+                self.status = script_editor::format_status(&formatted, changed);
+            }
+            Err(e) => {
+                self.source_error = script_editor::syntax_error(&self.source);
+                self.status = format!("Muotoilu epäonnistui, teksti ei muuttunut: {e}");
             }
         }
     }
@@ -4762,13 +4792,30 @@ impl Studio {
                 ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                     field(ui, "YAML- tai .kilsat-tiedoston koko polku. Tallennus korvaa tiedoston.", &mut self.script_path);
                     ui.add_space(6.0);
+                    let editor_id = egui::Id::new("screenplay_editor");
+                    ui.horizontal(|ui| {
+                        if ui.button("Muotoile").on_hover_text(
+                            "Kirjoittaa YAMLin yhtenäiseen muotoon: osiot omille riveilleen ja lyhyet avainkehykset yhdelle riville. Data ei muutu; tiedoston alun ja osioiden yläpuolen kommentit säilyvät.",
+                        ).clicked() {
+                            self.format_source();
+                        }
+                        if let Some((line, column)) = self.source_error {
+                            if ui.button(format!("Siirry virheeseen: rivi {line}, sarake {column}")).clicked() {
+                                let index = script_editor::char_index(&self.source, line, column);
+                                script_editor::place_cursor(ui.ctx(), editor_id, index);
+                            }
+                        }
+                        ui.weak(format!("{} riviä", self.source.lines().count()));
+                    });
                     let before = self.source.clone();
+                    let mut layouter = script_editor::layouter;
                     let response = ui.add(egui::TextEdit::multiline(&mut self.source)
-                        .id(egui::Id::new("screenplay_editor"))
+                        .id(editor_id)
                         .desired_rows(32).desired_width(f32::INFINITY).char_limit(MAX_SOURCE_BYTES)
-                        .font(egui::TextStyle::Monospace).code_editor());
+                        .font(egui::TextStyle::Monospace).code_editor().layouter(&mut layouter));
                     if response.changed()
                     {
+                        self.source_error = None;
                         if self.pending_text_edit.is_none() { self.pending_text_edit = Some(before); }
                         self.alignment.clear(); self.scene_alignment.clear();
                         self.stop_playback(); self.invalidate_scene(); self.jobs.clear(); self.preview = None;
@@ -9362,6 +9409,54 @@ mod live_clip_integration_tests {
 }
 
 #[cfg(test)]
+mod script_format_tests {
+    use super::*;
+
+    fn data(text: &str) -> serde_yaml::Value {
+        serde_yaml::from_str(text).unwrap()
+    }
+
+    #[test]
+    fn format_keeps_data_and_comments_and_undo_restores_the_text() {
+        let mut studio = Studio::default();
+        studio.source = "# Otsikko\n\ncharacters: {}\n# Kohtaukset\nscenes: [{id: s, duration: 1, events: []}]\n".into();
+        studio.validate();
+        let before = studio.source.clone();
+        studio.format_source();
+        assert_eq!(
+            studio.source,
+            "# Otsikko\n\ncharacters: {}\n\n# Kohtaukset\nscenes:\n  - {id: s, duration: 1, events: []}\n"
+        );
+        assert_eq!(data(&studio.source), data(&before));
+        assert!(
+            studio.script.is_some(),
+            "formatting keeps the checked script"
+        );
+        studio.format_source();
+        assert!(studio.status.contains("jo muotoiltu"), "{}", studio.status);
+        studio.undo_edit(false);
+        assert_eq!(studio.source, before);
+    }
+
+    #[test]
+    fn syntax_errors_leave_the_text_and_point_at_the_line() {
+        let mut studio = Studio::default();
+        studio.source = "characters: {}\nscenes: [\n  {id: s,\n".into();
+        let before = studio.source.clone();
+        studio.format_source();
+        assert_eq!(studio.source, before);
+        let (line, _) = studio.source_error.expect("error location");
+        assert!(line >= 2, "line {line}");
+        studio.source_error = None;
+        studio.validate();
+        assert!(
+            studio.source_error.is_some(),
+            "Tarkista also locates syntax errors"
+        );
+    }
+}
+
+#[cfg(test)]
 mod editable_timeline_integration_tests {
     use super::*;
     use motion_scene::editable_timeline::TimelineEdit;
@@ -9378,7 +9473,7 @@ mod editable_timeline_integration_tests {
             before: None,
         });
         let edited = studio.source.clone();
-        assert!(edited.lines().any(|line| line == "project:"));
+        assert!(edited.lines().any(|line| line.starts_with("project:")));
         assert!(serde_json::from_str::<serde_json::Value>(&edited).is_err());
         assert_eq!(studio.scene_index, 1);
         assert_eq!(studio.script.as_ref().unwrap().scenes[0].id, "second");

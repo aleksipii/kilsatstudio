@@ -233,8 +233,13 @@ fn fit(text: String) -> Option<String> {
     (text.chars().count() <= FLOW_WIDTH).then_some(text)
 }
 
-/// A scalar that is also safe inside `{...}` or `[...]`.
+/// A scalar (or empty collection) that is also safe inside `{...}` or `[...]`.
 fn flow_scalar(value: &Value) -> Result<Option<String>, Error> {
+    match value {
+        Value::Mapping(map) if map.is_empty() => return Ok(Some("{}".into())),
+        Value::Sequence(items) if items.is_empty() => return Ok(Some("[]".into())),
+        _ => {}
+    }
     if matches!(
         value,
         Value::Mapping(_) | Value::Sequence(_) | Value::Tagged(_)
@@ -375,8 +380,15 @@ fn opens_block_scalar(line: &str) -> bool {
 fn inline_comment(line: &str) -> bool {
     let mut quote: Option<char> = None;
     let mut previous = ' ';
+    let mut escaped = false;
     for c in line.chars() {
+        if escaped {
+            escaped = false;
+            previous = c;
+            continue;
+        }
         match quote {
+            Some('"') if c == '\\' => escaped = true,
             Some(q) if c == q => quote = None,
             Some(_) => {}
             None if c == '\'' || c == '"' => quote = Some(c),
@@ -420,6 +432,10 @@ mod tests {
             text.contains("e:\n  - f:\n      - 1\n      - {g: 2}\n"),
             "{text}"
         );
+        let empty = serde_json::json!({"s": [{"id": "s", "events": [], "tags": {}}]});
+        let text = format_value(&serde_yaml::to_value(&empty).unwrap()).unwrap();
+        // serde_json orders keys alphabetically.
+        assert_eq!(text, "s:\n  - {events: [], id: s, tags: {}}\n");
     }
 
     #[test]
@@ -480,6 +496,14 @@ mod tests {
             (formatted.kept_comments, formatted.dropped_comments),
             (3, 2)
         );
+    }
+
+    #[test]
+    fn json_values_with_escapes_are_not_comments() {
+        let formatted =
+            format_source("# Head\n\n\"a\": {\"t\": \"say \\\" #1\", \"c\": \"#fff\"}\n").unwrap();
+        assert_eq!(formatted.dropped_comments, 0);
+        assert_eq!(formatted.text, "# Head\n\na: {t: 'say \" #1', c: '#fff'}\n");
     }
 
     #[test]

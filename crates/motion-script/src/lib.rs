@@ -1663,10 +1663,15 @@ fn edit_source(
     }
     let mut candidate = parse(source)?;
     edit(&mut candidate)?;
-    candidate.validate()?;
-    // Keep the header and section comments the author wrote.
-    let value = serde_yaml::to_value(&candidate)?;
-    bounded(format::format_with_comments(&value, source)?.text)
+    to_source_preserving(&candidate, source)
+}
+
+/// Like [`to_source`], keeping the file header and the comments above
+/// top-level sections of `original`, the text the edit started from.
+pub fn to_source_preserving(script: &Script, original: &str) -> Result<String, Error> {
+    script.validate()?;
+    let value = serde_yaml::to_value(script)?;
+    bounded(format::format_with_comments(&value, original)?.text)
 }
 
 /// Validate and encode an edited document as bounded, readable MotionScript

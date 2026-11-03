@@ -380,8 +380,7 @@ fn import_library(source: &str, text: &str, replace: bool) -> Result<String, mot
         }
         candidate.animation_clips.insert(name, clip);
     }
-    candidate.validate()?;
-    let output = serde_yaml::to_string(&candidate)?;
+    let output = motion_script::to_source_preserving(&candidate, source)?;
     if output.len() > EXCHANGE_LIMIT {
         return Err(exchange_error(
             "Tuotu käsikirjoitus ylittää yhden MiB:n rajan.",
