@@ -36,11 +36,26 @@ pub struct PrepareRequest {
     /// Project model policy; see `scene_worker::speech_provider`.
     pub policy: motion_project::ModelPolicy,
 }
+/// Longest side of a storyboard panel image.
+const STORYBOARD_PANEL_SIDE: u32 = 640;
 pub enum ExportFormat {
     Png,
     Svg,
-    Mp4 { ffmpeg: PathBuf },
-    StreamingMp4 { ffmpeg: PathBuf },
+    Mp4 {
+        ffmpeg: PathBuf,
+    },
+    StreamingMp4 {
+        ffmpeg: PathBuf,
+    },
+    /// Printable storyboard sheet: one panel per shot with status and note.
+    Storyboard {
+        title: String,
+        production: motion_project::ProductionDocument,
+    },
+    /// MP4 with each shot held on its storyboard panel over the real audio.
+    Animatic {
+        ffmpeg: PathBuf,
+    },
 }
 
 pub enum Task {
@@ -254,6 +269,35 @@ fn execute(task: Task, progress: &(impl Fn(Update) + Sync)) -> Update {
                         output_directory: r.output_directory,
                     })
                 }
+                ExportFormat::Storyboard { title, production } => motion_export::export_storyboard(
+                    &prepared.preview,
+                    &destination,
+                    &title,
+                    &production,
+                    STORYBOARD_PANEL_SIDE,
+                    captions,
+                    &cancel,
+                    report,
+                )
+                .map(|r| Report {
+                    frame_count: r.shots as u64,
+                    output_directory: r.output_directory,
+                }),
+                ExportFormat::Animatic { ffmpeg } => motion_export::export_animatic_streaming(
+                    &prepared.script,
+                    &prepared.rendered,
+                    Some(&prepared.art),
+                    &destination,
+                    &ffmpeg,
+                    &motion_export::StreamingProfile::animatic(&prepared.script),
+                    &cancel,
+                    report,
+                    captions,
+                )
+                .map(|r| Report {
+                    frame_count: r.frame_count,
+                    output_directory: r.output_directory,
+                }),
                 ExportFormat::Mp4 { ffmpeg } => motion_export::export_mp4_sequence_captions(
                     &prepared.script,
                     &prepared.rendered,

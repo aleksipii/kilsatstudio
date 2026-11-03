@@ -34,6 +34,8 @@ mod screen_tests;
 mod soft_mask_tests;
 pub use preview_scene::ScenePreview;
 pub mod screen_video;
+mod storyboard;
+pub use storyboard::{export_storyboard, StoryboardReport, MAX_STORYBOARD_PANELS};
 mod sequence;
 mod streaming;
 pub use color::ColorTag;
@@ -60,7 +62,9 @@ use std::{
     path::{Path, PathBuf},
 };
 pub use streaming::{
-    export_mp4_scene_streaming, export_mp4_sequence_streaming, StreamingProfile, StreamingReport,
+    animatic_panels, export_animatic_streaming, export_mp4_scene_streaming,
+    export_mp4_sequence_streaming, AnimaticPanel, StreamingProfile, StreamingReport,
+    MAX_ANIMATIC_FRAMES,
 };
 
 #[derive(Debug, Clone, Default)]

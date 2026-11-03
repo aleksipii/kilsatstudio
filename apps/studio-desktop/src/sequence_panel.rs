@@ -13,12 +13,16 @@ enum ExportChoice {
     Svg,
     Mp4,
     StreamingMp4,
+    Storyboard,
+    Animatic,
 }
 
 fn export_request(
     choice: ExportChoice,
     destination: &str,
     ffmpeg: &str,
+    title: &str,
+    production: &motion_project::ProductionDocument,
 ) -> Result<(std::path::PathBuf, ExportFormat), String> {
     let destination = std::path::PathBuf::from(destination.trim());
     if !destination.is_absolute() {
@@ -27,17 +31,21 @@ fn export_request(
     let format = match choice {
         ExportChoice::Png => ExportFormat::Png,
         ExportChoice::Svg => ExportFormat::Svg,
-        ExportChoice::Mp4 | ExportChoice::StreamingMp4 => {
+        ExportChoice::Storyboard => ExportFormat::Storyboard {
+            title: title.to_string(),
+            production: production.clone(),
+        },
+        ExportChoice::Mp4 | ExportChoice::StreamingMp4 | ExportChoice::Animatic => {
             let ffmpeg = std::path::PathBuf::from(ffmpeg.trim());
             if !ffmpeg.is_absolute() {
                 return Err(
                     "Anna paikallisen FFmpeg-ohjelman koko polku MP4-vientiä varten.".into(),
                 );
             }
-            if choice == ExportChoice::StreamingMp4 {
-                ExportFormat::StreamingMp4 { ffmpeg }
-            } else {
-                ExportFormat::Mp4 { ffmpeg }
+            match choice {
+                ExportChoice::StreamingMp4 => ExportFormat::StreamingMp4 { ffmpeg },
+                ExportChoice::Animatic => ExportFormat::Animatic { ffmpeg },
+                _ => ExportFormat::Mp4 { ffmpeg },
             }
         }
     };
@@ -70,6 +78,8 @@ pub struct Panel {
     ffmpeg: String,
     export_choice: ExportChoice,
     captions: motion_script::CaptionMode,
+    /// Shot statuses for the storyboard sheet; owned by the studio.
+    production: motion_project::ProductionDocument,
 }
 impl Default for Panel {
     fn default() -> Self {
@@ -99,6 +109,7 @@ impl Default for Panel {
             ffmpeg: String::new(),
             export_choice: ExportChoice::Png,
             captions: motion_script::CaptionMode::default(),
+            production: Default::default(),
         }
     }
 }
@@ -137,6 +148,12 @@ impl Panel {
     /// Apply the user-level caption choice to the sequence preview and to later
     /// exports. A changed choice discards the shown frame and any outstanding
     /// frame so a stale-mode raster is never displayed.
+    /// The shot statuses the storyboard sheet shows.
+    pub fn set_production(&mut self, production: &motion_project::ProductionDocument) {
+        if self.production != *production {
+            self.production = production.clone();
+        }
+    }
     pub fn set_caption_mode(&mut self, mode: motion_script::CaptionMode) {
         if self.captions == mode {
             return;
@@ -464,8 +481,21 @@ impl Panel {
                         );
                     });
                     ui.selectable_value(&mut self.export_choice,ExportChoice::StreamingMp4,"MP4 Full HD · suoratoisto");
+                    ui.horizontal(|ui| {
+                        ui.selectable_value(&mut self.export_choice, ExportChoice::Storyboard, "Kuvakäsikirjoitus (HTML)");
+                        ui.selectable_value(&mut self.export_choice, ExportChoice::Animatic, "Animatiikki (MP4)");
+                    });
+                    match self.export_choice {
+                        ExportChoice::Storyboard => {
+                            ui.weak("Yksi paneeli otosta kohden: kuva, kuvakoko, repliikit, toiminta, tila ja muistiinpano. Avaa storyboard.html selaimessa; tulostus vaakasuuntaan A4:lle.");
+                        }
+                        ExportChoice::Animatic => {
+                            ui.weak("Jokainen otos näytetään paneelikuvana koko kestonsa ajan oikean äänen kanssa. Puolikas koko (1920×1080 → 960×540), enintään 10 min.");
+                        }
+                        _ => {}
+                    }
                     if self.export_choice==ExportChoice::StreamingMp4 {ui.weak("Enintään 60 s / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 300 s; tämä ei mittaa puheen valmistelua.");}
-                    if matches!(self.export_choice,ExportChoice::Mp4|ExportChoice::StreamingMp4) {
+                    if matches!(self.export_choice,ExportChoice::Mp4|ExportChoice::StreamingMp4|ExportChoice::Animatic) {
                         ui.label("Paikallisen FFmpeg-ohjelman koko polku");
                         ui.text_edit_singleline(&mut self.ffmpeg);
                     }
@@ -476,7 +506,13 @@ impl Panel {
                         )
                         .clicked()
                     {
-                        match export_request(self.export_choice, &self.destination, &self.ffmpeg) {
+                        match export_request(
+                            self.export_choice,
+                            &self.destination,
+                            &self.ffmpeg,
+                            &prepared.script.project.title,
+                            &self.production,
+                        ) {
                             Err(error) => self.status = error,
                             Ok((destination, format)) => {
                                 if let Some(player) = &self.player {
@@ -524,27 +560,56 @@ fn raster_sample(desired: u64, total: u64) -> Option<u64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn req(
+        choice: ExportChoice,
+        destination: &str,
+        ffmpeg: &str,
+    ) -> Result<(std::path::PathBuf, ExportFormat), String> {
+        export_request(
+            choice,
+            destination,
+            ffmpeg,
+            "Kahvitauko",
+            &Default::default(),
+        )
+    }
+    #[test]
+    fn storyboards_need_no_ffmpeg_and_animatics_do() {
+        let output = std::env::temp_dir().join("storyboard-format-choice-test");
+        let output = output.to_str().unwrap();
+        assert!(matches!(
+            req(ExportChoice::Storyboard, output, ""),
+            Ok((_, ExportFormat::Storyboard { title, .. })) if title == "Kahvitauko"
+        ));
+        assert!(req(ExportChoice::Animatic, output, "").is_err());
+        assert!(req(ExportChoice::Storyboard, "relative", "").is_err());
+        let executable = std::env::temp_dir().join("never-execute-ffmpeg");
+        assert!(matches!(
+            req(ExportChoice::Animatic, output, executable.to_str().unwrap()),
+            Ok((_, ExportFormat::Animatic { ffmpeg })) if ffmpeg == executable
+        ));
+    }
     #[test]
     fn vector_and_raster_exports_do_not_require_ffmpeg() {
         let output = std::env::temp_dir().join("sequence-format-choice-test");
         let output = output.to_str().unwrap();
         assert!(matches!(
-            export_request(ExportChoice::Svg, output, ""),
+            req(ExportChoice::Svg, output, ""),
             Ok((_, ExportFormat::Svg))
         ));
         assert!(matches!(
-            export_request(ExportChoice::Png, output, "relative-unused"),
+            req(ExportChoice::Png, output, "relative-unused"),
             Ok((_, ExportFormat::Png))
         ));
-        assert!(export_request(ExportChoice::Mp4, output, "").is_err());
-        assert!(export_request(ExportChoice::Mp4, output, "relative-ffmpeg").is_err());
+        assert!(req(ExportChoice::Mp4, output, "").is_err());
+        assert!(req(ExportChoice::Mp4, output, "relative-ffmpeg").is_err());
         for choice in [ExportChoice::Png, ExportChoice::Svg, ExportChoice::Mp4] {
-            assert!(export_request(choice, "relative-output", "").is_err());
-            assert!(export_request(choice, "", "").is_err());
+            assert!(req(choice, "relative-output", "").is_err());
+            assert!(req(choice, "", "").is_err());
         }
         let executable = std::env::temp_dir().join("never-execute-ffmpeg");
         assert!(matches!(
-            export_request(ExportChoice::Mp4, output, executable.to_str().unwrap()),
+            req(ExportChoice::Mp4, output, executable.to_str().unwrap()),
             Ok((_, ExportFormat::Mp4 { ffmpeg })) if ffmpeg == executable
         ));
     }

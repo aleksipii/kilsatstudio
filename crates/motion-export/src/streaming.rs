@@ -332,18 +332,97 @@ pub fn export_mp4_sequence_streaming(
     ffmpeg: &Path,
     profile: &StreamingProfile,
     cancel: &CancellationToken,
-    mut progress: impl FnMut(Progress),
+    progress: impl FnMut(Progress),
     captions: CaptionMode,
 ) -> Result<StreamingReport, Error> {
     let started = Instant::now();
-    let (width, height) = profile.dimensions(script);
     check(cancel)?;
     media::validate_encoder(script, ffmpeg)?;
     let (timeline, total, working) = preflight(script, rendered, art, profile, captions)?;
+    let validated = motion_scene::ValidatedScript::new(Arc::new(script.clone()))
+        .map_err(|e| invalid(e.to_string()))?;
+    let review = profile.review_size.map(|(w, h)| w.max(h));
+    encode(
+        Stream {
+            script,
+            rendered,
+            timeline: &timeline,
+            total,
+            working,
+            destination,
+            ffmpeg,
+            profile,
+            cancel,
+            captions,
+            started,
+            mode: "bounded-streaming-rgba",
+            extra: serde_json::Value::Null,
+        },
+        progress,
+        |frame| {
+            let sample = frame * u64::from(SAMPLE_RATE) / u64::from(script.project.fps);
+            let (image, _) = sequence::compose(
+                script,
+                rendered,
+                art,
+                &timeline,
+                sample,
+                review,
+                cancel,
+                Some(&validated),
+                captions,
+            )?;
+            Ok(Arc::new(image))
+        },
+    )
+}
+
+/// What `encode` streams: the validated sequence and its output settings.
+pub(crate) struct Stream<'a> {
+    pub script: &'a Script,
+    pub rendered: &'a [RenderedScene],
+    pub timeline: &'a SequenceTimeline,
+    pub total: u64,
+    pub working: u64,
+    pub destination: &'a Path,
+    pub ffmpeg: &'a Path,
+    pub profile: &'a StreamingProfile,
+    pub cancel: &'a CancellationToken,
+    pub captions: CaptionMode,
+    pub started: Instant,
+    /// `mode` written to `sequence.json`.
+    pub mode: &'static str,
+    /// Extra manifest fields (an object), or `Null`.
+    pub extra: serde_json::Value,
+}
+
+/// Mix the audio, then encode `total` frames from `frame` (one in flight)
+/// with the sequence audio, publishing `audio.wav`, `sequence.mp4` and
+/// `sequence.json` atomically into a new directory.
+pub(crate) fn encode(
+    stream: Stream<'_>,
+    mut progress: impl FnMut(Progress),
+    mut frame_image: impl FnMut(u64) -> Result<Arc<resvg::tiny_skia::Pixmap>, Error>,
+) -> Result<StreamingReport, Error> {
+    let Stream {
+        script,
+        rendered,
+        timeline,
+        total,
+        working,
+        destination,
+        ffmpeg,
+        profile,
+        cancel,
+        captions,
+        started,
+        mode,
+        extra,
+    } = stream;
+    let timeline = timeline.clone();
+    let (width, height) = profile.dimensions(script);
     let _budget = motion_jobs::process_budget()
         .reserve("streaming full-size export working set", working)
-        .map_err(|e| invalid(e.to_string()))?;
-    let validated = motion_scene::ValidatedScript::new(Arc::new(script.clone()))
         .map_err(|e| invalid(e.to_string()))?;
     let reason = Arc::new(Mutex::new(None));
     enforce(cancel, started, profile, &reason)?;
@@ -464,18 +543,7 @@ pub fn export_mp4_sequence_streaming(
         };
         for frame in 0..total {
             enforce(cancel, started, profile, &reason)?;
-            let sample = frame * u64::from(SAMPLE_RATE) / u64::from(script.project.fps);
-            let (image, _) = sequence::compose(
-                script,
-                rendered,
-                art,
-                &timeline,
-                sample,
-                profile.review_size.map(|(w, h)| w.max(h)),
-                cancel,
-                Some(&validated),
-                captions,
-            )?;
+            let image = frame_image(frame)?;
             if image.width() != width || image.height() != height {
                 return Err(invalid(
                     "raster dimensions differ from explicit output profile",
@@ -533,11 +601,16 @@ pub fn export_mp4_sequence_streaming(
         drop(encoder);
         fs::remove_file(errors)?;
         fs::remove_file(progress_file)?;
-        let manifest = serde_json::json!({"schema_version":1,"mode":"bounded-streaming-rgba","sample_rate":SAMPLE_RATE,
+        let mut manifest = serde_json::json!({"schema_version":1,"mode":mode,"sample_rate":SAMPLE_RATE,
         "fps":script.project.fps,"width":width,"height":height,"source_width":script.project.width,"source_height":script.project.height,"review":profile.review_size.is_some(),
         "total_samples":timeline.total_samples(),"frame_count":total,"audio_file":"audio.wav","video_file":"sequence.mp4",
         "captions":captions,"scenes":timeline.spans().iter().map(|s|serde_json::json!({"scene_index":s.scene_index,"scene_id":script.scenes[s.scene_index].id,
             "start_sample":s.start_sample,"duration_samples":s.duration_samples,"outgoing_overlap":s.outgoing_overlap})).collect::<Vec<_>>()});
+        if let (Some(manifest), serde_json::Value::Object(extra)) =
+            (manifest.as_object_mut(), extra)
+        {
+            manifest.extend(extra);
+        }
         fs::write(
             directory.stage.join("sequence.json"),
             bounded_json(&manifest, 1024 * 1024)?,
@@ -572,6 +645,162 @@ pub fn export_mp4_sequence_streaming(
             }),
         },
     }
+}
+
+/// Longest animatic: ten minutes at 24 fps.
+pub const MAX_ANIMATIC_FRAMES: u64 = 24 * 600;
+
+impl StreamingProfile {
+    /// Animatic profile: a 15-minute export deadline and a 1 GiB cap, at half
+    /// the authored size when both sides halve to even numbers (1920×1080 →
+    /// 960×540), otherwise at the authored size.
+    pub fn animatic(script: &Script) -> Self {
+        let profile = Self {
+            deadline: Duration::from_secs(900),
+            max_output_bytes: 1024 * 1024 * 1024,
+            review_size: None,
+        };
+        let (w, h) = (script.project.width, script.project.height);
+        if w.is_multiple_of(4) && h.is_multiple_of(4) {
+            profile
+                .clone()
+                .with_review_size(w / 2, h / 2)
+                .unwrap_or(profile)
+        } else {
+            profile
+        }
+    }
+}
+
+/// One held animatic panel on the sequence clock.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct AnimaticPanel {
+    /// Shot id, `<scene id>/<number>`.
+    pub shot: String,
+    /// First sequence sample of the shot.
+    pub start_sample: u64,
+    /// Sequence sample drawn and held for the whole shot.
+    pub panel_sample: u64,
+}
+
+/// Every shot's panel on the sequence clock, in time order.
+pub fn animatic_panels(
+    script: &Script,
+    timeline: &SequenceTimeline,
+) -> Result<Vec<AnimaticPanel>, Error> {
+    let shots = motion_script::shot_list(script).map_err(|e| invalid(e.to_string()))?;
+    let to_sample = |seconds: f64| {
+        motion_scene::time::seconds_to_sample(seconds).map_err(|e| invalid(e.to_string()))
+    };
+    let mut panels = Vec::with_capacity(shots.len());
+    for shot in &shots {
+        let span = timeline
+            .spans()
+            .get(shot.scene_index)
+            .ok_or_else(|| invalid("shot outside the sequence"))?;
+        let last = span.start_sample + span.duration_samples.saturating_sub(1);
+        panels.push(AnimaticPanel {
+            shot: shot.id.clone(),
+            start_sample: (span.start_sample + to_sample(shot.start)?).min(last),
+            panel_sample: (span.start_sample + to_sample(shot.panel)?).min(last),
+        });
+    }
+    panels.sort_by_key(|p| p.start_sample);
+    Ok(panels)
+}
+
+/// The panel shown at sequence sample `sample`: the last one started by then.
+fn panel_at(panels: &[AnimaticPanel], sample: u64) -> usize {
+    panels
+        .partition_point(|p| p.start_sample <= sample)
+        .saturating_sub(1)
+}
+
+/// Export an animatic: each shot is held on its storyboard panel for the
+/// shot's length while the sequence audio plays in real time. Panels use the
+/// same composition (art, captions, camera) as the full export, each drawn once.
+#[allow(clippy::too_many_arguments)]
+pub fn export_animatic_streaming(
+    script: &Script,
+    rendered: &[RenderedScene],
+    art: Option<&ArtContext>,
+    destination: &Path,
+    ffmpeg: &Path,
+    profile: &StreamingProfile,
+    cancel: &CancellationToken,
+    progress: impl FnMut(Progress),
+    captions: CaptionMode,
+) -> Result<StreamingReport, Error> {
+    let started = Instant::now();
+    check(cancel)?;
+    bounded_json(script, MAX_SOURCE)?;
+    media::validate_encoder(script, ffmpeg)?;
+    profile.validate(script)?;
+    let (timeline, frames, preview_working) =
+        sequence::preflight(script, rendered, art, false, captions)?;
+    if frames == 0
+        || frames > MAX_ANIMATIC_FRAMES
+        || timeline.total_samples() > 600 * u64::from(SAMPLE_RATE)
+    {
+        return Err(invalid("an animatic permits 1 frame to 10 minutes"));
+    }
+    let panels = animatic_panels(script, &timeline)?;
+    if panels.is_empty() {
+        return Err(invalid("the sequence has no shots"));
+    }
+    let pixels = u64::from(script.project.width) * u64::from(script.project.height);
+    // One held panel besides the frame being composed.
+    let working = preview_working
+        .checked_add(pixels.saturating_mul(8))
+        .ok_or_else(|| invalid("animatic working-set overflow"))?;
+    if working > MAX_BYTES {
+        return Err(invalid("animatic working set exceeds 256MiB"));
+    }
+    let validated = motion_scene::ValidatedScript::new(Arc::new(script.clone()))
+        .map_err(|e| invalid(e.to_string()))?;
+    let review = profile.review_size.map(|(w, h)| w.max(h));
+    let mut held: Option<(usize, Arc<resvg::tiny_skia::Pixmap>)> = None;
+    encode(
+        Stream {
+            script,
+            rendered,
+            timeline: &timeline,
+            total: frames,
+            working,
+            destination,
+            ffmpeg,
+            profile,
+            cancel,
+            captions,
+            started,
+            mode: "animatic-held-panels",
+            extra: serde_json::json!({ "panels": panels }),
+        },
+        progress,
+        |frame| {
+            let sample = frame * u64::from(SAMPLE_RATE) / u64::from(script.project.fps);
+            let index = panel_at(&panels, sample);
+            if let Some((shown, image)) = &held {
+                if *shown == index {
+                    return Ok(Arc::clone(image));
+                }
+            }
+            let (image, _) = sequence::compose(
+                script,
+                rendered,
+                art,
+                &timeline,
+                panels[index].panel_sample,
+                review,
+                cancel,
+                Some(&validated),
+                captions,
+            )?;
+            let image = Arc::new(image);
+            held = Some((index, Arc::clone(&image)));
+            Ok(image)
+        },
+    )
 }
 
 #[cfg(test)]
@@ -777,6 +1006,121 @@ mod tests {
             .unwrap();
         assert!(decoded.status.success());
         assert_eq!(decoded.stdout.len(), 2 * 64 * 64 * 4);
+        fs::remove_dir_all(out).unwrap();
+    }
+
+    #[test]
+    fn animatic_panels_follow_the_shots_on_the_sequence_clock() {
+        let source = "project: {width: 1920, height: 1080, fps: 24}\ncharacters: {}\nscenes: [{id: a, duration: 4, events: [], composition: {camera: [{at: 0, x: 0, y: 0, zoom: 1}, {at: 1.999, x: 0, y: 0, zoom: 1}, {at: 2, x: 0, y: 0, zoom: 2}]}}, {id: b, duration: 2, events: []}]\n";
+        let script = motion_script::parse(source).unwrap();
+        let timeline = SequenceTimeline::compile(&script).unwrap();
+        let panels = animatic_panels(&script, &timeline).unwrap();
+        let shots: Vec<_> = panels.iter().map(|p| p.shot.as_str()).collect();
+        assert_eq!(shots, ["a/010", "a/020", "b/010"]);
+        let starts: Vec<_> = panels.iter().map(|p| p.start_sample).collect();
+        assert_eq!(starts, [0, 48_000, 96_000]);
+        // Panels are the middle of these quiet shots, held for the whole shot.
+        assert_eq!(panels[0].panel_sample, 24_000);
+        assert_eq!(panel_at(&panels, 0), 0);
+        assert_eq!(panel_at(&panels, 47_999), 0);
+        assert_eq!(panel_at(&panels, 48_000), 1);
+        assert_eq!(panel_at(&panels, 143_999), 2);
+        // Half-size review profile for Full HD, authored size otherwise.
+        assert_eq!(
+            StreamingProfile::animatic(&script).dimensions(&script),
+            (960, 540)
+        );
+        let mut odd = script.clone();
+        odd.project.width = 1918;
+        assert_eq!(
+            StreamingProfile::animatic(&odd).dimensions(&odd),
+            (1918, 1080)
+        );
+    }
+    #[test]
+    fn animatic_rejects_overlong_sequences_before_encoding() {
+        let (script, rendered) = fixture(601.0, 640, 360, 24);
+        // Never executed: the length check comes before encoding.
+        let encoder = std::env::temp_dir().join(format!("kilsat-never-run-{}", std::process::id()));
+        fs::write(&encoder, b"").unwrap();
+        let error = export_animatic_streaming(
+            &script,
+            &rendered,
+            None,
+            &destination(),
+            &encoder,
+            &StreamingProfile::animatic(&script),
+            &CancellationToken::new(),
+            |_| {},
+            CaptionMode::Follow,
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(
+            error.contains("10 minutes") || error.contains("audio duration budget"),
+            "{error}"
+        );
+        fs::remove_file(encoder).unwrap();
+    }
+    #[test]
+    #[ignore = "requires an explicitly installed FFmpeg; run in media CI"]
+    fn real_ffmpeg_animatic_holds_each_panel_for_its_shot() {
+        let ffmpeg = PathBuf::from(
+            std::env::var_os("KILSAT_TEST_FFMPEG").unwrap_or_else(|| "/usr/bin/ffmpeg".into()),
+        );
+        // Scene a turns from red to green at 0.3 s; its panel (0.25 s) is red,
+        // so the whole held shot stays red. Scene b is blue.
+        let source = "project: {width: 64, height: 64, fps: 8}\ncharacters: {}\nscenes: [{id: a, duration: 0.5, events: [], composition: {background_color: '#ff0000', background_keys: [{at: 0.3, color: '#00ff00'}]}}, {id: b, duration: 0.5, events: [], composition: {background_color: '#0000ff'}}]\n";
+        let script = motion_script::parse(source).unwrap();
+        let rendered = vec![
+            motion_voice::export::render_scene("a", 0.5, &[]).unwrap(),
+            motion_voice::export::render_scene("b", 0.5, &[]).unwrap(),
+        ];
+        let out = destination();
+        let report = export_animatic_streaming(
+            &script,
+            &rendered,
+            None,
+            &out,
+            &ffmpeg,
+            &StreamingProfile::animatic(&script),
+            &CancellationToken::new(),
+            |_| {},
+            CaptionMode::Follow,
+        )
+        .unwrap();
+        assert_eq!(report.frame_count, 8);
+        assert_eq!((report.width, report.height), (32, 32));
+        let manifest: serde_json::Value =
+            serde_json::from_slice(&fs::read(out.join("sequence.json")).unwrap()).unwrap();
+        assert_eq!(manifest["mode"], "animatic-held-panels");
+        assert_eq!(manifest["panels"].as_array().unwrap().len(), 2);
+        let decoded = Command::new(ffmpeg)
+            .args(["-v", "error", "-i"])
+            .arg(out.join("sequence.mp4"))
+            .args(["-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"])
+            .output()
+            .unwrap();
+        assert!(decoded.status.success());
+        let frame = 32 * 32 * 3;
+        assert_eq!(decoded.stdout.len(), 8 * frame);
+        // Centre pixel of each frame.
+        let centre = |f: usize| {
+            let at = f * frame + (16 * 32 + 16) * 3;
+            [
+                decoded.stdout[at],
+                decoded.stdout[at + 1],
+                decoded.stdout[at + 2],
+            ]
+        };
+        for f in 0..4 {
+            let [r, g, b] = centre(f);
+            assert!(r > 200 && g < 60 && b < 60, "frame {f}: {:?}", centre(f));
+        }
+        for f in 4..8 {
+            let [r, g, b] = centre(f);
+            assert!(b > 200 && r < 60 && g < 60, "frame {f}: {:?}", centre(f));
+        }
         fs::remove_dir_all(out).unwrap();
     }
 }

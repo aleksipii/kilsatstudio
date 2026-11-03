@@ -55,6 +55,8 @@ impl Snapshot {
                 // Like captions, policy and recorded input stay outside undo history.
                 model_policy: motion_project::ModelPolicy::default(),
                 event_log: None,
+                // Shot statuses are production tracking, kept outside undo history.
+                production: Default::default(),
             })
     }
     fn validate(&self) -> Result<(), String> {

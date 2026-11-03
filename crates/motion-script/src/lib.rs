@@ -11,6 +11,7 @@ mod principles;
 mod prop_cues;
 mod rules;
 mod screens;
+mod shot_list;
 mod shots;
 mod staging;
 pub mod story;
@@ -48,6 +49,7 @@ pub use screens::{
     SCREEN_VIDEO_EXTENSIONS,
 };
 use serde::{Deserialize, Serialize};
+pub use shot_list::{shot_list, ShotAction, ShotDialogue, ShotInfo, ShotSize, MAX_LISTED_SHOTS};
 pub use shots::{
     expand_shots, CutRules, PlannedKind, PlannedShot, ReactionShot, ShotError, ShotExpansion,
     ShotLine, ShotList, ShotPreset, ShotSpec, ShoulderSide, MAX_HOLD, MAX_LEAD_IN,
