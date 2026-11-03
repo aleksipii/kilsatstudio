@@ -34,15 +34,25 @@ final class AnimationDocument: @unchecked Sendable {
     let fps: UInt32
     let scenes: [Scene]
 
+    /// MotionScript YAML of the screenplay (a project's screenplay).
+    let source: String
+
     /// Opens a file by path. Image assets load here; imported audio is read
     /// later from the same folder, so keep read access to it while open.
-    init(url: URL) throws {
+    /// With `editedSource`, that text replaces the saved screenplay (a project
+    /// keeps its artwork and images); nothing is written.
+    init(url: URL, editedSource: String? = nil) throws {
         var error: UnsafeMutablePointer<CChar>?
-        let opened = url.path.withCString { koeta_document_open_path($0, &error) }
+        let opened: OpaquePointer? = url.path.withCString { path in
+            guard let editedSource else { return koeta_document_open_path(path, &error) }
+            var text = editedSource
+            return text.withUTF8 { koeta_document_open_edited(path, $0.baseAddress, $0.count, &error) }
+        }
         guard let opened else {
             throw CoreError(message: takeString(error) ?? "Tiedostoa ei voitu avata.")
         }
         handle = opened
+        source = takeString(koeta_document_source(opened)) ?? ""
         title = takeString(koeta_document_title(opened)) ?? ""
         fps = koeta_document_fps(opened)
         var scenes: [Scene] = []
@@ -118,5 +128,99 @@ final class AnimationDocument: @unchecked Sendable {
     /// First sample of `frame` on the shared 24 kHz clock.
     func startSample(ofFrame frame: UInt64) -> UInt64 {
         koeta_document_frame_start_sample(handle, frame)
+    }
+
+    /// A problem in edited MotionScript: message and 1-based line (0 when unknown).
+    struct SourceProblem: Equatable {
+        let message: String
+        let line: UInt32
+    }
+
+    /// Check edited MotionScript without opening it; nil when it opens.
+    static func check(source: String) -> SourceProblem? {
+        var text = source
+        var line: UInt32 = 0
+        var error: UnsafeMutablePointer<CChar>?
+        let valid = text.withUTF8 { koeta_check_source($0.baseAddress, $0.count, &line, &error) }
+        if valid { return nil }
+        return SourceProblem(message: takeString(error) ?? "Käsikirjoitus ei kelpaa.", line: line)
+    }
+
+    /// Bytes that save `source` over the file at `url`: a project keeps
+    /// everything but its screenplay. Nothing is written here.
+    static func savedBytes(source: String, for url: URL) throws -> Data {
+        var text = source
+        var output = KoetaBytes(bytes: nil, len: 0)
+        var error: UnsafeMutablePointer<CChar>?
+        let ok = url.path.withCString { path in
+            text.withUTF8 { koeta_saved_bytes(path, $0.baseAddress, $0.count, &output, &error) }
+        }
+        guard ok, let bytes = output.bytes else {
+            throw CoreError(message: takeString(error) ?? "Tallennus epäonnistui.")
+        }
+        defer { koeta_bytes_free(&output) }
+        return Data(bytes: bytes, count: output.len)
+    }
+
+    /// Prepare a movie export of one scene, or of every scene with crossfades
+    /// when `scene` is nil. Blocking (decodes audio), so call it off the main thread.
+    func beginExport(scene: UInt32?) throws -> MovieFrames {
+        var error: UnsafeMutablePointer<CChar>?
+        guard let export = koeta_export_begin(handle, scene.map(Int64.init) ?? -1, &error) else {
+            throw CoreError(message: takeString(error) ?? "Vientiä ei voitu aloittaa.")
+        }
+        return MovieFrames(handle: export)
+    }
+}
+
+/// Full-size export frames and mix from the shared core, the same as the Mac
+/// export produces. `cancel()` may be called from any thread.
+final class MovieFrames: @unchecked Sendable {
+    private let handle: OpaquePointer
+    let frameCount: UInt64
+    let fps: UInt32
+    let width: Int
+    let height: Int
+
+    fileprivate init(handle: OpaquePointer) {
+        self.handle = handle
+        frameCount = koeta_export_frame_count(handle)
+        fps = koeta_export_fps(handle)
+        var width: UInt32 = 0
+        var height: UInt32 = 0
+        koeta_export_size(handle, &width, &height)
+        self.width = Int(width)
+        self.height = Int(height)
+    }
+
+    deinit {
+        koeta_export_free(handle)
+    }
+
+    /// Calls `body` with frame `frame`'s opaque RGBA8 pixels (width × height × 4).
+    func withFrame<T>(_ frame: UInt64, _ body: (UnsafeRawBufferPointer) throws -> T) throws -> T {
+        var output = KoetaFrame(rgba: nil, len: 0, width: 0, height: 0)
+        var error: UnsafeMutablePointer<CChar>?
+        guard koeta_export_render(handle, frame, &output, &error), let rgba = output.rgba else {
+            throw CoreError(message: takeString(error) ?? "Ruutua ei voitu piirtää.")
+        }
+        defer { koeta_frame_free(&output) }
+        return try body(UnsafeRawBufferPointer(start: rgba, count: output.len))
+    }
+
+    /// The movie's 24 kHz mono mix. Blocking.
+    func audio() throws -> [Float] {
+        var audio = KoetaAudio(samples: nil, len: 0, sample_rate: 0)
+        var error: UnsafeMutablePointer<CChar>?
+        guard koeta_export_audio(handle, &audio, &error) else {
+            throw CoreError(message: takeString(error) ?? "Ääntä ei voitu miksata.")
+        }
+        defer { koeta_audio_free(&audio) }
+        guard let samples = audio.samples else { return [] }
+        return Array(UnsafeBufferPointer(start: samples, count: audio.len))
+    }
+
+    func cancel() {
+        koeta_export_cancel(handle)
     }
 }
