@@ -120,7 +120,21 @@ def manifest(key):
     )
 
 
+def check_all():
+    """Run the library prop checks (bounds, ground line) on every city prop.
+
+    City props keep the city line limit instead of the thinner outline limit
+    of the original props.
+    """
+    # Imported here: generate_library_props imports this module's CATALOG.
+    from generate_library_props import check
+    return [e for key in CATALOG for e in check(manifest(key), line_limit=MAX_LINE)]
+
+
 def generate(directory=DEFAULT):
+    errors = check_all()
+    if errors:
+        raise SystemExit("city props failed the library checks:\n" + "\n".join(errors))
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     for key in CATALOG:

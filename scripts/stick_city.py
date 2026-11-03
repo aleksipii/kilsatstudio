@@ -335,7 +335,7 @@ def _parking_meter():
 
 def _atm():
     p = Paint("pankkiautomaatti")
-    p.panel("unit", 20, 20, 260, 440, STONE, 8)
+    p.panel("unit", 20, 20, 260, 460, STONE, 8)
     p.rect("sign", 40, 40, 220, 50, TEAL)
     p.line("sign_lettering", [(70, 66), (100, 58), (130, 72), (160, 58), (190, 72), (230, 62)], 6, PAPER)
     p.rect("screen", 70, 118, 160, 110, GLASS)
@@ -348,7 +348,7 @@ def _atm():
 
 def _vending():
     p = Paint("juoma_automaatti")
-    p.panel("body", 10, 10, 300, 580, RUST, 9)
+    p.panel("body", 10, 10, 300, 590, RUST, 9)
     for i, color in enumerate((AMBER, PAPER, TEAL, (214, 120, 96, 255))):
         p.rect(f"row_{i}", 44, 70 + i * 96, 170, 50, color)
     p.rect("glass", 34, 40, 190, 420, GLASS_SEE)
@@ -474,8 +474,8 @@ def _fuel_pump():
 
 def _stall():
     p = Paint("torikoju")
-    p.line("post_left", [(40, 556), (40, 150)], 12, INK)
-    p.line("post_right", [(520, 556), (520, 150)], 12, INK)
+    p.line("post_left", [(40, 554), (40, 150)], 12, INK)
+    p.line("post_right", [(520, 554), (520, 150)], 12, INK)
     p.poly("roof", [(4, 96), (280, 20), (556, 96)], RUST, 20)
     p.rect("awning", 10, 92, 540, 90, PAPER)
     for i in range(3):
