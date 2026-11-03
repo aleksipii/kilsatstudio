@@ -998,10 +998,135 @@ fn stories_paint_by_depth_and_pass_pace_to_the_steps() {
     let composition = &result.script.scenes[0].composition;
     assert!(composition.depth_sort);
     assert!(composition.layers.values().all(|layer| layer.z == 0));
-    assert!(result.script.scenes[0]
-        .events
-        .iter()
-        .any(|e| matches!(e, Event::Move { pace: Some(p), .. } if *p == 0.5)));
+    // The beat's pace scales the character's own acting tempo.
+    let tempo = crate::character_acting(
+        catalog().characters["VEIKKO"].character.acting.as_ref(),
+        "VEIKKO",
+    )
+    .unwrap()
+    .tempo;
+    assert!(result.script.scenes[0].events.iter().any(
+        |e| matches!(e, Event::Move { pace: Some(p), .. } if (*p - 0.5 * tempo).abs() < 1e-12)
+    ));
     // The written source round-trips through validation.
     crate::parse(&crate::to_source(&result.script).unwrap()).unwrap();
+}
+
+fn gestures_of(script: &Script, actor: &str) -> Vec<f64> {
+    script.scenes[0]
+        .events
+        .iter()
+        .filter_map(|e| match e {
+            Event::Gesture {
+                actor: a, duration, ..
+            } if a == actor => Some(*duration),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn intensities_reach_speech_emotions_and_reactions() {
+    let source = minimal(
+        "      - say: VEIKKO\n        line: Fine. Totally fine.\n        emotion: angry\n        intensity: 0.3\n        reaction: {by: SISU, emotion: surprised, intensity: 0.7}\n      - do: SISU\n        emotion: happy\n        intensity: 0.5\n",
+    );
+    let script = compile_story(&source, &catalog(), None).unwrap().script;
+    let events = &script.scenes[0].events;
+    assert!(events.iter().any(|e| matches!(e,
+        Event::Speak { actor, emotion: Some(emotion), intensity: Some(i), .. }
+            if actor == "VEIKKO" && emotion == "angry" && *i == 0.3)));
+    let sisu: Vec<_> = events
+        .iter()
+        .filter_map(|e| match e {
+            Event::Emotion {
+                actor,
+                value,
+                intensity,
+                ..
+            } if actor == "SISU" => Some((value.as_str(), *intensity)),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(sisu, [("surprised", Some(0.7)), ("happy", Some(0.5))]);
+    // The MotionScript round trip keeps the intensities.
+    let source = crate::to_source(&script).unwrap();
+    assert!(source.contains("intensity: 0.3"), "{source}");
+    let reparsed = crate::parse(&source).unwrap();
+    assert_eq!(reparsed.scenes[0].events, script.scenes[0].events);
+}
+
+#[test]
+fn intensity_is_bounded_and_needs_an_emotion() {
+    let paths = |beats: &str| -> Vec<String> {
+        errors(&minimal(beats))
+            .into_iter()
+            .map(|issue| issue.path)
+            .collect()
+    };
+    let found = paths("      - say: VEIKKO\n        line: Hi.\n        intensity: 0.5\n");
+    assert!(found.iter().any(|p| p.ends_with(".intensity")), "{found:?}");
+    let found = paths("      - do: SISU\n        emotion: sad\n        intensity: 1.5\n");
+    assert!(found.iter().any(|p| p.ends_with(".intensity")), "{found:?}");
+    let found = paths(
+        "      - say: VEIKKO\n        line: Hi.\n        reaction: {by: SISU, intensity: 0.4}\n",
+    );
+    assert!(
+        found.iter().any(|p| p.ends_with("reaction.intensity")),
+        "{found:?}"
+    );
+}
+
+#[test]
+fn cast_acting_replaces_the_profile_and_tempo_retimes_gestures_and_walks() {
+    let story = |acting: &str| {
+        format!(
+            "kilsat_story: 1\ntitle: Test\nlanguage: en\ncast:\n  VEIKKO: {{acting: {acting}}}\n  SISU: {{}}\nscenes:\n  - id: one\n    set: toimisto\n    positions: {{VEIKKO: left, SISU: right}}\n    beats:\n      - do: VEIKKO\n        gesture: shrug\n      - do: VEIKKO\n        move_to: center\n"
+        )
+    };
+    let compile = |acting: &str| {
+        compile_story(&story(acting), &catalog(), None)
+            .unwrap()
+            .script
+    };
+    let even = compile("{tempo: 1}");
+    let quick = compile("{tempo: 1.25}");
+    let tired = compile("tired");
+    assert_eq!(
+        quick.characters["VEIKKO"].acting,
+        Some(crate::ActingSpec {
+            tempo: Some(1.25),
+            ..Default::default()
+        })
+    );
+    assert_eq!(
+        tired.characters["VEIKKO"].acting,
+        Some(crate::ActingSpec::preset("tired"))
+    );
+    assert_eq!(gestures_of(&even, "VEIKKO"), [1.2]);
+    assert!(gestures_of(&quick, "VEIKKO")[0] < 1.0);
+    assert!(gestures_of(&tired, "VEIKKO")[0] > 1.4);
+    let walk = |script: &Script| {
+        let spans = move_spans(script, "VEIKKO");
+        spans.last().map(|s| s.1).unwrap()
+    };
+    assert!(walk(&quick) < walk(&even));
+    assert!(walk(&tired) > walk(&even));
+    // Out-of-range or unknown profiles are reported at the cast entry.
+    let issues = errors(&story("{energy: 4}"));
+    assert!(
+        issues.iter().any(|i| i.path == "cast.VEIKKO.acting"),
+        "{issues:?}"
+    );
+    let issues = errors(&story("grumpy"));
+    assert!(
+        issues.iter().any(|i| i.path == "cast.VEIKKO.acting"),
+        "{issues:?}"
+    );
+}
+
+#[test]
+fn guide_teaches_intensity_and_acting() {
+    let guide = authoring_guide(&catalog());
+    assert!(guide.contains("intensity: <0–1>"));
+    assert!(guide.contains("- acting: calm, lively, nervous, proud, tired, stoic"));
 }

@@ -133,6 +133,7 @@ pub fn dialogue_jobs(
                 text,
                 emotion,
                 audio,
+                ..
             } = event
             else {
                 continue;

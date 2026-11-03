@@ -183,6 +183,7 @@ mod tests {
             text: "Hello!".into(),
             emotion: Some("happy".into()),
             audio: Some("speech.wav".into()),
+            intensity: None,
         }
     }
     #[test]
@@ -233,7 +234,9 @@ mod tests {
                 emotion,
                 audio,
                 actor,
+                intensity,
             } => {
+                assert_eq!(intensity, None);
                 assert_eq!(at, 0.123);
                 assert_eq!(text, "Hello!");
                 assert_eq!(actor, "EMMA");

@@ -775,8 +775,10 @@ fn raised_brows_appear_for_the_surprised_father_in_the_doorway() {
             .count()
     };
     // Father placed at (320, 222): head joint y=136, brows at local y -40.5, raised -44.5.
-    let raised = brow(136.0 - 44.5);
-    let neutral_position = brow(136.0 - 40.5);
+    // The surprised posture lifts the torso 4 and the head 5 more rig units.
+    let head = 136.0 - 9.0;
+    let raised = brow(head - 44.5);
+    let neutral_position = brow(head - 40.5);
     assert!(raised > 0, "raised brow missing");
     assert!(
         neutral_position < raised,

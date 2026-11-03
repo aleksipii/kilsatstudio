@@ -1,6 +1,7 @@
 //! Bounded two-dimensional joint hierarchies, independent of rendering.
 pub mod attachment;
 pub mod definition;
+pub mod hand_shapes;
 pub mod ik;
 pub mod prop_card;
 pub mod prop_states;
@@ -16,6 +17,7 @@ pub use definition::{
     TextureFit, TextureGlow, VertexWeight, VisemeMapDefinition, ELLIPSE_SEGMENTS, EMOTION_NAMES,
     MAX_EVALUATED_POINTS, MAX_JOINT_LIMIT, MAX_OUTLINE_WIDTH, MAX_SMOOTH, VIEW_NAMES, VISEME_NAMES,
 };
+pub use hand_shapes::{HandShape, HandShapesDefinition, HandsDefinition, HAND_SHAPE_NAMES};
 pub use ik::{solve_two_bone, BendDirection, IkError, LimbIk, TwoBoneSolution};
 pub use prop_card::{
     prop_card_svg, PropCard, PROP_CARD_CELL_HEIGHT, PROP_CARD_CELL_WIDTH, PROP_CARD_HEADER_HEIGHT,

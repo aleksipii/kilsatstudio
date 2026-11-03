@@ -635,6 +635,7 @@ pub fn expand_shots(base: &Script, list: &ShotList) -> Result<ShotExpansion, Sho
                     text: line.text.clone(),
                     emotion: line.emotion.clone(),
                     audio: line.audio.clone(),
+                    intensity: None,
                 },
             );
             (

@@ -20,6 +20,21 @@ fn first(pose: &ActorPose, part: usize) -> (f64, f64) {
     let p = pose.rigid_parts[part].points[0];
     (p.x, p.y)
 }
+/// First vertex of `part` in the head's rest frame: the emotion posture may
+/// move and turn the head, so measure against the face square, whose first
+/// edge runs from (-30, -70) toward +x at rest.
+fn on_head(pose: &ActorPose, part: usize) -> (f64, f64) {
+    let face = &pose.rigid_parts[FACE].points;
+    let angle = (face[1].y - face[0].y).atan2(face[1].x - face[0].x);
+    let p = pose.rigid_parts[part].points[0];
+    let (dx, dy) = (p.x - face[0].x, p.y - face[0].y);
+    let (sin, cos) = (-angle).sin_cos();
+    let round = |v: f64| (v * 1e6).round() / 1e6;
+    (
+        round(-30.0 + dx * cos - dy * sin),
+        round(-70.0 + dx * sin + dy * cos),
+    )
+}
 fn centroid(pose: &ActorPose, part: usize) -> (f64, f64) {
     let points = &pose.rigid_parts[part].points;
     let n = points.len() as f64;
@@ -160,24 +175,34 @@ fn emotion_variants_follow_events_and_visemes_win_on_the_mouth() {
     );
     assert_eq!(first(puppet(&speaking), BROW_L), (-22.0, -68.0));
     let angry = evaluate(&script, 0, 4.0).unwrap();
-    assert_eq!(first(puppet(&angry), BROW_L), (-22.0, -64.0));
-    // An emotion with no expression entries keeps the base parts.
-    assert_eq!(
-        puppet(&neutral).rigid_parts[FACE],
-        puppet(&angry).rigid_parts[FACE]
-    );
+    assert_eq!(on_head(puppet(&angry), BROW_L), (-22.0, -64.0));
+    // A part with no expression entry keeps its base drawing; the angry
+    // posture only moves it with the head.
+    let shape = |pose: &ActorPose| {
+        let part = &pose.rigid_parts[FACE];
+        let p = &part.points;
+        let side = (p[1].x - p[0].x).hypot(p[1].y - p[0].y);
+        (part.color, p.len(), (side * 1e9).round())
+    };
+    assert_eq!(shape(puppet(&neutral)), shape(puppet(&angry)));
 }
 
 #[test]
 fn gaze_follows_screen_points_and_actors_within_the_travel_radius() {
     let script = acting();
+    // Pupils measured from the eye they sit in, so the emotion posture
+    // moving the head does not count as gaze.
+    let in_eye = |pose: &ActorPose| {
+        let (pupil, eye) = (centroid(pose, PUPIL_L), centroid(pose, EYE_L));
+        (pupil.0 - eye.0, pupil.1 - eye.1)
+    };
     let rest = {
         let mut s = script.clone();
         s.scenes[0].composition.gaze_tracks.clear();
-        centroid(puppet(&evaluate(&s, 0, 1.0).unwrap()), PUPIL_L)
+        in_eye(puppet(&evaluate(&s, 0, 1.0).unwrap()))
     };
     let shift = |t: f64| {
-        let c = centroid(puppet(&evaluate(&script, 0, t).unwrap()), PUPIL_L);
+        let c = in_eye(puppet(&evaluate(&script, 0, t).unwrap()));
         (c.0 - rest.0, c.1 - rest.1)
     };
     let (x0, _) = shift(0.0);
@@ -203,7 +228,7 @@ fn gaze_follows_screen_points_and_actors_within_the_travel_radius() {
             target: None,
         }],
     );
-    let c = centroid(puppet(&evaluate(&near, 0, 1.0).unwrap()), PUPIL_L);
+    let c = in_eye(puppet(&evaluate(&near, 0, 1.0).unwrap()));
     assert!((c.0 - rest.0).abs() < 1e-6 && (c.1 - rest.1).abs() < 1e-6);
 }
 

@@ -13,6 +13,11 @@ pub use principles::{
     Principles, PrinciplesError, MAX_ANTICIPATION_LENGTH, MAX_OVERLAP, MIN_ANTICIPATION_LENGTH,
     PRINCIPLE_PRESETS,
 };
+mod acting;
+pub use acting::{
+    rig_character_posture, rig_emotion_posture, scale_rig_motion, FACE_INTENSITY_THRESHOLD,
+    MAX_ACTING_INTENSITY,
+};
 mod rig_motion;
 pub use rig_motion::{
     acting_curve, acting_curve_with, blend_rig_motion, rig_body_pose, rig_gait, rig_gait_with_mood,

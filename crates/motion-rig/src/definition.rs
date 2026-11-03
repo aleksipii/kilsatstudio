@@ -27,6 +27,10 @@ pub struct RigDefinition {
     /// `crate::screen`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub screens: Vec<crate::screen::ScreenSlotDefinition>,
+    /// Optional hand shapes (fist, open, point, grip, thumbs up) drawn as
+    /// variants of the hand parts; see `crate::hand_shapes`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hands: Option<crate::hand_shapes::HandsDefinition>,
 }
 /// Inclusive bounds, in radians, for a joint's local rotation (rest + offset).
 /// Both bounds are finite, within one full turn of zero, ordered, and contain
@@ -855,6 +859,28 @@ impl RigDefinition {
                 self.variant_ref(&entry.part, &entry.variant)?;
             }
         }
+        if let Some(hands) = &self.hands {
+            let sides = [&hands.left, &hands.right];
+            if sides.iter().all(|side| side.is_none()) {
+                return Err(Error::InvalidDefinition);
+            }
+            if let (Some(left), Some(right)) = (&hands.left, &hands.right) {
+                if left.part == right.part {
+                    return Err(Error::InvalidDefinition);
+                }
+            }
+            for side in sides.into_iter().flatten() {
+                if side.shapes.is_empty() || side.shapes.len() > crate::HAND_SHAPE_NAMES.len() {
+                    return Err(Error::InvalidDefinition);
+                }
+                for (shape, variant) in &side.shapes {
+                    if crate::HandShape::parse(shape).is_none() {
+                        return Err(Error::InvalidDefinition);
+                    }
+                    self.variant_ref(&side.part, variant)?;
+                }
+            }
+        }
         if let Some(eyes) = &self.eyes {
             let unique = |ids: &[String]| {
                 !ids.is_empty()
@@ -1059,6 +1085,21 @@ impl RigDefinition {
                 }),
             ),
         };
+        let hand = |side: &Option<crate::hand_shapes::HandShapesDefinition>| {
+            side.as_ref().map(|side| {
+                let mut table = [None; crate::HAND_SHAPE_NAMES.len()];
+                for (shape, variant) in &side.shapes {
+                    if let Some(shape) = crate::HandShape::parse(shape) {
+                        table[shape as usize] = Some(self.variant_index(&side.part, variant));
+                    }
+                }
+                (self.part_index(&side.part), table)
+            })
+        };
+        let hands = self
+            .hands
+            .as_ref()
+            .map_or([None, None], |h| [hand(&h.left), hand(&h.right)]);
         let mut features: Vec<usize> = mouth
             .iter()
             .map(|(part, _)| *part)
@@ -1074,6 +1115,7 @@ impl RigDefinition {
         features.dedup();
         PreparedActing {
             mouth,
+            hands,
             expressions,
             pupils,
             travel,
@@ -1087,6 +1129,8 @@ impl RigDefinition {
 struct PreparedActing {
     /// Mouth part index and, per `VISEME_NAMES` slot, the variant index.
     mouth: Option<(usize, [Option<usize>; VISEME_NAMES.len()])>,
+    /// Left and right hand part index and, per `HandShape`, the variant index.
+    hands: [Option<HandTable>; 2],
     expressions: BTreeMap<String, Vec<(usize, usize)>>,
     pupils: Vec<usize>,
     travel: f64,
@@ -1097,6 +1141,7 @@ struct PreparedActing {
     /// share one joint; used to turn the face toward +x in the side view.
     side: Option<(f64, f64)>,
 }
+type HandTable = (usize, [Option<usize>; crate::HAND_SHAPE_NAMES.len()]);
 #[derive(Debug, Clone)]
 struct PreparedBlink {
     picks: Vec<(usize, usize)>,
@@ -1111,6 +1156,8 @@ pub struct ActingInput<'a> {
     pub blink: bool,
     /// Which side of the head faces the viewer.
     pub view: FaceView,
+    /// Left and right hand shapes; `None` keeps the relaxed base drawing.
+    pub hands: [Option<crate::HandShape>; 2],
 }
 /// Which side of a character faces the viewer. The side view turns toward +x;
 /// a mirrored actor (negative x scale) therefore faces -x.
@@ -1394,7 +1441,18 @@ impl PreparedRig {
     /// True when the rig declares visemes, expressions or eyes.
     pub fn has_acting(&self) -> bool {
         let a = &self.acting;
-        a.mouth.is_some() || !a.expressions.is_empty() || !a.pupils.is_empty()
+        a.mouth.is_some()
+            || !a.expressions.is_empty()
+            || !a.pupils.is_empty()
+            || a.hands.iter().any(Option::is_some)
+    }
+    /// Whether this rig draws `shape` for the left (`0`) or right (`1`) hand.
+    pub fn draws_hand_shape(&self, hand: usize, shape: crate::HandShape) -> bool {
+        self.acting
+            .hands
+            .get(hand)
+            .and_then(|h| h.as_ref())
+            .is_some_and(|(_, table)| table[shape as usize].is_some())
     }
     /// Indices into the evaluated parts of the pupils that follow the gaze.
     pub fn pupil_parts(&self) -> &[usize] {
@@ -1417,7 +1475,7 @@ impl PreparedRig {
         time >= start && time < start + blink.duration
     }
     /// Evaluate parts like `evaluate_parts`, then select variants: the actor's
-    /// emotion entries first, then the blink, so a blink closes the eyes whatever
+    /// emotion entries first, then the hand shapes, then the blink, so a blink closes the eyes whatever
     /// the expression. Also returns every mapped mouth shape for the same pose.
     pub fn evaluate_acting(
         &self,
@@ -1429,6 +1487,13 @@ impl PreparedRig {
         if let Some(entries) = self.acting.expressions.get(input.emotion) {
             for (part, variant) in entries {
                 picks[*part] = Some(*variant);
+            }
+        }
+        for (hand, shape) in self.acting.hands.iter().zip(input.hands) {
+            if let (Some((part, table)), Some(shape)) = (hand, shape) {
+                if let Some(variant) = table[shape as usize] {
+                    picks[*part] = Some(variant);
+                }
             }
         }
         if let (true, Some(blink)) = (input.blink, &self.acting.blink) {
@@ -1957,6 +2022,7 @@ mod tests {
             emotion: "happy",
             blink: false,
             view: FaceView::Front,
+            hands: Default::default(),
         };
         let (acting, _) = prepared.evaluate_acting(&[], input).unwrap();
         assert_eq!(acting[0].outline.unwrap().width, 0.5);
@@ -2138,6 +2204,7 @@ mod tests {
             emotion,
             blink: false,
             view,
+            hands: Default::default(),
         };
         d.prepare().unwrap().evaluate_acting(&[], input).unwrap().0
     }

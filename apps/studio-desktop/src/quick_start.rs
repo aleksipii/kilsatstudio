@@ -53,6 +53,7 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
             text: text.into(),
             emotion: None,
             audio: None,
+            intensity: None,
         });
     }
     if events.is_empty() {
@@ -76,6 +77,7 @@ pub fn append_scene(source: &str, draft: &Draft) -> Result<(String, usize), Stri
             at: 0.0,
             actor: actor.clone(),
             value: "happy".into(),
+            intensity: None,
         });
     }
     let mut number = script.scenes.len() + 1;

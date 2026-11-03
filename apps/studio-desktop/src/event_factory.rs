@@ -65,6 +65,7 @@ pub fn create(
             at,
             actor,
             value: "neutral".into(),
+            intensity: None,
         },
         Kind::Gesture => Event::Gesture {
             at,
@@ -84,6 +85,7 @@ pub fn create(
             text: "New dialogue.".into(),
             emotion: None,
             audio: None,
+            intensity: None,
         },
     })
 }
@@ -207,8 +209,12 @@ mod tests {
     #[test]
     fn duplication_preserves_all_fields_and_source() {
         let mut script = script();
-        if let Event::Speak { audio, .. } = &mut script.scenes[0].events[0] {
+        if let Event::Speak {
+            audio, intensity, ..
+        } = &mut script.scenes[0].events[0]
+        {
             *audio = Some("audio/original.wav".into());
+            *intensity = Some(0.4);
         }
         let before = format!("{:?}", script.scenes[0].events[0]);
         let event = duplicate_at(&script, 0, 0, 3.0).unwrap();
@@ -219,7 +225,9 @@ mod tests {
                 text,
                 emotion,
                 audio,
+                intensity,
             } => {
+                assert_eq!(intensity, Some(0.4));
                 assert_eq!(at, 3.0);
                 assert_eq!(actor, "EMMA");
                 assert_eq!(text, "Hello Alex! Welcome to Kilsat Studio.");

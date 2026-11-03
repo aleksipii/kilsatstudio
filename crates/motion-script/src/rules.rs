@@ -313,7 +313,10 @@ impl Script {
             // a condition lookup is a binary search instead of a full scan.
             let mut emotions: BTreeMap<&str, Vec<(f64, &str)>> = BTreeMap::new();
             for index in &order {
-                if let Event::Emotion { at, actor, value } = &original.events[*index] {
+                if let Event::Emotion {
+                    at, actor, value, ..
+                } = &original.events[*index]
+                {
                     emotions.entry(actor).or_default().push((*at, value));
                 }
             }

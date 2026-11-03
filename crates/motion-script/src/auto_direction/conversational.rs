@@ -355,6 +355,7 @@ fn fit_camera(
                                 emotion,
                                 blink,
                                 view: motion_rig::FaceView::Front,
+                                hands: Default::default(),
                             },
                         )
                         .map_err(|e| e.to_string())?;
