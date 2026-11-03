@@ -2930,3 +2930,25 @@ Käyttäjän luvalla yhdistettiin pino mainiin tavallisilla merge-commiteilla (h
   - Uusia työpöytänäkymiä (käyräeditori, onion skin, lavastus, otosten tilat) ei ole käytetty käsin hiirellä, eikä fyysisen Macin hyväksyntää ole.
   - Developer ID -allekirjoitus ja notarisointi puuttuvat, koska repossa ei ole tunnuksia.
   - `v1.0.0`-tagia ja GitHub-julkaisua ei tehty: ne vaativat erillisen luvan, ja puhepaketin GPL- ja äänioikeusselvitys on kesken.
+
+## 2026-11-03 — Albus, universaali Mac ja iPad-sovellus: PR #172–#174 yhdistetty
+
+Käyttäjän luvalla yhdistettiin mainiin tavallisilla merge-commiteilla (haaroja ei poistettu, ei force-pushia):
+[#172](https://github.com/aleksipii/kilsatstudio/pull/172) `cf43024`,
+[#173](https://github.com/aleksipii/kilsatstudio/pull/173) `7ebcd87` ja
+[#174](https://github.com/aleksipii/kilsatstudio/pull/174) `2d14429`.
+#173 ja #174 päivitettiin mainin päälle (`gh pr update-branch`, merge) ennen omaa yhdistämistään.
+
+- Tehty:
+  - #172: Albus-esimerkki (README, ilmekohtauksen rajaus, näppäilytesti) ja `JointLimitDefinition::clamp` -korjaus, joka kiertää kulman kokonaisilla kierroksilla ennen rajausta. Korjasi samalla mainin `albus.rs`-muotoiluvirheen, joka kaatoi `cargo fmt --check` -tarkistuksen kaikissa avoimissa PR:issä.
+  - #173: yksi universaali Mac-paketti (arm64 + x86_64, macOS 13+), `lipo`-yhdistetyt binäärit ja release-työnkulkujen arkkitehtuuritarkistus. Mukana tuleva puhepaketti on vain arm64; Intel-Mac näyttää selkeän virheen ja tarjoaa äänitiedoston tuonnin.
+  - #174: iPad-sovelluksen vaihe 1 (SwiftUI, iPadOS 16+): `motion-ffi`-C-rajapinta yhteiseen Rust-ytimeen, YAML- ja `.kilsat`-tiedostojen avaus, kohtauslista, toisto, ruutu kerrallaan siirtyminen ja kelaus sormella tai Apple Pencilillä. Renderöinti käyttää samaa `ScenePreview`-polkua ja ruutukelloa kuin vienti.
+- Integraation aikana tehty korjaus (`d79e96e` #173:ssa): kaksi `bundled_speech`-testiä kaatui Linux/x86_64-CI:ssä, koska `load` hylkää muut kuin Apple Silicon -koneet. Arkkitehtuuritarkistus erotettiin paketin luvusta (`resolve`), ja tarkistuksella on edelleen oma testinsä.
+- Tarkistettu:
+  - Paikallisesti (Apple M1) korjauksen jälkeen: `cargo fmt --all --check`, `cargo clippy -p studio-desktop --all-targets` (0 varoitusta), `cargo test -p studio-desktop bundled_speech` (6 läpi). Koko työtilan testejä ei ajettu paikallisesti tässä integraatiossa.
+  - GitHub CI: jokaisen PR:n kaikki tarkistukset vihreinä ennen yhdistämistä, myös `ipad-build` (#174). macOS-töitä peruuntui useasti, koska GitHub ei saanut macOS arm64 -ajokonetta ("job was not acquired by Runner"); ne ajettiin uudelleen, kunnes ne menivät läpi, eikä niitä ohitettu.
+- Tekemättä:
+  - Universaalia pakettia ei ole ajettu fyysisellä Intel-Macilla. Paikallinen täysi universaali release-käännös estyi levytilan loppumiseen.
+  - iPad-sovellusta ei ole ajettu fyysisellä iPadilla. Simulaattoreissa (iPad mini A17 Pro, iPad Pro 13" M5) tarkistettiin vain käynnistys ja ensimmäinen ruutu; toistoa, liukusäädintä ja Pencil-kelausta ei käytetty. Muokkaus, äänen toisto ja vienti puuttuvat, `.kilsat`-projektien levykuvaresursseja ei vielä ladata, eikä Kokoroa ole iPadilla.
+  - Albus-esimerkkiä ei avattu työpöytäsovelluksessa, eikä huulisynkan laatua mitattu (esimerkissä ei ole ääntä).
+  - `kilsatstudio1.0`-haaraa ei siirretty tässä integraatiossa.
