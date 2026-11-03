@@ -17,12 +17,14 @@
 //! override the scene's; unset fields default to on ones with spline curves.
 use crate::{Error, Script};
 pub use motion_animation::{
-    Exposure, Interpolation, DEFAULT_BACK_OVERSHOOT, MAX_BACK_OVERSHOOT, MAX_EXPOSURE,
+    Exposure, Interpolation, DEFAULT_BACK_OVERSHOOT, MAX_BACK_OVERSHOOT, MAX_BEZIER_Y,
+    MAX_EXPOSURE, MIN_BEZIER_Y,
 };
 use serde::{Deserialize, Serialize};
 
 /// MotionScript easing names, in the order editors should present them.
-/// `back` also takes an overshoot: `back(1.3)`.
+/// `back` also takes an overshoot: `back(1.3)`. A free curve from the curve
+/// editor is `bezier(x1, y1, x2, y2)` (CSS cubic-bezier handles).
 pub const EASINGS: [&str; 7] = [
     "linear",
     "smoothstep",
@@ -46,6 +48,9 @@ pub enum ActorEasing {
     /// Ease-out past the next key, settling onto it; see
     /// `motion_animation::Easing::Back`.
     Back(f64),
+    /// Cubic Bézier timing handles `(x1, y1, x2, y2)`; see
+    /// `motion_animation::Easing::Bezier`.
+    Bezier(f64, f64, f64, f64),
 }
 
 impl ActorEasing {
@@ -59,6 +64,7 @@ impl ActorEasing {
             ActorEasing::EaseOut => Easing::EaseOut,
             ActorEasing::EaseInOut => Easing::EaseInOut,
             ActorEasing::Back(overshoot) => Easing::Back { overshoot },
+            ActorEasing::Bezier(x1, y1, x2, y2) => Easing::Bezier { x1, y1, x2, y2 },
         }
     }
     /// Blend progress for normalized interval progress `t`.
@@ -81,6 +87,7 @@ impl std::fmt::Display for ActorEasing {
             ActorEasing::EaseInOut => f.write_str("ease_in_out"),
             // Rust's shortest round-trip formatting keeps `back(1.3)` exact.
             ActorEasing::Back(overshoot) => write!(f, "back({overshoot})"),
+            ActorEasing::Bezier(x1, y1, x2, y2) => write!(f, "bezier({x1}, {y1}, {x2}, {y2})"),
         }
     }
 }
@@ -96,13 +103,35 @@ impl std::str::FromStr for ActorEasing {
             "ease_out" => ActorEasing::EaseOut,
             "ease_in_out" => ActorEasing::EaseInOut,
             "back" => ActorEasing::Back(DEFAULT_BACK_OVERSHOOT),
+            _ if name.starts_with("bezier(") => {
+                let numbers: Vec<f64> = name
+                    .strip_prefix("bezier(")
+                    .and_then(|rest| rest.strip_suffix(')'))
+                    .map(|inner| inner.split(',').map(|n| n.trim().parse::<f64>()).collect())
+                    .transpose()
+                    .ok()
+                    .flatten()
+                    .filter(|numbers: &Vec<f64>| numbers.len() == 4)
+                    .ok_or_else(|| {
+                        format!(
+                            "easing `{name}`: write four numbers, as in bezier(0.42, 0, 0.58, 1)"
+                        )
+                    })?;
+                let easing = ActorEasing::Bezier(numbers[0], numbers[1], numbers[2], numbers[3]);
+                if !easing.is_valid() {
+                    return Err(format!(
+                        "easing `{name}`: x1 and x2 must be within 0..=1 and y1 and y2 within {MIN_BEZIER_Y}..={MAX_BEZIER_Y}"
+                    ));
+                }
+                easing
+            }
             _ => {
                 let Some(argument) = name
                     .strip_prefix("back(")
                     .and_then(|rest| rest.strip_suffix(')'))
                 else {
                     return Err(format!(
-                        "unknown easing `{name}`; supported: {}, back(<overshoot>)",
+                        "unknown easing `{name}`; supported: {}, back(<overshoot>), bezier(x1, y1, x2, y2)",
                         EASINGS.join(", ")
                     ));
                 };
@@ -411,6 +440,14 @@ mod tests {
             ("ease_in_out", ActorEasing::EaseInOut),
             ("back(1.3)", ActorEasing::Back(1.3)),
             ("back(0)", ActorEasing::Back(0.0)),
+            (
+                "bezier(0.42, 0, 0.58, 1)",
+                ActorEasing::Bezier(0.42, 0.0, 0.58, 1.0),
+            ),
+            (
+                "bezier(0.3, -0.5, 0.6, 1.6)",
+                ActorEasing::Bezier(0.3, -0.5, 0.6, 1.6),
+            ),
         ] {
             assert_eq!(name.parse::<ActorEasing>().unwrap(), easing);
             assert_eq!(easing.to_string(), name);
@@ -431,6 +468,15 @@ mod tests {
                 bad.parse::<ActorEasing>().unwrap_err().contains("unknown"),
                 "{bad}"
             );
+        }
+        for (bad, hint) in [
+            ("bezier(0.1, 0, 0.5)", "four numbers"),
+            ("bezier(a, 0, 0.5, 1)", "four numbers"),
+            ("bezier(1.2, 0, 0.5, 1)", "within 0..=1"),
+            ("bezier(0.2, 0, 0.5, 9)", "within -2..=3"),
+        ] {
+            let error = bad.parse::<ActorEasing>().unwrap_err();
+            assert!(error.contains(hint), "{bad}: {error}");
         }
         for bad in ["back(x)", "back(-1)", "back(11)", "back(NaN)", "back(inf)"] {
             let error = bad.parse::<ActorEasing>().unwrap_err();

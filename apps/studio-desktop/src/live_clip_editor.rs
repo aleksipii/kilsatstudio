@@ -506,6 +506,7 @@ fn easing_label(easing: ActorEasing) -> &'static str {
         ActorEasing::EaseOut => "Hidas loppu",
         ActorEasing::EaseInOut => "Hidas alku ja loppu",
         ActorEasing::Back(_) => "Ylilyönti",
+        ActorEasing::Bezier(..) => "Oma käyrä",
     }
 }
 

@@ -62,6 +62,27 @@ pub enum Easing {
     Back {
         overshoot: f64,
     },
+    /// Cubic Bézier timing curve through (0, 0), (x1, y1), (x2, y2), (1, 1),
+    /// as in CSS `cubic-bezier`: x is time and y is blend progress. `x1` and
+    /// `x2` are within `0..=1`, so the curve always moves forward in time;
+    /// `y1` and `y2` are within `MIN_BEZIER_Y..=MAX_BEZIER_Y`, so a curve may
+    /// anticipate (below 0) or overshoot (above 1).
+    Bezier {
+        x1: f64,
+        y1: f64,
+        x2: f64,
+        y2: f64,
+    },
+}
+/// Lowest accepted Bézier handle y (anticipation below the start value).
+pub const MIN_BEZIER_Y: f64 = -2.0;
+/// Highest accepted Bézier handle y (overshoot past the end value).
+pub const MAX_BEZIER_Y: f64 = 3.0;
+/// Bisection steps solving the Bézier x for a time; 2^-48 is far below a sample.
+const BEZIER_STEPS: u32 = 48;
+fn bezier_axis(a: f64, b: f64, s: f64) -> f64 {
+    let u = 1.0 - s;
+    3.0 * u * u * s * a + 3.0 * u * s * s * b + s * s * s
 }
 /// Largest accepted `Easing::Back` overshoot constant.
 pub const MAX_BACK_OVERSHOOT: f64 = 10.0;
@@ -73,6 +94,14 @@ impl Easing {
         match self {
             Easing::Back { overshoot } => {
                 overshoot.is_finite() && (0.0..=MAX_BACK_OVERSHOOT).contains(&overshoot)
+            }
+            Easing::Bezier { x1, y1, x2, y2 } => {
+                [x1, x2]
+                    .iter()
+                    .all(|x| x.is_finite() && (0.0..=1.0).contains(x))
+                    && [y1, y2]
+                        .iter()
+                        .all(|y| y.is_finite() && (MIN_BEZIER_Y..=MAX_BEZIER_Y).contains(y))
             }
             _ => true,
         }
@@ -104,6 +133,21 @@ impl Easing {
             Easing::Back { overshoot } => {
                 let u = t - 1.0;
                 1.0 + (overshoot + 1.0) * u * u * u + overshoot * u * u
+            }
+            Easing::Bezier { .. } if t <= 0.0 => 0.0,
+            Easing::Bezier { .. } if t >= 1.0 => 1.0,
+            Easing::Bezier { x1, y1, x2, y2 } => {
+                // x(s) is monotonic for x1, x2 in 0..=1: bisect for x(s) = t.
+                let (mut lo, mut hi) = (0.0, 1.0);
+                for _ in 0..BEZIER_STEPS {
+                    let mid = 0.5 * (lo + hi);
+                    if bezier_axis(x1, x2, mid) < t {
+                        lo = mid;
+                    } else {
+                        hi = mid;
+                    }
+                }
+                bezier_axis(y1, y2, 0.5 * (lo + hi))
             }
         }
     }
@@ -351,6 +395,78 @@ pub fn humanoid(walk_seconds: Option<f64>, wave: f64) -> [Vec2; 7] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn bezier_easing_matches_linear_and_reaches_exact_ends() {
+        let linear = Easing::Bezier {
+            x1: 1.0 / 3.0,
+            y1: 1.0 / 3.0,
+            x2: 2.0 / 3.0,
+            y2: 2.0 / 3.0,
+        };
+        for i in 0..=20 {
+            let t = f64::from(i) / 20.0;
+            assert!((linear.apply(t) - t).abs() < 1e-12, "{t}");
+        }
+        let ease = Easing::Bezier {
+            x1: 0.42,
+            y1: 0.0,
+            x2: 0.58,
+            y2: 1.0,
+        };
+        assert_eq!(ease.apply(0.0), 0.0);
+        assert_eq!(ease.apply(1.0), 1.0);
+        assert!((ease.apply(0.5) - 0.5).abs() < 1e-12);
+        assert!(ease.apply(0.1) < 0.1 && ease.apply(0.9) > 0.9);
+        // Monotonic in time for these handles, and the same answer every call.
+        let mut last = 0.0;
+        for i in 1..=100 {
+            let v = ease.apply(f64::from(i) / 100.0);
+            assert!(v >= last);
+            last = v;
+        }
+        assert_eq!(ease.apply(0.37), ease.apply(0.37));
+    }
+    #[test]
+    fn bezier_handles_can_anticipate_and_overshoot_within_bounds() {
+        let snap = Easing::Bezier {
+            x1: 0.3,
+            y1: -0.5,
+            x2: 0.6,
+            y2: 1.6,
+        };
+        assert!(snap.is_valid());
+        let values: Vec<f64> = (0..=50).map(|i| snap.apply(f64::from(i) / 50.0)).collect();
+        assert!(values.iter().any(|v| *v < 0.0), "anticipates");
+        assert!(values.iter().any(|v| *v > 1.0), "overshoots");
+        for bad in [
+            Easing::Bezier {
+                x1: -0.1,
+                y1: 0.0,
+                x2: 0.5,
+                y2: 1.0,
+            },
+            Easing::Bezier {
+                x1: 0.2,
+                y1: 0.0,
+                x2: 1.1,
+                y2: 1.0,
+            },
+            Easing::Bezier {
+                x1: 0.2,
+                y1: 3.5,
+                x2: 0.5,
+                y2: 1.0,
+            },
+            Easing::Bezier {
+                x1: 0.2,
+                y1: f64::NAN,
+                x2: 0.5,
+                y2: 1.0,
+            },
+        ] {
+            assert!(!bad.is_valid(), "{bad:?}");
+        }
+    }
     fn key(t: f64, x: f64, r: f64, easing: Easing) -> Keyframe {
         Keyframe {
             time: t,

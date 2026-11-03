@@ -11,6 +11,7 @@ mod clip_editor;
 mod clip_library;
 mod composition_editor;
 mod cue_rule_editor;
+mod curve_editor;
 mod custom_rig_editor;
 mod demo;
 mod direct_manipulation;
@@ -30,6 +31,7 @@ mod managed_license_evidence;
 mod model_sheet_panel;
 mod motion_blocks;
 mod native_compositor;
+mod onion_skin;
 mod playback;
 mod principle_hints;
 mod project_history;
@@ -195,6 +197,8 @@ struct Studio {
     model_sheet: model_sheet_panel::Panel,
     sequence_panel: sequence_panel::Panel,
     shot_board: shot_board::ShotBoard,
+    /// Onion-skin settings; UI state only.
+    onion_skin: onion_skin::OnionSkin,
     sequence_revision: u64,
     document_revision: u64,
     sequence_images: Option<Arc<std::collections::BTreeMap<String, motion_art::ImageResource>>>,
@@ -379,6 +383,7 @@ impl Default for Studio {
             model_sheet: Default::default(),
             sequence_panel: Default::default(),
             shot_board: Default::default(),
+            onion_skin: Default::default(),
             sequence_revision: 0,
             document_revision: 0,
             sequence_images: None,
@@ -2009,6 +2014,33 @@ impl Studio {
     fn editing_idle(&self) -> bool {
         !self.busy && !self.diagnostics_busy && !self.export_busy
     }
+    /// Ghost poses around the playhead over the stage (character mode, paused).
+    fn paint_onion_skin(
+        &self,
+        ui: &egui::Ui,
+        rect: egui::Rect,
+        script: &motion_script::Script,
+        current: &motion_scene::EvaluatedScene,
+    ) {
+        if !self.onion_skin.enabled || !self.character_mode || self.scene_playing() {
+            return;
+        }
+        let Some(scene) = script.scenes.get(self.scene_index) else {
+            return;
+        };
+        let only = self
+            .onion_skin
+            .only_selected
+            .then_some(())
+            .and(self.selected_actor.as_deref());
+        let keys = onion_skin::key_times(script, self.scene_index, only);
+        let times = self
+            .onion_skin
+            .times(self.playhead, script.project.fps, scene.duration, &keys);
+        let ghosts = onion_skin::ghosts(script, self.scene_index, &times, only);
+        onion_skin::paint(&ui.painter_at(rect), rect, current, &ghosts);
+    }
+
     fn scene_playing(&self) -> bool {
         self.scene_transport
             .as_ref()
@@ -3153,6 +3185,7 @@ impl Studio {
                 })
         });
         if let Some((rect, mut evaluated, scene_id, enabled)) = interaction {
+            self.paint_onion_skin(ui, rect, script, &evaluated);
             if self.character_mode {
                 self.preview_character_drag(&mut evaluated, ui.ctx());
                 self.character_canvas_ui(ui, rect, &evaluated, enabled);
@@ -3190,6 +3223,9 @@ impl Studio {
                 self.art_editor.reset();
             }
         });
+        if self.character_mode && self.onion_skin.ui(ui) {
+            ui.ctx().request_repaint();
+        }
         ui.weak(if self.character_mode {
             "Vedä hahmoa lisätäksesi avainruudun nykyiseen aikaan. Siirrä toistopäätä ja vedä uudelleen. Esc peruu vedon."
         } else {
@@ -3247,6 +3283,7 @@ impl Studio {
                             );
                         }
                     });
+                    self.paint_onion_skin(ui, rect, &script, &scene);
                     if self.character_mode {
                         let enabled = self.editing_idle() && !self.scene_playing();
                         self.character_canvas_ui(ui, rect, &scene, enabled);
@@ -4809,7 +4846,9 @@ impl Studio {
         ui.add_enabled_ui(
             !self.busy && !self.diagnostics_busy && !self.export_busy,
             |ui| {
+                let (fps, playhead) = (self.project_fps(), self.playhead);
                 if let Some((_, draft)) = &mut self.keyframe_draft {
+                    (draft.fps, draft.playhead) = (fps, Some(playhead));
                     egui::CollapsingHeader::new("Hahmon sijainnin ja koon avainruudut").show(
                         ui,
                         |ui| {
@@ -5028,7 +5067,9 @@ impl Studio {
                         ));
                     }
                     ui.small("Kohtauksen, hahmon tai nivelen vaihtaminen lataa tallennetut avainruudut ja hylkää käyttämättömät muutokset.");
+                    let (fps, playhead) = (script.project.fps, self.playhead);
                     if let Some((_, draft)) = &mut self.joint_draft {
+                        (draft.fps, draft.playhead) = (fps, Some(playhead));
                         apply = draft.ui(ui);
                     }
                     ui.separator();
@@ -5465,12 +5506,21 @@ impl Studio {
                     )));
                 }
                 ui.small("Kohtauksen, hahmon tai luun vaihtaminen lataa tallennetut avainruudut ja hylkää käyttämättömät muutokset.");
-                if let Some((_, draft)) = &mut self.bone_draft { apply = draft.ui(ui); }
+                let (fps, playhead) = (script.project.fps, self.playhead);
+                if let Some((_, draft)) = &mut self.bone_draft {
+                    (draft.fps, draft.playhead) = (fps, Some(playhead));
+                    apply = draft.ui(ui);
+                }
             });
         });
         if apply {
             self.apply_bone_draft();
         }
+    }
+
+    /// The open screenplay's frame rate (24 when none is open).
+    fn project_fps(&self) -> u32 {
+        self.script.as_ref().map_or(24, |s| s.project.fps)
     }
 
     fn sequence_ui(&mut self, ui: &mut egui::Ui) {
