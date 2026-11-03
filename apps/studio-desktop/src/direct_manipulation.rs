@@ -33,7 +33,7 @@ pub fn canvas_to_world(
         (f64::from(p.y) - cy) / scene.camera.zoom + cy + scene.camera.y,
     ])
 }
-fn screen_point(
+pub(crate) fn screen_point(
     rect: egui::Rect,
     scene: &motion_scene::EvaluatedScene,
     x: f64,

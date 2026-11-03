@@ -8,6 +8,11 @@ pub struct Draft {
     pub keys: Vec<ActorKey>,
     original: Vec<ActorKey>,
     duration: f64,
+    /// Project frame rate: curve-editor drags snap to its frames.
+    pub fps: u32,
+    /// Scene time shown as a line in the curve editor.
+    pub playhead: Option<f64>,
+    curves: crate::curve_editor::CurveEditor,
 }
 
 impl Draft {
@@ -24,6 +29,9 @@ impl Draft {
             original: keys.clone(),
             keys,
             duration: scene.duration,
+            fps: 24,
+            playhead: None,
+            curves: Default::default(),
         }
     }
 
@@ -48,6 +56,12 @@ impl Draft {
         ui.heading(format!("{} · muunnosavainruudut", self.actor));
         ui.small("Siirrot lisätään liikkeisiin. Kierto annetaan radiaaneina; mittakaava muuttaa koko hahmon kokoa.");
         ui.small("Avainruutujen aikojen pitää kasvaa kohtauksen sisällä. Pehmennys ohjaa avainruudusta seuraavaa liikettä.");
+        egui::CollapsingHeader::new("Käyräeditori")
+            .default_open(true)
+            .show(ui, |ui| {
+                self.curves
+                    .ui(ui, &mut self.keys, self.duration, self.fps, self.playhead);
+            });
         let mut remove = None;
         for (index, key) in self.keys.iter_mut().enumerate() {
             ui.push_id(index, |ui| {
@@ -132,6 +146,7 @@ fn easing_label(easing: ActorEasing) -> &'static str {
         ActorEasing::EaseOut => "Hidas loppu",
         ActorEasing::EaseInOut => "Hidas alku ja loppu",
         ActorEasing::Back(_) => "Ylilyönti",
+        ActorEasing::Bezier(..) => "Oma käyrä",
     }
 }
 
