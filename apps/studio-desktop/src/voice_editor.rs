@@ -61,6 +61,23 @@ impl Draft {
             }
             ui.label("Äänen tunnus (asennettava erikseen)");
             ui.add(egui::TextEdit::singleline(&mut voice.preset).char_limit(128));
+            if voice.provider == "piper" {
+                egui::ComboBox::from_label("Suomenkielinen ääni")
+                    .selected_text(
+                        motion_tts::finnish_voice(&voice.preset)
+                            .map_or(voice.preset.as_str(), |v| v.label),
+                    )
+                    .show_ui(ui, |ui| {
+                        for option in motion_tts::FINNISH_VOICES {
+                            ui.selectable_value(
+                                &mut voice.preset,
+                                option.preset.into(),
+                                option.label,
+                            );
+                        }
+                    });
+                ui.small("Kaikki suomenkieliset äänet ovat saman Piper-puhujan (Harri) sävelkorkeusmuunnelmia, eivät eri puhujia.");
+            }
             if voice.provider == "kokoro" {
                 ui.horizontal(|ui| {
                     for preset in ["af_heart", "am_michael"] {

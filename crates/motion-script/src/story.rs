@@ -72,6 +72,8 @@ pub const CAMERA_MOVES: [&str; 6] = [
     "shake",
 ];
 pub const EMOTIONS: [&str; 5] = ["neutral", "happy", "sad", "surprised", "angry"];
+/// Scene times of day; the desktop lights them with `motion_art::TimeOfDay`.
+pub const TIMES_OF_DAY: [&str; 4] = ["day", "morning", "evening", "night"];
 pub const LANGUAGES: [&str; 3] = ["fi", "en", "en-gb"];
 
 /// Seconds before the first beat, between beats and after the last one.
@@ -189,6 +191,9 @@ pub struct StoryScene {
     /// Free text for the author; not interpreted.
     #[serde(default)]
     pub summary: Option<String>,
+    /// Time of day (`day`, `morning`, `evening`, `night`); default day.
+    #[serde(default)]
+    pub time: Option<String>,
     /// Who is on stage and where they start.
     pub positions: BTreeMap<String, String>,
     pub beats: Vec<Beat>,
@@ -453,6 +458,8 @@ pub struct StoryCompilation {
     pub script: Script,
     /// `(scene id, set id)` for each compiled scene, in order.
     pub scene_sets: Vec<(String, String)>,
+    /// `(scene id, time of day)` for each compiled scene, in order.
+    pub scene_times: Vec<(String, String)>,
     /// Furniture to add to a scene's set, such as a chair under a sitting actor.
     pub furniture: Vec<Furniture>,
     pub lines: Vec<CompiledLine>,
@@ -734,6 +741,18 @@ fn validate(story: &Story, catalog: &StoryCatalog) -> Vec<StoryIssue> {
                     list(&known_sets)
                 ),
             ));
+        }
+        if let Some(time) = &scene.time {
+            if !TIMES_OF_DAY.contains(&time.as_str()) {
+                out.push(issue(
+                    Unsupported,
+                    format!("{path}.time"),
+                    format!(
+                        "time {time:?} is not supported; use {}",
+                        list(&TIMES_OF_DAY)
+                    ),
+                ));
+            }
         }
         if scene.positions.is_empty() {
             out.push(issue(
@@ -1254,11 +1273,16 @@ pub fn compile_story(
     let mut builder = Builder::new(&story, catalog, measured);
     let mut scenes = Vec::new();
     let mut scene_sets = Vec::new();
+    let mut scene_times = Vec::new();
     let mut issues = Vec::new();
     for (index, scene) in story.scenes.iter().enumerate() {
         match builder.scene(index, scene) {
             Ok(compiled) => {
                 scene_sets.push((scene.id.clone(), scene.set.clone()));
+                scene_times.push((
+                    scene.id.clone(),
+                    scene.time.clone().unwrap_or_else(|| TIMES_OF_DAY[0].into()),
+                ));
                 scenes.push(compiled);
             }
             Err(error) => issues.push(error),
@@ -1318,6 +1342,7 @@ pub fn compile_story(
         },
         script,
         scene_sets,
+        scene_times,
         furniture: builder.furniture,
         review: builder.review,
         duration,
@@ -2810,6 +2835,7 @@ scenes:
   - id: <scene_id>        # a-z, 0-9, _
     set: <set>
     summary: <one sentence, optional>
+    time: day | morning | evening | night   # optional lighting, default day
     positions: {<CHARACTER>: <position>, ...}
     beats:
       - say: <CHARACTER>
@@ -2883,7 +2909,7 @@ scenes:
         let ids: Vec<&str> = props.items.iter().map(|i| i.id.as_str()).collect();
         text.push_str(&format!("- holds (hand prop): {}\n", ids.join(", ")));
     }
-    text.push_str("- voice: optional; English Kokoro presets such as am_michael, af_heart, bf_emma, bm_george; Finnish Piper presets such as piper_harri\n\nCHARACTERS\n");
+    text.push_str("- voice: optional; English Kokoro presets such as am_michael, af_heart, bf_emma, bm_george; Finnish voices (variants of one Piper speaker): piper_harri (neutral), piper_harri_jykea (very deep), piper_harri_matala (deep), piper_harri_korkea (high), piper_harri_kirkas (very high); each character already has one\n\nCHARACTERS\n");
     for (id, entry) in &catalog.characters {
         let acting = entry
             .character

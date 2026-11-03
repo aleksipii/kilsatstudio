@@ -1130,3 +1130,31 @@ fn guide_teaches_intensity_and_acting() {
     assert!(guide.contains("intensity: <0–1>"));
     assert!(guide.contains("- acting: calm, lively, nervous, proud, tired, stoic"));
 }
+
+#[test]
+fn scenes_carry_their_time_of_day() {
+    let source = minimal("      - say: VEIKKO\n        line: Hi.\n").replace(
+        "    set: toimisto\n",
+        "    set: toimisto\n    time: night\n",
+    );
+    let compiled = compile_story(&source, &catalog(), None).unwrap();
+    assert_eq!(
+        compiled.scene_times,
+        [("one".to_string(), "night".to_string())]
+    );
+    let plain = compile_story(
+        &minimal("      - say: VEIKKO\n        line: Hi.\n"),
+        &catalog(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(plain.scene_times[0].1, "day");
+    let bad = minimal("      - say: VEIKKO\n        line: Hi.\n")
+        .replace("    set: toimisto\n", "    set: toimisto\n    time: noon\n");
+    let issues = errors(&bad);
+    assert!(
+        issues.iter().any(|i| i.path == "scenes[0].time"),
+        "{issues:?}"
+    );
+    assert!(authoring_guide(&catalog()).contains("time: day | morning | evening | night"));
+}

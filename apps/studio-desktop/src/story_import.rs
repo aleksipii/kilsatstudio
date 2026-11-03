@@ -79,16 +79,16 @@ const SETS: [(&str, &str, &str); 13] = [
     ),
 ];
 
-/// `(id, personality for the assistant, English voice, speaking rate)`.
-/// Finnish uses the one installed Piper voice, so the rate is what tells the
-/// characters apart there.
-const CAST: [(&str, &str, &str, f64); 6] = [
-    ("NOUTAJA", "calm, laconic grim reaper with dry humour; black hood and a scythe", "bm_george", 0.88),
-    ("VEIKKO", "ordinary commuter everyone can relate to; blue cap and shoulder bag", "am_michael", 1.0),
-    ("PASMA", "pompous small-time boss who turns small things into big ones; red tie and clipboard", "am_adam", 0.96),
-    ("KIPINA", "curious inventor whose fix always needs another fix; orange beanie and goggles", "af_bella", 1.08),
-    ("KIIRE", "courier who reaches everywhere except a standstill; lime vest and a parcel", "am_eric", 1.18),
-    ("SISU", "resourceful, calm grandmother who does not step aside even for the reaper; glasses, violet scarf and a cane", "bf_emma", 0.92),
+/// `(id, personality for the assistant, English voice, Finnish voice, speaking rate)`.
+/// The Finnish voices are pitch variants of the one Piper speaker
+/// (`motion_tts::FINNISH_VOICES`); with the rate they tell the characters apart.
+const CAST: [(&str, &str, &str, &str, f64); 6] = [
+    ("NOUTAJA", "calm, laconic grim reaper with dry humour; black hood and a scythe", "bm_george", "piper_harri_jykea", 0.88),
+    ("VEIKKO", "ordinary commuter everyone can relate to; blue cap and shoulder bag", "am_michael", "piper_harri", 1.0),
+    ("PASMA", "pompous small-time boss who turns small things into big ones; red tie and clipboard", "am_adam", "piper_harri_matala", 0.96),
+    ("KIPINA", "curious inventor whose fix always needs another fix; orange beanie and goggles", "af_bella", "piper_harri_kirkas", 1.08),
+    ("KIIRE", "courier who reaches everywhere except a standstill; lime vest and a parcel", "am_eric", "piper_harri_korkea", 1.18),
+    ("SISU", "resourceful, calm grandmother who does not step aside even for the reaper; glasses, violet scarf and a cane", "bf_emma", "piper_harri_korkea", 0.92),
 ];
 const FINNISH_VOICE: &str = "piper_harri";
 /// Furniture artwork the compiler may place, with the source canvas geometry:
@@ -296,7 +296,7 @@ fn pack_library() -> Result<Library, String> {
     let script = motion_script::parse(&starter.source).map_err(|e| e.to_string())?;
     let manifest: serde_json::Value = serde_json::from_str(MANIFEST).map_err(|e| e.to_string())?;
     let mut characters = BTreeMap::new();
-    for (id, description, english_voice, speed) in CAST {
+    for (id, description, english_voice, finnish_voice, speed) in CAST {
         let character = script
             .characters
             .get(id)
@@ -315,7 +315,7 @@ fn pack_library() -> Result<Library, String> {
                 character,
                 accent: entry["accent"].as_str().unwrap_or("#ffffff").to_lowercase(),
                 english_voice: english_voice.into(),
-                finnish_voice: FINNISH_VOICE.into(),
+                finnish_voice: finnish_voice.into(),
                 speed,
             },
         );
@@ -563,6 +563,13 @@ pub(crate) fn build_with(
             column: None,
         }]);
     }
+    // Morning, evening and night light the whole picture, cast included.
+    for (scene_id, time) in &compilation.scene_times {
+        let time = motion_art::TimeOfDay::parse(time)
+            .ok_or_else(|| catalog_error(format!("unknown time of day {time}")))?;
+        document.art = motion_art::with_time_of_day(&document.art, scene_id, time)
+            .map_err(|e| catalog_error(e.to_string()))?;
+    }
     document
         .validate()
         .map_err(|e| catalog_error(e.to_string()))?;
@@ -576,6 +583,50 @@ pub(crate) fn build_with(
 mod tests {
     use super::*;
     const EXAMPLE: &str = include_str!("../../../examples/story/kahvitauko.yaml");
+
+    #[test]
+    fn story_times_of_day_light_their_scenes() {
+        assert_eq!(story::TIMES_OF_DAY, motion_art::TIMES_OF_DAY);
+        let text = EXAMPLE.replacen(
+            "    set: kahvila\n",
+            "    set: kahvila\n    time: night\n",
+            1,
+        );
+        assert_ne!(text, EXAMPLE, "the example names set kahvila");
+        let built = build(&text, None).unwrap();
+        let scene = &built.compilation.scene_times[0].0;
+        assert_eq!(
+            motion_art::scene_time_of_day(&built.document.art, scene),
+            motion_art::TimeOfDay::Night
+        );
+        let second = &built.compilation.scene_times[1].0;
+        assert_eq!(
+            motion_art::scene_time_of_day(&built.document.art, second),
+            motion_art::TimeOfDay::Day
+        );
+    }
+
+    #[test]
+    fn the_guide_lists_every_finnish_voice_and_the_cast_uses_them() {
+        let guide = story::authoring_guide(&catalog().unwrap());
+        for voice in motion_tts::FINNISH_VOICES {
+            assert!(guide.contains(voice.preset), "{}", voice.preset);
+        }
+        let catalog = catalog().unwrap();
+        for (id, entry) in &catalog.characters {
+            assert!(
+                motion_tts::finnish_voice(&entry.finnish_voice).is_some(),
+                "{id}: {}",
+                entry.finnish_voice
+            );
+        }
+        let distinct: std::collections::BTreeSet<_> = catalog
+            .characters
+            .values()
+            .map(|e| e.finnish_voice.as_str())
+            .collect();
+        assert_eq!(distinct.len(), 5);
+    }
 
     #[test]
     fn catalog_matches_the_embedded_pack() {
@@ -831,16 +882,16 @@ mod tests {
             for chunk in CAST.chunks(3) {
                 let cast: String = chunk
                     .iter()
-                    .map(|(id, _, _, _)| format!("  {id}: {{}}\n"))
+                    .map(|(id, _, _, _, _)| format!("  {id}: {{}}\n"))
                     .collect();
                 let positions: Vec<String> = chunk
                     .iter()
                     .zip(["left", "center", "right"])
-                    .map(|((id, _, _, _), p)| format!("{id}: {p}"))
+                    .map(|((id, _, _, _, _), p)| format!("{id}: {p}"))
                     .collect();
                 let beats: String = chunk
                     .iter()
-                    .map(|(id, _, _, _)| format!("      - say: {id}\n        line: Hello there.\n        gesture: wave\n"))
+                    .map(|(id, _, _, _, _)| format!("      - say: {id}\n        line: Hello there.\n        gesture: wave\n"))
                     .collect();
                 let text = format!(
                     "kilsat_story: 1\ntitle: T\nlanguage: en\ncast:\n{cast}scenes:\n  - id: s\n    set: {set}\n    positions: {{{}}}\n    beats:\n{beats}",
