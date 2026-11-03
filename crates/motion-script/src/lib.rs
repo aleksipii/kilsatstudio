@@ -5,6 +5,7 @@ mod camera_presets;
 pub mod compiler;
 mod continuity;
 pub mod event_log;
+pub mod format;
 mod holds;
 pub mod intent;
 mod principles;
@@ -1662,13 +1663,20 @@ fn edit_source(
     }
     let mut candidate = parse(source)?;
     edit(&mut candidate)?;
-    to_source(&candidate)
+    candidate.validate()?;
+    // Keep the header and section comments the author wrote.
+    let value = serde_yaml::to_value(&candidate)?;
+    bounded(format::format_with_comments(&value, source)?.text)
 }
 
-/// Validate and encode an edited document as bounded, readable MotionScript YAML.
+/// Validate and encode an edited document as bounded, readable MotionScript
+/// YAML in the canonical [`format`] layout.
 pub fn to_source(script: &Script) -> Result<String, Error> {
     script.validate()?;
-    let output = serde_yaml::to_string(script)?;
+    bounded(format::format_value(&serde_yaml::to_value(script)?)?)
+}
+
+fn bounded(output: String) -> Result<String, Error> {
     if output.len() > 1_048_576 {
         return Err(Error::Validation(
             "updated screenplay exceeds one MiB".into(),
