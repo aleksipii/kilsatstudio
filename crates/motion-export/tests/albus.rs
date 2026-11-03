@@ -7,7 +7,6 @@ use motion_art::style::CharacterStyle;
 use motion_render::model_sheet::{render_model_sheet, ModelSheetOptions};
 use motion_rig::{FaceView, RigDefinition};
 use motion_scene::{EvaluatedScene, ValidatedScript};
-use serde_json::Value;
 use std::{collections::BTreeMap, path::PathBuf, sync::Arc};
 
 const FPS: u32 = 24;
@@ -19,10 +18,12 @@ fn example(relative: &str) -> PathBuf {
 }
 
 fn rig() -> RigDefinition {
-    let text = std::fs::read_to_string(example("characters/albus.kilsat")).unwrap();
-    let project: Value = serde_json::from_str(&text).unwrap();
-    let script: Value = serde_json::from_str(project["source"].as_str().unwrap()).unwrap();
-    serde_json::from_value(script["characters"]["ALBUS"]["rig"].clone()).unwrap()
+    let project = motion_project::load(&example("characters/albus.kilsat")).unwrap();
+    let script = motion_script::parse(&project.source).expect("Albus character parses");
+    script.characters["ALBUS"]
+        .rig
+        .clone()
+        .expect("Albus has a rig")
 }
 
 fn demo() -> (ValidatedScript, motion_art::Document) {
