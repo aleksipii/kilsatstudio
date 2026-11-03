@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the prop manifests of the Kilsat Studio asset library.
+"""Generate the prop manifests of the Koeta Studio asset library.
 
 Writes `examples/stick-studio/library/props/<id>.json` (manifest v1, ORK-LIB-01):
 
@@ -46,7 +46,7 @@ RIG_DIR = PACKAGE / "props"
 SCHEMA_VERSION = 1
 LICENSE = {
     "license": "MIT",
-    "author": "Kilsat Studio",
+    "author": "Koeta Studio",
     "origin": "original",
     "redistribution": "allowed",
 }

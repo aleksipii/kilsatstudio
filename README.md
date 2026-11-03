@@ -1,6 +1,8 @@
-# Kilsat Studio
+# Koeta Studio
 
-Kilsat Studio is a macOS-first, screenplay-driven 2D animation application built
+<img src="assets/brand/Koeta.png" alt="Koeta Studio logo" width="160">
+
+Koeta Studio is a macOS-first, screenplay-driven 2D animation application built
 in Rust. Its StoryMotion Engine evaluates YAML MotionScript with Finnish or
 English dialogue. Local speech uses configured Finnish Piper, English Kokoro-82M
 or explicitly imported WAV recordings.
@@ -8,12 +10,12 @@ or explicitly imported WAV recordings.
 The desktop includes editable scenes, original custom rigs, measured-audio
 direction, continuous head-tilt recording and bounded Full HD MP4 export.
 Physical-device, artistic, speech-quality and release acceptance are tracked in
-[master-progress](docs/master-progress.md). All Kilsat Studio source is independently authored; no Storytold
+[master-progress](docs/master-progress.md). All Koeta Studio source is independently authored; no Storytold
 source code or dependencies are used.
 
 ## License
 
-Original Kilsat Studio source and documentation are licensed under the
+Original Koeta Studio source and documentation are licensed under the
 [MIT License](LICENSE). Third-party libraries, model weights, voices, language
 data and external tools retain their own licenses. This source license does
 not complete their redistribution review; see the
@@ -93,10 +95,10 @@ sets the joint, grip, background and framing review criteria. The
 prioritizes an asset browser/recovery, visual animation/contact tools and
 integrated sound editing with measured speech quality.
 
-**Kilsat Studio 1.0** (Apple Silicon, macOS 13+) is built by
+**Koeta Studio 1.0** (Apple Silicon, macOS 13+) is built by
 `scripts/build_release_app.sh` and the
 [release app workflow](https://github.com/aleksipii/kilsatstudio/actions/workflows/macos-release-app.yml);
-see [Kilsat Studio 1.0](docs/release-1.0.md). The package is ad-hoc signed;
+see [Koeta Studio 1.0](docs/release-1.0.md). The package is ad-hoc signed;
 Developer ID signing and notarization are a separate explicit step.
 
 Preview builds for Apple Silicon, macOS 13+, are available from the

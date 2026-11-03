@@ -1,4 +1,4 @@
-# Kilsat Studio — arkkitehtuuriagentit A01–A10 ja orkestroija
+# Koeta Studio — arkkitehtuuriagentit A01–A10 ja orkestroija
 
 Päivitetty 27.10.2026 (tilat: ORK-G4-01, `main` `d9b88ae`). Lähtö: `main`, commit `496a8a41bb753011222764cec9f19c3f3f2b6e89`.
 Lähde: [arkkitehtuuriraportti](../KILSAT-STUDIO-ARKKITEHTUURI-JA-AGENTIT.md), luvut 6–10,

@@ -115,7 +115,7 @@ pub fn load(root: &Path, data: &Path) -> Result<BundledSpeech, String> {
     let espeak = root.join("espeak/kokoro");
     if espeak.as_os_str().len() > MAX_ESPEAK_PATH {
         return Err(format!(
-            "Sovelluksen kansiopolku on liian pitkä puhemoottorille ({} merkkiä, enintään {MAX_ESPEAK_PATH}). Siirrä Kilsat Studio Ohjelmat-kansioon.",
+            "Sovelluksen kansiopolku on liian pitkä puhemoottorille ({} merkkiä, enintään {MAX_ESPEAK_PATH}). Siirrä Koeta Studio Ohjelmat-kansioon.",
             espeak.as_os_str().len()
         ));
     }
@@ -292,7 +292,7 @@ mod tests {
     #[test]
     fn locate_prefers_the_app_bundle_and_ignores_relative_overrides() {
         let temp = TempDir::new("locate");
-        let contents = temp.path().join("Kilsat Studio.app/Contents");
+        let contents = temp.path().join("Koeta Studio.app/Contents");
         let speech = contents.join("Resources/speech");
         fs::create_dir_all(&speech).unwrap();
         let executable = contents.join("MacOS/studio-desktop");

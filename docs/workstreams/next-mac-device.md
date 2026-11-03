@@ -156,7 +156,7 @@ These are operator instructions, not commands executed by this handoff.
 sw_vers
 uname -m
 python3 --version
-shasum -a 256 /local/downloaded-artifact.zip /local/Kilsat-Studio-Preview-arm64.zip
+shasum -a 256 /local/downloaded-artifact.zip /local/Koeta-Studio-Preview-arm64.zip
 python3 services/kokoro-runtime/smoke_macos.py \
   --allow-local-inference --config /local/config.json \
   --model /local/kokoro.pth --voice /local/af_heart.pt \

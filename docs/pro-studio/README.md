@@ -1,9 +1,9 @@
-# Kilsat Studio — PRO-agentit P01–P08 ja PRO-orkestroija
+# Koeta Studio — PRO-agentit P01–P08 ja PRO-orkestroija
 
 Luotu 29.10.2026. Lähtö: `main` `d91994c` (sama commit kuin `kilsatstudio1.0`).
 Taustatutkimus: [ammattistudiotutkimus.md](ammattistudiotutkimus.md).
 
-Tämä sarja tuo Kilsat Studioon ammattistudioiden käytäntöjä. Jokaisella agentilla on oma
+Tämä sarja tuo Koeta Studioon ammattistudioiden käytäntöjä. Jokaisella agentilla on oma
 tehtävätiedosto. Tiedostossa ovat tavoite, lähtötila, sallittu muutosalue, tarkistuslista,
 hyväksymisehdot ja kopioitava tehtävänanto. Tiedostot ovat tehtävänantoja: niiden
 olemassaolo ei tarkoita, että työ olisi tehty.

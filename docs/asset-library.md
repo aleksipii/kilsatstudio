@@ -137,7 +137,7 @@ An asset is distributable when `origin ≠ ai_generated`, `license ≠ unknown` 
 they reference, transitively (location parts, set parts, the set's location).
 `Policy::Authoring` turns each non-distributable asset into a `Warning`;
 `Policy::Distribution` fails with `LibraryError::NotDistributable`. All shipped
-stick-studio content is original geometry under `MIT`, author `Kilsat Studio`.
+stick-studio content is original geometry under `MIT`, author `Koeta Studio`.
 
 ## Content-addressed store
 

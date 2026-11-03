@@ -83,7 +83,7 @@ def download(url, path, digest, size, cancel_file):
     actual = hashlib.sha256()
     total = 0
     deadline = time.monotonic() + 900
-    request = urllib.request.Request(url, headers={'User-Agent': 'Kilsat-Studio-local-setup/1'})
+    request = urllib.request.Request(url, headers={'User-Agent': 'Koeta-Studio-local-setup/1'})
     with urllib.request.urlopen(request, timeout=30) as response, path.open('xb') as output:
         if not response.geturl().startswith('https://'):
             raise ValueError('Download redirected to an insecure URL.')

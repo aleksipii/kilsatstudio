@@ -37,7 +37,7 @@ warnings`; `cargo test -p motion-library`; `validate_library --distribution` 0 w
 `tests/test_stick_studio_pack.py`. Also on main `1f18c48`: the `library-macos` steps,
 `tests` (159 OK) and `services/kokoro-runtime/tests` (55 OK, 5 skipped). CI: all PR checks
 green before each merge, and all seven workflows triggered on main `1f18c48` green (release
-app run 41480970816, artifact `kilsat-studio-release-arm64-1f18c48…`, ad-hoc signed, no speech
+app run 41480970816, artifact `koeta-studio-release-arm64-1f18c48…`, ad-hoc signed, no speech
 bundle). macOS jobs were cancelled several times because GitHub could not acquire a macOS
 arm64 runner ("job was not acquired by Runner"); they were re-run until they passed, never
 skipped.
@@ -221,13 +221,13 @@ run locally; EXR output needs an A01 dependency decision; the H.264 path is stil
 BT.601; no art or perceptual review of parallax, principles or style presets. `kilsatstudio1.0`
 has not been advanced. That needs the user's separate approval, as does any version or tag change.
 
-## Screen-slot follow-ups and Kilsat Studio 1.0 — PRs #135–#139 (2026-10-29)
+## Screen-slot follow-ups and Koeta Studio 1.0 — PRs #135–#139 (2026-10-29)
 
 Merged with the user's authorisation (merge commits, no force-push):
 - **#135** streaming export of decoded screen-video frames (`ArtContext.screen_videos`,
   `images_at`, cache-backed preflight) and the example episode `examples/screen-demo`
   ("The Live Demo", English, Kokoro `af_heart`/`am_michael`).
-- **#136** release 1.0.0: `Kilsat Studio.app`, bundle id `studio.kilsat.studio`,
+- **#136** release 1.0.0: `Koeta Studio.app`, bundle id `studio.kilsat.studio`,
   `scripts/build_release_app.sh`, `macos-release-app.yml`, `docs/release-1.0.md`.
 - **#137** (A09) desktop screen-cue editor, video import with ffprobe, bounded background
   proxy decode for the preview.
@@ -836,7 +836,7 @@ the packaged archive and build/linkage evidence were checked.
 GitHub artifact `12592070238` has archive digest
 `sha256:f9e12e11c3eee8daa9549b9d0b8f175a2fb1ca249523502ea6099a49f537abad` and expires on 2026-11-08.
 Unzip the outer artifact and its contained application ZIP, then open
-**Kilsat Studio Preview.app** in Finder. Downloading does not launch it.
+**Koeta Studio Preview.app** in Finder. Downloading does not launch it.
 The [twelve-topic Finnish guide](../apps/studio-desktop/KAYTTOOHJE.md) is embedded
 under **Ohjeet**. Finnish synthesis requires a configured local Piper profile or
 explicit WAVs. The preview is ad-hoc signed; Developer ID/notarization remain
@@ -896,7 +896,7 @@ Mac acceptance.
 
 [Download the main Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40129209962/artifacts/12575020684).
 The build is ad-hoc signed, not Developer ID notarized. Unzip the outer artifact
-and its contained application ZIP, then open Kilsat Studio Preview.app in Finder.
+and its contained application ZIP, then open Koeta Studio Preview.app in Finder.
 Finnish speech requires a configured local Piper profile or explicit WAVs.
 Documentation-only status commits preserve the checked source bytes; no new
 Rust test claim is inferred from their text edits.
@@ -2924,7 +2924,7 @@ Käyttäjän luvalla yhdistettiin pino mainiin tavallisilla merge-commiteilla (h
   - Paikallisesti mainilla `745f5a2`: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets` (0 varoitusta) ja `cargo test --workspace --all-targets --no-fail-fast` (1377 läpi, 0 epäonnistui, 14 ohitettu).
   - Python: `tests` 159 OK, `scripts/tests` 31 OK ja `services/kokoro-runtime/tests` 55 OK (5 ohitettu).
   - Oikealla FFmpegillä animatiikin ja virtaavan viennin testit.
-  - GitHub CI: jokaisen PR:n kaikki tarkistukset vihreinä ennen yhdistämistä (#167 ja #168: peruttu macOS-työ ajettiin uudelleen ja meni läpi). Mainin 7/7 työnkulkua vihreinä commitilla `745f5a2`, mukaan lukien Kilsat Studio release app -ajo 41609983358.
+  - GitHub CI: jokaisen PR:n kaikki tarkistukset vihreinä ennen yhdistämistä (#167 ja #168: peruttu macOS-työ ajettiin uudelleen ja meni läpi). Mainin 7/7 työnkulkua vihreinä commitilla `745f5a2`, mukaan lukien Koeta Studio release app -ajo 41609983358.
 - Puhe: kaikki viisi suomenkielistä ääntä syntetisoitiin oikeasti `PiperProvider`-polulla (piper-tts 1.8.0, Harri medium, tiivisteet tarkistettu). Mitattu sävelkorkeuden mediaani (YIN): 104 Hz perus, 77 Hz jykeä, 82 Hz matala, 119 Hz korkea ja 132 Hz kirkas ([todiste](evidence/finnish-voice-variants.json)). Kukaan ei ole kuunnellut niitä.
 - Tekemättä:
   - Uusia työpöytänäkymiä (käyräeditori, onion skin, lavastus, otosten tilat) ei ole käytetty käsin hiirellä, eikä fyysisen Macin hyväksyntää ole.

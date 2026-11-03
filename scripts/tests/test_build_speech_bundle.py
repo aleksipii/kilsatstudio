@@ -96,7 +96,7 @@ class LayoutTests(unittest.TestCase):
         for short, original in builder.ESPEAK_DATA.items():
             self.assertTrue((self.root / short / 'phontab').is_file())
             self.assertEqual(list((self.root / original).iterdir()), [])
-            # 59 characters is the bundle prefix inside /Applications/Kilsat Studio.app.
+            # 59 characters is the bundle prefix inside /Applications/Koeta Studio.app.
             self.assertLess(59 + len(short), 80)
 
     def test_missing_espeak_data_fails_the_build(self):

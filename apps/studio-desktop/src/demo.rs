@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn bundled_runtime_is_resolved_without_working_directory() {
         let demo = DemoAssets::create().unwrap();
-        let contents = demo.root.join("Kilsat Studio.app/Contents");
+        let contents = demo.root.join("Koeta Studio.app/Contents");
         let runtime = contents.join("Resources/services/kokoro-runtime/runtime.py");
         std::fs::create_dir_all(runtime.parent().unwrap()).unwrap();
         std::fs::write(&runtime, "# packaged sidecar").unwrap();

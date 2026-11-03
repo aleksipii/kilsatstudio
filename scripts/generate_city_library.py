@@ -115,7 +115,7 @@ def manifest(key):
         schema_version=1, id=asset_id, kind="prop", name=prop["name"],
         bounds=dict(x=0, y=0, width=width, height=height), depth=depth,
         tags=list(dict.fromkeys(tags)),
-        license=dict(license="MIT", author="Kilsat Studio", origin="original", redistribution="allowed"),
+        license=dict(license="MIT", author="Koeta Studio", origin="original", redistribution="allowed"),
         geometry=dict(type="art", layers=layers), anchors=anchors,
     )
 

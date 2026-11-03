@@ -1,4 +1,4 @@
-# Kilsat Studio agent instructions
+# Koeta Studio agent instructions
 
 These instructions apply throughout this repository. Follow any more specific
 AGENTS.md in the directory being changed. Follow the user's current task scope;
@@ -6,7 +6,7 @@ do not implement every workstream merely because it appears in this document.
 
 ## Product and independence
 
-Kilsat Studio is an original, macOS-first animation workstation built primarily
+Koeta Studio is an original, macOS-first animation workstation built primarily
 in Rust. MotionScript is an English YAML screenplay format compiled into editable,
 deterministic animation timelines. The application must remain useful offline.
 

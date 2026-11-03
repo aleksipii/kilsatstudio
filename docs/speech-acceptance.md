@@ -25,7 +25,7 @@ new WAV/report pair for each sample. The runner requires explicit inference opt-
 python3 services/kokoro-runtime/smoke_macos.py \
   --allow-local-inference --config /local/config.json \
   --model /local/kokoro.pth --voice /local/af_heart.pt \
-  --text 'Hello from Kilsat Studio.' --language en-us --speed 1.0 \
+  --text 'Hello from Koeta Studio.' --language en-us --speed 1.0 \
   --corpus-id short-01 --output /local/short-01.wav --report /local/short-01.smoke.json
 ```
 

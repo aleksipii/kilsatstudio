@@ -52,7 +52,7 @@ impl Drop for Pack {
 }
 
 fn license() -> Value {
-    json!({"license": "MIT", "author": "Kilsat Studio", "origin": "original", "redistribution": "allowed"})
+    json!({"license": "MIT", "author": "Koeta Studio", "origin": "original", "redistribution": "allowed"})
 }
 fn color(r: u8, g: u8, b: u8) -> Value {
     json!({"r": r, "g": g, "b": b, "a": 255})

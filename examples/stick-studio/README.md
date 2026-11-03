@@ -9,7 +9,7 @@ lisää kaupungin, jossa hahmot voivat seikkailla (ks. **Kaupunki** alla).
 
 ## Aloita sovelluksessa
 
-1. Avaa uuden version Kilsat Studio ja paina **Tikku-ukkostudio**.
+1. Avaa uuden version Koeta Studio ja paina **Tikku-ukkostudio**.
    Vaihtoehtoisesti avaa `stick-studio.kilsat` projektin avauskentästä.
 2. Valitse vasemmalta kohtaus ja sen hahmo. Paina **Toista**.
 3. Valitse näyttämön **Hahmot**-tila ja vedä hahmoa hiirellä
@@ -89,7 +89,7 @@ Taustat ovat 1920 × 1080, yksittäiset hahmokuvat 768 × 1024 ja esinekuvat
 Hahmot ja esineet ovat
 läpinäkyviä PNG- ja SVG-kuvia. Taustat ovat peittäviä. SVG säilyttää
 vektorigrafiikan, `.kilsat` lisäksi nivelrakenteet ja animaatiotiedot.
-Kuvat ovat Kilsat Studion omasta renderöijästä, eivät tyylikonseptin kuvituskuvia.
+Kuvat ovat Koeta Studion omasta renderöijästä, eivät tyylikonseptin kuvituskuvia.
 Mukana on 61 erillistä sisältöprojektia ja lisäksi kuuden kohtauksen malliprojekti.
 
 ## Kaupunki
@@ -120,7 +120,7 @@ lavasteen auto on kirjaston auto skaalattuna ja peilattuna.
 Kaupunki on mukana myös ankkurikirjastossa (`library/`): 22 esinettä
 (`prop.vehicle.*`, `prop.street.*`, `prop.building.*` …) suomen- ja
 englanninkielisin hakusanoin sekä yhdeksän taustaa (`background.*.city_street_v1`
-jne., etukuva). Kaikki on alkuperäistä geometriaa (MIT, Kilsat Studio), ilman
+jne., etukuva). Kaikki on alkuperäistä geometriaa (MIT, Koeta Studio), ilman
 fontteja, kuvia tai latauksia; kylttien teksti on abstraktia viivaa.
 
 Pitkä tarina: 12 kohtausta mahtuu taiteen 1024 tason rajaan, kun kohtaukset

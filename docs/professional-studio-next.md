@@ -1,4 +1,4 @@
-# Kilsat Studio: seuraavat askeleet ammattimaiseen työskentelyyn
+# Koeta Studio: seuraavat askeleet ammattimaiseen työskentelyyn
 
 Arvioitu 2026-10-25. Lähtötilanne on integroitu PR #95–98 ja
 [nykyinen toteutus- ja hyväksyntäseuranta](master-progress.md).

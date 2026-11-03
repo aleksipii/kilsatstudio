@@ -39,7 +39,7 @@ def _limits():
 SPEECH_LIMITS = dict(archive=3 * 1024 ** 3, member=1024 ** 3, total=4 * 1024 ** 3,
                      entries=65534, directory=64 * 1024 * 1024)
 SPEECH_REPORT_BYTES = 64 * 1024 * 1024
-APP = 'Kilsat Studio.app'
+APP = 'Koeta Studio.app'
 CONTENTS = APP + '/Contents/'
 RESOURCES = CONTENTS + 'Resources/'
 DESKTOP = CONTENTS + 'MacOS/studio-desktop'
@@ -196,7 +196,7 @@ def audit_package(archive, repo, commit, target, profile, speech_bundle=None):
             speech_files, speech_dirs = _speech_expected(speech_bundle, limits['member'])
             speech = layout.speech_identity(speech_bundle)
         required = set(expected) | set(speech_files) | {
-            DESKTOP, CONTENTS + 'Info.plist', RESOURCES + 'KilsatStudio.icns', RESOURCES + 'BUILD-INFO.txt'}
+            DESKTOP, CONTENTS + 'Info.plist', RESOURCES + 'KoetaStudio.icns', RESOURCES + 'BUILD-INFO.txt'}
         admitted = required | {HELPER, HEAD_HELPER, SIGNATURE}
         parents = _ancestors(admitted) | speech_dirs
         observed, total = {}, 0
@@ -269,7 +269,7 @@ def audit_package(archive, repo, commit, target, profile, speech_bundle=None):
                     report['files'].append(dict(path=name, size_bytes=size, sha256=digest,
                                                 mode=mode, classification=classification))
                     if name in (CONTENTS + 'Info.plist', RESOURCES + 'BUILD-INFO.txt',
-                                RESOURCES + 'KilsatStudio.icns'):
+                                RESOURCES + 'KoetaStudio.icns'):
                         if size > 1024 * 1024:
                             raise ValueError('generated metadata byte budget exceeded: ' + name)
                         small[name] = package.read(member)
@@ -299,7 +299,7 @@ def audit_package(archive, repo, commit, target, profile, speech_bundle=None):
             document = plistlib.loads(plist)
             if document != layout.bundle_info():
                 errors.append('Info.plist application metadata mismatch')
-        icon = small.get(RESOURCES + 'KilsatStudio.icns')
+        icon = small.get(RESOURCES + 'KoetaStudio.icns')
         if icon is not None and icon != layout.app_icon():
             errors.append('generated ICNS bytes differ from source')
         report['components'] = [dict(path=name, sha256=observed[name][0],

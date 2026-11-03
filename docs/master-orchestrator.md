@@ -1,4 +1,4 @@
-# MASTER-ORK — Pääorkestroija (Kilsat Studio 1.0)
+# MASTER-ORK — Pääorkestroija (Koeta Studio 1.0)
 
 Tila: **running** (1.0-integraatio 2026-11-02) · Agentti: `.claude/agents/kilsat-master-orchestrator.md`
 
@@ -6,7 +6,7 @@ Tila: **running** (1.0-integraatio 2026-11-02) · Agentti: `.claude/agents/kilsa
 
 Kaikki keskeneräinen työ yhteen ketjuun:
 
-**haara → PR → CI vihreä → katselmus → `main` → `kilsatstudio1.0` → release-CI → julkaisukelpoinen `Kilsat Studio.app`**
+**haara → PR → CI vihreä → katselmus → `main` → `kilsatstudio1.0` → release-CI → julkaisukelpoinen `Koeta Studio.app`**
 
 Pääorkestroija on ylin koordinoija. Se ohjaa:
 

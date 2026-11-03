@@ -411,10 +411,11 @@ fn joint_limits_clamp_ik_and_reject_rest_outside_range() {
         assert!((0.0..=2.4).contains(&local), "elbow {local}");
         assert!(result.end.x.is_finite() && result.end.y.is_finite());
     }
-    // Ordinary evaluation clamps too.
+    // Ordinary evaluation clamps too. (Angles compare by whole turns: 5.0 is
+    // -1.28, nearer the lower bound, so use one just past the upper bound.)
     let forearm = prepared.joint_index("forearm_r").unwrap();
     let over = Transform2 {
-        rotation: 5.0,
+        rotation: 3.0,
         ..Default::default()
     };
     let max = Transform2 {

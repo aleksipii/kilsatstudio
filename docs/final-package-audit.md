@@ -9,11 +9,11 @@ they are not independent proof of compiler inputs or Mach-O architecture.
 
 ```sh
 python3 scripts/package_audit.py \
-  --archive dist/Kilsat-Studio-Preview-arm64.zip \
+  --archive dist/Koeta-Studio-Preview-arm64.zip \
   --commit FULL_40_CHARACTER_SOURCE_SHA \
   --target aarch64-apple-darwin --profile debug \
   --require-signature-metadata \
-  --output dist/Kilsat-Studio-Preview-arm64.audit.json
+  --output dist/Koeta-Studio-Preview-arm64.audit.json
 ```
 
 The matching checkout supplies exact LICENSE copies, top-level example YAMLs,

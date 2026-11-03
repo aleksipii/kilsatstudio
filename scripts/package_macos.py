@@ -13,56 +13,40 @@ from pathlib import Path
 import plistlib
 import shutil
 import struct
-import zlib
 import subprocess
 import sys
 import tempfile
 
-APP_NAME = 'Kilsat Studio.app'
+APP_NAME = 'Koeta Studio.app'
 VERSION = '1.0.0'
 
 
+LOGO_PNG = Path(__file__).resolve().parent.parent / 'apps/studio-desktop/assets/koeta-logo-512.png'
+
 
 def app_icon():
-    """Original geometric K/film icon, encoded without external image tools."""
-    size = 256
-    pixels = bytearray()
-    for y in range(size):
-        pixels.append(0)  # PNG row filter
-        for x in range(size):
-            border = x < 16 or x >= 240 or y < 16 or y >= 240
-            stem = 62 <= x < 82 and 56 <= y < 200
-            diagonal = 80 <= x < 188 and abs(abs(y - 128) - (x - 80) * .65) < 12
-            sprocket = (28 <= x < 43 or 213 <= x < 228) and y % 48 < 20
-            color = (26, 31, 48, 255) if border else (38, 48, 69, 255)
-            if stem or diagonal:
-                color = (91, 224, 193, 255)
-            if sprocket:
-                color = (149, 161, 181, 255)
-            pixels.extend(color)
-    def chunk(kind, payload):
-        return (struct.pack('>I', len(payload)) + kind + payload +
-                struct.pack('>I', zlib.crc32(kind + payload) & 0xffffffff))
-    png = (b'\x89PNG\r\n\x1a\n' +
-           chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 6, 0, 0, 0)) +
-           chunk(b'IDAT', zlib.compress(bytes(pixels))) + chunk(b'IEND', b''))
-    # ic08 is the standard 256-by-256 PNG representation in an ICNS container.
-    entry = b'ic08' + struct.pack('>I', len(png) + 8) + png
+    """Koeta logo (512-by-512 RGBA PNG) wrapped in an ICNS container."""
+    png = LOGO_PNG.read_bytes()
+    if png[:8] != b'\x89PNG\r\n\x1a\n' or struct.unpack('>II', png[16:24]) != (512, 512):
+        raise ValueError(f'{LOGO_PNG} must be a 512-by-512 PNG')
+    # ic09 is the standard 512-by-512 PNG representation in an ICNS container.
+    entry = b'ic09' + struct.pack('>I', len(png) + 8) + png
     return b'icns' + struct.pack('>I', len(entry) + 8) + entry
+
 
 def bundle_info():
     """Expected generated application metadata shared with the offline audit."""
     return {'CFBundleExecutable': 'studio-desktop',
                       'CFBundleIdentifier': 'studio.kilsat.studio',
-                      'CFBundleName': 'Kilsat Studio',
+                      'CFBundleName': 'Koeta Studio',
                       'CFBundlePackageType': 'APPL',
                       'CFBundleShortVersionString': VERSION,
                       'CFBundleVersion': VERSION, 'LSMinimumSystemVersion': '13.0',
                       'NSHighResolutionCapable': True,
                       'NSCameraUsageDescription': 'Kameraa käytetään pään kallistuksen paikalliseen seurantaan ja liikkeen tallentamiseen animaatioksi. Kuvia tai ääntä ei tallenneta eikä lähetetä.',
-                      'CFBundleIconFile': 'KilsatStudio.icns',
+                      'CFBundleIconFile': 'KoetaStudio.icns',
                       'CFBundleDocumentTypes': [
-                          {'CFBundleTypeName': 'Kilsat Studio Project',
+                          {'CFBundleTypeName': 'Koeta Studio Project',
                            'CFBundleTypeRole': 'Editor', 'LSHandlerRank': 'Alternate',
                            'LSItemContentTypes': ['studio.kilsat.project']},
                           {'CFBundleTypeName': 'MotionScript YAML',
@@ -70,7 +54,7 @@ def bundle_info():
                            'CFBundleTypeExtensions': ['yaml', 'yml']}],
                       'UTExportedTypeDeclarations': [
                           {'UTTypeIdentifier': 'studio.kilsat.project',
-                           'UTTypeDescription': 'Kilsat Studio JSON Project',
+                           'UTTypeDescription': 'Koeta Studio JSON Project',
                            'UTTypeConformsTo': ['public.json'],
                            'UTTypeTagSpecification':
                                {'public.filename-extension': ['kilsat']}}]}
@@ -103,7 +87,7 @@ def build_info(commit, arch, profile, speech=None):
                 f'Bundled speech {speech[0]}: Python runtime, Kokoro model and English voices, '
                 f'Piper with the Finnish harri voice and Rhubarb; descriptor sha256 {speech[1]}.\n')
     return (f'Commit: {commit}\nArchitecture: {arch}\nProfile: {profile}\n'
-            f'Kilsat Studio {VERSION}; ad-hoc signed, not notarized.\n' + contents)
+            f'Koeta Studio {VERSION}; ad-hoc signed, not notarized.\n' + contents)
 
 
 def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=None, head_pose=None,
@@ -169,7 +153,7 @@ def stage_bundle(repo, binary, destination, commit, arch, profile, gpu_probe=Non
             shutil.copy2(source, target)
     if speech_bundle is not None:
         shutil.copytree(speech_bundle, resources / 'speech', symlinks=True)
-    (resources / 'KilsatStudio.icns').write_bytes(app_icon())
+    (resources / 'KoetaStudio.icns').write_bytes(app_icon())
     with (destination / 'Contents/Info.plist').open('wb') as handle:
         plistlib.dump(bundle_info(), handle)
     (resources / 'BUILD-INFO.txt').write_text(build_info(commit, arch, profile, speech), encoding='utf-8')

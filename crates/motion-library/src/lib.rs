@@ -1,4 +1,4 @@
-//! Anchored asset library for Kilsat Studio (contract ORK-LIB-01).
+//! Anchored asset library for Koeta Studio (contract ORK-LIB-01).
 //!
 //! * [`manifest`] — manifest schema v1 and per-file validation.
 //! * [`library`] — loading a pack's `library/` tree, cross-references, licence

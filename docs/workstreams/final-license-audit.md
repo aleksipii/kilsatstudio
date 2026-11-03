@@ -64,7 +64,7 @@ review target, not completed evidence:
   "schema_version": 1,
   "distribution_approved": false,
   "artifact": {
-    "filename": "Kilsat-Studio-Preview-arm64.zip",
+    "filename": "Koeta-Studio-Preview-arm64.zip",
     "sha256": "<actual final ZIP SHA256>",
     "size_bytes": 0,
     "commit": "<actual source commit>",

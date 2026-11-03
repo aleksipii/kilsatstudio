@@ -5,6 +5,7 @@ mod art_editor;
 mod art_resources;
 mod asset_worker;
 mod bone_editor;
+mod brand;
 mod bundled_speech;
 mod camera_framing;
 mod clip_editor;
@@ -75,11 +76,18 @@ use std::{
 
 fn main() -> eframe::Result {
     eframe::run_native(
-        "Kilsat Studio",
+        brand::APP_NAME,
         eframe::NativeOptions {
-            viewport: egui::ViewportBuilder::default()
-                .with_inner_size([1440.0, 900.0])
-                .with_min_inner_size([1000.0, 700.0]),
+            viewport: {
+                let viewport = egui::ViewportBuilder::default()
+                    .with_title(brand::APP_NAME)
+                    .with_inner_size([1440.0, 900.0])
+                    .with_min_inner_size([1000.0, 700.0]);
+                match brand::window_icon() {
+                    Some(icon) => viewport.with_icon(icon),
+                    None => viewport,
+                }
+            },
             ..Default::default()
         },
         Box::new(|cc| {
@@ -4424,8 +4432,11 @@ impl Studio {
             )
             .show(ctx, |ui| {
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(egui::RichText::new("K").strong().size(20.0).color(ACCENT));
-                    ui.label(egui::RichText::new("KILSAT STUDIO").strong().size(14.0));
+                    if let Some(logo) = brand::logo_texture(ctx) {
+                        ui.add(egui::Image::new((logo.id(), egui::vec2(28.0, 28.0))))
+                            .on_hover_text(brand::APP_NAME);
+                    }
+                    ui.label(egui::RichText::new("KOETA STUDIO").strong().size(14.0));
                     ui.separator();
                     ui.add_enabled_ui(!self.busy && !self.diagnostics_busy, |ui| {
                         if ui

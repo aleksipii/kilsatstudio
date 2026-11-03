@@ -17,7 +17,7 @@ shared progress and acceptance marking. Preserve unrelated working-tree edits.
 
 ## Existing evidence and its limits
 
-The root MIT license covers original Kilsat Studio source, copyright 2026 Kilsat
+The root MIT license covers original Koeta Studio source, copyright 2026 Kilsat
 Studio contributors. `scripts/package_macos.py` copies its exact bytes to the ZIP
 root and app resources. It neither relicenses third-party material nor replaces
 third-party attribution, notices, source duties or asset rights review.

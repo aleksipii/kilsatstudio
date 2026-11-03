@@ -1,6 +1,6 @@
 # Studio workspace
 
-Kilsat Studio's workspace groups screenplay editing, scene inspection and timeline
+Koeta Studio's workspace groups screenplay editing, scene inspection and timeline
 navigation around the existing deterministic preview. It is an original Kilsat
 implementation in egui/eframe. Procedural characters remain placeholders; the
 workspace provides authored transforms for the original procedural bones, but no

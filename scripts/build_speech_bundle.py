@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the speech bundle that ships inside Kilsat Studio.app.
+"""Build the speech bundle that ships inside Koeta Studio.app.
 
 The bundle holds a relocatable Python, the pinned Kokoro model and English voices,
 the Piper runtime with the Finnish harri voice and the Rhubarb lip-sync tool, so

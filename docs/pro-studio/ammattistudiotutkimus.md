@@ -118,7 +118,7 @@ Uusi riippuvuus vaatii aina A01:n riippuvuus- ja lisenssipäätöksen.
   samannäköisenä koko tuotannon ajan.
 - **Rajattu väripaletti** hahmoa kohden.
 
-Esikuvat ovat tyylisuuntia. Kilsat Studio ei kopioi yksittäisen teoksen hahmoja tai
+Esikuvat ovat tyylisuuntia. Koeta Studio ei kopioi yksittäisen teoksen hahmoja tai
 grafiikkaa.
 
 ## 5. Esineet (props)

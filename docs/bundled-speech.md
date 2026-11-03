@@ -1,6 +1,6 @@
 # Puhe valmiina sovelluksessa (bundled speech)
 
-Kilsat Studio.app voidaan paketoida niin, että kaikki puhe- ja suuajoitustyökalut
+Koeta Studio.app voidaan paketoida niin, että kaikki puhe- ja suuajoitustyökalut
 ovat valmiina sovelluksen sisällä. Käyttäjän ei tarvitse ladata, asentaa tai
 yhdistää mitään: sovellus löytää ne käynnistyessään ja toimii ilman verkkoa.
 

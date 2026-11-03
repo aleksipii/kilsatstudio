@@ -1,8 +1,8 @@
 #!/bin/sh
-# Build, package and audit the Kilsat Studio release app for Apple Silicon.
+# Build, package and audit the Koeta Studio release app for Apple Silicon.
 #
 # Usage: scripts/build_release_app.sh OUTPUT_DIRECTORY [SPEECH_BUNDLE_DIRECTORY]
-# Produces OUTPUT_DIRECTORY/Kilsat-Studio-1.0.0-arm64.zip and an audit report.
+# Produces OUTPUT_DIRECTORY/Koeta-Studio-1.0.0-arm64.zip and an audit report.
 # With SPEECH_BUNDLE_DIRECTORY (built by scripts/build_speech_bundle.py) the app
 # ships Kokoro, Piper and Rhubarb ready to use, with no download or setup.
 # The app is ad-hoc signed; Developer ID signing and notarization are a
@@ -54,7 +54,7 @@ for executable in "$binary" "$helper"; do
     strip -x "$executable"
 done
 
-archive="$output/Kilsat-Studio-$version-arm64.zip"
+archive="$output/Koeta-Studio-$version-arm64.zip"
 python3 "$repo/scripts/package_macos.py" --repo "$repo" --binary "$binary" --gpu-probe "$helper" \
     --head-pose "$output/build/head_pose" --output "$archive" --commit "$commit" --arch arm64 --profile release \
     ${speech_args:+--speech-bundle "$speech"}

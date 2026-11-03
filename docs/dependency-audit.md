@@ -7,7 +7,7 @@ it never installs packages, imports an inference library, downloads assets,
 executes an encoder or runs Cargo/pip. No license is automatically accepted.
 
 The repository's original source is declared MIT in the root [LICENSE](../LICENSE),
-copyright 2026 Kilsat Studio contributors. The macOS preview packager preserves
+copyright 2026 Koeta Studio contributors. The macOS preview packager preserves
 that file byte-for-byte in `Contents/Resources/LICENSE` and beside the app at the
 ZIP archive root. Packaging rejects a missing, empty, symlinked or non-file source
 license before staging the app. This declaration covers the project's original

@@ -1,12 +1,12 @@
-# MASTER BUILD PROMPT — Kilsat Studio / StoryMotion Studio
+# MASTER BUILD PROMPT — Koeta Studio / StoryMotion Studio
 
 > Reusable target specification. Requirements below describe the intended product; they do not certify that a feature, milestone, license review, hardware test, or export path has been completed. Inspect the repository and attach evidence to each completion claim.
 
 ## 1. Mission
 
-You are the lead engineering team responsible for designing, implementing, testing, and delivering **Kilsat Studio**, a professional, screenplay-driven 2D animation desktop application for macOS.
+You are the lead engineering team responsible for designing, implementing, testing, and delivering **Koeta Studio**, a professional, screenplay-driven 2D animation desktop application for macOS.
 
-**Product name:** Kilsat Studio  
+**Product name:** Koeta Studio  
 **Animation engine:** StoryMotion Engine  
 **Primary platform:** macOS, Apple Silicon (M1–M-series)  
 **Primary language:** Rust  
@@ -34,10 +34,10 @@ Strict requirements:
 - Do not create dependencies on Storytold repositories, crates, APIs, or services.
 - Do not modify any Storytold repository.
 - Do not create Storytold adapters or compatibility layers.
-- Implement Kilsat Studio's own application architecture, screenplay compiler, animation engine, timeline, graphics tools, and project format.
+- Implement Koeta Studio's own application architecture, screenplay compiler, animation engine, timeline, graphics tools, and project format.
 - Ordinary open-source libraries such as egui, wgpu, serde, rayon, and Tokio may be used under their respective licenses.
 
-All Kilsat Studio production source code must be independently authored. Kokoro-82M is an explicitly approved third-party speech model; this approval does not relax the Storytold restrictions. Verify the licenses and redistribution terms of the exact model revision, each voice asset, language assets, inference dependencies, and any packaged binaries before distribution.
+All Koeta Studio production source code must be independently authored. Kokoro-82M is an explicitly approved third-party speech model; this approval does not relax the Storytold restrictions. Verify the licenses and redistribution terms of the exact model revision, each voice asset, language assets, inference dependencies, and any packaged binaries before distribution.
 
 ## 3. GitHub Repository and Delivery Workflow
 
@@ -769,7 +769,7 @@ The goal is to establish a working foundation for a new professional animation s
 
 **The first visible success should be:**
 
-I open Kilsat Studio on my Mac.
+I open Koeta Studio on my Mac.
 
 I see a screenplay editor, animation preview, and timeline.
 

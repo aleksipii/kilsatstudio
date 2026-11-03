@@ -48,7 +48,7 @@ fn canvas() -> Rect {
 fn license() -> License {
     License {
         license: "MIT".into(),
-        author: "Kilsat Studio".into(),
+        author: "Koeta Studio".into(),
         origin: Origin::Original,
         source_url: None,
         redistribution: Redistribution::Allowed,

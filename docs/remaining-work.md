@@ -35,7 +35,7 @@ Eight default Rust tests and four physical GPU tests per platform remain ignored
 Exact source identities and check links are in [master-progress](master-progress.md).
 
 [Download the current Apple Silicon preview](https://github.com/aleksipii/kilsatstudio/actions/runs/40174527149/artifacts/12592070238).
-Unzip both the artifact and its contained app ZIP, then open Kilsat Studio
+Unzip both the artifact and its contained app ZIP, then open Koeta Studio
 Preview.app in Finder. The application does not launch from the download button.
 Use **Ohjeet** for the [Finnish guide](../apps/studio-desktop/KAYTTOOHJE.md).
 The app is ad-hoc signed; physical Mac and production release acceptance remain

@@ -364,7 +364,7 @@ fn issue(kind: IssueKind, path: impl Into<String>, message: impl Into<String>) -
 /// Text to hand back to the assistant that wrote the story.
 pub fn issues_report(issues: &[StoryIssue]) -> String {
     let mut text = String::from(
-        "Kilsat Studio did not accept the story. Fix every item below and return the \
+        "Koeta Studio did not accept the story. Fix every item below and return the \
          complete corrected story as YAML (kilsat_story: 1), nothing else:\n",
     );
     for item in issues {
@@ -2807,7 +2807,7 @@ impl<'a> Builder<'a> {
 pub fn authoring_guide(catalog: &StoryCatalog) -> String {
     let mut text = String::new();
     text.push_str(
-        "You write animated short films for Kilsat Studio. Turn the user's idea into a story in the
+        "You write animated short films for Koeta Studio. Turn the user's idea into a story in the
 Kilsat story format below. Reply with ONLY one ```yaml code block containing the story.
 
 RULES

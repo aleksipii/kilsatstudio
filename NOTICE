@@ -1,7 +1,7 @@
-Kilsat Studio third-party notices
+Koeta Studio third-party notices
 =================================
 
-This file lists third-party material that is embedded in Kilsat Studio
+This file lists third-party material that is embedded in Koeta Studio
 binaries. It is not a complete audit of every Cargo/Python dependency; see
 docs/dependency-audit.md and docs/workstreams/final-license-audit.md for that
 status. The original project source is MIT-licensed (see LICENSE).

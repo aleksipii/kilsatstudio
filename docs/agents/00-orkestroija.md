@@ -647,7 +647,7 @@ dokumentteja; macOS 27.0.1, Apple M1): `cargo fmt --all --check` ok; `cargo chec
 `cargo test --workspace --locked` 985 läpi, 0 epäonnistui, 9 ohitettu.
 
 **Työpöytäsovellus.** `cargo build --release --locked -p studio-desktop`, paketoitu
-`scripts/package_macos.py --profile release --arch arm64` → `Kilsat Studio Preview.app`
+`scripts/package_macos.py --profile release --arch arm64` → `Koeta Studio Preview.app`
 (ad hoc -allekirjoitus, `codesign --verify --deep --strict` ok), asennettu
 `~/Applications`-kansioon ja käynnistetty `open`illa: prosessi käynnistyi ja pysyi käynnissä.
 Ilman GPU-apuohjelmaa ja `head-pose`-apuohjelmaa (valinnaisia; head-pose on mallipohjainen
@@ -895,7 +895,7 @@ toteutukset, käyttäjälle raportoitu tila (toteutettu / tarkistettu / estetty 
 
 ## Kopioitava tehtävänanto
 
-> Toimi Kilsat Studion orkestroijana. Lue `AGENTS.md`, `docs/agents/README.md`,
+> Toimi Koeta Studion orkestroijana. Lue `AGENTS.md`, `docs/agents/README.md`,
 > `docs/agents/00-orkestroija.md` ja raportin luvut 6–10. Aloita nykytilan tarkistuksesta
 > ja päivitä tehtävärekisteri. Sovi A01:n kanssa moduulirajat ja sopimukset ennen
 > toteutusta. Anna jokaiselle agentille sen tehtävätiedosto, sallittu muutosalue,

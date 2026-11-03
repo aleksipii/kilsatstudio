@@ -77,21 +77,21 @@ jobs:
           PY
           strip -x "$helper"
           strip -x "$binary"
-          python3 scripts/package_macos.py --binary "$binary" --gpu-probe "$helper" --head-pose dist/head_pose --output dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
+          python3 scripts/package_macos.py --binary "$binary" --gpu-probe "$helper" --head-pose dist/head_pose --output dist/Koeta-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --arch arm64 --profile debug
       - name: Verify packaged diagnostic helpers
         run: |
           python3 - <<'PY'
           import zipfile
           from pathlib import Path
-          root = 'Kilsat Studio.app/Contents/Resources/services/kokoro-runtime/'
-          with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
+          root = 'Koeta Studio.app/Contents/Resources/services/kokoro-runtime/'
+          with zipfile.ZipFile('dist/Koeta-Studio-Preview-arm64.zip') as archive:
               license_text = Path('LICENSE').read_bytes()
-              for entry in ['LICENSE', 'Kilsat Studio.app/Contents/Resources/LICENSE']:
+              for entry in ['LICENSE', 'Koeta Studio.app/Contents/Resources/LICENSE']:
                   if archive.read(entry) != license_text:
                       raise SystemExit(f'Packaged {entry} differs from source')
-              if archive.read('Kilsat Studio.app/Contents/Resources/NOTICE') != Path('NOTICE').read_bytes():
+              if archive.read('Koeta Studio.app/Contents/Resources/NOTICE') != Path('NOTICE').read_bytes():
                   raise SystemExit('Packaged NOTICE differs from source')
-              helper = archive.getinfo('Kilsat Studio.app/Contents/Resources/bin/gpu_probe')
+              helper = archive.getinfo('Koeta Studio.app/Contents/Resources/bin/gpu_probe')
               if not (helper.external_attr >> 16) & 0o111:
                   raise SystemExit('GPU helper lost executable permissions')
               for helper in ['doctor.py', 'smoke_macos.py', 'acceptance.py', 'setup_kokoro.py', 'setup-manifest.json']:
@@ -101,20 +101,20 @@ jobs:
           PY
       - name: Inventory final signed ZIP (not license approval)
         run: |
-          python3 scripts/package_audit.py --archive dist/Kilsat-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --target aarch64-apple-darwin --profile debug --require-signature-metadata --output dist/Kilsat-Studio-Preview-arm64.audit.json
+          python3 scripts/package_audit.py --archive dist/Koeta-Studio-Preview-arm64.zip --commit "$GITHUB_SHA" --target aarch64-apple-darwin --profile debug --require-signature-metadata --output dist/Koeta-Studio-Preview-arm64.audit.json
       - name: Bind final executable linkage observations and build evidence
         run: |
           python3 - <<'PY'
           import hashlib, json, subprocess, tempfile, zipfile
           from pathlib import Path
-          audit = json.loads(Path('dist/Kilsat-Studio-Preview-arm64.audit.json').read_text())
+          audit = json.loads(Path('dist/Koeta-Studio-Preview-arm64.audit.json').read_text())
           records = {row['path']: row for row in audit['files']}
-          members = ['Kilsat Studio.app/Contents/MacOS/studio-desktop',
-                     'Kilsat Studio.app/Contents/Resources/bin/gpu_probe',
-                     'Kilsat Studio.app/Contents/Resources/bin/head_pose']
+          members = ['Koeta Studio.app/Contents/MacOS/studio-desktop',
+                     'Koeta Studio.app/Contents/Resources/bin/gpu_probe',
+                     'Koeta Studio.app/Contents/Resources/bin/head_pose']
           observations = {}
           with tempfile.TemporaryDirectory(prefix='kilsat-native-observation-') as temporary:
-              with zipfile.ZipFile('dist/Kilsat-Studio-Preview-arm64.zip') as archive:
+              with zipfile.ZipFile('dist/Koeta-Studio-Preview-arm64.zip') as archive:
                   for index, member in enumerate(members):
                       info = archive.getinfo(member)
                       if info.file_size > 128 * 1024 * 1024:
@@ -136,14 +136,14 @@ jobs:
                       observations[member] = dict(sha256=digest, lipo_archs=archs, otool_libraries=libraries)
           Path('dist/build-inputs/native.json').write_text(json.dumps(observations, indent=2, sort_keys=True) + '\n')
           PY
-          python3 scripts/build_evidence.py --archive dist/Kilsat-Studio-Preview-arm64.zip --audit dist/Kilsat-Studio-Preview-arm64.audit.json --lock Cargo.lock --desktop-metadata dist/build-inputs/desktop-metadata.json --helper-metadata dist/build-inputs/helper-metadata.json --rustc dist/build-inputs/rustc.txt --cargo dist/build-inputs/cargo.txt --native-observations dist/build-inputs/native.json --output dist/Kilsat-Studio-Preview-arm64.build-evidence.json
+          python3 scripts/build_evidence.py --archive dist/Koeta-Studio-Preview-arm64.zip --audit dist/Koeta-Studio-Preview-arm64.audit.json --lock Cargo.lock --desktop-metadata dist/build-inputs/desktop-metadata.json --helper-metadata dist/build-inputs/helper-metadata.json --rustc dist/build-inputs/rustc.txt --cargo dist/build-inputs/cargo.txt --native-observations dist/build-inputs/native.json --output dist/Koeta-Studio-Preview-arm64.build-evidence.json
       - uses: actions/upload-artifact@v4
         with:
-          name: Kilsat-Studio-Preview-arm64
+          name: Koeta-Studio-Preview-arm64
           path: |
-            dist/Kilsat-Studio-Preview-arm64.zip
-            dist/Kilsat-Studio-Preview-arm64.audit.json
-            dist/Kilsat-Studio-Preview-arm64.build-evidence.json
+            dist/Koeta-Studio-Preview-arm64.zip
+            dist/Koeta-Studio-Preview-arm64.audit.json
+            dist/Koeta-Studio-Preview-arm64.build-evidence.json
             dist/build-inputs/
           if-no-files-found: error
           retention-days: 14

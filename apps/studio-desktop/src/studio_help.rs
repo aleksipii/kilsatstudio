@@ -12,7 +12,7 @@ fn sections() -> Vec<(&'static str, &'static str)> {
 }
 
 pub fn show(ctx: &egui::Context, open: &mut bool, topic: &mut usize) {
-    egui::Window::new("Käyttöohjeet · Kilsat Studio")
+    egui::Window::new("Käyttöohjeet · Koeta Studio")
         .id(egui::Id::new("finnish-help"))
         .open(open)
         .default_size(egui::vec2(700.0, 520.0))

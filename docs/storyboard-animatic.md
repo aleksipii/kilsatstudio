@@ -1,6 +1,6 @@
 # Kuvakäsikirjoitus, animatiikki ja otosten tilat
 
-Esituotannon ja tuotannon seuranta Kilsat Studiossa:
+Esituotannon ja tuotannon seuranta Koeta Studiossa:
 
 1. **Otoslista** johdetaan käsikirjoituksesta automaattisesti.
 2. **Kuvakäsikirjoitus** on tulostettava arkki, jossa on yksi paneeli otosta kohden.

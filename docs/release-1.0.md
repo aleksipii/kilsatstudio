@@ -1,7 +1,7 @@
-# Kilsat Studio 1.0
+# Koeta Studio 1.0
 
-Kilsat Studio 1.0 on ensimmäinen versioitu julkaisu macOS-työpöytäsovelluksesta
-(Apple Silicon, macOS 13+). Sovellus on nimeltään **Kilsat Studio.app**, versio
+Koeta Studio 1.0 on ensimmäinen versioitu julkaisu macOS-työpöytäsovelluksesta
+(Apple Silicon, macOS 13+). Sovellus on nimeltään **Koeta Studio.app**, versio
 1.0.0, tunniste `studio.kilsat.studio`.
 
 ## Mitä 1.0 sisältää
@@ -27,7 +27,7 @@ scripts/build_release_app.sh dist/release-1.0
 
 Skripti kääntää release-profiilin `studio-desktop`- ja `gpu_probe`-ohjelmat
 sekä `head_pose`-apuohjelman, tarkistaa että vain järjestelmäkirjastoja
-linkitetään, paketoi ZIPin (`Kilsat-Studio-1.0.0-arm64.zip`) ja ajaa
+linkitetään, paketoi ZIPin (`Koeta-Studio-1.0.0-arm64.zip`) ja ajaa
 `package_audit.py`:n. CI-työnkulku `macos-release-app.yml` tekee saman mainille,
 `kilsatstudio1.0`-haaralle ja `v*`-tageille ja tallentaa ZIPin artefaktina.
 

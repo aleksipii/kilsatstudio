@@ -141,7 +141,7 @@ class PackageAuditTests(unittest.TestCase):
         self.write_zip()
         before = self.collect()
         for name in ('LICENSE', RESOURCES + 'LICENSE', RESOURCES + 'services/kokoro-runtime/runtime.py',
-                     RESOURCES + 'KilsatStudio.icns', APP + '/Contents/Info.plist'):
+                     RESOURCES + 'KoetaStudio.icns', APP + '/Contents/Info.plist'):
             with self.subTest(path=name):
                 self.write_zip(replacements={name: b'tampered bytes'})
                 after = self.collect()
@@ -175,7 +175,7 @@ class PackageAuditTests(unittest.TestCase):
                 altered = dict(original, **change)
                 self.write_zip(replacements={name: plistlib.dumps(altered)})
                 self.assert_invalid(self.collect())
-        icon_name = RESOURCES + 'KilsatStudio.icns'
+        icon_name = RESOURCES + 'KoetaStudio.icns'
         icon = bytearray((self.distribution / icon_name).read_bytes())
         icon[-1] ^= 1
         self.write_zip(replacements={icon_name: bytes(icon)})

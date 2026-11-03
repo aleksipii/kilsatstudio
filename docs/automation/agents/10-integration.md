@@ -2,7 +2,7 @@
 
 Tila: **suunnitelma**, ei automaattisen animaatiotuotannon toteutus tai
 hyväksyntä. Tämä dokumentti yhdistää kymmenen agentin suunnittelutyön nykyiseen
-Kilsat Studion putkeen. Koonti: [automaation suunnitelma](../README.md).
+Koeta Studion putkeen. Koonti: [automaation suunnitelma](../README.md).
 Tuotteen kokonaiseteneminen: [master-progress](../../master-progress.md).
 
 ## Yhteinen rajaus

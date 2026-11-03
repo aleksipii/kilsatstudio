@@ -42,8 +42,8 @@ cannot stand in for the final executable identities.
 
 `native.json` is an object with exactly these two keys:
 
-- `Kilsat Studio Preview.app/Contents/MacOS/studio-desktop`
-- `Kilsat Studio Preview.app/Contents/Resources/bin/gpu_probe`
+- `Koeta Studio Preview.app/Contents/MacOS/studio-desktop`
+- `Koeta Studio Preview.app/Contents/Resources/bin/gpu_probe`
 
 Each value contains `sha256` (the final executable member digest), `lipo_archs`
 (raw text) and `otool_libraries` (raw text). CI requires arm64 and system-library
@@ -54,15 +54,15 @@ inventory permits a desktop-only archive.
 
 ```sh
 python3 scripts/build_evidence.py \
-  --archive dist/Kilsat-Studio-Preview-arm64.zip \
-  --audit dist/Kilsat-Studio-Preview-arm64.audit.json \
+  --archive dist/Koeta-Studio-Preview-arm64.zip \
+  --audit dist/Koeta-Studio-Preview-arm64.audit.json \
   --lock dist/build-inputs/Cargo.lock \
   --desktop-metadata dist/build-inputs/desktop-metadata.json \
   --helper-metadata dist/build-inputs/helper-metadata.json \
   --rustc dist/build-inputs/rustc.txt \
   --cargo dist/build-inputs/cargo.txt \
   --native-observations dist/build-inputs/native.json \
-  --output dist/Kilsat-Studio-Preview-arm64.build-evidence.json
+  --output dist/Koeta-Studio-Preview-arm64.build-evidence.json
 ```
 
 The output must be a new path. Exit 0 means bounded observations were collected;

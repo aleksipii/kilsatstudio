@@ -125,10 +125,10 @@ class PackageTests(unittest.TestCase):
 
     def test_generated_icon_has_valid_png_payload(self):
         self.stage()
-        icon = (self.bundle / 'Contents/Resources/KilsatStudio.icns').read_bytes()
+        icon = (self.bundle / 'Contents/Resources/KoetaStudio.icns').read_bytes()
         self.assertEqual(icon[:4], b'icns')
         self.assertEqual(int.from_bytes(icon[4:8], 'big'), len(icon))
-        self.assertEqual(icon[8:12], b'ic08')
+        self.assertEqual(icon[8:12], b'ic09')
         self.assertEqual(int.from_bytes(icon[12:16], 'big'), len(icon) - 8)
         import struct
         import zlib
@@ -142,12 +142,12 @@ class PackageTests(unittest.TestCase):
             crc = int.from_bytes(png[offset + 8 + length:offset + 12 + length], 'big')
             self.assertEqual(crc, zlib.crc32(kind + payload) & 0xffffffff)
             if kind == b'IHDR':
-                self.assertEqual(struct.unpack('>IIBBBBB', payload), (256, 256, 8, 6, 0, 0, 0))
+                self.assertEqual(struct.unpack('>IIBBBBB', payload), (512, 512, 8, 6, 0, 0, 0))
             if kind == b'IDAT':
                 compressed.extend(payload)
             offset += length + 12
         self.assertEqual(offset, len(png))
-        self.assertEqual(len(zlib.decompress(compressed)), 256 * (1 + 256 * 4))
+        self.assertEqual(len(zlib.decompress(compressed)), 512 * (1 + 512 * 4))
         self.assertEqual(icon, package.app_icon())
 
     def test_document_types_are_editor_alternatives(self):

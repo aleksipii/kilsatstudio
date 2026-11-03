@@ -76,7 +76,7 @@ def main(argv=None):
     parser.add_argument('--voice', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--report', type=Path, help='optional new JSON evidence file')
-    parser.add_argument('--text', default='Hello from Kilsat Studio. This is a local CPU speech test.')
+    parser.add_argument('--text', default='Hello from Koeta Studio. This is a local CPU speech test.')
     parser.add_argument('--language', default='en-us')
     parser.add_argument('--speed', type=float, default=1.0)
     parser.add_argument('--corpus-id', default='default-en-smoke')

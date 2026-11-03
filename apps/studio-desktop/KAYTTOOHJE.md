@@ -1,4 +1,4 @@
-# Kilsat Studion käyttöohje
+# Koeta Studion käyttöohje
 
 Ohje avautuu sovelluksen yläpalkin Ohjeet-painikkeesta. Pääikkunan ja
 lisätyökalujen toiminnot ovat suomeksi. MotionScriptin avainsanat, tekniset

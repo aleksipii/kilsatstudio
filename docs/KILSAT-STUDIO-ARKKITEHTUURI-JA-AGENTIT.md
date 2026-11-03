@@ -1,4 +1,4 @@
-# KILSAT STUDIO: SÄÄNTÖPOHJAISEN 2D-ANIMAATIOSTUDION JÄRJESTELMÄARKKITEHTUURIRAPORTTI
+# KOETA STUDIO: SÄÄNTÖPOHJAISEN 2D-ANIMAATIOSTUDION JÄRJESTELMÄARKKITEHTUURIRAPORTTI
 
 > Lähde: Liitetty teksti(7).txt. Markdown-muunnos 26.10.2026.
 > Alkuperäisen raportin sisältö on säilytetty alla. Luvut 6–8 ovat tätä tehtävää varten laadittu agentti- ja toteutussuunnitelma.
@@ -9,11 +9,11 @@
 
 ### 1.1 Deterministinen ja tekoälyvapaa (No AI) -arkkitehtuuriparadigma
 
-Kilsat Studio -animaatiostudio on suunniteltu määrittelemään uudelleen kriittinen, suorituskykyinen ja täysin toistettava 2D-animaatiotuotanto. Nykyaikaisessa digitaalisessa graafisessa tuotannossa perustavanlaatuiseksi ongelmaksi on muodostunut järjestelmien riippuvuus stokastisista, koneoppimiseen pohjautuvista animaatiomalleista. Nämä mallit kärsivät arvaamattomasta satunnaisuudesta, suorituksenaikaisista viiveistä sekä roskienkeruun (Garbage Collection, GC) aiheuttamista ruudunpäivityksen nykimisistä. Kilsat Studion arkkitehtuurin kova ydin nojaa 100-prosenttisesti sääntöpohjaiseen ja täysin deterministiseen (No AI) paradigmaan. Tämä valinta takaa absoluuttisen toistettavuuden, millisekunnintarkan reaalikatasoisen suorituskyvyn sekä matemaattisesti todennettavan ilmeiden ja liikkeiden hallinnan ilman generatiivisten mallien epävarmuustekijöitä.
+Koeta Studio -animaatiostudio on suunniteltu määrittelemään uudelleen kriittinen, suorituskykyinen ja täysin toistettava 2D-animaatiotuotanto. Nykyaikaisessa digitaalisessa graafisessa tuotannossa perustavanlaatuiseksi ongelmaksi on muodostunut järjestelmien riippuvuus stokastisista, koneoppimiseen pohjautuvista animaatiomalleista. Nämä mallit kärsivät arvaamattomasta satunnaisuudesta, suorituksenaikaisista viiveistä sekä roskienkeruun (Garbage Collection, GC) aiheuttamista ruudunpäivityksen nykimisistä. Koeta Studion arkkitehtuurin kova ydin nojaa 100-prosenttisesti sääntöpohjaiseen ja täysin deterministiseen (No AI) paradigmaan. Tämä valinta takaa absoluuttisen toistettavuuden, millisekunnintarkan reaalikatasoisen suorituskyvyn sekä matemaattisesti todennettavan ilmeiden ja liikkeiden hallinnan ilman generatiivisten mallien epävarmuustekijöitä.
 
-Perinteiset tekoälypohjaiset ja roskienkeruusta riippuvaiset animaatiojärjestelmät arvioivat animaatioruudut todennäköisyyspohjaisesti tai tilaan sitoutuneiden iteratiivisten simulaatioiden kautta. Tällöin saman syötteen ajaminen kahdesti voi johtaa erilaiseen visuaaliseen lopputulokseen, ja muistinhallinnan katkossa syntyvät GC-tauot rikkovat kuvaruudun päivitysjakson (16.6 ms / 8.3 ms). Kilsat Studio ratkaisee tämän soveltamalla puhtaasti koodipohjaista determinismiä, jossa järjestelmän tila missä tahansa ajanhetkessä on riippumaton aiemmista suorituskehyksistä.
+Perinteiset tekoälypohjaiset ja roskienkeruusta riippuvaiset animaatiojärjestelmät arvioivat animaatioruudut todennäköisyyspohjaisesti tai tilaan sitoutuneiden iteratiivisten simulaatioiden kautta. Tällöin saman syötteen ajaminen kahdesti voi johtaa erilaiseen visuaaliseen lopputulokseen, ja muistinhallinnan katkossa syntyvät GC-tauot rikkovat kuvaruudun päivitysjakson (16.6 ms / 8.3 ms). Koeta Studio ratkaisee tämän soveltamalla puhtaasti koodipohjaista determinismiä, jossa järjestelmän tila missä tahansa ajanhetkessä on riippumaton aiemmista suorituskehyksistä.
 
-| Arviointikriteeri | Tekoälypohjainen animaatio (ML / Generatiivinen) | Kilsat Studion sääntöpohjainen arkkitehtuuri |
+| Arviointikriteeri | Tekoälypohjainen animaatio (ML / Generatiivinen) | Koeta Studion sääntöpohjainen arkkitehtuuri |
 | --- | --- | --- |
 | Determinismi | Stokastinen / Arvaamaton; tuottaa vaihtelevia tuloksia samalla syötteellä. | Absoluuttinen; sama aika t ja säännöt tuottavat aina bitilleen identtisen ruudun. |
 | Suorituskyky / Tick-aika | Vaihteleva ja raskas (GPU/NPU-päättely); suuri viive ja GC-stutter-riski. | Vakioitu ja monistettava; O(1)-sääntöindeksointi ja viiveetön, unallocating-koodipolku. |
@@ -21,17 +21,17 @@ Perinteiset tekoälypohjaiset ja roskienkeruusta riippuvaiset animaatiojärjeste
 | Renderöinnin toistettavuus | Vaatii siemennystä (seed), ei takuuta alustariippumattomasta identtisyydestä. | 100 % alustariippumaton ja bitti-identtinen offline- ja live-renderöinnissä. |
 | Resurssitarve | Korkea muistinkulutus ja massiivinen laskentakapasiteetin tarve. | Minimaalinen muistijalanjälki; suorituskykyinen jopa ilman ulkoisia muistivarauksia. |
 
-Tämä ehdoton deterministinen paradigma kytkee Kilsat Studion suoraan digitaalisen muotoilun ja tietojenkäsittelyn klassisiin akateemisiin tutkimussuuntauksiin.
+Tämä ehdoton deterministinen paradigma kytkee Koeta Studion suoraan digitaalisen muotoilun ja tietojenkäsittelyn klassisiin akateemisiin tutkimussuuntauksiin.
 
 ### 1.2 Akateemiset pilarit: CMU Rete, SFU MotionScript ja Brown BALSA
 
-Kilsat Studion arkkitehtuuri nojaa vahvasti kolmeen tietojenkäsittelytieteen klassiseen läpimurtoon, joiden pohjalta moottorin logiikka, kieli ja visuaalinen esitystapa on rakennettu:
+Koeta Studion arkkitehtuuri nojaa vahvasti kolmeen tietojenkäsittelytieteen klassiseen läpimurtoon, joiden pohjalta moottorin logiikka, kieli ja visuaalinen esitystapa on rakennettu:
 
 ## 1. CMU Rete -algoritmi (Carnegie Mellon University): Monimutkaisten animaatiosääntöjen ja reaktiivisten tilamuutosten hallinta perustuu Rete-algoritmin johdannaiseen (RETE-UL). Algoritmi muodostaa alfa- ja beeta-muistisolmuista koostuvan verkon, joka mahdollistaa faktojen ja ehtojen tehokkaan kuvionsovittamisen. Tämä takaa sääntöjen O(1)-indeksoinnin ja reaktiivisen reitityksen sääntömäärän kasvaessa sadoista kymmeniin tuhansiin ilman lineaarista suoritusaikaista suodatusta.
 ## 2. SFU MotionScript DSL (Simon Fraser University): Animaation ajallinen ja rakenteellinen ilmaisu pohjautuu deklaratiiviseen domain-specific language (DSL) -kielioppiin. MotionScript mahdollistaa monimutkaisten animaatiosekvenssien ilmaisemisen yhdistelyprimitiivien kautta, kuten sarjallistaminen (seq!), rinnakkaistaminen (par!) ja vaiheistettu viive (stagger), erottaen visuaalisen laitteiston hallinnan animaation toiminnallisesta määritelmästä.
 ## 3. Brown BALSA (Brown University Algorithm Simulator and Animator): Järjestelmän graafisen tilan visualisointi ja tietorakenteiden dynaaminen esittäminen seuraavat BALSA-järjestelmän periaatteita. Sen mukaisesti jokainen tietorakenteen muutos tai tilakoneen siirtymä visualisoidaan tarkan, vaiheittaisen ja vaihekatkottoman tilasiirtymän kautta, mikä tekee monimutkaisista abstrakteista operaatioista välittömästi hahmotettavia.
 
-Akateemisten teorioiden konkreettinen kääntäminen Kilsat Studion arkkitehtuurikomponenteiksi eritellään seuraavasti:
+Akateemisten teorioiden konkreettinen kääntäminen Koeta Studion arkkitehtuurikomponenteiksi eritellään seuraavasti:
 
 * RETE-UL Inference Engine: Vastaa reaktiivisesta tilanhallinnasta, jossa faktamuutokset laukaisevat välittömästi animaatiotilojen ja graafisten korvausten (Swaps) päivittymisen.
 * Declarative Motion DSL: Tarjoaa ihmisluettavan YAML/GRL-syntaksin, joka muuntaa korkean tason käsikirjoituskomennot suoritettaviksi ratkaisemattomiksi rata-antureiksi (TrackSpecs).
@@ -41,11 +41,11 @@ Nämä akateemiset algoritmit ja käsikirjoituskieliopit tarjoavat vankan pohjan
 
 ### 1.3 Fysiikan matemaattinen pohja: Analyyttiset vaimennetut jousiyhtälöt
 
-Ihmisen näköaisti on äärimmäisen herkkä tunnistamaan mekaanisen liikkeen keinotekoisuuden. Luonnollinen liike fysikaalisessa maailmassa ei ala tai pysähdy ilman kiihtyvyyttä ja massan hitautta. Kilsat Studiossa hahmojen osien, orgaanisten elementtien ja käyttöliittymäkomponenttien elastinen liike perustuu differentiaaliyhtälöihin.
+Ihmisen näköaisti on äärimmäisen herkkä tunnistamaan mekaanisen liikkeen keinotekoisuuden. Luonnollinen liike fysikaalisessa maailmassa ei ala tai pysähdy ilman kiihtyvyyttä ja massan hitautta. Koeta Studiossa hahmojen osien, orgaanisten elementtien ja käyttöliittymäkomponenttien elastinen liike perustuu differentiaaliyhtälöihin.
 
 Perinteisesti animaatiojärjestelmissä käytetty numeerinen Eulerin integrointi (v_n = v_{n-1} + a \cdot \Delta t, x_n = x_{n-1} + v_n \cdot \Delta t) on vahvasti herkkä ruudunpäivitysnopeuden vaihteluille (\Delta t). Eulerin menetelmä kerryttää kumulatiivista numeerista virhettä, mikä johtaa näytteistystaajuuden pudotessa simuloinnin epävakauteen, ylilyönteihin tai ilmiön "räjähtämiseen" hallitsemattomaksi äärettömäksi heilahteluksi (infinite oscillation).
 
-Kilsat Studio poistaa numeerisen epävakauden ratkaisemalla toisen kertaluvun lineaarisen homogeneettisen differentiaaliyhtälön analyyttisesti suljetussa muodossa:
+Koeta Studio poistaa numeerisen epävakauden ratkaisemalla toisen kertaluvun lineaarisen homogeneettisen differentiaaliyhtälön analyyttisesti suljetussa muodossa:
 
 $$
 m \ddot{x} + c \dot{x} + k x = 0
@@ -71,7 +71,7 @@ Nämä analyyttiset fysiikkayhtälöt sidotaan suoraan käsikirjoitusohjattujen 
 
 ### 2.1 Käsikirjoituskieli (MotionScript YAML / GRL DSL) ja synksyntaksi
 
-Kilsat Studion käsikirjoitusjärjestelmä käyttää MotionScript YAML- ja GRL (Grule Rule Language) -synksyntaksia, joka muuntaa ihmisluettavan teksti-ilmaisun suoritettavaksi ja tyypitetyksi animaatio-oliosäilöksi. Rekisteröidyt entiteetit tunnistetaan selkeillä merkkijono-ID:illä, mikä mahdollistaa monimutkaisten lausekkeiden rakentamisen ilman osoitinlogiikkaa.
+Koeta Studion käsikirjoitusjärjestelmä käyttää MotionScript YAML- ja GRL (Grule Rule Language) -synksyntaksia, joka muuntaa ihmisluettavan teksti-ilmaisun suoritettavaksi ja tyypitetyksi animaatio-oliosäilöksi. Rekisteröidyt entiteetit tunnistetaan selkeillä merkkijono-ID:illä, mikä mahdollistaa monimutkaisten lausekkeiden rakentamisen ilman osoitinlogiikkaa.
 
 Seuraava esimerkkikoodi havainnollistaa kohtauksen entiteettien määritelmää, perustilaa sekä aikajanan verppejä:
 
@@ -131,7 +131,7 @@ Tämä deklaratiivinen käsikirjoituskieli tarjoaa syötteen järjestelmän sä�
 
 ### 2.2 RETE-UL-sääntömoottorin arkkitehtuuri ja alfa/beeta-muisti
 
-Kilsat Studion reaktiivinen logiikka pohjautuu rust-rule-engine-crateen, joka toteuttaa RETE-UL-algoritmin. Algoritmi jakaa ehtolausekkeiden arvioinnin kahteen eri muistitasoon:
+Koeta Studion reaktiivinen logiikka pohjautuu rust-rule-engine-crateen, joka toteuttaa RETE-UL-algoritmin. Algoritmi jakaa ehtolausekkeiden arvioinnin kahteen eri muistitasoon:
 
 ```text
 [ Faktat (Facts) ]
@@ -191,7 +191,7 @@ Tämä puhdas funktionaalinen aikajana-arkkitehtuuri luo pohjan ilman tekoälyma
 
 ### 3.1 Klassinen algoritmipohjainen kasvo- ja kameraseuranta (OpenCV / ilman ML-malleja)
 
-Kilsat Studio toteuttaa kasvojen ja kameran liikeseurannan ilman raskaita, epädeterministisiä koneoppimismalleja (No ML). Järjestelmä nojaa OpenCV-C-rajapinnan kautta ajettaviin deterministisiin, klassisiin kuvanprosessi- ja geometrisiin algoritmeihin.
+Koeta Studio toteuttaa kasvojen ja kameran liikeseurannan ilman raskaita, epädeterministisiä koneoppimismalleja (No ML). Järjestelmä nojaa OpenCV-C-rajapinnan kautta ajettaviin deterministisiin, klassisiin kuvanprosessi- ja geometrisiin algoritmeihin.
 
 Kamerasyötteen käsittelyssä käytetään värisuodatusta, konturien tunnistusta sekä Lucas-Kanade optista virtausta (Optical Flow) piirrepisteiden seuraamiseksi. Tunnistettujen geometristen piirteiden ja kiintopisteiden sijaintierot muunnetaan suoraan 2D-affiinimuunnosmatriiseiksi. Pään kallistus, kierto ja siirtymä ohjaavat suoraan hahmon hierarkkista muunnospuuta ilman neuroverkon suorittamaa arviointia, takaaten millisekuntitason vasteajan ja ehdottoman toistettavuuden samalla syötemateriaalilla.
 
@@ -268,7 +268,7 @@ Triggers & Swaps -järjestelmän laukaisemat graafiset tilat siirtyvät suoraan 
 
 ### 3.5 Luurankoriggaus, Käänteiskinematiikka (IK) ja Verkkodeformaatio (SkelForm)
 
-Kilsat Studion luurankorunko ja mesh-deformaatio pohjautuvat avoimen lähdekoodin SkelForm-integraatioon (rusty_skelform). Järjestelmä tuorilintuaa PSD-kuvatiedostot suoraan hierarkkisiksi luurangoiksi pivot-pisteineen.
+Koeta Studion luurankorunko ja mesh-deformaatio pohjautuvat avoimen lähdekoodin SkelForm-integraatioon (rusty_skelform). Järjestelmä tuorilintuaa PSD-kuvatiedostot suoraan hierarkkisiksi luurangoiksi pivot-pisteineen.
 
 ```text
 [ Luuhierarkia (Bone Tree) ] ➔ [ Käänteiskinematiikka (IK Solver) ]
@@ -354,7 +354,7 @@ Monikielisen teknologiapinon matalaviiveinen IPC-arkkitehtuuri luo pohjan reakti
 
 ### 5.1 Minimalistinen macOS-käyttöliittymäsuunnittelu
 
-Kilsat Studion käyttöliittymäfilosofia torjuu perinteisten animaatio-ohjelmistojen sekavuuden. Työskentelytila on suunniteltu selkeäksi, minimalistiseksi ja rauhalliseksi visuaaliseksi ympäristöksi, joka nojaa tyyliteltyyn sanomalehtiaestetiikkaan:
+Koeta Studion käyttöliittymäfilosofia torjuu perinteisten animaatio-ohjelmistojen sekavuuden. Työskentelytila on suunniteltu selkeäksi, minimalistiseksi ja rauhalliseksi visuaaliseksi ympäristöksi, joka nojaa tyyliteltyyn sanomalehtiaestetiikkaan:
 
 * Värimaailma ja typografia: Murrettu off-white-paperitausta, syvät mustepinnat, serif-otsikkofontit, monospaced-koodietiketit sekä hillityt tehostevärit (faded/accent).
 * Asettelu: Keskiössä on puhdas ja häiriötön renderöintikanvas. Kompleksiset säätimet ja muuttujat on kätketty sivupaneeleihin, jotka avautuvat reaktiivisesti kontekstin mukaan.
@@ -373,7 +373,7 @@ Progressiivisen käyttöliittymän eri kerroksissa määritellyt tilat ja syött
 
 ### 5.3 Suorituskyky, deterministinen vienti ja renderöintiputki (FFmpeg / Frame Export)
 
-Kilsat Studion vientiputki hyödyntää täysimääräisesti järjestelmän tilatonta determinismiä. Offline-renderöinnissä jokainen ruutu lasketaan absoluuttisen aikavälin pohjalta:
+Koeta Studion vientiputki hyödyntää täysimääräisesti järjestelmän tilatonta determinismiä. Offline-renderöinnissä jokainen ruutu lasketaan absoluuttisen aikavälin pohjalta:
 
 $$
 t = \frac{\text{frame}}{\text{fps}}
@@ -385,7 +385,7 @@ Koska laskenta on riippumaton reaalilajin suoritusajoista tai aiemmista kehyksis
 * Sekvenssivienti: PNG-kuvasekvenssit alfa-kanavalla ja GIF-animaatiot.
 * Synkronointi-JSON: Animaatiomarkkereiden ja aikaleimojen vienti narratiivin ulkoista synkronointia varten.
 
-Tämä deterministinen offline- ja online-renderöintiputki vahvistaa Kilsat Studion arkkitehtuurin täyden valmiuden tuotantokäyttöön. Analyyttinen fysiikkalaskenta, RETE-UL-sääntöindeksointi sekä tilaton aikajanarajapinta tarjoavat laadukkaan ja toistettavan pohjan nykyaikaiselle digitaaliselle 2D-animaatiotuotannolle ilman tekoälymallien mukanaan tuomaa epävarmuutta.
+Tämä deterministinen offline- ja online-renderöintiputki vahvistaa Koeta Studion arkkitehtuurin täyden valmiuden tuotantokäyttöön. Analyyttinen fysiikkalaskenta, RETE-UL-sääntöindeksointi sekä tilaton aikajanarajapinta tarjoavat laadukkaan ja toistettavan pohjan nykyaikaiselle digitaaliselle 2D-animaatiotuotannolle ilman tekoälymallien mukanaan tuomaa epävarmuutta.
 
 ## 6. Toteutuksen rajaukset ja tarkistettavat oletukset
 
@@ -429,7 +429,7 @@ Jokaisen agentin palautus sisältää: tavoite, muutetut tiedostot, rajapintavai
 
 ### 7.3 Orkestroijan tehtävänanto
 
-> Toimi Kilsat Studion orkestroijana. Käytä tämän dokumentin agenttijakoa. Aloita projektin nykytilan tarkistuksesta ja tee tehtävärekisteri. Sovi A01:n kanssa moduulirajat ja yhteiset tietosopimukset ennen toteutusta. Anna jokaiselle agentille selkeä tavoite, lähtötiedot, sallittu muutosalue, riippuvuudet ja hyväksymisehto. Käynnistä rinnakkain vain toisistaan riippumattomat työt; anna yhdelle tiedostolle kerrallaan yksi kirjoittaja. Yhdistä tulokset pieninä kokonaisuuksina. Palauta epäonnistuva työ omistajalle ja kirjaa syy. Älä merkitse tehtävää valmiiksi pelkän raportin perusteella. Raportoi käyttäjälle toteutetut asiat, tarkistukset, estot ja seuraava vaihe. Älä väitä kaikkien ominaisuuksien valmistuneen ilman näyttöä.
+> Toimi Koeta Studion orkestroijana. Käytä tämän dokumentin agenttijakoa. Aloita projektin nykytilan tarkistuksesta ja tee tehtävärekisteri. Sovi A01:n kanssa moduulirajat ja yhteiset tietosopimukset ennen toteutusta. Anna jokaiselle agentille selkeä tavoite, lähtötiedot, sallittu muutosalue, riippuvuudet ja hyväksymisehto. Käynnistä rinnakkain vain toisistaan riippumattomat työt; anna yhdelle tiedostolle kerrallaan yksi kirjoittaja. Yhdistä tulokset pieninä kokonaisuuksina. Palauta epäonnistuva työ omistajalle ja kirjaa syy. Älä merkitse tehtävää valmiiksi pelkän raportin perusteella. Raportoi käyttäjälle toteutetut asiat, tarkistukset, estot ja seuraava vaihe. Älä väitä kaikkien ominaisuuksien valmistuneen ilman näyttöä.
 
 Orkestroijan hallitseman tehtävärekisterin ehdotettu tiedosto on `master-progress.md`. Sen tilat ovat `todo`, `ready`, `running`, `review`, `blocked` ja `done`.
 

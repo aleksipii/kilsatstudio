@@ -699,9 +699,18 @@ impl JointLimitDefinition {
     }
     /// Clamp a local rotation into the bounds; non-finite input stays non-finite
     /// so pose validation still rejects it.
+    ///
+    /// The angle is first wrapped by whole turns to the equivalent closest to
+    /// the middle of the bounds. Interpolated keyframe angles come back in
+    /// `[0, 2π)`, so an offset of -0.3 between two keys arrives as about 5.98;
+    /// without the wrap it would clamp to the upper bound instead of staying at
+    /// the same visual angle.
     pub fn clamp(self, rotation: f64) -> f64 {
         if rotation.is_finite() {
-            rotation.clamp(self.min_rotation, self.max_rotation)
+            let tau = std::f64::consts::TAU;
+            let middle = (self.min_rotation + self.max_rotation) / 2.0;
+            let wrapped = rotation - tau * ((rotation - middle) / tau).round();
+            wrapped.clamp(self.min_rotation, self.max_rotation)
         } else {
             rotation
         }
@@ -1563,6 +1572,22 @@ impl PreparedRig {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn joint_limit_clamp_treats_whole_turns_as_the_same_angle() {
+        let limit = JointLimitDefinition {
+            min_rotation: -2.6,
+            max_rotation: 2.15,
+        };
+        let tau = std::f64::consts::TAU;
+        // An interpolated -0.3 arrives as 2π - 0.3 and must stay at -0.3.
+        assert!((limit.clamp(tau - 0.3) - -0.3).abs() < 1e-12);
+        assert!((limit.clamp(-0.3 - tau) - -0.3).abs() < 1e-12);
+        assert_eq!(limit.clamp(1.0), 1.0);
+        // Angles outside the range still clamp to the nearer bound.
+        assert_eq!(limit.clamp(2.5), 2.15);
+        assert_eq!(limit.clamp(-2.9), -2.6);
+        assert!(limit.clamp(f64::NAN).is_nan());
+    }
     fn definition() -> RigDefinition {
         RigDefinition {
             version: 1,
