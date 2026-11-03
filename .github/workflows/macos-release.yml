@@ -35,15 +35,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
       - name: Build release candidate and nested helpers
-        env:
-          MACOSX_DEPLOYMENT_TARGET: '13.0'
-        run: |
-          cargo build --release --locked -p studio-desktop --target aarch64-apple-darwin
-          cargo build --release --locked -p motion-render --features gpu --example gpu_probe --target aarch64-apple-darwin
-          mkdir -p dist
-          swiftc -swift-version 5 -target arm64-apple-macos13.0 services/head-pose/main.swift -o dist/head_pose -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker services/head-pose/Info.plist
+        run: scripts/build_universal_binaries.sh dist/universal release
       - name: Configure temporary signing keychain
         run: |
           password=$(uuidgen)
@@ -66,7 +60,7 @@ jobs:
           xcrun notarytool store-credentials kilsat-ci-notary --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD"
       - name: Sign, notarize, staple and verify exact candidate
         run: |
-          python3 scripts/developer_release.py --binary target/aarch64-apple-darwin/release/studio-desktop --gpu-probe target/aarch64-apple-darwin/release/examples/gpu_probe --head-pose dist/head_pose --commit "$GITHUB_SHA" --identity "$SIGNING_IDENTITY" --team "$APPLE_TEAM_ID" --notary-profile kilsat-ci-notary --output dist/developer-candidate.zip --report dist/developer-candidate.json --allow-notarization
+          python3 scripts/developer_release.py --binary dist/universal/studio-desktop --gpu-probe dist/universal/gpu_probe --head-pose dist/universal/head_pose --arch universal --commit "$GITHUB_SHA" --identity "$SIGNING_IDENTITY" --team "$APPLE_TEAM_ID" --notary-profile kilsat-ci-notary --output dist/developer-candidate.zip --report dist/developer-candidate.json --allow-notarization
       - uses: actions/upload-artifact@v4
         if: success()
         with:

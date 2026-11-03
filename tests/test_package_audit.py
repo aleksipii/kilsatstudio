@@ -42,9 +42,9 @@ class PackageAuditTests(unittest.TestCase):
         self.distribution = self.root / 'distribution'
         self.archive = self.root / 'preview.zip'
 
-    def stage(self, helper=False):
+    def stage(self, helper=False, arch='arm64'):
         package.stage_distribution(REPO, self.binary, self.distribution,
-                                   COMMIT, 'arm64', 'debug',
+                                   COMMIT, arch, 'debug',
                                    self.binary if helper else None)
         return self.distribution
 
@@ -74,6 +74,12 @@ class PackageAuditTests(unittest.TestCase):
         self.assertFalse(report['distribution_approved'])
         self.assertTrue(report['errors'])
         self.assertTrue(all(isinstance(error, str) for error in report['errors']))
+
+    def test_universal_package_audits_against_universal_target_only(self):
+        self.stage(arch='universal')
+        self.write_zip()
+        self.assertTrue(self.collect(target='universal-apple-darwin')['package_valid'])
+        self.assert_invalid(self.collect(target=TARGET))
 
     def test_valid_inventory_binds_exact_archive_and_every_file(self):
         self.stage()
