@@ -25,7 +25,7 @@ fn example(relative: &str) -> PathBuf {
 fn rig(file: &str, id: &str) -> RigDefinition {
     let text = std::fs::read_to_string(example(&format!("characters/{file}.kilsat"))).unwrap();
     let project: Value = serde_json::from_str(&text).unwrap();
-    let script: Value = serde_json::from_str(project["source"].as_str().unwrap()).unwrap();
+    let script: Value = serde_yaml::from_str(project["source"].as_str().unwrap()).unwrap();
     serde_json::from_value(script["characters"][id]["rig"].clone()).unwrap()
 }
 

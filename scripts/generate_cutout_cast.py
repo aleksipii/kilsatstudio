@@ -19,6 +19,10 @@ import json
 import math
 from pathlib import Path
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ROOT / "examples/cutout-cast"
 
@@ -734,7 +738,7 @@ def project(title, cast, scenes, width, height, layers):
     source = {"project": {"title": title, "width": width, "height": height, "fps": 24},
               "characters": cast, "scenes": scenes}
     return {"format_version": 2,
-            "source": json.dumps(source, ensure_ascii=False, separators=(",", ":")),
+            "source": motion_source.dumps(source),
             "assets": [], "art": {"layers": layers}}
 
 

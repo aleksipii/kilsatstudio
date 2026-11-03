@@ -15,6 +15,9 @@ import re
 import sys
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
+
 from render_kilsat_season import (MAX_JSON, PROFILE, UNMEASURED, file_hash,
                                   read_json, run_bounded, season_path,
                                   validate_episode, write_json)
@@ -35,7 +38,7 @@ def safe_path(path: Path) -> Path:
 
 
 def expected_dialogue(project: dict) -> list[dict]:
-    source = json.loads(project["source"])
+    source = motion_source.loads(project["source"])
     if source.get("project", {}).get("captions", {}).get("enabled") is not True:
         raise ValueError("English episodes must keep their dialogue captions enabled")
     characters = source.get("characters", {})

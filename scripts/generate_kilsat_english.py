@@ -7,6 +7,9 @@ import json
 from pathlib import Path
 
 import generate_kilsat_season as original
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ROOT / 'examples/kilsat-english'
@@ -52,14 +55,14 @@ def generate(destination=DEFAULT, stories_path=DEFAULT / 'stories.json'):
                 'The declared durations are drafts; actual speech determines final shot timing.', '']
     for story in episodes:
         project = original.episode_project(story)
-        source = json.loads(project['source'])
+        source = motion_source.loads(project['source'])
         for actor, voice in VOICES.items():
             source['characters'][actor]['voice'] = {
                 'provider': 'kokoro', 'preset': voice, 'language': 'en-us',
                 'speed': 1.0 if actor == 'AINO' else 0.97,
             }
         source['project']['title'] = f'Kilsat EN {story["number"]:02d} - {story["title"]}'
-        project['source'] = json.dumps(source, ensure_ascii=False, separators=(',', ':'))
+        project['source'] = motion_source.dumps(source)
         duration = round(sum(scene['duration'] for scene in source['scenes']), 6)
         if not 30 <= duration <= 60:
             raise ValueError('draft episode duration must remain within 30..60 seconds')

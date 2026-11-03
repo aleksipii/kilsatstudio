@@ -55,8 +55,9 @@ paperinukkehahmot.
 
 Tiedostot tuotetaan skriptillä `scripts/generate_albus.py`. Aja se uudelleen
 muutosten jälkeen. Projektin MotionScript (`source`) kirjoitetaan luettavaksi
-YAMLiksi: osiot omille riveilleen kommentteineen ja lyhyet avainkehykset
-yhdelle riville, joten sitä voi lukea ja muokata sovelluksen skriptieditorissa.
+YAMLiksi Koeta Studion yhteisellä muotoilijalla (`scripts/motion_source.py`,
+katso `docs/motionscript.md`): osiot omille riveilleen kommentteineen ja lyhyet
+avainkehykset yhdelle riville.
 Skripti käyttää paperinukkehahmojen yhteisiä apufunktioita
 tiedostosta `scripts/generate_cutout_cast.py`. Testi
 `crates/motion-export/tests/albus.rs` tarkistaa riggin, model sheetin, ilmeet ja

@@ -34,6 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from generate_city_library import CATALOG as CITY_CATALOG  # noqa: E402
+import motion_source  # noqa: E402
 
 # City props and their manifests belong to scripts/generate_city_library.py.
 CITY_IDS = {f"{spec[0]}.json" for spec in CITY_CATALOG.values()}
@@ -1305,7 +1306,7 @@ def kilsat_geometry(data: dict):
     Rig props: extent of all rig parts in rig-local coordinates (polygon points,
     ellipse cx±rx/cy±ry), padded by outline widths. Art-layer props (no character
     rig): extent of the art layers in document coordinates."""
-    source = json.loads(data["source"])
+    source = motion_source.loads(data["source"])
     chars = source.get("characters") or {}
     xs: list[float] = []
     ys: list[float] = []
@@ -1358,7 +1359,7 @@ def migrated_manifest(stem: str, path: Path) -> dict:
     raw = path.read_bytes()
     data = json.loads(raw)
     pid, tags, recipe = MIGRATED[stem]
-    name = json.loads(data["source"])["project"]["title"]
+    name = motion_source.loads(data["source"])["project"]["title"]
     kind, (bx, by, bw, bh), lookup = kilsat_geometry(data)
     anchors = []
     for step in recipe:

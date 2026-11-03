@@ -4,6 +4,13 @@ Scene: [`examples/g2-minimal-scene/scene.kilsat`](../../../examples/g2-minimal-s
 (A08, SHA-256 `8ba99dc39ed851d076f69370c83a35237b738aaa6a062ae1bba75366dcbd8f03`),
 1920x1080, 24 fps, 4 s, silent, phone in VEIKKO's right hand (KS-003c).
 
+The scene's MotionScript source was later rewritten in the canonical YAML
+layout (`docs/motionscript.md`): the file is now SHA-256
+`0c20a1ada584a8556f7ee0e3a3892bad3e643ea0aa53a674571dcdb90d355d49` with the same
+data, and `crates/motion-export/tests/g2_export.rs` still passes with the
+unchanged frame regression hashes. The measurements below were recorded with the
+earlier file.
+
 ## Reproducible export command
 
 From the repository root; `OUT_DIR` must not exist:

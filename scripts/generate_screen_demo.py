@@ -15,6 +15,9 @@ from pathlib import Path
 import subprocess
 
 import generate_kilsat_season as original
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ROOT / 'examples/screen-demo'
@@ -244,7 +247,7 @@ def episode():
                                        'line_height': 1.08, 'uppercase': False,
                                        'background': '#17232b'}},
               'characters': characters, 'scenes': scenes}
-    return {'format_version': 2, 'source': json.dumps(source, ensure_ascii=False, separators=(',', ':')),
+    return {'format_version': 2, 'source': motion_source.dumps(source),
             'assets': [], 'art': {'layers': art}}
 
 
@@ -258,7 +261,7 @@ def main():
         write_video(args.ffmpeg, args.output / VIDEO)
     project = episode()
     (args.output / 'live-demo.kilsat').write_bytes(original.encode(project))
-    seconds = sum(s['duration'] for s in json.loads(project['source'])['scenes'])
+    seconds = sum(s['duration'] for s in motion_source.loads(project['source'])['scenes'])
     print(json.dumps({'project': 'live-demo.kilsat', 'draft_seconds': round(seconds, 3),
                       'video': VIDEO if (args.output / VIDEO).exists() else None}))
 

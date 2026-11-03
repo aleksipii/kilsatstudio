@@ -1,6 +1,6 @@
 {
   "format_version": 2,
-  "source": "{\"project\":{\"title\":\"Kulmakaupan käytävä\",\"width\":1920,\"height\":1080,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"tausta\",\"duration\":5,\"composition\":{\"background_color\":\"#eae6d8\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "source": "project: {title: Kulmakaupan käytävä, width: 1920, height: 1080, fps: 24}\ncharacters: {}\n\nscenes:\n  - id: tausta\n    duration: 5\n    composition:\n      background_color: '#eae6d8'\n      camera:\n        - {at: 0, x: 0, y: 0, zoom: 1}\n      layers: {}\n      actor_tracks: {}\n      joint_tracks: {}\n    events: []\n",
   "assets": [],
   "art": {
     "layers": [

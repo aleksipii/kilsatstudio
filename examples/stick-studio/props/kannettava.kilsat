@@ -1,6 +1,6 @@
 {
   "format_version": 2,
-  "source": "{\"project\":{\"title\":\"Kannettava tietokone\",\"width\":512,\"height\":512,\"fps\":24},\"characters\":{},\"scenes\":[{\"id\":\"esine\",\"duration\":5,\"composition\":{\"background_color\":\"#f4f1e9\",\"camera\":[{\"at\":0,\"x\":0,\"y\":0,\"zoom\":1}],\"layers\":{},\"actor_tracks\":{},\"joint_tracks\":{}},\"events\":[]}]}",
+  "source": "project: {title: Kannettava tietokone, width: 512, height: 512, fps: 24}\ncharacters: {}\n\nscenes:\n  - id: esine\n    duration: 5\n    composition:\n      background_color: '#f4f1e9'\n      camera:\n        - {at: 0, x: 0, y: 0, zoom: 1}\n      layers: {}\n      actor_tracks: {}\n      joint_tracks: {}\n    events: []\n",
   "assets": [],
   "art": {
     "layers": [

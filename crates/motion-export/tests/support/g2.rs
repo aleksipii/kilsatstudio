@@ -21,7 +21,7 @@ pub const SCENE_ID: &str = "g2_min";
 
 /// SHA-256 of the `.kilsat` file the hashes below were recorded from.
 pub const G2_SCENE_SHA256: &str =
-    "8ba99dc39ed851d076f69370c83a35237b738aaa6a062ae1bba75366dcbd8f03";
+    "0c20a1ada584a8556f7ee0e3a3892bad3e643ea0aa53a674571dcdb90d355d49";
 /// Regression hashes for the G2 SVG export at 1920x1080 (`sequence_digest` over the
 /// 96 per-frame SHA-256 values). SVG text is platform independent; CI checks it on
 /// macOS and Ubuntu. This file is the only copy: the test, the `g2_export` command and the

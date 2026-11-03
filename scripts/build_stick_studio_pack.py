@@ -22,6 +22,9 @@ import time
 import wave
 import zipfile
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
+
 from render_kilsat_season import (MAX_JSON, file_hash, inspect_media, probe,
                                   read_json, run_bounded, write_json)
 
@@ -62,7 +65,7 @@ def silent_project(path: Path) -> dict:
             or project.get('timing', {}).get('scene', '').strip()
             or not isinstance(project.get('source'), str)):
         raise ValueError('stick projects must be self-contained version-two documents without speech timing')
-    source = json.loads(project['source'])
+    source = motion_source.loads(project['source'])
     if not isinstance(source, dict) or not isinstance(source.get('scenes'), list):
         raise ValueError('expected an explicit native JSON screenplay')
     if any(scene.get('composition', {}).get('audio_cues')

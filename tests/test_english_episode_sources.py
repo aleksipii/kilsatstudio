@@ -29,7 +29,7 @@ class EnglishSourceTests(unittest.TestCase):
             for episode in manifest['episodes']:
                 project = json.loads((destination / episode['project']).read_text())
                 self.assertEqual(hashlib.sha256(project['source'].encode()).hexdigest(), episode['source_sha256'])
-                script = json.loads(project['source'])
+                script = english.motion_source.loads(project['source'])
                 self.assertEqual((script['project']['width'], script['project']['height'], script['project']['fps']), (1920, 1080, 24))
                 self.assertTrue(script['project']['captions']['enabled'])
                 self.assertEqual(len(script['scenes']), 10)

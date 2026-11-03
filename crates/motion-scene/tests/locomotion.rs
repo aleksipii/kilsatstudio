@@ -14,7 +14,7 @@ fn source(events: Value) -> String {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/stick-studio/stick-studio.kilsat");
     let project: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
-    let mut source: Value = serde_json::from_str(project["source"].as_str().unwrap()).unwrap();
+    let mut source: Value = serde_yaml::from_str(project["source"].as_str().unwrap()).unwrap();
     let veikko = source["characters"]["VEIKKO"].clone();
     source["characters"] = json!({ "VEIKKO": veikko });
     source["scenes"] = json!([{ "id": "s", "duration": 6, "events": events }]);

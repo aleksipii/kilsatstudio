@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .next()
         .unwrap_or_else(|| format!("target/prop-cards/{id}.svg"));
     let project: serde_json::Value = serde_json::from_str(VEIKKO)?;
-    let source: serde_json::Value = serde_json::from_str(
+    let source: serde_json::Value = serde_yaml::from_str(
         project["source"]
             .as_str()
             .ok_or("veikko.kilsat has no source")?,

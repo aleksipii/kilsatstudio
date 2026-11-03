@@ -9,6 +9,10 @@ from pathlib import Path
 import struct
 import zlib
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
+
 REPO = Path(__file__).resolve().parents[1]
 SEASON = REPO / 'examples/kilsat-season'
 WIDTH, HEIGHT, FPS = 1920, 1080, 24
@@ -231,7 +235,7 @@ def episode_project(story):
     source={'project':{'title':f'Kilsat {number:02d} – {story["title"]}','width':WIDTH,'height':HEIGHT,'fps':FPS,
                        'captions':{'enabled':True,'font_size':54,'speaker_fill':{'AINO':'#ffdf7c','RANE':'#ffffff'},'outline_width':4,'bottom_margin':0.035,'max_width':0.9,'line_height':1.08,'uppercase':False,'background':'#17232b'}},
             'characters':{name:character(name) for name in ['AINO','RANE']},'scenes':scenes}
-    return {'format_version':2,'source':json.dumps(source,ensure_ascii=False,separators=(',',':')),'assets':[{'id':'kilsat_example','path':'assets/kilsat-example.png','kind':'image'}],'art':{'layers':art}}
+    return {'format_version':2,'source':motion_source.dumps(source),'assets':[{'id':'kilsat_example','path':'assets/kilsat-example.png','kind':'image'}],'art':{'layers':art}}
 
 
 def generate(destination=SEASON, stories_path=SEASON/'stories.json'):
@@ -248,7 +252,7 @@ def generate(destination=SEASON, stories_path=SEASON/'stories.json'):
     readable=['# Kilsat – Rane tietää paremmin','', 'Uusi alkuperäinen kausi. Ajat ovat luonnoksia; oikea ääni määrää lopullisen ajoituksen.','']
     for story in episodes:
         if len(story['turns'])!=8 or any(any(c.isdigit() for c in text) for text in story['turns']):raise ValueError('eight Finnish spoken-word turns required')
-        document=episode_project(story);source=json.loads(document['source']);duration=round(sum(s['duration'] for s in source['scenes']),6)
+        document=episode_project(story);source=motion_source.loads(document['source']);duration=round(sum(s['duration'] for s in source['scenes']),6)
         if not 30<=duration<=60:raise ValueError('draft episode duration out of bounds')
         name=f'ep{story["number"]:02d}.kilsat';data=encode(document);(destination/name).write_bytes(data)
         manifest['episodes'].append({'number':story['number'],'title':story['title'],'arc':story['arc'],'set':story['set'],'project':name,'project_sha256':sha(data),'source_sha256':sha(document['source'].encode()),'draft_duration_seconds':duration,'turn_count':8,'scene_count':len(source['scenes']),'audio_status':'not_synthesized','video_status':'not_rendered'})

@@ -61,8 +61,8 @@
   "starter_project": "stick-studio.kilsat",
   "hand_props_catalog": "hand-props.json",
   "hand_props_sha256": "b9cf0ce326aa609aa61a3c8e3c16ccaa51f6d2559bf5c68d26d5787fd532b910",
-  "starter_sha256": "b36e435e528b1742314a339e9aeb6d9bdef9f3bba43384f63303c6af8acaf15f",
-  "starter_source_bytes": 92088,
+  "starter_sha256": "b28968a21390988abf953e5ddafd36a574340306a69134f50bf7a111c37f0065",
+  "starter_source_bytes": 148225,
   "artistic_review": false,
   "physical_mac_review": false,
   "items": [
@@ -74,7 +74,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "d040c34042140c6f5c2bdc577b259c1cfb3b19d58b7f4c57ab1d75f6eaa3f52d"
+      "project_sha256": "a24add47e56b23cf875e5cdf69ba8489a1d2f021b51c6fd37f251b5b213fdb90"
     },
     {
       "id": "veikko",
@@ -84,7 +84,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "0672fbb198d8b8b17e5edc5fb82f2196e25be376ec1011f7f2580662e2ff4f2b"
+      "project_sha256": "86084feb962ee9a81437cbd51a7d06f57eb2b2ccb639f7120695b0cc5a5f6b07"
     },
     {
       "id": "pasma",
@@ -94,7 +94,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "0add110bf5ee8d50287bd9bd7c94fe08bb8ac359b446b3a87c0d2c88fbb5eaad"
+      "project_sha256": "bc5a632c5b33d173088b0edf97e3af5d0bb401481ff485a26157b3d01ea47234"
     },
     {
       "id": "kipina",
@@ -104,7 +104,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "a868fa8c7681ab803b7faafd5e8508a2bfdc0c0dc3e9b3dbc3e1f72a0abe1349"
+      "project_sha256": "86d7a54ebad6063dd8d13eba74a4f48c10afbf688344196c541c192e3947d5f5"
     },
     {
       "id": "kiire",
@@ -114,7 +114,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "4231d036ab90d46f4f03ea46cee3720e843cda8befcb63338ae39aa7219bacb6"
+      "project_sha256": "94224b7b346b624ea10e9013344eca63b7426d3630376d8e6a6bc0a509409bf6"
     },
     {
       "id": "sisu",
@@ -124,7 +124,7 @@
       "transparent": true,
       "export_width": 768,
       "export_height": 1024,
-      "project_sha256": "a159899da4f744e976580bd83a8f9980fec0b82ed87f6fb8b9d4204738a28c94"
+      "project_sha256": "0002bcaf6542677fb5ca8342630443788c75a62f7cc2282dae6bfe5df234a02f"
     },
     {
       "id": "toimisto",
@@ -134,7 +134,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "d4100384b2a315907e33ab88e3b163a1b4e5a02da99657fa5d4a1c5dee7f8100"
+      "project_sha256": "fa10c8abd3e2b3428c879eb2ca9264375baabd4180790d0b31f5b16991dba442"
     },
     {
       "id": "pysakki",
@@ -144,7 +144,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "982b8f386e4f6ec918922d9a40f10f5228414d4ffb615c82d16ffab8429463ab"
+      "project_sha256": "f58cdee64d260f05e11328d9627ec3a95a1c3848669d2828e354e4bff51e4c2b"
     },
     {
       "id": "hautausmaa",
@@ -154,7 +154,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "0f8e90dc8eedf5928ed461067673b0e137671d15a88a26fce4e20911348fa125"
+      "project_sha256": "e9876fc94c9eab3af883fa809a074deca80c4e2793f8f3dc7c23891236083f3d"
     },
     {
       "id": "kahvila",
@@ -164,7 +164,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "d1ddc56c0fe41ea84d6e76b38f861f9727ee932014151d0f0eb3bfa55ae1dba2"
+      "project_sha256": "9791204e8e7737fb99f2cc05cfb210e40ec354c853d7b20effe84e5467fb9f1e"
     },
     {
       "id": "keskusta",
@@ -174,7 +174,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "b104ebf0244e9a454f46645c5573c43290d56d472f6cda0d78dca502131d6f9b"
+      "project_sha256": "31de7a33615473ef9d655c6fb55bed3a1de7c043f4979e72cde64a337ebe99e2"
     },
     {
       "id": "asuinalue",
@@ -184,7 +184,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "3447e0b96ef25d37a6ad93c3680d6760ae76c900f7da00febf31d83812febe00"
+      "project_sha256": "1854e1cd83ce6ac4724a82e7c34712e0a24c2e4a0b46dbefadcc09722bdbe13a"
     },
     {
       "id": "tori",
@@ -194,7 +194,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "ab421b566bc78a25e6f3d4c4daade62d02ae1b437afc2d526347eb1a15267570"
+      "project_sha256": "e9392312c17fd97da3c3002b72c388be4e597455ed3a52a6ab9a4049d4297ade"
     },
     {
       "id": "lahikauppa",
@@ -204,7 +204,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "79e090148463df8aa29516c1b4f6f9407d82abc2ecc6d7e999715ab6a48aeb82"
+      "project_sha256": "220546f2aff7847ce2187e03d631d744bd5d5ce1bdb7ef108f6672530eeeef3a"
     },
     {
       "id": "huoltoasema",
@@ -214,7 +214,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "56b3835e69c7c0e2cc43fe04dcf494924a84938ef249d2e39b209196029ae80f"
+      "project_sha256": "50c98ae6cee784f207c6c67770c701f624a3b12c84e1612404fdb37020c9e811"
     },
     {
       "id": "puisto",
@@ -224,7 +224,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "70e4a9ff0e3940eb0922738155780cace0003a6cd9c5637b8ce2c3c4763b77f7"
+      "project_sha256": "41db155aabfed8cd6a76e21032b2fbb5b347e274938bd7c87b6bb466093f6499"
     },
     {
       "id": "katto",
@@ -234,7 +234,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "4ec836e97743bf669fb4d88c2a23ad61aa1708206c4fba51eb4eb3fcb6a60c65"
+      "project_sha256": "5e90ecc85789b5e81044090f272b880ce2c21a6e44b6d5dc471d26b88763759b"
     },
     {
       "id": "kuja",
@@ -244,7 +244,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "511bc425affef3d82aa79b584e0ed6937c0fe2a5fa0e27541f00407ef542c864"
+      "project_sha256": "5c81b4df0153e427f6ca82649c4fe1e55c428a92a3b9fe3def0c8cd16a6a5c65"
     },
     {
       "id": "metroasema",
@@ -254,7 +254,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "321bac3c62baf491d513f52f3730b031015d94276f633015822284e31f039b22"
+      "project_sha256": "ce38629eed13c6b605a632efe9aa3e94665603366130fa22120d740b8b3da70c"
     },
     {
       "id": "viikate",
@@ -264,7 +264,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "b81da93fb4cd5f84c43b1070ee759d38309be358c25085422d820465c0b0f162"
+      "project_sha256": "688278d06ef9dc1d0dbba4c07592ebfa7dc95c57371103338d9c67a23c6c8de9"
     },
     {
       "id": "kahvikuppi",
@@ -274,7 +274,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "0840ee644da0c50c1b3f0fa5cc06a2b85530b0647072eb2c3bf898ab0b3d4176"
+      "project_sha256": "1a3b2a1e47b1e284e36718eb2f76b3bbc05ff9f3c76ce7666da027ca60b39256"
     },
     {
       "id": "toimistotuoli",
@@ -284,7 +284,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "0fda90e078634faf0c0dedfd1db469502966e413d8636ad5105b08d38f152faf"
+      "project_sha256": "add8f9f36780801d523c393ebfed51feaf68c2cc2eab567ed8c975b78cf6d45a"
     },
     {
       "id": "tyopoyta",
@@ -294,7 +294,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "c9fab214c2e02180abeb3b093be0db3ae71da2cc232413074b06c32342da0d6d"
+      "project_sha256": "56558b2881502167f35244e5e549ca92241ea5761f8bfef2abfdb7e9429fe47f"
     },
     {
       "id": "kannettava",
@@ -304,7 +304,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "c5a971f3b6091954b214248809e3e8c2301495583ff848ec3bea2083d9098e5d"
+      "project_sha256": "6be85cf486ed54ed9f2853f1814854a499752ba25dc5e08b9cb70359dad9aff5"
     },
     {
       "id": "puhelin",
@@ -314,7 +314,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "932d02ce41ab617aa374b5f9654e025a673944a2e360280c21fe5b8847220e6a"
+      "project_sha256": "bf6daa031c63998c3f38f7b9ba79c4148f7a83c415eb61519d49d8daf576ba15"
     },
     {
       "id": "ajopaivakirja",
@@ -324,7 +324,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "224a72d82b1aa7c71d97a54b4467a18ae7759bf194cecfd3e7199f186c9931f2"
+      "project_sha256": "bf3086a4cd32a58df790d7859ffd666e1a477eb5a80b6b9ba5bbe87a773378bd"
     },
     {
       "id": "kello",
@@ -334,7 +334,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "344b513ddbef4d2056d803f70871ea151a71e956f89eebc5ecfc0597e1f05add"
+      "project_sha256": "1e9dfa31f2becaf0098703c1215f53cf1fc8c10ce71fd8984a4838565fafbf23"
     },
     {
       "id": "liikennemerkki",
@@ -344,7 +344,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "cb84998db66e760d114d5b9109c1a4c5d96c8b15db62181f7a32e4cf2928acce"
+      "project_sha256": "5b83ee2ab7bbb916f36eebde7bab5688cd626cafe88d5d468f9d54a9c678d46c"
     },
     {
       "id": "paketti",
@@ -354,7 +354,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "32858a10da61ba837704ecae19a9f94fa75e78c1712acdee1b82c5a83815f051"
+      "project_sha256": "3e2d19c4b56873be29b35a501389b55209f7f7284119ae45018d876f4150c961"
     },
     {
       "id": "tyokaluavain",
@@ -364,7 +364,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "f237faf7643c3c7733db2438fabb95b997a065c97ac6e2ba7bd636ac1713ea77"
+      "project_sha256": "763325ee74b0a2687f1b53543203d7d947b2b629faa2a6c9e23a86d9b6f6175f"
     },
     {
       "id": "sateenvarjo",
@@ -374,7 +374,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "2e9115502cf7aff1155458f6ba470048e84b0176a8378edd1d6e220935220aa7"
+      "project_sha256": "7067b2eb595b4a472c6ecee836691bd30d48dcf4ea0b09f616eb531d97479997"
     },
     {
       "id": "auto",
@@ -384,7 +384,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "257520fae05da322a661b7b984617d1aaa84ca7bc37521860098ac6548baf307"
+      "project_sha256": "103233837dfa17f133baa6ea999d453340ea67e164d0c4fee973621f43699372"
     },
     {
       "id": "vuoronumerolaite",
@@ -394,7 +394,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "f8381fd4e3bbf423f6165aba94c92b6858d4cf9935fd77573e041124d9db6e3a"
+      "project_sha256": "4ddcb17b125d2ffd4d2b10cb2397d0c114f4e89aeab16f343329d3792117caaf"
     },
     {
       "id": "henkiloauto",
@@ -404,7 +404,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "96f24b2a5c0ce8fde416954371bc23b7933fea5a56c19b7b2b5adf7ed2e424b1"
+      "project_sha256": "b95d14b7213a51069412007a7d5cae4b2f0e4eb6fbbf3b7ff6621c8eea68ea06"
     },
     {
       "id": "taksi",
@@ -414,7 +414,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "4b3524e850c5d19cb9b2f0bb84b2fd0c4bfb14d00a21b9072b75040348c991ce"
+      "project_sha256": "ba2aa747b29c99bc6779f9af41a1845bfe7afbc64c5de76b5c7eb4c2e3d358e0"
     },
     {
       "id": "poliisiauto",
@@ -424,7 +424,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "79f04590b93c7442c9dc46ced348ccf639f777399c34a11e836f8f9ab8b78ef0"
+      "project_sha256": "89b4b00ce6e6752cae3daaf4b2319385c9c5ac0f994abe431a09a242455999d6"
     },
     {
       "id": "pakettiauto",
@@ -434,7 +434,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "8aefcf6a8900ed1bc4b6a8305ecd88fdb3f7afb953f15db0ca679f864eea41f3"
+      "project_sha256": "6a638a0ab502ff2a9aec6ec1fdef5794717bd600d9e0497fb56cb29be2994f4b"
     },
     {
       "id": "ambulanssi",
@@ -444,7 +444,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "a0a081e4885f4b20d3f0beb20e183d7f227668eeaa00c20d3f4e6f3ef255d74c"
+      "project_sha256": "3131633b0625eee85ff759f1ef627f66080d556ca1d06785589c2697a94c2f5f"
     },
     {
       "id": "linja_auto",
@@ -454,7 +454,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "7696ce34646e7490607a2c6d4211661004615770d8cbe38b8e7ae96bc6acc8c2"
+      "project_sha256": "c5e44dc552c5142dbb2f67cd3d582705f3e8b08eeec0a120940678b00980b9d9"
     },
     {
       "id": "paloauto",
@@ -464,7 +464,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "fba148140024df0e2f6ea2e604a315d76f1981e3f6db864831a53fe90e81b3a6"
+      "project_sha256": "f3b7b9e09a60e9a27f0e8dba42d206995f9e1e8b51a57a82f63f565b030f5fb3"
     },
     {
       "id": "skootteri",
@@ -474,7 +474,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "1b09e1b3fc22b55a72c527e9bb336a6353f74b353fe5de6dfd91edc8e4775cd3"
+      "project_sha256": "9814246ac0b67d70720cde6d259cd6bcd6a00b5598b353accd44d5d340157191"
     },
     {
       "id": "liikennevalo",
@@ -484,7 +484,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "a8602c9977186b461026f8258b10b98be0ee3ffd0f691d7f91cc1cb329fb665c"
+      "project_sha256": "b7504cee93e518d6948b21e0a17b7b363f8b38096cad255c57df2124b4e8f04a"
     },
     {
       "id": "paloposti",
@@ -494,7 +494,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "7f56acfcbf4ec2980e6d4935c876444a8c936692ea2a2dc116f0aa64ce3597a0"
+      "project_sha256": "a4ef5d32591d81f74451e8c1eb5ae00bc65dd9285836ae245cc0945d412cd66e"
     },
     {
       "id": "pysakointimittari",
@@ -504,7 +504,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "3fac2cea2c5c76c758a0f9138e5b9a65c176d1f8a56601bc8f2450698edfe08b"
+      "project_sha256": "019891cc9b6be3d037516a17bb4f06b2c72635a21ddb4f843fa44ac0645d91f4"
     },
     {
       "id": "pankkiautomaatti",
@@ -514,7 +514,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "021ab5c297c03122a83dc27b29b7f16f961e10cc5c6fa3727ee9ff5a2ad979b1"
+      "project_sha256": "ba2f1464c9a7d3efdaad4ca89410162f20aa23b084d3ae2eeb7f4afdc9d484dc"
     },
     {
       "id": "juoma_automaatti",
@@ -524,7 +524,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "482d17f1393c9a81ad8e4cfd0624d2a4bfd6339018cacc4e8a2a66ab6b38c6e2"
+      "project_sha256": "9fe746420e4d96789c4efa0fc17732a33d5e3666ed71fbcbc03bd46c59a9f793"
     },
     {
       "id": "katupuu",
@@ -534,7 +534,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "51fcdb7c006a26f77b39f46ed570245321a28e9cad9bbb7f4e360f45afa4ad34"
+      "project_sha256": "48f9889bacb6375e77c1198743719888ff082f2c1122dc68c416c7de9b166f65"
     },
     {
       "id": "puistonpenkki",
@@ -544,7 +544,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "d645a655f52069fb39b18c514027704273b5e4534287908528db1d2d3ebe0481"
+      "project_sha256": "727791a14cdfd719f1733dc812e56d45d582b891e937f35276c4b2f1a6a7ec13"
     },
     {
       "id": "suojatiemerkki",
@@ -554,7 +554,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "bb00b196946632b811c7bd8900fce008824db9c3fd127b8d0947f460bdc79a9d"
+      "project_sha256": "3283f82136b48006e89c9efe264fd1d1aa3d42d7e0222b5af41a9391fcf256db"
     },
     {
       "id": "omakotitalo",
@@ -564,7 +564,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "76c74c309aa27fddbe56010788baddb9623742f050b70f5172a6d2256b75f9a5"
+      "project_sha256": "61060007dcd3c4dd04853870d3493757a0049062e76ee447cf6d4bcb2b4ff1a8"
     },
     {
       "id": "kerrostalo",
@@ -574,7 +574,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "a33a44ee877c2f2d289b8e6c27d85b8be2995c3f633ff1c3082df82e0da9f97d"
+      "project_sha256": "78aa155de1edb9e1fdd671337210ce672fac78a68d90366f7be1a05f08d4801c"
     },
     {
       "id": "kulmakauppa",
@@ -584,7 +584,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "67bacfd0685a58604b0726ccaa2129a1e0e9a61a8175e8bc59b353f0468785b6"
+      "project_sha256": "6384f9970254005da64405c6bd240af557795ea93515fce6f46f56e463096a07"
     },
     {
       "id": "pilvenpiirtaja",
@@ -594,7 +594,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "d98e5e2c7a15bd8668d0488d0bcb780dea725d560602a16b633254e1d1f32d1d"
+      "project_sha256": "a9f2199c8905b7190bdf8c9df2a94e36a9c544865c47d8706c84132a88456a13"
     },
     {
       "id": "polttoainemittari",
@@ -604,7 +604,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "f74842544c1e2b6cf5d57d9d4b0d6ec72d5e5759f757dc5cc539b4352a25e232"
+      "project_sha256": "c6781811518e7ea5aa3780c6a9673a5249d1338817101a1c20283a063c07b681"
     },
     {
       "id": "torikoju",
@@ -614,7 +614,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "9d7a401630579f76ccb97467b9e94f54046e530a4d42427ce607b1da62476077"
+      "project_sha256": "629a792eed3e63b7091651dc6888eaa379e3b198892fabe55eae901fb720986e"
     },
     {
       "id": "puhelin_takana",
@@ -624,7 +624,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "39c398167a79ab73180fa70389373f875f370edd57f4073d6fbf00423a716e39"
+      "project_sha256": "dd513b5e702e1397273193c97488a5f11a18d48bd18d11fe064166bb4500929d"
     },
     {
       "id": "puhelin_vino",
@@ -634,7 +634,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "6fb9537225f277f5e080ed7b1d1bab71645aa0a3e1bb1f0e5cd002c13317bc9d"
+      "project_sha256": "5f301b80810f65c2d8494d8ddc6a85edc181341c990b8b2b6b49900ab23e7174"
     },
     {
       "id": "kirja",
@@ -644,7 +644,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "93ac5a9fc1274f7306da8dde08ea857ec5491351be31668e7a14269d875b4e43"
+      "project_sha256": "dbe398eaab4d4b2a0e2edd5c007dbd99a7a6d5a444e2833b2cb96c3cff828456"
     },
     {
       "id": "avain",
@@ -654,7 +654,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "17ef1313e05599f341da75da305cfd95a15bb71932d6141bd0e6bc7aafb4dac4"
+      "project_sha256": "575c1b5dbd046fc610af13f36587fd5551869e6f9b6da9d33b14e118d1430fce"
     },
     {
       "id": "tabletti",
@@ -664,7 +664,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "b1e72e1fcaa10d23c9ee88f6d941ceedd7b8d46ef7426b372ce1983b5930868f"
+      "project_sha256": "c6aa66cbf2c72609d08c244d12baee853adf937da1447a9df53ec82a9cf0b09d"
     },
     {
       "id": "kyna",
@@ -674,7 +674,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "b47c286888369ff7bd0289bbe176cdf9e8f5638b78c41f8615bce80d8817e69c"
+      "project_sha256": "698d957beffd8ade2fd3c18cb319e6ad17a5d01a973068837cbf147ab781efc3"
     }
   ]
 }

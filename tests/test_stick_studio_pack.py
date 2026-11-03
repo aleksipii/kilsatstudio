@@ -59,7 +59,7 @@ def fixture(root):
 def rewrite_project(source, manifest, item, change):
     path = source/item['project']
     document = json.loads(path.read_text())
-    screenplay = json.loads(document['source'])
+    screenplay = packer.motion_source.loads(document['source'])
     change(document,screenplay)
     document['source'] = json.dumps(screenplay)
     write(path,document)
@@ -258,7 +258,7 @@ class StickPackTests(unittest.TestCase):
             original = json.loads(path.read_text())
             for change in ('duration','cast','profile'):
                 document = copy.deepcopy(original)
-                script = json.loads(document['source'])
+                script = packer.motion_source.loads(document['source'])
                 if change == 'duration': script['scenes'][0]['duration'] = 6
                 if change == 'cast': script['characters'].pop('0')
                 if change == 'profile': script['project']['fps'] = 30
