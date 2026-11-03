@@ -103,8 +103,25 @@ fn inside(root: &Path, relative: &str, directory: bool) -> Result<PathBuf, Strin
     Ok(joined)
 }
 
+/// The bundled Python runtime and Kokoro are arm64-only builds
+/// (`scripts/build_speech_bundle.py`); an Intel Mac cannot run them.
+fn require_apple_silicon(arch: &str) -> Result<(), String> {
+    if arch == "aarch64" {
+        return Ok(());
+    }
+    Err("Mukana tulevat puhemoottorit toimivat vain Apple Silicon -Maceissa (M1 tai uudempi). \
+         Tällä Macilla voit tuoda puheen äänitiedostona tai määrittää oman paikallisen puhemoottorin."
+        .into())
+}
+
 /// Resolve the bundle and write the Piper profile that points at it.
 pub fn load(root: &Path, data: &Path) -> Result<BundledSpeech, String> {
+    require_apple_silicon(std::env::consts::ARCH)?;
+    resolve(root, data)
+}
+
+/// Architecture-independent part of [`load`], so tests run on every host.
+fn resolve(root: &Path, data: &Path) -> Result<BundledSpeech, String> {
     let root = root
         .canonicalize()
         .map_err(|e| format!("Puhepaketti: {e}"))?;
@@ -242,7 +259,7 @@ mod tests {
         let (root, data) = (temp.path().join("speech"), temp.path().join("data"));
         fs::create_dir(&root).unwrap();
         bundle(&root);
-        let speech = load(&root, &data).unwrap();
+        let speech = resolve(&root, &data).unwrap();
         let root = root.canonicalize().unwrap();
         assert_eq!(speech.python, root.join("python/bin/python3.12"));
         assert_eq!(speech.kokoro_revision, "rev:abc");
@@ -258,7 +275,7 @@ mod tests {
             .unwrap()
             .modified()
             .unwrap();
-        load(&root, &data).unwrap();
+        resolve(&root, &data).unwrap();
         let after = fs::metadata(&speech.piper_profile)
             .unwrap()
             .modified()
@@ -275,7 +292,10 @@ mod tests {
         fs::write(temp.path().join("outside"), b"x").unwrap();
         for piper in ["../outside", "/bin/sh", "bin/missing", "bin"] {
             descriptor(&root, piper);
-            assert!(load(&root, &temp.path().join("data")).is_err(), "{piper}");
+            assert!(
+                resolve(&root, &temp.path().join("data")).is_err(),
+                "{piper}"
+            );
         }
     }
 
@@ -285,8 +305,15 @@ mod tests {
         let root = temp.path().join("x".repeat(150)).join("speech");
         fs::create_dir_all(&root).unwrap();
         bundle(&root);
-        let error = load(&root, &temp.path().join("data")).unwrap_err();
+        let error = resolve(&root, &temp.path().join("data")).unwrap_err();
         assert!(error.contains("Ohjelmat-kansioon"), "{error}");
+    }
+
+    #[test]
+    fn intel_macs_get_a_clear_error_instead_of_launching_arm64_engines() {
+        assert!(require_apple_silicon("aarch64").is_ok());
+        let error = require_apple_silicon("x86_64").unwrap_err();
+        assert!(error.contains("Apple Silicon") && error.contains("äänitiedostona"));
     }
 
     #[test]

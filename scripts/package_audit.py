@@ -176,7 +176,8 @@ def audit_package(archive, repo, commit, target, profile, speech_bundle=None):
         spec.loader.exec_module(layout)
         if not re.fullmatch(r'[0-9a-f]{40}', commit):
             raise ValueError('expected commit must be a full lowercase Git SHA')
-        arch = {'aarch64-apple-darwin': 'arm64', 'x86_64-apple-darwin': 'x86_64'}.get(target)
+        arch = {'aarch64-apple-darwin': 'arm64', 'x86_64-apple-darwin': 'x86_64',
+                'universal-apple-darwin': 'universal'}.get(target)
         if arch is None or profile not in ('debug', 'release'):
             raise ValueError('unsupported expected target/profile')
         _regular(archive)

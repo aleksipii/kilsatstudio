@@ -180,7 +180,7 @@ def main():
                         help='Directory built by scripts/build_speech_bundle.py to ship inside the app')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--commit', required=True)
-    parser.add_argument('--arch', choices=['arm64', 'x86_64'], required=True)
+    parser.add_argument('--arch', choices=['arm64', 'x86_64', 'universal'], required=True)
     parser.add_argument('--profile', choices=['debug', 'release'], default='debug')
     args = parser.parse_args()
     if sys.platform != 'darwin':
