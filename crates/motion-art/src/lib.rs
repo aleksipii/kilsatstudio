@@ -1,5 +1,7 @@
 //! Persisted scene artwork and bounded raster resources shared by preview/export.
 mod lighting;
+mod time_of_day;
+pub use time_of_day::{scene_time_of_day, with_time_of_day, TimeOfDay, TIMES_OF_DAY};
 mod resource;
 pub mod style;
 pub use lighting::*;

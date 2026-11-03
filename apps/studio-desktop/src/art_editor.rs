@@ -701,6 +701,10 @@ fn compositing_controls(ui: &mut egui::Ui, layer: &mut Layer, duration: f64, ima
 
 impl Editor {
     /// Increments only when document content changes, including history restoration.
+    /// Mark the artwork changed for previews without recording a transaction.
+    pub fn touch(&mut self) {
+        self.revision = self.revision.wrapping_add(1);
+    }
     pub fn revision(&self) -> u64 {
         self.revision
     }

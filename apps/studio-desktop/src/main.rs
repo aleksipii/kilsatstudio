@@ -44,6 +44,7 @@ mod screen_cues;
 mod screen_video_worker;
 mod sequence_panel;
 mod sequence_worker;
+mod set_dressing;
 mod shot_board;
 mod stick_studio;
 mod story_import;
@@ -199,6 +200,8 @@ struct Studio {
     shot_board: shot_board::ShotBoard,
     /// Onion-skin settings; UI state only.
     onion_skin: onion_skin::OnionSkin,
+    /// Set dressing and time-of-day panel; UI state only.
+    set_dressing: set_dressing::SetDressing,
     sequence_revision: u64,
     document_revision: u64,
     sequence_images: Option<Arc<std::collections::BTreeMap<String, motion_art::ImageResource>>>,
@@ -384,6 +387,7 @@ impl Default for Studio {
             sequence_panel: Default::default(),
             shot_board: Default::default(),
             onion_skin: Default::default(),
+            set_dressing: Default::default(),
             sequence_revision: 0,
             document_revision: 0,
             sequence_images: None,
@@ -3190,13 +3194,41 @@ impl Studio {
                 self.preview_character_drag(&mut evaluated, ui.ctx());
                 self.character_canvas_ui(ui, rect, &evaluated, enabled);
             } else if let Some(document) = &mut self.project_document {
+                let sense = if self.set_dressing.active {
+                    egui::Sense::click_and_drag()
+                } else {
+                    egui::Sense::drag()
+                };
                 let response = ui
                     .add_enabled_ui(enabled, |ui| {
-                        ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
+                        ui.interact(rect, ui.id().with("art-canvas"), sense)
                     })
                     .inner;
-                self.art_editor
-                    .gesture(&response, rect, &evaluated, &scene_id, &mut document.art);
+                if self.set_dressing.active {
+                    self.set_dressing.gesture(
+                        &response,
+                        rect,
+                        &evaluated,
+                        &scene_id,
+                        &mut document.art,
+                        &mut self.art_editor,
+                    );
+                } else {
+                    self.art_editor.gesture(
+                        &response,
+                        rect,
+                        &evaluated,
+                        &scene_id,
+                        &mut document.art,
+                    );
+                }
+                self.set_dressing.paint(
+                    &ui.painter_at(rect),
+                    rect,
+                    &evaluated,
+                    &document.art,
+                    &scene_id,
+                );
             }
         }
         self.record_art_transaction();
@@ -3289,17 +3321,40 @@ impl Studio {
                         self.character_canvas_ui(ui, rect, &scene, enabled);
                     } else if let Some(document) = &mut self.project_document {
                         let enabled = !self.busy && !self.diagnostics_busy && !self.export_busy;
+                        let sense = if self.set_dressing.active {
+                            egui::Sense::click_and_drag()
+                        } else {
+                            egui::Sense::drag()
+                        };
                         let response = ui
                             .add_enabled_ui(enabled, |ui| {
-                                ui.interact(rect, ui.id().with("art-canvas"), egui::Sense::drag())
+                                ui.interact(rect, ui.id().with("art-canvas"), sense)
                             })
                             .inner;
-                        self.art_editor.gesture(
-                            &response,
+                        if self.set_dressing.active {
+                            self.set_dressing.gesture(
+                                &response,
+                                rect,
+                                &scene,
+                                scene_id,
+                                &mut document.art,
+                                &mut self.art_editor,
+                            );
+                        } else {
+                            self.art_editor.gesture(
+                                &response,
+                                rect,
+                                &scene,
+                                scene_id,
+                                &mut document.art,
+                            );
+                        }
+                        self.set_dressing.paint(
+                            &ui.painter_at(rect),
                             rect,
                             &scene,
+                            &document.art,
                             scene_id,
-                            &mut document.art,
                         );
                     }
                 }
@@ -4790,6 +4845,14 @@ impl Studio {
             ui.add_enabled_ui(
                 !self.busy && !self.diagnostics_busy && !self.export_busy,
                 |ui| {
+                    self.set_dressing.ui(
+                        ui,
+                        &mut document.art,
+                        &scene.id,
+                        script.project.width,
+                        script.project.height,
+                        &mut self.art_editor,
+                    );
                     self.art_editor.ui(
                         ui,
                         &mut document.art,

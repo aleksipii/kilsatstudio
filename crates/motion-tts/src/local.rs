@@ -434,10 +434,14 @@ impl PiperProvider {
     }
 }
 
+/// Resample native-rate speech to 24 kHz. `pitch_permille` above 1000 plays
+/// the native samples faster (higher pitch and formants, shorter), below 1000
+/// slower; 1000 is a plain rate conversion.
 fn resample_wav(
     input: &Path,
     output: &Path,
     native_rate: u32,
+    pitch_permille: u32,
     cancel: &CancellationToken,
 ) -> Result<(), SpeechError> {
     regular(input, MAX_AUDIO_BYTES, "Piper output")?;
@@ -466,8 +470,10 @@ fn resample_wav(
     if samples.len() as u64 != count {
         return Err(SpeechError("native speech WAV is truncated".into()));
     }
-    let total =
-        (u128::from(count) * 24_000 + u128::from(native_rate) / 2) / u128::from(native_rate);
+    // Effective source rate = native_rate * pitch_permille / 1000.
+    let source = u128::from(native_rate) * u128::from(pitch_permille.max(1));
+    let target = 24_000u128 * 1000;
+    let total = (u128::from(count) * target + source / 2) / source;
     if total == 0 || total > u128::from(MAX_OUTPUT_SAMPLES) {
         return Err(SpeechError(
             "resampled speech exceeds five-minute work budget".into(),
@@ -487,9 +493,9 @@ fn resample_wav(
         if i % 16_384 == 0 {
             cancel.check()?;
         }
-        let numerator = i * u64::from(native_rate);
-        let at = (numerator / 24_000) as usize;
-        let fraction = (numerator % 24_000) as f64 / 24_000.0;
+        let numerator = u128::from(i) * source;
+        let at = (numerator / target) as usize;
+        let fraction = (numerator % target) as f64 / target as f64;
         let left = f64::from(samples[at.min(samples.len() - 1)]);
         let right = f64::from(samples[(at + 1).min(samples.len() - 1)]);
         let sample = (left + (right - left) * fraction)
@@ -514,7 +520,18 @@ impl SpeechProvider for PiperProvider {
     ) -> Result<SpeechResult, SpeechError> {
         request.validate()?;
         cancel.check()?;
-        if request.voice.language != "fi-fi" || request.voice.preset != self.config.preset {
+        // The configured speaker, or a character voice derived from it.
+        let pitch = match crate::finnish_voice(&request.voice.preset) {
+            Some(voice) if voice.base == self.config.preset => voice.pitch_permille,
+            None if request.voice.preset == self.config.preset => 1000,
+            _ => {
+                return Err(SpeechError(format!(
+                    "Piper voice {} is not the configured Finnish speaker {} or a voice derived from it",
+                    request.voice.preset, self.config.preset
+                )))
+            }
+        };
+        if request.voice.language != "fi-fi" {
             return Err(SpeechError(
                 "Piper request must match configured Finnish preset".into(),
             ));
@@ -537,7 +554,13 @@ impl SpeechProvider for PiperProvider {
             .arg("--output_file")
             .arg(&native)
             .arg("--length_scale")
-            .arg((1.0 / request.voice.speed).to_string())
+            // Synthesized longer (or shorter) by the pitch factor, then played
+            // back faster (or slower) by it: same duration, shifted pitch.
+            .arg(if pitch == 1000 {
+                (1.0 / request.voice.speed).to_string()
+            } else {
+                (pitch as f32 / 1000.0 / request.voice.speed).to_string()
+            })
             .stdin(Stdio::from(fs::File::open(text)?))
             .env_remove("PYTHONPATH")
             .env_remove("PYTHONHOME")
@@ -555,13 +578,14 @@ impl SpeechProvider for PiperProvider {
                 "Piper assets changed during synthesis; output discarded".into(),
             ));
         }
-        resample_wav(&native, &output, before.native_sample_rate, cancel)?;
+        resample_wav(&native, &output, before.native_sample_rate, pitch, cancel)?;
         let request_key = format!(
             "{:x}",
             Sha256::digest(serde_json::to_vec(&(
                 "piper-local-v1",
                 &request,
                 &before,
+                pitch,
                 std::env::consts::OS,
                 std::env::consts::ARCH
             ))?)
@@ -809,7 +833,59 @@ with wave.open(a.output_file,'wb') as out:
             data[40..44].copy_from_slice(&4000u32.to_le_bytes());
             data[4..8].copy_from_slice(&4036u32.to_le_bytes());
             fs::write(&input, data).unwrap();
-            assert!(resample_wav(&input, &output, 22050, &CancellationToken::new()).is_err());
+            assert!(resample_wav(&input, &output, 22050, 1000, &CancellationToken::new()).is_err());
         }
+    }
+
+    #[test]
+    fn pitch_resampling_shifts_frequency_and_keeps_the_synthesized_length_ratio() {
+        let dir = std::env::temp_dir().join(format!("kilsat-pitch-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let input = dir.join("native.wav");
+        let native = 22_050u32;
+        let mut writer = hound::WavWriter::create(
+            &input,
+            hound::WavSpec {
+                channels: 1,
+                sample_rate: native,
+                bits_per_sample: 16,
+                sample_format: hound::SampleFormat::Int,
+            },
+        )
+        .unwrap();
+        let count = native as usize; // one second of 220 Hz
+        for i in 0..count {
+            let t = i as f64 / f64::from(native);
+            writer
+                .write_sample((8000.0 * (std::f64::consts::TAU * 220.0 * t).sin()) as i16)
+                .unwrap();
+        }
+        writer.finalize().unwrap();
+        // Zero crossings per second of the output estimate its frequency.
+        let measure = |pitch: u32| {
+            let output = dir.join(format!("out-{pitch}.wav"));
+            resample_wav(&input, &output, native, pitch, &CancellationToken::new()).unwrap();
+            let samples: Vec<i16> = hound::WavReader::open(&output)
+                .unwrap()
+                .samples::<i16>()
+                .map(Result::unwrap)
+                .collect();
+            let crossings = samples
+                .windows(2)
+                .filter(|w| (w[0] < 0) != (w[1] < 0))
+                .count() as f64;
+            let seconds = samples.len() as f64 / 24_000.0;
+            (crossings / 2.0 / seconds, samples.len())
+        };
+        let (base, base_len) = measure(1000);
+        let (high, high_len) = measure(1189);
+        let (low, _) = measure(749);
+        assert!((base - 220.0).abs() < 2.0, "{base}");
+        assert!((high - 220.0 * 1.189).abs() < 3.0, "{high}");
+        assert!((low - 220.0 * 0.749).abs() < 3.0, "{low}");
+        // Played faster by the factor: shorter by it (Piper compensates with
+        // a longer length_scale, so speech keeps its duration).
+        assert!(((base_len as f64 / high_len as f64) - 1.189).abs() < 0.002);
+        fs::remove_dir_all(dir).unwrap();
     }
 }

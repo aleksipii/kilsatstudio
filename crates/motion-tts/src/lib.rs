@@ -1,5 +1,7 @@
 //! Blocking provider boundary. Call on a worker, never on the desktop event loop.
+pub mod finnish_voices;
 mod local;
+pub use finnish_voices::{finnish_voice, FinnishVoice, FINNISH_VOICES};
 pub use local::{
     installed_system_voices, LocalSpeechProvider, PiperConfig, PiperProvenance, PiperProvider,
     SystemSpeechProvider, SystemVoice,
