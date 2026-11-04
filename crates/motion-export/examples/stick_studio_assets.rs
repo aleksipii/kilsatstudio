@@ -454,7 +454,7 @@ mod tests {
         {
             let project =
                 motion_project::decode(&fs::read(root.join(&item.project)).unwrap()).unwrap();
-            let original: serde_json::Value = serde_json::from_str(&project.source).unwrap();
+            let original: serde_json::Value = serde_yaml::from_str(&project.source).unwrap();
             let actor_id = original["characters"]
                 .as_object()
                 .unwrap()
@@ -515,7 +515,7 @@ mod tests {
         use std::sync::Arc;
         let project =
             motion_project::decode(&fs::read(pack().join("stick-studio.kilsat")).unwrap()).unwrap();
-        let original: serde_json::Value = serde_json::from_str(&project.source).unwrap();
+        let original: serde_json::Value = serde_yaml::from_str(&project.source).unwrap();
         for (torso, shoulder, elbow, wrist, root_rotation, sx, sy, cx, cy, zoom) in [
             (0.0, 0.0, 0.0, 0.0, 0.0_f64, 1.0, 1.0, 0.0, 0.0, 1.0),
             (
