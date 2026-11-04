@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.family.onni_v1",
+  "kind": "character",
+  "name": "Onni",
+  "bounds": {
+    "x": -62,
+    "y": -183,
+    "width": 108,
+    "height": 267
+  },
+  "depth": "mid",
+  "tags": [
+    "kirja",
+    "book",
+    "koulu",
+    "school",
+    "lapsi",
+    "child",
+    "family",
+    "slim",
+    "nervous",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/onni.kilsat",
+    "sha256": "52a321a4c213ba85378d2ad2e46ef02247fda9f6ab8ee85323cc4cd1c3862902"
+  },
+  "character": {
+    "id": "ONNI",
+    "role": "Kirjatoukka / Bookworm",
+    "age": "child",
+    "build": "slim",
+    "acting": "nervous",
+    "height": 257.5
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "id": "prop.camping.lantern_v1",
+  "kind": "prop",
+  "name": "Lyhty",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 50,
+    "height": 90
+  },
+  "depth": "mid",
+  "tags": [
+    "lyhty",
+    "lantern",
+    "valo",
+    "light",
+    "retki",
+    "camping",
+    "ilta",
+    "evening",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "glass_clear": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 150
+    },
+    "light": {
+      "r": 246,
+      "g": 228,
+      "b": 168,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "bail",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 22
+            },
+            {
+              "x": 25,
+              "y": 4
+            },
+            {
+              "x": 38,
+              "y": 22
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "top",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 18,
+            "width": 34,
+            "height": 10
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 18
+            },
+            {
+              "x": 42,
+              "y": 18
+            },
+            {
+              "x": 42,
+              "y": 28
+            },
+            {
+              "x": 8,
+              "y": 28
+            },
+            {
+              "x": 8,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "glow",
+        "paint": "light",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 13,
+            "y": 34,
+            "width": 24,
+            "height": 36
+          },
+          "color": {
+            "r": 246,
+            "g": 228,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "glass",
+        "paint": "glass_clear",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 28,
+            "width": 30,
+            "height": 46
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "glass_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 28
+            },
+            {
+              "x": 40,
+              "y": 28
+            },
+            {
+              "x": 40,
+              "y": 74
+            },
+            {
+              "x": 10,
+              "y": 74
+            },
+            {
+              "x": 10,
+              "y": 28
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "base",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 74,
+            "width": 38,
+            "height": 14.5
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 74
+            },
+            {
+              "x": 44,
+              "y": 74
+            },
+            {
+              "x": 44,
+              "y": 88.5
+            },
+            {
+              "x": 6,
+              "y": 88.5
+            },
+            {
+              "x": 6,
+              "y": 74
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 25,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 90
+      },
+      "width": 50
+    }
+  ]
+}

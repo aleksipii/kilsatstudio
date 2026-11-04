@@ -1,0 +1,703 @@
+{
+  "schema_version": 1,
+  "id": "prop.music.upright_piano_v1",
+  "kind": "prop",
+  "name": "Piano",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 300,
+    "height": 260
+  },
+  "depth": "mid",
+  "tags": [
+    "piano",
+    "soitin",
+    "instrument",
+    "musiikki",
+    "music",
+    "olohuone",
+    "living_room"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "brass": {
+      "r": 204,
+      "g": 170,
+      "b": 92,
+      "a": 255
+    },
+    "ivory": {
+      "r": 240,
+      "g": 236,
+      "b": 222,
+      "a": 255
+    },
+    "key_black": {
+      "r": 44,
+      "g": 46,
+      "b": 50,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "case",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 6,
+            "width": 284,
+            "height": 150
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "case_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 6
+            },
+            {
+              "x": 292,
+              "y": 6
+            },
+            {
+              "x": 292,
+              "y": 156
+            },
+            {
+              "x": 8,
+              "y": 156
+            },
+            {
+              "x": 8,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "lid",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 292,
+            "height": 12
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lid_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 296,
+              "y": 4
+            },
+            {
+              "x": 296,
+              "y": 16
+            },
+            {
+              "x": 4,
+              "y": 16
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "music_stand",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 90,
+            "y": 40,
+            "width": 120,
+            "height": 40
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "music_stand_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 90,
+              "y": 40
+            },
+            {
+              "x": 210,
+              "y": 40
+            },
+            {
+              "x": 210,
+              "y": 80
+            },
+            {
+              "x": 90,
+              "y": 80
+            },
+            {
+              "x": 90,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "keybed",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 150,
+            "width": 292,
+            "height": 30
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "keybed_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 150
+            },
+            {
+              "x": 296,
+              "y": 150
+            },
+            {
+              "x": 296,
+              "y": 180
+            },
+            {
+              "x": 4,
+              "y": 180
+            },
+            {
+              "x": 4,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "keys",
+        "paint": "ivory",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 150,
+            "width": 272,
+            "height": 18
+          },
+          "color": {
+            "r": 240,
+            "g": 236,
+            "b": 222,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "keys_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 150
+            },
+            {
+              "x": 286,
+              "y": 150
+            },
+            {
+              "x": 286,
+              "y": 168
+            },
+            {
+              "x": 14,
+              "y": 168
+            },
+            {
+              "x": 14,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "black_0",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 26,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_1",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 41.5,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_3",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72.5,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_4",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 88,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_5",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 103.5,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_7",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 134.5,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_8",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 150,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_10",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 181,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_11",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 196.5,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_12",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 212,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_14",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 243,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "black_15",
+        "paint": "key_black",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 258.5,
+            "y": 150,
+            "width": 8,
+            "height": 10
+          },
+          "color": {
+            "r": 44,
+            "g": 46,
+            "b": 50,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lower",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 16,
+            "y": 180,
+            "width": 268,
+            "height": 78.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lower_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 180
+            },
+            {
+              "x": 284,
+              "y": 180
+            },
+            {
+              "x": 284,
+              "y": 258.5
+            },
+            {
+              "x": 16,
+              "y": 258.5
+            },
+            {
+              "x": 16,
+              "y": 180
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "pedal_board",
+        "paint": "brass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120,
+            "y": 238,
+            "width": 60,
+            "height": 8
+          },
+          "color": {
+            "r": 204,
+            "g": 170,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pedal_board_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 120,
+              "y": 238
+            },
+            {
+              "x": 180,
+              "y": 238
+            },
+            {
+              "x": 180,
+              "y": 246
+            },
+            {
+              "x": 120,
+              "y": 246
+            },
+            {
+              "x": 120,
+              "y": 238
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "keys",
+      "at": {
+        "x": 150,
+        "y": 180
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 260
+      },
+      "width": 300
+    }
+  ]
+}

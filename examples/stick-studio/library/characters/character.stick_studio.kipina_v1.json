@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.stick_studio.kipina_v1",
+  "kind": "character",
+  "name": "Kipinä",
+  "bounds": {
+    "x": -49,
+    "y": -259,
+    "width": 98,
+    "height": 403
+  },
+  "depth": "mid",
+  "tags": [
+    "keksijä",
+    "inventor",
+    "korjaaja",
+    "fixer",
+    "aikuinen",
+    "adult",
+    "stick_studio",
+    "average",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "characters/kipina.kilsat",
+    "sha256": "a868fa8c7681ab803b7faafd5e8508a2bfdc0c0dc3e9b3dbc3e1f72a0abe1349"
+  },
+  "character": {
+    "id": "KIPINA",
+    "role": "Utelias keksijä ja korjaaja / Curious inventor",
+    "age": "adult",
+    "build": "average",
+    "acting": "lively",
+    "height": 378.8
+  }
+}

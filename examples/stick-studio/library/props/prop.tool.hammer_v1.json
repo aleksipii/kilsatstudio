@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "id": "prop.tool.hammer_v1",
+  "kind": "prop",
+  "name": "Vasara",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 60,
+    "height": 110
+  },
+  "depth": "mid",
+  "tags": [
+    "vasara",
+    "hammer",
+    "työkalu",
+    "tool",
+    "rakentaminen",
+    "building",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "handle",
+        "paint": "wood",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 20
+            },
+            {
+              "x": 30,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "head",
+        "paint": "metal_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 6,
+            "width": 48,
+            "height": 16
+          },
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "head_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 6
+            },
+            {
+              "x": 54,
+              "y": 6
+            },
+            {
+              "x": 54,
+              "y": 22
+            },
+            {
+              "x": 6,
+              "y": 22
+            },
+            {
+              "x": 6,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 30,
+        "y": 80
+      }
+    }
+  ]
+}

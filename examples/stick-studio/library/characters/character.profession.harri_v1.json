@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.harri_v1",
+  "kind": "character",
+  "name": "Liikemies Harri",
+  "bounds": {
+    "x": -50,
+    "y": -253,
+    "width": 126,
+    "height": 402
+  },
+  "depth": "mid",
+  "tags": [
+    "toimisto",
+    "office",
+    "liike",
+    "business",
+    "aikuinen",
+    "adult",
+    "profession",
+    "average",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/harri.kilsat",
+    "sha256": "e08b908d22474d50a0bddfc5e74a5cd5344f3d003982129848ed56c722d46e4c"
+  },
+  "character": {
+    "id": "HARRI",
+    "role": "Kiireinen liikemies / Busy businessman",
+    "age": "adult",
+    "build": "average",
+    "acting": "proud",
+    "height": 391.9
+  }
+}

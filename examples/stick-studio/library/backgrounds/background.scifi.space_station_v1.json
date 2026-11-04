@@ -1,0 +1,1102 @@
+{
+  "schema_version": 1,
+  "id": "background.scifi.space_station_v1",
+  "kind": "background",
+  "name": "Avaruusasema",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "scifi",
+    "space",
+    "avaruus",
+    "station",
+    "asema",
+    "future",
+    "tulevaisuus"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "wall",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 206,
+            "g": 212,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 120.0
+          },
+          "color": {
+            "r": 180,
+            "g": 188,
+            "b": 196,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 540.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1020.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1260.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1500.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ceiling_light_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1740.0,
+            "y": 100.0,
+            "width": 160.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 236,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 600.0,
+            "y": 190.0,
+            "width": 720.0,
+            "height": 420.0
+          },
+          "color": {
+            "r": 150,
+            "g": 160,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "planet",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 980.0,
+            "y": 320.0,
+            "width": 240.0,
+            "height": 240.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "planet_ring",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 910.0,
+            "y": 416.0,
+            "width": 380.0,
+            "height": 48.0
+          },
+          "color": {
+            "r": 210,
+            "g": 196,
+            "b": 176,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 677.0,
+            "y": 257.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 834.0,
+            "y": 354.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 991.0,
+            "y": 451.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1148.0,
+            "y": 268.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_4",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 745.0,
+            "y": 365.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_5",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 902.0,
+            "y": 462.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_6",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1059.0,
+            "y": 279.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_7",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1216.0,
+            "y": 376.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_8",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 813.0,
+            "y": 473.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_9",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 970.0,
+            "y": 290.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_10",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1127.0,
+            "y": 387.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_11",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 724.0,
+            "y": 484.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_12",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 881.0,
+            "y": 301.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "star_13",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1038.0,
+            "y": 398.0,
+            "width": 6.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 230,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_frame_top",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 600.0,
+            "y": 182.0,
+            "width": 720.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 150,
+            "g": 160,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "window_frame_bottom",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 600.0,
+            "y": 604.0,
+            "width": 720.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 150,
+            "g": 160,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 140.0,
+            "y": 260.0,
+            "width": 180.0,
+            "height": 300.0
+          },
+          "color": {
+            "r": 186,
+            "g": 194,
+            "b": 202,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_screen_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160.0,
+            "y": 290.0,
+            "width": 140.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 120,
+            "g": 160,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_button_0_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 168.0,
+            "y": 418.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 200,
+            "g": 120,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_button_0_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 218.0,
+            "y": 418.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 220,
+            "g": 196,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_button_0_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 268.0,
+            "y": 418.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 140,
+            "g": 180,
+            "b": 130,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1600.0,
+            "y": 260.0,
+            "width": 180.0,
+            "height": 300.0
+          },
+          "color": {
+            "r": 186,
+            "g": 194,
+            "b": 202,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_screen_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1620.0,
+            "y": 290.0,
+            "width": 140.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 120,
+            "g": 160,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_button_1_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1628.0,
+            "y": 418.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 200,
+            "g": 120,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_button_1_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1678.0,
+            "y": 418.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 220,
+            "g": 196,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "panel_button_1_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1728.0,
+            "y": 418.0,
+            "width": 24.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 140,
+            "g": 180,
+            "b": 130,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1380.0,
+            "y": 360.0,
+            "width": 160.0,
+            "height": 440.0
+          },
+          "color": {
+            "r": 176,
+            "g": 186,
+            "b": 196,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_seam",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1460.0,
+              "y": 360.0
+            },
+            {
+              "x": 1460.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 150,
+            "b": 160,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "floor",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 800.0,
+            "width": 1920.0,
+            "height": 280.0
+          },
+          "color": {
+            "r": 190,
+            "g": 196,
+            "b": 202,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "floor_seam_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 0.0,
+              "y": 800.0
+            },
+            {
+              "x": -60.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 240.0,
+              "y": 800.0
+            },
+            {
+              "x": 180.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 480.0,
+              "y": 800.0
+            },
+            {
+              "x": 420.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 720.0,
+              "y": 800.0
+            },
+            {
+              "x": 660.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 800.0
+            },
+            {
+              "x": 900.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1200.0,
+              "y": 800.0
+            },
+            {
+              "x": 1140.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_6",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1440.0,
+              "y": 800.0
+            },
+            {
+              "x": 1380.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_7",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1680.0,
+              "y": 800.0
+            },
+            {
+              "x": 1620.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "floor_seam_8",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1920.0,
+              "y": 800.0
+            },
+            {
+              "x": 1860.0,
+              "y": 1080.0
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 176,
+            "b": 184,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "doorway",
+      "id": "door",
+      "rect": {
+        "x": 1380.0,
+        "y": 360.0,
+        "width": 160.0,
+        "height": 440.0
+      }
+    },
+    {
+      "type": "screen",
+      "id": "console_left",
+      "rect": {
+        "x": 160.0,
+        "y": 290.0,
+        "width": 140.0,
+        "height": 90.0
+      }
+    },
+    {
+      "type": "screen",
+      "id": "console_right",
+      "rect": {
+        "x": 1620.0,
+        "y": 290.0,
+        "width": 140.0,
+        "height": 90.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "window",
+      "at": {
+        "x": 960.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

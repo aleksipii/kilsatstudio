@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.helmi_v1",
+  "kind": "character",
+  "name": "Tohtori Helmi",
+  "bounds": {
+    "x": -47,
+    "y": -244,
+    "width": 103,
+    "height": 388
+  },
+  "depth": "mid",
+  "tags": [
+    "lääkäri",
+    "doctor",
+    "sairaala",
+    "hospital",
+    "terveys",
+    "health",
+    "aikuinen",
+    "adult",
+    "profession",
+    "slim",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/helmi.kilsat",
+    "sha256": "606e4f7a052d3df4bee1c0c8205d01140f88dd7ecc2c974e383a3bd8a86ba9c4"
+  },
+  "character": {
+    "id": "HELMI",
+    "role": "Rauhallinen lääkäri / Calm doctor",
+    "age": "adult",
+    "build": "slim",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

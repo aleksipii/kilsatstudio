@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "character.family.aava_v1",
+  "kind": "character",
+  "name": "Aava",
+  "bounds": {
+    "x": -65,
+    "y": -183,
+    "width": 130,
+    "height": 267
+  },
+  "depth": "mid",
+  "tags": [
+    "koulu",
+    "school",
+    "lapsi",
+    "child",
+    "family",
+    "average",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/aava.kilsat",
+    "sha256": "813ce37b1ef32e5a5e3dd5161fccad3e35e30c1b8daf4ccff4d9b2de77f73e92"
+  },
+  "character": {
+    "id": "AAVA",
+    "role": "Utelias koululainen / Curious schoolgirl",
+    "age": "child",
+    "build": "average",
+    "acting": "lively",
+    "height": 257.5
+  }
+}

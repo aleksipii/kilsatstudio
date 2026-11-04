@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "location.outdoor.playground_v1",
+  "kind": "location",
+  "name": "Leikkipuisto",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "playground",
+    "leikkipuisto",
+    "children",
+    "lapset"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.outdoor.playground_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "ball",
+      "asset": "prop.sport.football_v1",
+      "at": {
+        "x": 1158.0,
+        "y": 907.0
+      }
+    }
+  ]
+}

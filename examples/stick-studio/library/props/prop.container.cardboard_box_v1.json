@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "id": "prop.container.cardboard_box_v1",
+  "kind": "prop",
+  "name": "Pahvilaatikko",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 110,
+    "height": 90
+  },
+  "depth": "mid",
+  "tags": [
+    "laatikko",
+    "box",
+    "pahvi",
+    "cardboard",
+    "muutto",
+    "moving",
+    "varasto",
+    "storage"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "cardboard": {
+      "r": 196,
+      "g": 160,
+      "b": 114,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "box",
+        "paint": "cardboard",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 14,
+            "width": 98,
+            "height": 74.5
+          },
+          "color": {
+            "r": 196,
+            "g": 160,
+            "b": 114,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "box_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 14
+            },
+            {
+              "x": 104,
+              "y": 14
+            },
+            {
+              "x": 104,
+              "y": 88.5
+            },
+            {
+              "x": 6,
+              "y": 88.5
+            },
+            {
+              "x": 6,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "flap_left",
+        "paint": "cardboard",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 4,
+            "width": 46,
+            "height": 12
+          },
+          "color": {
+            "r": 196,
+            "g": 160,
+            "b": 114,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flap_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 4
+            },
+            {
+              "x": 52,
+              "y": 4
+            },
+            {
+              "x": 52,
+              "y": 16
+            },
+            {
+              "x": 6,
+              "y": 16
+            },
+            {
+              "x": 6,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "flap_right",
+        "paint": "cardboard",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 58,
+            "y": 4,
+            "width": 46,
+            "height": 12
+          },
+          "color": {
+            "r": 196,
+            "g": 160,
+            "b": 114,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flap_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58,
+              "y": 4
+            },
+            {
+              "x": 104,
+              "y": 4
+            },
+            {
+              "x": 104,
+              "y": 16
+            },
+            {
+              "x": 58,
+              "y": 16
+            },
+            {
+              "x": 58,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "tape",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 48,
+            "y": 14,
+            "width": 14,
+            "height": 30
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "surface",
+      "at": {
+        "x": 55,
+        "y": 14
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 90
+      },
+      "width": 110
+    }
+  ]
+}

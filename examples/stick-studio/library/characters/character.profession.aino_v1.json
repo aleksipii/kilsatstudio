@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.aino_v1",
+  "kind": "character",
+  "name": "Opettaja Aino",
+  "bounds": {
+    "x": -78,
+    "y": -245,
+    "width": 136,
+    "height": 389
+  },
+  "depth": "mid",
+  "tags": [
+    "opettaja",
+    "teacher",
+    "koulu",
+    "school",
+    "aikuinen",
+    "adult",
+    "profession",
+    "average",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/aino.kilsat",
+    "sha256": "3935a56d3d0576602326766647a0dd37874c6039e4fad9d9737c90589bc2463a"
+  },
+  "character": {
+    "id": "AINO",
+    "role": "Kärsivällinen opettaja / Patient teacher",
+    "age": "adult",
+    "build": "average",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

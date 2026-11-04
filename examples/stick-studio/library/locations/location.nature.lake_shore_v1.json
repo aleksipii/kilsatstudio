@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.lake_shore_v1",
+  "kind": "location",
+  "name": "Järvenranta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "lake",
+    "järvi",
+    "summer",
+    "kesä"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.lake_shore_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "boat",
+      "asset": "prop.vehicle.rowboat_v1",
+      "at": {
+        "x": 460.0,
+        "y": 861.5
+      }
+    },
+    {
+      "instance": "fire",
+      "asset": "prop.camping.campfire_v1",
+      "at": {
+        "x": 930.0,
+        "y": 852.0
+      }
+    },
+    {
+      "instance": "log",
+      "asset": "prop.nature.log_v1",
+      "at": {
+        "x": 1090.0,
+        "y": 890.0
+      }
+    }
+  ]
+}

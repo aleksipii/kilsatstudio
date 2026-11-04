@@ -1,0 +1,2584 @@
+{
+  "schema_version": 1,
+  "id": "background.fantasy.castle_courtyard_v1",
+  "kind": "background",
+  "name": "Linnan piha",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "fantasy",
+    "fantasia",
+    "castle",
+    "linna",
+    "medieval",
+    "keskiaika"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 204,
+            "g": 214,
+            "b": 222,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wall",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 380.0,
+            "width": 1920.0,
+            "height": 420.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 100.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 200.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 400.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 500.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 600.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 700.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_8",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 800.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_9",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 900.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_10",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1000.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_11",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1100.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_12",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1200.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_13",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1300.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_14",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1400.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_15",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1500.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_16",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1600.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_17",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1700.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_18",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1800.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "merlon_19",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1900.0,
+            "y": 340.0,
+            "width": 60.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 196,
+            "g": 192,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tower_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 40.0,
+            "y": 160.0,
+            "width": 240.0,
+            "height": 640.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tower_roof_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 159.18,
+              "y": 45.91
+            },
+            {
+              "x": 160.82,
+              "y": 45.91
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 145.55,
+              "y": 57.73
+            },
+            {
+              "x": 174.45,
+              "y": 57.73
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 131.91,
+              "y": 69.55
+            },
+            {
+              "x": 188.09,
+              "y": 69.55
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 118.27,
+              "y": 81.36
+            },
+            {
+              "x": 201.73,
+              "y": 81.36
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 104.64,
+              "y": 93.18
+            },
+            {
+              "x": 215.36,
+              "y": 93.18
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 91.0,
+              "y": 105.0
+            },
+            {
+              "x": 229.0,
+              "y": 105.0
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_6",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 77.36,
+              "y": 116.82
+            },
+            {
+              "x": 242.64,
+              "y": 116.82
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_7",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 63.73,
+              "y": 128.64
+            },
+            {
+              "x": 256.27,
+              "y": 128.64
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_8",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 50.09,
+              "y": 140.45
+            },
+            {
+              "x": 269.91,
+              "y": 140.45
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_9",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36.45,
+              "y": 152.27
+            },
+            {
+              "x": 283.55,
+              "y": 152.27
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_0_10",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22.82,
+              "y": 164.09
+            },
+            {
+              "x": 297.18,
+              "y": 164.09
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_window_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 136.0,
+            "y": 300.0,
+            "width": 48.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 110,
+            "g": 116,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flag_pole_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 160.0,
+              "y": 40.0
+            },
+            {
+              "x": 160.0,
+              "y": -10.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 90,
+            "b": 90,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "tower_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1520.0,
+            "y": 160.0,
+            "width": 240.0,
+            "height": 640.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tower_roof_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1639.18,
+              "y": 45.91
+            },
+            {
+              "x": 1640.82,
+              "y": 45.91
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1625.55,
+              "y": 57.73
+            },
+            {
+              "x": 1654.45,
+              "y": 57.73
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1611.91,
+              "y": 69.55
+            },
+            {
+              "x": 1668.09,
+              "y": 69.55
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1598.27,
+              "y": 81.36
+            },
+            {
+              "x": 1681.73,
+              "y": 81.36
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1584.64,
+              "y": 93.18
+            },
+            {
+              "x": 1695.36,
+              "y": 93.18
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1571.0,
+              "y": 105.0
+            },
+            {
+              "x": 1709.0,
+              "y": 105.0
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_6",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1557.36,
+              "y": 116.82
+            },
+            {
+              "x": 1722.64,
+              "y": 116.82
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_7",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1543.73,
+              "y": 128.64
+            },
+            {
+              "x": 1736.27,
+              "y": 128.64
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_8",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1530.09,
+              "y": 140.45
+            },
+            {
+              "x": 1749.91,
+              "y": 140.45
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_9",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1516.45,
+              "y": 152.27
+            },
+            {
+              "x": 1763.55,
+              "y": 152.27
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_roof_1_10",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1502.82,
+              "y": 164.09
+            },
+            {
+              "x": 1777.18,
+              "y": 164.09
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 108,
+            "a": 255
+          },
+          "width": 13.0
+        }
+      },
+      {
+        "id": "tower_window_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1616.0,
+            "y": 300.0,
+            "width": 48.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 110,
+            "g": 116,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flag_pole_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1640.0,
+              "y": 40.0
+            },
+            {
+              "x": 1640.0,
+              "y": -10.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 90,
+            "b": 90,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "brick_0_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 520.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 740.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 850.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 960.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1070.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_8",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_9",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1290.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_10",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1400.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_0_11",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1510.0,
+            "y": 420.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 355.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 465.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 575.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 685.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 795.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 905.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1015.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1125.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_8",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1235.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_9",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1345.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_10",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1455.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_1_11",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1565.0,
+            "y": 490.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 520.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 740.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 850.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 960.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1070.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_8",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_9",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1290.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_10",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1400.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_2_11",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1510.0,
+            "y": 560.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 355.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 465.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 575.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 685.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 795.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 905.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1015.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1125.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_8",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1235.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_9",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1345.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_10",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1455.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_3_11",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1565.0,
+            "y": 630.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 410.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 520.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 630.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 740.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 850.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 960.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1070.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_8",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_9",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1290.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_10",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1400.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "brick_4_11",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1510.0,
+            "y": 700.0,
+            "width": 90.0,
+            "height": 6.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "gate_arch",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 810.0,
+            "y": 400.0,
+            "width": 300.0,
+            "height": 280.0
+          },
+          "color": {
+            "r": 120,
+            "g": 104,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "gate",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 810.0,
+            "y": 540.0,
+            "width": 300.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 120,
+            "g": 104,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "portcullis_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 840.0,
+              "y": 440.0
+            },
+            {
+              "x": 840.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 96,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "portcullis_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 888.0,
+              "y": 440.0
+            },
+            {
+              "x": 888.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 96,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "portcullis_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 936.0,
+              "y": 440.0
+            },
+            {
+              "x": 936.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 96,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "portcullis_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 984.0,
+              "y": 440.0
+            },
+            {
+              "x": 984.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 96,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "portcullis_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1032.0,
+              "y": 440.0
+            },
+            {
+              "x": 1032.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 96,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "portcullis_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1080.0,
+              "y": 440.0
+            },
+            {
+              "x": 1080.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 96,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "courtyard",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 800.0,
+            "width": 1920.0,
+            "height": 280.0
+          },
+          "color": {
+            "r": 204,
+            "g": 196,
+            "b": 178,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "well",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1350.0,
+            "y": 860.0,
+            "width": 220.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "well_body",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1350.0,
+            "y": 860.0,
+            "width": 220.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 170,
+            "g": 166,
+            "b": 158,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "well_post_a",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1370.0,
+              "y": 860.0
+            },
+            {
+              "x": 1370.0,
+              "y": 720.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 12.0
+        }
+      },
+      {
+        "id": "well_post_b",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1550.0,
+              "y": 860.0
+            },
+            {
+              "x": 1550.0,
+              "y": 720.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 12.0
+        }
+      },
+      {
+        "id": "well_beam",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1360.0,
+              "y": 720.0
+            },
+            {
+              "x": 1560.0,
+              "y": 720.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 104,
+            "b": 84,
+            "a": 255
+          },
+          "width": 12.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "doorway",
+      "id": "gate",
+      "rect": {
+        "x": 810.0,
+        "y": 540.0,
+        "width": 300.0,
+        "height": 260.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "well",
+      "at": {
+        "x": 1300.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

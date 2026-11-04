@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.forest_v1",
+  "kind": "location",
+  "name": "Metsäpolku",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "forest",
+    "metsä"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.forest_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "stump",
+      "asset": "prop.nature.stump_v1",
+      "at": {
+        "x": 565.0,
+        "y": 880.0
+      }
+    },
+    {
+      "instance": "mushroom",
+      "asset": "prop.nature.mushroom_v1",
+      "at": {
+        "x": 675.0,
+        "y": 890.0
+      }
+    },
+    {
+      "instance": "tent",
+      "asset": "prop.camping.tent_v1",
+      "at": {
+        "x": 1350.0,
+        "y": 762.0
+      }
+    }
+  ]
+}

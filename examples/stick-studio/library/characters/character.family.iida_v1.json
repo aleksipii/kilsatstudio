@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "character.family.iida_v1",
+  "kind": "character",
+  "name": "Iida",
+  "bounds": {
+    "x": -56,
+    "y": -231,
+    "width": 112,
+    "height": 356
+  },
+  "depth": "mid",
+  "tags": [
+    "musiikki",
+    "music",
+    "nuori",
+    "teen",
+    "family",
+    "slim",
+    "tired",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/iida.kilsat",
+    "sha256": "ea332a85002f2447b4997c7db7a9b7e7fe5d94064d57d884bda10982f46e56d5"
+  },
+  "character": {
+    "id": "IIDA",
+    "role": "Musiikkia rakastava nuori / Music-loving teen",
+    "age": "teen",
+    "build": "slim",
+    "acting": "tired",
+    "height": 337.3
+  }
+}

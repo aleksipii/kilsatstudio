@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.jere_v1",
+  "kind": "character",
+  "name": "Palomies Jere",
+  "bounds": {
+    "x": -61,
+    "y": -273,
+    "width": 122,
+    "height": 422
+  },
+  "depth": "mid",
+  "tags": [
+    "palomies",
+    "firefighter",
+    "pelastus",
+    "rescue",
+    "aikuinen",
+    "adult",
+    "profession",
+    "broad",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/jere.kilsat",
+    "sha256": "d3db2bc559c77b6ffcf42b4a976c9b42e2458261d5a4fdebd4171c771889a4f1"
+  },
+  "character": {
+    "id": "JERE",
+    "role": "Rohkea palomies / Brave firefighter",
+    "age": "adult",
+    "build": "broad",
+    "acting": "proud",
+    "height": 391.9
+  }
+}

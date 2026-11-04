@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "id": "set.nature.forest_v1",
+  "kind": "set",
+  "name": "Metsäpolku (lavaste)",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "forest",
+    "metsä",
+    "set"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "location": "location.nature.forest_v1",
+  "cameras": [
+    {
+      "id": "wide",
+      "x": 0.0,
+      "y": 0.0,
+      "zoom": 1.0
+    },
+    {
+      "id": "two_shot",
+      "x": 0.0,
+      "y": 154.3,
+      "zoom": 1.4
+    },
+    {
+      "id": "medium",
+      "x": 0.0,
+      "y": 190.0,
+      "zoom": 1.8
+    },
+    {
+      "id": "close",
+      "x": 0.0,
+      "y": 110.0,
+      "zoom": 2.6
+    }
+  ],
+  "marks": [
+    {
+      "id": "path",
+      "kind": "stand",
+      "at": {
+        "x": 960.0,
+        "y": 950.0
+      }
+    },
+    {
+      "id": "sit_rock",
+      "kind": "sit",
+      "anchor": "backdrop/rock"
+    },
+    {
+      "id": "sit_stump",
+      "kind": "sit",
+      "anchor": "stump/seat"
+    }
+  ]
+}

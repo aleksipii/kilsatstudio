@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "id": "location.scifi.alien_planet_v1",
+  "kind": "location",
+  "name": "Vieras planeetta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "scifi",
+    "space",
+    "avaruus",
+    "planet",
+    "planeetta"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.scifi.alien_planet_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "boulder",
+      "asset": "prop.nature.boulder_v1",
+      "at": {
+        "x": 1410.0,
+        "y": 842.0
+      }
+    }
+  ]
+}

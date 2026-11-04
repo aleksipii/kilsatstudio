@@ -1,0 +1,549 @@
+{
+  "schema_version": 1,
+  "id": "prop.sport.tennis_racket_v1",
+  "kind": "prop",
+  "name": "Tennismaila",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 50,
+    "height": 130
+  },
+  "depth": "mid",
+  "tags": [
+    "tennis",
+    "maila",
+    "racket",
+    "urheilu",
+    "sport",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "net": {
+      "r": 226,
+      "g": 226,
+      "b": 220,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "frame",
+        "paint": "accent_red",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 42,
+            "height": 56
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 46,
+              "y": 32
+            },
+            {
+              "x": 45.596,
+              "y": 37.463
+            },
+            {
+              "x": 44.401,
+              "y": 42.715
+            },
+            {
+              "x": 42.461,
+              "y": 47.556
+            },
+            {
+              "x": 39.849,
+              "y": 51.799
+            },
+            {
+              "x": 36.667,
+              "y": 55.281
+            },
+            {
+              "x": 33.036,
+              "y": 57.869
+            },
+            {
+              "x": 29.097,
+              "y": 59.462
+            },
+            {
+              "x": 25,
+              "y": 60
+            },
+            {
+              "x": 20.903,
+              "y": 59.462
+            },
+            {
+              "x": 16.964,
+              "y": 57.869
+            },
+            {
+              "x": 13.333,
+              "y": 55.281
+            },
+            {
+              "x": 10.151,
+              "y": 51.799
+            },
+            {
+              "x": 7.539,
+              "y": 47.556
+            },
+            {
+              "x": 5.599,
+              "y": 42.715
+            },
+            {
+              "x": 4.404,
+              "y": 37.463
+            },
+            {
+              "x": 4,
+              "y": 32
+            },
+            {
+              "x": 4.404,
+              "y": 26.537
+            },
+            {
+              "x": 5.599,
+              "y": 21.285
+            },
+            {
+              "x": 7.539,
+              "y": 16.444
+            },
+            {
+              "x": 10.151,
+              "y": 12.201
+            },
+            {
+              "x": 13.333,
+              "y": 8.719
+            },
+            {
+              "x": 16.964,
+              "y": 6.131
+            },
+            {
+              "x": 20.903,
+              "y": 4.538
+            },
+            {
+              "x": 25,
+              "y": 4
+            },
+            {
+              "x": 29.097,
+              "y": 4.538
+            },
+            {
+              "x": 33.036,
+              "y": 6.131
+            },
+            {
+              "x": 36.667,
+              "y": 8.719
+            },
+            {
+              "x": 39.849,
+              "y": 12.201
+            },
+            {
+              "x": 42.461,
+              "y": 16.444
+            },
+            {
+              "x": 44.401,
+              "y": 21.285
+            },
+            {
+              "x": 45.596,
+              "y": 26.537
+            },
+            {
+              "x": 46,
+              "y": 32
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "strings",
+        "paint": "net",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 9,
+            "y": 9,
+            "width": 32,
+            "height": 46
+          },
+          "color": {
+            "r": 226,
+            "g": 226,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "string_v0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 13,
+              "y": 12
+            },
+            {
+              "x": 13,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_h0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 11,
+              "y": 16
+            },
+            {
+              "x": 39,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_v1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 19,
+              "y": 12
+            },
+            {
+              "x": 19,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_h1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 11,
+              "y": 24
+            },
+            {
+              "x": 39,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_v2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25,
+              "y": 12
+            },
+            {
+              "x": 25,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_h2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 11,
+              "y": 32
+            },
+            {
+              "x": 39,
+              "y": 32
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_v3",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 31,
+              "y": 12
+            },
+            {
+              "x": 31,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_h3",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 11,
+              "y": 40
+            },
+            {
+              "x": 39,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_v4",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37,
+              "y": 12
+            },
+            {
+              "x": 37,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "string_h4",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 11,
+              "y": 48
+            },
+            {
+              "x": 39,
+              "y": 48
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "throat",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25,
+              "y": 60
+            },
+            {
+              "x": 25,
+              "y": 80
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "handle",
+        "paint": "screen",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25,
+              "y": 80
+            },
+            {
+              "x": 25,
+              "y": 126
+            }
+          ],
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          },
+          "width": 7
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 25,
+        "y": 104
+      }
+    }
+  ]
+}

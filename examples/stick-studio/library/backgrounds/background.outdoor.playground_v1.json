@@ -1,0 +1,984 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.playground_v1",
+  "kind": "background",
+  "name": "Leikkipuisto",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "playground",
+    "leikkipuisto",
+    "children",
+    "lapset",
+    "park",
+    "puisto"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 198,
+            "g": 216,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1410.0,
+            "y": 119.5,
+            "width": 180.0,
+            "height": 81.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1383.0,
+            "y": 139.3,
+            "width": 108.0,
+            "height": 63.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1509.0,
+            "y": 137.5,
+            "width": 117.0,
+            "height": 63.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1459.5,
+            "y": 97.0,
+            "width": 99.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_0_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 120.0,
+              "y": 760.0
+            },
+            {
+              "x": 120.0,
+              "y": 595.0
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "tree_0_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 6.6,
+            "y": 515.2,
+            "width": 134.4,
+            "height": 117.6
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_0_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 99.0,
+            "y": 521.2,
+            "width": 134.4,
+            "height": 117.6
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_0_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 36.0,
+            "y": 458.8,
+            "width": 168.0,
+            "height": 134.4
+          },
+          "color": {
+            "r": 150,
+            "g": 176,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_1_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 460.0,
+              "y": 760.0
+            },
+            {
+              "x": 460.0,
+              "y": 582.35
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "tree_1_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 337.91,
+            "y": 496.43,
+            "width": 144.7,
+            "height": 126.62
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_1_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 437.39,
+            "y": 502.89,
+            "width": 144.7,
+            "height": 126.62
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_1_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 369.56,
+            "y": 435.71,
+            "width": 180.88,
+            "height": 144.7
+          },
+          "color": {
+            "r": 150,
+            "g": 176,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_2_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 800.0,
+              "y": 760.0
+            },
+            {
+              "x": 800.0,
+              "y": 569.7
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "tree_2_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 669.21,
+            "y": 477.66,
+            "width": 155.01,
+            "height": 135.63
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_2_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 775.78,
+            "y": 484.58,
+            "width": 155.01,
+            "height": 135.63
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_2_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 703.12,
+            "y": 412.62,
+            "width": 193.76,
+            "height": 155.01
+          },
+          "color": {
+            "r": 150,
+            "g": 176,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_3_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1140.0,
+              "y": 760.0
+            },
+            {
+              "x": 1140.0,
+              "y": 590.05
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "tree_3_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1023.2,
+            "y": 507.86,
+            "width": 138.43,
+            "height": 121.13
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_3_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1118.37,
+            "y": 514.04,
+            "width": 138.43,
+            "height": 121.13
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_3_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1053.48,
+            "y": 449.76,
+            "width": 173.04,
+            "height": 138.43
+          },
+          "color": {
+            "r": 150,
+            "g": 176,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_4_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1480.0,
+              "y": 760.0
+            },
+            {
+              "x": 1480.0,
+              "y": 577.4
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "tree_4_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1354.5,
+            "y": 489.09,
+            "width": 148.74,
+            "height": 130.14
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_4_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1456.76,
+            "y": 495.73,
+            "width": 148.74,
+            "height": 130.14
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_4_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1387.04,
+            "y": 426.67,
+            "width": 185.92,
+            "height": 148.74
+          },
+          "color": {
+            "r": 150,
+            "g": 176,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_5_trunk",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1820.0,
+              "y": 760.0
+            },
+            {
+              "x": 1820.0,
+              "y": 564.75
+            }
+          ],
+          "color": {
+            "r": 112,
+            "g": 88,
+            "b": 68,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "tree_5_crown_a",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1685.81,
+            "y": 470.32,
+            "width": 159.04,
+            "height": 139.16
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_5_crown_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1795.15,
+            "y": 477.42,
+            "width": 159.04,
+            "height": 139.16
+          },
+          "color": {
+            "r": 136,
+            "g": 160,
+            "b": 128,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tree_5_crown_c",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1720.6,
+            "y": 403.58,
+            "width": 198.8,
+            "height": 159.04
+          },
+          "color": {
+            "r": 150,
+            "g": 176,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lawn",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 740.0,
+            "width": 1920.0,
+            "height": 340.0
+          },
+          "color": {
+            "r": 178,
+            "g": 196,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sandbox_sand",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1280.0,
+            "y": 894.0,
+            "width": 440.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 222,
+            "g": 206,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sandbox_edge",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1280.0,
+            "y": 930.0,
+            "width": 440.0,
+            "height": 18.0
+          },
+          "color": {
+            "r": 176,
+            "g": 140,
+            "b": 104,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "swing_post_a",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 240.0,
+              "y": 950.0
+            },
+            {
+              "x": 300.0,
+              "y": 520.0
+            }
+          ],
+          "color": {
+            "r": 110,
+            "g": 130,
+            "b": 150,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "swing_post_b",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 660.0,
+              "y": 950.0
+            },
+            {
+              "x": 600.0,
+              "y": 520.0
+            }
+          ],
+          "color": {
+            "r": 110,
+            "g": 130,
+            "b": 150,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "swing_bar",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 280.0,
+              "y": 520.0
+            },
+            {
+              "x": 620.0,
+              "y": 520.0
+            }
+          ],
+          "color": {
+            "r": 110,
+            "g": 130,
+            "b": 150,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "swing_chain_0a",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330.0,
+              "y": 520.0
+            },
+            {
+              "x": 330.0,
+              "y": 820.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "swing_chain_0b",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 390.0,
+              "y": 520.0
+            },
+            {
+              "x": 390.0,
+              "y": 820.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "swing_seat_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 320.0,
+            "y": 818.0,
+            "width": 80.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 200,
+            "g": 120,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "swing_chain_1a",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 510.0,
+              "y": 520.0
+            },
+            {
+              "x": 510.0,
+              "y": 820.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "swing_chain_1b",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 570.0,
+              "y": 520.0
+            },
+            {
+              "x": 570.0,
+              "y": 820.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "swing_seat_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 500.0,
+            "y": 818.0,
+            "width": 80.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 200,
+            "g": 120,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slide_ladder",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 860.0,
+              "y": 950.0
+            },
+            {
+              "x": 880.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 110,
+            "g": 130,
+            "b": 150,
+            "a": 255
+          },
+          "width": 12.0
+        }
+      },
+      {
+        "id": "slide_top",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 870.0,
+            "y": 590.0,
+            "width": 110.0,
+            "height": 18.0
+          },
+          "color": {
+            "r": 110,
+            "g": 130,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "slide",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 980.0,
+              "y": 600.0
+            },
+            {
+              "x": 1160.0,
+              "y": 930.0
+            },
+            {
+              "x": 1220.0,
+              "y": 940.0
+            }
+          ],
+          "color": {
+            "r": 230,
+            "g": 190,
+            "b": 110,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "seat",
+      "id": "swing",
+      "at": {
+        "x": 360.0,
+        "y": 818.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "slide_top",
+      "at": {
+        "x": 925.0,
+        "y": 590.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "sandbox",
+      "at": {
+        "x": 1500.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

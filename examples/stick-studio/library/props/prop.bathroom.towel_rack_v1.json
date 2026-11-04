@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "id": "prop.bathroom.towel_rack_v1",
+  "kind": "prop",
+  "name": "Pyyheteline",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 90,
+    "height": 229
+  },
+  "depth": "mid",
+  "tags": [
+    "pyyhe",
+    "towel",
+    "teline",
+    "rack",
+    "kylpyhuone",
+    "bathroom"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "towel": {
+      "r": 150,
+      "g": 182,
+      "b": 196,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "post_left",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 6
+            },
+            {
+              "x": 12,
+              "y": 222
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "post_right",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 78,
+              "y": 6
+            },
+            {
+              "x": 78,
+              "y": 222
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "bar",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 40
+            },
+            {
+              "x": 78,
+              "y": 40
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "towel",
+        "paint": "towel",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 38,
+            "width": 54,
+            "height": 110
+          },
+          "color": {
+            "r": 150,
+            "g": 182,
+            "b": 196,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "towel_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 18,
+              "y": 38
+            },
+            {
+              "x": 72,
+              "y": 38
+            },
+            {
+              "x": 72,
+              "y": 148
+            },
+            {
+              "x": 18,
+              "y": 148
+            },
+            {
+              "x": 18,
+              "y": 38
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "towel_stripe",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 18,
+            "y": 120,
+            "width": 54,
+            "height": 8
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "foot_left",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 226
+            },
+            {
+              "x": 22,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "foot_right",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 68,
+              "y": 226
+            },
+            {
+              "x": 86,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 6
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 229
+      },
+      "width": 90
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.satu_v1",
+  "kind": "character",
+  "name": "Hoitaja Satu",
+  "bounds": {
+    "x": -49,
+    "y": -244,
+    "width": 116,
+    "height": 388
+  },
+  "depth": "mid",
+  "tags": [
+    "hoitaja",
+    "nurse",
+    "sairaala",
+    "hospital",
+    "terveys",
+    "health",
+    "aikuinen",
+    "adult",
+    "profession",
+    "average",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/satu.kilsat",
+    "sha256": "205091c953e75e299cf60a40b7daf90e3316923c1e7663c1fc516577336e7705"
+  },
+  "character": {
+    "id": "SATU",
+    "role": "Reipas sairaanhoitaja / Brisk nurse",
+    "age": "adult",
+    "build": "average",
+    "acting": "lively",
+    "height": 378.8
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "id": "prop.sport.hockey_stick_v1",
+  "kind": "prop",
+  "name": "Jääkiekkomaila",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 90,
+    "height": 258
+  },
+  "depth": "mid",
+  "tags": [
+    "jääkiekko",
+    "hockey",
+    "maila",
+    "stick",
+    "talvi",
+    "winter",
+    "urheilu",
+    "sport",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "shaft",
+        "paint": "wood",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 70,
+              "y": 4
+            },
+            {
+              "x": 40,
+              "y": 236
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "tape_top",
+        "paint": "screen",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 69.5,
+              "y": 8
+            },
+            {
+              "x": 66,
+              "y": 34
+            }
+          ],
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "blade",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 234
+            },
+            {
+              "x": 8,
+              "y": 254
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 66,
+        "y": 40
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 258
+      },
+      "width": 90
+    }
+  ]
+}

@@ -728,6 +728,95 @@ fn rig_project_paths_and_hashes() {
     ));
 }
 
+fn character(pack: &Pack) -> Value {
+    std::fs::create_dir_all(pack.0.join("cast")).unwrap();
+    std::fs::write(pack.0.join("cast/aino.kilsat"), b"{}").unwrap();
+    json!({
+        "schema_version": 1,
+        "id": "character.adult.aino_v1",
+        "kind": "character",
+        "name": "Aino",
+        "bounds": {"x": -60, "y": -260, "width": 120, "height": 410},
+        "depth": "mid",
+        "tags": ["adult", "aikuinen"],
+        "license": license(),
+        "geometry": {"type": "rig_project", "path": "cast/aino.kilsat",
+            "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"},
+        "character": {"id": "AINO", "role": "Teacher", "age": "adult", "build": "slim",
+            "height": 405, "acting": "calm"}
+    })
+}
+
+#[test]
+fn character_manifests_are_validated() {
+    let pack = Pack::new();
+    let base = character(&pack);
+    let check = |v: &Value| {
+        Manifest::from_json(&serde_json::to_vec(v).unwrap())
+            .unwrap()
+            .validate(&pack.0)
+    };
+    check(&base).unwrap();
+    let bad: Vec<(&str, Value)> = vec![
+        (
+            "missing info",
+            mutated(base.clone(), |v| {
+                v.as_object_mut().unwrap().remove("character");
+            }),
+        ),
+        (
+            "art geometry",
+            mutated(base.clone(), |v| {
+                v["geometry"] = chair()["geometry"].clone()
+            }),
+        ),
+        (
+            "lowercase id",
+            mutated(base.clone(), |v| v["character"]["id"] = json!("aino")),
+        ),
+        (
+            "empty role",
+            mutated(base.clone(), |v| v["character"]["role"] = json!(" ")),
+        ),
+        (
+            "tiny",
+            mutated(base.clone(), |v| v["character"]["height"] = json!(10)),
+        ),
+        (
+            "acting id",
+            mutated(base.clone(), |v| v["character"]["acting"] = json!("Calm!")),
+        ),
+        (
+            "anchors",
+            mutated(base.clone(), |v| {
+                v["anchors"] = json!([{"type": "stand", "id": "feet", "at": {"x": 0, "y": 0}}]);
+            }),
+        ),
+        (
+            "info on a prop",
+            mutated(chair(), |v| v["character"] = base["character"].clone()),
+        ),
+    ];
+    for (name, v) in bad {
+        assert!(check(&v).is_err(), "{name}");
+    }
+    // Unknown age groups are rejected by the schema.
+    let unknown = mutated(base.clone(), |v| v["character"]["age"] = json!("baby"));
+    assert!(Manifest::from_json(&serde_json::to_vec(&unknown).unwrap()).is_err());
+
+    // Characters load, count and search like any other kind.
+    pack.put(&base);
+    pack.put(&chair());
+    let (lib, _) = pack.load(Policy::Distribution).unwrap();
+    assert_eq!(lib.count(Kind::Character), 1);
+    let found = lib.search(&Query {
+        kind: Some(Kind::Character),
+        ..Default::default()
+    });
+    assert_eq!(found.len(), 1);
+    assert_eq!(found[0].character.as_ref().unwrap().id, "AINO");
+}
+
 #[test]
 fn library_loads_and_searches_deterministically() {
     let pack = full_pack();
@@ -735,7 +824,7 @@ fn library_loads_and_searches_deterministically() {
     let (lib, warnings) = pack.load(Policy::Distribution).unwrap();
     assert!(warnings.is_empty());
     assert_eq!(lib.len(), 4);
-    assert_eq!(Kind::ALL.map(|k| lib.count(k)), [1, 1, 1, 1]);
+    assert_eq!(Kind::ALL.map(|k| lib.count(k)), [1, 1, 1, 1, 0]);
     let ids = |q: &Query| {
         lib.search(q)
             .iter()
@@ -1232,11 +1321,15 @@ fn stick_studio_library_is_valid_and_styled() {
     let (lib, warnings) =
         Library::load(&root, Policy::Distribution).unwrap_or_else(|e| panic!("{e}"));
     assert!(warnings.is_empty(), "{warnings:?}");
-    assert!(
-        lib.count(Kind::Location) >= 15,
-        "{}",
-        lib.count(Kind::Location)
-    );
+    // The shipped pack is a broad library; guard against it shrinking unnoticed.
+    for (kind, at_least) in [
+        (Kind::Background, 30),
+        (Kind::Prop, 200),
+        (Kind::Location, 40),
+        (Kind::Character, 40),
+    ] {
+        assert!(lib.count(kind) >= at_least, "{kind}: {}", lib.count(kind));
+    }
     assert!(lib.count(Kind::Set) >= lib.count(Kind::Location));
     let mut checked = 0;
     for m in lib.iter() {
@@ -1273,7 +1366,7 @@ fn stick_studio_library_is_valid_and_styled() {
             _ => {}
         }
     }
-    assert!(checked >= 30, "{checked}");
+    assert!(checked >= 150, "{checked}");
 }
 
 #[test]

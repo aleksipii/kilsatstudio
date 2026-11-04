@@ -1252,6 +1252,13 @@ def _(b):
     b.ground()
 
 
+# More categories (food, music, sport, health care, bathroom, household, garden,
+# toys, workshop, camping, animals, vehicles, buildings) live in their own module.
+import library_props_more  # noqa: E402
+
+library_props_more.register(sys.modules[__name__])
+
+
 # ---------------------------------------------------------------------------
 # Migrated rig-project props (examples/stick-studio/props/*.kilsat)
 # ---------------------------------------------------------------------------

@@ -1,0 +1,812 @@
+{
+  "schema_version": 1,
+  "id": "background.nature.beach_v1",
+  "kind": "background",
+  "name": "Hiekkaranta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "summer",
+    "kesä",
+    "nature",
+    "luonto",
+    "beach",
+    "ranta",
+    "sea",
+    "meri"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 200,
+            "g": 220,
+            "b": 228,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sun",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1490.0,
+            "y": 100.0,
+            "width": 140.0,
+            "height": 140.0
+          },
+          "color": {
+            "r": 246,
+            "g": 230,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 520.0,
+            "y": 154.0,
+            "width": 160.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 496.0,
+            "y": 171.6,
+            "width": 96.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 608.0,
+            "y": 170.0,
+            "width": 104.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 564.0,
+            "y": 134.0,
+            "width": 88.0,
+            "height": 64.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sea",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 520.0,
+            "width": 1920.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 168,
+            "g": 198,
+            "b": 208,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sea_far",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 520.0,
+            "width": 1920.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 184,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wave_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100.0,
+              "y": 580.0
+            },
+            {
+              "x": 140.0,
+              "y": 572.0
+            },
+            {
+              "x": 180.0,
+              "y": 580.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 330.0,
+              "y": 626.0
+            },
+            {
+              "x": 370.0,
+              "y": 618.0
+            },
+            {
+              "x": 410.0,
+              "y": 626.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 560.0,
+              "y": 672.0
+            },
+            {
+              "x": 600.0,
+              "y": 664.0
+            },
+            {
+              "x": 640.0,
+              "y": 672.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 790.0,
+              "y": 718.0
+            },
+            {
+              "x": 830.0,
+              "y": 710.0
+            },
+            {
+              "x": 870.0,
+              "y": 718.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1020.0,
+              "y": 580.0
+            },
+            {
+              "x": 1060.0,
+              "y": 572.0
+            },
+            {
+              "x": 1100.0,
+              "y": 580.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1250.0,
+              "y": 626.0
+            },
+            {
+              "x": 1290.0,
+              "y": 618.0
+            },
+            {
+              "x": 1330.0,
+              "y": 626.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_6",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1480.0,
+              "y": 672.0
+            },
+            {
+              "x": 1520.0,
+              "y": 664.0
+            },
+            {
+              "x": 1560.0,
+              "y": 672.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_7",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1710.0,
+              "y": 718.0
+            },
+            {
+              "x": 1750.0,
+              "y": 710.0
+            },
+            {
+              "x": 1790.0,
+              "y": 718.0
+            }
+          ],
+          "color": {
+            "r": 220,
+            "g": 232,
+            "b": 236,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "surf",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": -240.0,
+            "y": 768.0,
+            "width": 2400.0,
+            "height": 44.0
+          },
+          "color": {
+            "r": 232,
+            "g": 236,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sand",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 790.0,
+            "width": 1920.0,
+            "height": 290.0
+          },
+          "color": {
+            "r": 226,
+            "g": 212,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "umbrella_shade",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 260.0,
+            "y": 912.0,
+            "width": 320.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 200,
+            "g": 186,
+            "b": 156,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "umbrella_pole",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 420.0,
+              "y": 940.0
+            },
+            {
+              "x": 420.0,
+              "y": 690.0
+            }
+          ],
+          "color": {
+            "r": 120,
+            "g": 110,
+            "b": 100,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "umbrella",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 414.0,
+              "y": 633.89
+            },
+            {
+              "x": 426.0,
+              "y": 633.89
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 394.0,
+              "y": 641.67
+            },
+            {
+              "x": 446.0,
+              "y": 641.67
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_2",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 374.0,
+              "y": 649.44
+            },
+            {
+              "x": 466.0,
+              "y": 649.44
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_3",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 354.0,
+              "y": 657.22
+            },
+            {
+              "x": 486.0,
+              "y": 657.22
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_4",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 334.0,
+              "y": 665.0
+            },
+            {
+              "x": 506.0,
+              "y": 665.0
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_5",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 314.0,
+              "y": 672.78
+            },
+            {
+              "x": 526.0,
+              "y": 672.78
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_6",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 294.0,
+              "y": 680.56
+            },
+            {
+              "x": 546.0,
+              "y": 680.56
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_7",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 274.0,
+              "y": 688.33
+            },
+            {
+              "x": 566.0,
+              "y": 688.33
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_8",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 254.0,
+              "y": 696.11
+            },
+            {
+              "x": 586.0,
+              "y": 696.11
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 160,
+            "b": 140,
+            "a": 255
+          },
+          "width": 9.0
+        }
+      },
+      {
+        "id": "umbrella_tip",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 412.0,
+            "y": 620.0,
+            "width": 16.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 120,
+            "g": 110,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "towel",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 560.0,
+            "y": 900.0,
+            "width": 220.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 182,
+            "b": 196,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sandcastle",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1330.0,
+            "y": 886.0,
+            "width": 140.0,
+            "height": 68.0
+          },
+          "color": {
+            "r": 206,
+            "g": 186,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tower",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1380.0,
+            "y": 860.0,
+            "width": 40.0,
+            "height": 50.0
+          },
+          "color": {
+            "r": 206,
+            "g": 186,
+            "b": 144,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "seat",
+      "id": "towel",
+      "at": {
+        "x": 670.0,
+        "y": 900.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "water",
+      "at": {
+        "x": 1000.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

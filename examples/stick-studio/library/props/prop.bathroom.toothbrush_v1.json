@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "id": "prop.bathroom.toothbrush_v1",
+  "kind": "prop",
+  "name": "Hammasharja",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 20,
+    "height": 80
+  },
+  "depth": "mid",
+  "tags": [
+    "hammasharja",
+    "toothbrush",
+    "aamu",
+    "morning",
+    "kylpyhuone",
+    "bathroom",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "toy_blue": {
+      "r": 92,
+      "g": 140,
+      "b": 188,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "handle",
+        "paint": "toy_blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 22
+            },
+            {
+              "x": 10,
+              "y": 76
+            }
+          ],
+          "color": {
+            "r": 92,
+            "g": 140,
+            "b": 188,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "bristles",
+        "paint": "white",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 4,
+            "width": 9,
+            "height": 18
+          },
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bristles_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 4
+            },
+            {
+              "x": 13,
+              "y": 4
+            },
+            {
+              "x": 13,
+              "y": 22
+            },
+            {
+              "x": 4,
+              "y": 22
+            },
+            {
+              "x": 4,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 10,
+        "y": 56
+      }
+    }
+  ]
+}

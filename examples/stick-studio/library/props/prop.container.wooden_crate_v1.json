@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "id": "prop.container.wooden_crate_v1",
+  "kind": "prop",
+  "name": "Puulaatikko",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 100
+  },
+  "depth": "mid",
+  "tags": [
+    "laatikko",
+    "crate",
+    "puu",
+    "wood",
+    "satama",
+    "harbour",
+    "varasto",
+    "storage"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "crate",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 6,
+            "width": 108,
+            "height": 92.5
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crate_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 6
+            },
+            {
+              "x": 114,
+              "y": 6
+            },
+            {
+              "x": 114,
+              "y": 98.5
+            },
+            {
+              "x": 6,
+              "y": 98.5
+            },
+            {
+              "x": 6,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "plank_1",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 29
+            },
+            {
+              "x": 114,
+              "y": 29
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "plank_2",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 52
+            },
+            {
+              "x": 114,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "plank_3",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 75
+            },
+            {
+              "x": 114,
+              "y": 75
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "brace",
+        "paint": "wood",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 94
+            },
+            {
+              "x": 110,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          },
+          "width": 6
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 60,
+        "y": 6
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 100
+      },
+      "width": 120
+    }
+  ]
+}

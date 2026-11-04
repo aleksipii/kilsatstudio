@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "location.outdoor.train_platform_v1",
+  "kind": "location",
+  "name": "Rautatieasema",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "train",
+    "juna",
+    "station",
+    "asema",
+    "travel",
+    "matka"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.outdoor.train_platform_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "suitcase",
+      "asset": "prop.travel.suitcase_v1",
+      "at": {
+        "x": 700.0,
+        "y": 780.0
+      }
+    },
+    {
+      "instance": "bin",
+      "asset": "prop.outdoor.street_bin_v1",
+      "at": {
+        "x": 1108.0,
+        "y": 826.0
+      }
+    }
+  ]
+}

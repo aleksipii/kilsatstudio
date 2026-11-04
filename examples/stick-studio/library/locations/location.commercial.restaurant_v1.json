@@ -1,0 +1,478 @@
+{
+  "schema_version": 1,
+  "id": "location.commercial.restaurant_v1",
+  "kind": "location",
+  "name": "Ravintola",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "interior",
+    "commercial",
+    "restaurant",
+    "ravintola",
+    "dinner",
+    "illallinen"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "variants": [
+    {
+      "name": "day",
+      "palette": {
+        "glass": {
+          "r": 176,
+          "g": 206,
+          "b": 214,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "evening",
+      "palette": {
+        "glass": {
+          "r": 222,
+          "g": 186,
+          "b": 146,
+          "a": 255
+        },
+        "wall": {
+          "r": 227,
+          "g": 212,
+          "b": 193,
+          "a": 255
+        }
+      }
+    },
+    {
+      "name": "rain",
+      "palette": {
+        "glass": {
+          "r": 134,
+          "g": 150,
+          "b": 160,
+          "a": 255
+        }
+      },
+      "layers": [
+        {
+          "id": "rain_0_0",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 419.52,
+                "y": 211.68
+              },
+              {
+                "x": 393.59999999999997,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_0_1",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 471.35999999999996,
+                "y": 211.68
+              },
+              {
+                "x": 445.43999999999994,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_0_2",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 523.2,
+                "y": 211.68
+              },
+              {
+                "x": 497.28000000000003,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_0_3",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 575.04,
+                "y": 211.68
+              },
+              {
+                "x": 549.12,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_1_0",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1106.8799999999999,
+                "y": 211.68
+              },
+              {
+                "x": 1080.9599999999998,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_1_1",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1158.72,
+                "y": 211.68
+              },
+              {
+                "x": 1132.8,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_1_2",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1210.56,
+                "y": 211.68
+              },
+              {
+                "x": 1184.6399999999999,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        },
+        {
+          "id": "rain_1_3",
+          "depth": "far",
+          "paint": "rain",
+          "content": {
+            "type": "stroke",
+            "points": [
+              {
+                "x": 1262.4,
+                "y": 211.68
+              },
+              {
+                "x": 1236.48,
+                "y": 457.92
+              }
+            ],
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            },
+            "width": 3.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "messy",
+      "layers": [
+        {
+          "id": "mess_paper",
+          "depth": "mid",
+          "paint": "clutter_b",
+          "content": {
+            "type": "rectangle",
+            "rect": {
+              "x": 422.4,
+              "y": 977.4,
+              "width": 70.0,
+              "height": 10.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        },
+        {
+          "id": "mess_sock",
+          "depth": "mid",
+          "paint": "clutter_a",
+          "content": {
+            "type": "ellipse",
+            "rect": {
+              "x": 902.4,
+              "y": 1020.6,
+              "width": 46.0,
+              "height": 18.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        },
+        {
+          "id": "mess_book",
+          "depth": "mid",
+          "paint": "clutter_c",
+          "content": {
+            "type": "rectangle",
+            "rect": {
+              "x": 1363.1999999999998,
+              "y": 958.5,
+              "width": 60.0,
+              "height": 14.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        },
+        {
+          "id": "mess_crumple",
+          "depth": "mid",
+          "paint": "clutter_b",
+          "content": {
+            "type": "ellipse",
+            "rect": {
+              "x": 1651.2,
+              "y": 1039.5,
+              "width": 30.0,
+              "height": 22.0
+            },
+            "color": {
+              "r": 43,
+              "g": 49,
+              "b": 48,
+              "a": 255
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "room": {
+    "width": 1920.0,
+    "height": 1080.0,
+    "floor_y": 810.0,
+    "wall": {
+      "r": 224,
+      "g": 214,
+      "b": 198,
+      "a": 255
+    },
+    "floor": {
+      "r": 176,
+      "g": 150,
+      "b": 124,
+      "a": 255
+    },
+    "windows": 2,
+    "time_of_day": "evening",
+    "door": "right"
+  },
+  "parts": [
+    {
+      "instance": "chandelier",
+      "asset": "prop.lighting.chandelier_v1",
+      "at": {
+        "x": 600.0,
+        "y": 90.0
+      }
+    },
+    {
+      "instance": "counter",
+      "asset": "prop.furniture.counter_v1",
+      "at": {
+        "x": 1360.0,
+        "y": 760.0
+      }
+    },
+    {
+      "instance": "table_a",
+      "asset": "prop.furniture.table_dining_v1",
+      "at": {
+        "x": 380.0,
+        "y": 827.0
+      }
+    },
+    {
+      "instance": "pizza",
+      "asset": "prop.food.pizza_v1",
+      "at": {
+        "x": 410.0,
+        "y": 803.5
+      }
+    },
+    {
+      "instance": "candle",
+      "asset": "prop.lighting.candle_v1",
+      "at": {
+        "x": 585.0,
+        "y": 757.0
+      }
+    },
+    {
+      "instance": "chair_a",
+      "asset": "prop.furniture.chair_wood_v1",
+      "at": {
+        "x": 285.0,
+        "y": 745.0
+      }
+    },
+    {
+      "instance": "chair_b",
+      "asset": "prop.furniture.chair_wood_v1",
+      "at": {
+        "x": 665.0,
+        "y": 745.0
+      },
+      "flip_x": true
+    },
+    {
+      "instance": "table_b",
+      "asset": "prop.furniture.table_dining_v1",
+      "at": {
+        "x": 920.0,
+        "y": 827.0
+      }
+    },
+    {
+      "instance": "cake",
+      "asset": "prop.food.cake_v1",
+      "at": {
+        "x": 1000.0,
+        "y": 727.5
+      }
+    },
+    {
+      "instance": "chair_c",
+      "asset": "prop.furniture.chair_wood_v1",
+      "at": {
+        "x": 825.0,
+        "y": 745.0
+      }
+    },
+    {
+      "instance": "chair_d",
+      "asset": "prop.furniture.chair_wood_v1",
+      "at": {
+        "x": 1205.0,
+        "y": 745.0
+      },
+      "flip_x": true
+    },
+    {
+      "instance": "plant",
+      "asset": "prop.decor.plant_pot_v1",
+      "at": {
+        "x": 95.0,
+        "y": 795.0
+      }
+    }
+  ]
+}

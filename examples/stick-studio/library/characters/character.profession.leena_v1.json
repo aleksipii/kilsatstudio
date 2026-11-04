@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.leena_v1",
+  "kind": "character",
+  "name": "Postinkantaja Leena",
+  "bounds": {
+    "x": -76,
+    "y": -253,
+    "width": 143,
+    "height": 397
+  },
+  "depth": "mid",
+  "tags": [
+    "posti",
+    "mail",
+    "kirje",
+    "letter",
+    "aikuinen",
+    "adult",
+    "profession",
+    "slim",
+    "nervous",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/leena.kilsat",
+    "sha256": "ecdb2c3412d16e61871f027a42fcb654ef32223bcf7c314c6313297ea7010c62"
+  },
+  "character": {
+    "id": "LEENA",
+    "role": "Aina ajoissa / Always on time",
+    "age": "adult",
+    "build": "slim",
+    "acting": "nervous",
+    "height": 378.8
+  }
+}

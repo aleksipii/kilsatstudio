@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.kalle_v1",
+  "kind": "character",
+  "name": "Muusikko Kalle",
+  "bounds": {
+    "x": -53,
+    "y": -259,
+    "width": 106,
+    "height": 408
+  },
+  "depth": "mid",
+  "tags": [
+    "musiikki",
+    "music",
+    "laulaja",
+    "singer",
+    "aikuinen",
+    "adult",
+    "profession",
+    "slim",
+    "stoic",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/kalle.kilsat",
+    "sha256": "27d0b63f22cf68f688a3c6782235378b5f1f52b335427f67f4f07021f6045015"
+  },
+  "character": {
+    "id": "KALLE",
+    "role": "Viileä laulaja / Cool singer",
+    "age": "adult",
+    "build": "slim",
+    "acting": "stoic",
+    "height": 391.9
+  }
+}

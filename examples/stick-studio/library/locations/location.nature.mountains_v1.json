@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.mountains_v1",
+  "kind": "location",
+  "name": "Tunturi",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "mountains",
+    "tunturi",
+    "hiking",
+    "retki"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.mountains_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "pack",
+      "asset": "prop.camping.hiking_backpack_v1",
+      "at": {
+        "x": 1060.0,
+        "y": 830.0
+      }
+    },
+    {
+      "instance": "boulder",
+      "asset": "prop.nature.boulder_v1",
+      "at": {
+        "x": 290.0,
+        "y": 842.0
+      }
+    }
+  ]
+}
