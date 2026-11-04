@@ -36,6 +36,7 @@ from stick_characters import (  # noqa: E402
     _rgba, _turn_views,
 )
 from generate_stick_studio import clips  # noqa: E402
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
 
 ROOT = Path(__file__).resolve().parent.parent
 PACK = ROOT / "examples" / "stick-studio"
@@ -1053,7 +1054,7 @@ def project_bytes(name, identifier, declaration):
     source = {"project": {"title": name, "width": 768, "height": 1024, "fps": 24},
               "characters": {identifier: declaration}, "scenes": [shot], "rig_clips": clips()}
     document = {"format_version": 2,
-                "source": json.dumps(source, ensure_ascii=False, separators=(",", ":")),
+                "source": motion_source.dumps(source),
                 "assets": [], "art": {"layers": []}}
     return (json.dumps(document, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
@@ -1105,7 +1106,7 @@ def build():
         identifier = cast["id"]
         path = f"characters/{identifier.lower()}.kilsat"
         data = (PACK / path).read_bytes()
-        declaration = json.loads(json.loads(data)["source"])["characters"][identifier]
+        declaration = motion_source.loads(json.loads(data)["source"])["characters"][identifier]
         age, build_, role_en, tags = EXISTING[identifier]
         info = {"id": identifier, "role": f"{cast['role']} / {role_en}", "age": age, "build": build_,
                 "acting": declaration["acting"]}

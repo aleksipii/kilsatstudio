@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/tuuli.kilsat",
-    "sha256": "459477eab653bc1172a8cea99afc39b3e406cc9284b5cb42fda88ad3a2bffc2b"
+    "sha256": "96037efe87fc2c019fb8346f427835d10442c34b41a7ecfa3dfebe221908d824"
   },
   "character": {
     "id": "TUULI",

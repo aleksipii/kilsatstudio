@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/pena.kilsat",
-    "sha256": "04669ebc5aa0ac863582586a279129f3070ce5db5b3c971196011fc8919e3a85"
+    "sha256": "d1ceae8fdb16639eec6c3cca1cf57d32c896cbbaca2eb9cf91f5af0f0789d6bd"
   },
   "character": {
     "id": "PENA",

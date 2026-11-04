@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/makela.kilsat",
-    "sha256": "00b6f6a81f54bb1d9515e912315714f14afe45e92bf228a0d97c35e6fcede5f8"
+    "sha256": "635d1db7883b231ad2337410e44d8c37218ef64a62d5a3cb205b6446778bbfb9"
   },
   "character": {
     "id": "MAKELA",

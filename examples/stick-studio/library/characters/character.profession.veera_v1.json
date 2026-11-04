@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/veera.kilsat",
-    "sha256": "49417be8486f3f245ce7e1adf3b94b7f86b0909ac6c030c717cc9f4968f941f2"
+    "sha256": "1695fcaece257146a9df6f8181771464a693e7f5554612703ac7d659cb163705"
   },
   "character": {
     "id": "VEERA",

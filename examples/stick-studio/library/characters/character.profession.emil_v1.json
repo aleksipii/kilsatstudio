@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/emil.kilsat",
-    "sha256": "973d4da5a16f3d856b1b880767f1ed06c87444e3d2455c245890f4a64a9b52d1"
+    "sha256": "9e75a5edac5b4b656e8cb878b8b402703f5509eb24f5b9dbd4ab5a8b998a4370"
   },
   "character": {
     "id": "EMIL",

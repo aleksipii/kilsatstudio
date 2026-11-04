@@ -34,7 +34,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/satu.kilsat",
-    "sha256": "205091c953e75e299cf60a40b7daf90e3316923c1e7663c1fc516577336e7705"
+    "sha256": "d7be85a104a8cbe864dbfa5375d19ff4f57bd777752f764fe2cfcdef5a8b1de7"
   },
   "character": {
     "id": "SATU",

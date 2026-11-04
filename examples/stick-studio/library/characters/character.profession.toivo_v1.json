@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/toivo.kilsat",
-    "sha256": "68ed53a0bb0147be2cd4334ae1af3a086c7d03639086bd8be77fde5ca83557f0"
+    "sha256": "fbb54d8046e259013270800a96dc03e0d70a635d157107ad3025c152f30e1638"
   },
   "character": {
     "id": "TOIVO",

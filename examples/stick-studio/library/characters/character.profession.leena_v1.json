@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/leena.kilsat",
-    "sha256": "ecdb2c3412d16e61871f027a42fcb654ef32223bcf7c314c6313297ea7010c62"
+    "sha256": "dd8ece91c0f5024203ab582ef4c52a057a55837b6336601e66816fb07d9633fd"
   },
   "character": {
     "id": "LEENA",

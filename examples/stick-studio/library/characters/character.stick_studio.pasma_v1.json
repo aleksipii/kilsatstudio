@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "characters/pasma.kilsat",
-    "sha256": "0add110bf5ee8d50287bd9bd7c94fe08bb8ac359b446b3a87c0d2c88fbb5eaad"
+    "sha256": "bc5a632c5b33d173088b0edf97e3af5d0bb401481ff485a26157b3d01ea47234"
   },
   "character": {
     "id": "PASMA",

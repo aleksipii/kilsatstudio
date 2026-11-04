@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/salama.kilsat",
-    "sha256": "0e9d25697197c9621654d1095d267a5e89d807e1f01eadc9fcdabab3dd02a9c2"
+    "sha256": "df2de8576b03baf61145dd2f3146fb28bf4fb15ca05ac31d58571c704b6b14f0"
   },
   "character": {
     "id": "SALAMA",

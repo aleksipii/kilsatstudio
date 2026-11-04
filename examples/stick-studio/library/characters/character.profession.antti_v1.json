@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/antti.kilsat",
-    "sha256": "24ab23543f596dd362c83d56ded4b48f4e6e0806fe6530e0728e317768fd60c0"
+    "sha256": "d98e3c0ce8c567e8820bea6d9a924bb127f816a1c8e7664ba9ef6d541e12d8a4"
   },
   "character": {
     "id": "ANTTI",

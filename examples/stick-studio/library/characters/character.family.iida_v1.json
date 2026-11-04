@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/iida.kilsat",
-    "sha256": "ea332a85002f2447b4997c7db7a9b7e7fe5d94064d57d884bda10982f46e56d5"
+    "sha256": "d3bccade3161455fdff02af43b6777045e0c0308b424b6038135b16107ae18f5"
   },
   "character": {
     "id": "IIDA",

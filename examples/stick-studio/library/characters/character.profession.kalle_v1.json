@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/kalle.kilsat",
-    "sha256": "27d0b63f22cf68f688a3c6782235378b5f1f52b335427f67f4f07021f6045015"
+    "sha256": "86a5c62a47bfc16c2cb4fa5449ce30bbad35ebf841b490d20782d35661931e12"
   },
   "character": {
     "id": "KALLE",

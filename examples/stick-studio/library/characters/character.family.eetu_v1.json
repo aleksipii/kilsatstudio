@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/eetu.kilsat",
-    "sha256": "1cf45a5c9231efcca77ffb827e2764774336893f56b50366d615d4b528b984e6"
+    "sha256": "ecf1199006c7dc2fb9422436add692617df71fc9064217fb5dc23e9f2d30a7ba"
   },
   "character": {
     "id": "EETU",

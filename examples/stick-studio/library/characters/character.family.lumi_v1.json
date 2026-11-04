@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/lumi.kilsat",
-    "sha256": "a35f80890bbb8b47dee61dee3670f2bd465395b68fbeab703be8c53c2fdd6ffd"
+    "sha256": "5717bea570a841cd49b81a7386edd0192b06269dc1a7ef63a365063e756fc2b4"
   },
   "character": {
     "id": "LUMI",

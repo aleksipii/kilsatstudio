@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/rasmus.kilsat",
-    "sha256": "d182228da0592231f980245280308d10c895b5fa1f64bc50085a42efa8bae665"
+    "sha256": "c829a3a83f0ccc023ef4104901c73dc85c9843cdb00da684ecc154eea720bb70"
   },
   "character": {
     "id": "RASMUS",

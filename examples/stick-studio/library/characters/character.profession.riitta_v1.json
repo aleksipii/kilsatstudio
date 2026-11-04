@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/riitta.kilsat",
-    "sha256": "c2a96c9564d990f3196412d8e6b026581e445ff78d795aeb13e3c421719a32c6"
+    "sha256": "ce93a6dcfcb7810fb92540bee5a54abebcee457898a0e252610292b51b659b64"
   },
   "character": {
     "id": "RIITTA",

@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/ronja.kilsat",
-    "sha256": "b07a219dfe2d6659be6e90254614e6790e3cfa714cd33c36cb01257a969383a2"
+    "sha256": "e6e19737798dc63aa7192819a474bb73848cd637a872be3f37658916ea46b292"
   },
   "character": {
     "id": "RONJA",

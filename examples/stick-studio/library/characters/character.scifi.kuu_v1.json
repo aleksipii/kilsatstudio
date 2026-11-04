@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/kuu.kilsat",
-    "sha256": "7e56e7c95a5b47c407e3be74f6c7178d9e1c673a207e41774e45258f30929e32"
+    "sha256": "d9820ef94ef73bcbab54cd0fb1666e15cbb9803a05ca877da219ad8d7c36a4c5"
   },
   "character": {
     "id": "KUU",

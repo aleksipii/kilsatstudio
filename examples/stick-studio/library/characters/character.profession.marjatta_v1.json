@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/marjatta.kilsat",
-    "sha256": "02222ae2a8d730f4f12b7f7d5052e42bca416477f46dd6dd36fec73d29c8998c"
+    "sha256": "dff1613bbbb63ffba977b9fc3b0ba96858fcf2dcb6d48be78a2e38e013f97b49"
   },
   "character": {
     "id": "MARJATTA",
