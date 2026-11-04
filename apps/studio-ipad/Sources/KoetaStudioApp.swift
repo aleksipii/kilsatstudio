@@ -7,6 +7,7 @@ struct KoetaStudioApp: App {
     @StateObject private var exporter = ExportController()
     @State private var launchExportStarted = false
     @State private var launchDraftAppended = false
+    @State private var launchTimelineTested = false
 
     var body: some Scene {
         WindowGroup {
@@ -39,6 +40,10 @@ struct KoetaStudioApp: App {
                 }
             }
         }
+        if arguments.contains("--timeline-test"), !launchTimelineTested {
+            launchTimelineTested = true
+            testTimeline()
+        }
         guard arguments.contains("--export"), !launchExportStarted else { return }
         launchExportStarted = true
         // Let `--scene` select its scene first.
@@ -46,6 +51,32 @@ struct KoetaStudioApp: App {
             let base = (player.fileName as NSString).deletingPathExtension
             exporter.start(document: document, scene: arguments.contains("--export-all") ? nil : player.scene,
                            baseName: base)
+        }
+    }
+
+    /// `--timeline-test`: select, move and resize the first event, add one at the
+    /// playhead, then undo and redo, logging the timeline after each step.
+    private func testTimeline() {
+        func log(_ step: String) {
+            let events = player.timeline?.events ?? []
+            let first = events.first.map { String(format: "%@ at=%.4f duration=%@", $0.kind, $0.at,
+                                                  $0.duration.map { String(format: "%.4f", $0) } ?? "-") } ?? "none"
+            print("KOETA_TIMELINE \(step) events=\(events.count) first=\(first) unsaved=\(player.hasUnsavedChanges) error=\(player.timelineError ?? "-")")
+        }
+        let steps: [(String, () -> Void)] = [
+            ("opened", {}),
+            ("moved", { player.selectedEvent = 0; player.moveEvent(0, by: 0.51) }),
+            ("resized", { player.moveEvent(0, by: 0.26, resize: true) }),
+            ("inserted", {
+                player.seek(to: 12)
+                if let actor = player.timeline?.actors.first { player.insertEvent(kind: "gesture", actor: actor) }
+            }),
+            ("undone", { player.undo() }),
+            ("redone", { player.redo(); player.selectedEvent = 0 }),
+        ]
+        for (offset, step) in steps.enumerated() {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1 + Double(offset) * 1.5) { step.1() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2 + Double(offset) * 1.5) { log(step.0) }
         }
     }
 
@@ -69,6 +100,7 @@ struct KoetaStudioApp: App {
         }
         player.playWhenReady = arguments.contains("--play")
         player.showsEditor = arguments.contains("--edit")
+        player.showsTimeline = arguments.contains("--timeline") || arguments.contains("--timeline-test")
         if let name = value("--open-example") {
             player.openExample(named: name, scene: value("--scene").flatMap(Int.init))
         }

@@ -100,6 +100,30 @@ void koeta_export_cancel(const KoetaExport *export_);
 // After every other call on it has returned.
 void koeta_export_free(KoetaExport *export_);
 
+// Timeline editing. Edits start from the document's (last valid) source, snap to
+// frames as the Mac timeline does and check the whole screenplay; each returns
+// the new MotionScript source (free with koeta_string_free) or NULL and *error.
+// Nothing is written and the document itself does not change.
+
+// Scene's tracks and events as JSON: {duration, fps, actors[], events[{index, actor,
+// kind, value, at, duration|null}], choices{gesture, emotion, face, pose, gait}}.
+char *koeta_timeline_json(const KoetaDocument *document, uint32_t scene, char **error);
+// Start and length after shifting the start (or the end edge, with resize) by delta s.
+bool koeta_event_snap(const KoetaDocument *document, uint32_t scene, uint32_t event,
+                      double delta, bool resize, double *at, double *duration, char **error);
+char *koeta_event_move(const KoetaDocument *document, uint32_t scene, uint32_t event,
+                       double delta, bool resize, char **error);
+// kind: "move", "gesture", "emotion", "face" or "speak". A line needs a voice or audio.
+char *koeta_event_insert(const KoetaDocument *document, uint32_t scene, const char *actor,
+                         double at, const char *kind, char **error);
+char *koeta_event_duplicate(const KoetaDocument *document, uint32_t scene, uint32_t event,
+                            double at, char **error);
+char *koeta_event_remove(const KoetaDocument *document, uint32_t scene, uint32_t event,
+                         char **error);
+// Gesture, expression, facing or pose name; gait of a move; held item; text of a line.
+char *koeta_event_set_value(const KoetaDocument *document, uint32_t scene, uint32_t event,
+                            const uint8_t *value, size_t len, char **error);
+
 void koeta_string_free(char *string);
 
 #ifdef __cplusplus

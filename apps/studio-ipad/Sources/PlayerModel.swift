@@ -23,10 +23,14 @@ final class PlayerModel: ObservableObject {
         case unavailable(String)
     }
 
-    @Published private(set) var document: AnimationDocument?
+    @Published private(set) var document: AnimationDocument? {
+        didSet { refreshTimeline() }
+    }
     @Published private(set) var fileName = ""
     @Published var sceneIndex = 0 {
-        didSet { if sceneIndex != oldValue { pause(); seek(to: 0); loadAudio() } }
+        didSet {
+            if sceneIndex != oldValue { selectedEvent = nil; refreshTimeline(); pause(); seek(to: 0); loadAudio() }
+        }
     }
     @Published private(set) var frame: UInt64 = 0
     @Published private(set) var image: CGImage?
@@ -52,6 +56,26 @@ final class PlayerModel: ObservableObject {
     @Published var showsEditor = false
     /// An open that waits for the user to discard unsaved edits.
     @Published var pendingDiscard: (() -> Void)?
+
+    // MARK: Timeline state
+    /// Whether the touch timeline is shown below the preview.
+    @Published var showsTimeline = false
+    /// The current scene's tracks and events, from the last valid screenplay.
+    @Published private(set) var timeline: AnimationDocument.Timeline?
+    /// Index of the selected event in the current scene.
+    @Published var selectedEvent: Int?
+    /// Why the last timeline edit was refused.
+    @Published var timelineError: String?
+    @Published private(set) var canUndo = false
+    @Published private(set) var canRedo = false
+    /// Earlier and undone screenplays, newest last.
+    private var undoStack: [String] = [] { didSet { canUndo = !undoStack.isEmpty } }
+    private var redoStack: [String] = [] { didSet { canRedo = !redoStack.isEmpty } }
+    /// True while an edit sets the draft, which then opens without waiting for typing to pause.
+    private var applyingEdit = false
+    /// Event to select once the edited document opens (a new event).
+    private var pendingSelection: Int?
+    private static let undoLimit = 100
 
     /// Longest side requested from the core, set from the view size and screen scale.
     var renderSide: UInt32 = 768 {
@@ -190,6 +214,9 @@ final class PlayerModel: ObservableObject {
                 switch result {
                 case .success(let document):
                     self.replaceScope(with: scope)
+                    self.undoStack = []
+                    self.redoStack = []
+                    self.selectedEvent = nil
                     self.document = document
                     self.fileURL = url
                     self.savedSource = document.source
@@ -242,8 +269,11 @@ final class PlayerModel: ObservableObject {
         editCheck?.cancel()
     }
 
-    /// Check the draft once typing pauses; valid text replaces the preview.
+    /// Check the draft once typing pauses (at once for a timeline edit or
+    /// undo); valid text replaces the preview.
     private func draftChanged() {
+        if !applyingEdit { redoStack.removeAll() }
+        let delay = applyingEdit ? 0 : 0.5
         editCheck?.cancel()
         editGeneration += 1
         let generation = editGeneration
@@ -277,7 +307,7 @@ final class PlayerModel: ObservableObject {
             }
         }
         editCheck = work
-        editQueue.asyncAfter(deadline: .now() + 0.5, execute: work)
+        editQueue.asyncAfter(deadline: .now() + delay, execute: work)
     }
 
     /// Show an edited version of the open file, keeping the scene and frame.
@@ -363,6 +393,121 @@ final class PlayerModel: ObservableObject {
         }
         try FileManager.default.copyItem(at: source, to: target)
         return copyFolder ? target.appendingPathComponent(url.lastPathComponent) : target
+    }
+
+    // MARK: Timeline editing
+
+    /// Seconds at the current frame.
+    var playheadSeconds: Double {
+        guard let document, document.fps > 0 else { return 0 }
+        return Double(frame) / Double(document.fps)
+    }
+
+    /// Timeline edits start from the shown (valid) screenplay, so typed text
+    /// must have reached the preview first.
+    var canEditTimeline: Bool {
+        guard let document else { return false }
+        return sourceProblem == nil && draft == document.source && !isSaving
+    }
+
+    var timelineBlockedReason: String? {
+        guard document != nil else { return nil }
+        if sourceProblem != nil { return "Korjaa käsikirjoituksen virhe ennen aikajanan muokkausta." }
+        if !canEditTimeline { return "Päivitetään esikatselua…" }
+        return nil
+    }
+
+    private func refreshTimeline() {
+        guard let document, let scene else { timeline = nil; return }
+        do {
+            timeline = try document.timeline(scene: scene.index)
+        } catch {
+            timeline = nil
+            timelineError = error.localizedDescription
+        }
+        if let pending = pendingSelection {
+            pendingSelection = nil
+            selectedEvent = pending
+        }
+        if let selected = selectedEvent, !(timeline?.events.indices.contains(selected) ?? false) {
+            selectedEvent = nil
+        }
+    }
+
+    /// Frame-snapped start and length while dragging, for feedback only.
+    func snapped(event: Int, delta: Double, resize: Bool) -> (at: Double, duration: Double)? {
+        guard let document, let scene else { return nil }
+        return try? document.snapEvent(scene: scene.index, event: event, delta: delta, resize: resize)
+    }
+
+    /// False when nothing changed (the edit was refused or snapped back).
+    @discardableResult
+    func moveEvent(_ event: Int, by delta: Double, resize: Bool = false) -> Bool {
+        guard delta != 0 else { return false }
+        return edit { try $0.sourceMoving(scene: $1, event: event, delta: delta, resize: resize) }
+    }
+
+    /// `kind`: move, gesture, emotion, face or speak, at the playhead.
+    func insertEvent(kind: String, actor: String) {
+        let at = playheadSeconds
+        let next = timeline?.events.count
+        edit(select: next) { try $0.sourceInserting(scene: $1, actor: actor, at: at, kind: kind) }
+    }
+
+    func duplicateEvent(_ event: Int) {
+        let at = playheadSeconds
+        let next = timeline?.events.count
+        edit(select: next) { try $0.sourceDuplicating(scene: $1, event: event, at: at) }
+    }
+
+    func removeEvent(_ event: Int) {
+        selectedEvent = nil
+        edit { try $0.sourceRemoving(scene: $1, event: event) }
+    }
+
+    func setEventValue(_ event: Int, to value: String) {
+        edit { try $0.sourceSetting(scene: $1, event: event, value: value) }
+    }
+
+    /// Apply an edit made by the core from the shown screenplay; it becomes the
+    /// unsaved draft and the preview opens it at once.
+    @discardableResult
+    private func edit(select: Int? = nil, _ make: (AnimationDocument, UInt32) throws -> String) -> Bool {
+        guard let document, let scene else { return false }
+        if let reason = timelineBlockedReason { timelineError = reason; return false }
+        do {
+            let source = try make(document, scene.index)
+            guard source != draft else { return false }
+            timelineError = nil
+            undoStack.append(draft)
+            if undoStack.count > Self.undoLimit { undoStack.removeFirst() }
+            redoStack.removeAll()
+            pendingSelection = select
+            applyDraft(source)
+            return true
+        } catch {
+            timelineError = error.localizedDescription
+            return false
+        }
+    }
+
+    /// Undo the last timeline edit or undo (typing in between is undone too).
+    func undo() {
+        guard let previous = undoStack.popLast() else { return }
+        redoStack.append(draft)
+        applyDraft(previous)
+    }
+
+    func redo() {
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(draft)
+        applyDraft(next)
+    }
+
+    private func applyDraft(_ source: String) {
+        applyingEdit = true
+        draft = source
+        applyingEdit = false
     }
 
     func seek(to frame: UInt64) {

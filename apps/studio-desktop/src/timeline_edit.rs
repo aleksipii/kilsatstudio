@@ -1,18 +1,19 @@
 //! Pure, frame-snapped timeline drag state. Document changes happen on release.
+use motion_scene::event_edit::Retime;
 use motion_script::Event;
 
 #[derive(Debug, Clone)]
 pub struct Drag {
     pub scene_index: usize,
     pub event_index: usize,
-    pub original_at: f64,
     pub proposed_at: f64,
     /// Length on release; changes only when resizing from the end edge.
     pub proposed_duration: f64,
     /// True when dragging the end edge (length) rather than the whole event.
     pub resize: bool,
     pointer_origin_x: f32,
-    duration: f64,
+    /// Shared frame snapping, the same as the iPad timeline.
+    retime: Retime,
 }
 
 impl Drag {
@@ -22,30 +23,7 @@ impl Drag {
         event: &Event,
         pointer_x: f32,
     ) -> Option<Self> {
-        let original_at = event.actor_time().0;
-        let duration = match event {
-            Event::Move { duration, .. } | Event::Gesture { duration, .. } => *duration,
-            _ => 0.0,
-        };
-        if !original_at.is_finite()
-            || original_at < 0.0
-            || !pointer_x.is_finite()
-            || !duration.is_finite()
-            || duration < 0.0
-            || (matches!(event, Event::Move { .. } | Event::Gesture { .. }) && duration == 0.0)
-        {
-            return None;
-        }
-        Some(Self {
-            scene_index,
-            event_index,
-            original_at,
-            proposed_at: original_at,
-            proposed_duration: duration,
-            resize: false,
-            pointer_origin_x: pointer_x,
-            duration,
-        })
+        Self::with(scene_index, event_index, Retime::new(event)?, pointer_x)
     }
 
     /// Drag the end edge of an event with a duration (move or gesture).
@@ -55,12 +33,27 @@ impl Drag {
         event: &Event,
         pointer_x: f32,
     ) -> Option<Self> {
-        if !matches!(event, Event::Move { .. } | Event::Gesture { .. }) {
+        Self::with(scene_index, event_index, Retime::resize(event)?, pointer_x)
+    }
+
+    fn with(
+        scene_index: usize,
+        event_index: usize,
+        retime: Retime,
+        pointer_x: f32,
+    ) -> Option<Self> {
+        if !pointer_x.is_finite() {
             return None;
         }
-        let mut drag = Self::new(scene_index, event_index, event, pointer_x)?;
-        drag.resize = true;
-        Some(drag)
+        Some(Self {
+            scene_index,
+            event_index,
+            proposed_at: retime.original_at,
+            proposed_duration: retime.duration,
+            resize: retime.resize,
+            pointer_origin_x: pointer_x,
+            retime,
+        })
     }
 
     pub fn update(
@@ -70,106 +63,24 @@ impl Drag {
         scene_duration: f64,
         fps: u32,
     ) -> Result<(), String> {
-        if !pointer_x.is_finite()
-            || !track_width.is_finite()
-            || track_width <= 0.0
-            || !scene_duration.is_finite()
-            || scene_duration <= 0.0
-            || fps == 0
-            || self.duration > scene_duration
-        {
+        if !pointer_x.is_finite() || !track_width.is_finite() || track_width <= 0.0 {
             return Err("Timeline drag needs finite coordinates, positive width, scene duration and frame rate, and an event fitting the scene".into());
         }
-        let rate = f64::from(fps);
-        if self.resize {
-            return self.update_length(pointer_x, track_width, scene_duration, rate);
-        }
-        let limit = (scene_duration - self.duration) * rate;
-        if !limit.is_finite() || limit >= (1_u64 << 53) as f64 {
-            return Err("Scene is too long for accurate frame snapping".into());
-        }
-        let valid = |frame: f64| {
-            let at = frame / rate;
-            at < scene_duration && at + self.duration <= scene_duration
-        };
-        let mut last_frame = limit.floor();
-        // Division and addition determine validity, as in MotionScript validation.
-        // Correct multiplication rounding at exact or nearly exact boundaries.
-        if valid(last_frame + 1.0) {
-            last_frame += 1.0;
-        }
-        if !valid(last_frame) {
-            last_frame -= 1.0;
-        }
-        if last_frame < 0.0 {
-            return Err("Event does not fit on the scene frame grid".into());
-        }
         let delta = (f64::from(pointer_x) - f64::from(self.pointer_origin_x))
             / f64::from(track_width)
             * scene_duration;
-        // A click without movement must not quantize an existing off-grid start.
-        self.proposed_at = if delta == 0.0 {
-            self.original_at
-        } else {
-            ((self.original_at + delta) * rate)
-                .round()
-                .clamp(0.0, last_frame)
-                / rate
-        };
-        Ok(())
-    }
-
-    /// Snap the end to the frame grid, at least one frame after the start and
-    /// never past the scene end.
-    fn update_length(
-        &mut self,
-        pointer_x: f32,
-        track_width: f32,
-        scene_duration: f64,
-        rate: f64,
-    ) -> Result<(), String> {
-        let delta = (f64::from(pointer_x) - f64::from(self.pointer_origin_x))
-            / f64::from(track_width)
-            * scene_duration;
-        if delta == 0.0 {
-            self.proposed_duration = self.duration;
-            return Ok(());
-        }
-        let first = (self.original_at * rate).floor() + 1.0;
-        let last = (scene_duration * rate).floor();
-        if !last.is_finite() || last >= (1_u64 << 53) as f64 || first > last {
-            return Err("Event does not fit on the scene frame grid".into());
-        }
-        let end = ((self.original_at + self.duration + delta) * rate)
-            .round()
-            .clamp(first, last)
-            / rate;
-        let duration = end - self.original_at;
-        if !(duration > 0.0 && self.original_at + duration <= scene_duration) {
-            return Err("Event length must stay positive and inside the scene".into());
-        }
+        let (at, duration) = self
+            .retime
+            .snap(delta, scene_duration, fps)
+            .map_err(|error| error.to_string())?;
+        self.proposed_at = at;
         self.proposed_duration = duration;
         Ok(())
     }
 
     pub fn replacement(&self, event: &Event) -> Event {
-        let mut replacement = event.clone();
-        match &mut replacement {
-            Event::Move { at, .. }
-            | Event::Gesture { at, .. }
-            | Event::Speak { at, .. }
-            | Event::Emotion { at, .. }
-            | Event::Face { at, .. }
-            | Event::Hold { at, .. }
-            | Event::Pose { at, .. } => *at = self.proposed_at,
-        }
-        if self.resize {
-            if let Event::Move { duration, .. } | Event::Gesture { duration, .. } = &mut replacement
-            {
-                *duration = self.proposed_duration;
-            }
-        }
-        replacement
+        self.retime
+            .apply(event, self.proposed_at, self.proposed_duration)
     }
 }
 
@@ -226,7 +137,7 @@ mod tests {
         let event = speech(0.123);
         let mut drag = Drag::new(2, 3, &event, 10.0).unwrap();
         drag.update(10.0, 100.0, 2.0, 24).unwrap();
-        assert_eq!(drag.original_at, 0.123);
+        assert_eq!(drag.retime.original_at, 0.123);
         match drag.replacement(&event) {
             Event::Speak {
                 at,
