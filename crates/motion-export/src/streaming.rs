@@ -12,6 +12,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+/// Longest streamed output: five minutes, the production length target.
+const MAX_STREAMING_SECONDS: u64 = 300;
+const MAX_STREAMING_FRAMES: u64 = MAX_STREAMING_SECONDS * 24;
+
 /// Explicit streaming profile, never a silent resolution or frame-rate reduction.
 #[derive(Clone, Debug)]
 pub struct StreamingProfile {
@@ -21,9 +25,12 @@ pub struct StreamingProfile {
     review_size: Option<(u32, u32)>,
 }
 impl StreamingProfile {
+    /// Up to five minutes of 1920x1080 at 24 fps. The default deadline is the
+    /// profile maximum: a measured two-character episode streamed at 7.7 frames
+    /// per second on an Apple M1, about 16 minutes for five minutes of video.
     pub fn full_hd_24() -> Self {
         Self {
-            deadline: Duration::from_secs(300),
+            deadline: Duration::from_secs(3600),
             max_output_bytes: 512 * 1024 * 1024,
             review_size: None,
         }
@@ -111,13 +118,13 @@ fn preflight(
             .ok_or_else(|| invalid("source duration overflow"))
     })?;
     if frames == 0
-        || frames > 1440
-        || timeline.total_samples() > 60 * u64::from(SAMPLE_RATE)
-        || source_samples > 120 * u64::from(SAMPLE_RATE)
+        || frames > MAX_STREAMING_FRAMES
+        || timeline.total_samples() > MAX_STREAMING_SECONDS * u64::from(SAMPLE_RATE)
+        || source_samples > 2 * MAX_STREAMING_SECONDS * u64::from(SAMPLE_RATE)
         || script.scenes.len() > 128
     {
         return Err(invalid(
-            "streaming profile permits 1..1440 frames, 60s output and 120s scene-source audio",
+            "streaming profile permits 1..7200 frames, 300s output and 600s scene-source audio",
         ));
     }
     let pixels = u64::from(script.project.width) * u64::from(script.project.height);
@@ -818,6 +825,18 @@ mod tests {
             1440
         );
         script.project.fps = 25;
+        assert!(preflight(&script, &rendered, None, &profile, CaptionMode::Follow).is_err());
+    }
+    #[test]
+    fn five_minutes_of_full_hd_fit_and_one_frame_more_does_not() {
+        let profile = StreamingProfile::full_hd_24();
+        assert_eq!(profile.deadline, Duration::from_secs(3600));
+        let (script, rendered) = fixture(300.0, 1920, 1080, 24);
+        let (_, frames, working) =
+            preflight(&script, &rendered, None, &profile, CaptionMode::Follow).unwrap();
+        assert_eq!(frames, 7200);
+        assert!(working < MAX_BYTES);
+        let (script, rendered) = fixture(300.0 + 1.0 / 24.0, 1920, 1080, 24);
         assert!(preflight(&script, &rendered, None, &profile, CaptionMode::Follow).is_err());
     }
     #[test]
