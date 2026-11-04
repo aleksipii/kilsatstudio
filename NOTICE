@@ -4,7 +4,9 @@ Koeta Studio third-party notices
 This file lists third-party material that is embedded in Koeta Studio
 binaries. It is not a complete audit of every Cargo/Python dependency; see
 docs/dependency-audit.md and docs/workstreams/final-license-audit.md for that
-status. The original project source is MIT-licensed (see LICENSE).
+status. Licence texts of the compiled Rust crates, including the egui default
+fonts (Hack, Ubuntu Light, Noto Emoji, emoji-icon-font), are in
+THIRD-PARTY-LICENSES.txt (summary: docs/third-party-license-report.md). The original project source is MIT-licensed (see LICENSE).
 
 -----------------------------------------------------------------------------
 Anton (caption font)

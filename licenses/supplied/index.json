@@ -1,0 +1,11 @@
+{
+  "_comment": "Licence texts missing from published crate packages, copied unmodified from the upstream repository at the pinned commit. scripts/third_party_licenses.py applies each file to the listed crate names (all versions).",
+  "objc2-LICENSE-MIT.txt": {
+    "source": "https://github.com/madsmtm/objc2/blob/8a5abacd90d5403fc0463459a35826f892b9142e/LICENSE-MIT.txt",
+    "crates": ["objc-sys", "objc2", "objc2-encode", "block2", "objc2-app-kit", "objc2-cloud-kit", "objc2-contacts", "objc2-core-data", "objc2-core-foundation", "objc2-core-graphics", "objc2-core-image", "objc2-core-location", "objc2-foundation", "objc2-io-surface", "objc2-link-presentation", "objc2-metal", "objc2-quartz-core", "objc2-symbols", "objc2-ui-kit", "objc2-uniform-type-identifiers", "objc2-user-notifications"]
+  },
+  "malloc_buf-LICENSE.txt": {
+    "source": "https://github.com/SSheldon/malloc_buf/blob/d9a3e539642bd90e07df458d226b19cdfa606863/LICENSE",
+    "crates": ["malloc_buf"]
+  }
+}
