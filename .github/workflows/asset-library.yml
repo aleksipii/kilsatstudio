@@ -9,6 +9,10 @@ on:
       - examples/stick-studio/props/**
       - examples/stick-studio/backgrounds/**
       - scripts/generate_library_props.py
+      - scripts/generate_character_library.py
+      - scripts/generate_city_library.py
+      - scripts/generate_library_backgrounds.py
+      - examples/stick-studio/cast/**
       - docs/asset-library.md
       - Cargo.toml
       - Cargo.lock
@@ -22,6 +26,10 @@ on:
       - examples/stick-studio/props/**
       - examples/stick-studio/backgrounds/**
       - scripts/generate_library_props.py
+      - scripts/generate_character_library.py
+      - scripts/generate_city_library.py
+      - scripts/generate_library_backgrounds.py
+      - examples/stick-studio/cast/**
       - docs/asset-library.md
       - Cargo.toml
       - Cargo.lock
@@ -43,19 +51,22 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - name: Generated library (props, backgrounds, locations, sets) is up to date
+      - name: Generated library (props, backgrounds, locations, sets, characters) is up to date
         shell: bash
         run: |
           set -euo pipefail
           python3 scripts/generate_library_props.py
+          python3 scripts/generate_city_library.py
+          python3 scripts/generate_library_backgrounds.py
+          python3 scripts/generate_character_library.py
           cargo run --locked -p motion-library --example generate_stick_library -- examples/stick-studio
           # Catches both modified tracked files and new untracked ones.
-          changes=$(git status --porcelain --untracked-files=all -- examples/stick-studio/library)
+          changes=$(git status --porcelain --untracked-files=all -- examples/stick-studio/library examples/stick-studio/cast)
           if [ -n "$changes" ]; then
             echo "Generated library differs from the committed files:" >&2
             echo "$changes" >&2
-            git --no-pager diff --stat -- examples/stick-studio/library >&2
-            echo "Run 'python3 scripts/generate_library_props.py' and" >&2
+            git --no-pager diff --stat -- examples/stick-studio/library examples/stick-studio/cast >&2
+            echo "Run python3 scripts/generate_{library_props,city_library,library_backgrounds,character_library}.py and" >&2
             echo "'cargo run -p motion-library --example generate_stick_library -- examples/stick-studio', then commit the result." >&2
             exit 1
           fi
