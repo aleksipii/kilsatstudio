@@ -43,7 +43,7 @@ fn every_library_character_has_a_working_rig() {
         let document: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
         let source: serde_json::Value =
-            serde_json::from_str(document["source"].as_str().unwrap()).unwrap();
+            serde_yaml::from_str(document["source"].as_str().unwrap()).unwrap();
         let raw: motion_rig::RigDefinition =
             serde_json::from_value(source["characters"][character]["rig"].clone())
                 .unwrap_or_else(|e| panic!("{id}: {e}"));
