@@ -288,26 +288,7 @@ pub fn export_mp4_scene_streaming(
             .map_err(|e| invalid(e.to_string()))?;
         bounded_json(&art.document, 8 * MAX_SOURCE)?;
     }
-    let selected = script
-        .scenes
-        .get(index)
-        .ok_or_else(|| invalid("missing scene index"))?;
-    let mut single = script.clone();
-    let mut scene = selected.clone();
-    scene.composition.transition = motion_script::Transition::Cut;
-    single.scenes = vec![scene];
-    let mut selected_art = art.cloned();
-    if let Some(a) = &mut selected_art {
-        a.document
-            .layers
-            .retain(|layer| layer.scene_id == selected.id);
-        a.document
-            .groups
-            .retain(|group| group.scene_id == selected.id);
-        a.document
-            .lights
-            .retain(|light| light.scene_id == selected.id);
-    }
+    let (single, selected_art) = frames::single_scene(script, index, art)?;
     export_mp4_sequence_streaming(
         &single,
         std::slice::from_ref(rendered),

@@ -36,6 +36,23 @@ final class PlayerModel: ObservableObject {
     /// Project files found in a folder the user opened, when there are several.
     @Published var folderChoices: [URL] = []
 
+    // MARK: Editing state
+    /// The opened file; edits reopen it with the edited screenplay and save over it.
+    @Published private(set) var fileURL: URL?
+    /// Screenplay text in the editor. Valid text updates the preview after a short pause.
+    @Published var draft = "" {
+        didSet { if draft != oldValue { draftChanged() } }
+    }
+    /// The screenplay as last opened or saved.
+    @Published private(set) var savedSource = ""
+    /// Why the draft does not open, if it does not; the preview keeps the last valid version.
+    @Published private(set) var sourceProblem: AnimationDocument.SourceProblem?
+    @Published private(set) var isSaving = false
+    /// Whether the screenplay editor is shown beside the preview.
+    @Published var showsEditor = false
+    /// An open that waits for the user to discard unsaved edits.
+    @Published var pendingDiscard: (() -> Void)?
+
     /// Longest side requested from the core, set from the view size and screen scale.
     var renderSide: UInt32 = 768 {
         didSet { if renderSide != oldValue { requestRender() } }
@@ -63,6 +80,10 @@ final class PlayerModel: ObservableObject {
     /// Folder access held while the user chooses among `folderChoices`.
     private var pendingFolderScope: URL?
     private var interruptionObserver: NSObjectProtocol?
+    private let editQueue = DispatchQueue(label: "studio.kilsat.edit", qos: .userInitiated)
+    private var editCheck: DispatchWorkItem?
+    /// Increases with every edit, so a slow check of older text is ignored.
+    private var editGeneration = 0
 
     init() {
         engine.attach(audioPlayer)
@@ -170,6 +191,9 @@ final class PlayerModel: ObservableObject {
                 case .success(let document):
                     self.replaceScope(with: scope)
                     self.document = document
+                    self.fileURL = url
+                    self.savedSource = document.source
+                    self.setDraftQuietly(document.source)
                     self.fileName = url.lastPathComponent
                     self.sceneIndex = 0
                     self.frame = 0
@@ -185,6 +209,160 @@ final class PlayerModel: ObservableObject {
                 }
             }
         }
+    }
+
+    // MARK: Editing
+
+    var hasUnsavedChanges: Bool { document != nil && draft != savedSource }
+
+    /// Bundled examples cannot be overwritten; saving makes a copy in Files.
+    var isReadOnly: Bool {
+        guard let fileURL else { return true }
+        return fileURL.standardizedFileURL.path.hasPrefix(Bundle.main.bundleURL.standardizedFileURL.path)
+    }
+
+    var canSave: Bool {
+        document != nil && sourceProblem == nil && !isSaving && (hasUnsavedChanges || isReadOnly)
+    }
+
+    /// Runs `open` now, or once the user agrees to discard unsaved edits.
+    func guardUnsaved(_ open: @escaping () -> Void) {
+        if hasUnsavedChanges { pendingDiscard = open } else { open() }
+    }
+
+    func revertDraft() {
+        draft = savedSource
+    }
+
+    private func setDraftQuietly(_ text: String) {
+        editCheck?.cancel()
+        editGeneration += 1
+        sourceProblem = nil
+        draft = text
+        editCheck?.cancel()
+    }
+
+    /// Check the draft once typing pauses; valid text replaces the preview.
+    private func draftChanged() {
+        editCheck?.cancel()
+        editGeneration += 1
+        let generation = editGeneration
+        let text = draft
+        guard let url = fileURL, let current = document else { return }
+        let work = DispatchWorkItem { [weak self] in
+            if let problem = AnimationDocument.check(source: text) {
+                DispatchQueue.main.async {
+                    guard let self, self.editGeneration == generation else { return }
+                    self.sourceProblem = problem
+                }
+                return
+            }
+            if text == current.source {
+                DispatchQueue.main.async {
+                    guard let self, self.editGeneration == generation else { return }
+                    self.sourceProblem = nil
+                }
+                return
+            }
+            let result = Result { try AnimationDocument(url: url, editedSource: text) }
+            DispatchQueue.main.async {
+                guard let self, self.editGeneration == generation, self.document === current else { return }
+                switch result {
+                case .success(let edited):
+                    self.sourceProblem = nil
+                    self.replaceDocument(with: edited)
+                case .failure(let error):
+                    self.sourceProblem = .init(message: error.localizedDescription, line: 0)
+                }
+            }
+        }
+        editCheck = work
+        editQueue.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
+    /// Show an edited version of the open file, keeping the scene and frame.
+    private func replaceDocument(with edited: AnimationDocument) {
+        let wasPlaying = isPlaying
+        pause()
+        let scene = min(sceneIndex, max(edited.scenes.count - 1, 0))
+        let keptFrame = frame
+        document = edited
+        if sceneIndex != scene {
+            sceneIndex = scene
+        } else {
+            seek(to: min(keptFrame, max(frameCount, 1) - 1))
+            loadAudio()
+        }
+        if wasPlaying { playWhenReady = true }
+    }
+
+    /// Save the draft over the opened file, or a copy into Files for a bundled example.
+    func save() {
+        guard canSave, let url = fileURL else { return }
+        let text = draft
+        let readOnly = isReadOnly
+        isSaving = true
+        editQueue.async { [weak self] in
+            let result = Result<URL, Error> {
+                let target = readOnly ? try Self.copyIntoDocuments(url) : url
+                let bytes = try AnimationDocument.savedBytes(source: text, for: target)
+                try Self.coordinatedWrite(bytes, to: target)
+                return target
+            }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isSaving = false
+                switch result {
+                case .success(let target) where readOnly:
+                    // Continue in the copy, whose folder the app owns.
+                    self.load(url: target, scope: nil, scene: self.sceneIndex)
+                case .success:
+                    if self.fileURL == url { self.savedSource = text }
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    /// Writes with file coordination, as Files and iCloud Drive expect. The
+    /// write is atomic when the app may create files next to the original; a
+    /// file picked on its own may only be replaced in place.
+    nonisolated private static func coordinatedWrite(_ data: Data, to url: URL) throws {
+        var coordinationError: NSError?
+        var writeError: Error?
+        NSFileCoordinator().coordinate(writingItemAt: url, options: .forReplacing, error: &coordinationError) { target in
+            do {
+                try data.write(to: target, options: .atomic)
+            } catch {
+                do { try data.write(to: target) } catch { writeError = error }
+            }
+        }
+        if let error = coordinationError ?? writeError {
+            throw CoreError(message: "Tiedostoa ei voitu tallentaa: \(error.localizedDescription)")
+        }
+    }
+
+    /// Copies a bundled example into the app's Files folder: the file itself,
+    /// or its whole folder when it sits in one (so its assets come along).
+    nonisolated private static func copyIntoDocuments(_ url: URL) throws -> URL {
+        guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+              let resources = Bundle.main.resourceURL
+        else { throw CoreError(message: "Sovelluksen kansiota ei löytynyt.") }
+        let parent = url.deletingLastPathComponent().standardizedFileURL
+        let copyFolder = parent != resources.standardizedFileURL
+        let source = copyFolder ? parent : url
+        var target = documents.appendingPathComponent(source.lastPathComponent)
+        var number = 2
+        while FileManager.default.fileExists(atPath: target.path) {
+            let name = copyFolder ? source.lastPathComponent
+                : (source.lastPathComponent as NSString).deletingPathExtension
+            let numbered = "\(name) \(number)"
+            target = documents.appendingPathComponent(copyFolder ? numbered : numbered + "." + source.pathExtension)
+            number += 1
+        }
+        try FileManager.default.copyItem(at: source, to: target)
+        return copyFolder ? target.appendingPathComponent(url.lastPathComponent) : target
     }
 
     func seek(to frame: UInt64) {

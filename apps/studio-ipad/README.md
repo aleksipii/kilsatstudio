@@ -38,8 +38,30 @@ Phase 2 (images and audio):
   is missing, the scene plays silently and a note under the controls lists the
   lines. Nothing is generated in their place.
 
-Not yet included: editing, posing with Apple Pencil, export, and screen-video
-cues.
+Phase 3 (screenplay editing and movie export):
+
+- **Edit the screenplay** (pencil button, ⌘E): the MotionScript editor opens
+  beside the preview (below it in narrow windows). Smart quotes, dashes and
+  autocorrection are off, since they would change the YAML. A pause in typing
+  checks the text with the shared core: valid text updates the preview and
+  scene list straight away, without saving; an error names its kind (syntax,
+  unsupported command, invalid value or reference) and line, tapping it selects
+  the line, and the preview keeps the last valid version.
+- **Save** (⌘S) writes over the opened file with file coordination. A `.kilsat`
+  project keeps its artwork, assets and settings; only its screenplay changes.
+  A bundled example cannot be overwritten, so *Tallenna kopio* copies it (with
+  its folder and assets) into the app's Files folder and continues there.
+  Opening another file with unsaved edits asks first.
+- **Export video** (film button, ⇧⌘E): one scene, or the whole project with its
+  crossfades, as an MP4 (H.264 and AAC, BT.709) at the project's own size, into
+  Files › Koeta Studio › Viennit, then share it or save it to Photos. Frames and
+  the mix come from the same core code as the Mac export (`ExportFrames` in
+  `motion-export`); AVFoundation encodes them instead of FFmpeg. Up to 10
+  minutes, cancellable. Dialogue must come from imported WAV files, as in
+  playback; a missing file stops the export with the lines named.
+
+Not yet included: timeline and event editing by touch, posing with Apple Pencil,
+speech synthesis (Kokoro) and screen-video cues.
 
 ## Building
 
@@ -61,4 +83,8 @@ on an Apple Silicon Mac.
 For simulator smoke tests, the launch arguments `--open-example NAME` (a bundled
 example such as `kilsat-season/ep02.kilsat`, or a path inside the app's Files
 folder), `--scene N` (zero-based) and `--play` open a file, select a scene and
-start playback once its audio is ready.
+start playback once its audio is ready. `--export` (with `--export-all` for the
+whole project) exports once the file opens and prints `KOETA_EXPORT finished
+PATH` or `KOETA_EXPORT failed MESSAGE`; `--edit` opens the editor, and
+`--draft-append TEXT` (`\n` for line breaks) with `--save-draft` types into
+and saves the screenplay.
