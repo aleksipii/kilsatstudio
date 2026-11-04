@@ -18,6 +18,11 @@ jobs:
       - run: cargo check --workspace
       - run: cargo clippy --keep-going --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets
+      - name: Third-party licence texts are up to date
+        if: matrix.os == 'macos-latest'
+        run: |
+          cargo fetch --locked
+          python3 scripts/third_party_licenses.py --check
       - name: Regenerate canonical reference fixture for diagnostics
         if: always() && matrix.os == 'ubuntu-latest'
         run: |

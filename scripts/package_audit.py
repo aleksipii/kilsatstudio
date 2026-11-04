@@ -48,7 +48,7 @@ HEAD_HELPER = RESOURCES + 'bin/head_pose'
 SPEECH = RESOURCES + 'speech/'
 SIGNATURE = CONTENTS + '_CodeSignature/CodeResources'
 SOURCE_FILES = (
-    'LICENSE', 'NOTICE', 'services/kokoro-runtime/runtime.py',
+    'LICENSE', 'NOTICE', 'THIRD-PARTY-LICENSES.txt', 'services/kokoro-runtime/runtime.py',
     'services/kokoro-runtime/doctor.py', 'services/kokoro-runtime/smoke_macos.py',
     'services/kokoro-runtime/acceptance.py', 'services/kokoro-runtime/setup_kokoro.py',
     'services/kokoro-runtime/setup-manifest.json',

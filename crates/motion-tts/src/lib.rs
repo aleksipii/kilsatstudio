@@ -231,6 +231,19 @@ fn validate_wav(path: &Path) -> Result<(u32, u64), SpeechError> {
     }
     Ok((spec.sample_rate, wav.duration() as u64))
 }
+/// What the user can do when Kokoro is not installed: speech is never faked.
+pub const KOKORO_FALLBACK: &str =
+    "install the Kokoro speech assets, or import a 24 kHz mono WAV for this line (`audio:`)";
+
+/// Resolves one Kokoro asset, naming the missing file and the offline fallback.
+fn kokoro_asset(path: &Path, what: &str) -> Result<PathBuf, SpeechError> {
+    fs::canonicalize(path).map_err(|e| {
+        SpeechError(format!(
+            "Kokoro {what} not found at {}: {e}; {KOKORO_FALLBACK}",
+            path.display()
+        ))
+    })
+}
 impl SpeechProvider for KokoroProvider {
     fn synthesize(&self, request: SpeechRequest) -> Result<SpeechResult, SpeechError> {
         self.synthesize_cancellable(request, &CancellationToken::new())
@@ -254,12 +267,13 @@ impl SpeechProvider for KokoroProvider {
                 "model version and positive timeout are required".into(),
             ));
         }
-        let model_config = fs::canonicalize(&c.model_config)?;
-        let model_weights = fs::canonicalize(&c.model_weights)?;
-        let runtime_script = fs::canonicalize(&c.runtime_script)?;
-        let voice = fs::canonicalize(
-            c.voices_directory
+        let model_config = kokoro_asset(&c.model_config, "model config")?;
+        let model_weights = kokoro_asset(&c.model_weights, "model weights")?;
+        let runtime_script = kokoro_asset(&c.runtime_script, "runtime script")?;
+        let voice = kokoro_asset(
+            &c.voices_directory
                 .join(format!("{}.pt", request.voice.preset)),
+            "voice",
         )?;
         // Hash file contents, so replacing an asset cannot return stale speech.
         let identity = serde_json::to_vec(&(
@@ -327,7 +341,12 @@ impl SpeechProvider for KokoroProvider {
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .spawn()
-                .map_err(|e| SpeechError(format!("cannot launch Kokoro runtime: {e}")))?;
+                .map_err(|e| {
+                    SpeechError(format!(
+                        "cannot launch Kokoro runtime with Python {}: {e}; {KOKORO_FALLBACK}",
+                        c.python.display()
+                    ))
+                })?;
             let start = Instant::now();
             let status = loop {
                 if let Err(error) = cancel.check() {

@@ -18,6 +18,13 @@ targets:
     platform: iOS
     sources:
       - path: Sources
+      # Licence notices travel with the app (third-party texts: scripts/third_party_licenses.py).
+      - path: ../../LICENSE
+        buildPhase: resources
+      - path: ../../NOTICE
+        buildPhase: resources
+      - path: ../../THIRD-PARTY-LICENSES.txt
+        buildPhase: resources
       - path: ../../examples/hello-emma.yaml
         buildPhase: resources
       - path: ../../examples/studio-production-demo.kilsat
