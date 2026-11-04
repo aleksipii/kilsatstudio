@@ -24,6 +24,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -790,11 +791,100 @@ def portrait():
     return {"id": "hahmo", "duration": 4, "composition": composition, "events": []}
 
 
+# --- MotionScript YAML -------------------------------------------------------
+# The project source is written as readable block YAML (like
+# examples/night-room-reference) instead of one long JSON line, so it can be
+# read and edited in the app's script editor. Short maps and lists whose values
+# are all scalars (keyframes, points, colours) stay on one line.
+
+_PLAIN = re.compile(r"[^\W\d][\w.\-]*(?: [\w.\-]+)*", re.UNICODE)
+# YAML 1.2 core schema (serde_yaml): only these plain words are not strings.
+_RESERVED = {"true", "false", "null", "~"}
+_FLOW_WIDTH = 96
+
+SECTION_NOTES = {
+    "project": "Projektin asetukset",
+    "rig_clips": "Albuksen omat nivelklipit, joita kohtaukset voivat käyttää",
+    "characters": "Hahmo: paperinukkeriggi, ilmeet ja suun muodot",
+    "scenes": "Kohtaukset",
+}
+
+
+def _scalar(value):
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        if isinstance(value, float) and not math.isfinite(value):
+            raise ValueError(f"non-finite number in script: {value}")
+        return json.dumps(value)
+    text = str(value)
+    if _PLAIN.fullmatch(text) and text.lower() not in _RESERVED:
+        return text
+    return json.dumps(text, ensure_ascii=False)
+
+
+def _is_scalar(value):
+    return not isinstance(value, (dict, list))
+
+
+def _flow(value):
+    """One-line form for a map or list of scalars, or None when it does not fit."""
+    if isinstance(value, dict) and value and all(_is_scalar(v) for v in value.values()):
+        text = "{" + ", ".join(f"{_scalar(k)}: {_scalar(v)}" for k, v in value.items()) + "}"
+    elif isinstance(value, list) and value and all(
+            _is_scalar(v) or (isinstance(v, list) and v and all(map(_is_scalar, v)))
+            for v in value):
+        text = "[" + ", ".join(
+            _scalar(v) if _is_scalar(v) else "[" + ", ".join(map(_scalar, v)) + "]"
+            for v in value) + "]"
+    else:
+        return None
+    return text if len(text) <= _FLOW_WIDTH else None
+
+
+def _yaml_lines(value, indent):
+    pad = "  " * indent
+    if isinstance(value, dict):
+        for key, item in value.items():
+            head = f"{pad}{_scalar(key)}:"
+            if _is_scalar(item) or not item:
+                yield f"{head} {_scalar(item) if _is_scalar(item) else ('{}' if isinstance(item, dict) else '[]')}"
+            elif (flow := _flow(item)) is not None:
+                yield f"{head} {flow}"
+            else:
+                yield head
+                yield from _yaml_lines(item, indent + 1)
+    else:
+        for item in value:
+            if _is_scalar(item):
+                yield f"{pad}- {_scalar(item)}"
+            elif not item:
+                yield f"{pad}- {'{}' if isinstance(item, dict) else '[]'}"
+            elif (flow := _flow(item)) is not None:
+                yield f"{pad}- {flow}"
+            else:
+                # Put the first key of a block map on the dash line.
+                lines = list(_yaml_lines(item, indent + 1))
+                yield f"{pad}- {lines[0].lstrip()}"
+                yield from lines[1:]
+
+
+def to_yaml(script):
+    lines = ["# Albus, kitaraa soittava kissa. Tuotettu: scripts/generate_albus.py"]
+    for key, value in script.items():
+        lines.append("")
+        if key in SECTION_NOTES:
+            lines.append(f"# {SECTION_NOTES[key]}")
+        lines.extend(_yaml_lines({key: value}, 0))
+    return "\n".join(lines) + "\n"
+
+
 def project(title, albus, scenes, width, height, layers, clips):
     source = {"project": {"title": title, "width": width, "height": height, "fps": 24},
               "rig_clips": clips, "characters": {ACTOR: albus}, "scenes": scenes}
-    return {"format_version": 2,
-            "source": json.dumps(source, ensure_ascii=False, separators=(",", ":")),
+    return {"format_version": 2, "source": to_yaml(source),
             "assets": [], "art": {"layers": layers}}
 
 
