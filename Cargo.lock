@@ -1652,7 +1652,7 @@ dependencies = [
 
 [[package]]
 name = "motion-audio"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "hound",
  "serde",
@@ -1716,7 +1716,7 @@ dependencies = [
 
 [[package]]
 name = "motion-lipsync"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "flate2",
  "motion-audio",
@@ -1797,7 +1797,7 @@ dependencies = [
 
 [[package]]
 name = "motion-tts"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "hound",
  "serde",
