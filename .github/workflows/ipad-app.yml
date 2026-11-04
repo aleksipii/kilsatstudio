@@ -1,5 +1,8 @@
 name: iPad app
 on:
+  push:
+    branches: [main, kilsatstudio1.0]
+    tags: ['v*']
   pull_request:
     paths:
       - 'apps/studio-ipad/**'
@@ -33,7 +36,33 @@ jobs:
       - name: Build the app for iPad devices and the simulator (unsigned)
         run: |
           cd apps/studio-ipad
+          # Release is passed explicitly: without -configuration the scheme's
+          # default (Debug) would be used and the artifact paths would differ.
           for destination in 'generic/platform=iOS' 'generic/platform=iOS Simulator'; do
-            xcodebuild -project KoetaStudio.xcodeproj -scheme KoetaStudio -destination "$destination" \
-              -derivedDataPath DerivedData build CODE_SIGNING_ALLOWED=NO
+            xcodebuild -project KoetaStudio.xcodeproj -scheme KoetaStudio -configuration Release \
+              -destination "$destination" -derivedDataPath DerivedData build CODE_SIGNING_ALLOWED=NO
           done
+      - name: Package the unsigned device and simulator app bundles
+        run: |
+          set -euo pipefail
+          products=apps/studio-ipad/DerivedData/Build/Products
+          mkdir -p dist-ipad
+          for platform in iphoneos iphonesimulator; do
+            app="$products/Release-$platform/KoetaStudio.app"
+            if [ ! -d "$app" ]; then
+              echo "::error::Missing app bundle: $app"
+              ls -la "$products" || true
+              exit 1
+            fi
+            zip="dist-ipad/KoetaStudio-$platform-unsigned.zip"
+            ditto -c -k --keepParent "$app" "$zip"
+            (cd dist-ipad && shasum -a 256 "$(basename "$zip")" > "$(basename "$zip").sha256")
+          done
+          ls -la dist-ipad
+          cat dist-ipad/*.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: koeta-studio-ipad-unsigned-${{ github.sha }}
+          path: dist-ipad/
+          if-no-files-found: error
+          retention-days: 30
