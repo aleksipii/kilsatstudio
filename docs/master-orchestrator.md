@@ -114,9 +114,10 @@ Merkitse kukin kohta vain näytön perusteella (ajon URL, komento ja tulos):
 - [x] `macos-release-app.yml` vihreä `kilsatstudio1.0`:lla; ZIP-artefakti olemassa — ajo 41491467183, `1f18c48`
 - [x] `package_audit.py` läpi: vain järjestelmäkirjastot, ei malliassetteja — release app -ajo 41480970816 (main)
 - [x] Käynnistystesti CI:ssä (binääri käynnistyy ja raportoi version) — sama ajo
-- [x] Versio `Info.plist`issa ja Cargo-paketeissa yhtenäinen (1.0.0) — sovellus ja työtila; kolme sisäistä cratea vielä `0.1.0`
-- [ ] Kokoro puuttuu → selkeä virhe ja tuodun äänen polku toimii (testi)
-- [ ] Lisenssit ja ilmoitukset: riippuvuusraportti ajan tasalla
+- [x] Versio `Info.plist`issa ja Cargo-paketeissa yhtenäinen (1.0.0) — sovellus, työtila ja kaikki cratet (motion-audio, motion-tts ja motion-lipsync siirretty `version.workspace = true`, 2026-11-04)
+- [x] Kokoro puuttuu → selkeä virhe ja tuodun äänen polku toimii (testi) — `crates/motion-voice/tests/kokoro_missing.rs` oikealla `LocalSpeechProvider`illa: virhe nimeää puuttuvan tiedoston ja tuodun WAV:n vaihtoehdon, tuotu ääni valmistuu samalla palvelulla (2026-11-04)
+- [x] Rust-riippuvuuksien lisenssiraportti ajan tasalla ja CI-tarkistettu — `scripts/third_party_licenses.py --check` (Audio foundation, macOS), `THIRD-PARTY-LICENSES.txt` Mac- ja iPad-paketissa, `docs/third-party-license-report.md`: 265 cratea, 0 vaatii päätöstä, 2 ilman tekstiä (block 0.1.6, dispatch 0.2.0) (2026-11-04)
+- [ ] Puhepaketin lisenssit: piper-tts/eSpeak NG (GPL-3.0) lähdevelvoitteet, Kokoro- ja harri-äänten jakeluoikeudet, Python-riippuvuudet — **vaatii käyttäjän päätöksen**
 - [ ] Developer ID -allekirjoitus ja notarisointi — **vaatii käyttäjän tunnukset**;
       ilman niitä paketti on ad-hoc-allekirjoitettu, ja se raportoidaan
 - [ ] `v1.0.0`-tagi ja GitHub-julkaisu — **vain käyttäjän erillisellä luvalla**

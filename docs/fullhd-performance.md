@@ -64,3 +64,28 @@ multi-frame parallel rendering is the obvious next speed-up.
 
 Not measured: speech synthesis and other whole-pipeline stages, the desktop app's
 export path by hand, other Macs (Intel, Pro/Max chips) and visual quality.
+
+## Re-measured on main (2026-11-04)
+
+Re-run after the 1.0 integration (main `b56e883` plus this change, which does
+not touch export code) on the same kind of machine: Apple M1, 8 GB, macOS
+27.0.1, release build, `benchmark_streaming`, synthetic silent audio, Homebrew
+FFmpeg. ep01 and Albus were run three times each; the five-minute project was
+rebuilt the same way as above (ep01 scenes repeated, the last two scenes of the
+eighth copy dropped: 78 scenes, 7126 frames) and run once.
+
+| Project | Length | Frames | Export time | Frames/s | Peak RSS |
+| --- | --- | --- | --- | --- | --- |
+| `kilsat-season/ep01` | 37.9 s | 910 | 33.8–34.0 s | 26.8–26.9 | 528–615 MB |
+| `albus` (now YAML source) | 42.0 s | 1008 | 31.2 s | 32.3 | 480–481 MB |
+| ep01 repeated to five minutes | 296.9 s | 7126 | 270.9 s | 26.3 | 728 MB |
+
+All runs were faster than real time and the three runs per project agree within
+1 %. `ffprobe` on the five-minute file: H.264 1920×1080, 7126 frames, AAC,
+296.92 s, 17.9 MB. Wall time 270.9 s against 357.4 s of user CPU, so FFmpeg
+encodes alongside the single-threaded renderer.
+
+Peak RSS (`/usr/bin/time -l`, the same tool as above) is higher than the earlier
+409 MB and well above the 256 MiB working-set estimate. The figure may include
+the FFmpeg child; it was not separated. Find out where the memory goes before
+relying on long exports on memory-limited devices.
