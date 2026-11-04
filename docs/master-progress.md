@@ -2988,3 +2988,37 @@ Käyttäjän luvalla [#180](https://github.com/aleksipii/kilsatstudio/pull/180) 
   - `cargo check/clippy/test --workspace` ajettiin vain CI:ssä, koska paikallinen levy täyttyi.
   - Ei ajoa fyysisellä iPadilla. Napautuksia, jakovalikkoa ja Kuviin tallennusta ei käytetty käsin.
   - iPadilta puuttuvat yhä aikajanan ja tapahtumien kosketusmuokkaus, Pencil-asennot, Kokoro-puhe ja näyttövideovihjeet.
+
+## 2026-11-04 — 1.0-integraatio: PR #178, #184, #181, #185, #182, #179, #183 ja #186 yhdistetty
+
+Pääorkestroija (`docs/master-orchestrator.md`) yhdisti käyttäjän luvalla kaikki avoimet PR:t
+mainiin merge-commiteilla tässä järjestyksessä: [#178](https://github.com/aleksipii/kilsatstudio/pull/178) `959e828`,
+[#184](https://github.com/aleksipii/kilsatstudio/pull/184) `690966f`, [#181](https://github.com/aleksipii/kilsatstudio/pull/181) `060340e`,
+[#185](https://github.com/aleksipii/kilsatstudio/pull/185) `1cd48ae`, [#182](https://github.com/aleksipii/kilsatstudio/pull/182) `ee03325`,
+[#179](https://github.com/aleksipii/kilsatstudio/pull/179) `a33cc18`, [#183](https://github.com/aleksipii/kilsatstudio/pull/183) `82d8910`,
+[#186](https://github.com/aleksipii/kilsatstudio/pull/186) `a115e4e`. Ei squashia, ei force-pushia, haaroja ei poistettu, ei tagia.
+
+- Tehty:
+  - #178: pankkiautomaatin, juoma-automaatin ja torikojun kaupunkiesineet ulottuvat maaviivaansa (aiemmin avoin P06-kohta).
+  - #181: viiden minuutin Full HD -suoratoistovienti ja nopeusmittaus (`benchmark_streaming`). Luvut ovat tekijän koneelta, niitä ei mitattu uudelleen.
+  - #185: iPad vaihe 4, aikajanan ja tapahtumien kosketusmuokkaus; tapahtumien muokkauslogiikka siirtyi työpöydältä yhteiseen `motion-scene::event_edit`-moduuliin ja `motion-ffi`-rajapintaan.
+  - #182: kattava kirjasto, 45 hahmoa (39 uutta `cast/`-projektia), 99 lisäesinettä, 15 taustaa, 23 paikkaa ja lavastusta.
+  - #179 ja #183: MotionScript-lähteet kanonisena YAMLina, `format_script`-työkalu, työpöytäeditorin muotoilu, korostus ja virheeseen siirtyminen.
+  - #186 (CI): `ipad-app.yml` ajetaan nyt myös pushista `main`iin, `kilsatstudio1.0`:aan ja `v*`-tageihin, ja se tallentaa artefaktin `koeta-studio-ipad-unsigned-<sha>` (laite- ja simulaattori-`.app` zipattuina, `.sha256` kummallekin). Aiemmin mainissa ei ollut iPad-buildia eikä artefaktia.
+- Integraatiossa korjattu:
+  - #183:n ainoa todellinen CI-virhe: `stick_studio_assets.rs`-testit jäsensivät YAML-lähteet JSONina (`092b4ff`, A10).
+  - #183:een yhdistettiin main (`7da2743`); `manifest.json`-konflikti ratkaistiin ajamalla `generate_stick_studio.py`, ei käsin. `generate_character_library.py` kirjoittaa nyt lähteet `motion_source`-polun kautta, ja #182:n 39 hahmoprojektia ovat kanonista YAMLia samalla datalla (`a4fc255`); `character_library.rs` lukee YAMLia (`705bcd5`). Työ: A02.
+  - Muut punaiset tarkistukset (#179, #181, #182) olivat macOS-töitä, joille GitHub ei saanut ajokonetta ("cancelled"); ne ajettiin uudelleen ja menivät läpi. Mitään ei ohitettu.
+- Tarkistettu:
+  - Paikallisesti lopullisella mainilla `a115e4e` (macOS, Apple Silicon): `cargo fmt --all --check` OK, `cargo check --workspace` OK, `cargo clippy --workspace --all-targets` 0 varoitusta, `cargo test --workspace` 1413 läpi / 0 virhettä / 14 ohitettu (68 testibinääriä); `python3 -m unittest discover -s tests` 161 OK, `scripts/tests` 31 OK, `services/kokoro-runtime/tests` 55 OK (5 ohitettu).
+  - Kaikkien PR:ien kaikki tarkistukset vihreinä ennen yhdistämistä. #186:n iPad-artefakti ladattiin ja tarkistettiin: molemmat bundlet mukana, tarkistussummat täsmäävät.
+  - Mainin CI `a115e4e`: kaikki kuusi laukaistua työnkulkua vihreinä: Audio foundation 41796573266, macOS practical preview 41796573360, Koeta Studio release app 41796573574 (artefakti `koeta-studio-release-universal-a115e4e…`, 20 MB, ad-hoc-allekirjoitettu, ei puhepakettia), iPad app 41796573314 (artefakti `koeta-studio-ipad-unsigned-a115e4e…`, allekirjoittamaton), Export QA 41796573238, Screen slots 41796573232. Polkusuodatetut Asset library 41796565664 ja Stick studio asset pack 41796565650 vihreinä `82d8910`:lla (puu eroaa `a115e4e`:stä vain `ipad-app.yml`:n osalta).
+- Haarat ilman PR:ää (ei poistettu): `docs/desktop-main-ci` (#94 squash-yhdistetty), `feat/direct-manipulation-ui` (#93 squash-yhdistetty), `docs/mac-gpu-rhubarb-evidence` (#47) ja `feat/polygon-mask-feather` (#48) yhdistetty, `feat/a02-motionscript-compiler` (#102 suljettu, korvattu #105:llä) — kaikki stale. `feat/night-room-grading` (vain paikallinen) defer.
+- Tekemättä:
+  - Mitään yhdistettyä PR:ää ei ole kokeiltu käsin käynnissä olevassa sovelluksessa (työpöydän YAML-editori, kirjaston hahmot, iPadin kosketusaikajana).
+  - Developer ID -allekirjoitus ja notarisointi (työpöytä) sekä iPadin allekirjoitus, provisiointi, TestFlight ja App Store -tiedot: vaativat käyttäjän Apple-tunnukset.
+  - Ei ajoa fyysisellä iPadilla eikä Intel-Macilla.
+  - Lisenssipäätökset: GPL-3.0 `piper-tts`/eSpeak NG -lähdevelvoitteet, Kokoro- ja harri-äänten jakeluoikeudet (`distribution_approved: false`).
+  - Mikään CI-työ ei aja `generate_character_library.py --check` -tarkistusta.
+  - `motion-audio`, `motion-tts` ja `motion-lipsync` ovat yhä versiossa `0.1.0`.
+  - `v1.0.0`-tagi ja GitHub-julkaisu vaativat käyttäjän erillisen luvan.
