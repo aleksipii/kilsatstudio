@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/kaisa.kilsat",
-    "sha256": "66229bd8f525125bab962ec4660e179fa6888119957591944bcd557828f1d91b"
+    "sha256": "963cacb953a666b0b571e792455b542cc38a7400c1318e31bc71ae0cf4a18c77"
   },
   "character": {
     "id": "KAISA",

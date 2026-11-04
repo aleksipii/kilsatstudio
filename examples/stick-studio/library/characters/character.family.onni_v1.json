@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/onni.kilsat",
-    "sha256": "52a321a4c213ba85378d2ad2e46ef02247fda9f6ab8ee85323cc4cd1c3862902"
+    "sha256": "d8b4ac781e227bdf321cd8ed8ed266380b31a555df8326c46aee52fa26bb9ceb"
   },
   "character": {
     "id": "ONNI",

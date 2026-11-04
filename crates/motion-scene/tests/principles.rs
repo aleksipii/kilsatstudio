@@ -14,7 +14,7 @@ fn try_script(principles: Option<Value>, events: Value) -> Result<Script, String
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../examples/stick-studio/stick-studio.kilsat");
     let project: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
-    let mut source: Value = serde_json::from_str(project["source"].as_str().unwrap()).unwrap();
+    let mut source: Value = serde_yaml::from_str(project["source"].as_str().unwrap()).unwrap();
     let mut veikko = source["characters"]["VEIKKO"].clone();
     if let Some(principles) = principles {
         veikko["principles"] = principles;

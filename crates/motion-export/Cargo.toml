@@ -25,5 +25,6 @@ thiserror.workspace = true
 resvg = { version = "=0.45.1", default-features = false, features = ["raster-images", "text"] }
 
 [dev-dependencies]
+serde_yaml = "0.9"
 motion-rig = { path = "../motion-rig" }
 sha2 = "0.10"

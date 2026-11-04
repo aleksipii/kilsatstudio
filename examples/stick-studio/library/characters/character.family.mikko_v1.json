@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/mikko.kilsat",
-    "sha256": "218fd3d3bcc1d09cdf8fe67500d4ccba4d4783e71586cc0718d741078ee77fee"
+    "sha256": "db344ffb97983eca42616e0294f7a8180b6bb6c350b527d6332472ebe49f00d7"
   },
   "character": {
     "id": "MIKKO",

@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/erkki.kilsat",
-    "sha256": "c1a44d1bddaea950a2851f00ff7e6cf3fedfe1727457f7a2d79b41fe2801c171"
+    "sha256": "16bb3abc7932a443184b9612daa1c54ccfef47a549987086e1587bd198da676b"
   },
   "character": {
     "id": "ERKKI",

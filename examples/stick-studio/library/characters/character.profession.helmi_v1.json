@@ -34,7 +34,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/helmi.kilsat",
-    "sha256": "606e4f7a052d3df4bee1c0c8205d01140f88dd7ecc2c974e383a3bd8a86ba9c4"
+    "sha256": "4fcc19f5fb9b44fd68949a5e9894bfc0935d42f997086ba095c55f125542113b"
   },
   "character": {
     "id": "HELMI",

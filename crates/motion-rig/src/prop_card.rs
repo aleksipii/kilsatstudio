@@ -222,7 +222,7 @@ mod tests {
         ))
         .unwrap();
         let source: serde_json::Value =
-            serde_json::from_str(project["source"].as_str().unwrap()).unwrap();
+            serde_yaml::from_str(project["source"].as_str().unwrap()).unwrap();
         serde_json::from_value(source["characters"]["VEIKKO"]["rig"].clone()).unwrap()
     }
     fn item(id: &str) -> HandPropItem {

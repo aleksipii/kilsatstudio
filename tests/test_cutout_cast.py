@@ -134,7 +134,7 @@ class CutoutCastTest(unittest.TestCase):
     def test_demo_turns_every_character_and_stays_offline(self):
         project = json.loads((EXAMPLE / "cutout-cast.kilsat").read_text(encoding="utf-8"))
         self.assertEqual(project["assets"], [])
-        source = json.loads(project["source"])
+        source = cast.motion_source.loads(project["source"])
         faced = {event["actor"] for event in source["scenes"][0]["events"]
                  if event["type"] == "face"}
         self.assertEqual(faced, {"ILONA", "TOPI", "RAUNO"})

@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/tahtisilma.kilsat",
-    "sha256": "ff3c252bb307d915f64324b18ef60cb8e7a2808e80efd9ccb23a63d1661b1086"
+    "sha256": "e14dece3e2f2eae0e01da04276549031ae2ef22208d2257e46f212d1f8e1e1e9"
   },
   "character": {
     "id": "TAHTISILMA",

@@ -21,7 +21,7 @@ fn read_json(path: &Path) -> Value {
 /// The MotionScript document embedded in a `.kilsat` project.
 fn script(path: &Path) -> Value {
     let project = read_json(path);
-    serde_json::from_str(project["source"].as_str().expect("source string")).expect("script")
+    serde_yaml::from_str(project["source"].as_str().expect("source string")).expect("script")
 }
 
 fn rig_of(script: &Value, character: &str) -> RigDefinition {

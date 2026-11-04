@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/aava.kilsat",
-    "sha256": "813ce37b1ef32e5a5e3dd5161fccad3e35e30c1b8daf4ccff4d9b2de77f73e92"
+    "sha256": "51cfb264d00178dfd2a06a258acba06c6c5e00dc40abcb9cc628d6058f4e0c82"
   },
   "character": {
     "id": "AAVA",

@@ -331,7 +331,7 @@ fn migrate(pack: &Path, m: &Migration) -> Result<Manifest, String> {
     let doc: serde_json::Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
     let source: serde_json::Value = doc["source"]
         .as_str()
-        .and_then(|s| serde_json::from_str(s).ok())
+        .and_then(|s| serde_yaml::from_str(s).ok())
         .unwrap_or_default();
     let title = source["project"]["title"]
         .as_str()

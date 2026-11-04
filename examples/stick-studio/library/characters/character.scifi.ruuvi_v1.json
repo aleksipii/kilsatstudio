@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/ruuvi.kilsat",
-    "sha256": "f83d96bd6942ab8496fb795f55e17f8877cb27051540b8a8a6353fc21ea9a679"
+    "sha256": "9983d0852e1720a9ef625782374a5204035b46de03703c31da8bd91d77020653"
   },
   "character": {
     "id": "RUUVI",

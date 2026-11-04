@@ -178,8 +178,7 @@ impl Draft {
             .get_mut(&self.actor)
             .ok_or("Hahmoa ei enää ole.")?;
         character.rig = Some(rig);
-        script.validate().map_err(|e| e.to_string())?;
-        serde_yaml::to_string(&script).map_err(|e| e.to_string())
+        motion_script::to_source_preserving(&script, source).map_err(|e| e.to_string())
     }
     pub fn remove(&self, source: &str) -> Result<String, String> {
         let mut script = motion_script::parse(source).map_err(|e| e.to_string())?;
@@ -188,8 +187,7 @@ impl Draft {
             .get_mut(&self.actor)
             .ok_or("Hahmoa ei enää ole.")?
             .rig = None;
-        script.validate().map_err(|e| e.to_string())?;
-        serde_yaml::to_string(&script).map_err(|e| e.to_string())
+        motion_script::to_source_preserving(&script, source).map_err(|e| e.to_string())
     }
     /// Mutate the parsed draft with `f` and write it back as YAML; a failure keeps the text.
     fn mutate(&mut self, f: impl FnOnce(&mut RigDefinition) -> Result<(), String>) {

@@ -8,6 +8,10 @@ import hashlib
 import json
 from pathlib import Path
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import motion_source  # noqa: E402  (canonical MotionScript YAML)
+
 from stick_characters import CAST, JOINT_IDS, characters
 from stick_city import CITY_PROPS, CITY_SETS
 from stick_scenery import BACKGROUNDS, PROPS
@@ -59,7 +63,7 @@ def source(title, cast, scenes, width=1920, height=1080, with_clips=True):
                 characters=cast, scenes=scenes)
     if cast and with_clips:
         data['rig_clips'] = clips()
-    return json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+    return motion_source.dumps(data)
 
 
 def document(screenplay, layers):
@@ -238,8 +242,10 @@ def generate(destination=DEFAULT):
         (destination / 'hand-props.json').write_bytes(catalog_bytes)
     starter = main_project(cast, catalog)
     starter_bytes = encoded(starter)
-    if len(starter['source'].encode()) > 100_000:
-        raise ValueError('compact starter source must remain below 100 KB')
+    # Readable YAML is larger than the former one-line JSON; the editor's own
+    # limit is 1 MiB, so keep the starter well below it.
+    if len(starter['source'].encode()) > 256_000:
+        raise ValueError('starter source must remain below 256 KB')
     (destination / 'stick-studio.kilsat').write_bytes(starter_bytes)
     manifest = dict(schema_version=1, pack_revision=3, title='Tikku-ukkostudio 3',
                     authorship='Original independently authored editable geometric artwork; no third-party artwork or model assets.',

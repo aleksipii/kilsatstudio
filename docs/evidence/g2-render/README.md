@@ -7,6 +7,13 @@ Base commit `9342979` plus branch `feat/a08-g2-phone`. VEIKKO holds the catalog 
 A05's `motion_rig::props` grip contract at placement x 0, y 0, rotation 180°,
 scale 1.
 
+The scene's MotionScript source was later rewritten in the canonical YAML
+layout (`docs/motionscript.md`): the file is now SHA-256
+`0c20a1ada584a8556f7ee0e3a3892bad3e643ea0aa53a674571dcdb90d355d49` with the same
+data, and `crates/motion-export/tests/g2_export.rs` still passes with the
+unchanged frame regression hashes. The measurements below were recorded with the
+earlier file.
+
 | File | Frame | Shot |
 | --- | --- | --- |
 | `g2-wide-f024.png` | 24 (1.0 s) | wide, zoom 1 |

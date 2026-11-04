@@ -8,6 +8,8 @@ The defaults reproduce the committed scene.kilsat byte for byte.
 import json, math, sys, os
 
 root = sys.argv[1]
+sys.path.insert(0, os.path.join(os.path.abspath(root), "scripts"))
+import motion_source  # noqa: E402  (canonical MotionScript YAML via motion_script::format)
 close = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {"x": -285, "y": -108, "zoom": 2.4}
 studio = json.load(open(os.path.join(root, "examples/stick-studio/stick-studio.kilsat")))
 # Standalone character sheets: same rigs as the studio project, without its
@@ -15,10 +17,10 @@ studio = json.load(open(os.path.join(root, "examples/stick-studio/stick-studio.k
 chars = {}
 for name, cid in [("veikko", "VEIKKO"), ("kipina", "KIPINA")]:
     sheet = json.load(open(os.path.join(root, "examples/stick-studio/characters/%s.kilsat" % name)))
-    chars[cid] = json.loads(sheet["source"])["characters"][cid]
+    chars[cid] = motion_source.loads(sheet["source"])["characters"][cid]
 pose = json.loads(sys.argv[3]) if len(sys.argv) > 3 else {"upper": -1.2, "fore": -2.2}
 bg = json.load(open(os.path.join(root, "examples/stick-studio/backgrounds/pysakki.kilsat")))
-bg_source = json.loads(bg["source"])
+bg_source = motion_source.loads(bg["source"])
 
 # Catalog phone in Veikko's right hand. PHONE_PLACEMENT is the hand-local grip
 # placement; the parts are the catalog item's parts and grip_parts moved onto
@@ -118,7 +120,7 @@ layers.append({
                 "color": {"r": 60, "g": 72, "b": 78, "a": 255}},
 })
 
-project = {"format_version": studio["format_version"], "source": json.dumps(source, ensure_ascii=False, separators=(",", ":")),
+project = {"format_version": studio["format_version"], "source": motion_source.dumps(source),
            "assets": [], "art": {"layers": layers}}
 out = os.path.join(root, "examples/g2-minimal-scene/scene.kilsat")
 os.makedirs(os.path.dirname(out), exist_ok=True)

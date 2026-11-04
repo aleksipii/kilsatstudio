@@ -23,7 +23,7 @@ fn rig(file: &str, id: &str) -> RigDefinition {
         "../../examples/stick-studio/characters/{file}.kilsat"
     ));
     let project: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
-    let script: Value = serde_json::from_str(project["source"].as_str().unwrap()).unwrap();
+    let script: Value = serde_yaml::from_str(project["source"].as_str().unwrap()).unwrap();
     serde_json::from_value(script["characters"][id]["rig"].clone()).unwrap()
 }
 

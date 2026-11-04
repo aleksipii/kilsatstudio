@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/sanna.kilsat",
-    "sha256": "57569cb1ca52c7cda82cd2ce23e39de14c53cde6ceba354888a34fd8547a10fe"
+    "sha256": "1cec5e09af73968952059bce1d9f82ac9c67f89561ab9753d37b8fe900001aa5"
   },
   "character": {
     "id": "SANNA",

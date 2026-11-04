@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/hilkka.kilsat",
-    "sha256": "dbd7e92cc56a61b1e5e7a606d77e2b9a0ca384f5489d4e138bbb128515775677"
+    "sha256": "88ad47394ddd72487bf5a58e52fcd706740bcba540e001ee314c0c07ea1645a5"
   },
   "character": {
     "id": "HILKKA",

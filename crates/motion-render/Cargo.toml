@@ -20,6 +20,7 @@ ttf-parser = "=0.25.1"
 thiserror.workspace = true
 
 [dev-dependencies]
+serde_yaml = "0.9"
 motion-project = { path = "../motion-project" }
 sha2 = "0.10"
 motion-animation = { path = "../motion-animation" }

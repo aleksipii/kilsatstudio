@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/rautio.kilsat",
-    "sha256": "a2d88734fdcba92531b7e33776b1fb179d78c45df53e90809d534d3e144c4b80"
+    "sha256": "7d619684c4eb5d250b56ef16f474b4f9b6e08b5b7e11f133aedf928039e9b627"
   },
   "character": {
     "id": "RAUTIO",

@@ -32,7 +32,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "cast/jari.kilsat",
-    "sha256": "0e9e5c72b9f3232a42e6d32973f31b962568f6ab1cd3d753ebcc66a5905958b5"
+    "sha256": "c17bf1d992a327e55465ac3ff2709ce8666c5afdea6e2d637678b916772528bf"
   },
   "character": {
     "id": "JARI",

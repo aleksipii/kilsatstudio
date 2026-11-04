@@ -1676,6 +1676,7 @@ dependencies = [
  "resvg",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "thiserror 2.0.21",
 ]
@@ -1708,6 +1709,7 @@ dependencies = [
  "motion-art",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "thiserror 2.0.21",
 ]
@@ -1747,6 +1749,7 @@ dependencies = [
  "motion-script",
  "rustybuzz",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "thiserror 2.0.21",
  "ttf-parser",
@@ -1759,6 +1762,7 @@ version = "1.0.0"
 dependencies = [
  "serde",
  "serde_json",
+ "serde_yaml",
  "thiserror 2.0.21",
 ]
 

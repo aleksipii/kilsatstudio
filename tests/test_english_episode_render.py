@@ -120,7 +120,7 @@ class EnglishRenderTests(unittest.TestCase):
             original = english.read_json(season / "ep01.kilsat")
             for change in ("voice", "imported", "caption", "actor"):
                 project = copy.deepcopy(original)
-                source = json.loads(project["source"])
+                source = english.motion_source.loads(project["source"])
                 if change == "voice":
                     source["characters"]["RANE"]["voice"]["language"] = "fi-fi"
                 elif change == "imported":

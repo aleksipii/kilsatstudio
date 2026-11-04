@@ -30,7 +30,7 @@
   "geometry": {
     "type": "rig_project",
     "path": "characters/sisu.kilsat",
-    "sha256": "a159899da4f744e976580bd83a8f9980fec0b82ed87f6fb8b9d4204738a28c94"
+    "sha256": "0002bcaf6542677fb5ca8342630443788c75a62f7cc2282dae6bfe5df234a02f"
   },
   "character": {
     "id": "SISU",

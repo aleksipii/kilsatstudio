@@ -112,6 +112,38 @@ cargo run -p motion-scene --example evaluate_scene -- examples/hello-emma.yaml 0
 The output is sampled actor poses at project fps, not rendered images or video.
 The command refuses to replace an existing output and caps frame/actor counts.
 
+## Canonical YAML layout
+
+`motion_script::format` is the one MotionScript YAML formatter. The editor's
+**Muotoile** button, `to_source`, every structured editor and the example
+generators all use it:
+
+* block maps and sequences with a two-space indent;
+* maps and lists whose values are all scalars or empty collections (keyframes,
+  points, colours) on one line in flow form when they fit in 96 characters,
+  e.g. `- {at: 0.3, easing: smoothstep, rotation: -0.1}`;
+* scalars quoted as `serde_yaml` quotes them (YAML 1.2 core schema, so `y:` and
+  `on:` are plain string keys).
+
+The file header and comments directly above top-level sections are kept,
+including through structured edits (`to_source_preserving`). Comments inside a
+section cannot survive a data round trip; they are removed and counted. Every
+result is parsed again and compared with the input, and formatting that would
+change the data is refused.
+
+```sh
+cargo run -q -p motion-script --example format_script -- FILE...          # rewrite .kilsat source or .yaml
+cargo run -q -p motion-script --example format_script -- --check FILE...  # exit 1 if not canonical
+cargo run -q -p motion-script --example format_script -- --stdin          # YAML/JSON in, YAML out
+cargo run -q -p motion-script --example format_script -- --to-json        # YAML in, JSON out
+```
+
+Python generators write and read `.kilsat` sources through
+`scripts/motion_source.py` (`dumps`, `loads`), which calls the same tool, so no
+second YAML emitter exists. Legacy one-line JSON sources are still read.
+All committed `.kilsat` examples are in the canonical layout; the hand-written
+`examples/*.yaml` files keep their own layout and comments.
+
 ## Timing: exposure and blocking
 
 `composition.timing` (per scene) and `timing` on a character set how actor poses

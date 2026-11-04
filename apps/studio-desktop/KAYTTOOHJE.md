@@ -258,6 +258,14 @@ Punainen virheilmoitus kertoo, mikä vaihe epäonnistui.
 Muokkaus estyy toiston tai taustatyön aikana: keskeytä toisto tai odota työn
 valmistumista. MotionScript-muokkauksen jälkeen paina Tarkista.
 
+MotionScript-välilehden **Muotoile** kirjoittaa YAMLin yhtenäiseen muotoon:
+osiot omille riveilleen ja lyhyet avainkehykset, pisteet ja värit yhdelle
+riville. Data ei muutu, ja Kumoa palauttaa edellisen tekstin. Tiedoston alun ja
+osioiden yläpuolen kommentit säilyvät. Osion sisällä olevat kommentit poistuvat,
+ja tilaviesti kertoo niiden määrän. Avaimet, arvot ja kommentit näkyvät
+editorissa eri väreillä. Jos Tarkista tai Muotoile löytää YAML-virheen,
+**Siirry virheeseen** vie kursorin virheen riville ja sarakkeeseen.
+
 Puuttuva ääni: avaa Puhe, tarkista Piper-profiili, Kokoron asennus tai WAV-polku ja valmistele
 kohtauksen ääni. Puuttuva MP4: tarkista FFmpeg-polku ja käytä uutta tuloskansiota.
 

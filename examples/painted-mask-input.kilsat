@@ -1,6 +1,6 @@
 {
   "format_version": 2,
-  "source": "# Original asset-free manual painted-mask fixture; no speech or downloads.\nproject:\n  title: Painted mask input acceptance\n  fps: 24\n  width: 640\n  height: 360\ncharacters:\n  GUIDE:\n    asset: characters/original-humanoid\nscenes:\n  - id: painted_mask_input\n    duration: 4\n    composition:\n      background_color: '#203040'\n      camera:\n        - {at: 0, x: 0, y: 0, zoom: 1}\n        - {at: 1, x: 0, y: 0, zoom: 1}\n        - {at: 3, x: 25, y: -10, zoom: 1.4}\n    events:\n      - {type: move, actor: GUIDE, at: 0, x: 320, y: 310, duration: 1}\n      - {type: move, actor: GUIDE, at: 2, x: 420, y: 310, duration: 1}\n",
+  "source": "# Original asset-free manual painted-mask fixture; no speech or downloads.\nproject: {title: Painted mask input acceptance, fps: 24, width: 640, height: 360}\n\ncharacters:\n  GUIDE: {asset: characters/original-humanoid}\n\nscenes:\n  - id: painted_mask_input\n    duration: 4\n    composition:\n      background_color: '#203040'\n      camera:\n        - {at: 0, x: 0, y: 0, zoom: 1}\n        - {at: 1, x: 0, y: 0, zoom: 1}\n        - {at: 3, x: 25, y: -10, zoom: 1.4}\n    events:\n      - {type: move, actor: GUIDE, at: 0, x: 320, y: 310, duration: 1}\n      - {type: move, actor: GUIDE, at: 2, x: 420, y: 310, duration: 1}\n",
   "assets": [],
   "art": {
     "layers": [
