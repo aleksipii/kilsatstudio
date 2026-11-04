@@ -23,12 +23,26 @@ struct ContentView: View {
                 if player.document == nil {
                     Welcome(importing: $importing, importMode: $importMode)
                 } else {
-                    PreviewScreen(editing: player.showsEditor)
+                    GeometryReader { proxy in
+                        VStack(spacing: 0) {
+                            PreviewScreen(editing: player.showsEditor)
+                            if player.showsTimeline {
+                                Divider()
+                                TimelinePanel()
+                                    .frame(height: min(max(proxy.size.height * 0.45, 220), 520))
+                            }
+                        }
+                    }
                 }
             }
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     if player.document != nil {
+                        Toggle(isOn: $player.showsTimeline) {
+                            Label("Aikajana", systemImage: "timeline.selection")
+                        }
+                        .toggleStyle(.button)
+                        .keyboardShortcut("t", modifiers: .command)
                         Toggle(isOn: $player.showsEditor) {
                             Label("Muokkaa", systemImage: "pencil.and.list.clipboard")
                         }

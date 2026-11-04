@@ -171,6 +171,99 @@ final class AnimationDocument: @unchecked Sendable {
         }
         return MovieFrames(handle: export)
     }
+
+    // MARK: Timeline editing
+
+    /// One scene's character tracks and events (`TimelineSummary` in the core).
+    struct Timeline: Decodable, Equatable {
+        struct Event: Decodable, Hashable, Identifiable {
+            let index: Int
+            let actor: String
+            /// move, gesture, emotion, face, pose, hold or speak.
+            let kind: String
+            /// Gesture, expression, facing or pose name; gait; held item; line text.
+            let value: String
+            let at: Double
+            /// Length of a move or gesture; nil for point events and lines.
+            let duration: Double?
+            var id: Int { index }
+            var resizable: Bool { duration != nil }
+        }
+        struct Choices: Decodable, Equatable {
+            let gesture: [String]
+            let emotion: [String]
+            let face: [String]
+            let pose: [String]
+            let gait: [String]
+        }
+        let duration: Double
+        let fps: UInt32
+        let actors: [String]
+        let events: [Event]
+        let choices: Choices
+    }
+
+    func timeline(scene: UInt32) throws -> Timeline {
+        var error: UnsafeMutablePointer<CChar>?
+        guard let json = takeString(koeta_timeline_json(handle, scene, &error)) else {
+            throw CoreError(message: takeString(error) ?? "Aikajanaa ei voitu lukea.")
+        }
+        do {
+            return try JSONDecoder().decode(Timeline.self, from: Data(json.utf8))
+        } catch {
+            throw CoreError(message: "Aikajanan tiedot eivät kelpaa: \(error.localizedDescription)")
+        }
+    }
+
+    /// Start and length after shifting the start (or the end, with `resize`) by
+    /// `delta` seconds, snapped to frames as the Mac timeline does.
+    func snapEvent(scene: UInt32, event: Int, delta: Double, resize: Bool) throws -> (at: Double, duration: Double) {
+        var at = 0.0
+        var duration = 0.0
+        var error: UnsafeMutablePointer<CChar>?
+        guard koeta_event_snap(handle, scene, UInt32(event), delta, resize, &at, &duration, &error) else {
+            throw CoreError(message: takeString(error) ?? "Siirtoa ei voitu laskea.")
+        }
+        return (at, duration)
+    }
+
+    /// The source with an edit applied; this document does not change.
+    private func edited(_ call: (UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>) -> UnsafeMutablePointer<CChar>?) throws -> String {
+        var error: UnsafeMutablePointer<CChar>?
+        guard let source = takeString(call(&error)) else {
+            throw CoreError(message: takeString(error) ?? "Muutosta ei voitu tehdä.")
+        }
+        return source
+    }
+
+    func sourceMoving(scene: UInt32, event: Int, delta: Double, resize: Bool) throws -> String {
+        try edited { koeta_event_move(handle, scene, UInt32(event), delta, resize, $0) }
+    }
+
+    /// `kind`: move, gesture, emotion, face or speak.
+    func sourceInserting(scene: UInt32, actor: String, at: Double, kind: String) throws -> String {
+        try edited { error in
+            actor.withCString { actor in kind.withCString { koeta_event_insert(handle, scene, actor, at, $0, error) } }
+        }
+    }
+
+    func sourceDuplicating(scene: UInt32, event: Int, at: Double) throws -> String {
+        try edited { koeta_event_duplicate(handle, scene, UInt32(event), at, $0) }
+    }
+
+    func sourceRemoving(scene: UInt32, event: Int) throws -> String {
+        try edited { koeta_event_remove(handle, scene, UInt32(event), $0) }
+    }
+
+    func sourceSetting(scene: UInt32, event: Int, value: String) throws -> String {
+        // A trailing NUL keeps the pointer valid for an empty value (put an item down).
+        let bytes = Array(value.utf8) + [0]
+        return try edited { error in
+            bytes.withUnsafeBufferPointer {
+                koeta_event_set_value(handle, scene, UInt32(event), $0.baseAddress, bytes.count - 1, error)
+            }
+        }
+    }
 }
 
 /// Full-size export frames and mix from the shared core, the same as the Mac
