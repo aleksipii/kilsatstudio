@@ -1,5 +1,6 @@
 //! Deterministic, graphics-independent scene evaluation shared by preview and export.
 pub mod editable_timeline;
+pub mod event_edit;
 use motion_animation::HumanoidState;
 pub use motion_animation::{Gait, MoveEase, GAITS, GESTURES, MOVE_EASES, POSTURE_BLEND_SECONDS};
 use motion_animation::{Interpolation, Transform2};

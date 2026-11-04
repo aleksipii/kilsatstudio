@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.marjatta_v1",
+  "kind": "character",
+  "name": "Johtaja Marjatta",
+  "bounds": {
+    "x": -50,
+    "y": -245,
+    "width": 100,
+    "height": 389
+  },
+  "depth": "mid",
+  "tags": [
+    "toimisto",
+    "office",
+    "johtaja",
+    "executive",
+    "aikuinen",
+    "adult",
+    "profession",
+    "slim",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/marjatta.kilsat",
+    "sha256": "02222ae2a8d730f4f12b7f7d5052e42bca416477f46dd6dd36fec73d29c8998c"
+  },
+  "character": {
+    "id": "MARJATTA",
+    "role": "Määrätietoinen johtaja / Decisive executive",
+    "age": "adult",
+    "build": "slim",
+    "acting": "proud",
+    "height": 378.8
+  }
+}

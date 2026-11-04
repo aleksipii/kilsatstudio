@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "id": "prop.household.wardrobe_v1",
+  "kind": "prop",
+  "name": "Vaatekaappi",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 180,
+    "height": 360
+  },
+  "depth": "mid",
+  "tags": [
+    "vaatekaappi",
+    "wardrobe",
+    "kaappi",
+    "cabinet",
+    "makuuhuone",
+    "bedroom",
+    "furniture"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "body",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 10,
+            "width": 168,
+            "height": 330
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "body_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 10
+            },
+            {
+              "x": 174,
+              "y": 10
+            },
+            {
+              "x": 174,
+              "y": 340
+            },
+            {
+              "x": 6,
+              "y": 340
+            },
+            {
+              "x": 6,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "door_left",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 20,
+            "width": 74,
+            "height": 310
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 20
+            },
+            {
+              "x": 88,
+              "y": 20
+            },
+            {
+              "x": 88,
+              "y": 330
+            },
+            {
+              "x": 14,
+              "y": 330
+            },
+            {
+              "x": 14,
+              "y": 20
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "door_right",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 92,
+            "y": 20,
+            "width": 74,
+            "height": 310
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 92,
+              "y": 20
+            },
+            {
+              "x": 166,
+              "y": 20
+            },
+            {
+              "x": 166,
+              "y": 330
+            },
+            {
+              "x": 92,
+              "y": 330
+            },
+            {
+              "x": 92,
+              "y": 20
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "handle_left",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80,
+              "y": 160
+            },
+            {
+              "x": 80,
+              "y": 190
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "handle_right",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100,
+              "y": 160
+            },
+            {
+              "x": 100,
+              "y": 190
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "top",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 2,
+            "y": 4,
+            "width": 176,
+            "height": 10
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "top_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 2,
+              "y": 4
+            },
+            {
+              "x": 178,
+              "y": 4
+            },
+            {
+              "x": 178,
+              "y": 14
+            },
+            {
+              "x": 2,
+              "y": 14
+            },
+            {
+              "x": 2,
+              "y": 4
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "plinth",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 340,
+            "width": 160,
+            "height": 18.5
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "plinth_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 340
+            },
+            {
+              "x": 170,
+              "y": 340
+            },
+            {
+              "x": 170,
+              "y": 358.5
+            },
+            {
+              "x": 10,
+              "y": 358.5
+            },
+            {
+              "x": 10,
+              "y": 340
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "doorway",
+      "id": "doors",
+      "rect": {
+        "x": 14,
+        "y": 20,
+        "width": 152,
+        "height": 310
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 360
+      },
+      "width": 180
+    }
+  ]
+}

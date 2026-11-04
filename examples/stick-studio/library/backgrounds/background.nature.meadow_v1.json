@@ -1,0 +1,1303 @@
+{
+  "schema_version": 1,
+  "id": "background.nature.meadow_v1",
+  "kind": "background",
+  "name": "Kukkaniitty",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "summer",
+    "kesä",
+    "nature",
+    "luonto",
+    "meadow",
+    "niitty",
+    "flowers",
+    "kukat"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 196,
+            "g": 216,
+            "b": 222,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_a_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 300.0,
+            "y": 144.0,
+            "width": 160.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_a_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 276.0,
+            "y": 161.6,
+            "width": 96.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_a_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 388.0,
+            "y": 160.0,
+            "width": 104.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_a_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 344.0,
+            "y": 124.0,
+            "width": 88.0,
+            "height": 64.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_b_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1200.0,
+            "y": 95.0,
+            "width": 200.0,
+            "height": 90.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_b_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1170.0,
+            "y": 117.0,
+            "width": 120.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_b_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1310.0,
+            "y": 115.0,
+            "width": 130.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_b_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1255.0,
+            "y": 70.0,
+            "width": 110.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hill_far",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": -300.0,
+            "y": 520.0,
+            "width": 1600.0,
+            "height": 360.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 140,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hill_far_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 800.0,
+            "y": 560.0,
+            "width": 1400.0,
+            "height": 320.0
+          },
+          "color": {
+            "r": 160,
+            "g": 180,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "meadow",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 760.0,
+            "width": 1920.0,
+            "height": 320.0
+          },
+          "color": {
+            "r": 180,
+            "g": 198,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 23.0,
+            "y": 793.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_1",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 420.0,
+            "y": 924.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 817.0,
+            "y": 815.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_3",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1214.0,
+            "y": 946.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_4",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1611.0,
+            "y": 837.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_5",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 128.0,
+            "y": 968.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_6",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 525.0,
+            "y": 859.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_7",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 922.0,
+            "y": 990.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_8",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1319.0,
+            "y": 881.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_9",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1716.0,
+            "y": 1012.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_10",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 233.0,
+            "y": 903.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_11",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 630.0,
+            "y": 794.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_12",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1027.0,
+            "y": 925.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_13",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1424.0,
+            "y": 816.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_14",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1821.0,
+            "y": 947.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_15",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 338.0,
+            "y": 838.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_16",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 735.0,
+            "y": 969.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_17",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1132.0,
+            "y": 860.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_18",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1529.0,
+            "y": 991.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_19",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 46.0,
+            "y": 882.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_20",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 443.0,
+            "y": 1013.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_21",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 840.0,
+            "y": 904.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_22",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1237.0,
+            "y": 795.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_23",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1634.0,
+            "y": 926.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_24",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 151.0,
+            "y": 817.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_25",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 548.0,
+            "y": 948.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_26",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 945.0,
+            "y": 839.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_27",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1342.0,
+            "y": 970.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_28",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1739.0,
+            "y": 861.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_29",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 256.0,
+            "y": 992.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_30",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 653.0,
+            "y": 883.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_31",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1050.0,
+            "y": 1014.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_32",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1447.0,
+            "y": 905.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_33",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1844.0,
+            "y": 796.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_34",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 361.0,
+            "y": 927.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_35",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 758.0,
+            "y": 818.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_36",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1155.0,
+            "y": 949.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_37",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1552.0,
+            "y": 840.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_38",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 69.0,
+            "y": 971.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_39",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 466.0,
+            "y": 862.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_40",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 863.0,
+            "y": 993.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_41",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1260.0,
+            "y": 884.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_42",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1657.0,
+            "y": 1015.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_43",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 174.0,
+            "y": 906.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_44",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 571.0,
+            "y": 797.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 226,
+            "g": 170,
+            "b": 180,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_45",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 968.0,
+            "y": 928.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_46",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1365.0,
+            "y": 819.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 230,
+            "g": 200,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "flower_47",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1762.0,
+            "y": 950.0,
+            "width": 14.0,
+            "height": 14.0
+          },
+          "color": {
+            "r": 190,
+            "g": 170,
+            "b": 210,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "birch_trunk",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1640.0,
+              "y": 880.0
+            },
+            {
+              "x": 1640.0,
+              "y": 594.0
+            }
+          ],
+          "color": {
+            "r": 230,
+            "g": 228,
+            "b": 220,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "birch_crown_a",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1443.44,
+            "y": 455.68,
+            "width": 232.96,
+            "height": 203.84
+          },
+          "color": {
+            "r": 110,
+            "g": 138,
+            "b": 104,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "birch_crown_b",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1603.6,
+            "y": 466.08,
+            "width": 232.96,
+            "height": 203.84
+          },
+          "color": {
+            "r": 110,
+            "g": 138,
+            "b": 104,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "birch_crown_c",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1494.4,
+            "y": 357.92,
+            "width": 291.2,
+            "height": 232.96
+          },
+          "color": {
+            "r": 132,
+            "g": 160,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "birch_shade",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1480.0,
+            "y": 880.0,
+            "width": 320.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 160,
+            "g": 180,
+            "b": 136,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "stand",
+      "id": "tree",
+      "at": {
+        "x": 1560.0,
+        "y": 950.0
+      }
+    },
+    {
+      "type": "seat",
+      "id": "grass",
+      "at": {
+        "x": 900.0,
+        "y": 940.0
+      }
+    }
+  ]
+}

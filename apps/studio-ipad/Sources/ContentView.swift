@@ -12,6 +12,7 @@ struct ContentView: View {
     @EnvironmentObject private var player: PlayerModel
     @State private var importing = false
     @State private var importMode = ImportMode.file
+    @State private var exporting = false
 
     var body: some View {
         NavigationSplitView {
@@ -22,21 +23,46 @@ struct ContentView: View {
                 if player.document == nil {
                     Welcome(importing: $importing, importMode: $importMode)
                 } else {
-                    PreviewScreen()
+                    GeometryReader { proxy in
+                        VStack(spacing: 0) {
+                            PreviewScreen(editing: player.showsEditor)
+                            if player.showsTimeline {
+                                Divider()
+                                TimelinePanel()
+                                    .frame(height: min(max(proxy.size.height * 0.45, 220), 520))
+                            }
+                        }
+                    }
                 }
             }
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
+                    if player.document != nil {
+                        Toggle(isOn: $player.showsTimeline) {
+                            Label("Aikajana", systemImage: "timeline.selection")
+                        }
+                        .toggleStyle(.button)
+                        .keyboardShortcut("t", modifiers: .command)
+                        Toggle(isOn: $player.showsEditor) {
+                            Label("Muokkaa", systemImage: "pencil.and.list.clipboard")
+                        }
+                        .toggleStyle(.button)
+                        .keyboardShortcut("e", modifiers: .command)
+                        Button {
+                            exporting = true
+                        } label: {
+                            Label("Vie video", systemImage: "film")
+                        }
+                        .keyboardShortcut("e", modifiers: [.command, .shift])
+                    }
                     Button {
-                        importMode = .folder
-                        importing = true
+                        player.guardUnsaved { importMode = .folder; importing = true }
                     } label: {
                         Label("Avaa kansio", systemImage: "folder.badge.plus")
                     }
                     .keyboardShortcut("o", modifiers: [.command, .shift])
                     Button {
-                        importMode = .file
-                        importing = true
+                        player.guardUnsaved { importMode = .file; importing = true }
                     } label: {
                         Label("Avaa", systemImage: "folder")
                     }
@@ -52,6 +78,22 @@ struct ContentView: View {
                 importMode == .folder ? player.open(folder: url) : player.open(url: url)
             case .failure(let error): player.errorMessage = error.localizedDescription
             }
+        }
+        .sheet(isPresented: $exporting) { ExportSheet() }
+        .confirmationDialog(
+            "Käsikirjoituksessa on tallentamattomia muutoksia.",
+            isPresented: Binding(
+                get: { player.pendingDiscard != nil },
+                set: { if !$0 { player.pendingDiscard = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Hylkää muutokset", role: .destructive) {
+                let open = player.pendingDiscard
+                player.pendingDiscard = nil
+                player.revertDraft()
+                open?()
+            }
+            Button("Jatka muokkausta", role: .cancel) {}
         }
         .sheet(isPresented: Binding(
             get: { !player.folderChoices.isEmpty },
@@ -153,7 +195,33 @@ private struct Welcome: View {
     }
 }
 
+/// The preview, with the screenplay editor beside it (wide windows) or below
+/// it (narrow Split View and portrait iPad mini) while editing.
 private struct PreviewScreen: View {
+    let editing: Bool
+
+    var body: some View {
+        GeometryReader { proxy in
+            if !editing {
+                Player()
+            } else if proxy.size.width >= 700 {
+                HStack(spacing: 0) {
+                    Player().frame(width: proxy.size.width * 0.55)
+                    Divider()
+                    ScriptEditor()
+                }
+            } else {
+                VStack(spacing: 0) {
+                    Player().frame(height: proxy.size.height * 0.45)
+                    Divider()
+                    ScriptEditor()
+                }
+            }
+        }
+    }
+}
+
+private struct Player: View {
     @EnvironmentObject private var player: PlayerModel
     @Environment(\.displayScale) private var displayScale
     @State private var scrubOrigin: UInt64?

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.toivo_v1",
+  "kind": "character",
+  "name": "Maanviljelijä Toivo",
+  "bounds": {
+    "x": -71,
+    "y": -263,
+    "width": 164,
+    "height": 410
+  },
+  "depth": "mid",
+  "tags": [
+    "maatila",
+    "farm",
+    "maaseutu",
+    "countryside",
+    "aikuinen",
+    "adult",
+    "profession",
+    "broad",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/toivo.kilsat",
+    "sha256": "68ed53a0bb0147be2cd4334ae1af3a086c7d03639086bd8be77fde5ca83557f0"
+  },
+  "character": {
+    "id": "TOIVO",
+    "role": "Vakaa maanviljelijä / Steady farmer",
+    "age": "adult",
+    "build": "broad",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

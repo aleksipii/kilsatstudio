@@ -10,10 +10,12 @@ mod clip_library_tests;
 mod color;
 #[cfg(test)]
 mod export_preview_parity_tests;
+mod frames;
 #[cfg(all(test, feature = "gpu"))]
 mod gpu_parity_tests;
 #[cfg(test)]
 mod group_composition_tests;
+pub use frames::{ExportFrames, MAX_EXPORT_SECONDS};
 #[cfg(test)]
 mod lighting_tests;
 #[cfg(test)]

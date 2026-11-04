@@ -1,0 +1,454 @@
+{
+  "schema_version": 1,
+  "id": "prop.vehicle.rowboat_v1",
+  "kind": "prop",
+  "name": "Soutuvene",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 360,
+    "height": 88.5
+  },
+  "depth": "mid",
+  "tags": [
+    "vene",
+    "boat",
+    "soutuvene",
+    "rowboat",
+    "järvi",
+    "lake",
+    "kesä",
+    "summer",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "boat": {
+      "r": 176,
+      "g": 128,
+      "b": 90,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    },
+    "wood_light": {
+      "r": 212,
+      "g": 184,
+      "b": 144,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "oar",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 120,
+              "y": 30
+            },
+            {
+              "x": 60,
+              "y": 86
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "hull_0",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14.655,
+              "y": 34.889
+            },
+            {
+              "x": 345.083,
+              "y": 34.889
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_1",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 17.402,
+              "y": 40.667
+            },
+            {
+              "x": 341.237,
+              "y": 40.667
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_2",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 21.32,
+              "y": 46.444
+            },
+            {
+              "x": 335.752,
+              "y": 46.444
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_3",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26.126,
+              "y": 52.222
+            },
+            {
+              "x": 329.024,
+              "y": 52.222
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_4",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 31.678,
+              "y": 58
+            },
+            {
+              "x": 321.251,
+              "y": 58
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_5",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37.886,
+              "y": 63.778
+            },
+            {
+              "x": 312.559,
+              "y": 63.778
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_6",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44.689,
+              "y": 69.556
+            },
+            {
+              "x": 303.036,
+              "y": 69.556
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_7",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 52.036,
+              "y": 75.333
+            },
+            {
+              "x": 292.749,
+              "y": 75.333
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_8",
+        "paint": "boat",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 59.892,
+              "y": 81.111
+            },
+            {
+              "x": 281.752,
+              "y": 81.111
+            }
+          ],
+          "color": {
+            "r": 176,
+            "g": 128,
+            "b": 90,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "hull_seam",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 24,
+              "y": 52
+            },
+            {
+              "x": 330,
+              "y": 52
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "gunwale",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 24,
+            "width": 340,
+            "height": 10
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "gunwale_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 24
+            },
+            {
+              "x": 350,
+              "y": 24
+            },
+            {
+              "x": 350,
+              "y": 34
+            },
+            {
+              "x": 10,
+              "y": 34
+            },
+            {
+              "x": 10,
+              "y": 24
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "thwart",
+        "paint": "wood_light",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 160,
+            "y": 28,
+            "width": 40,
+            "height": 8
+          },
+          "color": {
+            "r": 212,
+            "g": 184,
+            "b": 144,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "thwart_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 160,
+              "y": 28
+            },
+            {
+              "x": 200,
+              "y": 28
+            },
+            {
+              "x": 200,
+              "y": 36
+            },
+            {
+              "x": 160,
+              "y": 36
+            },
+            {
+              "x": 160,
+              "y": 28
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "seat",
+      "id": "seat",
+      "at": {
+        "x": 180,
+        "y": 28
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 88.5
+      },
+      "width": 360
+    }
+  ]
+}

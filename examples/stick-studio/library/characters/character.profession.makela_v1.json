@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.makela_v1",
+  "kind": "character",
+  "name": "Konstaapeli Mäkelä",
+  "bounds": {
+    "x": -56,
+    "y": -258,
+    "width": 117,
+    "height": 402
+  },
+  "depth": "mid",
+  "tags": [
+    "poliisi",
+    "police",
+    "virkapuku",
+    "uniform",
+    "aikuinen",
+    "adult",
+    "profession",
+    "broad",
+    "stoic",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/makela.kilsat",
+    "sha256": "00b6f6a81f54bb1d9515e912315714f14afe45e92bf228a0d97c35e6fcede5f8"
+  },
+  "character": {
+    "id": "MAKELA",
+    "role": "Tarkka poliisi / Precise police officer",
+    "age": "adult",
+    "build": "broad",
+    "acting": "stoic",
+    "height": 378.8
+  }
+}

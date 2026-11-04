@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.family.tuuli_v1",
+  "kind": "character",
+  "name": "Tuuli",
+  "bounds": {
+    "x": -68,
+    "y": -274,
+    "width": 134,
+    "height": 418
+  },
+  "depth": "mid",
+  "tags": [
+    "naapuri",
+    "neighbour",
+    "arki",
+    "everyday",
+    "aikuinen",
+    "adult",
+    "family",
+    "broad",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/tuuli.kilsat",
+    "sha256": "459477eab653bc1172a8cea99afc39b3e406cc9284b5cb42fda88ad3a2bffc2b"
+  },
+  "character": {
+    "id": "TUULI",
+    "role": "Iloinen naapuri / Cheerful neighbour",
+    "age": "adult",
+    "build": "broad",
+    "acting": "lively",
+    "height": 378.8
+  }
+}

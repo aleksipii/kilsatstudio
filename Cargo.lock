@@ -1694,6 +1694,8 @@ dependencies = [
  "motion-script",
  "motion-tts",
  "motion-voice",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

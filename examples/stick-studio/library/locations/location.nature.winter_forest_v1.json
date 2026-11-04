@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.winter_forest_v1",
+  "kind": "location",
+  "name": "Talvimetsä",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "winter",
+    "talvi",
+    "snow",
+    "lumi"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.winter_forest_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "snowman",
+      "asset": "prop.outdoor.snowman_v1",
+      "at": {
+        "x": 1220.0,
+        "y": 730.0
+      }
+    },
+    {
+      "instance": "sled",
+      "asset": "prop.winter.sled_v1",
+      "at": {
+        "x": 555.0,
+        "y": 894.0
+      }
+    },
+    {
+      "instance": "shovel",
+      "asset": "prop.winter.snow_shovel_v1",
+      "at": {
+        "x": 1445.0,
+        "y": 670.0
+      }
+    }
+  ]
+}

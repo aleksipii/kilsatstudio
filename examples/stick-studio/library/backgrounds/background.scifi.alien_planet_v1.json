@@ -1,0 +1,501 @@
+{
+  "schema_version": 1,
+  "id": "background.scifi.alien_planet_v1",
+  "kind": "background",
+  "name": "Vieras planeetta",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "scifi",
+    "space",
+    "avaruus",
+    "planet",
+    "planeetta",
+    "alien",
+    "olio"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 214,
+            "g": 204,
+            "b": 222,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "moon_big",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1340.0,
+            "y": 60.0,
+            "width": 320.0,
+            "height": 320.0
+          },
+          "color": {
+            "r": 226,
+            "g": 216,
+            "b": 200,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "moon_crater",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1420.0,
+            "y": 176.0,
+            "width": 60.0,
+            "height": 48.0
+          },
+          "color": {
+            "r": 210,
+            "g": 200,
+            "b": 186,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "moon_small",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 330.0,
+            "y": 110.0,
+            "width": 100.0,
+            "height": 100.0
+          },
+          "color": {
+            "r": 200,
+            "g": 214,
+            "b": 222,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "dune_far",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": -400.0,
+            "y": 560.0,
+            "width": 1800.0,
+            "height": 320.0
+          },
+          "color": {
+            "r": 196,
+            "g": 184,
+            "b": 204,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "dune_far_b",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 700.0,
+            "y": 590.0,
+            "width": 1600.0,
+            "height": 300.0
+          },
+          "color": {
+            "r": 188,
+            "g": 178,
+            "b": 198,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ground",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 780.0,
+            "width": 1920.0,
+            "height": 300.0
+          },
+          "color": {
+            "r": 210,
+            "g": 196,
+            "b": 186,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crater_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 70.0,
+            "y": 822.0,
+            "width": 180.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 190,
+            "g": 176,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crater_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 400.0,
+            "y": 882.0,
+            "width": 180.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 190,
+            "g": 176,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crater_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 730.0,
+            "y": 822.0,
+            "width": 180.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 190,
+            "g": 176,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crater_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1060.0,
+            "y": 882.0,
+            "width": 180.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 190,
+            "g": 176,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crater_4",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1390.0,
+            "y": 822.0,
+            "width": 180.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 190,
+            "g": 176,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crater_5",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1720.0,
+            "y": 882.0,
+            "width": 180.0,
+            "height": 36.0
+          },
+          "color": {
+            "r": 190,
+            "g": 176,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "plant_stem_0",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 260.0,
+              "y": 900.0
+            },
+            {
+              "x": 240.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 170,
+            "b": 150,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "plant_bulb_0",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 196.0,
+            "y": 556.0,
+            "width": 88.0,
+            "height": 88.0
+          },
+          "color": {
+            "r": 160,
+            "g": 200,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "plant_stem_1",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1700.0,
+              "y": 900.0
+            },
+            {
+              "x": 1680.0,
+              "y": 540.0
+            }
+          ],
+          "color": {
+            "r": 140,
+            "g": 170,
+            "b": 150,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "plant_bulb_1",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1636.0,
+            "y": 496.0,
+            "width": 88.0,
+            "height": 88.0
+          },
+          "color": {
+            "r": 160,
+            "g": 200,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lander_body",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880.0,
+            "y": 640.0,
+            "width": 240.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 210,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lander_dome",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 880.0,
+            "y": 570.0,
+            "width": 240.0,
+            "height": 140.0
+          },
+          "color": {
+            "r": 186,
+            "g": 206,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lander_leg_a",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 900.0,
+              "y": 790.0
+            },
+            {
+              "x": 840.0,
+              "y": 930.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 156,
+            "b": 160,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "lander_leg_b",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1100.0,
+              "y": 790.0
+            },
+            {
+              "x": 1160.0,
+              "y": 930.0
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 156,
+            "b": 160,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "lander_hatch",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 960.0,
+            "y": 700.0,
+            "width": 80.0,
+            "height": 100.0
+          },
+          "color": {
+            "r": 176,
+            "g": 184,
+            "b": 192,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "doorway",
+      "id": "hatch",
+      "rect": {
+        "x": 960.0,
+        "y": 700.0,
+        "width": 80.0,
+        "height": 100.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "crater",
+      "at": {
+        "x": 500.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

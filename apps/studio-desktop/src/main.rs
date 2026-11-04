@@ -5932,7 +5932,7 @@ impl Studio {
                 field(ui, "Paikallinen FFmpeg-ohjelma (koko polku)", &mut self.ffmpeg_path);
                 ui.weak("Käyttää tätä paikallista ohjelmaa; ei lataa kooderia. MP4:n kuvamittojen on oltava parilliset.");
             }
-            if self.export_format==export_worker::Format::StreamingMp4 {ui.weak("Suoratoisto: enintään 60 s / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 300 s; koko tuotantoputken nopeutta ei luvata tällä asetuksella.");}
+            if self.export_format==export_worker::Format::StreamingMp4 {ui.weak("Suoratoisto: enintään 5 min / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 60 min; koko tuotantoputken nopeutta ei luvata tällä asetuksella.");}
             field(
                 ui,
                 "Uusi tuloskansio (koko polku)",

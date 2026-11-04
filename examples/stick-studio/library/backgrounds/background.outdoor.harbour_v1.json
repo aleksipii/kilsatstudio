@@ -1,0 +1,662 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.harbour_v1",
+  "kind": "background",
+  "name": "Satama",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "harbour",
+    "satama",
+    "sea",
+    "meri",
+    "boats",
+    "veneet"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 198,
+            "g": 212,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_0",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 620.0,
+            "y": 114.0,
+            "width": 160.0,
+            "height": 72.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_1",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 596.0,
+            "y": 131.6,
+            "width": 96.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_2",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 708.0,
+            "y": 130.0,
+            "width": 104.0,
+            "height": 56.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cloud_3",
+        "depth": "far",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 664.0,
+            "y": 94.0,
+            "width": 88.0,
+            "height": 64.0
+          },
+          "color": {
+            "r": 240,
+            "g": 240,
+            "b": 236,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "sea",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 560.0,
+            "width": 1920.0,
+            "height": 260.0
+          },
+          "color": {
+            "r": 164,
+            "g": 192,
+            "b": 204,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wave_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 200.0,
+              "y": 600.0
+            },
+            {
+              "x": 290.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 218,
+            "b": 226,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 500.0,
+              "y": 650.0
+            },
+            {
+              "x": 590.0,
+              "y": 650.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 218,
+            "b": 226,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 800.0,
+              "y": 700.0
+            },
+            {
+              "x": 890.0,
+              "y": 700.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 218,
+            "b": 226,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1100.0,
+              "y": 600.0
+            },
+            {
+              "x": 1190.0,
+              "y": 600.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 218,
+            "b": 226,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1400.0,
+              "y": 650.0
+            },
+            {
+              "x": 1490.0,
+              "y": 650.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 218,
+            "b": 226,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "wave_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1700.0,
+              "y": 700.0
+            },
+            {
+              "x": 1790.0,
+              "y": 700.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 218,
+            "b": 226,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "ship_hull",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1120.0,
+            "y": 420.0,
+            "width": 600.0,
+            "height": 120.0
+          },
+          "color": {
+            "r": 176,
+            "g": 110,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ship_deck",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1180.0,
+            "y": 340.0,
+            "width": 360.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 226,
+            "g": 226,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ship_bridge",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1420.0,
+            "y": 260.0,
+            "width": 120.0,
+            "height": 80.0
+          },
+          "color": {
+            "r": 226,
+            "g": 226,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "ship_mast",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1300.0,
+              "y": 340.0
+            },
+            {
+              "x": 1300.0,
+              "y": 200.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "ship_waterline",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1120.0,
+            "y": 530.0,
+            "width": 600.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 110,
+            "g": 120,
+            "b": 130,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "crane_mast",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 300.0,
+              "y": 790.0
+            },
+            {
+              "x": 300.0,
+              "y": 260.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 170,
+            "b": 100,
+            "a": 255
+          },
+          "width": 18.0
+        }
+      },
+      {
+        "id": "crane_jib",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 300.0,
+              "y": 270.0
+            },
+            {
+              "x": 700.0,
+              "y": 270.0
+            }
+          ],
+          "color": {
+            "r": 200,
+            "g": 170,
+            "b": 100,
+            "a": 255
+          },
+          "width": 14.0
+        }
+      },
+      {
+        "id": "crane_cable",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 640.0,
+              "y": 270.0
+            },
+            {
+              "x": 640.0,
+              "y": 480.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 4.0
+        }
+      },
+      {
+        "id": "crane_load",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 600.0,
+            "y": 480.0,
+            "width": 80.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 120,
+            "g": 150,
+            "b": 170,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "quay",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 790.0,
+            "width": 1920.0,
+            "height": 290.0
+          },
+          "color": {
+            "r": 196,
+            "g": 196,
+            "b": 190,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "quay_edge",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 790.0,
+            "width": 1920.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 150,
+            "g": 150,
+            "b": 146,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bollard_0",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 402.0,
+            "y": 830.0,
+            "width": 36.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bollard_top_0",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 394.0,
+            "y": 820.0,
+            "width": 52.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bollard_1",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1082.0,
+            "y": 830.0,
+            "width": 36.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bollard_top_1",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1074.0,
+            "y": 820.0,
+            "width": 52.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bollard_2",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1682.0,
+            "y": 830.0,
+            "width": 36.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bollard_top_2",
+        "depth": "mid",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 1674.0,
+            "y": 820.0,
+            "width": 52.0,
+            "height": 20.0
+          },
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "seat",
+      "id": "bollard",
+      "at": {
+        "x": 1100.0,
+        "y": 822.0
+      }
+    },
+    {
+      "type": "stand",
+      "id": "quay_edge",
+      "at": {
+        "x": 760.0,
+        "y": 950.0
+      }
+    }
+  ]
+}

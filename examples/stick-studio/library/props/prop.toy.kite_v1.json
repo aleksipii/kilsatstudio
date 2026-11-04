@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "id": "prop.toy.kite_v1",
+  "kind": "prop",
+  "name": "Leija",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 220
+  },
+  "depth": "mid",
+  "tags": [
+    "leija",
+    "kite",
+    "tuuli",
+    "wind",
+    "kesä",
+    "summer",
+    "lelu",
+    "toy",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "toy_blue": {
+      "r": 92,
+      "g": 140,
+      "b": 188,
+      "a": 255
+    },
+    "toy_green": {
+      "r": 120,
+      "g": 170,
+      "b": 110,
+      "a": 255
+    },
+    "toy_red": {
+      "r": 204,
+      "g": 96,
+      "b": 80,
+      "a": 255
+    },
+    "toy_yellow": {
+      "r": 230,
+      "g": 196,
+      "b": 90,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "left_top",
+        "paint": "toy_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 6
+            },
+            {
+              "x": 14,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 204,
+            "g": 96,
+            "b": 80,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "right_top",
+        "paint": "toy_blue",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 6
+            },
+            {
+              "x": 106,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 92,
+            "g": 140,
+            "b": 188,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "left_bottom",
+        "paint": "toy_yellow",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 60
+            },
+            {
+              "x": 60,
+              "y": 140
+            }
+          ],
+          "color": {
+            "r": 230,
+            "g": 196,
+            "b": 90,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "right_bottom",
+        "paint": "toy_green",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 106,
+              "y": 60
+            },
+            {
+              "x": 60,
+              "y": 140
+            }
+          ],
+          "color": {
+            "r": 120,
+            "g": 170,
+            "b": 110,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "spar_v",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 6
+            },
+            {
+              "x": 60,
+              "y": 140
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "spar_h",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 60
+            },
+            {
+              "x": 106,
+              "y": 60
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tail",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 140
+            },
+            {
+              "x": 48,
+              "y": 170
+            },
+            {
+              "x": 70,
+              "y": 194
+            },
+            {
+              "x": 56,
+              "y": 216
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "bow_0",
+        "paint": "toy_red",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 46,
+            "y": 159,
+            "width": 12,
+            "height": 6
+          },
+          "color": {
+            "r": 204,
+            "g": 96,
+            "b": 80,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bow_1",
+        "paint": "toy_red",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 58,
+            "y": 183,
+            "width": 12,
+            "height": 6
+          },
+          "color": {
+            "r": 204,
+            "g": 96,
+            "b": 80,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bow_2",
+        "paint": "toy_red",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 52,
+            "y": 205,
+            "width": 12,
+            "height": 6
+          },
+          "color": {
+            "r": 204,
+            "g": 96,
+            "b": 80,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 56,
+        "y": 216
+      }
+    }
+  ]
+}

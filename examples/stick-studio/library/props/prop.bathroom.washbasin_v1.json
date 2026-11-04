@@ -1,0 +1,333 @@
+{
+  "schema_version": 1,
+  "id": "prop.bathroom.washbasin_v1",
+  "kind": "prop",
+  "name": "Pesuallas",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 300
+  },
+  "depth": "mid",
+  "tags": [
+    "pesuallas",
+    "washbasin",
+    "lavuaari",
+    "sink",
+    "peili",
+    "mirror",
+    "kylpyhuone",
+    "bathroom"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "glass": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "porcelain": {
+      "r": 238,
+      "g": 238,
+      "b": 232,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "mirror_frame",
+        "paint": "wood",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 20,
+            "y": 6,
+            "width": 80,
+            "height": 96
+          },
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "mirror_frame_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 6
+            },
+            {
+              "x": 100,
+              "y": 6
+            },
+            {
+              "x": 100,
+              "y": 102
+            },
+            {
+              "x": 20,
+              "y": 102
+            },
+            {
+              "x": 20,
+              "y": 6
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "mirror",
+        "paint": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 28,
+            "y": 14,
+            "width": 64,
+            "height": 80
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "mirror_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 28,
+              "y": 14
+            },
+            {
+              "x": 92,
+              "y": 14
+            },
+            {
+              "x": 92,
+              "y": 94
+            },
+            {
+              "x": 28,
+              "y": 94
+            },
+            {
+              "x": 28,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "tap",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 140
+            },
+            {
+              "x": 60,
+              "y": 128
+            },
+            {
+              "x": 72,
+              "y": 128
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "basin",
+        "paint": "porcelain",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 8,
+            "y": 142,
+            "width": 104,
+            "height": 30
+          },
+          "color": {
+            "r": 238,
+            "g": 238,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "basin_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 8,
+              "y": 142
+            },
+            {
+              "x": 112,
+              "y": 142
+            },
+            {
+              "x": 112,
+              "y": 172
+            },
+            {
+              "x": 8,
+              "y": 172
+            },
+            {
+              "x": 8,
+              "y": 142
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "pedestal",
+        "paint": "porcelain",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 172,
+            "width": 32,
+            "height": 126.5
+          },
+          "color": {
+            "r": 238,
+            "g": 238,
+            "b": 232,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "pedestal_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 172
+            },
+            {
+              "x": 76,
+              "y": 172
+            },
+            {
+              "x": 76,
+              "y": 298.5
+            },
+            {
+              "x": 44,
+              "y": 298.5
+            },
+            {
+              "x": 44,
+              "y": 172
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "stand",
+      "id": "basin",
+      "at": {
+        "x": 60,
+        "y": 142
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 300
+      },
+      "width": 120
+    }
+  ]
+}

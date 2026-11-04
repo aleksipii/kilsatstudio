@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.scifi.kuu_v1",
+  "kind": "character",
+  "name": "Avaruusolio Kuu",
+  "bounds": {
+    "x": -46,
+    "y": -254,
+    "width": 92,
+    "height": 379
+  },
+  "depth": "mid",
+  "tags": [
+    "avaruus",
+    "space",
+    "olio",
+    "alien",
+    "nuori",
+    "teen",
+    "scifi",
+    "slim",
+    "lively",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/kuu.kilsat",
+    "sha256": "7e56e7c95a5b47c407e3be74f6c7178d9e1c673a207e41774e45258f30929e32"
+  },
+  "character": {
+    "id": "KUU",
+    "role": "Ihmettelevä avaruusolio / Wondering alien",
+    "age": "teen",
+    "build": "slim",
+    "acting": "lively",
+    "height": 337.3
+  }
+}

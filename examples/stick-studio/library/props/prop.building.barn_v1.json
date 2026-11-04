@@ -1,0 +1,829 @@
+{
+  "schema_version": 1,
+  "id": "prop.building.barn_v1",
+  "kind": "prop",
+  "name": "Lato",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 520,
+    "height": 420
+  },
+  "depth": "mid",
+  "tags": [
+    "lato",
+    "barn",
+    "maatila",
+    "farm",
+    "rakennus",
+    "building",
+    "maaseutu",
+    "countryside",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "barn_red": {
+      "r": 160,
+      "g": 78,
+      "b": 66,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "roof": {
+      "r": 90,
+      "g": 92,
+      "b": 98,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "gable_0",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 257.75,
+              "y": 19.25
+            },
+            {
+              "x": 262.25,
+              "y": 19.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_1",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 245.25,
+              "y": 25.75
+            },
+            {
+              "x": 274.75,
+              "y": 25.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_2",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 232.75,
+              "y": 32.25
+            },
+            {
+              "x": 287.25,
+              "y": 32.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_3",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 220.25,
+              "y": 38.75
+            },
+            {
+              "x": 299.75,
+              "y": 38.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_4",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 207.75,
+              "y": 45.25
+            },
+            {
+              "x": 312.25,
+              "y": 45.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_5",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 195.25,
+              "y": 51.75
+            },
+            {
+              "x": 324.75,
+              "y": 51.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_6",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 182.75,
+              "y": 58.25
+            },
+            {
+              "x": 337.25,
+              "y": 58.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_7",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 170.25,
+              "y": 64.75
+            },
+            {
+              "x": 349.75,
+              "y": 64.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_8",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 157.75,
+              "y": 71.25
+            },
+            {
+              "x": 362.25,
+              "y": 71.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_9",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 145.25,
+              "y": 77.75
+            },
+            {
+              "x": 374.75,
+              "y": 77.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_10",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 132.75,
+              "y": 84.25
+            },
+            {
+              "x": 387.25,
+              "y": 84.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_11",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 120.25,
+              "y": 90.75
+            },
+            {
+              "x": 399.75,
+              "y": 90.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_12",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 107.75,
+              "y": 97.25
+            },
+            {
+              "x": 412.25,
+              "y": 97.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_13",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 95.25,
+              "y": 103.75
+            },
+            {
+              "x": 424.75,
+              "y": 103.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_14",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 82.75,
+              "y": 110.25
+            },
+            {
+              "x": 437.25,
+              "y": 110.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_15",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 70.25,
+              "y": 116.75
+            },
+            {
+              "x": 449.75,
+              "y": 116.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_16",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 57.75,
+              "y": 123.25
+            },
+            {
+              "x": 462.25,
+              "y": 123.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_17",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 45.25,
+              "y": 129.75
+            },
+            {
+              "x": 474.75,
+              "y": 129.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_18",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 32.75,
+              "y": 136.25
+            },
+            {
+              "x": 487.25,
+              "y": 136.25
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "gable_19",
+        "paint": "barn_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20.25,
+              "y": 142.75
+            },
+            {
+              "x": 499.75,
+              "y": 142.75
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "wall",
+        "paint": "barn_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 150,
+            "width": 492,
+            "height": 268.5
+          },
+          "color": {
+            "r": 160,
+            "g": 78,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "wall_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 150
+            },
+            {
+              "x": 506,
+              "y": 150
+            },
+            {
+              "x": 506,
+              "y": 418.5
+            },
+            {
+              "x": 14,
+              "y": 418.5
+            },
+            {
+              "x": 14,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "roof_left",
+        "paint": "roof",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 260,
+              "y": 8
+            },
+            {
+              "x": 4,
+              "y": 154
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 98,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "roof_right",
+        "paint": "roof",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 260,
+              "y": 8
+            },
+            {
+              "x": 516,
+              "y": 154
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 92,
+            "b": 98,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "door",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 180,
+            "y": 230,
+            "width": 160,
+            "height": 186
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 180,
+              "y": 230
+            },
+            {
+              "x": 340,
+              "y": 230
+            },
+            {
+              "x": 340,
+              "y": 416
+            },
+            {
+              "x": 180,
+              "y": 416
+            },
+            {
+              "x": 180,
+              "y": 230
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "door_x1",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 180,
+              "y": 230
+            },
+            {
+              "x": 340,
+              "y": 416
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "door_x2",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 340,
+              "y": 230
+            },
+            {
+              "x": 180,
+              "y": 416
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "loft",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 230,
+            "y": 80,
+            "width": 60,
+            "height": 50
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "loft_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 230,
+              "y": 80
+            },
+            {
+              "x": 290,
+              "y": 80
+            },
+            {
+              "x": 290,
+              "y": 130
+            },
+            {
+              "x": 230,
+              "y": 130
+            },
+            {
+              "x": 230,
+              "y": 80
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "doorway",
+      "id": "door",
+      "rect": {
+        "x": 184,
+        "y": 234,
+        "width": 152,
+        "height": 180
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 420
+      },
+      "width": 520
+    }
+  ]
+}

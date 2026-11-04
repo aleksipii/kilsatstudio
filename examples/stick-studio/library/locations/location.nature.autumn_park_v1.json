@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.autumn_park_v1",
+  "kind": "location",
+  "name": "Syyspuisto",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "autumn",
+    "syksy",
+    "park",
+    "puisto"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.autumn_park_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "rake",
+      "asset": "prop.garden.rake_v1",
+      "at": {
+        "x": 1265.0,
+        "y": 654.5
+      }
+    },
+    {
+      "instance": "dog",
+      "asset": "prop.animal.dog_sitting_v1",
+      "at": {
+        "x": 1090.0,
+        "y": 800.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "id": "prop.sport.dumbbell_v1",
+  "kind": "prop",
+  "name": "Käsipaino",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 80,
+    "height": 34
+  },
+  "depth": "mid",
+  "tags": [
+    "käsipaino",
+    "dumbbell",
+    "kuntosali",
+    "gym",
+    "urheilu",
+    "sport",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "bar",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 17
+            },
+            {
+              "x": 66,
+              "y": 17
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "weight_left",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 3,
+            "width": 16,
+            "height": 29.5
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "weight_left_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 3
+            },
+            {
+              "x": 22,
+              "y": 3
+            },
+            {
+              "x": 22,
+              "y": 32.5
+            },
+            {
+              "x": 6,
+              "y": 32.5
+            },
+            {
+              "x": 6,
+              "y": 3
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "weight_right",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 58,
+            "y": 3,
+            "width": 16,
+            "height": 29.5
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "weight_right_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58,
+              "y": 3
+            },
+            {
+              "x": 74,
+              "y": 3
+            },
+            {
+              "x": 74,
+              "y": 32.5
+            },
+            {
+              "x": 58,
+              "y": 32.5
+            },
+            {
+              "x": 58,
+              "y": 3
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 40,
+        "y": 17
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 34
+      },
+      "width": 80
+    }
+  ]
+}

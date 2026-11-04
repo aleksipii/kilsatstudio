@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.kaisa_v1",
+  "kind": "character",
+  "name": "Myyjä Kaisa",
+  "bounds": {
+    "x": -58,
+    "y": -261,
+    "width": 114,
+    "height": 405
+  },
+  "depth": "mid",
+  "tags": [
+    "myyjä",
+    "clerk",
+    "kauppa",
+    "shop",
+    "aikuinen",
+    "adult",
+    "profession",
+    "round",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/kaisa.kilsat",
+    "sha256": "66229bd8f525125bab962ec4660e179fa6888119957591944bcd557828f1d91b"
+  },
+  "character": {
+    "id": "KAISA",
+    "role": "Ystävällinen kauppias / Friendly shop clerk",
+    "age": "adult",
+    "build": "round",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

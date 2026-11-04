@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "id": "prop.garden.rake_v1",
+  "kind": "prop",
+  "name": "Harava",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 70,
+    "height": 295.5
+  },
+  "depth": "mid",
+  "tags": [
+    "harava",
+    "rake",
+    "syksy",
+    "autumn",
+    "lehdet",
+    "leaves",
+    "puutarha",
+    "garden",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "wood": {
+      "r": 178,
+      "g": 140,
+      "b": 100,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "shaft",
+        "paint": "wood",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 35,
+              "y": 4
+            },
+            {
+              "x": 35,
+              "y": 270
+            }
+          ],
+          "color": {
+            "r": 178,
+            "g": 140,
+            "b": 100,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "head",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 272
+            },
+            {
+              "x": 64,
+              "y": 272
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "tine_0",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 9,
+              "y": 272
+            },
+            {
+              "x": 9,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tine_1",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 17.6,
+              "y": 272
+            },
+            {
+              "x": 17.6,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tine_2",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26.2,
+              "y": 272
+            },
+            {
+              "x": 26.2,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tine_3",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 34.8,
+              "y": 272
+            },
+            {
+              "x": 34.8,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tine_4",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 43.4,
+              "y": 272
+            },
+            {
+              "x": 43.4,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tine_5",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 52,
+              "y": 272
+            },
+            {
+              "x": 52,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "tine_6",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60.6,
+              "y": 272
+            },
+            {
+              "x": 60.6,
+              "y": 294
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 35,
+        "y": 60
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 295.5
+      },
+      "width": 70
+    }
+  ]
+}

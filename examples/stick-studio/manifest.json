@@ -194,7 +194,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "e9392312c17fd97da3c3002b72c388be4e597455ed3a52a6ab9a4049d4297ade"
+      "project_sha256": "400f3fd3fea1fee334991f627bedcaf06a01de06b1e5a3a5addccf0d5270c32a"
     },
     {
       "id": "lahikauppa",
@@ -214,7 +214,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "50c98ae6cee784f207c6c67770c701f624a3b12c84e1612404fdb37020c9e811"
+      "project_sha256": "448b339ff36b8a58fe5994c80556c1320ff86d21523b7bca04f7486badfc6609"
     },
     {
       "id": "puisto",
@@ -224,7 +224,7 @@
       "transparent": false,
       "export_width": 1920,
       "export_height": 1080,
-      "project_sha256": "41db155aabfed8cd6a76e21032b2fbb5b347e274938bd7c87b6bb466093f6499"
+      "project_sha256": "4d35f0fd4ac73e2dd29c83dd31c2fd9e885e24afd3cd995c9726f1375266bb0d"
     },
     {
       "id": "katto",
@@ -514,7 +514,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "ba2f1464c9a7d3efdaad4ca89410162f20aa23b084d3ae2eeb7f4afdc9d484dc"
+      "project_sha256": "62b042d2d832961348c3739538b920345e1aca7cae3a60ab4a372a46c0fa4f8e"
     },
     {
       "id": "juoma_automaatti",
@@ -524,7 +524,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "9fe746420e4d96789c4efa0fc17732a33d5e3666ed71fbcbc03bd46c59a9f793"
+      "project_sha256": "4b6e1ea8cc33cc68e464db53d6d1d92b784a04f933633302dbf476d955e808ef"
     },
     {
       "id": "katupuu",
@@ -614,7 +614,7 @@
       "transparent": true,
       "export_width": 512,
       "export_height": 512,
-      "project_sha256": "629a792eed3e63b7091651dc6888eaa379e3b198892fabe55eae901fb720986e"
+      "project_sha256": "bc331d313e8b113f55773aea982de1edd501ee94e7d38cb61d3a01dca1150265"
     },
     {
       "id": "puhelin_takana",

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "id": "location.nature.meadow_v1",
+  "kind": "location",
+  "name": "Kukkaniitty",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "nature",
+    "luonto",
+    "meadow",
+    "niitty",
+    "summer",
+    "kesä"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "composite"
+  },
+  "parts": [
+    {
+      "instance": "backdrop",
+      "asset": "background.nature.meadow_v1",
+      "at": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "instance": "flowers",
+      "asset": "prop.garden.flower_bed_v1",
+      "at": {
+        "x": 390.0,
+        "y": 860.0
+      }
+    },
+    {
+      "instance": "kite",
+      "asset": "prop.toy.kite_v1",
+      "at": {
+        "x": 1040.0,
+        "y": 730.0
+      }
+    }
+  ]
+}

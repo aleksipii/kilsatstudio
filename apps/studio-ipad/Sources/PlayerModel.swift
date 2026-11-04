@@ -23,10 +23,14 @@ final class PlayerModel: ObservableObject {
         case unavailable(String)
     }
 
-    @Published private(set) var document: AnimationDocument?
+    @Published private(set) var document: AnimationDocument? {
+        didSet { refreshTimeline() }
+    }
     @Published private(set) var fileName = ""
     @Published var sceneIndex = 0 {
-        didSet { if sceneIndex != oldValue { pause(); seek(to: 0); loadAudio() } }
+        didSet {
+            if sceneIndex != oldValue { selectedEvent = nil; refreshTimeline(); pause(); seek(to: 0); loadAudio() }
+        }
     }
     @Published private(set) var frame: UInt64 = 0
     @Published private(set) var image: CGImage?
@@ -35,6 +39,43 @@ final class PlayerModel: ObservableObject {
     @Published var errorMessage: String?
     /// Project files found in a folder the user opened, when there are several.
     @Published var folderChoices: [URL] = []
+
+    // MARK: Editing state
+    /// The opened file; edits reopen it with the edited screenplay and save over it.
+    @Published private(set) var fileURL: URL?
+    /// Screenplay text in the editor. Valid text updates the preview after a short pause.
+    @Published var draft = "" {
+        didSet { if draft != oldValue { draftChanged() } }
+    }
+    /// The screenplay as last opened or saved.
+    @Published private(set) var savedSource = ""
+    /// Why the draft does not open, if it does not; the preview keeps the last valid version.
+    @Published private(set) var sourceProblem: AnimationDocument.SourceProblem?
+    @Published private(set) var isSaving = false
+    /// Whether the screenplay editor is shown beside the preview.
+    @Published var showsEditor = false
+    /// An open that waits for the user to discard unsaved edits.
+    @Published var pendingDiscard: (() -> Void)?
+
+    // MARK: Timeline state
+    /// Whether the touch timeline is shown below the preview.
+    @Published var showsTimeline = false
+    /// The current scene's tracks and events, from the last valid screenplay.
+    @Published private(set) var timeline: AnimationDocument.Timeline?
+    /// Index of the selected event in the current scene.
+    @Published var selectedEvent: Int?
+    /// Why the last timeline edit was refused.
+    @Published var timelineError: String?
+    @Published private(set) var canUndo = false
+    @Published private(set) var canRedo = false
+    /// Earlier and undone screenplays, newest last.
+    private var undoStack: [String] = [] { didSet { canUndo = !undoStack.isEmpty } }
+    private var redoStack: [String] = [] { didSet { canRedo = !redoStack.isEmpty } }
+    /// True while an edit sets the draft, which then opens without waiting for typing to pause.
+    private var applyingEdit = false
+    /// Event to select once the edited document opens (a new event).
+    private var pendingSelection: Int?
+    private static let undoLimit = 100
 
     /// Longest side requested from the core, set from the view size and screen scale.
     var renderSide: UInt32 = 768 {
@@ -63,6 +104,10 @@ final class PlayerModel: ObservableObject {
     /// Folder access held while the user chooses among `folderChoices`.
     private var pendingFolderScope: URL?
     private var interruptionObserver: NSObjectProtocol?
+    private let editQueue = DispatchQueue(label: "studio.kilsat.edit", qos: .userInitiated)
+    private var editCheck: DispatchWorkItem?
+    /// Increases with every edit, so a slow check of older text is ignored.
+    private var editGeneration = 0
 
     init() {
         engine.attach(audioPlayer)
@@ -169,7 +214,13 @@ final class PlayerModel: ObservableObject {
                 switch result {
                 case .success(let document):
                     self.replaceScope(with: scope)
+                    self.undoStack = []
+                    self.redoStack = []
+                    self.selectedEvent = nil
                     self.document = document
+                    self.fileURL = url
+                    self.savedSource = document.source
+                    self.setDraftQuietly(document.source)
                     self.fileName = url.lastPathComponent
                     self.sceneIndex = 0
                     self.frame = 0
@@ -185,6 +236,278 @@ final class PlayerModel: ObservableObject {
                 }
             }
         }
+    }
+
+    // MARK: Editing
+
+    var hasUnsavedChanges: Bool { document != nil && draft != savedSource }
+
+    /// Bundled examples cannot be overwritten; saving makes a copy in Files.
+    var isReadOnly: Bool {
+        guard let fileURL else { return true }
+        return fileURL.standardizedFileURL.path.hasPrefix(Bundle.main.bundleURL.standardizedFileURL.path)
+    }
+
+    var canSave: Bool {
+        document != nil && sourceProblem == nil && !isSaving && (hasUnsavedChanges || isReadOnly)
+    }
+
+    /// Runs `open` now, or once the user agrees to discard unsaved edits.
+    func guardUnsaved(_ open: @escaping () -> Void) {
+        if hasUnsavedChanges { pendingDiscard = open } else { open() }
+    }
+
+    func revertDraft() {
+        draft = savedSource
+    }
+
+    private func setDraftQuietly(_ text: String) {
+        editCheck?.cancel()
+        editGeneration += 1
+        sourceProblem = nil
+        draft = text
+        editCheck?.cancel()
+    }
+
+    /// Check the draft once typing pauses (at once for a timeline edit or
+    /// undo); valid text replaces the preview.
+    private func draftChanged() {
+        if !applyingEdit { redoStack.removeAll() }
+        let delay = applyingEdit ? 0 : 0.5
+        editCheck?.cancel()
+        editGeneration += 1
+        let generation = editGeneration
+        let text = draft
+        guard let url = fileURL, let current = document else { return }
+        let work = DispatchWorkItem { [weak self] in
+            if let problem = AnimationDocument.check(source: text) {
+                DispatchQueue.main.async {
+                    guard let self, self.editGeneration == generation else { return }
+                    self.sourceProblem = problem
+                }
+                return
+            }
+            if text == current.source {
+                DispatchQueue.main.async {
+                    guard let self, self.editGeneration == generation else { return }
+                    self.sourceProblem = nil
+                }
+                return
+            }
+            let result = Result { try AnimationDocument(url: url, editedSource: text) }
+            DispatchQueue.main.async {
+                guard let self, self.editGeneration == generation, self.document === current else { return }
+                switch result {
+                case .success(let edited):
+                    self.sourceProblem = nil
+                    self.replaceDocument(with: edited)
+                case .failure(let error):
+                    self.sourceProblem = .init(message: error.localizedDescription, line: 0)
+                }
+            }
+        }
+        editCheck = work
+        editQueue.asyncAfter(deadline: .now() + delay, execute: work)
+    }
+
+    /// Show an edited version of the open file, keeping the scene and frame.
+    private func replaceDocument(with edited: AnimationDocument) {
+        let wasPlaying = isPlaying
+        pause()
+        let scene = min(sceneIndex, max(edited.scenes.count - 1, 0))
+        let keptFrame = frame
+        document = edited
+        if sceneIndex != scene {
+            sceneIndex = scene
+        } else {
+            seek(to: min(keptFrame, max(frameCount, 1) - 1))
+            loadAudio()
+        }
+        if wasPlaying { playWhenReady = true }
+    }
+
+    /// Save the draft over the opened file, or a copy into Files for a bundled example.
+    func save() {
+        guard canSave, let url = fileURL else { return }
+        let text = draft
+        let readOnly = isReadOnly
+        isSaving = true
+        editQueue.async { [weak self] in
+            let result = Result<URL, Error> {
+                let target = readOnly ? try Self.copyIntoDocuments(url) : url
+                let bytes = try AnimationDocument.savedBytes(source: text, for: target)
+                try Self.coordinatedWrite(bytes, to: target)
+                return target
+            }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isSaving = false
+                switch result {
+                case .success(let target) where readOnly:
+                    // Continue in the copy, whose folder the app owns.
+                    self.load(url: target, scope: nil, scene: self.sceneIndex)
+                case .success:
+                    if self.fileURL == url { self.savedSource = text }
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    /// Writes with file coordination, as Files and iCloud Drive expect. The
+    /// write is atomic when the app may create files next to the original; a
+    /// file picked on its own may only be replaced in place.
+    nonisolated private static func coordinatedWrite(_ data: Data, to url: URL) throws {
+        var coordinationError: NSError?
+        var writeError: Error?
+        NSFileCoordinator().coordinate(writingItemAt: url, options: .forReplacing, error: &coordinationError) { target in
+            do {
+                try data.write(to: target, options: .atomic)
+            } catch {
+                do { try data.write(to: target) } catch { writeError = error }
+            }
+        }
+        if let error = coordinationError ?? writeError {
+            throw CoreError(message: "Tiedostoa ei voitu tallentaa: \(error.localizedDescription)")
+        }
+    }
+
+    /// Copies a bundled example into the app's Files folder: the file itself,
+    /// or its whole folder when it sits in one (so its assets come along).
+    nonisolated private static func copyIntoDocuments(_ url: URL) throws -> URL {
+        guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+              let resources = Bundle.main.resourceURL
+        else { throw CoreError(message: "Sovelluksen kansiota ei löytynyt.") }
+        let parent = url.deletingLastPathComponent().standardizedFileURL
+        let copyFolder = parent != resources.standardizedFileURL
+        let source = copyFolder ? parent : url
+        var target = documents.appendingPathComponent(source.lastPathComponent)
+        var number = 2
+        while FileManager.default.fileExists(atPath: target.path) {
+            let name = copyFolder ? source.lastPathComponent
+                : (source.lastPathComponent as NSString).deletingPathExtension
+            let numbered = "\(name) \(number)"
+            target = documents.appendingPathComponent(copyFolder ? numbered : numbered + "." + source.pathExtension)
+            number += 1
+        }
+        try FileManager.default.copyItem(at: source, to: target)
+        return copyFolder ? target.appendingPathComponent(url.lastPathComponent) : target
+    }
+
+    // MARK: Timeline editing
+
+    /// Seconds at the current frame.
+    var playheadSeconds: Double {
+        guard let document, document.fps > 0 else { return 0 }
+        return Double(frame) / Double(document.fps)
+    }
+
+    /// Timeline edits start from the shown (valid) screenplay, so typed text
+    /// must have reached the preview first.
+    var canEditTimeline: Bool {
+        guard let document else { return false }
+        return sourceProblem == nil && draft == document.source && !isSaving
+    }
+
+    var timelineBlockedReason: String? {
+        guard document != nil else { return nil }
+        if sourceProblem != nil { return "Korjaa käsikirjoituksen virhe ennen aikajanan muokkausta." }
+        if !canEditTimeline { return "Päivitetään esikatselua…" }
+        return nil
+    }
+
+    private func refreshTimeline() {
+        guard let document, let scene else { timeline = nil; return }
+        do {
+            timeline = try document.timeline(scene: scene.index)
+        } catch {
+            timeline = nil
+            timelineError = error.localizedDescription
+        }
+        if let pending = pendingSelection {
+            pendingSelection = nil
+            selectedEvent = pending
+        }
+        if let selected = selectedEvent, !(timeline?.events.indices.contains(selected) ?? false) {
+            selectedEvent = nil
+        }
+    }
+
+    /// Frame-snapped start and length while dragging, for feedback only.
+    func snapped(event: Int, delta: Double, resize: Bool) -> (at: Double, duration: Double)? {
+        guard let document, let scene else { return nil }
+        return try? document.snapEvent(scene: scene.index, event: event, delta: delta, resize: resize)
+    }
+
+    /// False when nothing changed (the edit was refused or snapped back).
+    @discardableResult
+    func moveEvent(_ event: Int, by delta: Double, resize: Bool = false) -> Bool {
+        guard delta != 0 else { return false }
+        return edit { try $0.sourceMoving(scene: $1, event: event, delta: delta, resize: resize) }
+    }
+
+    /// `kind`: move, gesture, emotion, face or speak, at the playhead.
+    func insertEvent(kind: String, actor: String) {
+        let at = playheadSeconds
+        let next = timeline?.events.count
+        edit(select: next) { try $0.sourceInserting(scene: $1, actor: actor, at: at, kind: kind) }
+    }
+
+    func duplicateEvent(_ event: Int) {
+        let at = playheadSeconds
+        let next = timeline?.events.count
+        edit(select: next) { try $0.sourceDuplicating(scene: $1, event: event, at: at) }
+    }
+
+    func removeEvent(_ event: Int) {
+        selectedEvent = nil
+        edit { try $0.sourceRemoving(scene: $1, event: event) }
+    }
+
+    func setEventValue(_ event: Int, to value: String) {
+        edit { try $0.sourceSetting(scene: $1, event: event, value: value) }
+    }
+
+    /// Apply an edit made by the core from the shown screenplay; it becomes the
+    /// unsaved draft and the preview opens it at once.
+    @discardableResult
+    private func edit(select: Int? = nil, _ make: (AnimationDocument, UInt32) throws -> String) -> Bool {
+        guard let document, let scene else { return false }
+        if let reason = timelineBlockedReason { timelineError = reason; return false }
+        do {
+            let source = try make(document, scene.index)
+            guard source != draft else { return false }
+            timelineError = nil
+            undoStack.append(draft)
+            if undoStack.count > Self.undoLimit { undoStack.removeFirst() }
+            redoStack.removeAll()
+            pendingSelection = select
+            applyDraft(source)
+            return true
+        } catch {
+            timelineError = error.localizedDescription
+            return false
+        }
+    }
+
+    /// Undo the last timeline edit or undo (typing in between is undone too).
+    func undo() {
+        guard let previous = undoStack.popLast() else { return }
+        redoStack.append(draft)
+        applyDraft(previous)
+    }
+
+    func redo() {
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(draft)
+        applyDraft(next)
+    }
+
+    private func applyDraft(_ source: String) {
+        applyingEdit = true
+        draft = source
+        applyingEdit = false
     }
 
     func seek(to frame: UInt64) {

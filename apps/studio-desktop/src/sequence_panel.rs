@@ -494,7 +494,7 @@ impl Panel {
                         }
                         _ => {}
                     }
-                    if self.export_choice==ExportChoice::StreamingMp4 {ui.weak("Enintään 60 s / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 300 s; tämä ei mittaa puheen valmistelua.");}
+                    if self.export_choice==ExportChoice::StreamingMp4 {ui.weak("Enintään 5 min / 1920×1080 / 24 fps. Ei PNG-välitiedostoja. Viennin määräaika 60 min; tämä ei mittaa puheen valmistelua.");}
                     if matches!(self.export_choice,ExportChoice::Mp4|ExportChoice::StreamingMp4|ExportChoice::Animatic) {
                         ui.label("Paikallisen FFmpeg-ohjelman koko polku");
                         ui.text_edit_singleline(&mut self.ffmpeg);

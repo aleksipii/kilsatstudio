@@ -92,15 +92,23 @@ pub enum Kind {
     Prop,
     Location,
     Set,
+    Character,
 }
 impl Kind {
-    pub const ALL: [Kind; 4] = [Kind::Background, Kind::Prop, Kind::Location, Kind::Set];
+    pub const ALL: [Kind; 5] = [
+        Kind::Background,
+        Kind::Prop,
+        Kind::Location,
+        Kind::Set,
+        Kind::Character,
+    ];
     pub fn as_str(self) -> &'static str {
         match self {
             Kind::Background => "background",
             Kind::Prop => "prop",
             Kind::Location => "location",
             Kind::Set => "set",
+            Kind::Character => "character",
         }
     }
     /// Directory under `library/` that holds manifests of this kind.
@@ -110,6 +118,7 @@ impl Kind {
             Kind::Prop => "props",
             Kind::Location => "locations",
             Kind::Set => "sets",
+            Kind::Character => "characters",
         }
     }
     pub fn from_prefix(prefix: &str) -> Option<Kind> {
@@ -154,7 +163,7 @@ impl AssetId {
             return Err(fail("expected <kind>.<category>.<name>_v<N>"));
         };
         let kind = Kind::from_prefix(kind)
-            .ok_or_else(|| fail("prefix must be background, prop, location or set"))?;
+            .ok_or_else(|| fail("prefix must be background, prop, location, set or character"))?;
         if !segment(category) {
             return Err(fail("category must match [a-z0-9]+(_[a-z0-9]+)*"));
         }
@@ -586,6 +595,79 @@ pub struct Manifest {
     /// Location/set aerial perspective; a set's value replaces its location's.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub atmosphere: Option<Atmosphere>,
+    /// Casting data; required for characters and forbidden for other kinds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub character: Option<CharacterInfo>,
+}
+
+/// Age group of a library character.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AgeGroup {
+    Child,
+    Teen,
+    Adult,
+    Elder,
+}
+
+/// Body build of a library character.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Build {
+    Slim,
+    Average,
+    Broad,
+    Round,
+}
+
+/// Casting data of a `character` manifest. The rig itself lives in the
+/// `rig_project` file; `id` names the character inside that project.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CharacterInfo {
+    /// MotionScript character id in the project, `[A-Z][A-Z0-9_]{0,63}`.
+    pub id: String,
+    /// Short description of the role (display text).
+    pub role: String,
+    pub age: AgeGroup,
+    pub build: Build,
+    /// Head-top to sole at actor scale 1, in scene pixels (100–2000).
+    pub height: f64,
+    /// MotionScript `acting:` preset of the character, if any.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acting: Option<String>,
+}
+impl CharacterInfo {
+    fn validate(&self) -> Result<(), ManifestError> {
+        let id_ok = self.id.len() <= MAX_LOCAL_ID
+            && self
+                .id
+                .bytes()
+                .next()
+                .is_some_and(|b| b.is_ascii_uppercase())
+            && self
+                .id
+                .bytes()
+                .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'_');
+        if !id_ok {
+            return Err(invalid("character.id", "must match [A-Z][A-Z0-9_]{0,63}"));
+        }
+        if !text_ok(&self.role) {
+            return Err(invalid(
+                "character.role",
+                "must be non-empty text up to 256 bytes",
+            ));
+        }
+        if !self.height.is_finite() || !(100.0..=2000.0).contains(&self.height) {
+            return Err(invalid("character.height", "must be finite and 100..=2000"));
+        }
+        if let Some(acting) = &self.acting {
+            if !local_id(acting) {
+                return Err(invalid("character.acting", "must match [a-z0-9_]{1,64}"));
+            }
+        }
+        Ok(())
+    }
 }
 
 /// `[a-z0-9_]{1,64}`: anchor, layer, instance, variant, palette, camera and mark ids.
@@ -869,13 +951,44 @@ impl Manifest {
             Kind::Location | Kind::Set if !composite => {
                 return Err(invalid("geometry", "location and set require composite"))
             }
-            Kind::Background | Kind::Prop if composite => {
+            Kind::Background | Kind::Prop | Kind::Character if composite => {
                 return Err(invalid(
                     "geometry",
                     "composite is only for location and set",
                 ))
             }
+            Kind::Character if !matches!(self.geometry, Geometry::RigProject { .. }) => {
+                return Err(invalid("geometry", "a character requires rig_project"))
+            }
             _ => {}
+        }
+        match (&self.character, kind) {
+            (Some(info), Kind::Character) => info.validate()?,
+            (None, Kind::Character) => {
+                return Err(ManifestError::Required {
+                    field: "character",
+                    kind,
+                })
+            }
+            (Some(_), _) => {
+                return Err(ManifestError::NotAllowed {
+                    field: "character",
+                    kind,
+                })
+            }
+            (None, _) => {}
+        }
+        if kind == Kind::Character && !self.variants.is_empty() {
+            return Err(ManifestError::NotAllowed {
+                field: "variants",
+                kind,
+            });
+        }
+        if kind == Kind::Character && !self.anchors.is_empty() {
+            return Err(ManifestError::NotAllowed {
+                field: "anchors",
+                kind,
+            });
         }
         if let Some(a) = &self.atmosphere {
             if !matches!(kind, Kind::Location | Kind::Set) {

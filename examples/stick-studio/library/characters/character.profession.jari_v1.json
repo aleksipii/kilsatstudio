@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.profession.jari_v1",
+  "kind": "character",
+  "name": "Kuljettaja Jari",
+  "bounds": {
+    "x": -52,
+    "y": -253,
+    "width": 107,
+    "height": 397
+  },
+  "depth": "mid",
+  "tags": [
+    "kuljettaja",
+    "driver",
+    "bussi",
+    "bus",
+    "aikuinen",
+    "adult",
+    "profession",
+    "round",
+    "tired",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/jari.kilsat",
+    "sha256": "0e9e5c72b9f3232a42e6d32973f31b962568f6ab1cd3d753ebcc66a5905958b5"
+  },
+  "character": {
+    "id": "JARI",
+    "role": "Väsynyt bussikuski / Tired bus driver",
+    "age": "adult",
+    "build": "round",
+    "acting": "tired",
+    "height": 378.8
+  }
+}

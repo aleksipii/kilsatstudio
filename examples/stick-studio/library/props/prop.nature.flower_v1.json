@@ -1,0 +1,410 @@
+{
+  "schema_version": 1,
+  "id": "prop.nature.flower_v1",
+  "kind": "prop",
+  "name": "Kukka",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 40,
+    "height": 89.5
+  },
+  "depth": "mid",
+  "tags": [
+    "kukka",
+    "flower",
+    "kesä",
+    "summer",
+    "niitty",
+    "meadow",
+    "outdoor",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "leaf": {
+      "r": 118,
+      "g": 150,
+      "b": 106,
+      "a": 255
+    },
+    "leaf_dark": {
+      "r": 78,
+      "g": 108,
+      "b": 84,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "petal_white": {
+      "r": 238,
+      "g": 236,
+      "b": 226,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "stem",
+        "paint": "leaf_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 26
+            },
+            {
+              "x": 20,
+              "y": 88
+            }
+          ],
+          "color": {
+            "r": 78,
+            "g": 108,
+            "b": 84,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "leaf",
+        "paint": "leaf",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 19,
+            "y": 58,
+            "width": 18,
+            "height": 8
+          },
+          "color": {
+            "r": 118,
+            "g": 150,
+            "b": 106,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "petal_0",
+        "paint": "petal_white",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 23,
+            "y": 12,
+            "width": 12,
+            "height": 12
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "petal_1",
+        "paint": "petal_white",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 18.5,
+            "y": 19.794,
+            "width": 12,
+            "height": 12
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "petal_2",
+        "paint": "petal_white",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 9.5,
+            "y": 19.794,
+            "width": 12,
+            "height": 12
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "petal_3",
+        "paint": "petal_white",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 5,
+            "y": 12,
+            "width": 12,
+            "height": 12
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "petal_4",
+        "paint": "petal_white",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 9.5,
+            "y": 4.206,
+            "width": 12,
+            "height": 12
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "petal_5",
+        "paint": "petal_white",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 18.5,
+            "y": 4.206,
+            "width": 12,
+            "height": 12
+          },
+          "color": {
+            "r": 238,
+            "g": 236,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "centre",
+        "paint": "accent",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 15,
+            "y": 13,
+            "width": 10,
+            "height": 10
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "centre_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25,
+              "y": 18
+            },
+            {
+              "x": 24.904,
+              "y": 18.975
+            },
+            {
+              "x": 24.619,
+              "y": 19.913
+            },
+            {
+              "x": 24.157,
+              "y": 20.778
+            },
+            {
+              "x": 23.536,
+              "y": 21.536
+            },
+            {
+              "x": 22.778,
+              "y": 22.157
+            },
+            {
+              "x": 21.913,
+              "y": 22.619
+            },
+            {
+              "x": 20.975,
+              "y": 22.904
+            },
+            {
+              "x": 20,
+              "y": 23
+            },
+            {
+              "x": 19.025,
+              "y": 22.904
+            },
+            {
+              "x": 18.087,
+              "y": 22.619
+            },
+            {
+              "x": 17.222,
+              "y": 22.157
+            },
+            {
+              "x": 16.464,
+              "y": 21.536
+            },
+            {
+              "x": 15.843,
+              "y": 20.778
+            },
+            {
+              "x": 15.381,
+              "y": 19.913
+            },
+            {
+              "x": 15.096,
+              "y": 18.975
+            },
+            {
+              "x": 15,
+              "y": 18
+            },
+            {
+              "x": 15.096,
+              "y": 17.025
+            },
+            {
+              "x": 15.381,
+              "y": 16.087
+            },
+            {
+              "x": 15.843,
+              "y": 15.222
+            },
+            {
+              "x": 16.464,
+              "y": 14.464
+            },
+            {
+              "x": 17.222,
+              "y": 13.843
+            },
+            {
+              "x": 18.087,
+              "y": 13.381
+            },
+            {
+              "x": 19.025,
+              "y": 13.096
+            },
+            {
+              "x": 20,
+              "y": 13
+            },
+            {
+              "x": 20.975,
+              "y": 13.096
+            },
+            {
+              "x": 21.913,
+              "y": 13.381
+            },
+            {
+              "x": 22.778,
+              "y": 13.843
+            },
+            {
+              "x": 23.536,
+              "y": 14.464
+            },
+            {
+              "x": 24.157,
+              "y": 15.222
+            },
+            {
+              "x": 24.619,
+              "y": 16.087
+            },
+            {
+              "x": 24.904,
+              "y": 17.025
+            },
+            {
+              "x": 25,
+              "y": 18
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 20,
+        "y": 70
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 89.5
+      },
+      "width": 40
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.family.mikko_v1",
+  "kind": "character",
+  "name": "Isä Mikko",
+  "bounds": {
+    "x": -52,
+    "y": -244,
+    "width": 104,
+    "height": 388
+  },
+  "depth": "mid",
+  "tags": [
+    "isä",
+    "dad",
+    "koti",
+    "home",
+    "aikuinen",
+    "adult",
+    "family",
+    "round",
+    "tired",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/mikko.kilsat",
+    "sha256": "218fd3d3bcc1d09cdf8fe67500d4ccba4d4783e71586cc0718d741078ee77fee"
+  },
+  "character": {
+    "id": "MIKKO",
+    "role": "Leppoisa isä / Easy-going dad",
+    "age": "adult",
+    "build": "round",
+    "acting": "tired",
+    "height": 378.8
+  }
+}

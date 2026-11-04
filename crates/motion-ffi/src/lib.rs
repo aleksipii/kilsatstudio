@@ -14,7 +14,10 @@
 //! Ownership: every pointer returned here is freed with the matching
 //! `koeta_*_free` function. Calls on one document may come from any single
 //! thread at a time or from several threads (the preview cache is locked).
-use motion_export::{ArtContext, ScenePreview};
+mod timeline;
+pub use timeline::{TimelineEvent, TimelineSummary, MAX_EDITED_SOURCE_BYTES};
+
+use motion_export::{ArtContext, ExportFrames, ScenePreview};
 use motion_script::{Event, Script};
 use motion_voice::model_free::{prepare_scene_model_free, MissingAudioReason, ModelFreeError};
 use std::{
@@ -43,6 +46,8 @@ pub const SAMPLE_RATE: u32 = motion_scene::time::SEQUENCE_SAMPLE_RATE;
 
 /// An opened screenplay or project and its lazily built per-scene previews.
 pub struct Document {
+    /// MotionScript YAML the document was opened from (a project's `source`).
+    source: String,
     script: Arc<Script>,
     art: Arc<ArtContext>,
     /// Directory that relative asset and audio paths resolve against.
@@ -55,23 +60,23 @@ impl Document {
     /// document has no project directory: image assets are not loaded and scene
     /// audio is unavailable. Use [`Self::open_path`] for both.
     pub fn open(bytes: &[u8]) -> Result<Self, String> {
-        Self::open_in(bytes, None)
+        Self::open_in(bytes, None, None)
     }
 
     /// Open a file and resolve its image assets and imported audio against the
     /// directory that contains it, as the Mac app and export do.
     pub fn open_path(path: &Path) -> Result<Self, String> {
-        let mut bytes = Vec::new();
-        std::fs::File::open(path)
-            .and_then(|file| {
-                file.take(MAX_INPUT_BYTES as u64 + 1)
-                    .read_to_end(&mut bytes)
-            })
-            .map_err(|e| format!("Tiedostoa ei voitu lukea: {e}"))?;
-        Self::open_in(&bytes, Some(path))
+        Self::open_in(&read_bounded(path)?, Some(path), None)
     }
 
-    fn open_in(bytes: &[u8], path: Option<&Path>) -> Result<Self, String> {
+    /// Open edited MotionScript `source` in place of the screenplay saved at
+    /// `path`: a `.kilsat` project keeps its artwork and image assets, and audio
+    /// still resolves next to the file. Nothing is written.
+    pub fn open_edited(path: &Path, source: &str) -> Result<Self, String> {
+        Self::open_in(&read_bounded(path)?, Some(path), Some(source))
+    }
+
+    fn open_in(bytes: &[u8], path: Option<&Path>, edited: Option<&str>) -> Result<Self, String> {
         if bytes.len() > MAX_INPUT_BYTES {
             return Err("Tiedosto on liian suuri (yli 64 MiB).".into());
         }
@@ -91,10 +96,8 @@ impl Document {
                 BTreeMap::new(),
             )
         };
-        let script = motion_script::parse(&source).map_err(|e| e.to_string())?;
-        if script.scenes.is_empty() {
-            return Err("Käsikirjoituksessa ei ole yhtään kohtausta.".into());
-        }
+        let source = edited.map_or(source, str::to_owned);
+        let script = parse_source(&source)?;
         let root = match path.map(project_dir) {
             Some(dir) => Some(
                 dir.canonicalize()
@@ -103,6 +106,7 @@ impl Document {
             None => None,
         };
         Ok(Self {
+            source,
             script: Arc::new(script),
             art: Arc::new(ArtContext {
                 document: art,
@@ -148,7 +152,7 @@ impl Document {
             &motion_tts::CancellationToken::new(),
             |_| {},
         )
-        .map_err(|e| audio_error(e, root))?;
+        .map_err(|e| audio_error(e, root, "Kohtauksen ääntä ei toisteta."))?;
         let audio = prepared.rendered.audio;
         if audio.sample_rate != SAMPLE_RATE || audio.channels != 1 {
             return Err("Kohtauksen ääni ei ole 24 kHz:n monoääntä.".into());
@@ -175,6 +179,76 @@ impl Document {
     /// First sample of `frame` on the shared clock.
     pub fn frame_start_sample(&self, frame: u64) -> Result<u64, String> {
         motion_scene::time::frame_to_sample(frame, self.fps()).map_err(|e| e.to_string())
+    }
+
+    /// MotionScript YAML of the open screenplay.
+    pub fn source(&self) -> &str {
+        &self.source
+    }
+
+    /// Prepare a movie export of one scene, or of every scene with its
+    /// crossfades when `scene` is `None`, with the frames and mix of the Mac
+    /// export. Dialogue must come from imported WAV files, as in playback;
+    /// a scene without dialogue or cues exports silent. Blocking.
+    pub fn export(&self, scene: Option<usize>) -> Result<Export, String> {
+        let cancel = motion_tts::CancellationToken::new();
+        let indices: Vec<usize> = match scene {
+            Some(index) if index < self.scene_count() => vec![index],
+            Some(_) => return Err("Kohtausta ei ole.".into()),
+            None => (0..self.scene_count()).collect(),
+        };
+        let mut rendered = Vec::with_capacity(indices.len());
+        for &index in &indices {
+            rendered.push(self.rendered_scene(index, &cancel)?);
+        }
+        let frames = match scene {
+            Some(index) => ExportFrames::scene(
+                &self.script,
+                index,
+                rendered.remove(0),
+                Some(&self.art),
+                &cancel,
+            ),
+            None => ExportFrames::new(
+                self.script.clone(),
+                rendered,
+                Some(self.art.clone()),
+                &cancel,
+            ),
+        }
+        .map_err(|e| format!("Videota ei voi viedä: {e}"))?;
+        Ok(Export { frames, cancel })
+    }
+
+    /// Imported dialogue and cues of `scene`, mixed as export mixes them.
+    fn rendered_scene(
+        &self,
+        scene: usize,
+        cancel: &motion_tts::CancellationToken,
+    ) -> Result<motion_voice::export::RenderedScene, String> {
+        let entry = &self.script.scenes[scene];
+        let has_audio = entry
+            .events
+            .iter()
+            .any(|e| matches!(e, Event::Speak { .. }))
+            || !entry.composition.audio_cues.is_empty();
+        match self.root.as_deref() {
+            Some(root) => prepare_scene_model_free(
+                &self.script,
+                scene,
+                root,
+                &BTreeMap::new(),
+                cancel,
+                |_| {},
+            )
+            .map(|prepared| prepared.rendered)
+            .map_err(|e| audio_error(e, root, "Videota ei voi viedä.")),
+            None if !has_audio => {
+                motion_voice::export::render_scene(&entry.id, entry.duration, &[])
+                    .map_err(|e| e.to_string())
+            }
+            None => Err("Ääntä ei voi ladata, koska projektin kansiota ei tunneta.".into()),
+        }
     }
 
     pub fn title(&self) -> &str {
@@ -230,6 +304,127 @@ impl Document {
     }
 }
 
+/// A prepared movie export: full-size frames and the mix, from `Document::export`.
+pub struct Export {
+    frames: ExportFrames,
+    cancel: motion_tts::CancellationToken,
+}
+
+impl Export {
+    pub fn frame_count(&self) -> u64 {
+        self.frames.frame_count()
+    }
+    pub fn fps(&self) -> u32 {
+        self.frames.fps()
+    }
+    pub fn size(&self) -> (u32, u32) {
+        (self.frames.width(), self.frames.height())
+    }
+    /// Frame `frame` at the authored size; opaque, so premultiplied equals straight RGBA.
+    pub fn render(&self, frame: u64) -> Result<Frame, String> {
+        let rendered = self
+            .frames
+            .render(frame, &self.cancel)
+            .map_err(|e| self.failure(e))?;
+        Ok(Frame {
+            width: rendered.width,
+            height: rendered.height,
+            rgba: rendered.rgba,
+        })
+    }
+    /// The 24 kHz mono mix the movie carries.
+    pub fn audio(&self) -> Result<Vec<f32>, String> {
+        let audio = self
+            .frames
+            .mix_audio(&self.cancel)
+            .map_err(|e| self.failure(e))?;
+        if audio.sample_rate != SAMPLE_RATE || audio.channels != 1 {
+            return Err("Viennin ääni ei ole 24 kHz:n monoääntä.".into());
+        }
+        Ok(audio.samples)
+    }
+    /// Stop rendering and mixing from any thread; later calls fail.
+    pub fn cancel(&self) {
+        self.cancel.cancel();
+    }
+    fn failure(&self, error: motion_export::Error) -> String {
+        if self.cancel.is_cancelled() {
+            "Vienti peruttiin.".into()
+        } else {
+            format!("Vienti epäonnistui: {error}")
+        }
+    }
+}
+
+// The app renders export frames on a worker while the UI may cancel.
+const _: fn() = || {
+    fn shareable<T: Send + Sync>() {}
+    shareable::<Export>();
+};
+
+fn read_bounded(path: &Path) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    std::fs::File::open(path)
+        .and_then(|file| {
+            file.take(MAX_INPUT_BYTES as u64 + 1)
+                .read_to_end(&mut bytes)
+        })
+        .map_err(|e| format!("Tiedostoa ei voitu lukea: {e}"))?;
+    Ok(bytes)
+}
+
+/// Parse MotionScript, with the error kind in words: syntax, an unsupported
+/// command, or an invalid value or reference.
+fn parse_source(source: &str) -> Result<Script, String> {
+    let script = motion_script::parse(source).map_err(|error| match error {
+        motion_script::Error::Syntax(e) => format!("Syntaksivirhe: {e}"),
+        motion_script::Error::Unsupported(m) => format!("Komentoa ei tueta: {m}"),
+        motion_script::Error::Validation(m) => format!("Virheellinen arvo tai viittaus: {m}"),
+    })?;
+    if script.scenes.is_empty() {
+        return Err("Käsikirjoituksessa ei ole yhtään kohtausta.".into());
+    }
+    Ok(script)
+}
+
+/// Check edited MotionScript without opening it. On failure, the message and
+/// the 1-based line it names, or 0 when it names none.
+pub fn check_source(source: &str) -> Result<(), (String, u32)> {
+    if source.len() > MAX_INPUT_BYTES {
+        return Err(("Käsikirjoitus on liian suuri.".into(), 0));
+    }
+    parse_source(source).map(|_| ()).map_err(|message| {
+        let line = message
+            .split("line ")
+            .nth(1)
+            .and_then(|rest| rest.split(|c: char| !c.is_ascii_digit()).next())
+            .and_then(|digits| digits.parse().ok())
+            .unwrap_or(0);
+        (message, line)
+    })
+}
+
+/// The bytes that save edited MotionScript over the file at `path`, after
+/// checking it: a `.kilsat` project keeps everything else (artwork, assets,
+/// settings) and only its screenplay changes; a YAML file becomes `source`.
+/// The app writes them with file coordination, which iPadOS needs for files
+/// opened from Files, so nothing is written here.
+pub fn saved_bytes(path: &Path, source: &str) -> Result<Vec<u8>, String> {
+    check_source(source).map_err(|(message, _)| message)?;
+    let existing = read_bounded(path)?;
+    if existing.len() > MAX_INPUT_BYTES {
+        return Err("Tiedosto on liian suuri (yli 64 MiB).".into());
+    }
+    if existing.trim_ascii_start().starts_with(b"{") {
+        let mut project =
+            motion_project::decode(&existing).map_err(|e| format!("Projekti: {e}"))?;
+        project.source = source.to_owned();
+        motion_project::encode(&project).map_err(|e| format!("Projektia ei voitu tallentaa: {e}"))
+    } else {
+        Ok(source.as_bytes().to_vec())
+    }
+}
+
 fn project_dir(path: &Path) -> &Path {
     path.parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -269,11 +464,11 @@ fn load_images(
     Ok(images)
 }
 
-fn audio_error(error: ModelFreeError, root: &Path) -> String {
+fn audio_error(error: ModelFreeError, root: &Path, lead: &str) -> String {
     match error {
         ModelFreeError::MissingImportedAudio(lines) => {
-            let mut message = String::from(
-                "Kohtauksen ääntä ei toisteta. iPad ei syntetisoi puhetta, ja näiltä repliikeiltä puuttuu äänitiedosto:",
+            let mut message = format!(
+                "{lead} iPad ei syntetisoi puhetta, ja näiltä repliikeiltä puuttuu äänitiedosto:",
             );
             for line in lines.iter().take(5) {
                 match &line.reason {
@@ -514,19 +709,8 @@ pub unsafe extern "C" fn koeta_render_frame(
         // SAFETY: forwarded caller guarantee.
         let rendered =
             unsafe { self::document(document) }?.render(scene as usize, frame, max_side)?;
-        let mut rgba = rendered.rgba.into_boxed_slice();
-        let len = rgba.len();
-        let pointer = rgba.as_mut_ptr();
-        std::mem::forget(rgba);
         // SAFETY: `out` is non-null and writable per the caller contract.
-        unsafe {
-            *out = KoetaFrame {
-                rgba: pointer,
-                len,
-                width: rendered.width,
-                height: rendered.height,
-            }
-        };
+        unsafe { give_frame(rendered, out) };
         Ok(true)
     })
 }
@@ -551,24 +735,8 @@ pub unsafe extern "C" fn koeta_scene_audio(
         }
         // SAFETY: forwarded caller guarantee.
         let samples = unsafe { self::document(document) }?.scene_audio(scene as usize)?;
-        let (pointer, len) = match samples {
-            Some(samples) => {
-                let mut samples = samples.into_boxed_slice();
-                let len = samples.len();
-                let pointer = samples.as_mut_ptr();
-                std::mem::forget(samples);
-                (pointer, len)
-            }
-            None => (ptr::null_mut(), 0),
-        };
         // SAFETY: `out` is non-null and writable per the caller contract.
-        unsafe {
-            *out = KoetaAudio {
-                samples: pointer,
-                len,
-                sample_rate: SAMPLE_RATE,
-            }
-        };
+        unsafe { give_audio(samples, out) };
         Ok(true)
     })
 }
@@ -642,6 +810,332 @@ pub unsafe extern "C" fn koeta_string_free(string: *mut c_char) {
     if !string.is_null() {
         // SAFETY: the string was created by `CString::into_raw` in this library.
         drop(unsafe { CString::from_raw(string) });
+    }
+}
+
+/// # Safety
+/// `bytes` must be null or point to `len` readable bytes.
+unsafe fn text<'a>(bytes: *const u8, len: usize) -> Result<&'a str, String> {
+    if bytes.is_null() {
+        return Err("Teksti puuttuu.".into());
+    }
+    // SAFETY: the caller guarantees `len` readable bytes at `bytes`.
+    let bytes = unsafe { std::slice::from_raw_parts(bytes, len) };
+    std::str::from_utf8(bytes).map_err(|_| "Teksti ei ole UTF-8-muotoista.".to_string())
+}
+
+/// # Safety
+/// `path` must be null or a NUL-terminated string.
+unsafe fn c_path<'a>(path: *const c_char) -> Result<&'a Path, String> {
+    if path.is_null() {
+        return Err("Tiedostopolku puuttuu.".into());
+    }
+    // SAFETY: the caller passes a NUL-terminated string.
+    unsafe { CStr::from_ptr(path) }
+        .to_str()
+        .map(Path::new)
+        .map_err(|_| "Tiedostopolku ei ole UTF-8-tekstiä.".to_string())
+}
+
+/// Move `rgba` into `*out` for `koeta_frame_free`.
+///
+/// # Safety
+/// `out` must be non-null and writable.
+unsafe fn give_frame(frame: Frame, out: *mut KoetaFrame) {
+    let mut rgba = frame.rgba.into_boxed_slice();
+    let len = rgba.len();
+    let pointer = rgba.as_mut_ptr();
+    std::mem::forget(rgba);
+    // SAFETY: guaranteed by the caller.
+    unsafe {
+        *out = KoetaFrame {
+            rgba: pointer,
+            len,
+            width: frame.width,
+            height: frame.height,
+        }
+    };
+}
+
+/// Move `samples` into `*out` for `koeta_audio_free`.
+///
+/// # Safety
+/// `out` must be non-null and writable.
+unsafe fn give_audio(samples: Option<Vec<f32>>, out: *mut KoetaAudio) {
+    let (pointer, len) = match samples {
+        Some(samples) => {
+            let mut samples = samples.into_boxed_slice();
+            let len = samples.len();
+            let pointer = samples.as_mut_ptr();
+            std::mem::forget(samples);
+            (pointer, len)
+        }
+        None => (ptr::null_mut(), 0),
+    };
+    // SAFETY: guaranteed by the caller.
+    unsafe {
+        *out = KoetaAudio {
+            samples: pointer,
+            len,
+            sample_rate: SAMPLE_RATE,
+        }
+    };
+}
+
+/// Check edited MotionScript. True when it opens; otherwise false, `*error`
+/// holds the message and `*line` the 1-based line it names (0 for none).
+///
+/// # Safety
+/// `source` must point to `len` readable bytes; `line` and `error` null or writable.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_check_source(
+    source: *const u8,
+    len: usize,
+    line: *mut u32,
+    error: *mut *mut c_char,
+) -> bool {
+    guarded(error, false, || {
+        // SAFETY: forwarded caller guarantee.
+        let source = unsafe { text(source, len) }?;
+        check_source(source)
+            .map(|()| true)
+            .map_err(|(message, at)| {
+                if !line.is_null() {
+                    // SAFETY: non-null and writable per the caller contract.
+                    unsafe { *line = at };
+                }
+                message
+            })
+    })
+}
+
+/// The open screenplay's MotionScript YAML; free with `koeta_string_free`.
+///
+/// # Safety
+/// `document` must be null or a live document.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_document_source(document: *const Document) -> *mut c_char {
+    // SAFETY: forwarded caller guarantee.
+    let source = unsafe { self::document(document) }.map_or("", Document::source);
+    CString::new(source.replace('\0', " ")).map_or(ptr::null_mut(), CString::into_raw)
+}
+
+/// Open edited `source` in place of the screenplay of the file at `path`
+/// (see `Document::open_edited`). Null and `*error` on failure.
+///
+/// # Safety
+/// `path` must be null or NUL-terminated; `source` must point to `len` readable
+/// bytes; `error` null or writable.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_document_open_edited(
+    path: *const c_char,
+    source: *const u8,
+    len: usize,
+    error: *mut *mut c_char,
+) -> *mut Document {
+    guarded(error, ptr::null_mut(), || {
+        // SAFETY: forwarded caller guarantees.
+        let (path, source) = unsafe { (c_path(path)?, text(source, len)?) };
+        Ok(Box::into_raw(Box::new(Document::open_edited(
+            path, source,
+        )?)))
+    })
+}
+
+/// C view of bytes from this library; free with `koeta_bytes_free`.
+#[repr(C)]
+pub struct KoetaBytes {
+    pub bytes: *mut u8,
+    pub len: usize,
+}
+
+/// The bytes that save edited `source` over the file at `path` (see
+/// `saved_bytes`) into `*out`. False and `*error` on failure.
+///
+/// # Safety
+/// As `koeta_document_open_edited`; `out` must be writable. Free a filled
+/// value with `koeta_bytes_free`.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_saved_bytes(
+    path: *const c_char,
+    source: *const u8,
+    len: usize,
+    out: *mut KoetaBytes,
+    error: *mut *mut c_char,
+) -> bool {
+    guarded(error, false, || {
+        if out.is_null() {
+            return Err("Tallennukselle ei annettu kohdetta.".into());
+        }
+        // SAFETY: forwarded caller guarantees.
+        let (path, source) = unsafe { (c_path(path)?, text(source, len)?) };
+        let mut bytes = saved_bytes(path, source)?.into_boxed_slice();
+        let len = bytes.len();
+        let pointer = bytes.as_mut_ptr();
+        std::mem::forget(bytes);
+        // SAFETY: `out` is non-null and writable.
+        unsafe {
+            *out = KoetaBytes {
+                bytes: pointer,
+                len,
+            }
+        };
+        Ok(true)
+    })
+}
+
+/// # Safety
+/// `bytes` must be null or filled by `koeta_saved_bytes`, freed only once.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_bytes_free(bytes: *mut KoetaBytes) {
+    // SAFETY: the caller passes null or a value filled by this library.
+    let Some(bytes) = (unsafe { bytes.as_mut() }) else {
+        return;
+    };
+    if !bytes.bytes.is_null() {
+        // SAFETY: rebuilds exactly the boxed slice leaked in `koeta_saved_bytes`.
+        drop(unsafe { Box::from_raw(ptr::slice_from_raw_parts_mut(bytes.bytes, bytes.len)) });
+    }
+    bytes.bytes = ptr::null_mut();
+    bytes.len = 0;
+}
+
+/// Prepare a movie export of `scene`, or of every scene when `scene` is
+/// negative. Blocking (decodes audio). Null and `*error` on failure.
+///
+/// # Safety
+/// `document` must be null or a live document; `error` null or writable.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_begin(
+    document: *const Document,
+    scene: i64,
+    error: *mut *mut c_char,
+) -> *mut Export {
+    guarded(error, ptr::null_mut(), || {
+        let scene = usize::try_from(scene).ok();
+        // SAFETY: forwarded caller guarantee.
+        let export = unsafe { self::document(document) }?.export(scene)?;
+        Ok(Box::into_raw(Box::new(export)))
+    })
+}
+
+/// # Safety
+/// `export` must be null or a live export.
+unsafe fn export<'a>(export: *const Export) -> Result<&'a Export, String> {
+    // SAFETY: guaranteed by the caller.
+    unsafe { export.as_ref() }.ok_or_else(|| "Vientiä ei ole aloitettu.".into())
+}
+
+/// Frames in the export, or 0 for null.
+///
+/// # Safety
+/// `export` must be null or a live export.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_frame_count(export: *const Export) -> u64 {
+    // SAFETY: forwarded caller guarantee.
+    unsafe { self::export(export) }.map_or(0, Export::frame_count)
+}
+
+/// Frames per second of the export, or 0 for null.
+///
+/// # Safety
+/// `export` must be null or a live export.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_fps(export: *const Export) -> u32 {
+    // SAFETY: forwarded caller guarantee.
+    unsafe { self::export(export) }.map_or(0, Export::fps)
+}
+
+/// Authored frame size of the export; 0×0 for null.
+///
+/// # Safety
+/// `export` must be null or a live export; `width` and `height` writable.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_size(
+    export: *const Export,
+    width: *mut u32,
+    height: *mut u32,
+) {
+    // SAFETY: forwarded caller guarantee.
+    let (w, h) = unsafe { self::export(export) }.map_or((0, 0), Export::size);
+    // SAFETY: writable per the caller contract when non-null.
+    unsafe {
+        if let Some(width) = width.as_mut() {
+            *width = w;
+        }
+        if let Some(height) = height.as_mut() {
+            *height = h;
+        }
+    }
+}
+
+/// Render export frame `frame` at the authored size into `*out`.
+///
+/// # Safety
+/// `export` must be null or a live export; `out` writable; `error` null or
+/// writable. Free a filled frame with `koeta_frame_free`.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_render(
+    export: *const Export,
+    frame: u64,
+    out: *mut KoetaFrame,
+    error: *mut *mut c_char,
+) -> bool {
+    guarded(error, false, || {
+        if out.is_null() {
+            return Err("Ruudulle ei annettu kohdetta.".into());
+        }
+        // SAFETY: forwarded caller guarantee.
+        let rendered = unsafe { self::export(export) }?.render(frame)?;
+        // SAFETY: `out` is non-null and writable.
+        unsafe { give_frame(rendered, out) };
+        Ok(true)
+    })
+}
+
+/// The export's mixed 24 kHz mono audio into `*out`. Blocking.
+///
+/// # Safety
+/// `export` must be null or a live export; `out` writable; `error` null or
+/// writable. Free a filled buffer with `koeta_audio_free`.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_audio(
+    export: *const Export,
+    out: *mut KoetaAudio,
+    error: *mut *mut c_char,
+) -> bool {
+    guarded(error, false, || {
+        if out.is_null() {
+            return Err("Äänelle ei annettu kohdetta.".into());
+        }
+        // SAFETY: forwarded caller guarantee.
+        let samples = unsafe { self::export(export) }?.audio()?;
+        // SAFETY: `out` is non-null and writable.
+        unsafe { give_audio(Some(samples), out) };
+        Ok(true)
+    })
+}
+
+/// Cancel a running export from any thread.
+///
+/// # Safety
+/// `export` must be null or a live export.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_cancel(export: *const Export) {
+    // SAFETY: forwarded caller guarantee.
+    if let Ok(export) = unsafe { self::export(export) } {
+        export.cancel();
+    }
+}
+
+/// # Safety
+/// `export` must be null or from `koeta_export_begin`, freed only once, after
+/// every other call on it has returned.
+#[no_mangle]
+pub unsafe extern "C" fn koeta_export_free(export: *mut Export) {
+    if !export.is_null() {
+        // SAFETY: ownership returns to Rust exactly once, as documented.
+        drop(unsafe { Box::from_raw(export) });
     }
 }
 
@@ -920,6 +1414,212 @@ scenes:
             assert!(koeta_document_open_path(ptr::null(), &mut error).is_null());
             koeta_string_free(error);
             assert_eq!(koeta_document_frame_at_sample(ptr::null(), 5), 0);
+        }
+    }
+
+    #[test]
+    fn source_check_names_the_error_kind_and_line() {
+        assert!(check_source(YAML).is_ok());
+        let (message, line) =
+            check_source("project:\n  fps: 24\n bad: 1\nscenes: []\n").unwrap_err();
+        assert!(message.starts_with("Syntaksivirhe"), "{message}");
+        assert!(line >= 3, "{message} {line}");
+        let unsupported = YAML.replacen("type: move", "type: dance", 1);
+        let (message, _) = check_source(&unsupported).unwrap_err();
+        assert!(message.starts_with("Komentoa ei tueta"), "{message}");
+        let unknown = YAML.replacen("actor: EMMA", "actor: NOBODY", 1);
+        let (message, _) = check_source(&unknown).unwrap_err();
+        assert!(message.starts_with("Virheellinen"), "{message}");
+        let (message, _) = check_source("characters: {}\nscenes: []\n").unwrap_err();
+        assert!(message.contains("kohtausta"), "{message}");
+    }
+
+    #[test]
+    fn edited_yaml_opens_and_saves_without_writing() {
+        let dir = Dir::new("edit-yaml");
+        let path = dir.write("dialogue.yaml", DIALOGUE);
+        let document = Document::open_path(&path).unwrap();
+        assert_eq!(document.source(), DIALOGUE);
+        let edited = DIALOGUE.replace("duration: 2.0", "duration: 3.0");
+        let reopened = Document::open_edited(&path, &edited).unwrap();
+        assert_eq!(
+            reopened.frame_count(0).unwrap(),
+            3 * u64::from(reopened.fps())
+        );
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), DIALOGUE);
+
+        assert!(saved_bytes(&path, "scenes: [").is_err());
+        assert_eq!(saved_bytes(&path, &edited).unwrap(), edited.as_bytes());
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), DIALOGUE);
+    }
+
+    #[test]
+    fn saving_a_project_replaces_only_its_screenplay() {
+        let season = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples/kilsat-season");
+        let dir = Dir::new("edit-project");
+        std::fs::create_dir_all(dir.0.join("assets")).unwrap();
+        for entry in std::fs::read_dir(season.join("assets")).unwrap() {
+            let entry = entry.unwrap();
+            std::fs::copy(entry.path(), dir.0.join("assets").join(entry.file_name())).unwrap();
+        }
+        let path = dir.0.join("ep02.kilsat");
+        std::fs::copy(season.join("ep02.kilsat"), &path).unwrap();
+        let before = motion_project::load(&path).unwrap();
+        let document = Document::open_path(&path).unwrap();
+        let edited = format!("{}\n# edited on iPad\n", document.source());
+        let preview = Document::open_edited(&path, &edited).unwrap();
+        assert_eq!(preview.art.images.len(), 1);
+        std::fs::write(&path, saved_bytes(&path, &edited).unwrap()).unwrap();
+        let after = motion_project::load(&path).unwrap();
+        assert_eq!(after.source, edited);
+        assert_eq!(debug_text(&after.art), debug_text(&before.art));
+        assert_eq!(after.assets.len(), before.assets.len());
+        assert_eq!(Document::open_path(&path).unwrap().source(), edited);
+    }
+
+    fn debug_text(art: &motion_art::Document) -> String {
+        format!("{art:?}")
+    }
+
+    #[test]
+    fn export_frames_and_audio_match_playback() {
+        let dir = Dir::new("export");
+        write_tone(&dir.0.join("audio/aino.wav"), 12_000, 180.0);
+        write_tone(&dir.0.join("audio/emma.wav"), 12_000, 220.0);
+        let path = dir.write("dialogue.yaml", DIALOGUE);
+        let document = Document::open_path(&path).unwrap();
+        let playback = document.scene_audio(0).unwrap().unwrap();
+
+        let scene = document.export(Some(0)).unwrap();
+        assert_eq!(scene.frame_count(), document.frame_count(0).unwrap());
+        assert_eq!(scene.audio().unwrap(), playback);
+        let frame = scene.render(30).unwrap();
+        assert_eq!((frame.width, frame.height), scene.size());
+        assert!(frame.rgba.chunks(4).all(|p| p[3] == 255));
+
+        let all = document.export(None).unwrap();
+        let frames: u64 = (0..document.scene_count())
+            .map(|s| document.frame_count(s).unwrap())
+            .sum();
+        assert_eq!(all.frame_count(), frames);
+        assert_eq!(all.audio().unwrap().len(), 3 * SAMPLE_RATE as usize);
+        assert!(document.export(Some(9)).is_err());
+
+        all.cancel();
+        assert_eq!(all.render(0).err().unwrap(), "Vienti peruttiin.");
+    }
+
+    #[test]
+    fn export_refuses_missing_dialogue_audio_and_allows_silent_scenes() {
+        let dir = Dir::new("export-missing");
+        let path = dir.write("dialogue.yaml", DIALOGUE);
+        let document = Document::open_path(&path).unwrap();
+        let error = document.export(Some(0)).err().unwrap();
+        assert!(error.starts_with("Videota ei voi viedä."), "{error}");
+        assert!(error.contains("ei syntetisoi"), "{error}");
+        let silent = document.export(Some(1)).unwrap();
+        assert!(silent.audio().unwrap().iter().all(|s| *s == 0.0));
+        // Opened from bytes: silent scenes still export.
+        let bytes = Document::open(DIALOGUE.as_bytes()).unwrap();
+        assert!(bytes.export(Some(1)).is_ok());
+        assert!(bytes.export(Some(0)).is_err());
+    }
+
+    #[test]
+    fn c_edit_and_export_interfaces_round_trip() {
+        let dir = Dir::new("c-export");
+        let path = dir.write("dialogue.yaml", DIALOGUE);
+        let c_path = CString::new(path.to_str().unwrap()).unwrap();
+        unsafe {
+            let mut error = ptr::null_mut();
+            let mut line = 0;
+            let bad = b"scenes: [";
+            assert!(!koeta_check_source(
+                bad.as_ptr(),
+                bad.len(),
+                &mut line,
+                &mut error
+            ));
+            assert!(!error.is_null() && line > 0);
+            koeta_string_free(error);
+            let mut error = ptr::null_mut();
+            assert!(koeta_check_source(
+                DIALOGUE.as_ptr(),
+                DIALOGUE.len(),
+                &mut line,
+                &mut error
+            ));
+            assert!(error.is_null());
+
+            let edited = DIALOGUE.replace("duration: 1.0", "duration: 0.5");
+            let document = koeta_document_open_edited(
+                c_path.as_ptr(),
+                edited.as_ptr(),
+                edited.len(),
+                &mut error,
+            );
+            assert!(!document.is_null() && error.is_null());
+            let source = koeta_document_source(document);
+            assert_eq!(CStr::from_ptr(source).to_str().unwrap(), edited);
+            koeta_string_free(source);
+
+            let export = koeta_export_begin(document, 1, &mut error);
+            assert!(!export.is_null() && error.is_null());
+            let (mut width, mut height) = (0, 0);
+            koeta_export_size(export, &mut width, &mut height);
+            assert_eq!((width, height), (1920, 1080));
+            assert_eq!(koeta_export_frame_count(export), 12);
+            assert_eq!(koeta_export_fps(export), 24);
+            let mut frame = KoetaFrame {
+                rgba: ptr::null_mut(),
+                len: 0,
+                width: 0,
+                height: 0,
+            };
+            assert!(koeta_export_render(export, 0, &mut frame, &mut error));
+            assert_eq!(frame.len, 1920 * 1080 * 4);
+            koeta_frame_free(&mut frame);
+            let mut audio = KoetaAudio {
+                samples: ptr::null_mut(),
+                len: 0,
+                sample_rate: 0,
+            };
+            assert!(koeta_export_audio(export, &mut audio, &mut error));
+            assert_eq!(audio.len, 12_000);
+            koeta_audio_free(&mut audio);
+            koeta_export_cancel(export);
+            assert!(!koeta_export_render(export, 0, &mut frame, &mut error));
+            koeta_string_free(error);
+            koeta_export_free(export);
+
+            let mut error = ptr::null_mut();
+            assert!(koeta_export_begin(document, 0, &mut error).is_null());
+            assert!(!error.is_null());
+            koeta_string_free(error);
+            koeta_document_free(document);
+
+            let mut error = ptr::null_mut();
+            let mut saved = KoetaBytes {
+                bytes: ptr::null_mut(),
+                len: 0,
+            };
+            assert!(koeta_saved_bytes(
+                c_path.as_ptr(),
+                edited.as_ptr(),
+                edited.len(),
+                &mut saved,
+                &mut error
+            ));
+            assert_eq!(
+                std::slice::from_raw_parts(saved.bytes, saved.len),
+                edited.as_bytes()
+            );
+            koeta_bytes_free(&mut saved);
+            assert!(saved.bytes.is_null());
+            assert_eq!(std::fs::read_to_string(&path).unwrap(), DIALOGUE);
+            assert!(koeta_export_begin(ptr::null(), -1, &mut error).is_null());
+            koeta_string_free(error);
+            assert_eq!(koeta_export_frame_count(ptr::null()), 0);
         }
     }
 }

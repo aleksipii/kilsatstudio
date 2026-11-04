@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.stick_studio.pasma_v1",
+  "kind": "character",
+  "name": "Päsmä",
+  "bounds": {
+    "x": -94,
+    "y": -241,
+    "width": 143,
+    "height": 385
+  },
+  "depth": "mid",
+  "tags": [
+    "pomo",
+    "boss",
+    "toimisto",
+    "office",
+    "aikuinen",
+    "adult",
+    "stick_studio",
+    "average",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "characters/pasma.kilsat",
+    "sha256": "0add110bf5ee8d50287bd9bd7c94fe08bb8ac359b446b3a87c0d2c88fbb5eaad"
+  },
+  "character": {
+    "id": "PASMA",
+    "role": "Mahtipontinen pomo ja sääntöjen vartija / Pompous boss",
+    "age": "adult",
+    "build": "average",
+    "acting": "proud",
+    "height": 378.8
+  }
+}

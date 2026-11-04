@@ -1,0 +1,770 @@
+{
+  "schema_version": 1,
+  "id": "prop.camping.tent_v1",
+  "kind": "prop",
+  "name": "Teltta",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 300,
+    "height": 188
+  },
+  "depth": "mid",
+  "tags": [
+    "teltta",
+    "tent",
+    "retki",
+    "camping",
+    "metsä",
+    "forest",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "metal_dark": {
+      "r": 106,
+      "g": 114,
+      "b": 120,
+      "a": 255
+    },
+    "tent": {
+      "r": 196,
+      "g": 128,
+      "b": 84,
+      "a": 255
+    },
+    "tent_dark": {
+      "r": 150,
+      "g": 96,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "left_wall",
+        "paint": "tent_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 10
+            },
+            {
+              "x": 10,
+              "y": 184
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 96,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "right_wall",
+        "paint": "tent_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 10
+            },
+            {
+              "x": 290,
+              "y": 184
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 96,
+            "b": 66,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_0",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 151.083,
+              "y": 17.458
+            },
+            {
+              "x": 148.917,
+              "y": 17.458
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_1",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 145.25,
+              "y": 24.375
+            },
+            {
+              "x": 154.75,
+              "y": 24.375
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_2",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 139.417,
+              "y": 31.292
+            },
+            {
+              "x": 160.583,
+              "y": 31.292
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_3",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 133.583,
+              "y": 38.208
+            },
+            {
+              "x": 166.417,
+              "y": 38.208
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_4",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 127.75,
+              "y": 45.125
+            },
+            {
+              "x": 172.25,
+              "y": 45.125
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_5",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 121.917,
+              "y": 52.042
+            },
+            {
+              "x": 178.083,
+              "y": 52.042
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_6",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 116.083,
+              "y": 58.958
+            },
+            {
+              "x": 183.917,
+              "y": 58.958
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_7",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 110.25,
+              "y": 65.875
+            },
+            {
+              "x": 189.75,
+              "y": 65.875
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_8",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 104.417,
+              "y": 72.792
+            },
+            {
+              "x": 195.583,
+              "y": 72.792
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_9",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 98.583,
+              "y": 79.708
+            },
+            {
+              "x": 201.417,
+              "y": 79.708
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_10",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 92.75,
+              "y": 86.625
+            },
+            {
+              "x": 207.25,
+              "y": 86.625
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_11",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 86.917,
+              "y": 93.542
+            },
+            {
+              "x": 213.083,
+              "y": 93.542
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_12",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 81.083,
+              "y": 100.458
+            },
+            {
+              "x": 218.917,
+              "y": 100.458
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_13",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 75.25,
+              "y": 107.375
+            },
+            {
+              "x": 224.75,
+              "y": 107.375
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_14",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 69.417,
+              "y": 114.292
+            },
+            {
+              "x": 230.583,
+              "y": 114.292
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_15",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 63.583,
+              "y": 121.208
+            },
+            {
+              "x": 236.417,
+              "y": 121.208
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_16",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 57.75,
+              "y": 128.125
+            },
+            {
+              "x": 242.25,
+              "y": 128.125
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_17",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 51.917,
+              "y": 135.042
+            },
+            {
+              "x": 248.083,
+              "y": 135.042
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_18",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 46.083,
+              "y": 141.958
+            },
+            {
+              "x": 253.917,
+              "y": 141.958
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_19",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40.25,
+              "y": 148.875
+            },
+            {
+              "x": 259.75,
+              "y": 148.875
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_20",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 34.417,
+              "y": 155.792
+            },
+            {
+              "x": 265.583,
+              "y": 155.792
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_21",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 28.583,
+              "y": 162.708
+            },
+            {
+              "x": 271.417,
+              "y": 162.708
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_22",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 22.75,
+              "y": 169.625
+            },
+            {
+              "x": 277.25,
+              "y": 169.625
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "panel_23",
+        "paint": "tent",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16.917,
+              "y": 176.542
+            },
+            {
+              "x": 283.083,
+              "y": 176.542
+            }
+          ],
+          "color": {
+            "r": 196,
+            "g": 128,
+            "b": 84,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "door_left",
+        "paint": "tent_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 60
+            },
+            {
+              "x": 124,
+              "y": 184
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 96,
+            "b": 66,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "door_right",
+        "paint": "tent_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 60
+            },
+            {
+              "x": 176,
+              "y": 184
+            }
+          ],
+          "color": {
+            "r": 150,
+            "g": 96,
+            "b": 66,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "pole",
+        "paint": "metal_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 150,
+              "y": 4
+            },
+            {
+              "x": 150,
+              "y": 14
+            }
+          ],
+          "color": {
+            "r": 106,
+            "g": 114,
+            "b": 120,
+            "a": 255
+          },
+          "width": 4
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "doorway",
+      "id": "door",
+      "rect": {
+        "x": 128,
+        "y": 70,
+        "width": 44,
+        "height": 110
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 188
+      },
+      "width": 300
+    }
+  ]
+}

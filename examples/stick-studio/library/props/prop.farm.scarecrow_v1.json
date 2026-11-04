@@ -1,0 +1,665 @@
+{
+  "schema_version": 1,
+  "id": "prop.farm.scarecrow_v1",
+  "kind": "prop",
+  "name": "Variksenpelätin",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 180,
+    "height": 325.5
+  },
+  "depth": "mid",
+  "tags": [
+    "variksenpelätin",
+    "scarecrow",
+    "pelto",
+    "field",
+    "maatila",
+    "farm",
+    "syksy",
+    "autumn",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent": {
+      "r": 221,
+      "g": 175,
+      "b": 91,
+      "a": 255
+    },
+    "cardboard": {
+      "r": 196,
+      "g": 160,
+      "b": 114,
+      "a": 255
+    },
+    "crust": {
+      "r": 160,
+      "g": 112,
+      "b": 70,
+      "a": 255
+    },
+    "fabric": {
+      "r": 126,
+      "g": 146,
+      "b": 150,
+      "a": 255
+    },
+    "hay": {
+      "r": 214,
+      "g": 184,
+      "b": 112,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "post",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 90,
+              "y": 60
+            },
+            {
+              "x": 90,
+              "y": 322
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 7
+        }
+      },
+      {
+        "id": "arm_bar",
+        "paint": "wood_dark",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 110
+            },
+            {
+              "x": 160,
+              "y": 110
+            }
+          ],
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "shirt",
+        "paint": "fabric",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 54,
+            "y": 96,
+            "width": 72,
+            "height": 90
+          },
+          "color": {
+            "r": 126,
+            "g": 146,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "shirt_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 54,
+              "y": 96
+            },
+            {
+              "x": 126,
+              "y": 96
+            },
+            {
+              "x": 126,
+              "y": 186
+            },
+            {
+              "x": 54,
+              "y": 186
+            },
+            {
+              "x": 54,
+              "y": 96
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "patch",
+        "paint": "accent",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60,
+            "y": 140,
+            "width": 20,
+            "height": 18
+          },
+          "color": {
+            "r": 221,
+            "g": 175,
+            "b": 91,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "patch_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 140
+            },
+            {
+              "x": 80,
+              "y": 140
+            },
+            {
+              "x": 80,
+              "y": 158
+            },
+            {
+              "x": 60,
+              "y": 158
+            },
+            {
+              "x": 60,
+              "y": 140
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "sleeve_left",
+        "paint": "fabric",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 54,
+              "y": 108
+            },
+            {
+              "x": 20,
+              "y": 112
+            }
+          ],
+          "color": {
+            "r": 126,
+            "g": 146,
+            "b": 150,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "sleeve_right",
+        "paint": "fabric",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 126,
+              "y": 108
+            },
+            {
+              "x": 160,
+              "y": 112
+            }
+          ],
+          "color": {
+            "r": 126,
+            "g": 146,
+            "b": 150,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "straw_left",
+        "paint": "hay",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 16,
+              "y": 112
+            },
+            {
+              "x": 8,
+              "y": 124
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 184,
+            "b": 112,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "straw_right",
+        "paint": "hay",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 164,
+              "y": 112
+            },
+            {
+              "x": 172,
+              "y": 124
+            }
+          ],
+          "color": {
+            "r": 214,
+            "g": 184,
+            "b": 112,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "head",
+        "paint": "cardboard",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 68,
+            "y": 48,
+            "width": 44,
+            "height": 44
+          },
+          "color": {
+            "r": 196,
+            "g": 160,
+            "b": 114,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "head_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 112,
+              "y": 70
+            },
+            {
+              "x": 111.577,
+              "y": 74.292
+            },
+            {
+              "x": 110.325,
+              "y": 78.419
+            },
+            {
+              "x": 108.292,
+              "y": 82.223
+            },
+            {
+              "x": 105.556,
+              "y": 85.556
+            },
+            {
+              "x": 102.223,
+              "y": 88.292
+            },
+            {
+              "x": 98.419,
+              "y": 90.325
+            },
+            {
+              "x": 94.292,
+              "y": 91.577
+            },
+            {
+              "x": 90,
+              "y": 92
+            },
+            {
+              "x": 85.708,
+              "y": 91.577
+            },
+            {
+              "x": 81.581,
+              "y": 90.325
+            },
+            {
+              "x": 77.777,
+              "y": 88.292
+            },
+            {
+              "x": 74.444,
+              "y": 85.556
+            },
+            {
+              "x": 71.708,
+              "y": 82.223
+            },
+            {
+              "x": 69.675,
+              "y": 78.419
+            },
+            {
+              "x": 68.423,
+              "y": 74.292
+            },
+            {
+              "x": 68,
+              "y": 70
+            },
+            {
+              "x": 68.423,
+              "y": 65.708
+            },
+            {
+              "x": 69.675,
+              "y": 61.581
+            },
+            {
+              "x": 71.708,
+              "y": 57.777
+            },
+            {
+              "x": 74.444,
+              "y": 54.444
+            },
+            {
+              "x": 77.777,
+              "y": 51.708
+            },
+            {
+              "x": 81.581,
+              "y": 49.675
+            },
+            {
+              "x": 85.708,
+              "y": 48.423
+            },
+            {
+              "x": 90,
+              "y": 48
+            },
+            {
+              "x": 94.292,
+              "y": 48.423
+            },
+            {
+              "x": 98.419,
+              "y": 49.675
+            },
+            {
+              "x": 102.223,
+              "y": 51.708
+            },
+            {
+              "x": 105.556,
+              "y": 54.444
+            },
+            {
+              "x": 108.292,
+              "y": 57.777
+            },
+            {
+              "x": 110.325,
+              "y": 61.581
+            },
+            {
+              "x": 111.577,
+              "y": 65.708
+            },
+            {
+              "x": 112,
+              "y": 70
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "eye_left",
+        "paint": "screen",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 79,
+            "y": 63,
+            "width": 6,
+            "height": 6
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "eye_right",
+        "paint": "screen",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 95,
+            "y": 63,
+            "width": 6,
+            "height": 6
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hat_brim",
+        "paint": "crust",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 58,
+            "y": 44,
+            "width": 64,
+            "height": 6
+          },
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hat_brim_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58,
+              "y": 44
+            },
+            {
+              "x": 122,
+              "y": 44
+            },
+            {
+              "x": 122,
+              "y": 50
+            },
+            {
+              "x": 58,
+              "y": 50
+            },
+            {
+              "x": 58,
+              "y": 44
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "hat_crown",
+        "paint": "crust",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 72,
+            "y": 22,
+            "width": 36,
+            "height": 24
+          },
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "hat_crown_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 72,
+              "y": 22
+            },
+            {
+              "x": 108,
+              "y": 22
+            },
+            {
+              "x": 108,
+              "y": 46
+            },
+            {
+              "x": 72,
+              "y": 46
+            },
+            {
+              "x": 72,
+              "y": 22
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 325.5
+      },
+      "width": 180
+    }
+  ]
+}

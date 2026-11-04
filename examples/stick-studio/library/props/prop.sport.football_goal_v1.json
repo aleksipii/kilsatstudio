@@ -1,0 +1,575 @@
+{
+  "schema_version": 1,
+  "id": "prop.sport.football_goal_v1",
+  "kind": "prop",
+  "name": "Jalkapallomaali",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 420,
+    "height": 230
+  },
+  "depth": "mid",
+  "tags": [
+    "maali",
+    "goal",
+    "jalkapallo",
+    "football",
+    "kenttä",
+    "field",
+    "urheilu",
+    "sport",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "net": {
+      "r": 226,
+      "g": 226,
+      "b": 220,
+      "a": 255
+    },
+    "white": {
+      "r": 234,
+      "g": 232,
+      "b": 224,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "net",
+        "paint": "net",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 14,
+            "y": 14,
+            "width": 392,
+            "height": 214.5
+          },
+          "color": {
+            "r": 226,
+            "g": 226,
+            "b": 220,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "net_v1",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 46.6,
+              "y": 14
+            },
+            {
+              "x": 46.6,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v2",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 79.2,
+              "y": 14
+            },
+            {
+              "x": 79.2,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v3",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 111.8,
+              "y": 14
+            },
+            {
+              "x": 111.8,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v4",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 144.4,
+              "y": 14
+            },
+            {
+              "x": 144.4,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v5",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 177,
+              "y": 14
+            },
+            {
+              "x": 177,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v6",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 209.6,
+              "y": 14
+            },
+            {
+              "x": 209.6,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v7",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 242.2,
+              "y": 14
+            },
+            {
+              "x": 242.2,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v8",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 274.8,
+              "y": 14
+            },
+            {
+              "x": 274.8,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v9",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 307.4,
+              "y": 14
+            },
+            {
+              "x": 307.4,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v10",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 340,
+              "y": 14
+            },
+            {
+              "x": 340,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_v11",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 372.6,
+              "y": 14
+            },
+            {
+              "x": 372.6,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_h1",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 44
+            },
+            {
+              "x": 406,
+              "y": 44
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_h2",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 74
+            },
+            {
+              "x": 406,
+              "y": 74
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_h3",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 104
+            },
+            {
+              "x": 406,
+              "y": 104
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_h4",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 134
+            },
+            {
+              "x": 406,
+              "y": 134
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_h5",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 164
+            },
+            {
+              "x": 406,
+              "y": 164
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "net_h6",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 14,
+              "y": 194
+            },
+            {
+              "x": 406,
+              "y": 194
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 1
+        }
+      },
+      {
+        "id": "post_left",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 10
+            },
+            {
+              "x": 10,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "post_right",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 410,
+              "y": 10
+            },
+            {
+              "x": 410,
+              "y": 226
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "crossbar",
+        "paint": "white",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 10
+            },
+            {
+              "x": 414,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 234,
+            "g": 232,
+            "b": 224,
+            "a": 255
+          },
+          "width": 8
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "doorway",
+      "id": "goal_mouth",
+      "rect": {
+        "x": 18,
+        "y": 18,
+        "width": 384,
+        "height": 208
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 230
+      },
+      "width": 420
+    }
+  ]
+}

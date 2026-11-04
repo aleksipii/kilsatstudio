@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "character.family.erkki_v1",
+  "kind": "character",
+  "name": "Ukki Erkki",
+  "bounds": {
+    "x": -46,
+    "y": -233,
+    "width": 132,
+    "height": 373
+  },
+  "depth": "mid",
+  "tags": [
+    "isoisä",
+    "grandpa",
+    "vanhus",
+    "elder",
+    "family",
+    "slim",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/erkki.kilsat",
+    "sha256": "c1a44d1bddaea950a2851f00ff7e6cf3fedfe1727457f7a2d79b41fe2801c171"
+  },
+  "character": {
+    "id": "ERKKI",
+    "role": "Tarinoita kertova ukki / Storytelling grandpa",
+    "age": "elder",
+    "build": "slim",
+    "acting": "calm",
+    "height": 363.1
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.fantasy.salama_v1",
+  "kind": "character",
+  "name": "Salama",
+  "bounds": {
+    "x": -62,
+    "y": -244,
+    "width": 124,
+    "height": 388
+  },
+  "depth": "mid",
+  "tags": [
+    "sankari",
+    "hero",
+    "supersankari",
+    "superhero",
+    "aikuinen",
+    "adult",
+    "fantasy",
+    "broad",
+    "proud",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/salama.kilsat",
+    "sha256": "0e9d25697197c9621654d1095d267a5e89d807e1f01eadc9fcdabab3dd02a9c2"
+  },
+  "character": {
+    "id": "SALAMA",
+    "role": "Aloitteleva supersankari / Rookie superhero",
+    "age": "adult",
+    "build": "broad",
+    "acting": "proud",
+    "height": 378.8
+  }
+}

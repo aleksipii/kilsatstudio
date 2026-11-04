@@ -2970,3 +2970,21 @@ Käyttäjän luvalla [#176](https://github.com/aleksipii/kilsatstudio/pull/176) 
   - Kansion valitsinta, tiedostolistaa ja Tiedostot-jakoa ei käytetty käsin; simulaattorissa avaus tehtiin käynnistysargumenteilla. Ei ajoa fyysisellä iPadilla.
   - `cargo test --workspace` ajettiin vain CI:ssä tämän muutoksen osalta.
   - iPadilta puuttuvat yhä muokkaus, Pencil-asennot, vienti ja näyttövideovihjeet.
+
+## 2026-11-04 — iPad vaihe 3: käsikirjoituksen muokkaus ja MP4-vienti, PR #180 yhdistetty
+
+Käyttäjän luvalla [#180](https://github.com/aleksipii/kilsatstudio/pull/180) yhdistettiin mainiin merge-commitilla `0a6c9ff` (haaraa ei poistettu, ei force-pushia).
+
+- Tehty:
+  - `motion-export`: `ExportFrames` antaa viennin täysikokoiset ruudut ja miksauksen yksi kerrallaan samalla `preflight`/`compose`-polulla kuin Macin vienti (enintään 10 min, peruttavissa). `export_mp4_scene_streaming` käyttää samaa kohtauksen rajausta.
+  - `motion-ffi`: muokatun käsikirjoituksen tarkistus rivinumeroineen (syntaksivirhe, tukematon komento, virheellinen arvo tai viittaus), avaus muokatulla tekstillä, tallennettavat tavut (projektista vaihtuu vain `source`; mitään ei kirjoiteta Rustissa) sekä vientirajapinta `koeta_export_*`.
+  - iPad-sovellus: käsikirjoituseditori esikatselun vieressä (älylainausmerkit ja automaattikorjaus pois päältä), tarkistus kirjoittamisen tauolla, esikatselu päivittyy kelvollisesta tekstistä ja pysyy viimeisessä toimivassa versiossa virheen aikana. Tallennus `NSFileCoordinator`-koordinoidusti; mukana tulevasta esimerkistä tallennetaan kopio Documents-kansioon. Tallentamattomista muutoksista kysytään ennen toisen tiedoston avaamista.
+  - MP4-vienti (H.264 High BT.709 ja AAC 24 kHz mono) `AVAssetWriter`-kooderilla, kohtaus tai koko projekti, edistyminen, peruutus ja jakovalikko. Tiedosto menee Tiedostot › Koeta Studio › Viennit. Puuttuva repliikin WAV pysäyttää viennin ja nimeää repliikit; puhetta ei syntetisoida.
+- Tarkistettu:
+  - Paikallisesti: `cargo test -p motion-ffi` 15 läpi ja `cargo test -p motion-export` uudet 3 testiä läpi, `cargo fmt --all --check`, `xcodebuild` ilman Swift-varoituksia.
+  - iPad Pro 13" -simulaattori käynnistysvalinnoilla: `studio-production-demo.kilsat` vietiin MP4:ksi (ffprobe: H.264 640×360 24 fps 96 ruutua, AAC 24 kHz mono, molemmat 4,000 s). MP4:n ruutu 48 vastaa lähimmin Rustin ruutua 48. Editorin muutos näkyi esikatselussa, syntaksivirhe näytti rivin, ja tallennus toimi sekä kopiona että paikallaan.
+  - GitHub CI: kaikki 15 tarkistusta vihreinä ennen yhdistämistä, mukaan lukien `ipad-build`.
+- Tekemättä:
+  - `cargo check/clippy/test --workspace` ajettiin vain CI:ssä, koska paikallinen levy täyttyi.
+  - Ei ajoa fyysisellä iPadilla. Napautuksia, jakovalikkoa ja Kuviin tallennusta ei käytetty käsin.
+  - iPadilta puuttuvat yhä aikajanan ja tapahtumien kosketusmuokkaus, Pencil-asennot, Kokoro-puhe ja näyttövideovihjeet.

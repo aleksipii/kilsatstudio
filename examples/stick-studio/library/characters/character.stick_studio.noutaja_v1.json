@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.stick_studio.noutaja_v1",
+  "kind": "character",
+  "name": "Noutaja",
+  "bounds": {
+    "x": -70,
+    "y": -284,
+    "width": 271,
+    "height": 428
+  },
+  "depth": "mid",
+  "tags": [
+    "viikatemies",
+    "reaper",
+    "huumori",
+    "humour",
+    "aikuinen",
+    "adult",
+    "stick_studio",
+    "slim",
+    "stoic",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "characters/noutaja.kilsat",
+    "sha256": "d040c34042140c6f5c2bdc577b259c1cfb3b19d58b7f4c57ab1d75f6eaa3f52d"
+  },
+  "character": {
+    "id": "NOUTAJA",
+    "role": "Ystävällinen, lakoninen viikatemies / Friendly, laconic reaper",
+    "age": "adult",
+    "build": "slim",
+    "acting": "stoic",
+    "height": 378.8
+  }
+}

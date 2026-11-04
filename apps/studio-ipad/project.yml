@@ -38,6 +38,8 @@ targets:
         # The app's Documents folder appears in Files as "Koeta Studio", so whole
         # project folders (with images and audio) can be copied onto the iPad.
         UIFileSharingEnabled: true
+        # Exported movies can be saved to Photos from the share sheet.
+        NSPhotoLibraryAddUsageDescription: Koeta Studio tallentaa viemäsi videot Kuviin, kun valitset sen.
         LSSupportsOpeningDocumentsInPlace: true
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "character.family.rasmus_v1",
+  "kind": "character",
+  "name": "Rasmus",
+  "bounds": {
+    "x": -47,
+    "y": -247,
+    "width": 107,
+    "height": 372
+  },
+  "depth": "mid",
+  "tags": [
+    "rullalauta",
+    "skateboard",
+    "nuori",
+    "teen",
+    "family",
+    "slim",
+    "tired",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "cast/rasmus.kilsat",
+    "sha256": "d182228da0592231f980245280308d10c895b5fa1f64bc50085a42efa8bae665"
+  },
+  "character": {
+    "id": "RASMUS",
+    "role": "Rento rullalautailija / Laid-back skateboarder",
+    "age": "teen",
+    "build": "slim",
+    "acting": "tired",
+    "height": 337.3
+  }
+}

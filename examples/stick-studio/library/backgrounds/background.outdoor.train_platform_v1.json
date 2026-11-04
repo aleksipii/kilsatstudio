@@ -1,0 +1,788 @@
+{
+  "schema_version": 1,
+  "id": "background.outdoor.train_platform_v1",
+  "kind": "background",
+  "name": "Rautatieasema",
+  "bounds": {
+    "x": 0.0,
+    "y": 0.0,
+    "width": 1920.0,
+    "height": 1080.0
+  },
+  "depth": "far",
+  "tags": [
+    "outdoor",
+    "day",
+    "train",
+    "juna",
+    "station",
+    "asema",
+    "travel",
+    "matka"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "sky",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "color": {
+            "r": 200,
+            "g": 210,
+            "b": 216,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "station_wall",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 300.0,
+            "width": 1920.0,
+            "height": 360.0
+          },
+          "color": {
+            "r": 214,
+            "g": 206,
+            "b": 192,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "station_window_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 120.0,
+            "y": 360.0,
+            "width": 200.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 186,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "station_window_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 500.0,
+            "y": 360.0,
+            "width": 200.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 186,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "station_window_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 880.0,
+            "y": 360.0,
+            "width": 200.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 186,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "station_window_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1260.0,
+            "y": 360.0,
+            "width": 200.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 186,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "station_window_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1640.0,
+            "y": 360.0,
+            "width": 200.0,
+            "height": 160.0
+          },
+          "color": {
+            "r": 186,
+            "g": 206,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 240.0,
+            "width": 1920.0,
+            "height": 60.0
+          },
+          "color": {
+            "r": 150,
+            "g": 156,
+            "b": 160,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "roof_pillar_0",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 80.0,
+              "y": 300.0
+            },
+            {
+              "x": 80.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "roof_pillar_1",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 432.0,
+              "y": 300.0
+            },
+            {
+              "x": 432.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "roof_pillar_2",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 784.0,
+              "y": 300.0
+            },
+            {
+              "x": 784.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "roof_pillar_3",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1136.0,
+              "y": 300.0
+            },
+            {
+              "x": 1136.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "roof_pillar_4",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1488.0,
+              "y": 300.0
+            },
+            {
+              "x": 1488.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "roof_pillar_5",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 1840.0,
+              "y": 300.0
+            },
+            {
+              "x": 1840.0,
+              "y": 800.0
+            }
+          ],
+          "color": {
+            "r": 130,
+            "g": 136,
+            "b": 140,
+            "a": 255
+          },
+          "width": 16.0
+        }
+      },
+      {
+        "id": "clock_body",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 900.0,
+            "y": 120.0,
+            "width": 120.0,
+            "height": 120.0
+          },
+          "color": {
+            "r": 236,
+            "g": 234,
+            "b": 226,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "clock_hand_a",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 180.0
+            },
+            {
+              "x": 960.0,
+              "y": 140.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 6.0
+        }
+      },
+      {
+        "id": "clock_hand_b",
+        "depth": "far",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 960.0,
+              "y": 180.0
+            },
+            {
+              "x": 990.0,
+              "y": 190.0
+            }
+          ],
+          "color": {
+            "r": 43,
+            "g": 49,
+            "b": 48,
+            "a": 255
+          },
+          "width": 5.0
+        }
+      },
+      {
+        "id": "train",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 560.0,
+            "width": 1920.0,
+            "height": 200.0
+          },
+          "color": {
+            "r": 190,
+            "g": 204,
+            "b": 214,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_stripe",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 640.0,
+            "width": 1920.0,
+            "height": 24.0
+          },
+          "color": {
+            "r": 176,
+            "g": 120,
+            "b": 108,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_0",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_1",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 300.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_2",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 540.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_3",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 780.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_4",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1020.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_5",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1260.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_6",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1500.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_window_7",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1740.0,
+            "y": 590.0,
+            "width": 150.0,
+            "height": 40.0
+          },
+          "color": {
+            "r": 150,
+            "g": 172,
+            "b": 184,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "train_door",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 1500.0,
+            "y": 580.0,
+            "width": 110.0,
+            "height": 170.0
+          },
+          "color": {
+            "r": 166,
+            "g": 180,
+            "b": 190,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "tracks",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 760.0,
+            "width": 1920.0,
+            "height": 30.0
+          },
+          "color": {
+            "r": 140,
+            "g": 136,
+            "b": 130,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "platform",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 790.0,
+            "width": 1920.0,
+            "height": 290.0
+          },
+          "color": {
+            "r": 204,
+            "g": 202,
+            "b": 196,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "safety_line",
+        "depth": "far",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 0.0,
+            "y": 805.0,
+            "width": 1920.0,
+            "height": 12.0
+          },
+          "color": {
+            "r": 230,
+            "g": 206,
+            "b": 120,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "board",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 640.0,
+            "y": 430.0,
+            "width": 240.0,
+            "height": 70.0
+          },
+          "color": {
+            "r": 70,
+            "g": 80,
+            "b": 90,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_seat",
+        "depth": "mid",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 260.0,
+            "y": 880.0,
+            "width": 220.0,
+            "height": 16.0
+          },
+          "color": {
+            "r": 150,
+            "g": 120,
+            "b": 92,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "bench_leg_a",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 280.0,
+              "y": 896.0
+            },
+            {
+              "x": 280.0,
+              "y": 948.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      },
+      {
+        "id": "bench_leg_b",
+        "depth": "mid",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 460.0,
+              "y": 896.0
+            },
+            {
+              "x": 460.0,
+              "y": 948.0
+            }
+          ],
+          "color": {
+            "r": 90,
+            "g": 96,
+            "b": 100,
+            "a": 255
+          },
+          "width": 8.0
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "ground",
+      "at": {
+        "x": 0.0,
+        "y": 950.0
+      },
+      "width": 1920.0
+    },
+    {
+      "type": "doorway",
+      "id": "train_door",
+      "rect": {
+        "x": 1500.0,
+        "y": 580.0,
+        "width": 110.0,
+        "height": 170.0
+      }
+    },
+    {
+      "type": "screen",
+      "id": "departures",
+      "rect": {
+        "x": 640.0,
+        "y": 430.0,
+        "width": 240.0,
+        "height": 70.0
+      }
+    },
+    {
+      "type": "seat",
+      "id": "bench",
+      "at": {
+        "x": 370.0,
+        "y": 880.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "id": "prop.tool.toolbox_v1",
+  "kind": "prop",
+  "name": "Työkalupakki",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 120,
+    "height": 74
+  },
+  "depth": "mid",
+  "tags": [
+    "työkalupakki",
+    "toolbox",
+    "työkalu",
+    "tool",
+    "korjaus",
+    "repair",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "handle",
+        "paint": "screen",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40,
+              "y": 16
+            },
+            {
+              "x": 40,
+              "y": 4
+            },
+            {
+              "x": 80,
+              "y": 4
+            },
+            {
+              "x": 80,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "box",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 16,
+            "width": 108,
+            "height": 56.5
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "box_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 16
+            },
+            {
+              "x": 114,
+              "y": 16
+            },
+            {
+              "x": 114,
+              "y": 72.5
+            },
+            {
+              "x": 6,
+              "y": 72.5
+            },
+            {
+              "x": 6,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "lid_line",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 6,
+            "y": 16,
+            "width": 108,
+            "height": 14
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lid_line_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 16
+            },
+            {
+              "x": 114,
+              "y": 16
+            },
+            {
+              "x": 114,
+              "y": 30
+            },
+            {
+              "x": 6,
+              "y": 30
+            },
+            {
+              "x": 6,
+              "y": 16
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "latch",
+        "paint": "metal",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 54,
+            "y": 26,
+            "width": 12,
+            "height": 10
+          },
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "latch_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 54,
+              "y": 26
+            },
+            {
+              "x": 66,
+              "y": 26
+            },
+            {
+              "x": 66,
+              "y": 36
+            },
+            {
+              "x": 54,
+              "y": 36
+            },
+            {
+              "x": 54,
+              "y": 26
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 60,
+        "y": 4
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 74
+      },
+      "width": 120
+    }
+  ]
+}

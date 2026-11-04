@@ -1,0 +1,1746 @@
+{
+  "schema_version": 1,
+  "id": "prop.building.lighthouse_v1",
+  "kind": "prop",
+  "name": "Majakka",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 200,
+    "height": 560
+  },
+  "depth": "mid",
+  "tags": [
+    "majakka",
+    "lighthouse",
+    "meri",
+    "sea",
+    "ranta",
+    "shore",
+    "rakennus",
+    "building",
+    "outdoor"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "accent_red": {
+      "r": 183,
+      "g": 98,
+      "b": 87,
+      "a": 255
+    },
+    "glass": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 255
+    },
+    "light": {
+      "r": 246,
+      "g": 228,
+      "b": 168,
+      "a": 255
+    },
+    "lighthouse": {
+      "r": 232,
+      "g": 228,
+      "b": 218,
+      "a": 255
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    },
+    "stone": {
+      "r": 156,
+      "g": 156,
+      "b": 150,
+      "a": 255
+    },
+    "wood_dark": {
+      "r": 128,
+      "g": 94,
+      "b": 66,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "tower_0",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 63.643,
+              "y": 133.571
+            },
+            {
+              "x": 136.357,
+              "y": 133.571
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_1",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 62.929,
+              "y": 140.714
+            },
+            {
+              "x": 137.071,
+              "y": 140.714
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_2",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 62.214,
+              "y": 147.857
+            },
+            {
+              "x": 137.786,
+              "y": 147.857
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_3",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 61.5,
+              "y": 155
+            },
+            {
+              "x": 138.5,
+              "y": 155
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_4",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60.786,
+              "y": 162.143
+            },
+            {
+              "x": 139.214,
+              "y": 162.143
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_5",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60.071,
+              "y": 169.286
+            },
+            {
+              "x": 139.929,
+              "y": 169.286
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_6",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 59.357,
+              "y": 176.429
+            },
+            {
+              "x": 140.643,
+              "y": 176.429
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_7",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 58.643,
+              "y": 183.571
+            },
+            {
+              "x": 141.357,
+              "y": 183.571
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_8",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 57.929,
+              "y": 190.714
+            },
+            {
+              "x": 142.071,
+              "y": 190.714
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_9",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 57.214,
+              "y": 197.857
+            },
+            {
+              "x": 142.786,
+              "y": 197.857
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_10",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 56.5,
+              "y": 205
+            },
+            {
+              "x": 143.5,
+              "y": 205
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_11",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 55.786,
+              "y": 212.143
+            },
+            {
+              "x": 144.214,
+              "y": 212.143
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_12",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 55.071,
+              "y": 219.286
+            },
+            {
+              "x": 144.929,
+              "y": 219.286
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_13",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 54.357,
+              "y": 226.429
+            },
+            {
+              "x": 145.643,
+              "y": 226.429
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_14",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 53.643,
+              "y": 233.571
+            },
+            {
+              "x": 146.357,
+              "y": 233.571
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_15",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 52.929,
+              "y": 240.714
+            },
+            {
+              "x": 147.071,
+              "y": 240.714
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_16",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 52.214,
+              "y": 247.857
+            },
+            {
+              "x": 147.786,
+              "y": 247.857
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_17",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 51.5,
+              "y": 255
+            },
+            {
+              "x": 148.5,
+              "y": 255
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_18",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 50.786,
+              "y": 262.143
+            },
+            {
+              "x": 149.214,
+              "y": 262.143
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_19",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 50.071,
+              "y": 269.286
+            },
+            {
+              "x": 149.929,
+              "y": 269.286
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_20",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 49.357,
+              "y": 276.429
+            },
+            {
+              "x": 150.643,
+              "y": 276.429
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_21",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 48.643,
+              "y": 283.571
+            },
+            {
+              "x": 151.357,
+              "y": 283.571
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_22",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 47.929,
+              "y": 290.714
+            },
+            {
+              "x": 152.071,
+              "y": 290.714
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_23",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 47.214,
+              "y": 297.857
+            },
+            {
+              "x": 152.786,
+              "y": 297.857
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_24",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 46.5,
+              "y": 305
+            },
+            {
+              "x": 153.5,
+              "y": 305
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_25",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 45.786,
+              "y": 312.143
+            },
+            {
+              "x": 154.214,
+              "y": 312.143
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_26",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 45.071,
+              "y": 319.286
+            },
+            {
+              "x": 154.929,
+              "y": 319.286
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_27",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44.357,
+              "y": 326.429
+            },
+            {
+              "x": 155.643,
+              "y": 326.429
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_28",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 43.643,
+              "y": 333.571
+            },
+            {
+              "x": 156.357,
+              "y": 333.571
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_29",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42.929,
+              "y": 340.714
+            },
+            {
+              "x": 157.071,
+              "y": 340.714
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_30",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 42.214,
+              "y": 347.857
+            },
+            {
+              "x": 157.786,
+              "y": 347.857
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_31",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 41.5,
+              "y": 355
+            },
+            {
+              "x": 158.5,
+              "y": 355
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_32",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40.786,
+              "y": 362.143
+            },
+            {
+              "x": 159.214,
+              "y": 362.143
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_33",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 40.071,
+              "y": 369.286
+            },
+            {
+              "x": 159.929,
+              "y": 369.286
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_34",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 39.357,
+              "y": 376.429
+            },
+            {
+              "x": 160.643,
+              "y": 376.429
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_35",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 38.643,
+              "y": 383.571
+            },
+            {
+              "x": 161.357,
+              "y": 383.571
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_36",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37.929,
+              "y": 390.714
+            },
+            {
+              "x": 162.071,
+              "y": 390.714
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_37",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 37.214,
+              "y": 397.857
+            },
+            {
+              "x": 162.786,
+              "y": 397.857
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_38",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 36.5,
+              "y": 405
+            },
+            {
+              "x": 163.5,
+              "y": 405
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_39",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 35.786,
+              "y": 412.143
+            },
+            {
+              "x": 164.214,
+              "y": 412.143
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_40",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 35.071,
+              "y": 419.286
+            },
+            {
+              "x": 164.929,
+              "y": 419.286
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_41",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 34.357,
+              "y": 426.429
+            },
+            {
+              "x": 165.643,
+              "y": 426.429
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_42",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 33.643,
+              "y": 433.571
+            },
+            {
+              "x": 166.357,
+              "y": 433.571
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_43",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 32.929,
+              "y": 440.714
+            },
+            {
+              "x": 167.071,
+              "y": 440.714
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_44",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 32.214,
+              "y": 447.857
+            },
+            {
+              "x": 167.786,
+              "y": 447.857
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_45",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 31.5,
+              "y": 455
+            },
+            {
+              "x": 168.5,
+              "y": 455
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_46",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30.786,
+              "y": 462.143
+            },
+            {
+              "x": 169.214,
+              "y": 462.143
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_47",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30.071,
+              "y": 469.286
+            },
+            {
+              "x": 169.929,
+              "y": 469.286
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_48",
+        "paint": "lighthouse",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 29.357,
+              "y": 476.429
+            },
+            {
+              "x": 170.643,
+              "y": 476.429
+            }
+          ],
+          "color": {
+            "r": 232,
+            "g": 228,
+            "b": 218,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_49",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 28.643,
+              "y": 483.571
+            },
+            {
+              "x": 171.357,
+              "y": 483.571
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_50",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 27.929,
+              "y": 490.714
+            },
+            {
+              "x": 172.071,
+              "y": 490.714
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_51",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 27.214,
+              "y": 497.857
+            },
+            {
+              "x": 172.786,
+              "y": 497.857
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_52",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 26.5,
+              "y": 505
+            },
+            {
+              "x": 173.5,
+              "y": 505
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_53",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25.786,
+              "y": 512.143
+            },
+            {
+              "x": 174.214,
+              "y": 512.143
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_54",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 25.071,
+              "y": 519.286
+            },
+            {
+              "x": 174.929,
+              "y": 519.286
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tower_55",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 24.357,
+              "y": 526.429
+            },
+            {
+              "x": 175.643,
+              "y": 526.429
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "lantern_room",
+        "paint": "glass",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 60,
+            "y": 70,
+            "width": 80,
+            "height": 54
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "lantern_room_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 60,
+              "y": 70
+            },
+            {
+              "x": 140,
+              "y": 70
+            },
+            {
+              "x": 140,
+              "y": 124
+            },
+            {
+              "x": 60,
+              "y": 124
+            },
+            {
+              "x": 60,
+              "y": 70
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "light",
+        "paint": "light",
+        "content": {
+          "type": "ellipse",
+          "rect": {
+            "x": 80,
+            "y": 77,
+            "width": 40,
+            "height": 40
+          },
+          "color": {
+            "r": 246,
+            "g": 228,
+            "b": 168,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "gallery",
+        "paint": "screen",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 44,
+            "y": 120,
+            "width": 112,
+            "height": 12
+          },
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "gallery_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 44,
+              "y": 120
+            },
+            {
+              "x": 156,
+              "y": 120
+            },
+            {
+              "x": 156,
+              "y": 132
+            },
+            {
+              "x": 44,
+              "y": 132
+            },
+            {
+              "x": 44,
+              "y": 120
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "roof_left",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100,
+              "y": 12
+            },
+            {
+              "x": 54,
+              "y": 70
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "roof_right",
+        "paint": "accent_red",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 100,
+              "y": 12
+            },
+            {
+              "x": 146,
+              "y": 70
+            }
+          ],
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "roof_fill",
+        "paint": "accent_red",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 70,
+            "y": 40,
+            "width": 60,
+            "height": 30
+          },
+          "color": {
+            "r": 183,
+            "g": 98,
+            "b": 87,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base",
+        "paint": "stone",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 530,
+            "width": 180,
+            "height": 28.5
+          },
+          "color": {
+            "r": 156,
+            "g": 156,
+            "b": 150,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "base_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 530
+            },
+            {
+              "x": 190,
+              "y": 530
+            },
+            {
+              "x": 190,
+              "y": 558.5
+            },
+            {
+              "x": 10,
+              "y": 558.5
+            },
+            {
+              "x": 10,
+              "y": 530
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      },
+      {
+        "id": "door",
+        "paint": "wood_dark",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 84,
+            "y": 470,
+            "width": 32,
+            "height": 60
+          },
+          "color": {
+            "r": 128,
+            "g": 94,
+            "b": 66,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "door_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 84,
+              "y": 470
+            },
+            {
+              "x": 116,
+              "y": 470
+            },
+            {
+              "x": 116,
+              "y": 530
+            },
+            {
+              "x": 84,
+              "y": 530
+            },
+            {
+              "x": 84,
+              "y": 470
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 3
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 560
+      },
+      "width": 200
+    }
+  ]
+}

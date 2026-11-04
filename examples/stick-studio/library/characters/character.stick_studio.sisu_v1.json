@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "id": "character.stick_studio.sisu_v1",
+  "kind": "character",
+  "name": "Sisu",
+  "bounds": {
+    "x": -49,
+    "y": -246,
+    "width": 140,
+    "height": 390
+  },
+  "depth": "mid",
+  "tags": [
+    "mummo",
+    "grandma",
+    "vanhus",
+    "elder",
+    "stick_studio",
+    "slim",
+    "calm",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "characters/sisu.kilsat",
+    "sha256": "a159899da4f744e976580bd83a8f9980fec0b82ed87f6fb8b9d4204738a28c94"
+  },
+  "character": {
+    "id": "SISU",
+    "role": "Neuvokas, rauhallinen mummo / Resourceful, calm grandmother",
+    "age": "elder",
+    "build": "slim",
+    "acting": "calm",
+    "height": 378.8
+  }
+}

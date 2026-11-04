@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "id": "prop.food.banana_v1",
+  "kind": "prop",
+  "name": "Banaani",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 60,
+    "height": 30
+  },
+  "depth": "mid",
+  "tags": [
+    "banaani",
+    "banana",
+    "hedelmä",
+    "fruit",
+    "ruoka",
+    "food",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "crust": {
+      "r": 160,
+      "g": 112,
+      "b": 70,
+      "a": 255
+    },
+    "fruit_yellow": {
+      "r": 226,
+      "g": 196,
+      "b": 108,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "banana",
+        "paint": "fruit_yellow",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 8
+            },
+            {
+              "x": 14,
+              "y": 18
+            },
+            {
+              "x": 28,
+              "y": 23
+            },
+            {
+              "x": 44,
+              "y": 21
+            },
+            {
+              "x": 54,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 226,
+            "g": 196,
+            "b": 108,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "tip",
+        "paint": "crust",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 6
+            },
+            {
+              "x": 8,
+              "y": 10
+            }
+          ],
+          "color": {
+            "r": 160,
+            "g": 112,
+            "b": 70,
+            "a": 255
+          },
+          "width": 4
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 30,
+        "y": 22
+      }
+    }
+  ]
+}

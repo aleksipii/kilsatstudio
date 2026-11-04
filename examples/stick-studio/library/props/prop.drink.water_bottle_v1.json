@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "id": "prop.drink.water_bottle_v1",
+  "kind": "prop",
+  "name": "Vesipullo",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 30,
+    "height": 79.5
+  },
+  "depth": "mid",
+  "tags": [
+    "pullo",
+    "bottle",
+    "vesi",
+    "water",
+    "juoma",
+    "drink",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "blue": {
+      "r": 94,
+      "g": 145,
+      "b": 174,
+      "a": 255
+    },
+    "glass_clear": {
+      "r": 190,
+      "g": 214,
+      "b": 218,
+      "a": 150
+    },
+    "line": {
+      "r": 36,
+      "g": 40,
+      "b": 45,
+      "a": 255
+    },
+    "paper": {
+      "r": 249,
+      "g": 247,
+      "b": 239,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "cap",
+        "paint": "blue",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 10,
+            "y": 3,
+            "width": 10,
+            "height": 9
+          },
+          "color": {
+            "r": 94,
+            "g": 145,
+            "b": 174,
+            "a": 255
+          }
+        }
+      },
+      {
+        "id": "cap_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 3
+            },
+            {
+              "x": 20,
+              "y": 3
+            },
+            {
+              "x": 20,
+              "y": 12
+            },
+            {
+              "x": 10,
+              "y": 12
+            },
+            {
+              "x": 10,
+              "y": 3
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "bottle",
+        "paint": "glass_clear",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 12,
+            "width": 22,
+            "height": 66.5
+          },
+          "color": {
+            "r": 190,
+            "g": 214,
+            "b": 218,
+            "a": 150
+          }
+        }
+      },
+      {
+        "id": "bottle_line",
+        "paint": "line",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 4,
+              "y": 12
+            },
+            {
+              "x": 26,
+              "y": 12
+            },
+            {
+              "x": 26,
+              "y": 78.5
+            },
+            {
+              "x": 4,
+              "y": 78.5
+            },
+            {
+              "x": 4,
+              "y": 12
+            }
+          ],
+          "color": {
+            "r": 36,
+            "g": 40,
+            "b": 45,
+            "a": 255
+          },
+          "width": 2
+        }
+      },
+      {
+        "id": "label",
+        "paint": "paper",
+        "content": {
+          "type": "rectangle",
+          "rect": {
+            "x": 4,
+            "y": 38,
+            "width": 22,
+            "height": 16
+          },
+          "color": {
+            "r": 249,
+            "g": 247,
+            "b": 239,
+            "a": 255
+          }
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 15,
+        "y": 50
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 79.5
+      },
+      "width": 30
+    }
+  ]
+}

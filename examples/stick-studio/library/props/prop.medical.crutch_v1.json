@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "id": "prop.medical.crutch_v1",
+  "kind": "prop",
+  "name": "Kainalosauva",
+  "bounds": {
+    "x": 0,
+    "y": 0,
+    "width": 40,
+    "height": 260
+  },
+  "depth": "mid",
+  "tags": [
+    "kainalosauva",
+    "crutch",
+    "terveys",
+    "health",
+    "loukkaantunut",
+    "injured",
+    "käsiesine",
+    "hand_prop"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "palette": {
+    "metal": {
+      "r": 170,
+      "g": 178,
+      "b": 182,
+      "a": 255
+    },
+    "screen": {
+      "r": 58,
+      "g": 66,
+      "b": 74,
+      "a": 255
+    }
+  },
+  "geometry": {
+    "type": "art",
+    "layers": [
+      {
+        "id": "pad",
+        "paint": "screen",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 6,
+              "y": 8
+            },
+            {
+              "x": 34,
+              "y": 8
+            }
+          ],
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          },
+          "width": 8
+        }
+      },
+      {
+        "id": "rail_left",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 10,
+              "y": 10
+            },
+            {
+              "x": 18,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "rail_right",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 30,
+              "y": 10
+            },
+            {
+              "x": 22,
+              "y": 150
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 4
+        }
+      },
+      {
+        "id": "hand_grip",
+        "paint": "screen",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 12,
+              "y": 96
+            },
+            {
+              "x": 28,
+              "y": 96
+            }
+          ],
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          },
+          "width": 6
+        }
+      },
+      {
+        "id": "shaft",
+        "paint": "metal",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 148
+            },
+            {
+              "x": 20,
+              "y": 252
+            }
+          ],
+          "color": {
+            "r": 170,
+            "g": 178,
+            "b": 182,
+            "a": 255
+          },
+          "width": 5
+        }
+      },
+      {
+        "id": "tip",
+        "paint": "screen",
+        "content": {
+          "type": "stroke",
+          "points": [
+            {
+              "x": 20,
+              "y": 250
+            },
+            {
+              "x": 20,
+              "y": 256
+            }
+          ],
+          "color": {
+            "r": 58,
+            "g": 66,
+            "b": 74,
+            "a": 255
+          },
+          "width": 8
+        }
+      }
+    ]
+  },
+  "anchors": [
+    {
+      "type": "grip",
+      "id": "grip",
+      "at": {
+        "x": 20,
+        "y": 96
+      }
+    },
+    {
+      "type": "ground",
+      "id": "floor",
+      "at": {
+        "x": 0,
+        "y": 260
+      },
+      "width": 40
+    }
+  ]
+}

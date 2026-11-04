@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "character.stick_studio.kiire_v1",
+  "kind": "character",
+  "name": "Kiire",
+  "bounds": {
+    "x": -49,
+    "y": -252,
+    "width": 139,
+    "height": 396
+  },
+  "depth": "mid",
+  "tags": [
+    "lähetti",
+    "courier",
+    "kiire",
+    "hurry",
+    "aikuinen",
+    "adult",
+    "stick_studio",
+    "slim",
+    "nervous",
+    "tikku_ukko",
+    "stick"
+  ],
+  "license": {
+    "license": "MIT",
+    "author": "Koeta Studio",
+    "origin": "original",
+    "redistribution": "allowed"
+  },
+  "geometry": {
+    "type": "rig_project",
+    "path": "characters/kiire.kilsat",
+    "sha256": "4231d036ab90d46f4f03ea46cee3720e843cda8befcb63338ae39aa7219bacb6"
+  },
+  "character": {
+    "id": "KIIRE",
+    "role": "Aina liikkeellä oleva lähetti / Courier always on the move",
+    "age": "adult",
+    "build": "slim",
+    "acting": "nervous",
+    "height": 378.8
+  }
+}

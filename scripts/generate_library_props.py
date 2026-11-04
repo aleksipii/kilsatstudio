@@ -1253,6 +1253,13 @@ def _(b):
     b.ground()
 
 
+# More categories (food, music, sport, health care, bathroom, household, garden,
+# toys, workshop, camping, animals, vehicles, buildings) live in their own module.
+import library_props_more  # noqa: E402
+
+library_props_more.register(sys.modules[__name__])
+
+
 # ---------------------------------------------------------------------------
 # Migrated rig-project props (examples/stick-studio/props/*.kilsat)
 # ---------------------------------------------------------------------------
@@ -1454,7 +1461,7 @@ def finite(*vals) -> bool:
     return all(isinstance(v, (int, float)) and math.isfinite(v) for v in vals)
 
 
-def check(m: dict) -> list[str]:
+def check(m: dict, line_limit: float = LINE_LIMIT) -> list[str]:
     errs = []
     pid = m["id"]
     if not ID_RE.match(pid):
@@ -1509,8 +1516,8 @@ def check(m: dict) -> list[str]:
             c = layer["content"]
             if slot is not None and c["color"] != pal[slot]:
                 errs.append(f"layer {lid} colour differs from palette slot")
-            if c["type"] == "stroke" and c["width"] > LINE_LIMIT:
-                errs.append(f"layer {lid} stroke wider than {LINE_LIMIT}")
+            if c["type"] == "stroke" and c["width"] > line_limit:
+                errs.append(f"layer {lid} stroke wider than {line_limit}")
             x0, y0, x1, y1 = content_box(c)
             if not (inside(x0, y0) and inside(x1, y1)):
                 errs.append(f"layer {lid} outside bounds ({x0:.2f},{y0:.2f})-({x1:.2f},{y1:.2f})")
