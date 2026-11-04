@@ -14,6 +14,9 @@
 //! Ownership: every pointer returned here is freed with the matching
 //! `koeta_*_free` function. Calls on one document may come from any single
 //! thread at a time or from several threads (the preview cache is locked).
+mod timeline;
+pub use timeline::{TimelineEvent, TimelineSummary, MAX_EDITED_SOURCE_BYTES};
+
 use motion_export::{ArtContext, ExportFrames, ScenePreview};
 use motion_script::{Event, Script};
 use motion_voice::model_free::{prepare_scene_model_free, MissingAudioReason, ModelFreeError};
