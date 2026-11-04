@@ -132,6 +132,14 @@ taiteen laatu, mallien jakelulisenssit — ne kirjataan laitetestausmenettelyn m
 | feat/principles-arcs-frames | #164 | ship | vihreä | yhdistetty `e24be08` |
 | feat/cutout-characters | #162 | ship | vihreä (macOS-työ uudelleenajettu 2×, ajokone puuttui) | yhdistetty `1f68ad7` |
 | feat/city-library | #165 | ship | vihreä korjauksen `edd6cf4` jälkeen | yhdistetty `1f18c48` |
+| fix/city-props-ground-line | #178 | ship | vihreä | yhdistetty `959e828` (2026-11-04) |
+| docs/progress-ipad-phase3 | #184 | ship | vihreä | yhdistetty `690966f` |
+| feat/five-minute-streaming-export | #181 | ship | vihreä (macOS-työ uudelleenajettu, ajokone puuttui) | yhdistetty `060340e` |
+| feat/ipad-timeline-touch | #185 | ship | vihreä | yhdistetty `1cd48ae` |
+| feat/comprehensive-library | #182 | ship | vihreä (macOS-työ uudelleenajettu) | yhdistetty `ee03325` |
+| feat/albus-yaml-source | #179 | ship | vihreä (macOS-työt uudelleenajettu) | yhdistetty `a33cc18` |
+| feat/yaml-pro-tooling | #183 | ship | vihreä korjausten `092b4ff`, `7da2743`, `a4fc255`, `705bcd5` jälkeen | yhdistetty `82d8910` |
+| ci/ipad-main-artifact | #186 | ship | vihreä | yhdistetty `a115e4e` |
 | feat/night-room-grading | – (vain paikallinen) | defer | – | konflikti mainin kanssa; käyttäjä jätti 1.0:n ulkopuolelle |
 | feat/a02-motionscript-compiler | #102 suljettu | defer | – | koskematta |
 | feat/direct-manipulation-ui | #93 | stale | – | sisältö mainissa; ei poistettu (käyttäjän päätös) |
