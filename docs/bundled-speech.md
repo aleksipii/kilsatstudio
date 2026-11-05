@@ -10,6 +10,7 @@ yhdistää mitään: sovellus löytää ne käynnistyessään ja toimii ilman ve
 | Piper 1.8.0 + `fi_FI-harri-medium` (`piper_harri`) | Suomenkielinen puhe | `speech/bin/piper`, `speech/piper` |
 | Rhubarb Lip Sync 1.14.0 (PocketSphinx) | Suun ajoitusarvio | `speech/rhubarb` |
 | CPython 3.12 (python-build-standalone) | Kokoron ja Piperin ajoympäristö | `speech/python` |
+| FFmpeg 9.0.2 + x264 (valinnainen, staattinen) | MP4-, ProRes- ja animaatiovienti | `speech/ffmpeg/bin/ffmpeg` |
 
 ## Rakentaminen
 
@@ -22,8 +23,19 @@ vastaan (HTTPS, koko, SHA-256). Kokoron malli- ja äänipinnit tulevat
 ```sh
 python3 scripts/build_speech_bundle.py --output /absolute/build/speech \
   --download-cache /absolute/build/speech-cache --allow-downloads
+# Valinnainen: FFmpeg mukaan, jolloin vienti ei tarvitse Homebrew'ta.
+scripts/build_ffmpeg_bundle.sh /absolute/build/ffmpeg /absolute/build/ffmpeg-cache
+python3 scripts/add_ffmpeg_to_speech_bundle.py /absolute/build/speech /absolute/build/ffmpeg
 scripts/build_release_app.sh /absolute/build/release /absolute/build/speech
 ```
+
+`build_ffmpeg_bundle.sh` kääntää FFmpeg 9.0.2:n ja x264:n (Homebrew'n kiinnittämä r3222)
+kiinnitetyistä lähdepaketeista (SHA-256) staattisesti. Tulos linkittää vain macOS:n
+järjestelmäkirjastoihin, toimii Apple Siliconilla macOS 13:sta alkaen, ja sen
+mukana ovat lisenssitekstit ja `SOURCES.txt` (lähteet ja configure-rivit). Kun
+paketissa on FFmpeg, sovellus täyttää FFmpeg-polun kaikkiin vienteihin itse.
+Tällainen FFmpeg on GPL-2.0-or-later: julkinen jakelu edellyttää lähdekoodin
+tarjoamista.
 
 Rakennin:
 

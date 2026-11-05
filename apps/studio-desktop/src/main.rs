@@ -4164,6 +4164,12 @@ impl Studio {
         self.revision = speech.kokoro_revision.clone();
         self.piper_config_path = speech.piper_profile.to_string_lossy().into_owned();
         self.native_alignment.use_executable(&speech.rhubarb);
+        if let Some((ffmpeg, _)) = &speech.ffmpeg {
+            if self.ffmpeg_path.trim().is_empty() {
+                self.ffmpeg_path = ffmpeg.to_string_lossy().into_owned();
+            }
+            self.sequence_panel.use_default_ffmpeg(ffmpeg);
+        }
         self.setup_profile = Some(kokoro_setup::Profile {
             python: speech.python.clone(),
             config: speech.kokoro_config.clone(),
@@ -4172,17 +4178,28 @@ impl Studio {
             cache: speech.kokoro_cache.clone(),
             revision: speech.kokoro_revision.clone(),
         });
-        self.setup_status = "Puhe on valmiina: Kokoro (englanti), Piper (suomi) ja Rhubarb tulevat sovelluksen mukana. Mitään ei tarvitse ladata.".into();
+        self.setup_status = if speech.ffmpeg.is_some() {
+            "Puhe ja vienti ovat valmiina: Kokoro (englanti), Piper (suomi), Rhubarb ja FFmpeg tulevat sovelluksen mukana. Mitään ei tarvitse ladata."
+        } else {
+            "Puhe on valmiina: Kokoro (englanti), Piper (suomi) ja Rhubarb tulevat sovelluksen mukana. Mitään ei tarvitse ladata."
+        }
+        .into();
         self.bundled_speech = Some(speech);
     }
     fn kokoro_setup_ui(&mut self, ui: &mut egui::Ui) {
         if let Some(speech) = &self.bundled_speech {
             ui.heading("Puhe · valmiina sovelluksessa");
             ui.label("Kokoro (englanti), Piper ja harri-ääni (suomi) sekä Rhubarb-suuajoitus tulevat sovelluksen mukana. Asennusta tai latauksia ei tarvita; kaikki toimii paikallisesti ilman verkkoa.");
-            ui.weak(format!(
-                "Paketti {} · Rhubarb {}",
-                speech.bundle_id, speech.rhubarb_version
-            ));
+            ui.weak(match &speech.ffmpeg {
+                Some((_, version)) => format!(
+                    "Paketti {} · Rhubarb {} · FFmpeg {version}",
+                    speech.bundle_id, speech.rhubarb_version
+                ),
+                None => format!(
+                    "Paketti {} · Rhubarb {}",
+                    speech.bundle_id, speech.rhubarb_version
+                ),
+            });
         } else {
             ui.heading("Kokoro · englanninkielisen puheen asennus");
             ui.label("Asenna ja testaa englanninkielinen puhe. Python 3.10–3.12 on oltava asennettuna. Malli toimii paikallisessa taustaprosessissa.");
@@ -8469,8 +8486,11 @@ mod scene_preview_tests {
             piper_profile: "/Support/piper-profile.json".into(),
             rhubarb: "/App/speech/rhubarb/rhubarb".into(),
             rhubarb_version: "1.14.0".into(),
+            ffmpeg: Some(("/App/speech/ffmpeg/bin/ffmpeg".into(), "9.0.2".into())),
         };
+        studio.ffmpeg_path.clear();
         studio.apply_bundled_speech(speech);
+        assert_eq!(studio.ffmpeg_path, "/App/speech/ffmpeg/bin/ffmpeg");
         let config = studio.kokoro_config();
         assert_eq!(
             config.python,
