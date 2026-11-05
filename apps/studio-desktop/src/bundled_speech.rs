@@ -23,6 +23,15 @@ struct Descriptor {
     kokoro: KokoroEntry,
     piper: PiperEntry,
     rhubarb: RhubarbEntry,
+    /// Optional: added by `scripts/add_ffmpeg_to_speech_bundle.py`.
+    #[serde(default)]
+    ffmpeg: Option<FfmpegEntry>,
+}
+#[derive(Deserialize)]
+struct FfmpegEntry {
+    executable: String,
+    ffprobe: String,
+    version: String,
 }
 #[derive(Deserialize)]
 struct KokoroEntry {
@@ -60,6 +69,8 @@ pub struct BundledSpeech {
     pub piper_profile: PathBuf,
     pub rhubarb: PathBuf,
     pub rhubarb_version: String,
+    /// Bundled FFmpeg (with `ffprobe` beside it) and its version, when shipped.
+    pub ffmpeg: Option<(PathBuf, String)>,
 }
 
 /// The bundle next to the running executable, or the developer override.
@@ -154,6 +165,18 @@ fn resolve(root: &Path, data: &Path) -> Result<BundledSpeech, String> {
     if labels.iter().any(|s| s.trim().is_empty() || s.len() > 4096) {
         return Err("Puhepaketin versiotiedot puuttuvat".into());
     }
+    let ffmpeg = match &d.ffmpeg {
+        Some(entry) => {
+            let executable = inside(&root, &entry.executable, false)?;
+            let ffprobe = inside(&root, &entry.ffprobe, false)?;
+            // The exporter looks for ffprobe beside ffmpeg.
+            if ffprobe.parent() != executable.parent() {
+                return Err("Puhepaketin ffprobe ei ole ffmpegin vieressä".into());
+            }
+            Some((executable, entry.version.clone()))
+        }
+        None => None,
+    };
     let kokoro_cache = data.join("kokoro-cache");
     let piper_cache = data.join("piper-cache");
     for directory in [&kokoro_cache, &piper_cache] {
@@ -185,6 +208,7 @@ fn resolve(root: &Path, data: &Path) -> Result<BundledSpeech, String> {
         piper_profile,
         rhubarb: inside(&root, &d.rhubarb.executable, false)?,
         rhubarb_version: d.rhubarb.version,
+        ffmpeg,
     })
 }
 
@@ -281,6 +305,41 @@ mod tests {
             .modified()
             .unwrap();
         assert_eq!(before, after);
+    }
+
+    #[test]
+    fn bundled_ffmpeg_is_optional_and_must_sit_beside_ffprobe() {
+        let temp = TempDir::new("ffmpeg");
+        let (root, data) = (temp.path().join("speech"), temp.path().join("data"));
+        fs::create_dir(&root).unwrap();
+        bundle(&root);
+        assert_eq!(resolve(&root, &data).unwrap().ffmpeg, None);
+
+        let with_ffmpeg = |ffprobe: &str| {
+            let mut value: serde_json::Value =
+                serde_json::from_slice(&fs::read(root.join(DESCRIPTOR)).unwrap()).unwrap();
+            value["ffmpeg"] = serde_json::json!({"executable": "ffmpeg/bin/ffmpeg",
+                "ffprobe": ffprobe, "version": "9.0.2"});
+            fs::write(root.join(DESCRIPTOR), value.to_string()).unwrap();
+        };
+        with_ffmpeg("ffmpeg/bin/ffprobe");
+        // Declared but missing files are an error, never a silent fallback.
+        assert!(resolve(&root, &data)
+            .unwrap_err()
+            .contains("ffmpeg/bin/ffmpeg"));
+        for file in ["ffmpeg/bin/ffmpeg", "ffmpeg/bin/ffprobe", "ffmpeg/ffprobe"] {
+            let path = root.join(file);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, b"x").unwrap();
+        }
+        let (ffmpeg, version) = resolve(&root, &data).unwrap().ffmpeg.unwrap();
+        assert_eq!(
+            ffmpeg,
+            root.canonicalize().unwrap().join("ffmpeg/bin/ffmpeg")
+        );
+        assert_eq!(version, "9.0.2");
+        with_ffmpeg("ffmpeg/ffprobe");
+        assert!(resolve(&root, &data).unwrap_err().contains("ffprobe"));
     }
 
     #[test]

@@ -114,6 +114,13 @@ impl Default for Panel {
     }
 }
 impl Panel {
+    /// Use the FFmpeg shipped with the app unless the user already chose one.
+    pub fn use_default_ffmpeg(&mut self, ffmpeg: &std::path::Path) {
+        if self.ffmpeg.trim().is_empty() {
+            self.ffmpeg = ffmpeg.to_string_lossy().into_owned();
+        }
+    }
+
     pub fn stop_transport(&mut self) {
         self.playing = false;
         if let Some(player) = self.player.take() {
