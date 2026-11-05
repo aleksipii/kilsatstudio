@@ -3022,3 +3022,30 @@ mainiin merge-commiteilla tässä järjestyksessä: [#178](https://github.com/al
   - Mikään CI-työ ei aja `generate_character_library.py --check` -tarkistusta.
   - `motion-audio`, `motion-tts` ja `motion-lipsync` ovat yhä versiossa `0.1.0`.
   - `v1.0.0`-tagi ja GitHub-julkaisu vaativat käyttäjän erillisen luvan.
+
+## 2026-11-04 — 1.0-aukot suljettu: PR #188 yhdistetty
+
+Yhdistetty käyttäjän luvalla merge-committina `113f985`; `kilsatstudio1.0`
+fast-forward `b56e883..113f985` (ei force-pushia, ei tagia).
+- Kokoro puuttuu → virhe nimeää puuttuvan tiedoston, polun ja tuodun WAV:n vaihtoehdon;
+  testi `crates/motion-voice/tests/kokoro_missing.rs` oikealla `LocalSpeechProvider`illa
+  (virhe selkeä, ei välimuistia, tuotu ääni valmistuu samalla palvelulla).
+- `scripts/third_party_licenses.py`: Rust-cratejen lisenssitekstit `THIRD-PARTY-LICENSES.txt`
+  -tiedostoon (Mac- ja iPad-paketissa) ja `docs/third-party-license-report.md`; 265 cratea,
+  0 vaatii päätöstä, block 0.1.6 ja dispatch 0.2.0 ilman tekstiä missään. CI tarkistaa.
+- `asset-library.yml` ajaa myös hahmo-, kaupunki- ja taustageneraattorit.
+- motion-audio, motion-tts ja motion-lipsync versiossa 1.0.0 (`version.workspace`).
+- Vienti mitattu uudelleen (M1 8 GB): ep01 26,8–26,9 fps, Albus 32,3 fps, viisi minuuttia
+  (7126 ruutua) 270,9 s eli 26,3 fps; huippu-RSS 728 MB (yli 256 MiB:n arvion).
+
+Ajettu paikallisesti (macOS, M1): fmt, check, clippy `-D warnings` 0 varoitusta,
+`cargo test --workspace --all-targets` 1427 läpi / 0 epäonnistui / 14 ohitettu, Python
+`tests` 161 OK, `scripts/tests` 31 OK, kokoro-runtime OK (5 ohitettu). CI mainissa
+`113f985`: kaikki työnkulut vihreinä (esikatselu käsin käynnistettynä 41881073905, koska
+push-ajo jäi jonoon); macOS-työt peruuntuivat 2–4 kertaa GitHub Actionsin häiriön vuoksi
+ja ajettiin uudelleen, ei ohitettu.
+
+Yhä auki: Developer ID -allekirjoitus ja notarisointi, iPadin allekirjoitus ja TestFlight,
+puhepaketin lisenssit (piper-tts/eSpeak NG GPL-3.0, Kokoro- ja harri-äänet), block- ja
+dispatch-cratejen lisenssiteksti, viennin muistinkäytön selvitys, käsin tehty
+sovellustestaus, `v1.0.0`-tagi (erillinen lupa).
