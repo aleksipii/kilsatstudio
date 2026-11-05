@@ -3049,3 +3049,31 @@ Yhä auki: Developer ID -allekirjoitus ja notarisointi, iPadin allekirjoitus ja 
 puhepaketin lisenssit (piper-tts/eSpeak NG GPL-3.0, Kokoro- ja harri-äänet), block- ja
 dispatch-cratejen lisenssiteksti, viennin muistinkäytön selvitys, käsin tehty
 sovellustestaus, `v1.0.0`-tagi (erillinen lupa).
+
+## 2026-11-05 — Lisäosat sovelluksen mukana: PR #190 yhdistetty
+
+Yhdistetty käyttäjän luvalla merge-committina `18c29fb`; `kilsatstudio1.0`
+fast-forward `113f985..18c29fb` (ei force-pushia, ei tagia).
+- `scripts/build_ffmpeg_bundle.sh`: staattinen FFmpeg 9.0.2 + x264 r3222 kiinnitetyistä
+  lähteistä (SHA-256 sama kuin Homebrew'n kaavassa), linkittää vain macOS:n
+  järjestelmäkirjastoihin; lisenssitekstit ja `SOURCES.txt` mukana.
+- `scripts/add_ffmpeg_to_speech_bundle.py` lisää sen puhepakettiin (`speech/ffmpeg`);
+  sovellus täyttää FFmpeg-polun vienteihin itse. Paketointi ja tarkastus ennallaan.
+
+Ajettu paikallisesti (iMac, Apple M1, macOS 27.0.1): puhepaketti (1,5 Gt) ja FFmpeg
+rakennettu, täysi julkaisusovellus `Koeta-Studio-1.0.0-universal.zip` 835 Mt,
+`package_audit` 0 virhettä (38 821 tiedostoa), `codesign --verify --deep --strict` OK.
+Puretun sovelluksen tiedostoilla: Kokoro syntetisoi `hello-emma.yaml`:n 2 repliikkiä
+(12,0 s), Piper harri 4,8 s suomea, Rhubarb 25 suuasentoa (x86_64 Rosettalla), FFmpeg vei
+ep01:n H.264 1920×1080, 910 ruutua, AAC. CI mainissa `18c29fb`: 6/6 vihreänä
+(release app 42019704798, iPad app 42019704516, Audio foundation 42019704580, Export QA
+42019704636, preview 42019704532, Screen slots 42019704742).
+
+Yhä auki:
+- Käyttöliittymää ei ajettu käsin; MacBook Neolla ei vielä kokeiltu.
+- Paketin FFmpeg on noin 15 % hitaampi kuin Homebrew'n (ep01 19,6 vs. 23,2 ruutua/s);
+  syy selvittämättä.
+- Täyttä pakettia (puhe + FFmpeg) ei rakenneta CI:ssä; se on vain arm64, ja Rhubarb
+  tarvitsee Rosettan.
+- GPL-osat (FFmpeg/x264, piper-tts, eSpeak NG): julkinen jakelu vaatii lähdetarjouksen.
+- Developer ID -allekirjoitus, notarisointi, iPadin TestFlight ja `v1.0.0`-tagi.
